@@ -1,14 +1,27 @@
-# Hive Guardian Agent
+# Hive Guardian Agent → Oracle Intelligence System
 
-AI-powered code review agent that automates code quality enforcement and provides intelligent feedback on pull requests.
+**The Evolution from Guardian to Oracle**: AI-powered code review agent that has evolved into a comprehensive platform intelligence system providing strategic insights, predictive analytics, and proactive recommendations.
 
-## Features
+## 🔮 The Hive Intelligence Initiative
 
-- **Automated Code Review**: Analyzes code changes using AI to provide comprehensive reviews
-- **Golden Rules Enforcement**: Validates code against the Hive platform's Golden Rules
-- **Pattern Recognition**: Uses vector search to identify common code patterns and anti-patterns
-- **Intelligent Suggestions**: Provides context-aware fix suggestions and improvements
-- **Learning System**: Improves over time by learning from past reviews and team preferences
+The Guardian Agent has successfully evolved into the **Hive Oracle** - transforming from a reactive code protector into a proactive platform intelligence system that provides strategic wisdom for the entire Hive ecosystem.
+
+## 🌟 Oracle Capabilities
+
+### Core Intelligence Features
+- **🎯 Strategic Recommendations**: Proactive insights for cost optimization, performance improvement, and risk mitigation
+- **📊 Mission Control Dashboard**: Single-pane-of-glass view of platform health, costs, and developer velocity
+- **🔍 Predictive Analytics**: Failure prediction, capacity planning, and trend analysis
+- **💰 Cost Intelligence**: Real-time cost tracking, budget monitoring, and optimization recommendations
+- **⚡ Performance Insights**: System performance analysis and bottleneck identification
+- **🛡️ Security Intelligence**: Anomaly detection and security enhancement recommendations
+
+### Original Guardian Features
+- **Automated Code Review**: AI-powered comprehensive code analysis
+- **Golden Rules Enforcement**: Platform compliance validation and reporting
+- **Pattern Recognition**: Vector search for code patterns and anti-patterns
+- **Intelligent Suggestions**: Context-aware fix recommendations
+- **Learning System**: Continuous improvement through feedback processing
 
 ## Architecture
 
@@ -41,41 +54,124 @@ export OPENAI_API_KEY=your-key-here
 
 ## Usage
 
-### CLI Interface
+### Oracle Intelligence Commands
+
+```bash
+# Start the Oracle Intelligence Service
+guardian oracle start --daemon
+
+# Get platform health and Oracle status
+guardian oracle status
+
+# Generate strategic insights and recommendations
+guardian oracle insights --hours 24
+
+# View Mission Control Dashboard
+guardian oracle dashboard
+
+# Force immediate platform analysis
+guardian oracle analyze
+
+# Get cost intelligence and optimization recommendations
+guardian oracle costs
+```
+
+### Original Guardian Commands
 
 ```bash
 # Review a single file
 guardian review path/to/file.py
 
-# Review changes in a PR
-guardian review-pr --repo=owner/repo --pr=123
+# Review directory
+guardian review-dir ./src --recursive
 
-# Run in watch mode
-guardian watch --path=./src
+# Get automatic fix preview
+guardian autofix path/to/file.py
 
 # Generate review report
-guardian report --format=markdown > review.md
+guardian review --format=json > review.json
 ```
 
 ### Python API
 
+#### Oracle Intelligence API
+
 ```python
-from guardian_agent import ReviewEngine, CodeAnalyzer
+from guardian_agent import OracleService, OracleConfig
+
+# Initialize the Oracle
+oracle_config = OracleConfig(
+    enable_predictive_analysis=True,
+    enable_github_integration=True
+)
+oracle = OracleService(oracle_config)
+
+# Start intelligence gathering
+await oracle.start_async()
+
+# Get platform health
+health = await oracle.get_platform_health_async()
+print(f"Platform Health: {health['overall_score']}/100")
+
+# Get strategic insights
+insights = await oracle.get_strategic_insights_async(hours=24)
+
+# Get cost intelligence
+costs = await oracle.get_cost_intelligence_async()
+print(f"Monthly cost: ${costs['monthly_cost']:.2f}")
+
+# Generate recommendations
+recommendations = await oracle.get_recommendations_async()
+```
+
+#### Original Guardian API
+
+```python
+from guardian_agent import ReviewEngine, GuardianConfig
 
 # Initialize the review engine
-engine = ReviewEngine()
+config = GuardianConfig()
+engine = ReviewEngine(config)
 
 # Review code
 result = await engine.review_file("path/to/file.py")
 
 # Get suggestions
 suggestions = result.get_suggestions()
-
-# Apply automatic fixes
-fixes = await engine.apply_fixes(result.violations)
 ```
 
 ## Configuration
+
+### Oracle Intelligence Configuration
+
+```yaml
+# config/oracle.yaml
+oracle:
+  # Data collection settings
+  collection_interval: 300  # 5 minutes
+  analysis_interval: 3600   # 1 hour
+  reporting_interval: 86400 # 24 hours
+
+  # Intelligence settings
+  min_confidence_threshold: 0.7
+  prediction_horizon_hours: 24
+  enable_predictive_analysis: true
+  enable_github_integration: true
+
+  # Storage settings
+  data_retention_days: 90
+  cache_ttl_seconds: 300
+
+  # GitHub integration
+  github_repository: "hive"
+  github_labels: ["oracle", "intelligence", "automated"]
+
+  # Dashboard settings
+  dashboard_refresh_interval: 300
+  dashboard_port: 8080
+```
+
+### Guardian Review Configuration
 
 ```yaml
 # config/guardian.yaml

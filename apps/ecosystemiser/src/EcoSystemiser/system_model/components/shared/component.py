@@ -1,15 +1,9 @@
 """Base component class for all system components."""
 
-from typing import Any, Dict
+from __future__ import annotations
 
-import cvxpy as cp
-import numpy as np
-from ecosystemiser.system_model.components.shared.economic_params import (
-    EconomicParamsModel
-)
-from ecosystemiser.system_model.components.shared.environmental_params import (
-    EnvironmentalParamsModel
-)
+from ecosystemiser.system_model.components.shared.economic_params import EconomicParamsModel
+from ecosystemiser.system_model.components.shared.environmental_params import EnvironmentalParamsModel
 from hive_logging import get_logger
 from pydantic import BaseModel
 
@@ -18,8 +12,6 @@ logger = get_logger(__name__)
 
 class ComponentParams(BaseModel):
     """Base parameters for all components."""
-from __future__ import annotations
-
 
     economic: EconomicParamsModel | None = EconomicParamsModel()
     environmental: EnvironmentalParamsModel | None = EnvironmentalParamsModel()
@@ -99,7 +91,7 @@ class Component:
         """
         return []
 
-    def get_state_at_timestep(self, t: int) -> Dict[str, float]:
+    def get_state_at_timestep(self, t: int) -> dict[str, float]:
         """Get component state at specific timestep.
 
         Args:

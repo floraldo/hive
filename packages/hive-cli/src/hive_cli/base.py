@@ -1,5 +1,7 @@
 """Base CLI classes for Hive applications."""
 
+from __future__ import annotations
+
 from pathlib import Path
 from typing import Any, Dict
 
@@ -10,8 +12,6 @@ from hive_logging import get_logger
 
 class HiveError(BaseError):
     """Base error for Hive CLI operations."""
-from __future__ import annotations
-
 
     pass
 

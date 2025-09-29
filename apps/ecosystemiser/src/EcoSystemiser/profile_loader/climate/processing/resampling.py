@@ -1,8 +1,7 @@
 """Time series resampling with proper aggregation policies"""
 
-from typing import Dict, Literal
+from typing import Literal
 
-import numpy as np
 import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
@@ -30,7 +29,7 @@ def get_aggregation_policy(var_type: Literal["state", "flux"]) -> str:
         return "mean"
 
 
-def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: Dict[str, str] = None) -> xr.Dataset:
+def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[str, str] = None) -> xr.Dataset:
     """
     Resample dataset to target resolution with proper aggregation.
 

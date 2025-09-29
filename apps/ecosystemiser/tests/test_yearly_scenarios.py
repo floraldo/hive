@@ -3,10 +3,9 @@
 
 import json
 import os
-import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -42,6 +41,7 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
+
 def load_yearly_profile(profile_name: str) -> np.ndarray:
     """Load a yearly profile from CSV."""
     profile_path = (
@@ -56,6 +56,7 @@ def load_yearly_profile(profile_name: str) -> np.ndarray:
 
     logger.info(f"Loaded {profile_name}: {len(profile)} timesteps, range [{profile.min():.2f}, {profile.max():.2f}]")
     return profile
+
 
 def create_yearly_system() -> System:
     """Create system for yearly testing using extracted profiles."""
@@ -139,12 +140,14 @@ def create_yearly_system() -> System:
     logger.info(f"Created yearly system: {len(system.components)} components, {len(system.flows)} flows")
     return system
 
+
 def monitor_memory_usage():
     """Get current memory usage in MB."""
     process = psutil.Process(os.getpid())
     return process.memory_info().rss / 1024 / 1024
 
-def validate_energy_balance(system: System, tolerance: float = 1e-3) -> Dict[str, float]:
+
+def validate_energy_balance(system: System, tolerance: float = 1e-3) -> dict[str, float]:
     """Validate energy balance for yearly simulation."""
     max_imbalance = 0.0
     total_imbalances = []
@@ -153,7 +156,7 @@ def validate_energy_balance(system: System, tolerance: float = 1e-3) -> Dict[str
         sources = 0.0
         sinks = 0.0
 
-        for flow_key, flow_data in system.flows.items():
+        for _flow_key, flow_data in system.flows.items():
             if flow_data["value"] is None or len(flow_data["value"]) <= t:
                 continue  # Skip flows with no data
 
@@ -183,7 +186,8 @@ def validate_energy_balance(system: System, tolerance: float = 1e-3) -> Dict[str
         "violation_count": sum(1 for imb in total_imbalances if imb > tolerance),
     }
 
-def analyze_yearly_performance(system: System) -> Dict[str, Any]:
+
+def analyze_yearly_performance(system: System) -> dict[str, Any]:
     """Analyze system performance over the full year."""
     analysis = {}
 
@@ -193,7 +197,7 @@ def analyze_yearly_performance(system: System) -> Dict[str, Any]:
     grid_import_total = 0.0
     grid_export_total = 0.0
 
-    for flow_key, flow_data in system.flows.items():
+    for _flow_key, flow_data in system.flows.items():
         if flow_data["value"] is None:
             continue  # Skip flows with no data
 
@@ -233,6 +237,7 @@ def analyze_yearly_performance(system: System) -> Dict[str, Any]:
     }
 
     return analysis
+
 
 def test_rule_based_yearly():
     """Test rule-based solver on yearly scenario."""
@@ -313,6 +318,7 @@ def test_rule_based_yearly():
     results["total_time"] = results["test_end"] - results["test_start"]
 
     return results
+
 
 def test_milp_yearly():
     """Test MILP solver on yearly scenario (smaller subset due to performance)."""
@@ -446,6 +452,7 @@ def test_milp_yearly():
 
     return results
 
+
 def main():
     """Main execution."""
     logger.info("Starting yearly scenario validation tests")
@@ -483,21 +490,22 @@ def main():
         json.dump(json_results, f, indent=2)
 
     # Print summary
-    print("\\n" + "=" * 80)
-    print("YEARLY SCENARIO VALIDATION SUMMARY")
-    print("=" * 80)
+    logger.info("\\n" + "=" * 80)
+    logger.info("YEARLY SCENARIO VALIDATION SUMMARY")
+    logger.info("=" * 80)
 
     rule_passed = all_results["rule_based_yearly"]["validation_passed"] if all_results["rule_based_yearly"] else False
     milp_passed = all_results["milp_subset"]["validation_passed"] if all_results["milp_subset"] else False
 
-    print(f"Rule-based yearly (8760h): {'PASSED' if rule_passed else 'FAILED'}")
-    print(f"MILP subset (168h): {'PASSED' if milp_passed else 'FAILED'}")
-    print(f"Overall validation: {'PASSED' if rule_passed and milp_passed else 'FAILED'}")
-    print(f"Total test time: {all_results['total_suite_time']:.1f}s")
-    print(f"Results saved: {results_path}")
-    print("=" * 80)
+    logger.info(f"Rule-based yearly (8760h): {'PASSED' if rule_passed else 'FAILED'}")
+    logger.info(f"MILP subset (168h): {'PASSED' if milp_passed else 'FAILED'}")
+    logger.info(f"Overall validation: {'PASSED' if rule_passed and milp_passed else 'FAILED'}")
+    logger.info(f"Total test time: {all_results['total_suite_time']:.1f}s")
+    logger.info(f"Results saved: {results_path}")
+    logger.info("=" * 80)
 
     return rule_passed and milp_passed
+
 
 if __name__ == "__main__":
     success = main()

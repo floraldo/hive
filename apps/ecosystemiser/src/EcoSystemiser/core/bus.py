@@ -151,8 +151,8 @@ class EcoSystemiserEventBus(BaseBus):
         )
 
     def publish(
-        self
-        event: Union[BaseEvent, Dict[str, Any]]
+        self,
+        event: Union[BaseEvent, Dict[str, Any]],
         correlation_id: str | None = None
     ) -> str:
         """
@@ -261,7 +261,7 @@ class EcoSystemiserEventBus(BaseBus):
 
     def _get_events(
         self
-        event_type: str | None = None
+        event_type: str | None = None,
         correlation_id: str | None = None
         simulation_id: str | None = None
         analysis_id: str | None = None
@@ -304,11 +304,11 @@ class EcoSystemiserEventBus(BaseBus):
         events = []
         for row in rows:
             event_data = {
-                "event_id": row["event_id"]
-                "event_type": row["event_type"]
-                "timestamp": row["timestamp"]
-                "source": row["source_component"]
-                "correlation_id": row["correlation_id"]
+                "event_id": row["event_id"],
+                "event_type": row["event_type"],
+                "timestamp": row["timestamp"],
+                "source": row["source_component"],
+                "correlation_id": row["correlation_id"],
                 "payload": json.loads(row["payload"]) if row["payload"] else {}
                 "metadata": json.loads(row["metadata"]) if row["metadata"] else {}
             }

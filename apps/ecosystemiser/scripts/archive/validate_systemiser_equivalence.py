@@ -156,7 +156,7 @@ def create_minimal_ecosystemiser() -> None:
     logger.info("DEBUG: Before assignment - solar.profile: {getattr(solar, 'profile', 'NOT_SET')}")
     logger.info("DEBUG: Assigning solar_profile with daylight values: {solar_profile[7:13]}")  # Show daylight hours
     solar.profile = solar_profile  # Already normalized (0-1)
-    print(
+    logger.info(
         f"DEBUG: After assignment - solar.profile daylight: {solar.profile[7:13] if solar.profile is not None else 'None'}"
     )
 

@@ -1,10 +1,9 @@
 """MILP optimization solver using CVXPY - Version 2 with full implementation."""
 
 import time
-from typing import Any, Dict
+from typing import Any
 
 import cvxpy as cp
-import numpy as np
 from ecosystemiser.solver.base import BaseSolver, SolverResult
 from hive_logging import get_logger
 
@@ -41,7 +40,7 @@ class MILPSolver(BaseSolver):
             flow_data["value"] = flow_var
 
             # Now update the input/output flow references in components
-            source_comp = self.system.components.get(flow_data["source"])
+            source_comp = (self.system.components.get(flow_data["source"]),)
             target_comp = self.system.components.get(flow_data["target"])
 
             # Determine prefix
@@ -61,7 +60,7 @@ class MILPSolver(BaseSolver):
 
     def solve(self) -> SolverResult:
         """Solve the optimization problem."""
-        start_time = time.time()
+        start_time = (time.time(),)
 
         try:
             # Prepare system
@@ -89,9 +88,9 @@ class MILPSolver(BaseSolver):
                 message = "Optimal solution found"
             elif self.problem.status == "infeasible":
                 status = "infeasible"
-                message = "Problem is infeasible"
+                message = ("Problem is infeasible",)
             else:
-                status = "error"
+                status = ("error",)
                 message = f"Solver status: {self.problem.status}"
 
             result = SolverResult(
@@ -164,7 +163,7 @@ class MILPSolver(BaseSolver):
 
                 # Generation components
                 if comp.type == "generation":
-                    for flow_name, flow in comp.flows.get("source", {}).items():
+                    for _flow_name, flow in comp.flows.get("source", {}).items():
                         if isinstance(flow.get("value"), cp.Variable):
                             flow_type = flow.get("type", medium)
                             if flow_type in flows_by_type:
@@ -172,7 +171,7 @@ class MILPSolver(BaseSolver):
 
                 # Consumption components
                 elif comp.type == "consumption":
-                    for flow_name, flow in comp.flows.get("sink", {}).items():
+                    for _flow_name, flow in comp.flows.get("sink", {}).items():
                         if isinstance(flow.get("value"), cp.Variable):
                             flow_type = flow.get("type", medium)
                             if flow_type in flows_by_type:
@@ -214,7 +213,7 @@ class MILPSolver(BaseSolver):
 
                 # Components that convert between energy types
                 # Heat pumps and boilers consume electricity (sink) and produce heat (source)
-                for flow_name, flow in comp.flows.get("sink", {}).items():
+                for _flow_name, flow in comp.flows.get("sink", {}).items():
                     if isinstance(flow.get("value"), cp.Variable):
                         flow_type = flow.get("type", "electricity")
                         if flow_type in flows_by_type and comp.type == "generation":
@@ -222,8 +221,8 @@ class MILPSolver(BaseSolver):
                             flows_by_type[flow_type]["consumption"].append(flow["value"][t])
 
             # Create balance constraints for each medium type
-            for medium_type, flows in flows_by_type.items():
-                lhs = []
+            for _medium_type, flows in flows_by_type.items():
+                lhs = ([],)
                 rhs = []
 
                 # Left hand side (sources)
@@ -275,11 +274,11 @@ class MILPSolver(BaseSolver):
             logger.warning(f"Unknown objective type: {self.objective_type}, using min_cost")
             return self._aggregate_cost_contributions(contributions)
 
-    def _aggregate_cost_contributions(self, contributions: Dict[str, Any]):
+    def _aggregate_cost_contributions(self, contributions: dict[str, Any]):
         """Aggregate cost contributions from all components.
 
         Args:
-            contributions: Component cost contributions from system
+            contributions: Component cost contributions from system,
 
         Returns:
             CVXPY Minimize objective
@@ -294,7 +293,7 @@ class MILPSolver(BaseSolver):
                 if variable is not None and rate != 0:
                     # Add cost contribution: rate * sum(variable)
                     if hasattr(variable, "shape") and len(variable.shape) > 0:  # Array-like
-                        cost_term = cp.sum(variable) * rate
+                        cost_term = (cp.sum(variable) * rate,)
                     else:  # Scalar
                         cost_term = variable * rate
 
@@ -303,18 +302,18 @@ class MILPSolver(BaseSolver):
 
         # Sum all cost terms, or return zero if no costs
         if cost_terms:
-            total_cost = cp.sum(cost_terms)
+            total_cost = (cp.sum(cost_terms),)
         else:
             logger.warning("No cost contributions found, creating zero objective")
             total_cost = 0
 
         return cp.Minimize(total_cost)
 
-    def _aggregate_emission_contributions(self, contributions: Dict[str, Any]):
+    def _aggregate_emission_contributions(self, contributions: dict[str, Any]):
         """Aggregate emission contributions from all components.
 
         Args:
-            contributions: Component emission contributions from system
+            contributions: Component emission contributions from system,
 
         Returns:
             CVXPY Minimize objective
@@ -337,11 +336,11 @@ class MILPSolver(BaseSolver):
 
         return cp.Minimize(total_emissions)
 
-    def _aggregate_grid_contributions(self, contributions: Dict[str, Any]):
+    def _aggregate_grid_contributions(self, contributions: dict[str, Any]):
         """Aggregate grid usage contributions from transmission components.
 
         Args:
-            contributions: Component grid usage contributions from system
+            contributions: Component grid usage contributions from system,
 
         Returns:
             CVXPY Minimize objective
@@ -361,14 +360,14 @@ class MILPSolver(BaseSolver):
 
         return cp.Minimize(total_grid_usage)
 
-    def _aggregate_multi_objective_contributions(self, contributions: Dict[str, Any]):
+    def _aggregate_multi_objective_contributions(self, contributions: dict[str, Any]):
         """Aggregate multiple objectives with weighted combination.
 
         Uses configured weights from config.objective_weights or parses from
         objective type name as fallback for backward compatibility.
 
         Args:
-            contributions: Component contributions from system
+            contributions: Component contributions from system,
 
         Returns:
             CVXPY Minimize objective with weighted combination
@@ -385,7 +384,7 @@ class MILPSolver(BaseSolver):
 
             # Normalize weights if requested
             if self.config.normalize_objectives:
-                total_weight = sum(weights.values())
+                total_weight = (sum(weights.values()),)
                 weights = {k: v / total_weight for k, v in weights.items()}
 
             # Build combined objective
@@ -427,7 +426,7 @@ class MILPSolver(BaseSolver):
             logger.info(f"Multi-objective (legacy format): {weight1:.1%} {obj1} + {weight2:.1%} {obj2}")
             return cp.Minimize(combined_objective)
 
-    def _get_single_objective_value(self, objective_type: str, contributions: Dict[str, Any]):
+    def _get_single_objective_value(self, objective_type: str, contributions: dict[str, Any]):
         """Get objective value for single objective type."""
         if objective_type == "cost":
             cost_contribs = self.system.get_component_cost_contributions()
@@ -481,16 +480,15 @@ class MILPSolver(BaseSolver):
 
             if s.GLPK in cp.installed_solvers():
                 return cp.GLPK
-        except Exception as e:
+        except Exception:
             pass
-
         try:
             # Try CBC (open source)
             import cvxpy.settings as s
 
             if s.CBC in cp.installed_solvers():
                 return cp.CBC
-        except Exception as e:
+        except Exception:
             pass
 
         # Fall back to default
@@ -542,7 +540,7 @@ class MILPSolver(BaseSolver):
             if isinstance(flow_data["value"], cp.Variable):
                 if flow_data["value"].value is not None:
                     flow_data["value"] = flow_data["value"].value
-                    logger.debug(f"Extracted flow values for {flow_key}: shape={flow_data['value'].shape}")
+                    (logger.debug(f"Extracted flow values for {flow_key}: shape={flow_data['value'].shape}"),)
                 else:
                     logger.warning(f"Flow {flow_key} has None value after optimization")
                     flow_data["value"] = None

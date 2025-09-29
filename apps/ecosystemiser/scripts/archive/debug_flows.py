@@ -5,19 +5,19 @@
 """
 
 import sys
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 from pathlib import Path
 
 import numpy as np
 
- for imports
+# Add path for imports
 eco_path = Path(__file__).parent.parent / "src"
+sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
-from ecosystemiser.system_model.components.energy.battery import (
-    Battery,
-    BatteryParams,
-    BatteryTechnicalParams,
-)
 from ecosystemiser.system_model.components.energy.grid import (
     Grid,
     GridParams,
@@ -27,11 +27,6 @@ from ecosystemiser.system_model.components.energy.power_demand import (
     PowerDemand,
     PowerDemandParams,
     PowerDemandTechnicalParams,
-)
-from ecosystemiser.system_model.components.energy.solar_pv import (
-    SolarPV,
-    SolarPVParams,
-    SolarPVTechnicalParams,
 )
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
@@ -68,27 +63,27 @@ system.add_component(demand)
 # Connect components
 system.connect("Grid", "PowerDemand", "electricity")
 
-print("BEFORE SOLVING:")
-print(f"System flows: {list(system.flows.keys())}")
-print(f"Grid type: {grid.type}")
-print(f"Demand type: {demand.type}")
-print(f"Demand profile: {demand.profile[:5]}")
-print(f"Demand P_max: {demand.P_max}")
+logger.info("BEFORE SOLVING:")
+logger.info(f"System flows: {list(system.flows.keys())}")
+logger.info(f"Grid type: {grid.type}")
+logger.info(f"Demand type: {demand.type}")
+logger.info(f"Demand profile: {demand.profile[:5]}")
+logger.info(f"Demand P_max: {demand.P_max}")
 
 # Test demand calculation directly
-print(f"Demand at t=0: {demand.rule_based_demand(0)}")
+logger.info(f"Demand at t=0: {demand.rule_based_demand(0)}")
 
 # Solve system
 solver = RuleBasedEngine(system)
 result = solver.solve()
 
-print(f"\nAFTER SOLVING:")
-print(f"Solver status: {result.status}")
-print(f"System flows: {list(system.flows.keys())}")
+logger.info("\nAFTER SOLVING:")
+logger.info(f"Solver status: {result.status}")
+logger.info(f"System flows: {list(system.flows.keys())}")
 
 for flow_key, flow_data in system.flows.items():
-    print(f"Flow {flow_key}:")
-    print(f"  Source: {flow_data['source']}")
-    print(f"  Target: {flow_data['target']}")
-    print(f"  Values: {flow_data['value'][:5]} (first 5)")
-    print(f"  Total: {np.sum(flow_data['value'])}")
+    logger.info(f"Flow {flow_key}:")
+    logger.info(f"  Source: {flow_data['source']}")
+    logger.info(f"  Target: {flow_data['target']}")
+    logger.info(f"  Values: {flow_data['value'][:5]} (first 5)")
+    logger.info(f"  Total: {np.sum(flow_data['value'])}")

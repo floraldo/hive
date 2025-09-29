@@ -4,7 +4,7 @@ Job service for processing climate data requests asynchronously.
 This module provides both a JobService class and functions for the arq worker to process climate jobs.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 from ecosystemiser.profile_loader.climate import create_climate_service
 from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
@@ -22,7 +22,7 @@ class JobService:
     """
 
     @staticmethod
-    async def process_climate_job_async(job_data: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_climate_job_async(job_data: dict[str, Any]) -> dict[str, Any]:
         """Process a climate data job asynchronously."""
         return await process_climate_job_async({}, job_data)
 
@@ -40,12 +40,12 @@ class JobService:
         """Initialize the JobService."""
         logger.info("JobService initialized")
 
-    def get_status(self) -> Dict[str, str]:
+    def get_status(self) -> dict[str, str]:
         """Get the current status of the job service."""
         return {"status": "active", "service": "JobService", "version": "3.0"}
 
 
-async def process_climate_job_async(ctx: Dict[str, Any], job_data: Dict[str, Any]) -> Dict[str, Any]:
+async def process_climate_job_async(ctx: dict[str, Any], job_data: dict[str, Any]) -> dict[str, Any]:
     """
     Process a climate data job.
 
@@ -84,7 +84,7 @@ async def process_climate_job_async(ctx: Dict[str, Any], job_data: Dict[str, Any
         return {"status": "failed", "error": str(e), "job_id": job_data.get("job_id")}
 
 
-async def cleanup_old_jobs_async(ctx: Dict[str, Any]) -> None:
+async def cleanup_old_jobs_async(ctx: dict[str, Any]) -> None:
     """
     Clean up old job results and cached data.
 
@@ -105,7 +105,7 @@ async def cleanup_old_jobs_async(ctx: Dict[str, Any]) -> None:
         logger.error(f"Cleanup failed: {str(e)}")
 
 
-async def collect_metrics_async(ctx: Dict[str, Any]) -> None:
+async def collect_metrics_async(ctx: dict[str, Any]) -> None:
     """
     Collect system and application metrics.
 
@@ -125,7 +125,7 @@ async def collect_metrics_async(ctx: Dict[str, Any]) -> None:
         logger.error(f"Metrics collection failed: {str(e)}")
 
 
-async def startup_async(ctx: Dict[str, Any]) -> None:
+async def startup_async(ctx: dict[str, Any]) -> None:
     """
     Worker startup hook.
 
@@ -142,7 +142,7 @@ async def startup_async(ctx: Dict[str, Any]) -> None:
     logger.info("Climate worker started successfully")
 
 
-async def shutdown_async(ctx: Dict[str, Any]) -> None:
+async def shutdown_async(ctx: dict[str, Any]) -> None:
     """
     Worker shutdown hook.
 
@@ -230,7 +230,7 @@ async def _cleanup_temp_files_async(max_age_hours: int = 24) -> None:
         logger.error(f"Failed to cleanup temp files: {e}")
 
 
-async def _collect_system_metrics_async() -> Dict[str, Any]:
+async def _collect_system_metrics_async() -> dict[str, Any]:
     """Collect system and application metrics."""
     try:
         import time
@@ -252,7 +252,7 @@ async def _collect_system_metrics_async() -> Dict[str, Any]:
         return {}
 
 
-async def _record_metrics_async(metrics: Dict[str, Any]) -> None:
+async def _record_metrics_async(metrics: dict[str, Any]) -> None:
     """Record metrics to storage or monitoring system."""
     try:
         if not metrics:
@@ -269,7 +269,7 @@ async def _record_metrics_async(metrics: Dict[str, Any]) -> None:
         logger.error(f"Failed to record metrics: {e}")
 
 
-async def _cleanup_shared_resources_async(ctx: Dict[str, Any]) -> None:
+async def _cleanup_shared_resources_async(ctx: dict[str, Any]) -> None:
     """Clean up shared resources during worker shutdown."""
     try:
         # Close any open connections, clear caches, etc.

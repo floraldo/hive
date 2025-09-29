@@ -160,8 +160,8 @@ class CopulaSyntheticGenerator:
 
         # Extract temporal information
         time_info = {
-            "original_times": pd.to_datetime(ds.time.values)
-            "start_time": pd.to_datetime(ds.time.values[0])
+            "original_times": pd.to_datetime(ds.time.values),
+            "start_time": pd.to_datetime(ds.time.values[0]),
             "freq": pd.infer_freq(ds.time.values) or "H"
         }
 
@@ -209,8 +209,8 @@ class CopulaSyntheticGenerator:
                 best_params = stats.norm.fit(data)
 
             self._marginal_models[var] = {
-                "distribution": best_dist
-                "parameters": best_params
+                "distribution": best_dist,
+                "parameters": best_params,
                 "data_range": (np.min(data), np.max(data))
             }
 
@@ -244,16 +244,16 @@ class CopulaSyntheticGenerator:
             correlation_matrix = self._ensure_positive_definite(correlation_matrix)
 
             self._fitted_copula = {
-                "type": "gaussian"
-                "correlation_matrix": correlation_matrix
+                "type": "gaussian",
+                "correlation_matrix": correlation_matrix,
                 "uniform_data": uniform_data,  # Store for empirical margins
             }
 
         elif self.config.copula_type == CopulaType.EMPIRICAL:
             # Empirical copula - store the transformed data
             self._fitted_copula = {
-                "type": "empirical"
-                "uniform_data": uniform_data
+                "type": "empirical",
+                "uniform_data": uniform_data,
                 "n_samples": n_obs
             }
 
@@ -264,7 +264,7 @@ class CopulaSyntheticGenerator:
             corr_matrix = np.corrcoef(uniform_data, rowvar=False)
             corr_matrix = self._ensure_positive_definite(corr_matrix)
             self._fitted_copula = {
-                "type": "gaussian"
+                "type": "gaussian",
                 "correlation_matrix": corr_matrix
             }
         elif self.config.copula_type == CopulaType.VINE:
@@ -274,7 +274,7 @@ class CopulaSyntheticGenerator:
             corr_matrix = np.corrcoef(uniform_data, rowvar=False)
             corr_matrix = self._ensure_positive_definite(corr_matrix)
             self._fitted_copula = {
-                "type": "gaussian"
+                "type": "gaussian",
                 "correlation_matrix": corr_matrix
             }
         else:
@@ -356,7 +356,7 @@ class CopulaSyntheticGenerator:
 
     def _create_synthetic_dataset(
         self
-        synthetic_data: np.ndarray
+        synthetic_data: np.ndarray,
         variables: List[str]
         original_ds: xr.Dataset
         target_length: str
@@ -394,10 +394,10 @@ class CopulaSyntheticGenerator:
         # Add metadata
         synthetic_ds.attrs.update(
             {
-                "title": "Synthetic Climate Data (Copula-based)"
-                "method": f"{self.config.copula_type.value}_copula"
-                "generated_on": pd.Timestamp.now().isoformat()
-                "target_length": target_length
+                "title": "Synthetic Climate Data (Copula-based)",
+                "method": f"{self.config.copula_type.value}_copula",
+                "generated_on": pd.Timestamp.now().isoformat(),
+                "target_length": target_length,
                 "source": "EcoSystemiser Copula Generator"
             }
         )
@@ -406,8 +406,8 @@ class CopulaSyntheticGenerator:
 
 
 def copula_synthetic_generation(
-    ds_hist: xr.Dataset
-    seed: int | None = None
+    ds_hist: xr.Dataset,
+    seed: int | None = None,
     copula_type: str = "gaussian"
     target_length: str = "1Y"
     **kwargs

@@ -26,7 +26,7 @@ import time
 import tracemalloc
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Optional dependency for memory monitoring
 try:
@@ -40,7 +40,6 @@ except ImportError:
 from ecosystemiser.services.simulation_service import FidelityLevel, SimulationService
 from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
 from ecosystemiser.utils.system_builder import SystemBuilder
-from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -59,7 +58,7 @@ class PerformanceBenchmark:
             "memory_benchmarks": {},
         }
 
-    def _get_system_info(self) -> Dict[str, Any]:
+    def _get_system_info(self) -> dict[str, Any]:
         """Capture system configuration for benchmark context."""
         return {
             "cpu_count": psutil.cpu_count(logical=False),
@@ -69,7 +68,7 @@ class PerformanceBenchmark:
             "platform": sys.platform,
         }
 
-    def benchmark_simulation_service(self) -> Dict[str, Any]:
+    def benchmark_simulation_service(self) -> dict[str, Any]:
         """
         Benchmark SimulationService.run_simulation across fidelity levels.
 
@@ -147,7 +146,7 @@ class PerformanceBenchmark:
 
         return simulation_results
 
-    def benchmark_milp_warm_starting(self) -> Dict[str, Any]:
+    def benchmark_milp_warm_starting(self) -> dict[str, Any]:
         """
         Benchmark RollingHorizonMILPSolver with and without warm-starting.
 
@@ -195,7 +194,7 @@ class PerformanceBenchmark:
                     window_solve_start = time.perf_counter()
 
                     # Run optimization window
-                    result = solver.optimize_window(
+                    solver.optimize_window(
                         start_hour=window_start * 24,
                         system_config=scenario_config["system"],
                     )
@@ -252,7 +251,7 @@ class PerformanceBenchmark:
 
         return milp_results
 
-    def benchmark_memory_usage(self) -> Dict[str, Any]:
+    def benchmark_memory_usage(self) -> dict[str, Any]:
         """
         Benchmark peak memory usage patterns for different operation types.
 
@@ -290,7 +289,7 @@ class PerformanceBenchmark:
 
                 # Simulate data loading and processing
                 simulation_service = SimulationService()
-                result = simulation_service.run_simulation(
+                simulation_service.run_simulation(
                     system_config=system,
                     fidelity_level=FidelityLevel.BALANCED,
                     start_date=datetime.now(),

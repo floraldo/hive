@@ -6,7 +6,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -205,7 +204,7 @@ def main() -> None:
 
     # Update metadata
     metadata_path = data_dir / "profiles_metadata.json"
-    with open(metadata_path, "r") as f:
+    with open(metadata_path) as f:
         metadata = json.load(f)
 
     metadata["thermal_profiles"] = {

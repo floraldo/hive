@@ -12,7 +12,6 @@ import sys
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, Dict
 
 import psutil
 import uvicorn
@@ -33,7 +32,7 @@ from ecosystemiser.api_models import (
 from ecosystemiser.core.errors import ProfileError as ClimateError
 from ecosystemiser.observability import init_observability
 from ecosystemiser.settings import get_settings
-from fastapi import APIRouter, FastAPI, HTTPException, Request
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from hive_logging import get_logger
@@ -382,9 +381,6 @@ def check_filesystem_health_async() -> bool:
 @app.get("/metrics", response_model=MonitoringResponse, tags=["Monitoring"])
 async def get_metrics_async() -> None:
     """Get system metrics and performance data"""
-    import os
-
-    import psutil
 
     # Get system metrics
     cpu_percent = psutil.cpu_percent(interval=1)

@@ -13,7 +13,7 @@ by specific profile types (climate, demand, etc.).
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, ListTuple
+from typing import Any
 
 import pandas as pd
 from pydantic import BaseModel, Field, validator
@@ -52,13 +52,13 @@ class BaseProfileRequest(BaseModel):
     """
 
     # Location - can be coordinates, ID, or name
-    location: Union[Tuple[float, float], str, Dict[str, Any]]
+    location: Union[tuple[float, float], str, dict[str, Any]]
 
     # Time period specification
-    period: Dict[str, Any]
+    period: dict[str, Any]
 
     # Variables/parameters to fetch
-    variables: List[str]
+    variables: list[str]
 
     # Data resolution/frequency
     resolution: str | None = "1H"
@@ -73,7 +73,7 @@ class BaseProfileRequest(BaseModel):
     timezone: str = "UTC"
 
     # Additional metadata
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
     # Request ID for tracking
     request_id: str | None = None
@@ -93,7 +93,7 @@ class BaseProfileRequest(BaseModel):
 
         try:
             # Validate by attempting to normalize
-            normalized = DateTimeProcessor.normalize_period(v)
+            DateTimeProcessor.normalize_period(v)
             return v  # Return original for now, normalization happens at processing time
         except Exception as e:
             raise ValueError(f"Invalid period specification: {e}")
@@ -108,28 +108,28 @@ class BaseProfileRequest(BaseModel):
         from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
         try:
-            normalized = DateTimeProcessor.normalize_frequency(v)
+            DateTimeProcessor.normalize_frequency(v)
             return v  # Return original, normalization happens at processing time
         except Exception as e:
             raise ValueError(f"Invalid resolution specification: {e}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert request to dictionary."""
         return {
-            "location": self.location
-            "period": self.period
-            "variables": self.variables
-            "resolution": self.resolution
-            "mode": (self.mode.value if isinstance(self.mode, ProfileMode) else self.mode)
-            "source": self.source
-            "timezone": self.timezone
-            "metadata": self.metadata
-            "request_id": self.request_id
-            "use_cache": self.use_cache
-            "cache_ttl": self.cache_ttl
+            "location": self.location,
+            "period": self.period,
+            "variables": self.variables,
+            "resolution": self.resolution,
+            "mode": (self.mode.value if isinstance(self.mode, ProfileMode) else self.mode),
+            "source": self.source,
+            "timezone": self.timezone,
+            "metadata": self.metadata,
+            "request_id": self.request_id,
+            "use_cache": self.use_cache,
+            "cache_ttl": self.cache_ttl,
         }
 
-    def get_normalized_period(self) -> Dict[str, pd.Timestamp]:
+    def get_normalized_period(self) -> dict[str, pd.Timestamp]:
         """Get normalized period with pandas Timestamps."""
         from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
@@ -150,23 +150,23 @@ class BaseProfileResponse(BaseModel):
     """
 
     # Data shape (time_steps, variables)
-    shape: Tuple[int, int]
+    shape: tuple[int, int]
 
     # Time range
     start_time: datetime
     end_time: datetime
 
     # Actual variables returned
-    variables: List[str]
+    variables: list[str]
 
     # Data source used
     source: str
 
     # Processing applied
-    processing_steps: List[str] = Field(default_factory=list)
+    processing_steps: list[str] = Field(default_factory=list)
 
     # Quality metrics
-    quality: Dict[str, Any] = Field(default_factory=dict)
+    quality: dict[str, Any] = Field(default_factory=dict)
 
     # Cache information
     cached: bool = False
@@ -177,33 +177,33 @@ class BaseProfileResponse(BaseModel):
     path_csv: str | None = None
 
     # Metadata and manifest
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    manifest: Optional[Dict[str, Any]] = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
+    manifest: Optional[dict[str, Any]] = None
 
     # Timing information
     processing_time_ms: int | None = None
 
     # Warnings or notes
-    warnings: List[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert response to dictionary."""
         return {
-            "shape": self.shape
-            "start_time": self.start_time.isoformat() if self.start_time else None
-            "end_time": self.end_time.isoformat() if self.end_time else None
-            "variables": self.variables
-            "source": self.source
-            "processing_steps": self.processing_steps
-            "quality": self.quality
-            "cached": self.cached
-            "cache_key": self.cache_key
-            "path_parquet": self.path_parquet
-            "path_csv": self.path_csv
-            "metadata": self.metadata
-            "manifest": self.manifest
-            "processing_time_ms": self.processing_time_ms
-            "warnings": self.warnings
+            "shape": self.shape,
+            "start_time": self.start_time.isoformat() if self.start_time else None,
+            "end_time": self.end_time.isoformat() if self.end_time else None,
+            "variables": self.variables,
+            "source": self.source,
+            "processing_steps": self.processing_steps,
+            "quality": self.quality,
+            "cached": self.cached,
+            "cache_key": self.cache_key,
+            "path_parquet": self.path_parquet,
+            "path_csv": self.path_csv,
+            "metadata": self.metadata,
+            "manifest": self.manifest,
+            "processing_time_ms": self.processing_time_ms,
+            "warnings": self.warnings,
         }
 
 
@@ -213,11 +213,11 @@ class DataQuality(BaseModel):
     """
 
     completeness: float  # Percentage of non-null values
-    gaps: List[Tuple[datetime, datetime]] = Field(default_factory=list)  # List of gap periods
-    outliers: Dict[str, int]  # Count of outliers per variable
-    quality_flags: Dict[str, Any] = Field(default_factory=dict)
+    gaps: list[tuple[datetime, datetime]] = Field(default_factory=list)  # List of gap periods
+    outliers: dict[str, int]  # Count of outliers per variable
+    quality_flags: dict[str, Any] = Field(default_factory=dict)
     validation_passed: bool = True
-    validation_notes: List[str] = Field(default_factory=list)
+    validation_notes: list[str] = Field(default_factory=list)
 
 
 class LocationInfo(BaseModel):
@@ -232,4 +232,4 @@ class LocationInfo(BaseModel):
     name: str | None = None
     country: str | None = None
     region: str | None = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)

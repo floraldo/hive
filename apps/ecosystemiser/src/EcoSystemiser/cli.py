@@ -6,57 +6,76 @@ EcoSystemiser CLI - Complete system simulation and climate profiles interface
 import json
 import sys
 from pathlib import Path
-from typing import Any, Dict
 
 import yaml
 from ecosystemiser.profile_loader.climate import ClimateRequest, get_profile_sync
 from ecosystemiser.reporting.generator import create_standalone_html_report
-from hive_cli import add_command, create_cli, run_cli
-from hive_cli.decorators import command, option
-from hive_cli.output import error, info, success, warning
+from hive_cli import create_cli
+from hive_cli.decorators import option
+from hive_cli.output import info
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 @create_cli()
 def cli() -> None:
     """EcoSystemiser - Climate and Ecosystem Analysis Tool"""
     pass
 
+
 @cli.group()
 def climate() -> None:
     """Climate profile commands"""
     pass
+
 
 @cli.group()
 def simulate() -> None:
     """System simulation commands"""
     pass
 
+
 @climate.command()
-@option('--loc', '-l', help='Location (e.g., "Lisbon, PT" or "38.7,-9.1"). Required unless using file source.')
-@option('--file', '-f', type=click.Path(exists=True), help='Input file path for file-based sources (e.g., EPW file)')
-@option('--year', '-y', type=int, help='Year to fetch (e.g., 2019)')
-@option('--start', help='Start date (e.g., "2019-01-01")')
-@option('--end', help='End date (e.g., "2019-12-31")')
-@option('--vars', '-v', default='temp_air,ghi,wind_speed', help='Variables (comma-separated)')
-@option('--source', '-s', default='nasa_power',
-              type=click.Choice(['nasa_power', 'meteostat', 'pvgis', 'era5', 'file_epw', 'epw']))
-@option('--mode', '-m', default='observed',
-              type=click.Choice(['observed', 'tmy', 'average', 'synthetic']))
-@option('--resolution', '-r', default='1H',
-              type=click.Choice(['15min', '30min', '1H', '3H', '1D']))
-@option('--timezone', '-tz', default='UTC',
-              type=click.Choice(['UTC', 'local']))
-@option('--out', '-o', help='Output parquet file path')
-@option('--json-out', help='Output JSON manifest path')
-@option('--subset-month', type=int, help='Subset to specific month (1-12)')
-@option('--subset-season', type=click.Choice(['spring', 'summer', 'fall', 'winter']),
-              help='Subset to season')
-@option('--seed', type=int, help='Random seed for synthetic generation')
-@option('--stats', is_flag=True, help='Show statistics')
-def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source: str, mode: str, resolution: str, timezone: str,
-        out: str, json_out: str, subset_month: int, subset_season: str, seed: int, stats: bool) -> None:
+@option("--loc", "-l", help='Location (e.g., "Lisbon, PT" or "38.7,-9.1"). Required unless using file source.')
+@option("--file", "-f", type=click.Path(exists=True), help="Input file path for file-based sources (e.g., EPW file)")
+@option("--year", "-y", type=int, help="Year to fetch (e.g., 2019)")
+@option("--start", help='Start date (e.g., "2019-01-01")')
+@option("--end", help='End date (e.g., "2019-12-31")')
+@option("--vars", "-v", default="temp_air,ghi,wind_speed", help="Variables (comma-separated)")
+@option(
+    "--source",
+    "-s",
+    default="nasa_power",
+    type=click.Choice(["nasa_power", "meteostat", "pvgis", "era5", "file_epw", "epw"]),
+)
+@option("--mode", "-m", default="observed", type=click.Choice(["observed", "tmy", "average", "synthetic"]))
+@option("--resolution", "-r", default="1H", type=click.Choice(["15min", "30min", "1H", "3H", "1D"]))
+@option("--timezone", "-tz", default="UTC", type=click.Choice(["UTC", "local"]))
+@option("--out", "-o", help="Output parquet file path")
+@option("--json-out", help="Output JSON manifest path")
+@option("--subset-month", type=int, help="Subset to specific month (1-12)")
+@option("--subset-season", type=click.Choice(["spring", "summer", "fall", "winter"]), help="Subset to season")
+@option("--seed", type=int, help="Random seed for synthetic generation")
+@option("--stats", is_flag=True, help="Show statistics")
+def get(
+    loc: str,
+    file: str,
+    year: int,
+    start: str,
+    end: str,
+    vars: str,
+    source: str,
+    mode: str,
+    resolution: str,
+    timezone: str,
+    out: str,
+    json_out: str,
+    subset_month: int,
+    subset_season: str,
+    seed: int,
+    stats: bool,
+) -> None:
     """
     Get climate profile for a location.
 
@@ -67,7 +86,7 @@ def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source:
     """
     try:
         # Validate input based on source
-        is_file_source = source in ['file_epw', 'epw']
+        is_file_source = source in ["file_epw", "epw"]
 
         if is_file_source:
             if not file:
@@ -80,9 +99,9 @@ def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source:
                 info("Error: --loc is required for API-based sources", err=True)
                 sys.exit(1)
             # Parse location
-            if ',' in loc and any(c.isdigit() for c in loc):
+            if "," in loc and any(c.isdigit() for c in loc):
                 # Coordinate format
-                parts = loc.split(',')
+                parts = loc.split(",")
                 location = (float(parts[0]), float(parts[1]))
             else:
                 # String location
@@ -98,7 +117,7 @@ def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source:
             sys.exit(1)
 
         # Parse variables
-        variables = [v.strip() for v in vars.split(',')]
+        variables = [v.strip() for v in vars.split(",")]
 
         # Build subset if specified
         subset = None
@@ -117,7 +136,7 @@ def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source:
             resolution=resolution,
             timezone=timezone,
             subset=subset,
-            seed=seed
+            seed=seed,
         )
 
         # Get profile using synchronous wrapper
@@ -141,7 +160,7 @@ def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source:
             # Save manifest
             json_path = Path(json_out)
             json_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_path, 'w') as f:
+            with open(json_path, "w") as f:
                 json.dump(response.manifest, f, indent=2, default=str)
             info(f"[SUCCESS] Saved manifest to {json_path}")
 
@@ -149,7 +168,7 @@ def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source:
         if stats and response.stats:
             info("\n[STATS] Statistics:")
             for var, var_stats in response.stats.items():
-                if var != 'correlations':
+                if var != "correlations":
                     info(f"\n  {var}:")
                     info(f"    Mean: {var_stats.get('mean', 'N/A'):.2f}")
                     info(f"    Std:  {var_stats.get('std', 'N/A'):.2f}")
@@ -161,8 +180,9 @@ def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source:
         logger.exception("Failed to get climate profile")
         sys.exit(1)
 
+
 @climate.command()
-@option('--pattern', '-p', help='Pattern to match (e.g., "nasa_power_*")')
+@option("--pattern", "-p", help='Pattern to match (e.g., "nasa_power_*")')
 def clear_cache(pattern) -> None:
     """Clear climate data cache"""
     from profile_loader.climate.cache.store import clear_cache as _clear_cache
@@ -173,6 +193,7 @@ def clear_cache(pattern) -> None:
     except Exception as e:
         info(f"Error: {e}", err=True)
         sys.exit(1)
+
 
 @climate.command()
 def cache_info() -> None:
@@ -190,12 +211,14 @@ def cache_info() -> None:
         info(f"Error: {e}", err=True)
         sys.exit(1)
 
+
 @simulate.command()
-@click.argument('config', type=click.Path(exists=True))
-@option('--output', '-o', help='Output results file path (default: results.json)')
-@option('--solver', '-s', default='milp', type=click.Choice(['milp', 'rule_based']),
-              help='Solver to use for optimization')
-@option('--verbose', '-v', is_flag=True, help='Verbose output')
+@click.argument("config", type=click.Path(exists=True))
+@option("--output", "-o", help="Output results file path (default: results.json)")
+@option(
+    "--solver", "-s", default="milp", type=click.Choice(["milp", "rule_based"]), help="Solver to use for optimization"
+)
+@option("--verbose", "-v", is_flag=True, help="Verbose output")
 def run(config, output, solver, verbose) -> None:
     """
     Run a system simulation from configuration file.
@@ -215,23 +238,20 @@ def run(config, output, solver, verbose) -> None:
         # Run simulation using the new service method
         info(f"[INFO] Running simulation with {solver} solver...")
         result = service.run_simulation_from_path(
-            config_path=Path(config),
-            solver_type=solver,
-            output_path=Path(output) if output else None,
-            verbose=verbose
+            config_path=Path(config), solver_type=solver, output_path=Path(output) if output else None, verbose=verbose
         )
 
         # Display summary
         info("\n[SUCCESS] Simulation completed!")
         info(f"  Status: {result.status}")
         if result.kpis:
-            info(f"  Key Performance Indicators:")
+            info("  Key Performance Indicators:")
             for key, value in result.kpis.items():
                 info(f"    {key}: {value:.2f}")
         if result.solver_metrics:
-            if 'objective_value' in result.solver_metrics:
+            if "objective_value" in result.solver_metrics:
                 info(f"  Objective Value: {result.solver_metrics['objective_value']:.2f}")
-            if 'solve_time' in result.solver_metrics:
+            if "solve_time" in result.solver_metrics:
                 info(f"  Solve Time: {result.solver_metrics['solve_time']:.3f}s")
 
         if output:
@@ -248,8 +268,9 @@ def run(config, output, solver, verbose) -> None:
         logger.exception("Failed to run simulation")
         sys.exit(1)
 
+
 @simulate.command()
-@click.argument('config')
+@click.argument("config")
 def validate(config) -> None:
     """
     Validate a system configuration file.
@@ -268,7 +289,7 @@ def validate(config) -> None:
         # Validate configuration using the service
         validation_result = service.validate_system_config(Path(config))
 
-        if validation_result['valid']:
+        if validation_result["valid"]:
             # Display validation results
             info("\n[SUCCESS] Configuration is valid!")
             info(f"  System ID: {validation_result['system_id']}")
@@ -277,7 +298,7 @@ def validate(config) -> None:
 
             # List components
             info("\n  Component List:")
-            for comp in validation_result['components']:
+            for comp in validation_result["components"]:
                 info(f"    - {comp['name']} ({comp['type']})")
         else:
             info(f"\n[ERROR] Configuration validation failed: {validation_result['error']}", err=True)
@@ -293,40 +314,51 @@ def validate(config) -> None:
         info(f"Configuration validation failed: {e}", err=True)
         sys.exit(1)
 
+
 @cli.group()
 def results() -> None:
     """Results management commands"""
     pass
+
 
 @cli.group()
 def discover() -> None:
     """Design space exploration and optimization commands"""
     pass
 
+
 @discover.command()
-@click.argument('config', type=click.Path(exists=True))
-@option('--objectives', '-obj', default='minimize_cost',
-              help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")')
-@option('--population', '-p', default=50, type=int,
-              help='Population size for genetic algorithm')
-@option('--generations', '-g', default=100, type=int,
-              help='Maximum number of generations')
-@option('--variables', '-v', type=click.Path(exists=True),
-              help='JSON file defining optimization variables (optional)')
-@option('--multi-objective', is_flag=True,
-              help='Use NSGA-II for multi-objective optimization')
-@option('--mutation-rate', default=0.1, type=float,
-              help='Mutation rate (0.0-1.0)')
-@option('--crossover-rate', default=0.9, type=float,
-              help='Crossover rate (0.0-1.0)')
-@option('--output', '-o', help='Output directory for results')
-@option('--workers', '-w', default=4, type=int,
-              help='Number of parallel workers')
-@option('--report', is_flag=True,
-              help='Generate HTML report after optimization')
-@option('--verbose', is_flag=True, help='Verbose output')
-def optimize(config, objectives, population, generations, variables, multi_objective,
-            mutation_rate, crossover_rate, output, workers, report, verbose):
+@click.argument("config", type=click.Path(exists=True))
+@option(
+    "--objectives",
+    "-obj",
+    default="minimize_cost",
+    help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")',
+)
+@option("--population", "-p", default=50, type=int, help="Population size for genetic algorithm")
+@option("--generations", "-g", default=100, type=int, help="Maximum number of generations")
+@option("--variables", "-v", type=click.Path(exists=True), help="JSON file defining optimization variables (optional)")
+@option("--multi-objective", is_flag=True, help="Use NSGA-II for multi-objective optimization")
+@option("--mutation-rate", default=0.1, type=float, help="Mutation rate (0.0-1.0)")
+@option("--crossover-rate", default=0.9, type=float, help="Crossover rate (0.0-1.0)")
+@option("--output", "-o", help="Output directory for results")
+@option("--workers", "-w", default=4, type=int, help="Number of parallel workers")
+@option("--report", is_flag=True, help="Generate HTML report after optimization")
+@option("--verbose", is_flag=True, help="Verbose output")
+def optimize(
+    config,
+    objectives,
+    population,
+    generations,
+    variables,
+    multi_objective,
+    mutation_rate,
+    crossover_rate,
+    output,
+    workers,
+    report,
+    verbose,
+):
     """
     Run genetic algorithm optimization to find optimal system configurations.
 
@@ -351,7 +383,7 @@ def optimize(config, objectives, population, generations, variables, multi_objec
     from ecosystemiser.services.study_service import StudyService
 
     try:
-        info(f"[INFO] Starting genetic algorithm optimization")
+        info("[INFO] Starting genetic algorithm optimization")
         info(f"  Configuration: {config}")
         info(f"  Objectives: {objectives}")
         info(f"  Algorithm: {'NSGA-II' if multi_objective else 'Single-objective GA'}")
@@ -360,7 +392,7 @@ def optimize(config, objectives, population, generations, variables, multi_objec
         # Load optimization variables if provided
         optimization_variables = None
         if variables:
-            with open(variables, 'r') as f:
+            with open(variables) as f:
                 optimization_variables = json.load(f)
             info(f"  Variables: Loaded {len(optimization_variables)} custom variables")
 
@@ -369,10 +401,10 @@ def optimize(config, objectives, population, generations, variables, multi_objec
 
         # Configure GA parameters
         ga_config = {
-            'population_size': population,
-            'max_generations': generations,
-            'mutation_rate': mutation_rate,
-            'crossover_rate': crossover_rate
+            "population_size": population,
+            "max_generations": generations,
+            "mutation_rate": mutation_rate,
+            "crossover_rate": crossover_rate,
         }
 
         # Run optimization
@@ -381,22 +413,22 @@ def optimize(config, objectives, population, generations, variables, multi_objec
             optimization_variables=optimization_variables or [],
             objectives=objectives,
             multi_objective=multi_objective,
-            **ga_config
+            **ga_config,
         )
 
         # Display results
-        info(f"\n[SUCCESS] Optimization completed!")
+        info("\n[SUCCESS] Optimization completed!")
         info(f"  Status: {result.summary_statistics.get('convergence_status', 'unknown')}")
         info(f"  Total evaluations: {result.num_simulations}")
         info(f"  Execution time: {result.execution_time:.2f}s")
 
         if result.best_result:
             best = result.best_result
-            if best.get('best_fitness'):
+            if best.get("best_fitness"):
                 info(f"  Best fitness: {best['best_fitness']:.4f}")
 
-            if best.get('pareto_front'):
-                pareto_size = len(best['pareto_front'])
+            if best.get("pareto_front"):
+                pareto_size = len(best["pareto_front"])
                 info(f"  Pareto front size: {pareto_size} solutions")
 
         # Save results
@@ -405,15 +437,20 @@ def optimize(config, objectives, population, generations, variables, multi_objec
             output_dir.mkdir(parents=True, exist_ok=True)
 
             results_file = output_dir / f"ga_optimization_{result.study_id}.json"
-            with open(results_file, 'w') as f:
-                json.dump({
-                    'study_result': result.dict(),
-                    'configuration': {
-                        'objectives': objectives,
-                        'multi_objective': multi_objective,
-                        'ga_config': ga_config
-                    }
-                }, f, indent=2, default=str)
+            with open(results_file, "w") as f:
+                json.dump(
+                    {
+                        "study_result": result.dict(),
+                        "configuration": {
+                            "objectives": objectives,
+                            "multi_objective": multi_objective,
+                            "ga_config": ga_config,
+                        },
+                    },
+                    f,
+                    indent=2,
+                    default=str,
+                )
 
             info(f"  Results saved to: {results_file}")
 
@@ -430,27 +467,24 @@ def optimize(config, objectives, population, generations, variables, multi_objec
 
                 # Configure report
                 report_config = ReportConfig(
-                    report_type='genetic_algorithm',
-                    title='Genetic Algorithm Optimization Report',
+                    report_type="genetic_algorithm",
+                    title="Genetic Algorithm Optimization Report",
                     include_plots=True,
-                    output_format='html',
-                    save_path=output_dir / f"ga_report_{result.study_id}"
+                    output_format="html",
+                    save_path=output_dir / f"ga_report_{result.study_id}",
                 )
 
                 # Generate report using the centralized service
-                report_result = reporting_service.generate_report(
-                    analysis_results=result.dict(),
-                    config=report_config
-                )
+                reporting_service.generate_report(analysis_results=result.dict(), config=report_config)
                 report_file = output_dir / f"ga_report_{result.study_id}.html"
                 info(f"  HTML report saved to: {report_file}")
         else:
             info(f"  Study ID: {result.study_id}")
 
         # Show recommendations
-        if result.best_result and result.best_result.get('best_solution'):
-            info(f"\n[RECOMMENDATIONS] Best solution found:")
-            best_solution = result.best_result['best_solution']
+        if result.best_result and result.best_result.get("best_solution"):
+            info("\n[RECOMMENDATIONS] Best solution found:")
+            best_solution = result.best_result["best_solution"]
             if optimization_variables:
                 for i, var in enumerate(optimization_variables):
                     if i < len(best_solution):
@@ -472,29 +506,33 @@ def optimize(config, objectives, population, generations, variables, multi_objec
             logger.exception("Failed to run genetic algorithm optimization")
         sys.exit(1)
 
+
 @discover.command()
-@click.argument('config', type=click.Path(exists=True))
-@option('--objectives', '-obj', default='total_cost',
-              help='Comma-separated objectives to analyze (e.g., "total_cost,renewable_fraction")')
-@option('--samples', '-n', default=1000, type=int,
-              help='Number of Monte Carlo samples')
-@option('--uncertainties', '-u', type=click.Path(exists=True),
-              help='JSON file defining uncertain parameters (required)')
-@option('--sampling', '-s', default='lhs',
-              type=click.Choice(['lhs', 'random', 'sobol', 'halton']),
-              help='Sampling method')
-@option('--confidence', default='0.05,0.25,0.50,0.75,0.95',
-              help='Comma-separated confidence levels (e.g., "0.05,0.95")')
-@option('--sensitivity', is_flag=True, default=True,
-              help='Perform sensitivity analysis')
-@option('--risk', is_flag=True, default=True,
-              help='Perform risk analysis')
-@option('--output', '-o', help='Output directory for results')
-@option('--workers', '-w', default=4, type=int,
-              help='Number of parallel workers')
-@option('--verbose', is_flag=True, help='Verbose output')
-def uncertainty(config, objectives, samples, uncertainties, sampling, confidence,
-               sensitivity, risk, output, workers, verbose):
+@click.argument("config", type=click.Path(exists=True))
+@option(
+    "--objectives",
+    "-obj",
+    default="total_cost",
+    help='Comma-separated objectives to analyze (e.g., "total_cost,renewable_fraction")',
+)
+@option("--samples", "-n", default=1000, type=int, help="Number of Monte Carlo samples")
+@option(
+    "--uncertainties", "-u", type=click.Path(exists=True), help="JSON file defining uncertain parameters (required)"
+)
+@option(
+    "--sampling", "-s", default="lhs", type=click.Choice(["lhs", "random", "sobol", "halton"]), help="Sampling method"
+)
+@option(
+    "--confidence", default="0.05,0.25,0.50,0.75,0.95", help='Comma-separated confidence levels (e.g., "0.05,0.95")'
+)
+@option("--sensitivity", is_flag=True, default=True, help="Perform sensitivity analysis")
+@option("--risk", is_flag=True, default=True, help="Perform risk analysis")
+@option("--output", "-o", help="Output directory for results")
+@option("--workers", "-w", default=4, type=int, help="Number of parallel workers")
+@option("--verbose", is_flag=True, help="Verbose output")
+def uncertainty(
+    config, objectives, samples, uncertainties, sampling, confidence, sensitivity, risk, output, workers, verbose
+):
     """
     Run Monte Carlo uncertainty analysis to quantify system performance under uncertainty.
 
@@ -519,7 +557,7 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
     from ecosystemiser.services.study_service import StudyService
 
     try:
-        info(f"[INFO] Starting Monte Carlo uncertainty analysis")
+        info("[INFO] Starting Monte Carlo uncertainty analysis")
         info(f"  Configuration: {config}")
         info(f"  Objectives: {objectives}")
         info(f"  Samples: {samples}")
@@ -530,23 +568,23 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
             info("Error: Uncertainty definitions file is required (--uncertainties)", err=True)
             sys.exit(1)
 
-        with open(uncertainties, 'r') as f:
+        with open(uncertainties) as f:
             uncertainty_variables = json.load(f)
         info(f"  Uncertainties: Loaded {len(uncertainty_variables)} uncertain parameters")
 
         # Parse confidence levels
-        confidence_levels = [float(x.strip()) for x in confidence.split(',')]
+        confidence_levels = [float(x.strip()) for x in confidence.split(",")]
 
         # Create study service
         study_service = StudyService()
 
         # Configure MC parameters
         mc_config = {
-            'n_samples': samples,
-            'sampling_method': sampling,
-            'confidence_levels': confidence_levels,
-            'sensitivity_analysis': sensitivity,
-            'risk_analysis': risk
+            "n_samples": samples,
+            "sampling_method": sampling,
+            "confidence_levels": confidence_levels,
+            "sensitivity_analysis": sensitivity,
+            "risk_analysis": risk,
         }
 
         # Run uncertainty analysis
@@ -554,11 +592,11 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
             base_config_path=Path(config),
             uncertainty_variables=uncertainty_variables,
             objectives=objectives,
-            **mc_config
+            **mc_config,
         )
 
         # Display results
-        info(f"\n[SUCCESS] Uncertainty analysis completed!")
+        info("\n[SUCCESS] Uncertainty analysis completed!")
         info(f"  Total samples: {result.num_simulations}")
         info(f"  Execution time: {result.execution_time:.2f}s")
 
@@ -566,39 +604,39 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
         if result.summary_statistics:
             stats = result.summary_statistics
 
-            if 'statistics' in stats:
-                info(f"\n[STATISTICS] Output distributions:")
-                for obj_name, obj_stats in stats['statistics'].items():
+            if "statistics" in stats:
+                info("\n[STATISTICS] Output distributions:")
+                for obj_name, obj_stats in stats["statistics"].items():
                     info(f"  {obj_name}:")
                     info(f"    Mean: {obj_stats.get('mean', 0):.4f}")
                     info(f"    Std:  {obj_stats.get('std', 0):.4f}")
                     info(f"    Range: [{obj_stats.get('min', 0):.4f}, {obj_stats.get('max', 0):.4f}]")
 
-            if 'confidence_intervals' in stats:
-                info(f"\n[CONFIDENCE] Confidence intervals:")
-                conf_data = stats['confidence_intervals']
+            if "confidence_intervals" in stats:
+                info("\n[CONFIDENCE] Confidence intervals:")
+                conf_data = stats["confidence_intervals"]
                 for obj_name, intervals in conf_data.items():
                     info(f"  {obj_name}:")
                     for level, bounds in intervals.items():
                         info(f"    {level}: [{bounds.get('lower', 0):.4f}, {bounds.get('upper', 0):.4f}]")
 
-            if sensitivity and 'sensitivity_indices' in stats:
-                info(f"\n[SENSITIVITY] Most influential parameters:")
-                sens_data = stats['sensitivity_indices']
+            if sensitivity and "sensitivity_indices" in stats:
+                info("\n[SENSITIVITY] Most influential parameters:")
+                sens_data = stats["sensitivity_indices"]
                 for obj_name, param_sens in sens_data.items():
                     if param_sens:
                         # Sort by sensitivity index
-                        sorted_params = sorted(param_sens.items(),
-                                             key=lambda x: abs(x[1].get('sensitivity_index', 0)),
-                                             reverse=True)
+                        sorted_params = sorted(
+                            param_sens.items(), key=lambda x: abs(x[1].get("sensitivity_index", 0)), reverse=True
+                        )
                         info(f"  {obj_name}:")
                         for param_name, sens_info in sorted_params[:5]:  # Top 5
-                            sens_idx = sens_info.get('sensitivity_index', 0)
+                            sens_idx = sens_info.get("sensitivity_index", 0)
                             info(f"    {param_name}: {sens_idx:.3f}")
 
-            if risk and 'risk_metrics' in stats:
-                info(f"\n[RISK] Risk metrics:")
-                risk_data = stats['risk_metrics']
+            if risk and "risk_metrics" in stats:
+                info("\n[RISK] Risk metrics:")
+                risk_data = stats["risk_metrics"]
                 for obj_name, risk_info in risk_data.items():
                     info(f"  {obj_name}:")
                     info(f"    VaR 95%: {risk_info.get('var_95', 0):.4f}")
@@ -611,30 +649,38 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
             output_dir.mkdir(parents=True, exist_ok=True)
 
             results_file = output_dir / f"mc_uncertainty_{result.study_id}.json"
-            with open(results_file, 'w') as f:
-                json.dump({
-                    'study_result': result.dict(),
-                    'configuration': {
-                        'objectives': objectives,
-                        'uncertainty_variables': uncertainty_variables,
-                        'mc_config': mc_config
-                    }
-                }, f, indent=2, default=str)
+            with open(results_file, "w") as f:
+                json.dump(
+                    {
+                        "study_result": result.dict(),
+                        "configuration": {
+                            "objectives": objectives,
+                            "uncertainty_variables": uncertainty_variables,
+                            "mc_config": mc_config,
+                        },
+                    },
+                    f,
+                    indent=2,
+                    default=str,
+                )
 
             info(f"\n  Results saved to: {results_file}")
 
             # Also save summary CSV
-            if result.summary_statistics and 'statistics' in result.summary_statistics:
+            if result.summary_statistics and "statistics" in result.summary_statistics:
                 import pandas as pd
+
                 stats_data = []
-                for obj_name, obj_stats in result.summary_statistics['statistics'].items():
-                    stats_data.append({
-                        'objective': obj_name,
-                        'mean': obj_stats.get('mean', 0),
-                        'std': obj_stats.get('std', 0),
-                        'min': obj_stats.get('min', 0),
-                        'max': obj_stats.get('max', 0)
-                    })
+                for obj_name, obj_stats in result.summary_statistics["statistics"].items():
+                    stats_data.append(
+                        {
+                            "objective": obj_name,
+                            "mean": obj_stats.get("mean", 0),
+                            "std": obj_stats.get("std", 0),
+                            "min": obj_stats.get("min", 0),
+                            "max": obj_stats.get("max", 0),
+                        }
+                    )
 
                 if stats_data:
                     df = pd.DataFrame(stats_data)
@@ -656,21 +702,27 @@ def uncertainty(config, objectives, samples, uncertainties, sampling, confidence
             logger.exception("Failed to run Monte Carlo uncertainty analysis")
         sys.exit(1)
 
+
 @discover.command()
-@click.argument('config', type=click.Path(exists=True))
-@option('--variables', '-v', type=click.Path(exists=True), required=True,
-              help='JSON file defining design variables (required)')
-@option('--objectives', '-obj', default='minimize_cost,maximize_renewable',
-              help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")')
-@option('--method', '-m', default='nsga2',
-              type=click.Choice(['nsga2', 'monte_carlo']),
-              help='Exploration method')
-@option('--samples', '-n', default=100, type=int,
-              help='Number of samples/population size')
-@option('--output', '-o', help='Output directory for results')
-@option('--workers', '-w', default=4, type=int,
-              help='Number of parallel workers')
-@option('--verbose', is_flag=True, help='Verbose output')
+@click.argument("config", type=click.Path(exists=True))
+@option(
+    "--variables",
+    "-v",
+    type=click.Path(exists=True),
+    required=True,
+    help="JSON file defining design variables (required)",
+)
+@option(
+    "--objectives",
+    "-obj",
+    default="minimize_cost,maximize_renewable",
+    help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")',
+)
+@option("--method", "-m", default="nsga2", type=click.Choice(["nsga2", "monte_carlo"]), help="Exploration method")
+@option("--samples", "-n", default=100, type=int, help="Number of samples/population size")
+@option("--output", "-o", help="Output directory for results")
+@option("--workers", "-w", default=4, type=int, help="Number of parallel workers")
+@option("--verbose", is_flag=True, help="Verbose output")
 def explore(config, variables, objectives, method, samples, output, workers, verbose) -> None:
     """
     Comprehensive design space exploration for multi-objective optimization.
@@ -694,14 +746,14 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
     from ecosystemiser.services.study_service import StudyService
 
     try:
-        info(f"[INFO] Starting design space exploration")
+        info("[INFO] Starting design space exploration")
         info(f"  Configuration: {config}")
         info(f"  Objectives: {objectives}")
         info(f"  Method: {method}")
         info(f"  Samples/Population: {samples}")
 
         # Load design variables
-        with open(variables, 'r') as f:
+        with open(variables) as f:
             design_variables = json.load(f)
         info(f"  Variables: Loaded {len(design_variables)} design variables")
 
@@ -714,31 +766,31 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
             design_variables=design_variables,
             objectives=objectives,
             exploration_method=method,
-            population_size=samples if method == 'nsga2' else None,
-            max_generations=100 if method == 'nsga2' else None,
-            n_samples=samples if method == 'monte_carlo' else None,
-            sampling_method='lhs' if method == 'monte_carlo' else None
+            population_size=samples if method == "nsga2" else None,
+            max_generations=100 if method == "nsga2" else None,
+            n_samples=samples if method == "monte_carlo" else None,
+            sampling_method="lhs" if method == "monte_carlo" else None,
         )
 
         # Display results
-        info(f"\n[SUCCESS] Design space exploration completed!")
+        info("\n[SUCCESS] Design space exploration completed!")
         info(f"  Method: {method}")
         info(f"  Total evaluations: {result.num_simulations}")
         info(f"  Execution time: {result.execution_time:.2f}s")
 
-        if method == 'nsga2' and result.best_result:
+        if method == "nsga2" and result.best_result:
             best = result.best_result
-            if best.get('pareto_front'):
-                pareto_size = len(best['pareto_front'])
+            if best.get("pareto_front"):
+                pareto_size = len(best["pareto_front"])
                 info(f"  Pareto front size: {pareto_size} solutions")
 
-        if method == 'monte_carlo' and result.summary_statistics:
+        if method == "monte_carlo" and result.summary_statistics:
             stats = result.summary_statistics
-            if 'statistics' in stats:
-                info(f"\n[DESIGN SPACE] Variable ranges explored:")
+            if "statistics" in stats:
+                info("\n[DESIGN SPACE] Variable ranges explored:")
                 for var in design_variables:
-                    var_name = var.get('name', 'unknown')
-                    bounds = var.get('bounds', (0, 1))
+                    var_name = var.get("name", "unknown")
+                    bounds = var.get("bounds", (0, 1))
                     info(f"  {var_name}: [{bounds[0]:.3f}, {bounds[1]:.3f}]")
 
         # Save results
@@ -747,22 +799,27 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
             output_dir.mkdir(parents=True, exist_ok=True)
 
             results_file = output_dir / f"exploration_{method}_{result.study_id}.json"
-            with open(results_file, 'w') as f:
-                json.dump({
-                    'study_result': result.dict(),
-                    'configuration': {
-                        'method': method,
-                        'objectives': objectives,
-                        'design_variables': design_variables,
-                        'samples': samples
-                    }
-                }, f, indent=2, default=str)
+            with open(results_file, "w") as f:
+                json.dump(
+                    {
+                        "study_result": result.dict(),
+                        "configuration": {
+                            "method": method,
+                            "objectives": objectives,
+                            "design_variables": design_variables,
+                            "samples": samples,
+                        },
+                    },
+                    f,
+                    indent=2,
+                    default=str,
+                )
 
             info(f"\n  Results saved to: {results_file}")
 
             # Save design variables for reference
             vars_file = output_dir / f"design_variables_{result.study_id}.json"
-            with open(vars_file, 'w') as f:
+            with open(vars_file, "w") as f:
                 json.dump(design_variables, f, indent=2)
             info(f"  Variables saved to: {vars_file}")
 
@@ -770,13 +827,13 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
             info(f"  Study ID: {result.study_id}")
 
         # Provide next steps guidance
-        info(f"\n[NEXT STEPS] To visualize results:")
-        if method == 'nsga2':
-            info(f"  - Use Pareto front visualization for trade-off analysis")
-            info(f"  - Examine convergence history for algorithm performance")
+        info("\n[NEXT STEPS] To visualize results:")
+        if method == "nsga2":
+            info("  - Use Pareto front visualization for trade-off analysis")
+            info("  - Examine convergence history for algorithm performance")
         else:
-            info(f"  - Plot uncertainty distributions for key outputs")
-            info(f"  - Review sensitivity analysis for design insights")
+            info("  - Plot uncertainty distributions for key outputs")
+            info("  - Review sensitivity analysis for design insights")
 
     except FileNotFoundError as e:
         info(f"Error: File not found: {e}", err=True)
@@ -790,15 +847,16 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
             logger.exception("Failed to run design space exploration")
         sys.exit(1)
 
+
 @cli.group()
 def report() -> None:
     """Report generation and server commands"""
     pass
 
+
 @results.command()
-@click.argument('results_file', type=click.Path(exists=True))
-@option('--format', '-f', type=click.Choice(['summary', 'detailed', 'kpi']),
-              default='summary', help='Output format')
+@click.argument("results_file", type=click.Path(exists=True))
+@option("--format", "-f", type=click.Choice(["summary", "detailed", "kpi"]), default="summary", help="Output format")
 def show(results_file, format) -> None:
     """
     Display simulation results.
@@ -818,26 +876,26 @@ def show(results_file, format) -> None:
         info("=" * 50)
 
         # Display based on format
-        if format == 'summary' or format == 'kpi':
-            if 'summary' in results:
-                summary = results['summary']
+        if format == "summary" or format == "kpi":
+            if "summary" in results:
+                summary = results["summary"]
                 info(f"  Status: {summary.get('status', 'unknown')}")
                 info(f"  Objective: {summary.get('objective_value', 0):.2f}")
                 info(f"  Solve Time: {summary.get('solve_time', 0):.3f}s")
 
-            if 'kpis' in results and format == 'kpi':
+            if "kpis" in results and format == "kpi":
                 info("\n  Key Performance Indicators:")
-                for kpi, value in results['kpis'].items():
+                for kpi, value in results["kpis"].items():
                     if isinstance(value, (int, float)):
                         info(f"    {kpi}: {value:.2f}")
                     else:
                         info(f"    {kpi}: {value}")
 
-        elif format == 'detailed':
+        elif format == "detailed":
             # Show component results
-            if 'components' in results:
+            if "components" in results:
                 info("\n  Component Results:")
-                for comp_name, comp_data in results['components'].items():
+                for comp_name, comp_data in results["components"].items():
                     info(f"\n    {comp_name}:")
                     for key, value in comp_data.items():
                         if isinstance(value, list) and len(value) > 0:
@@ -855,14 +913,12 @@ def show(results_file, format) -> None:
         info(f"Error displaying results: {e}", err=True)
         sys.exit(1)
 
+
 @report.command()
-@click.argument('results_file', type=click.Path(exists=True))
-@option('--output', '-o', type=click.Path(),
-              help='Output directory for report files')
-@option('--strategies', '-s', multiple=True,
-              help='Analysis strategies to run (default: all)')
-@option('--format', 'output_format', type=click.Choice(['json', 'html']),
-              default='json', help='Output format')
+@click.argument("results_file", type=click.Path(exists=True))
+@option("--output", "-o", type=click.Path(), help="Output directory for report files")
+@option("--strategies", "-s", multiple=True, help="Analysis strategies to run (default: all)")
+@option("--format", "output_format", type=click.Choice(["json", "html"]), default="json", help="Output format")
 def analyze(results_file, output, strategies, output_format) -> None:
     """Analyze simulation results and generate report data."""
     from ecosystemiser.analyser import AnalyserService
@@ -879,21 +935,21 @@ def analyze(results_file, output, strategies, output_format) -> None:
         if output:
             output_dir = Path(output)
         else:
-            output_dir = Path(results_file).parent / 'analysis_output'
+            output_dir = Path(results_file).parent / "analysis_output"
 
         output_dir.mkdir(exist_ok=True)
 
-        if output_format == 'json':
+        if output_format == "json":
             # Save JSON results
-            output_file = output_dir / 'analysis_results.json'
+            output_file = output_dir / "analysis_results.json"
             analyser.save_analysis(analysis_results, str(output_file))
             info(f"Analysis saved to: {output_file}")
         else:
             info("HTML format requires Flask server. Use 'report server' command.")
 
         # Print summary
-        summary = analysis_results.get('summary', {})
-        info(f"\nAnalysis Summary:")
+        summary = analysis_results.get("summary", {})
+        info("\nAnalysis Summary:")
         info(f"  Successful analyses: {summary.get('successful_analyses', 0)}")
         info(f"  Failed analyses: {summary.get('failed_analyses', 0)}")
 
@@ -902,18 +958,19 @@ def analyze(results_file, output, strategies, output_format) -> None:
         info(f"Error: {e}", err=True)
         sys.exit(1)
 
+
 @report.command()
-@option('--host', default='127.0.0.1', help='Host to bind to')
-@option('--port', default=5000, help='Port to bind to')
-@option('--debug', is_flag=True, help='Enable debug mode')
+@option("--host", default="127.0.0.1", help="Host to bind to")
+@option("--port", default=5000, help="Port to bind to")
+@option("--debug", is_flag=True, help="Enable debug mode")
 def server(host, port, debug) -> None:
     """Start the reporting web server."""
     from ecosystemiser.reporting import run_server
 
-    info(f"Starting EcoSystemiser Reporting Server...")
+    info("Starting EcoSystemiser Reporting Server...")
     info(f"Server will be available at: http://{host}:{port}")
-    info(f"Upload your simulation results to generate reports.")
-    info(f"Press Ctrl+C to stop the server.")
+    info("Upload your simulation results to generate reports.")
+    info("Press Ctrl+C to stop the server.")
 
     try:
         run_server(host=host, port=port, debug=debug)
@@ -924,12 +981,17 @@ def server(host, port, debug) -> None:
         info(f"Server error: {e}", err=True)
         sys.exit(1)
 
-@report.command('generate')
-@click.argument('study_file', type=click.Path(exists=True))
-@option('--output', '-o', type=click.Path(), default='report.html',
-              help='Output HTML file path')
-@option('--type', 'study_type', type=click.Choice(['auto', 'ga', 'mc', 'standard']),
-              default='auto', help='Type of study (auto-detect by default)')
+
+@report.command("generate")
+@click.argument("study_file", type=click.Path(exists=True))
+@option("--output", "-o", type=click.Path(), default="report.html", help="Output HTML file path")
+@option(
+    "--type",
+    "study_type",
+    type=click.Choice(["auto", "ga", "mc", "standard"]),
+    default="auto",
+    help="Type of study (auto-detect by default)",
+)
 def generate(study_file, output, study_type) -> None:
     """Generate a standalone HTML report from study results.
 
@@ -943,25 +1005,22 @@ def generate(study_file, output, study_type) -> None:
 
     try:
         # Load study results
-        with open(study_file, 'r') as f:
+        with open(study_file) as f:
             study_data = json.load(f)
 
         # Auto-detect study type if needed
-        if study_type == 'auto':
-            if 'pareto_front' in study_data.get('best_result', {}):
-                study_type = 'genetic_algorithm'
-            elif 'uncertainty_analysis' in study_data.get('best_result', {}):
-                study_type = 'monte_carlo'
-            elif 'study_type' in study_data:
-                study_type = study_data['study_type']
+        if study_type == "auto":
+            if "pareto_front" in study_data.get("best_result", {}):
+                study_type = "genetic_algorithm"
+            elif "uncertainty_analysis" in study_data.get("best_result", {}):
+                study_type = "monte_carlo"
+            elif "study_type" in study_data:
+                study_type = study_data["study_type"]
             else:
-                study_type = 'standard'
+                study_type = "standard"
 
         # Map legacy type names
-        type_map = {
-            'ga': 'genetic_algorithm',
-            'mc': 'monte_carlo'
-        }
+        type_map = {"ga": "genetic_algorithm", "mc": "monte_carlo"}
         study_type = type_map.get(study_type, study_type)
 
         info(f"Generating {study_type} report from: {study_file}")
@@ -975,20 +1034,18 @@ def generate(study_file, output, study_type) -> None:
             title=f"EcoSystemiser {study_type.replace('_', ' ').title()} Report",
             include_plots=True,
             output_format="html",
-            save_path=Path(output)
+            save_path=Path(output),
         )
 
         # Generate report using the centralized service
-        report_result = reporting_service.generate_report(
-            analysis_results=study_data,
-            config=report_config
-        )
+        reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
         info(f"HTML report saved to: {output}")
 
         # Open in browser if available
         import webbrowser
-        webbrowser.open(f'file://{Path(output).absolute()}')
+
+        webbrowser.open(f"file://{Path(output).absolute()}")
 
     except FileNotFoundError:
         info(f"Error: Study file not found: {study_file}", err=True)
@@ -1005,14 +1062,14 @@ def generate(study_file, output, study_type) -> None:
         # Generate plots
         plot_factory = PlotFactory()
         plots = {}
-        analyses = analysis_results.get('analyses', {})
+        analyses = analysis_results.get("analyses", {})
 
         # Generate relevant plots
-        if 'technical_kpi' in analyses:
-            plots['kpi_gauges'] = plot_factory.create_technical_kpi_gauges(analyses['technical_kpi'])
+        if "technical_kpi" in analyses:
+            plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(analyses["technical_kpi"])
 
-        if 'economic' in analyses:
-            plots['economic_summary'] = plot_factory.create_economic_summary_plot(analyses['economic'])
+        if "economic" in analyses:
+            plots["economic_summary"] = plot_factory.create_economic_summary_plot(analyses["economic"])
 
         # Create HTML report using centralized generator
         html_content = create_standalone_html_report(analysis_results, plots)
@@ -1021,13 +1078,13 @@ def generate(study_file, output, study_type) -> None:
         output_path = Path(output)
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(html_content)
 
         info(f"HTML report generated: {output_path}")
 
         # Print summary
-        summary = analysis_results.get('summary', {})
+        summary = analysis_results.get("summary", {})
         info(f"Report includes {summary.get('successful_analyses', 0)} successful analyses")
 
     except Exception as e:
@@ -1035,5 +1092,6 @@ def generate(study_file, output, study_type) -> None:
         info(f"Error: {e}", err=True)
         sys.exit(1)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     cli()

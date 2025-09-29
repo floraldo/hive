@@ -8,7 +8,7 @@ import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
-    AdapterCapabilities
+    AdapterCapabilities,
     AuthType
     DataFrequency
     QualityFeatures
@@ -17,13 +17,13 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     TemporalCoverage
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import (
-    DataFetchError
+    DataFetchError,
     DataParseError
     ValidationError
 )
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
 from ecosystemiser.profile_loader.climate.processing.validation import (
-    QCIssue
+    QCIssue,
     QCProfile
     QCReport
     QCSeverity
@@ -44,19 +44,19 @@ from __future__ import annotations
     # Mapping from canonical names to Meteostat parameter codes
     VARIABLE_MAPPING = {
         # Temperature parameters
-        "temp_air": "temp",  # Current air temperature (degC) - hourly data
-        "temp_air_avg": "tavg",  # Average temperature (degC) - daily/monthly data
-        "temp_air_min": "tmin",  # Minimum temperature (degC) - daily/monthly data
-        "temp_air_max": "tmax",  # Maximum temperature (degC) - daily/monthly data
+        "temp_air": "temp",  # Current air temperature (degC) - hourly data,
+        "temp_air_avg": "tavg",  # Average temperature (degC) - daily/monthly data,
+        "temp_air_min": "tmin",  # Minimum temperature (degC) - daily/monthly data,
+        "temp_air_max": "tmax",  # Maximum temperature (degC) - daily/monthly data,
         "dewpoint": "dwpt",  # Dew point temperature (degC)
         # Humidity parameters
         "rel_humidity": "rhum",  # Relative humidity (%)
         # Precipitation parameters
-        "precip": "prcp",  # Total precipitation (mm)
+        "precip": "prcp",  # Total precipitation (mm),
         "snow": "snow",  # Snow depth (m)
         # Wind parameters
-        "wind_dir": "wdir",  # Wind (from) direction (degrees)
-        "wind_speed": "wspd",  # Average wind speed (km/h)
+        "wind_dir": "wdir",  # Wind (from) direction (degrees),
+        "wind_speed": "wspd",  # Average wind speed (km/h),
         "wind_gust": "wpgt",  # Wind peak gust (km/h)
         # Pressure parameters
         "pressure": "pres",  # Sea-level air pressure (hPa)
@@ -68,8 +68,8 @@ from __future__ import annotations
 
     # Variables that require special processing or unit conversion
     SPECIAL_VARIABLES = {
-        "cloud_cover": "coco",  # Derive cloud cover from weather condition codes
-        "ghi": "tsun",  # Estimate GHI from sunshine duration
+        "cloud_cover": "coco",  # Derive cloud cover from weather condition codes,
+        "ghi": "tsun",  # Estimate GHI from sunshine duration,
         "visibility": "coco",  # Derive visibility from weather codes
     }
 
@@ -101,8 +101,8 @@ from __future__ import annotations
         24: {"name": "Hail", "cloud_cover": 100, "visibility": "poor"}
         25: {"name": "Thunderstorm", "cloud_cover": 100, "visibility": "poor"}
         26: {
-            "name": "Heavy Thunderstorm"
-            "cloud_cover": 100
+            "name": "Heavy Thunderstorm",
+            "cloud_cover": 100,
             "visibility": "very_poor"
         }
         27: {"name": "Storm", "cloud_cover": 100, "visibility": "very_poor"}
@@ -111,7 +111,7 @@ from __future__ import annotations
     def __init__(self) -> None:
         """Initialize Meteostat adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
-            CacheConfig
+            CacheConfig,
             HTTPConfig
             RateLimitConfig
         )
@@ -229,9 +229,9 @@ from __future__ import annotations
         # Add metadata
         ds.attrs.update(
             {
-                "source": "Meteostat"
-                "adapter_version": self.ADAPTER_VERSION
-                "latitude": lat
+                "source": "Meteostat",
+                "adapter_version": self.ADAPTER_VERSION,
+                "latitude": lat,
                 "longitude": lon
             }
         )
@@ -382,10 +382,10 @@ from __future__ import annotations
             # Wind direction already in degrees - no conversion needed
             "wdir": lambda x: x
             # Temperature fields already in degC - no conversion needed
-            "temp": lambda x: x
-            "tavg": lambda x: x
-            "tmin": lambda x: x
-            "tmax": lambda x: x
+            "temp": lambda x: x,
+            "tavg": lambda x: x,
+            "tmin": lambda x: x,
+            "tmax": lambda x: x,
             "dwpt": lambda x: x
             # Humidity already in % - no conversion needed
             "rhum": lambda x: x
@@ -428,9 +428,9 @@ from __future__ import annotations
             elif var == "visibility" and "coco" in df.columns:
                 # Derive visibility from weather condition codes
                 visibility_map = {
-                    "very_poor": 0.5
-                    "poor": 2.0
-                    "moderate": 10.0
+                    "very_poor": 0.5,
+                    "poor": 2.0,
+                    "moderate": 10.0,
                     "good": 20.0
                 }
                 visibility_data = np.zeros(len(df))
@@ -637,20 +637,20 @@ from __future__ import annotations
         """Get variable attributes including units"""
 
         units_map = {
-            "temp_air": "degC"
-            "dewpoint": "degC"
-            "rel_humidity": "%"
-            "precip": "mm/h",  # Total precipitation for the time period
-            "snow": "mm"
-            "wind_dir": "degrees"
-            "wind_speed": "m/s"
-            "pressure": "Pa"
-            "cloud_cover": "%"
+            "temp_air": "degC",
+            "dewpoint": "degC",
+            "rel_humidity": "%",
+            "precip": "mm/h",  # Total precipitation for the time period,
+            "snow": "mm",
+            "wind_dir": "degrees",
+            "wind_speed": "m/s",
+            "pressure": "Pa",
+            "cloud_cover": "%",
             "ghi": "W/m2"
         }
 
         return {
-            "units": units_map.get(canonical_name, "unknown")
+            "units": units_map.get(canonical_name, "unknown"),
             "long_name": canonical_name.replace("_", " ").title()
         }
 

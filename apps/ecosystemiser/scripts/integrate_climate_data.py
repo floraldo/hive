@@ -2,12 +2,10 @@
 """Integrate Climate API data with existing profiles."""
 
 import json
-import sys
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -24,13 +22,14 @@ try:
     from ecosystemiser.profile_loader.climate.service import ClimateService
 
     CLIMATE_AVAILABLE = True
-except ImportError as e:
+except ImportError:
     logger.info("Climate service not available: {e}")
     CLIMATE_AVAILABLE = False
 
+
 def create_weather_enhanced_profiles() -> None:
     """Create weather-enhanced profiles using Climate API."""
-    data_dir = Path(__file__).parent.parent / "data" / "profiles"
+    Path(__file__).parent.parent / "data" / "profiles"
 
     if not CLIMATE_AVAILABLE:
         logger.info("Climate API not available, creating synthetic weather data...")
@@ -63,10 +62,11 @@ def create_weather_enhanced_profiles() -> None:
 
         return weather_profiles
 
-    except Exception as e:
+    except Exception:
         logger.info("Error fetching climate data: {e}")
         logger.info("Falling back to synthetic weather data...")
         return create_synthetic_weather_profiles()
+
 
 def create_synthetic_weather_profiles() -> None:
     """Create synthetic weather profiles when Climate API unavailable."""
@@ -130,11 +130,13 @@ def create_synthetic_weather_profiles() -> None:
 
     return weather_df, variants
 
+
 def process_climate_data(climate_data) -> None:
     """Process real climate data into hourly profiles."""
     # This would process the actual climate service response
     # For now, return synthetic data structure
     return create_synthetic_weather_profiles()
+
 
 def integrate_weather_with_profiles() -> None:
     """Integrate weather data with existing electrical and thermal profiles."""
@@ -179,6 +181,7 @@ def integrate_weather_with_profiles() -> None:
 
     return integrated_profiles, weather_variants
 
+
 def create_weather_variant_profiles(base_integrated, weather_variants) -> None:
     """Create seasonal profiles with weather integration."""
     seasonal_integrated = {}
@@ -213,6 +216,7 @@ def create_weather_variant_profiles(base_integrated, weather_variants) -> None:
         seasonal_integrated[season] = seasonal_profile
 
     return seasonal_integrated
+
 
 def main() -> None:
     """Main weather integration process."""
@@ -256,7 +260,7 @@ def main() -> None:
 
     # Update metadata
     metadata_path = data_dir / "profiles_metadata.json"
-    with open(metadata_path, "r") as f:
+    with open(metadata_path) as f:
         metadata = json.load(f)
 
     metadata["weather_integrated_profiles"] = {
@@ -287,6 +291,7 @@ def main() -> None:
     logger.info("  - Thermal integrated (24h, 7-day, seasonal)")
     logger.info("  - Weather integrated (24h, 7-day, seasonal)")
     logger.info("=" * 60)
+
 
 if __name__ == "__main__":
     main()

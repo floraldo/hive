@@ -5,15 +5,15 @@ from typing import Any, Dict, List
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
+    FidelityLevel,
     GenerationTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseGenerationOptimization
+    BaseGenerationOptimization,
     BaseGenerationPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component
+    Component,
     ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
@@ -391,8 +391,8 @@ class RainwaterSource(Component):
 
         # Add as flow
         self.flows["source"]["Q_out"] = {
-            "type": "water"
-            "value": self.Q_out
+            "type": "water",
+            "value": self.Q_out,
             "profile": self.profile
         }
 

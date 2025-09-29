@@ -6,7 +6,6 @@ logger = get_logger(__name__)
 Fix Unicode symbols in Python source files to prevent encoding issues.
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -27,7 +26,6 @@ def fix_unicode_in_file(filepath) -> None:
         """: "'",
         """: "'",
         '"': '"',
-        '"': '"',
         "…": "...",
         "→": "->",
         "←": "<-",
@@ -47,7 +45,7 @@ def fix_unicode_in_file(filepath) -> None:
     }
 
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             content = f.read()
     except UnicodeDecodeError:
         logger.info(f"Skipping {filepath} - encoding issue")

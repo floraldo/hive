@@ -15,6 +15,12 @@
 - **Edit existing files**, don't create new ones unless required
 - **Use hive-* packages**: `from hive_logging import get_logger` not `print()`
 - **Golden Rules validation**: `python scripts/validate_golden_rules.py`
+- **SYNTAX ERROR PREVENTION**:
+  - **ALWAYS check commas** in multi-line Python constructs
+  - Function definitions: `def func(cls,` not `def func(cls`
+  - Function calls: `func(arg1,` not `func(arg1`
+  - Dict/list literals: Must be properly comma-separated
+  - **Test syntax before commit**: `python -m py_compile file.py`
 
 ## 🛠️ Standard Tools
 

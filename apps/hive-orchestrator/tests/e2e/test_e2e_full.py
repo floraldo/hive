@@ -11,8 +11,9 @@ This test validates the complete workflow:
 This is the definitive test that proves the entire system works!
 """
 
-import json
-import os
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import shutil
 import sqlite3
 import subprocess
@@ -20,7 +21,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
@@ -52,7 +53,7 @@ class E2ETestRunner:
             "WARN": "[WARN]",
             "TEST": "[TEST]",
         }.get(level, "[INFO]")
-        print(f"[{timestamp}] {symbol} {message}")
+        logger.info(f"[{timestamp}] {symbol} {message}")
 
     def cleanup(self):
         """Clean all test artifacts"""
@@ -309,9 +310,9 @@ class E2ETestRunner:
 
             # Check for git
             if (worktree / ".git").exists():
-                self.log(f"  - Git repository: YES", "SUCCESS")
+                self.log("  - Git repository: YES", "SUCCESS")
             else:
-                self.log(f"  - Git repository: NO", "WARN")
+                self.log("  - Git repository: NO", "WARN")
 
             # Check for Python files
             py_files = list(worktree.glob("*.py"))
@@ -320,7 +321,7 @@ class E2ETestRunner:
                 for py_file in py_files[:3]:  # Show first 3
                     self.log(f"    - {py_file.name}")
             else:
-                self.log(f"  - Python files: None", "WARN")
+                self.log("  - Python files: None", "WARN")
 
             # Check for test files
             test_files = [f for f in py_files if "test" in f.name.lower()]

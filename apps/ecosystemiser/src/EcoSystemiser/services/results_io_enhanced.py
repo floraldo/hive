@@ -1,10 +1,9 @@
 """Enhanced Results I/O service for optimal hybrid persistence."""
 
 import json
-import pickle  # golden-rule-ignore: rule-17 - Required for legacy scientific data compatibility
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -25,8 +24,8 @@ class EnhancedResultsIO:
         system,
         simulation_id: str,
         output_dir: Path,
-        study_id: Optional[str] = None,
-        metadata: Optional[Dict] = None,
+        study_id: str | None = None,
+        metadata: dict | None = None,
     ) -> Path:
         """Save simulation results in structured directory format.
 
@@ -77,10 +76,10 @@ class EnhancedResultsIO:
             "study_id": study_id,
             "timesteps": system.N,
             "timestamp": datetime.now().isoformat(),
-            "solver_type": getattr(system, 'solver_type', 'unknown'),
+            "solver_type": getattr(system, "solver_type", "unknown"),
             "metadata": metadata or {},
             # Add system configuration if available
-            "system_config": getattr(system, 'config', {}),
+            "system_config": getattr(system, "config", {}),
         }
 
         config_path = run_dir / "simulation_config.json"
@@ -90,6 +89,7 @@ class EnhancedResultsIO:
         # Calculate and save KPIs
         try:
             from ecosystemiser.analyser.kpi_calculator import KPICalculator
+
             kpi_calc = KPICalculator()
             kpis = kpi_calc.calculate_from_system(system)
 
@@ -135,7 +135,7 @@ class EnhancedResultsIO:
 
         return run_dir
 
-    def _extract_system_results_enhanced(self, system) -> Dict[str, Any]:
+    def _extract_system_results_enhanced(self, system) -> dict[str, Any]:
         """Extract results from system with enhanced CVXPY handling."""
         results = {
             "system_id": system.system_id,
@@ -212,21 +212,23 @@ class EnhancedResultsIO:
 
         return results
 
-    def _prepare_flows_dataframe(self, flows: Dict) -> pd.DataFrame:
+    def _prepare_flows_dataframe(self, flows: dict) -> pd.DataFrame:
         """Convert flows to efficient DataFrame format for Parquet storage."""
         data = []
 
         for flow_name, flow_info in flows.items():
             if "value" in flow_info and isinstance(flow_info["value"], list):
                 for t, value in enumerate(flow_info["value"]):
-                    data.append({
-                        "timestep": t,
-                        "flow_name": flow_name,
-                        "source": flow_info["source"],
-                        "target": flow_info["target"],
-                        "type": flow_info["type"],
-                        "value": value,
-                    })
+                    data.append(
+                        {
+                            "timestep": t,
+                            "flow_name": flow_name,
+                            "source": flow_info["source"],
+                            "target": flow_info["target"],
+                            "type": flow_info["type"],
+                            "value": value,
+                        }
+                    )
 
         df = pd.DataFrame(data)
 
@@ -241,7 +243,7 @@ class EnhancedResultsIO:
 
         return df
 
-    def _prepare_components_dataframe(self, components: Dict, timesteps: int) -> pd.DataFrame:
+    def _prepare_components_dataframe(self, components: dict, timesteps: int) -> pd.DataFrame:
         """Convert components to efficient DataFrame format for Parquet storage."""
         data = []
 
@@ -249,28 +251,32 @@ class EnhancedResultsIO:
             # Storage levels
             if "E" in comp_data and comp_data["E"]:
                 for t, energy in enumerate(comp_data["E"]):
-                    data.append({
-                        "timestep": t,
-                        "component_name": comp_name,
-                        "type": comp_data["type"],
-                        "medium": comp_data["medium"],
-                        "variable": "energy_level",
-                        "value": energy,
-                        "unit": "kWh",
-                    })
+                    data.append(
+                        {
+                            "timestep": t,
+                            "component_name": comp_name,
+                            "type": comp_data["type"],
+                            "medium": comp_data["medium"],
+                            "variable": "energy_level",
+                            "value": energy,
+                            "unit": "kWh",
+                        }
+                    )
 
             # Generation profiles
             if "profile" in comp_data and comp_data["profile"]:
                 for t, generation in enumerate(comp_data["profile"]):
-                    data.append({
-                        "timestep": t,
-                        "component_name": comp_name,
-                        "type": comp_data["type"],
-                        "medium": comp_data["medium"],
-                        "variable": "generation",
-                        "value": generation,
-                        "unit": "kW",
-                    })
+                    data.append(
+                        {
+                            "timestep": t,
+                            "component_name": comp_name,
+                            "type": comp_data["type"],
+                            "medium": comp_data["medium"],
+                            "variable": "generation",
+                            "value": generation,
+                            "unit": "kW",
+                        }
+                    )
 
         df = pd.DataFrame(data)
 
@@ -286,7 +292,7 @@ class EnhancedResultsIO:
 
         return df
 
-    def load_structured_results(self, run_dir: Path) -> Dict[str, Any]:
+    def load_structured_results(self, run_dir: Path) -> dict[str, Any]:
         """Load results from structured directory format.
 
         Args:
@@ -305,13 +311,13 @@ class EnhancedResultsIO:
         # Load configuration
         config_path = run_dir / "simulation_config.json"
         if config_path.exists():
-            with open(config_path, "r") as f:
+            with open(config_path) as f:
                 results["config"] = json.load(f)
 
         # Load KPIs
         kpis_path = run_dir / "kpis.json"
         if kpis_path.exists():
-            with open(kpis_path, "r") as f:
+            with open(kpis_path) as f:
                 results["kpis"] = json.load(f)
 
         # Load flows
@@ -331,7 +337,7 @@ class EnhancedResultsIO:
         logger.info(f"Loaded structured results from {run_dir}")
         return results
 
-    def _dataframe_to_flows(self, df: pd.DataFrame) -> Dict:
+    def _dataframe_to_flows(self, df: pd.DataFrame) -> dict:
         """Convert flows DataFrame back to dictionary format."""
         flows = {}
 
@@ -347,7 +353,7 @@ class EnhancedResultsIO:
 
         return flows
 
-    def _dataframe_to_components(self, df: pd.DataFrame) -> Dict:
+    def _dataframe_to_components(self, df: pd.DataFrame) -> dict:
         """Convert components DataFrame back to dictionary format."""
         components = {}
 
@@ -373,7 +379,7 @@ class EnhancedResultsIO:
 
         return components
 
-    def create_run_summary(self, run_dir: Path) -> Dict[str, Any]:
+    def create_run_summary(self, run_dir: Path) -> dict[str, Any]:
         """Create a summary of a simulation run for database indexing.
 
         Args:
@@ -389,36 +395,40 @@ class EnhancedResultsIO:
             # Load basic config
             config_path = run_dir / "simulation_config.json"
             if config_path.exists():
-                with open(config_path, "r") as f:
+                with open(config_path) as f:
                     config = json.load(f)
-                    summary.update({
-                        "run_id": config.get("run_id"),
-                        "study_id": config.get("study_id"),
-                        "system_id": config.get("system_id"),
-                        "timesteps": config.get("timesteps"),
-                        "timestamp": config.get("timestamp"),
-                        "solver_type": config.get("solver_type", "unknown"),
-                    })
+                    summary.update(
+                        {
+                            "run_id": config.get("run_id"),
+                            "study_id": config.get("study_id"),
+                            "system_id": config.get("system_id"),
+                            "timesteps": config.get("timesteps"),
+                            "timestamp": config.get("timestamp"),
+                            "solver_type": config.get("solver_type", "unknown"),
+                        }
+                    )
 
             # Load key KPIs
             kpis_path = run_dir / "kpis.json"
             if kpis_path.exists():
-                with open(kpis_path, "r") as f:
+                with open(kpis_path) as f:
                     kpi_data = json.load(f)
                     kpis = kpi_data.get("kpis", {})
 
                     # Extract key metrics for database indexing
-                    summary.update({
-                        "total_cost": kpis.get("total_cost"),
-                        "total_co2": kpis.get("total_co2"),
-                        "self_consumption_rate": kpis.get("self_consumption_rate"),
-                        "self_sufficiency_rate": kpis.get("self_sufficiency_rate"),
-                        "renewable_fraction": kpis.get("renewable_fraction"),
-                        "total_generation_kwh": kpis.get("total_generation_kwh"),
-                        "total_demand_kwh": kpis.get("total_demand_kwh"),
-                        "net_grid_usage_kwh": kpis.get("net_grid_usage_kwh"),
-                        "simulation_status": kpi_data.get("summary", {}).get("simulation_status", "unknown"),
-                    })
+                    summary.update(
+                        {
+                            "total_cost": kpis.get("total_cost"),
+                            "total_co2": kpis.get("total_co2"),
+                            "self_consumption_rate": kpis.get("self_consumption_rate"),
+                            "self_sufficiency_rate": kpis.get("self_sufficiency_rate"),
+                            "renewable_fraction": kpis.get("renewable_fraction"),
+                            "total_generation_kwh": kpis.get("total_generation_kwh"),
+                            "total_demand_kwh": kpis.get("total_demand_kwh"),
+                            "net_grid_usage_kwh": kpis.get("net_grid_usage_kwh"),
+                            "simulation_status": kpi_data.get("summary", {}).get("simulation_status", "unknown"),
+                        }
+                    )
 
             # Add file paths for reference
             summary["results_path"] = str(run_dir)

@@ -11,8 +11,8 @@ logger = get_logger(__name__)
 
 
 def calculate_clearness_index(
-    ghi: xr.DataArray
-    latitude: float
+    ghi: xr.DataArray,
+    latitude: float,
     time: xr.DataArray
     longitude: float | None = None
 ) -> xr.DataArray:
@@ -77,10 +77,10 @@ from __future__ import annotations
         kt = kt.clip(0, 1.2)  # Allow slight over-unity due to cloud enhancement
 
     kt.attrs = {
-        "units": "fraction"
-        "type": "state"
-        "derived": True
-        "description": "Clearness index for solar resource assessment"
+        "units": "fraction",
+        "type": "state",
+        "derived": True,
+        "description": "Clearness index for solar resource assessment",
         "long_name": "Ratio of GHI to extraterrestrial radiation"
     }
 
@@ -139,8 +139,8 @@ def calculate_solar_position(
         coords={"time": time}
         dims=["time"]
         attrs={
-            "units": "degrees"
-            "description": "Solar elevation angle above horizon"
+            "units": "degrees",
+            "description": "Solar elevation angle above horizon",
             "long_name": "Solar elevation"
         }
     )
@@ -150,8 +150,8 @@ def calculate_solar_position(
         coords={"time": time}
         dims=["time"]
         attrs={
-            "units": "degrees"
-            "description": "Solar azimuth angle from North (clockwise)"
+            "units": "degrees",
+            "description": "Solar azimuth angle from North (clockwise)",
             "long_name": "Solar azimuth"
         }
     )
@@ -193,8 +193,8 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
         coords={"time": ds.time}
         dims=["time"]
         attrs={
-            "units": "dimensionless"
-            "description": "Relative optical air mass"
+            "units": "dimensionless",
+            "description": "Relative optical air mass",
             "long_name": "Air mass"
         }
     )
@@ -246,10 +246,10 @@ def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_eleva
         dni = dni.clip(0, 1500)  # Reasonable physical limits
 
     dni.attrs = {
-        "units": "W/m2"
-        "type": "flux"
-        "derived": True
-        "description": "Direct normal irradiance calculated from GHI and DHI"
+        "units": "W/m2",
+        "type": "flux",
+        "derived": True,
+        "description": "Direct normal irradiance calculated from GHI and DHI",
         "method": "Solar geometry calculation"
     }
 

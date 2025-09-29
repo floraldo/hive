@@ -172,12 +172,12 @@ class ScenarioManager:
             metadata_file = result_dir / "metadata.json"
             with open(metadata_file, 'w') as f:
                 json.dump({
-                    "run_id": run_id
-                    "scenario_id": scenario_id
-                    "solver_type": solver_type
-                    "started_at": started_at
-                    "completed_at": datetime.now().isoformat()
-                    "kpis": kpis
+                    "run_id": run_id,
+                    "scenario_id": scenario_id,
+                    "solver_type": solver_type,
+                    "started_at": started_at,
+                    "completed_at": datetime.now().isoformat(),
+                    "kpis": kpis,
                     "metadata": metadata or {}
                 }, f, indent=2)
 
@@ -278,37 +278,37 @@ class ScenarioManager:
 
         # Calculate derived KPIs
         kpis.update({
-            "solar_generation_mwh": {
+            "solar_generation_mwh": {,
                 "value": solar_total / 1000, "unit": "MWh", "category": "energy"
             }
-            "total_demand_mwh": {
+            "total_demand_mwh": {,
                 "value": demand_total / 1000, "unit": "MWh", "category": "energy"
             }
-            "grid_import_mwh": {
+            "grid_import_mwh": {,
                 "value": grid_import_total / 1000, "unit": "MWh", "category": "energy"
             }
-            "grid_export_mwh": {
+            "grid_export_mwh": {,
                 "value": grid_export_total / 1000, "unit": "MWh", "category": "energy"
             }
-            "net_grid_mwh": {
-                "value": (grid_import_total - grid_export_total) / 1000
+            "net_grid_mwh": {,
+                "value": (grid_import_total - grid_export_total) / 1000,
                 "unit": "MWh", "category": "energy"
             }
-            "self_consumption_ratio": {
-                "value": min(1.0, demand_total / solar_total) if solar_total > 0 else 0
+            "self_consumption_ratio": {,
+                "value": min(1.0, demand_total / solar_total) if solar_total > 0 else 0,
                 "unit": "ratio", "category": "performance"
             }
-            "self_sufficiency_ratio": {
-                "value": min(1.0, (solar_total - grid_export_total) / demand_total) if demand_total > 0 else 0
+            "self_sufficiency_ratio": {,
+                "value": min(1.0, (solar_total - grid_export_total) / demand_total) if demand_total > 0 else 0,
                 "unit": "ratio", "category": "performance"
             }
-            "battery_cycles": {
+            "battery_cycles": {,
                 "value": battery_cycles, "unit": "cycles", "category": "storage"
             }
-            "battery_avg_soc": {
+            "battery_avg_soc": {,
                 "value": battery_avg_soc, "unit": "ratio", "category": "storage"
             }
-            "battery_range_kwh": {
+            "battery_range_kwh": {,
                 "value": battery_range_kwh, "unit": "kWh", "category": "storage"
             }
         })
@@ -334,11 +334,11 @@ class ScenarioManager:
                 values = np.array(flow_data["value"])
                 for t, value in enumerate(values):
                     flows_data.append({
-                        "timestep": t
-                        "flow_name": flow_key
-                        "source": flow_data["source"]
-                        "target": flow_data["target"]
-                        "type": flow_data["type"]
+                        "timestep": t,
+                        "flow_name": flow_key,
+                        "source": flow_data["source"],
+                        "target": flow_data["target"],
+                        "type": flow_data["type"],
                         "value": value
                     })
 
@@ -356,12 +356,12 @@ class ScenarioManager:
                 if isinstance(component.E, np.ndarray):
                     for t, energy in enumerate(component.E):
                         components_data.append({
-                            "timestep": t
-                            "component": comp_name
-                            "type": component.type
-                            "medium": component.medium
-                            "variable": "E"
-                            "value": energy
+                            "timestep": t,
+                            "component": comp_name,
+                            "type": component.type,
+                            "medium": component.medium,
+                            "variable": "E",
+                            "value": energy,
                             "unit": "kWh"
                         })
 
@@ -370,12 +370,12 @@ class ScenarioManager:
                 if isinstance(component.profile, np.ndarray):
                     for t, power in enumerate(component.profile):
                         components_data.append({
-                            "timestep": t
-                            "component": comp_name
-                            "type": component.type
-                            "medium": component.medium
-                            "variable": "profile"
-                            "value": power
+                            "timestep": t,
+                            "component": comp_name,
+                            "type": component.type,
+                            "medium": component.medium,
+                            "variable": "profile",
+                            "value": power,
                             "unit": "kW"
                         })
 

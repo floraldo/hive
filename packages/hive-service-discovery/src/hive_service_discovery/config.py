@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 """Configuration for service discovery components."""
 
 import os
-from typing import Any, Dict, List
+from typing import List
 
 from pydantic import BaseModel, Field, validator
 
@@ -107,18 +107,18 @@ class ServiceDiscoveryConfig(BaseModel):
 
         # Map environment variables to config fields
         env_mapping = {
-            "HIVE_SERVICE_REGISTRY_BACKEND": "registry_backend"
-            "HIVE_SERVICE_REGISTRY_URL": "registry_url"
-            "HIVE_SERVICE_TTL": "service_ttl"
-            "HIVE_SERVICE_BIND_ADDRESS": "bind_address"
-            "HIVE_SERVICE_ADVERTISE_ADDRESS": "advertise_address"
-            "HIVE_SERVICE_ENVIRONMENT": "environment"
-            "HIVE_SERVICE_DATACENTER": "datacenter"
-            "HIVE_SERVICE_REGION": "region"
-            "HIVE_SERVICE_ENABLE_TLS": "enable_tls"
-            "HIVE_SERVICE_HEALTH_CHECK_INTERVAL": "health_check.interval"
-            "HIVE_SERVICE_DISCOVERY_INTERVAL": "discovery_interval"
-            "HIVE_SERVICE_LB_STRATEGY": "load_balancer.strategy"
+            "HIVE_SERVICE_REGISTRY_BACKEND": "registry_backend",
+            "HIVE_SERVICE_REGISTRY_URL": "registry_url",
+            "HIVE_SERVICE_TTL": "service_ttl",
+            "HIVE_SERVICE_BIND_ADDRESS": "bind_address",
+            "HIVE_SERVICE_ADVERTISE_ADDRESS": "advertise_address",
+            "HIVE_SERVICE_ENVIRONMENT": "environment",
+            "HIVE_SERVICE_DATACENTER": "datacenter",
+            "HIVE_SERVICE_REGION": "region",
+            "HIVE_SERVICE_ENABLE_TLS": "enable_tls",
+            "HIVE_SERVICE_HEALTH_CHECK_INTERVAL": "health_check.interval",
+            "HIVE_SERVICE_DISCOVERY_INTERVAL": "discovery_interval",
+            "HIVE_SERVICE_LB_STRATEGY": "load_balancer.strategy",
         }
 
         for env_var, config_path in env_mapping.items():
@@ -137,7 +137,7 @@ class ServiceDiscoveryConfig(BaseModel):
                     elif config_path.endswith(".enabled"):
                         env_config[parent][child] = env_value.lower() in ("true", "1", "yes")
                     else:
-                        env_config[parent][child] = env_value
+                        env_config[parent][child] = (env_value,)
                 else:
                     # Handle direct config fields
                     if config_path in ["service_ttl", "metrics_port"]:

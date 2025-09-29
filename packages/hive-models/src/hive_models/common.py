@@ -4,12 +4,12 @@ Common shared models used across multiple Hive applications.
 These models represent common concepts and data structures that are
 used throughout the platform.
 """
+
 from __future__ import annotations
 
-
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List
-from datetime import datetime
 
 from pydantic import Field, field_validator
 

@@ -1,11 +1,11 @@
 """Base strategy class for all analysis implementations."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
-import pandas as pd
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -13,7 +13,6 @@ logger = get_logger(__name__)
 
 class BaseAnalysis(ABC):
     """Abstract base class for all analysis strategies.
-from __future__ import annotations
 
 
     This follows the Strategy Pattern, allowing different analysis
@@ -32,7 +31,7 @@ from __future__ import annotations
         self.metadata = None
 
     @abstractmethod
-    def run(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
+    def run(self, results_data: dict[str, Any], metadata: dict | None = None) -> dict[str, Any]:
         """Execute the analysis on the provided results data.
 
         This is the main method that each strategy must implement.
@@ -48,7 +47,7 @@ from __future__ import annotations
         """
         pass
 
-    def validate_input(self, results_data: Dict[str, Any]) -> bool:
+    def validate_input(self, results_data: dict[str, Any]) -> bool:
         """Validate that input data contains required fields.
 
         Override this method in subclasses to add specific validation.
@@ -67,7 +66,7 @@ from __future__ import annotations
 
         return True
 
-    def preprocess_data(self, results_data: Dict[str, Any]) -> Dict[str, Any]:
+    def preprocess_data(self, results_data: dict[str, Any]) -> dict[str, Any]:
         """Preprocess data before analysis.
 
         Override this method in subclasses to add specific preprocessing.
@@ -80,7 +79,7 @@ from __future__ import annotations
         """
         return results_data
 
-    def postprocess_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def postprocess_results(self, results: dict[str, Any]) -> dict[str, Any]:
         """Postprocess analysis results.
 
         Override this method in subclasses to add specific postprocessing
@@ -104,7 +103,7 @@ from __future__ import annotations
 
         return processed
 
-    def execute(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
+    def execute(self, results_data: dict[str, Any], metadata: dict | None = None) -> dict[str, Any]:
         """Execute the complete analysis pipeline.
 
         This method orchestrates validation, preprocessing, analysis

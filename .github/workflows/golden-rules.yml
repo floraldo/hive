@@ -104,7 +104,7 @@ jobs:
         echo ""
 
         # Custom security-focused validation
-        python scripts/security_check.py
+        python scripts/security/run_audit.py --quick
 
   legacy-compatibility:
     name: 📊 Legacy Golden Rules (Compatibility)

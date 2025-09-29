@@ -2,7 +2,9 @@
 Tests for the AI Reviewer review engine
 """
 
-from unittest.mock import MagicMock, Mock, patch
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 import pytest
 from ai_reviewer.reviewer import (
@@ -128,7 +130,7 @@ def very_long_function_that_does_too_many_things():
             if i > 10:
                 if i > 20:
                     if i > 30:
-                        print(i)
+                        logger.info(i)
     """
             + "\n".join(["    pass"] * 50)  # Make it very long
         }
@@ -208,7 +210,7 @@ def run_command(cmd):
 # TODO: fix this later
 def process():
     try:
-        print("debugging")
+        logger.info("debugging")
         x = 1
     except:
         pass
@@ -387,7 +389,7 @@ def do_stuff(x):
             if x > 0:
                 if x > 10:
                     if x > 100:
-                        print("big number")
+                        logger.info("big number")
     except:
         pass  # Ignore all errors
 """

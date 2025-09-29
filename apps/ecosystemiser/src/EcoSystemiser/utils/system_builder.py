@@ -1,31 +1,13 @@
 """Dynamic system builder for configuration-driven system assembly."""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 import yaml
 from ecosystemiser.component_data.repository import ComponentRepository
 
 # Import all components to ensure they are registered
-from ecosystemiser.system_model.components.energy import (
-    Battery,
-    BatteryParams,
-    ElectricBoiler,
-    ElectricBoilerParams,
-    Grid,
-    GridParams,
-    HeatBuffer,
-    HeatBufferParams,
-    HeatDemand,
-    HeatDemandParams,
-    HeatPump,
-    HeatPumpParams,
-    PowerDemand,
-    PowerDemandParams,
-    SolarPV,
-    SolarPVParams,
-)
 from ecosystemiser.system_model.components.shared.registry import (
     COMPONENT_REGISTRY,
     get_component_class,
@@ -55,7 +37,7 @@ class SystemBuilder:
             f"Initialized SystemBuilder with {len(available_components)} registered components: {available_components}"
         )
 
-    def list_available_components(self) -> Dict[str, str]:
+    def list_available_components(self) -> dict[str, str]:
         """List all available component types and their descriptions.
 
         Returns:
@@ -76,7 +58,7 @@ class SystemBuilder:
             Configured System object
         """
         # Load system configuration
-        with open(self.config_path, "r") as f:
+        with open(self.config_path) as f:
             config = yaml.safe_load(f)
 
         # Validate configuration structure
@@ -97,7 +79,7 @@ class SystemBuilder:
         logger.info(f"Built system '{system.system_id}' with {len(system.components)} components")
         return system
 
-    def _validate_config(self, config: Dict[str, Any]) -> None:
+    def _validate_config(self, config: dict[str, Any]) -> None:
         """Validate system configuration structure.
 
         Args:
@@ -117,7 +99,7 @@ class SystemBuilder:
         if not isinstance(config["connections"], list):
             raise ValueError("'connections' must be a list")
 
-    def _create_component(self, comp_config: Dict[str, Any], n: int) -> None:
+    def _create_component(self, comp_config: dict[str, Any], n: int) -> None:
         """Create a component instance from configuration.
 
         Args:
@@ -181,7 +163,7 @@ class SystemBuilder:
         # Create component using registry pattern
         return ComponentClass(name, params, n)
 
-    def assign_profiles(self, system: System, profiles: Dict[str, Any]) -> None:
+    def assign_profiles(self, system: System, profiles: dict[str, Any]) -> None:
         """Assign loaded profiles to system components.
 
         Args:

@@ -675,13 +675,13 @@ def main() -> None:
         rolling_perf = summary.get("rolling_horizon_performance", {})
 
         # Script output
-    print(
+    logger.info(
             f"Fidelity Levels: {fidelity_perf.get('successful_levels', 0)}/{fidelity_perf.get('total_levels', 4)} successful"
         )
 
         if fidelity_perf.get("fastest_solve_s"):
             # Script output
-    print(
+    logger.info(
                 f"Solve Time Range: {fidelity_perf['fastest_solve_s']:.4f}s - {fidelity_perf['slowest_solve_s']:.4f}s"
             )
 

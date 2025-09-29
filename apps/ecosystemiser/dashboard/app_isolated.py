@@ -3,16 +3,14 @@ EcoSystemiser Climate Dashboard (Isolated Version)
 Interactive web interface that reads from output artifacts
 No direct imports from ecosystemiser package - maintains architectural isolation
 """
+
 from __future__ import annotations
 
-
 import json
-import os
-from datetime import date, datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
-import numpy as np
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -20,10 +18,7 @@ import streamlit as st
 
 # Page configuration
 st.set_page_config(
-    page_title="EcoSystemiser Climate Dashboard"
-    page_icon="🌍"
-    layout="wide"
-    initial_sidebar_state="expanded"
+    page_title="EcoSystemiser Climate Dashboard", page_icon="🌍", layout="wide", initial_sidebar_state="expanded"
 )
 
 # Custom CSS for better styling
@@ -40,8 +35,8 @@ st.markdown(
         margin: 0.5rem 0;
     }
 </style>
-"""
-    unsafe_allow_html=True
+""",
+    unsafe_allow_html=True,
 )
 
 # Initialize session state
@@ -51,32 +46,26 @@ if "loaded_file" not in st.session_state:
     st.session_state.loaded_file = None
 
 
-def get_available_sources() -> List[str]:
+def get_available_sources() -> list[str]:
     """Get list of available climate data sources from configuration."""
     # In isolated mode, we hardcode the known sources
-    return [
-        "nasa_power"
-        "meteostat"
-        "era5"
-        "pvgis"
-        "file_epw"
-    ]
+    return ["nasa_power", "meteostat", "era5", "pvgis", "file_epw"]
 
 
-def get_canonical_variables() -> Dict[str, Dict[str, Any]]:
+def get_canonical_variables() -> dict[str, dict[str, Any]]:
     """Get canonical variable definitions."""
     # In isolated mode, we define the essential variables
     return {
-        "temp_air": {"name": "Air Temperature", "unit": "°C", "category": "Temperature"}
-        "rel_humidity": {"name": "Relative Humidity", "unit": "%", "category": "Humidity"}
-        "wind_speed": {"name": "Wind Speed", "unit": "m/s", "category": "Wind"}
-        "wind_dir": {"name": "Wind Direction", "unit": "degrees", "category": "Wind"}
-        "ghi": {"name": "Global Horizontal Irradiance", "unit": "W/m²", "category": "Solar"}
-        "dni": {"name": "Direct Normal Irradiance", "unit": "W/m²", "category": "Solar"}
-        "dhi": {"name": "Diffuse Horizontal Irradiance", "unit": "W/m²", "category": "Solar"}
-        "precip": {"name": "Precipitation", "unit": "mm", "category": "Precipitation"}
-        "pressure": {"name": "Atmospheric Pressure", "unit": "hPa", "category": "Pressure"}
-        "cloud_cover": {"name": "Cloud Cover", "unit": "%", "category": "Clouds"}
+        "temp_air": {"name": "Air Temperature", "unit": "°C", "category": "Temperature"},
+        "rel_humidity": {"name": "Relative Humidity", "unit": "%", "category": "Humidity"},
+        "wind_speed": {"name": "Wind Speed", "unit": "m/s", "category": "Wind"},
+        "wind_dir": {"name": "Wind Direction", "unit": "degrees", "category": "Wind"},
+        "ghi": {"name": "Global Horizontal Irradiance", "unit": "W/m²", "category": "Solar"},
+        "dni": {"name": "Direct Normal Irradiance", "unit": "W/m²", "category": "Solar"},
+        "dhi": {"name": "Diffuse Horizontal Irradiance", "unit": "W/m²", "category": "Solar"},
+        "precip": {"name": "Precipitation", "unit": "mm", "category": "Precipitation"},
+        "pressure": {"name": "Atmospheric Pressure", "unit": "hPa", "category": "Pressure"},
+        "cloud_cover": {"name": "Cloud Cover", "unit": "%", "category": "Clouds"},
     }
 
 
@@ -84,7 +73,7 @@ def load_climate_data_from_file(file_path: Path) -> pd.DataFrame | None:
     """Load climate data from a JSON or CSV file."""
     try:
         if file_path.suffix == ".json":
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 data = json.load(f)
 
             # Handle different JSON structures
@@ -126,7 +115,7 @@ def load_climate_data_from_file(file_path: Path) -> pd.DataFrame | None:
         return None
 
 
-def find_output_files(base_dir: Path = None) -> List[Path]:
+def find_output_files(base_dir: Path = None) -> list[Path]:
     """Find available climate data output files."""
     if base_dir is None:
         # Default to results directory relative to dashboard
@@ -144,7 +133,7 @@ def find_output_files(base_dir: Path = None) -> List[Path]:
     return sorted(files, key=lambda x: x.stat().st_mtime, reverse=True)[:20]  # Most recent 20
 
 
-def plot_time_series(df: pd.DataFrame, variables: List[str], title: str = "Time Series") -> go.Figure:
+def plot_time_series(df: pd.DataFrame, variables: list[str], title: str = "Time Series") -> go.Figure:
     """Create time series plot for selected variables."""
     fig = go.Figure()
 
@@ -152,10 +141,10 @@ def plot_time_series(df: pd.DataFrame, variables: List[str], title: str = "Time 
         if var in df.columns:
             fig.add_trace(
                 go.Scatter(
-                    x=df.index if isinstance(df.index, pd.DatetimeIndex) else df.index
-                    y=df[var]
-                    mode="lines"
-                    name=var
+                    x=df.index if isinstance(df.index, pd.DatetimeIndex) else df.index,
+                    y=df[var],
+                    mode="lines",
+                    name=var,
                 )
             )
 
@@ -164,7 +153,7 @@ def plot_time_series(df: pd.DataFrame, variables: List[str], title: str = "Time 
     return fig
 
 
-def plot_correlation_matrix(df: pd.DataFrame, variables: List[str]) -> go.Figure:
+def plot_correlation_matrix(df: pd.DataFrame, variables: list[str]) -> go.Figure:
     """Create correlation matrix heatmap."""
     numeric_vars = [v for v in variables if v in df.columns and pd.api.types.is_numeric_dtype(df[v])]
 
@@ -172,14 +161,14 @@ def plot_correlation_matrix(df: pd.DataFrame, variables: List[str]) -> go.Figure
         corr_matrix = df[numeric_vars].corr()
 
         fig = px.imshow(
-            corr_matrix
-            labels=dict(x="Variable", y="Variable", color="Correlation")
-            x=numeric_vars
-            y=numeric_vars
-            color_continuous_scale="RdBu_r"
-            zmin=-1
-            zmax=1
-            title="Variable Correlation Matrix"
+            corr_matrix,
+            labels=dict(x="Variable", y="Variable", color="Correlation"),
+            x=numeric_vars,
+            y=numeric_vars,
+            color_continuous_scale="RdBu_r",
+            zmin=-1,
+            zmax=1,
+            title="Variable Correlation Matrix",
         )
 
         return fig
@@ -190,11 +179,11 @@ def plot_distribution(df: pd.DataFrame, variable: str) -> go.Figure:
     """Create distribution plot for a variable."""
     if variable in df.columns:
         fig = px.histogram(
-            df
-            x=variable
-            nbins=30
-            title=f"Distribution of {variable}"
-            labels={variable: variable, "count": "Frequency"}
+            df,
+            x=variable,
+            nbins=30,
+            title=f"Distribution of {variable}",
+            labels={variable: variable, "count": "Frequency"},
         )
         return fig
     return None
@@ -218,9 +207,9 @@ def main() -> None:
 
         if output_files:
             selected_file = st.selectbox(
-                "Select from existing outputs"
-                options=["None"] + output_files
-                format_func=lambda x: "None" if x == "None" else f"{x.name} ({x.parent.name})"
+                "Select from existing outputs",
+                options=["None"] + output_files,
+                format_func=lambda x: "None" if x == "None" else f"{x.name} ({x.parent.name})",
             )
 
             if selected_file != "None":
@@ -256,9 +245,9 @@ def main() -> None:
             available_vars = [col for col in df.columns if not col.startswith("_")]
 
             selected_vars = st.multiselect(
-                "Select variables to visualize"
-                options=available_vars
-                default=available_vars[:3] if len(available_vars) > 3 else available_vars
+                "Select variables to visualize",
+                options=available_vars,
+                default=available_vars[:3] if len(available_vars) > 3 else available_vars,
             )
 
     # Main content area
@@ -307,11 +296,11 @@ def main() -> None:
                     if var in df.columns:
                         quality_data.append(
                             {
-                                "Variable": var
-                                "Missing Values": df[var].isna().sum()
-                                "Missing %": f"{df[var].isna().sum() / len(df) * 100:.1f}%"
-                                "Unique Values": df[var].nunique()
-                                "Data Type": str(df[var].dtype)
+                                "Variable": var,
+                                "Missing Values": df[var].isna().sum(),
+                                "Missing %": f"{df[var].isna().sum() / len(df) * 100:.1f}%",
+                                "Unique Values": df[var].nunique(),
+                                "Data Type": str(df[var].dtype),
                             }
                         )
 
@@ -331,10 +320,10 @@ def main() -> None:
             with col2:
                 if isinstance(df.index, pd.DatetimeIndex):
                     date_range = st.date_input(
-                        "Date range"
-                        value=(df.index[0].date(), df.index[-1].date())
-                        min_value=df.index[0].date()
-                        max_value=df.index[-1].date()
+                        "Date range",
+                        value=(df.index[0].date(), df.index[-1].date()),
+                        min_value=df.index[0].date(),
+                        max_value=df.index[-1].date(),
                     )
 
             # Display data
@@ -347,10 +336,10 @@ def main() -> None:
             # Download button
             csv = display_df.to_csv()
             st.download_button(
-                label="Download displayed data as CSV"
-                data=csv
-                file_name=f"climate_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-                mime="text/csv"
+                label="Download displayed data as CSV",
+                data=csv,
+                file_name=f"climate_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                mime="text/csv",
             )
 
         with tab4:

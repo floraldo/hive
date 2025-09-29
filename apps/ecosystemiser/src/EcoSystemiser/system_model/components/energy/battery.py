@@ -1,25 +1,17 @@
 """Battery storage component with MILP optimization support."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import cvxpy as cp
-import numpy as np
-from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
-    StorageTechnicalParams
-)
-from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseStorageOptimization
-    BaseStoragePhysics
-)
-from ecosystemiser.system_model.components.shared.component import (
-    Component
-    ComponentParams
-)
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, StorageTechnicalParams
+from ecosystemiser.system_model.components.shared.base_classes import BaseStorageOptimization, BaseStoragePhysics
+from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -30,8 +22,6 @@ logger = get_logger(__name__)
 
 class BatteryTechnicalParams(StorageTechnicalParams):
     """Battery-specific technical parameters extending storage archetype."""
-from __future__ import annotations
-
 
     # Core battery power limits (SIMPLE fidelity)
     max_charge_rate: float = Field(..., description="Maximum charging power [kW]")
@@ -49,13 +39,13 @@ from __future__ import annotations
     )
 
     # STANDARD fidelity additions
-    degradation_model: Optional[Dict[str, float]] = Field(None, description="Battery degradation model parameters")
+    degradation_model: Optional[dict[str, float]] = Field(None, description="Battery degradation model parameters")
 
     # DETAILED fidelity parameters
-    voltage_curve: Optional[Dict[str, Any]] = Field(None, description="Voltage vs SOC curve for detailed modeling")
+    voltage_curve: Optional[dict[str, Any]] = Field(None, description="Voltage vs SOC curve for detailed modeling")
 
     # RESEARCH fidelity parameters
-    electrochemical_model: Optional[Dict[str, Any]] = Field(
+    electrochemical_model: Optional[dict[str, Any]] = Field(
         None, description="Detailed electrochemical model parameters"
     )
 
@@ -68,11 +58,11 @@ class BatteryParams(ComponentParams):
             capacity_nominal=10.0,  # Default 10 kWh
             max_charge_rate=5.0,  # Default 5 kW charge
             max_discharge_rate=5.0,  # Default 5 kW discharge
-            efficiency_roundtrip=0.95
-            initial_soc_pct=0.5
-            fidelity_level=FidelityLevel.STANDARD
-        )
-        description="Technical parameters following the hierarchical archetype system"
+            efficiency_roundtrip=0.95,
+            initial_soc_pct=0.5,
+            fidelity_level=FidelityLevel.STANDARD,
+        ),
+        description="Technical parameters following the hierarchical archetype system",
     )
 
 
@@ -387,7 +377,7 @@ class Battery(Component):
         self.flows["sink"]["P_cha"] = {"type": "electricity", "value": self.P_cha}
         self.flows["source"]["P_dis"] = {"type": "electricity", "value": self.P_dis}
 
-    def set_constraints(self) -> List:
+    def set_constraints(self) -> list:
         """Delegate constraint creation to optimization strategy."""
         return self.optimization.set_constraints()
 

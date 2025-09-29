@@ -15,7 +15,7 @@ from typing import Any, Dict, List
 import click
 from ecosystemiser.profile_loader import ClimateRequest
 from ecosystemiser.services.async_facade import (
-    fetch_climate_data_async
+    fetch_climate_data_async,
     get_async_facade
     run_simulation_with_async_io
 )
@@ -55,7 +55,7 @@ class AsyncCLIWrapper:
 
     async def run_simulation_async_cli_async(
         self
-        config_path: str
+        config_path: str,
         output: str | None = None
         solver: str = "milp"
         verbose: bool = False
@@ -123,7 +123,7 @@ class AsyncCLIWrapper:
 
     async def run_batch_simulations_async_cli_async(
         self
-        config_paths: List[str]
+        config_paths: List[str],
         output_dir: str | None = None
         solver: str = "milp"
         max_concurrent: int = 4
@@ -156,8 +156,8 @@ class AsyncCLIWrapper:
                     solver_type=solver
                     solver_config=SolverConfig(verbose=verbose, solver_type=solver)
                     output_config={
-                        "save_results": output_dir is not None
-                        "directory": output_dir or "outputs"
+                        "save_results": output_dir is not None,
+                        "directory": output_dir or "outputs",
                         "format": "json"
                     }
                 )
@@ -189,7 +189,7 @@ class AsyncCLIWrapper:
 
     async def get_climate_async_cli_async(
         self
-        location: str
+        location: str,
         year: int | None = None
         start: str | None = None
         end: str | None = None
@@ -283,10 +283,10 @@ class AsyncCLIWrapper:
                         info(f"    Max:  {var_stats.get('max', 'N/A'):.2f}")
 
             return {
-                "status": "success"
-                "shape": response.shape
-                "path": response.path_parquet
-                "manifest": response.manifest
+                "status": "success",
+                "shape": response.shape,
+                "path": response.path_parquet,
+                "manifest": response.manifest,
                 "stats": response.stats
             }
 
@@ -383,8 +383,8 @@ def get_async_cli_wrapper() -> AsyncCLIWrapper:
 
 
 def run_async_simulation_from_cli(
-    config_path: str
-    output: str | None = None
+    config_path: str,
+    output: str | None = None,
     solver: str = "milp"
     verbose: bool = False
     timeout: float | None = None
@@ -410,8 +410,8 @@ def run_async_simulation_from_cli(
 
 
 def get_async_climate_from_cli(
-    location: str
-    year: int | None = None
+    location: str,
+    year: int | None = None,
     start: str | None = None
     end: str | None = None
     variables: str = "temp_air,ghi,wind_speed"

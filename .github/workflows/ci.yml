@@ -261,8 +261,8 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          if [ -f "scripts/run_integration_tests.py" ]; then
-            poetry run python scripts/run_integration_tests.py
+          if [ -f "scripts/testing/run_tests.py --comprehensive" ]; then
+            poetry run python scripts/testing/run_tests.py --comprehensive
           else
             echo "✅ Integration tests not yet implemented - skipping"
           fi

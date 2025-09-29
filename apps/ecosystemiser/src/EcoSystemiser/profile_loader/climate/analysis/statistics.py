@@ -1,7 +1,5 @@
 """Descriptive statistics for climate data"""
 
-from typing import Dict, List, Tuple
-
 import numpy as np
 import xarray as xr
 from hive_logging import get_logger
@@ -10,7 +8,7 @@ from scipy import stats
 logger = get_logger(__name__)
 
 
-def describe(ds: xr.Dataset, percentiles: Tuple[float, ...] = (5, 50, 95)) -> Dict[str, Dict[str, float]]:
+def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> dict[str, dict[str, float]]:
     """
     Calculate descriptive statistics for dataset variables.
 
@@ -64,7 +62,7 @@ def describe(ds: xr.Dataset, percentiles: Tuple[float, ...] = (5, 50, 95)) -> Di
     return stats_dict
 
 
-def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> Dict[str, Dict[str, float]]:
+def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str, dict[str, float]]:
     """
     Calculate correlation matrix between variables.
 
@@ -106,7 +104,7 @@ def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> Dict[str
     return correlations
 
 
-def compare_statistics(stats1: Dict, stats2: Dict, tolerance: float = 0.1) -> Dict[str, Dict[str, float]]:
+def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> dict[str, dict[str, float]]:
     """
     Compare statistics between two datasets.
 

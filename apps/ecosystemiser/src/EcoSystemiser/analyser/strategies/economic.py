@@ -1,9 +1,10 @@
 """Economic analysis strategy implementation."""
 
-from typing import Any, Dict
+from __future__ import annotations
+
+from typing import Any
 
 import numpy as np
-import pandas as pd
 from ecosystemiser.analyser.strategies.base import BaseAnalysis
 from hive_logging import get_logger
 
@@ -12,7 +13,6 @@ logger = get_logger(__name__)
 
 class EconomicAnalysis(BaseAnalysis):
     """Calculate economic metrics from simulation results.
-from __future__ import annotations
 
 
     This strategy computes financial indicators such as:
@@ -29,7 +29,7 @@ from __future__ import annotations
         self.discount_rate = 0.05  # Default 5% discount rate
         self.project_lifetime = 20  # Default 20 years
 
-    def run(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
+    def run(self, results_data: dict[str, Any], metadata: dict | None = None) -> dict[str, Any]:
         """Calculate economic metrics from results data.
 
         Args:
@@ -78,7 +78,7 @@ from __future__ import annotations
 
         return metrics
 
-    def _calculate_capex(self, results_data: Dict[str, Any]) -> float:
+    def _calculate_capex(self, results_data: dict[str, Any]) -> float:
         """Calculate total capital expenditure.
 
         Args:
@@ -90,7 +90,7 @@ from __future__ import annotations
         capex = 0
         components = results_data.get("components", {})
 
-        for comp_name, comp_data in components.items():
+        for _comp_name, comp_data in components.items():
             economic = comp_data.get("economic", {})
             technical = comp_data.get("technical", {})
 
@@ -122,7 +122,7 @@ from __future__ import annotations
 
         return capex
 
-    def _calculate_annual_opex(self, results_data: Dict[str, Any]) -> float:
+    def _calculate_annual_opex(self, results_data: dict[str, Any]) -> float:
         """Calculate annual operational expenditure.
 
         Args:
@@ -134,7 +134,7 @@ from __future__ import annotations
         opex = 0
         components = results_data.get("components", {})
 
-        for comp_name, comp_data in components.items():
+        for _comp_name, comp_data in components.items():
             economic = comp_data.get("economic", {})
             technical = comp_data.get("technical", {})
 
@@ -167,7 +167,7 @@ from __future__ import annotations
 
         return opex
 
-    def _calculate_energy_economics(self, results_data: Dict[str, Any]) -> Dict[str, float]:
+    def _calculate_energy_economics(self, results_data: dict[str, Any]) -> dict[str, float]:
         """Calculate energy-related economic metrics.
 
         Args:
@@ -182,7 +182,7 @@ from __future__ import annotations
 
         # Get grid component for pricing
         grid_component = None
-        for comp_name, comp_data in components.items():
+        for _comp_name, comp_data in components.items():
             if comp_data.get("type") == "grid":
                 grid_component = comp_data
                 break
@@ -214,7 +214,7 @@ from __future__ import annotations
 
         return metrics
 
-    def _calculate_lcoe(self, capex: float, opex_annual: float, energy_metrics: Dict, results_data: Dict) -> float:
+    def _calculate_lcoe(self, capex: float, opex_annual: float, energy_metrics: dict, results_data: dict) -> float:
         """Calculate Levelized Cost of Energy.
 
         Args:
@@ -255,7 +255,7 @@ from __future__ import annotations
 
         return lcoe
 
-    def _calculate_npv(self, capex: float, opex_annual: float, energy_metrics: Dict) -> float:
+    def _calculate_npv(self, capex: float, opex_annual: float, energy_metrics: dict) -> float:
         """Calculate Net Present Value.
 
         Args:
@@ -278,7 +278,7 @@ from __future__ import annotations
 
         return npv
 
-    def _calculate_payback_period(self, capex: float, opex_annual: float, energy_metrics: Dict) -> float:
+    def _calculate_payback_period(self, capex: float, opex_annual: float, energy_metrics: dict) -> float:
         """Calculate simple payback period.
 
         Args:
@@ -299,7 +299,7 @@ from __future__ import annotations
 
         return min(payback, self.project_lifetime)
 
-    def _calculate_component_costs(self, results_data: Dict[str, Any]) -> Dict[str, Dict[str, float]]:
+    def _calculate_component_costs(self, results_data: dict[str, Any]) -> dict[str, dict[str, float]]:
         """Calculate cost breakdown by component.
 
         Args:
@@ -338,7 +338,7 @@ from __future__ import annotations
 
         return component_costs
 
-    def _get_flow_sum(self, flows: Dict, component: str, direction: str) -> float:
+    def _get_flow_sum(self, flows: dict, component: str, direction: str) -> float:
         """Get the sum of flows for a component and direction.
 
         Args:

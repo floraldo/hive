@@ -1,24 +1,14 @@
 """Electric boiler component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Dict, List
+from typing import Any, Optional
 
 import cvxpy as cp
-import numpy as np
-from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
-    GenerationTechnicalParams
-)
-from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseConversionOptimization
-    BaseConversionPhysics
-)
-from ecosystemiser.system_model.components.shared.component import (
-    Component
-    ComponentParams
-)
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, GenerationTechnicalParams
+from ecosystemiser.system_model.components.shared.base_classes import BaseConversionOptimization, BaseConversionPhysics
+from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -29,8 +19,6 @@ logger = get_logger(__name__)
 
 class ElectricBoilerTechnicalParams(GenerationTechnicalParams):
     """Electric boiler-specific technical parameters extending generation archetype.
-from __future__ import annotations
-
 
     This model inherits from GenerationTechnicalParams and adds electric boiler-specific
     parameters for different fidelity levels.
@@ -42,17 +30,17 @@ from __future__ import annotations
 
     # STANDARD fidelity additions
     thermal_inertia: float | None = Field(None, description="Thermal mass and inertia factor")
-    modulation_range: Optional[Dict[str, float]] = Field(
+    modulation_range: Optional[dict[str, float]] = Field(
         None, description="Power modulation capability {min_power, max_power}"
     )
 
     # DETAILED fidelity parameters
     heat_exchanger_effectiveness: float | None = Field(None, description="Heat exchanger effectiveness")
-    control_algorithm: Optional[Dict[str, Any]] = Field(None, description="Control algorithm parameters")
+    control_algorithm: Optional[dict[str, Any]] = Field(None, description="Control algorithm parameters")
 
     # RESEARCH fidelity parameters
-    detailed_thermal_model: Optional[Dict[str, Any]] = Field(None, description="Detailed thermal modeling parameters")
-    emissions_model: Optional[Dict[str, Any]] = Field(None, description="Detailed emissions modeling")
+    detailed_thermal_model: Optional[dict[str, Any]] = Field(None, description="Detailed thermal modeling parameters")
+    emissions_model: Optional[dict[str, Any]] = Field(None, description="Detailed emissions modeling")
 
 
 class ElectricBoilerParams(ComponentParams):
@@ -66,9 +54,9 @@ class ElectricBoilerParams(ComponentParams):
         default_factory=lambda: ElectricBoilerTechnicalParams(
             capacity_nominal=10.0,  # Default 10 kW heat output
             efficiency_nominal=0.95,  # Default 95% efficiency
-            fidelity_level=FidelityLevel.STANDARD
-        )
-        description="Technical parameters following the hierarchical archetype system"
+            fidelity_level=FidelityLevel.STANDARD,
+        ),
+        description="Technical parameters following the hierarchical archetype system",
     )
 
 
@@ -383,7 +371,7 @@ class ElectricBoiler(Component):
         self.flows["source"]["P_heat"] = {"type": "heat", "value": self.P_heat}
         self.flows["sink"]["P_elec"] = {"type": "electricity", "value": self.P_elec}
 
-    def set_constraints(self) -> List:
+    def set_constraints(self) -> list:
         """Delegate constraint creation to optimization strategy."""
         return self.optimization.set_constraints()
 

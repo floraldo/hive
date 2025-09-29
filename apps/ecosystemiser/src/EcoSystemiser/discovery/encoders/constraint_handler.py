@@ -48,7 +48,7 @@ class ConstraintHandler:
 
     def add_equality_constraint(
         self
-        name: str
+        name: str,
         function: Callable[[np.ndarray], float]
         tolerance: float = 1e-6
         weight: float = 1.0
@@ -338,9 +338,9 @@ class TechnicalConstraintValidator:
 
             # Rough cost estimation
             cost_factors = {
-                "battery_capacity": 500,  # $/kWh
-                "solar_capacity": 1200,  # $/kW
-                "wind_capacity": 1500,  # $/kW
+                "battery_capacity": 500,  # $/kWh,
+                "solar_capacity": 1200,  # $/kW,
+                "wind_capacity": 1500,  # $/kW,
                 "heat_pump_capacity": 800,  # $/kW
             }
 

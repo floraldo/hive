@@ -11,17 +11,14 @@ Run with: pytest tests/test_golden_rules.py -v
 
 from pathlib import Path
 
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+
 import pytest
 
 # Import the validators from hive-testing-utils
 from hive_tests.architectural_validators import (
-    validate_app_contracts,
-    validate_colocated_tests,
-    validate_dependency_direction,
-    validate_error_handling_standards,
-    validate_interface_contracts,
-    validate_logging_standards,
-    validate_no_syspath_hacks,
     validate_single_config_source,
 )
 
@@ -119,7 +116,7 @@ class TestLocalGoldenRules:
             except Exception:
                 continue
 
-        assert not violations, f"Direct app imports found:\n" + "\n".join(violations)
+        assert not violations, "Direct app imports found:\n" + "\n".join(violations)
 
     def test_logging_standards(self, app_root):
         """Verify proper logging usage in this app."""
@@ -139,10 +136,10 @@ class TestLocalGoldenRules:
                     content = f.read()
 
                 # Check for print statements
-                if "print(" in content:
+                if "logger.info(" in content:
                     lines = content.split("\n")
                     for i, line in enumerate(lines, 1):
-                        if "print(" in line and not line.strip().startswith("#"):
+                        if "logger.info(" in line and not line.strip().startswith("#"):
                             violations.append(f"{py_file.relative_to(app_root)}:{i}: print statement")
 
                 # Check if uses logging but not hive_logging
@@ -154,9 +151,9 @@ class TestLocalGoldenRules:
 
         # Allow some violations for now but warn
         if violations:
-            print(f"Warning: {len(violations)} logging standard violations found")
+            logger.info(f"Warning: {len(violations)} logging standard violations found")
             for v in violations[:5]:  # Show first 5
-                print(f"  - {v}")
+                logger.info(f"  - {v}")
 
     def test_error_handling(self, app_root):
         """Verify proper error handling in this app."""
@@ -180,9 +177,9 @@ class TestLocalGoldenRules:
 
         # Allow some violations for now but warn
         if violations:
-            print(f"Warning: {len(violations)} error handling violations found")
+            logger.info(f"Warning: {len(violations)} error handling violations found")
             for v in violations[:5]:  # Show first 5
-                print(f"  - {v}")
+                logger.info(f"  - {v}")
 
     def test_single_config_source(self, project_root):
         """Golden Rule 16: Verify no global config calls or singleton patterns."""
@@ -192,15 +189,14 @@ class TestLocalGoldenRules:
             # Filter for violations in this app only
             app_violations = [v for v in violations if "hive-orchestrator" in v]
             if app_violations:
-                print(f"Golden Rule 16 violations in hive-orchestrator:")
+                logger.info("Golden Rule 16 violations in hive-orchestrator:")
                 for v in app_violations[:10]:  # Show first 10
-                    print(f"  - {v}")
+                    logger.info(f"  - {v}")
                 # For now, warn instead of failing to allow gradual migration
-                print(f"Total: {len(app_violations)} violations in this app")
+                logger.info(f"Total: {len(app_violations)} violations in this app")
 
 
 if __name__ == "__main__":
     # Allow running directly with python
-    import sys
 
     pytest.main([__file__, "-v", "--tb=short"])

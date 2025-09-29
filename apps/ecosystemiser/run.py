@@ -11,14 +11,13 @@ as a standalone application within the Hive ecosystem.
 
 import os
 import sys
-from typing import Any, Dict, Optional
 
 
 def setup_environment() -> None:
     """Setup environment for EcoSystemiser - now using proper package installation"""
 
-    logger.info(f"🐝 EcoSystemiser starting in Hive ecosystem")
-    logger.info(f"   Using installed package imports")
+    logger.info("🐝 EcoSystemiser starting in Hive ecosystem")
+    logger.info("   Using installed package imports")
     logger.info(f"   Working directory: {os.getcwd()}")
 
     # No more path manipulation - EcoSystemiser should be properly installed

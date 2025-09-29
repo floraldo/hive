@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guardian-config
+  namespace: hive-platform
+  labels:
+    app: guardian-agent
+data:
+  config.yaml: |
+    review:
+      model: gpt-3.5-turbo  # Use cheaper model for cost control
+      temperature: 0.3
+      max_tokens: 2000
+      enable_golden_rules: true
+      enable_security_scan: true
+      enable_performance_check: true
+      parallel_analysis: true
+      max_file_size_kb: 500
+      max_retries: 3
+      timeout_seconds: 30
+      fallback_model: gpt-3.5-turbo
+
+    vector_search:
+      enabled: true
+      model_name: text-embedding-ada-002
+      similarity_threshold: 0.85
+      max_results: 10
+      cache_embeddings: true
+
+    learning:
+      enabled: true
+      min_confidence: 0.7
+      feedback_loop: true
+      max_history_items: 10000
+      learn_from_fixes: true
+      auto_improve_interval: 86400  # Daily
+
+    cache:
+      enabled: true
+      ttl_seconds: 3600
+      max_cache_size_mb: 100
+      cache_embeddings: true
+      cache_analysis: true
+
+    cost_control:
+      daily_limit_usd: 100.0
+      monthly_limit_usd: 2000.0
+      per_review_limit_usd: 1.0
+      max_concurrent_reviews: 10
+      rate_limit_per_minute: 20
+      rate_limit_per_hour: 100
+
+    github:
+      max_files_per_pr: 50
+      max_pr_size_mb: 10
+      auto_review_enabled: true
+      post_comments: true
+      require_approval: false
+
+    monitoring:
+      metrics_enabled: true
+      log_level: INFO
+      trace_sampling_rate: 0.1
+      export_interval: 60

@@ -2,7 +2,6 @@
 """MILP solver validation and comparison with rule-based."""
 
 import json
-import sys
 import time
 from pathlib import Path
 
@@ -37,6 +36,7 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 def create_optimization_test_system():
     """Create system for MILP optimization testing."""
@@ -165,6 +165,7 @@ def create_optimization_test_system():
 
     return system
 
+
 def calculate_operational_cost(system):
     """Calculate total operational cost based on grid interactions."""
     total_cost = 0.0
@@ -178,7 +179,7 @@ def calculate_operational_cost(system):
     export_tariff = grid_comp.params.technical.export_tariff
 
     # Calculate import costs and export revenues
-    for flow_key, flow_data in system.flows.items():
+    for _flow_key, flow_data in system.flows.items():
         if flow_data["source"] == "Grid":
             # Grid import (cost)
             total_cost += np.sum(flow_data["value"]) * import_tariff
@@ -187,6 +188,7 @@ def calculate_operational_cost(system):
             total_cost -= np.sum(flow_data["value"]) * export_tariff
 
     return total_cost
+
 
 def analyze_battery_strategy(system, label=""):
     """Analyze battery charging/discharging strategy."""
@@ -198,7 +200,7 @@ def analyze_battery_strategy(system, label=""):
     charge_flows = []
     discharge_flows = []
 
-    for flow_key, flow_data in system.flows.items():
+    for _flow_key, flow_data in system.flows.items():
         if flow_data["target"] == "Battery":
             charge_flows.extend(flow_data["value"])
         elif flow_data["source"] == "Battery":
@@ -223,6 +225,7 @@ def analyze_battery_strategy(system, label=""):
     logger.info(f"  Cycling: {cycling_ratio:.1%}, Final SOC: {strategy['final_soc']:.1%}")
 
     return strategy
+
 
 def run_milp_validation():
     """Run MILP validation against rule-based solver."""
@@ -343,6 +346,7 @@ def run_milp_validation():
 
     return results
 
+
 def main():
     """Main execution."""
     results = run_milp_validation()
@@ -370,16 +374,18 @@ def main():
     with open(results_path, "w") as f:
         json.dump(json_results, f, indent=2)
 
-    print(f"\nMILP validation complete!")
-    print(f"Results saved to: {results_path}")
-    print(f"Status: {'PASSED' if results.get('validation_passed', False) else 'FAILED'}")
+    logger.info("\nMILP validation complete!")
+    logger.info(f"Results saved to: {results_path}")
+    logger.info(f"Status: {'PASSED' if results.get('validation_passed', False) else 'FAILED'}")
 
     return results.get("validation_passed", False)
+
 
 def test_milp_validation():
     """Test MILP validation as pytest test."""
     success = main()
     assert success, "MILP validation failed"
+
 
 def test_milp_optimization_system_creation():
     """Test creation of optimization test system."""
@@ -388,6 +394,7 @@ def test_milp_optimization_system_creation():
     assert len(system.components) == 4
     assert "Battery" in system.components
     assert "Grid" in system.components
+
 
 def test_operational_cost_calculation():
     """Test operational cost calculation function."""
@@ -398,6 +405,7 @@ def test_operational_cost_calculation():
     cost = calculate_operational_cost(system)
     assert isinstance(cost, float)
     assert cost != 0.0  # Should have some cost
+
 
 if __name__ == "__main__":
     success = main()

@@ -96,7 +96,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
         high_solar = ds["ghi"] > ds["ghi"].quantile(0.75)
 
         analysis["coincidence"] = {
-            "hot_sunny_hours": int((hot_hours & high_solar).sum())
+            "hot_sunny_hours": int((hot_hours & high_solar).sum()),
             "hot_cloudy_hours": int((hot_hours & ~high_solar).sum())
         }
 
@@ -201,10 +201,10 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
             peak_time = pd.Timestamp(data.time[peak_idx].values)
 
             peaks[var] = {
-                "peak_value": float(data.max())
-                "peak_time": peak_time.isoformat()
-                "peak_hour": peak_time.hour
-                "peak_month": peak_time.month
+                "peak_value": float(data.max()),
+                "peak_time": peak_time.isoformat(),
+                "peak_hour": peak_time.hour,
+                "peak_month": peak_time.month,
                 "peak_day_of_year": peak_time.dayofyear
             }
 
@@ -258,7 +258,7 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
             monthly_hourly = data.groupby([data.time.dt.month, data.time.dt.hour]).mean()
 
             profiles[var] = {
-                "monthly_hourly": {
+                "monthly_hourly": {,
                     f"month_{m:02d}": {
                         f"hour_{h:02d}": float(monthly_hourly.sel(month=m, hour=h))
                         for h in range(24)
@@ -271,7 +271,7 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
             # Overall hourly profile
             hourly_mean = data.groupby(data.time.dt.hour).mean()
             profiles[var] = {
-                "hourly_mean": {
+                "hourly_mean": {,
                     f"hour_{h:02d}": float(hourly_mean.sel(hour=h)) for h in range(24) if h in hourly_mean.coords
                 }
             }
@@ -349,9 +349,9 @@ def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.
                 ds_building["temp_air"], ds_building["rel_humidity"], pressure
             )
             ds_building["temp_wetbulb"].attrs = {
-                "units": "degC"
-                "type": "state"
-                "derived": True
+                "units": "degC",
+                "type": "state",
+                "derived": True,
                 "description": "Wet bulb temperature for cooling tower design"
             }
             logger.info("Calculated wet bulb temperature")
@@ -361,9 +361,9 @@ def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.
         if "temp_air" in ds_building and "rel_humidity" in ds_building:
             ds_building["temp_apparent"] = calculate_heat_index(ds_building["temp_air"], ds_building["rel_humidity"])
             ds_building["temp_apparent"].attrs = {
-                "units": "degC"
-                "type": "state"
-                "derived": True
+                "units": "degC",
+                "type": "state",
+                "derived": True,
                 "description": "Apparent temperature (heat index) for thermal comfort"
             }
             logger.info("Calculated heat index")
@@ -510,17 +510,17 @@ def calculate_degree_days(
 
         # Set attributes
         hdd.attrs = {
-            "units": "degC·day"
-            "long_name": f"Heating degree days (base {base_heat}degC)"
-            "type": "state"
-            "derived": True
+            "units": "degC·day",
+            "long_name": f"Heating degree days (base {base_heat}degC)",
+            "type": "state",
+            "derived": True,
             "description": f"Daily heating degree days with base temperature {base_heat}degC"
         }
         cdd.attrs = {
-            "units": "degC·day"
-            "long_name": f"Cooling degree days (base {base_cool}degC)"
-            "type": "state"
-            "derived": True
+            "units": "degC·day",
+            "long_name": f"Cooling degree days (base {base_cool}degC)",
+            "type": "state",
+            "derived": True,
             "description": f"Daily cooling degree days with base temperature {base_cool}degC"
         }
 
@@ -531,8 +531,8 @@ def calculate_degree_days(
 
 
 def calculate_wind_power_density(
-    wind_speed: xr.DataArray
-    temp_air: xr.DataArray | None = None
+    wind_speed: xr.DataArray,
+    temp_air: xr.DataArray | None = None,
     pressure: xr.DataArray | None = None
 ) -> xr.DataArray:
     """
@@ -559,9 +559,9 @@ def calculate_wind_power_density(
     wpd = 0.5 * air_density * wind_speed**3
 
     wpd.attrs = {
-        "units": "W/m2"
-        "type": "flux"
-        "derived": True
+        "units": "W/m2",
+        "type": "flux",
+        "derived": True,
         "description": "Wind power density for wind energy assessment"
     }
 

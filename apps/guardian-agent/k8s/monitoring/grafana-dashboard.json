@@ -1,0 +1,295 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "guardian-agent-001",
+    "title": "Guardian Agent Dashboard",
+    "description": "Monitoring dashboard for Guardian Agent AI-powered code review system",
+    "tags": ["guardian", "ai", "code-review", "hive"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+        "type": "stat",
+        "title": "Daily Cost Usage",
+        "targets": [
+          {
+            "expr": "guardian_daily_usage",
+            "legendFormat": "Daily Usage"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 80},
+                {"color": "red", "value": 100}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+        "type": "stat",
+        "title": "Total Reviews Today",
+        "targets": [
+          {
+            "expr": "increase(reviews_completed[1d])",
+            "legendFormat": "Reviews"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+        "type": "stat",
+        "title": "Active Reviews",
+        "targets": [
+          {
+            "expr": "active_reviews",
+            "legendFormat": "Active"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 10},
+                {"color": "red", "value": 20}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+        "type": "gauge",
+        "title": "Error Rate",
+        "targets": [
+          {
+            "expr": "rate(review_errors[5m]) * 100",
+            "legendFormat": "Error Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 10,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 10}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "type": "graph",
+        "title": "Review Latency (p50, p95, p99)",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.5, rate(review_time_bucket[5m]))",
+            "legendFormat": "p50"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(review_time_bucket[5m]))",
+            "legendFormat": "p95"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(review_time_bucket[5m]))",
+            "legendFormat": "p99"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "s",
+            "label": "Latency"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "type": "graph",
+        "title": "AI Token Usage",
+        "targets": [
+          {
+            "expr": "rate(ai_tokens_used[5m])",
+            "legendFormat": "Tokens/sec"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "short",
+            "label": "Tokens"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12},
+        "type": "graph",
+        "title": "Cost Breakdown by Model",
+        "targets": [
+          {
+            "expr": "sum by(model) (rate(cost_by_model[5m]))",
+            "legendFormat": "{{ model }}"
+          }
+        ],
+        "yaxes": [
+          {
+            "format": "currencyUSD",
+            "label": "Cost/min"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "type": "heatmap",
+        "title": "Review Time Distribution",
+        "targets": [
+          {
+            "expr": "sum(rate(review_time_bucket[5m])) by (le)",
+            "format": "heatmap",
+            "legendFormat": "{{ le }}"
+          }
+        ],
+        "dataFormat": "timeseries",
+        "yAxis": {
+          "format": "s"
+        }
+      },
+      {
+        "id": 9,
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 20},
+        "type": "piechart",
+        "title": "Feedback Distribution",
+        "targets": [
+          {
+            "expr": "feedback_positive",
+            "legendFormat": "Positive"
+          },
+          {
+            "expr": "feedback_negative",
+            "legendFormat": "Negative"
+          },
+          {
+            "expr": "feedback_false_positive",
+            "legendFormat": "False Positive"
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 20},
+        "type": "stat",
+        "title": "Cache Hit Rate",
+        "targets": [
+          {
+            "expr": "rate(cache_hits[5m]) / (rate(cache_hits[5m]) + rate(cache_misses[5m])) * 100",
+            "legendFormat": "Hit Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 50},
+                {"color": "green", "value": 80}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 11,
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 20},
+        "type": "table",
+        "title": "Top Violations",
+        "targets": [
+          {
+            "expr": "topk(10, sum by(rule) (violations_detected))",
+            "format": "table",
+            "instant": true
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayMode": "color-background-solid"
+            }
+          }
+        }
+      },
+      {
+        "id": 12,
+        "gridPos": {"h": 6, "w": 24, "x": 0, "y": 26},
+        "type": "logs",
+        "title": "Recent Errors",
+        "targets": [
+          {
+            "expr": "{app=\"guardian-agent\",level=\"ERROR\"}",
+            "refId": "A"
+          }
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "namespace",
+          "type": "query",
+          "query": "label_values(up{job=\"guardian-agent\"}, namespace)",
+          "current": {
+            "text": "hive-platform",
+            "value": "hive-platform"
+          }
+        },
+        {
+          "name": "pod",
+          "type": "query",
+          "query": "label_values(up{job=\"guardian-agent\",namespace=\"$namespace\"}, pod)",
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    }
+  }
+}

@@ -20,20 +20,20 @@ class HiveError(Exception):
     Base exception for all Hive system errors
 
     Attributes:
-        component: Component where error occurred
-        operation: Operation being performed
-        details: Additional error details
-        timestamp: When error occurred
+        component: Component where error occurred,
+        operation: Operation being performed,
+        details: Additional error details,
+        timestamp: When error occurred,
         recovery_suggestions: Suggested recovery actions
     """
 
     def __init__(
-        self
-        message: str
-        component: str | None = None
-        operation: str | None = None
-        details: Optional[Dict[str, Any]] = None
-        recovery_suggestions: Optional[List[str]] = None
+        self,
+        message: str,
+        component: str | None = None,
+        operation: str | None = None,
+        details: Optional[Dict[str, Any]] = None,
+        recovery_suggestions: Optional[List[str]] = None,
     ):
         super().__init__(message)
         self.message = message
@@ -46,13 +46,13 @@ class HiveError(Exception):
     def to_dict(self) -> Dict[str, Any]:
         """Convert exception to dictionary for logging/storage"""
         return {
-            "error_type": self.__class__.__name__
-            "message": self.message
-            "component": self.component
-            "operation": self.operation
-            "details": self.details
-            "timestamp": self.timestamp.isoformat()
-            "recovery_suggestions": self.recovery_suggestions
+            "error_type": self.__class__.__name__,
+            "message": self.message,
+            "component": self.component,
+            "operation": self.operation,
+            "details": self.details,
+            "timestamp": self.timestamp.isoformat(),
+            "recovery_suggestions": self.recovery_suggestions,
         }
 
     def __str__(self) -> str:
@@ -66,13 +66,7 @@ class HiveError(Exception):
 class HiveConfigError(BaseError):
     """Configuration-related errors"""
 
-    def __init__(
-        self
-        message: str
-        config_key: str | None = None
-        config_file: str | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, config_key: str | None = None, config_file: str | None = None**kwargs):
         super().__init__(message, component="configuration", **kwargs)
         self.details["config_key"] = config_key
         self.details["config_file"] = config_file
@@ -90,12 +84,7 @@ class HiveDatabaseError(BaseError):
     """Database operation errors"""
 
     def __init__(
-        self
-        message: str
-        query: str | None = None
-        table: str | None = None
-        error_code: str | None = None
-        **kwargs
+        self, message: str, query: str | None = None, table: str | None = None, error_code: str | None = None**kwargs
     ):
         super().__init__(message, component="database", **kwargs)
         self.details["query"] = query
@@ -110,11 +99,13 @@ class HiveDatabaseError(BaseError):
                 "Consider using WAL mode for better concurrency"
             ]
         elif "connection" in message.lower():
-            self.recovery_suggestions = [
-                "Check database file exists and is accessible"
-                "Verify database path is correct"
-                "Check file permissions"
-            ]
+            self.recovery_suggestions = (
+                [
+                    "Check database file exists and is accessible"
+                    "Verify database path is correct"
+                    "Check file permissions"
+                ],
+            )
         else:
             self.recovery_suggestions = [
                 "Check SQL syntax if query was provided"
@@ -127,12 +118,7 @@ class HiveTaskError(BaseError):
     """Task execution errors"""
 
     def __init__(
-        self
-        message: str
-        task_id: str | None = None
-        task_type: str | None = None
-        phase: str | None = None
-        **kwargs
+        self, message: str, task_id: str | None = None, task_type: str | None = None, phase: str | None = None**kwargs
     ):
         super().__init__(message, component="task", **kwargs)
         self.details["task_id"] = task_id
@@ -151,12 +137,11 @@ class HiveWorkerError(BaseError):
     """Worker process errors"""
 
     def __init__(
-        self
-        message: str
-        worker_id: str | None = None
-        worker_type: str | None = None
-        exit_code: int | None = None
-        **kwargs
+        self,
+        message: str,
+        worker_id: str | None = None,
+        worker_type: str | None = None,
+        exit_code: int | None = None**kwargs,
     ):
         super().__init__(message, component="worker", **kwargs)
         self.details["worker_id"] = worker_id
@@ -165,11 +150,13 @@ class HiveWorkerError(BaseError):
 
         # Add recovery suggestions based on exit code
         if exit_code and exit_code < 0:
-            self.recovery_suggestions = [
-                "Worker was terminated by signal"
-                "Check system resources (memory, CPU)"
-                "Review worker timeout settings"
-            ]
+            self.recovery_suggestions = (
+                [
+                    "Worker was terminated by signal"
+                    "Check system resources (memory, CPU)"
+                    "Review worker timeout settings"
+                ],
+            )
         else:
             self.recovery_suggestions = [
                 "Check worker script for errors"
@@ -183,12 +170,11 @@ class HiveAPIError(BaseError):
     """External API errors (e.g., Claude API)"""
 
     def __init__(
-        self
-        message: str
-        api_name: str | None = None
-        status_code: int | None = None
-        response_body: str | None = None
-        **kwargs
+        self,
+        message: str,
+        api_name: str | None = None,
+        status_code: int | None = None,
+        response_body: str | None = None**kwargs,
     ):
         super().__init__(message, component="api", **kwargs)
         self.details["api_name"] = api_name
@@ -198,40 +184,26 @@ class HiveAPIError(BaseError):
         # Add recovery suggestions based on status code
         if status_code == 401:
             self.recovery_suggestions = [
-                "Check API credentials are valid"
-                "Verify API key is set in configuration"
-                "Check API key permissions"
+                "Check API credentials are valid" "Verify API key is set in configuration" "Check API key permissions"
             ]
         elif status_code == 429:
             self.recovery_suggestions = [
-                "Rate limit exceeded - wait before retrying"
-                "Implement exponential backoff"
-                "Consider request batching"
+                "Rate limit exceeded - wait before retrying" "Implement exponential backoff" "Consider request batching"
             ]
         elif status_code and status_code >= 500:
-            self.recovery_suggestions = [
-                "API service error - wait and retry"
-                "Check API service status"
-                "Use fallback mechanism if available"
-            ]
+            self.recovery_suggestions = (
+                ["API service error - wait and retry" "Check API service status" "Use fallback mechanism if available"],
+            )
         else:
             self.recovery_suggestions = [
-                "Check API request format"
-                "Verify API endpoint is correct"
-                "Review API documentation"
+                "Check API request format" "Verify API endpoint is correct" "Review API documentation"
             ]
 
 
 class HiveTimeoutError(BaseError):
     """Operation timeout errors"""
 
-    def __init__(
-        self
-        message: str
-        timeout_seconds: int | None = None
-        operation_type: str | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, timeout_seconds: int | None = None, operation_type: str | None = None**kwargs):
         super().__init__(message, component="timeout", **kwargs)
         self.details["timeout_seconds"] = timeout_seconds
         self.details["operation_type"] = operation_type
@@ -248,12 +220,11 @@ class HiveValidationError(BaseError):
     """Data validation errors"""
 
     def __init__(
-        self
-        message: str
-        field: str | None = None
-        value: Any | None = None
-        validation_rule: str | None = None
-        **kwargs
+        self,
+        message: str,
+        field: str | None = None,
+        value: Any | None = None,
+        validation_rule: str | None = None**kwargs,
     ):
         super().__init__(message, component="validation", **kwargs)
         self.details["field"] = field
@@ -272,12 +243,11 @@ class HiveResourceError(BaseError):
     """Resource availability errors"""
 
     def __init__(
-        self
-        message: str
-        resource_type: str | None = None
-        required: Any | None = None
-        available: Any | None = None
-        **kwargs
+        self,
+        message: str,
+        resource_type: str | None = None,
+        required: Any | None = None,
+        available: Any | None = None**kwargs,
     ):
         super().__init__(message, component="resource", **kwargs)
         self.details["resource_type"] = resource_type
@@ -296,12 +266,11 @@ class HiveStateError(BaseError):
     """System state errors"""
 
     def __init__(
-        self
-        message: str
-        current_state: str | None = None
-        expected_state: str | None = None
-        transition: str | None = None
-        **kwargs
+        self,
+        message: str,
+        current_state: str | None = None,
+        expected_state: str | None = None,
+        transition: str | None = None**kwargs,
     ):
         super().__init__(message, component="state", **kwargs)
         self.details["current_state"] = current_state
@@ -332,13 +301,7 @@ class EventBusError(BaseError):
 class EventPublishError(BaseError):
     """Event publishing errors"""
 
-    def __init__(
-        self
-        message: str
-        event_type: str | None = None
-        event_id: str | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, event_type: str | None = None, event_id: str | None = None**kwargs):
         super().__init__(message, operation="publish", **kwargs)
         self.details["event_type"] = event_type
         self.details["event_id"] = event_id
@@ -354,13 +317,7 @@ class EventPublishError(BaseError):
 class EventSubscribeError(BaseError):
     """Event subscription errors"""
 
-    def __init__(
-        self
-        message: str
-        pattern: str | None = None
-        subscriber_name: str | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, pattern: str | None = None, subscriber_name: str | None = None**kwargs):
         super().__init__(message, operation="subscribe", **kwargs)
         self.details["pattern"] = pattern
         self.details["subscriber_name"] = subscriber_name

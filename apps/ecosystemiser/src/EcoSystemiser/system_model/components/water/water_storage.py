@@ -6,15 +6,15 @@ from typing import Any, Dict, List
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
+    FidelityLevel,
     StorageTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseStorageOptimization
+    BaseStorageOptimization,
     BaseStoragePhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component
+    Component,
     ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component

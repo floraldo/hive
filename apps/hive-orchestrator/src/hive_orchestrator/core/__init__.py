@@ -11,7 +11,7 @@ Contains the core business logic for Hive orchestration system:
 - Error handling (extends hive-error-handling)
 - Claude integration (extends generic patterns)
 
-This follows the "inherit → extend" pattern:
+    This follows the "inherit → extend" pattern:
 - Generic packages provide reusable infrastructure
 - Core components add Hive-specific business logic
 """

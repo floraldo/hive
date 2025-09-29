@@ -13,8 +13,6 @@ This establishes the performance baseline for the foundation work.
 
 import sys
 import time
-import warnings
-from pathlib import Path
 
 # Use Poetry workspace imports
 try:
@@ -155,7 +153,7 @@ try:
             logger.info("EcoSystemiser v3.0 architectural hardening is complete")
             return True
         else:
-            logger.error(f"\n❌ Foundation benchmark FAILED")
+            logger.error("\n❌ Foundation benchmark FAILED")
             logger.error(f"{total - passed} tests failed")
             return False
 
@@ -164,6 +162,6 @@ try:
         sys.exit(0 if success else 1)
 
 except ImportError as e:
-    print(f"CRITICAL: Cannot import required modules: {e}")
-    print("This indicates the foundation architecture needs more work")
+    logger.info(f"CRITICAL: Cannot import required modules: {e}")
+    logger.info("This indicates the foundation architecture needs more work")
     sys.exit(1)

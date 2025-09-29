@@ -12,6 +12,8 @@ Extracted to avoid circular dependencies between settings.py and base.py.
 
 from dataclasses import dataclass
 from enum import Enum
+
+
 class RateLimitStrategy(Enum):
     """Rate limiting strategies"""
 

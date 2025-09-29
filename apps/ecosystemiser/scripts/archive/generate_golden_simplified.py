@@ -96,7 +96,7 @@ def main() -> None:
 
     logger.info(f"Step 2: Loading results from {output_file}")
 
-    with open(output_file, "r") as f:
+    with open(output_file) as f:
         original_data = json.load(f)
 
     logger.info("Step 3: Extracting minimal component subset...")

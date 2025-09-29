@@ -13,7 +13,6 @@ Usage:
     python demo_advanced_capabilities.py
 """
 
-import json
 import sys
 import time
 from pathlib import Path
@@ -36,47 +35,16 @@ try:
         logger.info("=== Genetic Algorithm Design Optimization Demo ===")
 
         # Create a sample system configuration path (would be real in practice)
-        base_config_path = Path("config/sample_system.yml")
+        Path("config/sample_system.yml")
 
         # Define optimization variables (battery and solar sizing)
-        optimization_variables = [
-            {
-                "name": "battery_capacity",
-                "component": "battery_storage",
-                "parameter": "technical.energy_capacity_nominal",
-                "bounds": [10, 200],  # kWh
-                "description": "Battery energy capacity",
-            },
-            {
-                "name": "solar_pv_capacity",
-                "component": "solar_pv",
-                "parameter": "technical.power_capacity_nominal",
-                "bounds": [5, 100],  # kW
-                "description": "Solar PV power capacity",
-            },
-            {
-                "name": "inverter_capacity",
-                "component": "inverter",
-                "parameter": "technical.power_capacity_nominal",
-                "bounds": [5, 50],  # kW
-                "description": "Inverter power capacity",
-            },
-        ]
 
         # Multi-objective optimization: minimize cost, maximize renewable fraction
-        objectives = "total_cost,renewable_fraction"
 
         # GA configuration
-        ga_config = {
-            "population_size": 30,
-            "max_generations": 20,
-            "mutation_rate": 0.15,
-            "crossover_rate": 0.85,
-            "elite_size": 5,
-        }
 
         # Create study service
-        study_service = StudyService()
+        StudyService()
 
         # Simulate running the optimization (in real use, this would call actual optimization)
         logger.info("Simulating genetic algorithm optimization...")
@@ -162,37 +130,8 @@ try:
         logger.info("=== Monte Carlo Uncertainty Analysis Demo ===")
 
         # Define uncertainty variables
-        uncertainty_variables = {
-            "electricity_price": {
-                "distribution": "normal",
-                "parameters": {"mean": 0.12, "std": 0.02},  # $/kWh
-                "description": "Electricity price uncertainty",
-            },
-            "solar_irradiance": {
-                "distribution": "normal",
-                "parameters": {"mean": 5.2, "std": 0.8},  # kWh/m²/day
-                "description": "Annual solar irradiance variation",
-            },
-            "battery_degradation": {
-                "distribution": "uniform",
-                "parameters": {"a": 0.02, "b": 0.05},  # %/year
-                "description": "Battery degradation rate",
-            },
-            "load_growth": {
-                "distribution": "triangular",
-                "parameters": {"a": 0.01, "b": 0.05, "c": 0.025},  # %/year
-                "description": "Annual load growth rate",
-            },
-        }
 
         # MC configuration
-        mc_config = {
-            "n_samples": 1000,
-            "sampling_method": "lhs",  # Latin Hypercube Sampling
-            "confidence_levels": [0.05, 0.25, 0.50, 0.75, 0.95],
-            "sensitivity_analysis": True,
-            "risk_analysis": True,
-        }
 
         logger.info("Simulating Monte Carlo uncertainty analysis...")
 
@@ -424,10 +363,10 @@ try:
             # Run demonstrations
             logger.info("Running advanced solver demonstrations...")
 
-            ga_result = demo_genetic_algorithm_optimization()
+            demo_genetic_algorithm_optimization()
             await asyncio.sleep(1)  # Simulate processing time
 
-            mc_result = demo_monte_carlo_uncertainty()
+            demo_monte_carlo_uncertainty()
             await asyncio.sleep(1)  # Simulate processing time
 
             # Generate reports
@@ -481,6 +420,6 @@ try:
         sys.exit(0 if success else 1)
 
 except ImportError as e:
-    print(f"CRITICAL: Cannot import required modules: {e}")
-    print("This indicates the advanced solver implementation needs additional work")
+    logger.info(f"CRITICAL: Cannot import required modules: {e}")
+    logger.info("This indicates the advanced solver implementation needs additional work")
     sys.exit(1)

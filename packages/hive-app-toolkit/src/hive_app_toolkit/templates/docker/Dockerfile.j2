@@ -1,0 +1,104 @@
+# Hive Application Toolkit - Docker Template
+# Multi-stage production-ready Dockerfile for {{ app_name }}
+
+FROM python:3.11-slim as builder
+
+# Set working directory
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy poetry files
+COPY pyproject.toml poetry.lock* ./
+
+# Install poetry and dependencies
+RUN pip install --no-cache-dir poetry==1.7.1 && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-dev --no-interaction --no-ansi
+
+# Production stage
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    {{ app_name | upper }}_ENV=production
+
+# Create non-root user
+RUN useradd -m -u 1000 {{ app_user | default('appuser') }} && \
+    mkdir -p /app/data /app/logs /app/cache && \
+    chown -R {{ app_user | default('appuser') }}:{{ app_user | default('appuser') }} /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Python packages from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code
+COPY --chown={{ app_user | default('appuser') }}:{{ app_user | default('appuser') }} src/ ./src/
+{% if has_config %}
+COPY --chown={{ app_user | default('appuser') }}:{{ app_user | default('appuser') }} config/ ./config/
+{% endif %}
+
+{% if include_hive_packages %}
+# Copy hive packages (in production, these would be installed from a package registry)
+{% for package in hive_packages %}
+COPY --chown={{ app_user | default('appuser') }}:{{ app_user | default('appuser') }} ../../packages/{{ package }} /packages/{{ package }}
+{% endfor %}
+{% endif %}
+
+# Set Python path
+{% if include_hive_packages %}
+ENV PYTHONPATH=/app/src{% for package in hive_packages %}:/packages/{{ package }}/src{% endfor %}
+{% else %}
+ENV PYTHONPATH=/app/src
+{% endif %}
+
+# Environment configuration
+ENV {{ app_name | upper }}_HOST=0.0.0.0 \
+    {{ app_name | upper }}_PORT={{ port | default('8000') }} \
+    {{ app_name | upper }}_WORKERS={{ workers | default('4') }} \
+    {{ app_name | upper }}_LOG_LEVEL={{ log_level | default('INFO') }}
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-{{ port | default('8000') }}}/health || exit 1
+
+# Switch to non-root user
+USER {{ app_user | default('appuser') }}
+
+# Expose port
+EXPOSE {{ port | default('8000') }}
+
+# Run the application
+{% if app_module %}
+CMD ["python", "-m", "{{ app_module }}"]
+{% else %}
+CMD ["uvicorn", "{{ main_module | default(app_name + '.api.main:app') }}", \
+     "--host", "0.0.0.0", \
+     "--port", "{{ port | default('8000') }}", \
+     "--workers", "{{ workers | default('4') }}", \
+     "--log-level", "{{ log_level | default('info') | lower }}"]
+{% endif %}
+
+# Labels for metadata
+LABEL maintainer="Hive Team" \
+      app.name="{{ app_name }}" \
+      app.version="{{ app_version | default('1.0.0') }}" \
+      app.description="{{ description | default('Hive application built with toolkit') }}" \
+      build.timestamp="{{ build_timestamp }}" \
+      build.vcs-ref="{{ vcs_ref }}"

@@ -18,7 +18,7 @@ from typing import Any, Dict, ListTuple
 
 import xarray as xr
 from ecosystemiser.profile_loader.shared.models import (
-    BaseProfileRequest
+    BaseProfileRequest,
     BaseProfileResponse
 )
 
@@ -120,12 +120,12 @@ class BaseProfileService(ABC):
             Service metadata including capabilities and version
         """
         return {
-            "service_type": self.__class__.__name__
-            "version": "1.0.0"
-            "available_sources": self.get_available_sources()
-            "capabilities": {
-                "async_processing": True
-                "caching": True
+            "service_type": self.__class__.__name__,
+            "version": "1.0.0",
+            "available_sources": self.get_available_sources(),
+            "capabilities": {,
+                "async_processing": True,
+                "caching": True,
                 "validation": True
             }
         }
@@ -136,7 +136,7 @@ class ProfileServiceError(Exception):
 
     def __init__(
         self
-        message: str
+        message: str,
         error_code: str | None = None
         details: Optional[Dict[str, Any]] = None
     ):

@@ -20,11 +20,11 @@ Usage:
 """
 from __future__ import annotations
 
-
 import argparse
 import subprocess
 import sys
 from pathlib import Path
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -95,16 +95,16 @@ def list_apps():
 def main() -> None:
     """Main entry point for the golden test runner."""
     parser = argparse.ArgumentParser(
-        description="Run Hive golden rule architectural tests"
-        formatter_class=argparse.RawDescriptionHelpFormatter
-        epilog="""
+        description="Run Hive golden rule architectural tests",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=""",
 Examples:
-    golden-test                          # Run all global tests
-    golden-test --app hive-orchestrator  # Run tests for specific app
-    golden-test -v                       # Run with verbose output
-    golden-test --list-apps              # List available apps
-    golden-test --test test_app_contract # Run specific test
-        """
+    golden-test                          # Run all global tests,
+    golden-test --app hive-orchestrator  # Run tests for specific app,
+    golden-test -v                       # Run with verbose output,
+    golden-test --list-apps              # List available apps,
+    golden-test --test test_app_contract # Run specific test,
+        """,
     )
 
     parser.add_argument("--app", help="Run tests for a specific app", type=str, metavar="APP_NAME")

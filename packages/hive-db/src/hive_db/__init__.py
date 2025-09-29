@@ -11,8 +11,10 @@ and utility functions following the Hive inherit-extend pattern.
 
 from .async_pool import (
     AsyncDatabaseManager,
-    create_async_database_manager,
     create_async_sqlite_pool,
+)
+from .async_pool import (
+    create_async_database_manager_async as create_async_database_manager,
 )
 from .pool import ConnectionPool, DatabaseManager, create_database_manager
 from .postgres_connector import (

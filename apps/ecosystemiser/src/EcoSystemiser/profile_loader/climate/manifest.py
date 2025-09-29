@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 import hashlib
 import json
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import xarray as xr
@@ -17,11 +17,11 @@ def build_manifest(
     *,
     adapter_name: str,
     adapter_version: str,
-    req: Dict,
-    qc_report: Dict,
-    source_meta: Dict,
+    req: dict,
+    qc_report: dict,
+    source_meta: dict,
     ds: xr.Dataset = None,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Build manifest for climate data provenance.
 
@@ -112,7 +112,7 @@ def hash_dataset(ds: xr.Dataset) -> str:
     return hasher.hexdigest()
 
 
-def validate_manifest(manifest: Dict) -> bool:
+def validate_manifest(manifest: dict) -> bool:
     """
     Validate manifest structure.
 

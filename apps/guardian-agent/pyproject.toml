@@ -8,6 +8,7 @@ packages = [{include = "guardian_agent", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
+hive-app-toolkit = {path = "../../packages/hive-app-toolkit", develop = true}
 hive-ai = {path = "../../packages/hive-ai", develop = true}
 hive-async = {path = "../../packages/hive-async", develop = true}
 hive-db = {path = "../../packages/hive-db", develop = true}

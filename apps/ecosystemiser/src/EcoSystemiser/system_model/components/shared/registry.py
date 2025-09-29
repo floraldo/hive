@@ -4,14 +4,12 @@ This module implements a self-registering component pattern that allows
 components to automatically register themselves for dynamic instantiation.
 """
 
-from typing import Dict, Optional, Type
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 # The global registry dictionary - this is our central lookup table
-COMPONENT_REGISTRY: Dict[str, Type["Component"]] = {}
+COMPONENT_REGISTRY: dict[str, type["Component"]] = {}
 
 
 def register_component(name: str) -> None:
@@ -33,7 +31,7 @@ def register_component(name: str) -> None:
             pass
     """
 
-    def decorator(cls: Type["Component"]):
+    def decorator(cls: type["Component"]):
         if name in COMPONENT_REGISTRY:
             raise ValueError(
                 f"Component '{name}' is already registered. "
@@ -47,7 +45,7 @@ def register_component(name: str) -> None:
     return decorator
 
 
-def get_component_class(name: str) -> Type["Component"]:
+def get_component_class(name: str) -> type["Component"]:
     """
     Retrieves a component class from the registry.
 
@@ -66,7 +64,7 @@ def get_component_class(name: str) -> Type["Component"]:
     return COMPONENT_REGISTRY[name]
 
 
-def list_registered_components() -> Dict[str, str]:
+def list_registered_components() -> dict[str, str]:
     """
     Lists all registered components with their class names.
 

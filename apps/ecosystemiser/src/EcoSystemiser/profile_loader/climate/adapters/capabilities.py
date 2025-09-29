@@ -120,7 +120,7 @@ class AdapterCapabilities:
 
     def can_fulfill_request(
         self
-        variables: List[str]
+        variables: List[str],
         start_date: datetime
         end_date: datetime
         frequency: str
@@ -148,11 +148,11 @@ class AdapterCapabilities:
 
         # Check frequency support
         freq_map = {
-            "15T": DataFrequency.SUBHOURLY
-            "1H": DataFrequency.HOURLY
-            "3H": DataFrequency.THREEHOURLY
-            "1D": DataFrequency.DAILY
-            "1M": DataFrequency.MONTHLY
+            "15T": DataFrequency.SUBHOURLY,
+            "1H": DataFrequency.HOURLY,
+            "3H": DataFrequency.THREEHOURLY,
+            "1D": DataFrequency.DAILY,
+            "1M": DataFrequency.MONTHLY,
             "1Y": DataFrequency.YEARLY
         }
 
@@ -171,32 +171,32 @@ class AdapterCapabilities:
     def get_capability_summary(self) -> Dict:
         """Get a summary of capabilities for UI display"""
         return {
-            "name": self.name
-            "description": self.description
-            "coverage": {
-                "temporal": f"{self.temporal.start_date or 'varies'} to {self.temporal.end_date or 'present'}"
-                "spatial": ("Global" if self.spatial.global_coverage else f"Regional: {self.spatial.regions}")
+            "name": self.name,
+            "description": self.description,
+            "coverage": {,
+                "temporal": f"{self.temporal.start_date or 'varies'} to {self.temporal.end_date or 'present'}",
+                "spatial": ("Global" if self.spatial.global_coverage else f"Regional: {self.spatial.regions}"),
                 "resolution": (f"{self.spatial.resolution_km}km" if self.spatial.resolution_km else "varies")
             }
-            "variables": {
-                "total": len(self.supported_variables)
-                "primary": self.primary_variables[:5],  # Top 5
+            "variables": {,
+                "total": len(self.supported_variables),
+                "primary": self.primary_variables[:5],  # Top 5,
                 "categories": self._categorize_variables()
             }
-            "frequencies": [f.value for f in self.supported_frequencies]
-            "features": self.special_features
-            "limitations": self._get_limitations()
+            "frequencies": [f.value for f in self.supported_frequencies],
+            "features": self.special_features,
+            "limitations": self._get_limitations(),
             "auth_required": self.auth_type != AuthType.NONE
         }
 
     def _categorize_variables(self) -> Dict[str, int]:
         """Categorize variables by type"""
         categories = {
-            "temperature": 0
-            "solar": 0
-            "wind": 0
-            "moisture": 0
-            "pressure": 0
+            "temperature": 0,
+            "solar": 0,
+            "wind": 0,
+            "moisture": 0,
+            "pressure": 0,
             "other": 0
         }
 
@@ -250,10 +250,10 @@ def compare_capabilities(adapters: List[AdapterCapabilities], variables: List[st
     for adapter in adapters:
         score = 0
         details = {
-            "can_fulfill": False
-            "coverage_score": 0
-            "variable_score": 0
-            "quality_score": 0
+            "can_fulfill": False,
+            "coverage_score": 0,
+            "variable_score": 0,
+            "quality_score": 0,
             "reasons": []
         }
 

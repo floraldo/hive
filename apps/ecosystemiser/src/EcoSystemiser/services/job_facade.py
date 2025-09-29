@@ -153,7 +153,7 @@ class JobFacade:
         # Lazy import to avoid circular dependency
         if self._simulation_service is None:
             from ecosystemiser.services.simulation_service import (
-                SimulationConfig
+                SimulationConfig,
                 SimulationResult
                 SimulationService
             )
@@ -191,9 +191,9 @@ class JobFacade:
                 SimulationEvent(
                     event_type="simulation_completed"
                     data={
-                        "job_id": request.job_id
-                        "correlation_id": request.correlation_id
-                        "status": "success"
+                        "job_id": request.job_id,
+                        "correlation_id": request.correlation_id,
+                        "status": "success",
                         "execution_time": execution_time
                     }
                 )

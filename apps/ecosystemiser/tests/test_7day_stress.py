@@ -3,7 +3,6 @@
 
 import json
 import os
-import sys
 import time
 from pathlib import Path
 
@@ -38,6 +37,7 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 def create_7day_system():
     """Create system for 7-day stress testing."""
@@ -191,11 +191,13 @@ def create_7day_system():
 
     return system
 
+
 def monitor_memory_usage():
     """Get current memory usage."""
     process = psutil.Process(os.getpid())
     memory_mb = process.memory_info().rss / 1024 / 1024
     return memory_mb
+
 
 def validate_long_term_stability(system, tolerance=1e-5):
     """Validate long-term numerical stability."""
@@ -217,7 +219,7 @@ def validate_long_term_stability(system, tolerance=1e-5):
         daily_sinks = 0.0
 
         for t in range(start_t, end_t):
-            for flow_key, flow_data in system.flows.items():
+            for _flow_key, flow_data in system.flows.items():
                 flow_value = flow_data["value"][t]
                 source_comp = system.components[flow_data["source"]]
                 target_comp = system.components[flow_data["target"]]
@@ -262,6 +264,7 @@ def validate_long_term_stability(system, tolerance=1e-5):
 
     return stability_results
 
+
 def analyze_weekly_patterns(system):
     """Analyze system behavior patterns over the week."""
     analysis = {"daily_summaries": [], "weekly_totals": {}, "cycling_analysis": {}}
@@ -276,7 +279,7 @@ def analyze_weekly_patterns(system):
         daily_grid_import = 0.0
         daily_grid_export = 0.0
 
-        for flow_key, flow_data in system.flows.items():
+        for _flow_key, flow_data in system.flows.items():
             daily_flow = np.sum(flow_data["value"][start_t:end_t])
 
             if "SolarPV" in flow_data["source"]:
@@ -321,6 +324,7 @@ def analyze_weekly_patterns(system):
         }
 
     return analysis
+
 
 def run_7day_stress_test():
     """Run comprehensive 7-day stress test."""
@@ -428,6 +432,7 @@ def run_7day_stress_test():
 
     return results
 
+
 def main():
     """Main execution."""
     results = run_7day_stress_test()
@@ -455,16 +460,17 @@ def main():
     with open(results_path, "w") as f:
         json.dump(json_results, f, indent=2)
 
-    print(f"\n7-day stress test complete!")
-    print(f"Results saved to: {results_path}")
-    print(f"Status: {'PASSED' if results.get('validation_passed', False) else 'FAILED'}")
+    logger.info("\n7-day stress test complete!")
+    logger.info(f"Results saved to: {results_path}")
+    logger.info(f"Status: {'PASSED' if results.get('validation_passed', False) else 'FAILED'}")
     if results.get("solve_time"):
-        print(
+        logger.info(
             f"Performance: {results['solve_time']:.2f}s solve time, "
             f"{results.get('memory_increase_mb', 0):.1f} MB memory increase"
         )
 
     return results.get("validation_passed", False)
+
 
 def test_7day_stress_full_integration():
     """Test 7-day stress test as pytest integration test."""
@@ -483,6 +489,7 @@ def test_7day_stress_full_integration():
     memory_increase = results.get("memory_increase_mb", float("inf"))
     assert memory_increase < 500.0, f"Memory increase too high: {memory_increase:.1f} MB"
 
+
 def test_7day_system_creation():
     """Test 7-day system can be created successfully."""
     system = create_7day_system()
@@ -496,6 +503,7 @@ def test_7day_system_creation():
     required_components = ["Grid", "Battery", "SolarPV", "PowerDemand"]
     for comp_name in required_components:
         assert comp_name in system.components, f"Missing component: {comp_name}"
+
 
 def test_weekly_pattern_analysis():
     """Test weekly pattern analysis functionality."""
@@ -519,6 +527,7 @@ def test_weekly_pattern_analysis():
         assert weekly["total_solar"] >= 0
         assert weekly["total_demand"] >= 0
 
+
 def test_stability_validation():
     """Test long-term stability validation."""
     system = create_7day_system()
@@ -535,6 +544,7 @@ def test_stability_validation():
 
         # Assert stability passes (this might fail if there are actual issues)
         assert stability["numerical_stability"], f"Stability check failed: {stability}"
+
 
 if __name__ == "__main__":
     success = main()

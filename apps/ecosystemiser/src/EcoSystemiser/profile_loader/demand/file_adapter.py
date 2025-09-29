@@ -1,7 +1,7 @@
 """File adapter for loading demand profiles."""
 
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 class DemandFileAdapter:
     """Adapter for loading demand profiles from files."""
 
-    def fetch(self, config: Dict[str, Any]) -> Dict[str, np.ndarray]:
+    def fetch(self, config: dict[str, Any]) -> dict[str, np.ndarray]:
         """Load demand profiles from file.
 
         Args:

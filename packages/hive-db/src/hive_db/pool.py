@@ -4,8 +4,8 @@ Database connection pooling utilities for Hive applications.
 Provides both sync and async connection pooling with automatic
 resource management and health monitoring.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import sqlite3
 import threading
@@ -32,11 +32,7 @@ class ConnectionPool:
     """
 
     def __init__(
-        self,
-        db_path: Path,
-        min_connections: int = 2,
-        max_connections: int = 10,
-        connection_timeout: float = 30.0
+        self, db_path: Path, min_connections: int = 2, max_connections: int = 10, connection_timeout: float = 30.0
     ):
         """
         Initialize connection pool for a specific database.
@@ -67,14 +63,14 @@ class ConnectionPool:
                 self._pool.put(conn)
 
     def _create_connection(self) -> sqlite3.Connection | None:
-        """Create a new database connection with optimal settings.""",
+        ("""Create a new database connection with optimal settings.""",)
         try:
             # Ensure database directory exists
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
             conn = sqlite3.connect(
-                str(self.db_path)
-                check_same_thread=False
+                str(self.db_path),
+                check_same_thread=False,
                 timeout=30.0,  # 30 second timeout for locks
                 isolation_level="DEFERRED",  # Better concurrency
             )
@@ -98,7 +94,7 @@ class ConnectionPool:
             return None
 
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
-        """Check if a connection is still valid.""",
+        ("""Check if a connection is still valid.""",)
         try:
             conn.execute("SELECT 1")
             return True
@@ -179,7 +175,7 @@ class ConnectionPool:
             "pool_size": self._pool.qsize(),
             "connections_created": self._connections_created,
             "max_connections": self.max_connections,
-            "min_connections": self.min_connections
+            "min_connections": self.min_connections,
         }
 
 

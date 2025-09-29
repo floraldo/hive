@@ -4,7 +4,6 @@ logger = get_logger(__name__)
 
 """Economic parameters for system components."""
 
-from typing import Optional
 
 from pydantic import BaseModel, Field
 

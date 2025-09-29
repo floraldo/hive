@@ -13,37 +13,20 @@ This module provides backward compatibility by importing from the new core modul
 All new code should import directly from ecosystemiser.core.errors.
 """
 
-from typing import Any, Dict
+from typing import Any
 
 # Import everything from the new core module
-from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Profile errors; Solver errors; Component errors; Database errors; Event bus errors; Error reporter
-    ComponentConnectionError
-    ComponentError
-    ComponentValidationError
-    DatabaseConnectionError
-    DatabaseError
-    DatabaseTransactionError
-    EcoSystemiserError
-    EcoSystemiserErrorReporter
-    EventBusError
-    EventPublishError
-    OptimizationInfeasibleError
-    ProfileError
-    ProfileLoadError
-    ProfileValidationError
-    SimulationConfigError
-    SimulationError
-    SimulationExecutionError
-    SolverConvergenceError
-    SolverError
-    get_error_reporter
+from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Profile errors; Solver errors; Component errors; Database errors; Event bus errors; Error reporter,
+    DatabaseError,
+    EcoSystemiserError,
+    SimulationConfigError,
+    SolverConvergenceError,
+    get_error_reporter,
 )
 
 # Legacy aliases for common patterns
-BaseError = EcoSystemiserError
-ConfigurationError = SimulationConfigError
-ResourceError = DatabaseError
-TimeoutError = SolverConvergenceError
+BaseError = EcoSystemiserError, ConfigurationError = SimulationConfigError
+ResourceError = DatabaseError, TimeoutError = SolverConvergenceError
 
 
 # ValidationError needs special handling for field parameter compatibility
@@ -54,46 +37,13 @@ class ValidationError(BaseError):
         # Map 'field' to 'parameter_name' for compatibility
         if field is not None:
             kwargs["parameter_name"] = field
-        super().__init__(message, **kwargs)
+            super().__init__(message, **kwargs)
 
 
 def handle_error(
-    error: Exception
-    context: str | None = None
-    additional_info: Optional[Dict[str, Any]] = None
-) -> Dict[str, Any]:
+    error: Exception, context: str | None = None, additional_info: Optional[dict[str, Any]] = None
+) -> dict[str, Any]:
     """Legacy handle_error function"""
     return get_error_reporter().report_error(error, context, additional_info)
 
-
-# Export main components
-__all__ = [
-    # New core classes
-    "EcoSystemiserError"
-    "SimulationError"
-    "SimulationConfigError"
-    "SimulationExecutionError"
-    "ProfileError"
-    "ProfileLoadError"
-    "ProfileValidationError"
-    "SolverError"
-    "OptimizationInfeasibleError"
-    "SolverConvergenceError"
-    "ComponentError"
-    "ComponentConnectionError"
-    "ComponentValidationError"
-    "DatabaseError"
-    "DatabaseConnectionError"
-    "DatabaseTransactionError"
-    "EventBusError"
-    "EventPublishError"
-    "EcoSystemiserErrorReporter"
-    "get_error_reporter"
-    # Legacy aliases
-    "BaseError"
-    "ValidationError"
-    "ConfigurationError"
-    "ResourceError"
-    "TimeoutError"
-    "handle_error"
-]
+    # Export main components

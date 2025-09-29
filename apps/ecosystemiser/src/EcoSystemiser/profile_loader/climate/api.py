@@ -28,19 +28,19 @@ from ecosystemiser.core.errors import ProfileError as ClimateError
 from ecosystemiser.core.errors import ProfileLoadError as DataFetchError
 from ecosystemiser.core.errors import ProfileValidationError as ValidationError
 from ecosystemiser.profile_loader.data_models import (
-    ClimateRequest
+    ClimateRequest,
     ClimateResponse
     Mode
     Resolution
 )
 from ecosystemiser.profile_loader.job_manager import (
-    JobManager
+    JobManager,
     JobStatus
     get_job_manager
 )
 from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
 from fastapi import (
-    APIRouter
+    APIRouter,
     BackgroundTasks
     Depends
     Header
@@ -128,15 +128,15 @@ class StreamFormat(str, Enum):
 async def health_check_async() -> None:
     """Health check endpoint"""
     return {
-        "status": "healthy"
-        "timestamp": datetime.utcnow().isoformat()
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
         "version": "2.0.0"
     }
 
 
 @router.post("/single", response_model=ClimateResponse)
 async def get_climate_single_async(
-    request: ClimateRequest
+    request: ClimateRequest,
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
     accept_encoding: str | None = Header(None, alias="Accept-Encoding")
 ):
@@ -188,7 +188,7 @@ async def get_climate_single_async(
 
 @router.post("/batch")
 async def get_climate_batch_async(
-    batch_request: BatchClimateRequest
+    batch_request: BatchClimateRequest,
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
     """
@@ -231,19 +231,19 @@ async def get_climate_batch_async(
                     raise HTTPException(status_code=400, detail=f"Request {i} failed: {e}")
 
     return {
-        "correlation_id": correlation_id
-        "total_requests": len(batch_request.requests)
-        "successful": len(results)
-        "failed": len(errors)
-        "results": results
+        "correlation_id": correlation_id,
+        "total_requests": len(batch_request.requests),
+        "successful": len(results),
+        "failed": len(errors),
+        "results": results,
         "errors": errors if errors else None
     }
 
 
 @router.post("/stream")
 async def stream_climate_data_async(
-    request: ClimateRequest
-    format: StreamFormat = Query(StreamFormat.NDJSON)
+    request: ClimateRequest,
+    format: StreamFormat = Query(StreamFormat.NDJSON),
     chunk_size: int = Query(1000, ge=100, le=10000)
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
@@ -298,8 +298,8 @@ async def stream_climate_data_async(
         generate_stream_async()
         media_type=content_type_map[format]
         headers={
-            "X-Correlation-ID": correlation_id
-            "Cache-Control": "no-cache"
+            "X-Correlation-ID": correlation_id,
+            "Cache-Control": "no-cache",
             "X-Accel-Buffering": "no",  # Disable nginx buffering
         }
     )
@@ -307,8 +307,8 @@ async def stream_climate_data_async(
 
 @router.post("/jobs", response_model=JobResponse)
 async def create_climate_job_async(
-    job_request: JobRequest
-    background_tasks: BackgroundTasks
+    job_request: JobRequest,
+    background_tasks: BackgroundTasks,
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
     job_manager: JobManager = Depends(get_job_manager)
 ):
@@ -322,9 +322,9 @@ async def create_climate_job_async(
 
     # Store the job request data for the worker
     request_data = {
-        "type": "climate_request"
-        "request": job_request.model_dump()
-        "correlation_id": correlation_id
+        "type": "climate_request",
+        "request": job_request.model_dump(),
+        "correlation_id": correlation_id,
         "priority": job_request.priority
     }
 
@@ -351,7 +351,7 @@ async def create_climate_job_async(
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
 async def get_job_status_async(
-    job_id: str
+    job_id: str,
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
     job_manager: JobManager = Depends(get_job_manager)
 ):
@@ -375,8 +375,8 @@ async def get_job_status_async(
 
 @router.get("/jobs/{job_id}/result")
 async def get_job_result_async(
-    job_id: str
-    format: StreamFormat = Query(StreamFormat.NDJSON)
+    job_id: str,
+    format: StreamFormat = Query(StreamFormat.NDJSON),
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
     job_manager: JobManager = Depends(get_job_manager)
 ):
@@ -418,7 +418,7 @@ async def get_job_result_async(
 
 @router.delete("/jobs/{job_id}")
 async def cancel_job_async(
-    job_id: str
+    job_id: str,
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
     job_manager: JobManager = Depends(get_job_manager)
 ):
@@ -477,10 +477,10 @@ async def list_jobs_async(
             jobs.append(job_response)
 
         return {
-            "jobs": jobs
-            "total": len(jobs)
-            "limit": limit
-            "offset": offset
+            "jobs": jobs,
+            "total": len(jobs),
+            "limit": limit,
+            "offset": offset,
             "filter": {"status": status} if status else None
         }
 
@@ -504,8 +504,8 @@ async def cleanup_old_jobs_async(
         deleted_count = job_manager.cleanup_old_jobs_async(days=days)
 
         return {
-            "message": f"Cleaned up {deleted_count} old jobs"
-            "deleted_count": deleted_count
+            "message": f"Cleaned up {deleted_count} old jobs",
+            "deleted_count": deleted_count,
             "cutoff_days": days
         }
 
@@ -547,7 +547,7 @@ async def fetch_climate_data_async(request: ClimateRequest, context: dict) -> xr
 
     ds = xr.Dataset(
         {
-            "temp_air": (["time"], np.random.randn(8760) * 10 + 15)
+            "temp_air": (["time"], np.random.randn(8760) * 10 + 15),
             "ghi": (["time"], np.maximum(0, np.random.randn(8760) * 200 + 300))
         }
         coords={"time": time}
@@ -655,9 +655,9 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 
             # Convert result to serializable format
             serializable_result = {
-                "type": "climate_response"
-                "data": (result.model_dump() if hasattr(result, "model_dump") else result)
-                "correlation_id": correlation_id
+                "type": "climate_response",
+                "data": (result.model_dump() if hasattr(result, "model_dump") else result),
+                "correlation_id": correlation_id,
                 "processed_at": datetime.utcnow().isoformat()
             }
         else:
@@ -666,9 +666,9 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 
             # Process batch (simplified for now)
             serializable_result = {
-                "type": "batch_response"
+                "type": "batch_response",
                 "data": {"batch": "result", "processed": "placeholder"}
-                "correlation_id": correlation_id
+                "correlation_id": correlation_id,
                 "processed_at": datetime.utcnow().isoformat()
             }
 
@@ -729,7 +729,7 @@ class ExtendedClimateRequest(ClimateRequest):
 
 @router.post("/analyze")
 async def analyze_climate_data_async(
-    request: AnalyticsRequest
+    request: AnalyticsRequest,
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
     """
@@ -744,7 +744,7 @@ async def analyze_climate_data_async(
     try:
         # Import processing modules
         from ecosystemiser.profile_loader.analysis.building_science import (
-            calculate_design_conditions
+            calculate_design_conditions,
             derive_building_variables
         )
         from ecosystemiser.profile_loader.analysis.extremes import analyze_extremes
@@ -795,10 +795,10 @@ async def analyze_climate_data_async(
         # Building variables
         if options.get("building_metrics", False):
             building_config = {
-                "calculate_degree_days": True
-                "calculate_wet_bulb": True
-                "calculate_heat_index": True
-                "hdd_base_temp": options.get("hdd_base", 18.0)
+                "calculate_degree_days": True,
+                "calculate_wet_bulb": True,
+                "calculate_heat_index": True,
+                "hdd_base_temp": options.get("hdd_base", 18.0),
                 "cdd_base_temp": options.get("cdd_base", 24.0)
             }
             ds_building = derive_building_variables(ds, config=building_config)
@@ -810,11 +810,11 @@ async def analyze_climate_data_async(
                 analytics_results["cooling_degree_days"] = float(ds_building.cdd.sum().values)
 
         return {
-            "correlation_id": correlation_id
-            "location": request.location
-            "period": request.period
-            "analytics": analytics_results
-            "data_shape": response.shape
+            "correlation_id": correlation_id,
+            "location": request.location,
+            "period": request.period,
+            "analytics": analytics_results,
+            "data_shape": response.shape,
             "data_path": response.path_parquet
         }
 
@@ -825,7 +825,7 @@ async def analyze_climate_data_async(
 
 @router.post("/profile")
 async def get_climate_profile_async(
-    request: ExtendedClimateRequest
+    request: ExtendedClimateRequest,
     correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
     """
@@ -874,54 +874,54 @@ async def get_processing_options_async(config: Dict[str, Any]) -> None:
     """
 
     return {
-        "preprocessing": {
-            "resampling": {
-                "enabled": config.preprocessing.auto_resample
-                "default_resolution": config.preprocessing.default_resolution
+        "preprocessing": {,
+            "resampling": {,
+                "enabled": config.preprocessing.auto_resample,
+                "default_resolution": config.preprocessing.default_resolution,
                 "available_resolutions": ["15min", "30min", "1H", "3H", "1D"]
             }
-            "quality_control": {
-                "enabled": config.preprocessing.apply_qc
-                "bounds_check": config.preprocessing.qc_bounds_check
+            "quality_control": {,
+                "enabled": config.preprocessing.apply_qc,
+                "bounds_check": config.preprocessing.qc_bounds_check,
                 "consistency_check": config.preprocessing.qc_consistency_check
             }
-            "gap_filling": {
-                "enabled": config.preprocessing.fill_gaps
-                "method": config.preprocessing.gap_fill_method
-                "available_methods": ["smart", "linear", "pattern", "seasonal"]
+            "gap_filling": {,
+                "enabled": config.preprocessing.fill_gaps,
+                "method": config.preprocessing.gap_fill_method,
+                "available_methods": ["smart", "linear", "pattern", "seasonal"],
                 "max_gap_hours": config.preprocessing.max_pattern_gap_hours
             }
-            "derivations": {
-                "basic_vars": config.preprocessing.derive_basic_vars
+            "derivations": {,
+                "basic_vars": config.preprocessing.derive_basic_vars,
                 "variables": ["dewpoint", "rel_humidity", "pressure"]
             }
         }
-        "postprocessing": {
-            "building_metrics": {
-                "degree_days": {
-                    "enabled": config.postprocessing.calculate_degree_days
-                    "hdd_base": config.postprocessing.hdd_base_temp
+        "postprocessing": {,
+            "building_metrics": {,
+                "degree_days": {,
+                    "enabled": config.postprocessing.calculate_degree_days,
+                    "hdd_base": config.postprocessing.hdd_base_temp,
                     "cdd_base": config.postprocessing.cdd_base_temp
                 }
-                "comfort": {
-                    "wet_bulb": config.postprocessing.calculate_wet_bulb
+                "comfort": {,
+                    "wet_bulb": config.postprocessing.calculate_wet_bulb,
                     "heat_index": config.postprocessing.calculate_heat_index
                 }
             }
-            "solar": {
-                "clearness_index": config.postprocessing.calculate_clearness_index
+            "solar": {,
+                "clearness_index": config.postprocessing.calculate_clearness_index,
                 "solar_angles": config.postprocessing.calculate_solar_angles
             }
-            "statistics": {
-                "enabled": config.postprocessing.include_statistics
+            "statistics": {,
+                "enabled": config.postprocessing.include_statistics,
                 "percentiles": config.postprocessing.stats_percentiles
             }
-            "extremes": {
-                "enabled": config.postprocessing.analyze_extremes
+            "extremes": {,
+                "enabled": config.postprocessing.analyze_extremes,
                 "percentile": config.postprocessing.extreme_percentile
             }
-            "design_conditions": {
-                "enabled": config.postprocessing.calculate_design_conditions
+            "design_conditions": {,
+                "enabled": config.postprocessing.calculate_design_conditions,
                 "percentiles": config.postprocessing.design_percentiles
             }
         }
@@ -938,9 +938,9 @@ async def _send_callback_notification_async(job_id: str, callback_url: str, resu
         import httpx
 
         payload = {
-            "job_id": job_id
-            "status": "completed"
-            "result": result
+            "job_id": job_id,
+            "status": "completed",
+            "result": result,
             "timestamp": datetime.utcnow().isoformat()
         }
 

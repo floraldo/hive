@@ -11,7 +11,7 @@ eliminating code duplication between CLI and web interfaces.
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class HTMLReportGenerator:
@@ -25,8 +25,8 @@ class HTMLReportGenerator:
 
     def generate_standalone_report(
         self,
-        analysis_results: Dict[str, Any],
-        plots: Optional[Dict[str, Any]] = None,
+        analysis_results: dict[str, Any],
+        plots: dict[str, Any] | None = None,
         title: str = "EcoSystemiser Analysis Report",
         report_type: str = "standard",
     ) -> str:
@@ -112,7 +112,7 @@ class HTMLReportGenerator:
             """
         return html
 
-    def generate_report_body(self, analysis_results: Dict[str, Any], plots: Optional[Dict[str, Any]] = None) -> str:
+    def generate_report_body(self, analysis_results: dict[str, Any], plots: dict[str, Any] | None = None) -> str:
         """Generate just the body content for embedding in templates.
 
         Args:
@@ -399,7 +399,7 @@ class HTMLReportGenerator:
     </style>
         """
 
-    def _generate_summary_section(self, analysis_results: Dict[str, Any]) -> str:
+    def _generate_summary_section(self, analysis_results: dict[str, Any]) -> str:
         """Generate summary metrics section."""
         summary = analysis_results.get("summary", {})
 
@@ -453,14 +453,14 @@ class HTMLReportGenerator:
         html += "</div>\n</section>\n"
         return html
 
-    def _generate_plots_section(self, plots: Dict[str, Any]) -> str:
+    def _generate_plots_section(self, plots: dict[str, Any]) -> str:
         """Generate plots section."""
         if not plots:
             return ""
 
         html = '<section class="visualizations">\n<h2>Visualizations</h2>\n'
 
-        for plot_id, plot_data in plots.items():
+        for plot_id, _plot_data in plots.items():
             plot_title = plot_id.replace("_", " ").title()
             html += f"""
 <div class="plot">
@@ -472,7 +472,7 @@ class HTMLReportGenerator:
         html += "</section>\n"
         return html
 
-    def _generate_details_section(self, analysis_results: Dict[str, Any]) -> str:
+    def _generate_details_section(self, analysis_results: dict[str, Any]) -> str:
         """Generate detailed results tables."""
         analyses = analysis_results.get("analyses", {})
 
@@ -490,7 +490,7 @@ class HTMLReportGenerator:
         html += "</section>\n"
         return html
 
-    def _generate_table(self, data: Dict[str, Any]) -> str:
+    def _generate_table(self, data: dict[str, Any]) -> str:
         """Generate HTML table from dictionary data."""
         if not data:
             return ""
@@ -534,7 +534,7 @@ class HTMLReportGenerator:
         html += "</tbody>\n</table>\n"
         return html
 
-    def _generate_scripts(self, plots: Dict[str, Any], report_type: str = "standard") -> str:
+    def _generate_scripts(self, plots: dict[str, Any], report_type: str = "standard") -> str:
         """Generate JavaScript for rendering plots and interactive features."""
         plot_script = ""
         if plots:
@@ -609,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 </script>
         """
 
-    def _generate_ga_report_content(self, analysis_results: Dict[str, Any], plots: Dict[str, Any]) -> str:
+    def _generate_ga_report_content(self, analysis_results: dict[str, Any], plots: dict[str, Any]) -> str:
         """Generate content for genetic algorithm optimization reports."""
         best_result = analysis_results.get("best_result", {})
         summary_stats = analysis_results.get("summary_statistics", {})
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 
         return html
 
-    def _generate_mc_report_content(self, analysis_results: Dict[str, Any], plots: Dict[str, Any]) -> str:
+    def _generate_mc_report_content(self, analysis_results: dict[str, Any], plots: dict[str, Any]) -> str:
         """Generate content for Monte Carlo uncertainty analysis reports."""
         best_result = analysis_results.get("best_result", {})
         summary_stats = analysis_results.get("summary_statistics", {})
@@ -900,7 +900,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 
         return html
 
-    def _generate_study_report_content(self, analysis_results: Dict[str, Any], plots: Dict[str, Any]) -> str:
+    def _generate_study_report_content(self, analysis_results: dict[str, Any], plots: dict[str, Any]) -> str:
         """Generate content for general study reports."""
         return f"""
         <div class="row" id="summary">
@@ -936,7 +936,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         </div>
         """
 
-    def _generate_interactive_plots_section(self, plots: Dict[str, Any], report_type: str) -> str:
+    def _generate_interactive_plots_section(self, plots: dict[str, Any], report_type: str) -> str:
         """Generate interactive plots section with tabs."""
         if not plots:
             return ""
@@ -945,7 +945,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         tab_nav = '<ul class="nav nav-tabs" id="plotTabs" role="tablist">'
         tab_content = '<div class="tab-content" id="plotTabContent">'
 
-        for i, (plot_id, plot_data) in enumerate(plots.items()):
+        for i, (plot_id, _plot_data) in enumerate(plots.items()):
             plot_title = plot_id.replace("_", " ").title()
             active_class = "active" if i == 0 else ""
             active_attr = "true" if i == 0 else "false"
@@ -988,9 +988,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         </div>
         """
 
-    def generate_ga_optimization_report(
-        self, study_result: Dict[str, Any], plots: Optional[Dict[str, Any]] = None
-    ) -> str:
+    def generate_ga_optimization_report(self, study_result: dict[str, Any], plots: dict[str, Any] | None = None) -> str:
         """Generate a genetic algorithm optimization report.
 
         Args:
@@ -1003,9 +1001,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         title = f"Genetic Algorithm Optimization: {study_result.get('study_id', 'GA Study')}"
         return self.generate_standalone_report(study_result, plots, title, "genetic_algorithm")
 
-    def generate_mc_uncertainty_report(
-        self, study_result: Dict[str, Any], plots: Optional[Dict[str, Any]] = None
-    ) -> str:
+    def generate_mc_uncertainty_report(self, study_result: dict[str, Any], plots: dict[str, Any] | None = None) -> str:
         """Generate a Monte Carlo uncertainty analysis report.
 
         Args:
@@ -1019,7 +1015,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         return self.generate_standalone_report(study_result, plots, title, "monte_carlo")
 
     def generate_study_comparison_report(
-        self, study_results: List[Dict[str, Any]], plots: Optional[Dict[str, Any]] = None
+        self, study_results: list[dict[str, Any]], plots: dict[str, Any] | None = None
     ) -> str:
         """Generate a comparative study report.
 
@@ -1039,7 +1035,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 
         return self.generate_standalone_report(aggregated_results, plots, "Study Comparison Report", "study")
 
-    def _create_comparison_summary(self, study_results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _create_comparison_summary(self, study_results: list[dict[str, Any]]) -> dict[str, Any]:
         """Create summary statistics for study comparison."""
         total_studies = len(study_results)
         successful_studies = sum(1 for s in study_results if s.get("successful_simulations", 0) > 0)
@@ -1053,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', function() {{
             "successful_studies": successful_studies,
             "total_execution_time": total_execution_time,
             "avg_execution_time": avg_execution_time,
-            "study_types": list(set(s.get("study_type", "unknown") for s in study_results)),
+            "study_types": list({s.get("study_type", "unknown") for s in study_results}),
         }
 
     def save_report(self, html_content: str, output_path: Path) -> None:
@@ -1069,8 +1065,8 @@ document.addEventListener('DOMContentLoaded', function() {{
 
 # Convenience function for backward compatibility
 def create_standalone_html_report(
-    analysis_results: Dict[str, Any],
-    plots: Optional[Dict[str, Any]] = None,
+    analysis_results: dict[str, Any],
+    plots: dict[str, Any] | None = None,
     title: str = "EcoSystemiser Analysis Report",
 ) -> str:
     """Create a standalone HTML report (backward compatibility wrapper).

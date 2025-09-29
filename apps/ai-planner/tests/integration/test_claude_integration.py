@@ -5,12 +5,13 @@ Tests the complete Phase 2 Claude-powered planning workflow
 """
 
 import json
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import sys
 import uuid
-from datetime import datetime, timezone
-from pathlib import Path
 
-import pytest
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import ClaudePlanningResponse, RobustClaudePlannerBridge
 from hive_db import get_connection, init_db
@@ -26,7 +27,7 @@ class TestClaudeIntegration:
         """Setup test environment"""
         # Initialize database
         init_db()
-        print("SUCCESS: Test database initialized")
+        logger.info("SUCCESS: Test database initialized")
 
     def test_claude_bridge_initialization(self):
         """Test Claude bridge initialization in both modes"""
@@ -34,12 +35,12 @@ class TestClaudeIntegration:
         bridge_mock = RobustClaudePlannerBridge(mock_mode=True)
         assert bridge_mock.mock_mode == True
         assert bridge_mock.claude_cmd is None or isinstance(bridge_mock.claude_cmd, str)
-        print("SUCCESS: Claude bridge mock mode initialization")
+        logger.info("SUCCESS: Claude bridge mock mode initialization")
 
         # Test real mode
         bridge_real = RobustClaudePlannerBridge(mock_mode=False)
         assert bridge_real.mock_mode == False
-        print("SUCCESS: Claude bridge real mode initialization")
+        logger.info("SUCCESS: Claude bridge real mode initialization")
 
     def test_mock_plan_generation(self):
         """Test plan generation in mock mode"""
@@ -73,7 +74,7 @@ class TestClaudeIntegration:
         assert "estimated_duration" in sub_task
         assert "complexity" in sub_task
 
-        print("OK Mock plan generation validation")
+        logger.info("OK Mock plan generation validation")
 
     def test_fallback_plan_generation(self):
         """Test fallback plan generation when Claude is unavailable"""
@@ -96,7 +97,7 @@ class TestClaudeIntegration:
         assert len(plan["sub_tasks"]) == 3  # Standard fallback has 3 tasks
         assert plan["metrics"]["confidence_score"] == 0.6  # Lower confidence for fallback
 
-        print("OK Fallback plan generation validation")
+        logger.info("OK Fallback plan generation validation")
 
     def test_json_response_validation(self):
         """Test Pydantic model validation for Claude responses"""
@@ -148,7 +149,7 @@ class TestClaudeIntegration:
         assert len(response.sub_tasks) == 1
         assert response.metrics.confidence_score == 0.9
 
-        print("OK JSON response validation")
+        logger.info("OK JSON response validation")
 
     def test_ai_planner_claude_integration(self):
         """Test full AI Planner integration with Claude bridge"""
@@ -232,7 +233,7 @@ class TestClaudeIntegration:
         agent.db_connection.commit()
         agent.db_connection.close()
 
-        print("OK Full AI Planner Claude integration")
+        logger.info("OK Full AI Planner Claude integration")
 
     def test_complex_task_end_to_end(self):
         """Test end-to-end processing of a complex task"""
@@ -322,7 +323,7 @@ class TestClaudeIntegration:
         conn.close()
         agent.db_connection.close()
 
-        print("OK Complex task end-to-end processing")
+        logger.info("OK Complex task end-to-end processing")
 
     def test_error_handling_and_resilience(self):
         """Test error handling and system resilience"""
@@ -350,7 +351,7 @@ class TestClaudeIntegration:
         save_result = agent.save_execution_plan({"plan_id": "test", "task_id": "test", "status": "test"})
         assert save_result == False  # Should fail gracefully
 
-        print("OK Error handling and resilience")
+        logger.info("OK Error handling and resilience")
 
     def test_performance_metrics(self):
         """Test performance and timing metrics"""
@@ -370,13 +371,13 @@ class TestClaudeIntegration:
         assert plan is not None
         assert plan["metrics"]["confidence_score"] > 0.8
 
-        print(f"OK Performance metrics - Generation time: {generation_time:.3f}s")
+        logger.info(f"OK Performance metrics - Generation time: {generation_time:.3f}s")
 
 
 def run_tests():
     """Run all tests"""
-    print("Starting AI Planner Claude Integration Tests")
-    print("=" * 60)
+    logger.info("Starting AI Planner Claude Integration Tests")
+    logger.info("=" * 60)
 
     test_suite = TestClaudeIntegration()
     test_suite.setup_class()
@@ -400,17 +401,17 @@ def run_tests():
             test_method()
             passed += 1
         except Exception as e:
-            print(f"FAIL {test_method.__name__} FAILED: {e}")
+            logger.info(f"FAIL {test_method.__name__} FAILED: {e}")
             failed += 1
 
-    print("=" * 60)
-    print(f"Test Results: {passed} passed, {failed} failed")
+    logger.info("=" * 60)
+    logger.info(f"Test Results: {passed} passed, {failed} failed")
 
     if failed == 0:
-        print("ALL TESTS PASSED - Phase 2 Claude Integration Complete!")
+        logger.info("ALL TESTS PASSED - Phase 2 Claude Integration Complete!")
         return True
     else:
-        print("WARNING: Some tests failed - review and fix issues")
+        logger.info("WARNING: Some tests failed - review and fix issues")
         return False
 
 

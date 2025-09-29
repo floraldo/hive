@@ -6,19 +6,22 @@ Standalone performance testing without complex dependency chains.
 """
 
 import json
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import statistics
 import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, List
-
+from typing import Any, Dict
 
 
 def test_security_performance():
     """Test security component performance."""
     from hive_ai.core.security import InputValidator, RateLimiter, SecretManager
 
-    print("Testing security components...")
+    logger.info("Testing security components...")
     results = {}
 
     # Input validation performance
@@ -66,16 +69,20 @@ def test_security_performance():
         rate_limiter.is_allowed(f"user_{i}")
     rate_duration = (time.perf_counter() - start) * 1000
 
-    results["rate_limiting"] = {"total_ms": rate_duration, "avg_ms": rate_duration / 100, "operations": 100}
+    results["rate_limiting"] = {
+        "total_ms": rate_duration,
+        "avg_ms": rate_duration / 100,
+        "operations": 100,
+    }
 
     return results
 
 
 def test_config_performance():
     """Test configuration performance."""
-    from hive_ai.core.config import AIConfig, ModelConfig, VectorConfig
+    from hive_ai.core.config import AIConfig, ModelConfig
 
-    print("Testing configuration components...")
+    logger.info("Testing configuration components...")
     results = {}
 
     # Config creation performance
@@ -86,7 +93,11 @@ def test_config_performance():
         configs.append(config)
     creation_duration = (time.perf_counter() - start) * 1000
 
-    results["config_creation"] = {"total_ms": creation_duration, "avg_ms": creation_duration / 50, "operations": 50}
+    results["config_creation"] = {
+        "total_ms": creation_duration,
+        "avg_ms": creation_duration / 50,
+        "operations": 50,
+    }
 
     # Model config creation
     model_configs = []
@@ -126,10 +137,9 @@ def test_config_performance():
 
 def test_vector_performance():
     """Test vector component performance (simulation)."""
-    from hive_ai.core.config import AIConfig
     from hive_ai.vector.embedding import EmbeddingManager
 
-    print("Testing vector components...")
+    logger.info("Testing vector components...")
     results = {}
 
     # Mock AI config for testing
@@ -146,7 +156,11 @@ def test_vector_performance():
         results["embedding_manager_creation"] = {"duration_ms": creation_duration}
 
         # Test embedding simulation
-        test_texts = ["Short text", "Medium length text with more content", "Long text " * 50]
+        test_texts = [
+            "Short text",
+            "Medium length text with more content",
+            "Long text " * 50,
+        ]
 
         embedding_times = []
         for text in test_texts:
@@ -176,7 +190,10 @@ def test_vector_performance():
             similarity = embedding_manager._calculate_cosine_similarity(vec1, vec2)
             similarity_duration = (time.perf_counter() - start) * 1000
 
-            results["similarity_calculation"] = {"duration_ms": similarity_duration, "result": similarity}
+            results["similarity_calculation"] = {
+                "duration_ms": similarity_duration,
+                "result": similarity,
+            }
         except Exception as e:
             results["similarity_calculation"] = {"error": str(e)}
 
@@ -188,10 +205,10 @@ def test_vector_performance():
 
 def test_model_system_performance():
     """Test model system performance (registry and client)."""
-    from hive_ai.core.config import AIConfig, ModelConfig
+    from hive_ai.core.config import ModelConfig
     from hive_ai.models.registry import ModelRegistry
 
-    print("Testing model system components...")
+    logger.info("Testing model system components...")
     results = {}
 
     try:
@@ -236,7 +253,11 @@ def test_model_system_performance():
             available = registry.list_available_models()
         lookup_duration = (time.perf_counter() - start) * 1000
 
-        results["model_lookup"] = {"total_ms": lookup_duration, "avg_ms": lookup_duration / 100, "operations": 100}
+        results["model_lookup"] = {
+            "total_ms": lookup_duration,
+            "avg_ms": lookup_duration / 100,
+            "operations": 100,
+        }
 
     except Exception as e:
         results["model_system"] = {"error": str(e)}
@@ -246,8 +267,8 @@ def test_model_system_performance():
 
 def run_performance_tests():
     """Run all performance tests."""
-    print("=== HIVE-AI PERFORMANCE BASELINE ===")
-    print(f"Starting performance tests...")
+    logger.info("=== HIVE-AI PERFORMANCE BASELINE ===")
+    logger.info("Starting performance tests...")
 
     all_results = {}
     total_start = time.perf_counter()
@@ -262,16 +283,19 @@ def run_performance_tests():
 
     for suite_name, test_func in test_suites:
         try:
-            print(f"\nRunning {suite_name} tests...")
+            logger.info(f"\nRunning {suite_name} tests...")
             suite_start = time.perf_counter()
             results = test_func()
             suite_duration = (time.perf_counter() - suite_start) * 1000
 
-            all_results[suite_name] = {"suite_duration_ms": suite_duration, "results": results}
-            print(f"OK {suite_name} tests completed in {suite_duration:.2f}ms")
+            all_results[suite_name] = {
+                "suite_duration_ms": suite_duration,
+                "results": results,
+            }
+            logger.info(f"OK {suite_name} tests completed in {suite_duration:.2f}ms")
 
         except Exception as e:
-            print(f"FAIL {suite_name} tests failed: {e}")
+            logger.info(f"FAIL {suite_name} tests failed: {e}")
             all_results[suite_name] = {"error": str(e)}
 
     total_duration = (time.perf_counter() - total_start) * 1000
@@ -293,27 +317,27 @@ def run_performance_tests():
             indent=2,
         )
 
-    print(f"\n=== PERFORMANCE SUMMARY ===")
-    print(f"Total execution time: {total_duration:.2f}ms")
-    print(f"Test suites completed: {len(all_results)}")
+    logger.info("\n=== PERFORMANCE SUMMARY ===")
+    logger.info(f"Total execution time: {total_duration:.2f}ms")
+    logger.info(f"Test suites completed: {len(all_results)}")
 
     # Print key metrics
     if summary["fastest_operations"]:
-        print(f"\nFastest operations:")
+        logger.info("\nFastest operations:")
         for op in summary["fastest_operations"][:3]:
-            print(f"  - {op['name']}: {op['avg_ms']:.3f}ms")
+            logger.info(f"  - {op['name']}: {op['avg_ms']:.3f}ms")
 
     if summary["slowest_operations"]:
-        print(f"\nSlowest operations:")
+        logger.info("\nSlowest operations:")
         for op in summary["slowest_operations"][:3]:
-            print(f"  - {op['name']}: {op['avg_ms']:.2f}ms")
+            logger.info(f"  - {op['name']}: {op['avg_ms']:.2f}ms")
 
     if summary["recommendations"]:
-        print(f"\nRecommendations:")
+        logger.info("\nRecommendations:")
         for rec in summary["recommendations"]:
-            print(f"  - {rec}")
+            logger.info(f"  - {rec}")
 
-    print(f"\nDetailed results saved to: {output_file}")
+    logger.info(f"\nDetailed results saved to: {output_file}")
     return all_results
 
 
@@ -343,7 +367,11 @@ def generate_summary(results: Dict[str, Any], total_duration: float) -> Dict[str
                     )
                 elif "duration_ms" in test_data:
                     operations.append(
-                        {"name": f"{suite_name}.{test_name}", "avg_ms": test_data["duration_ms"], "operations": 1}
+                        {
+                            "name": f"{suite_name}.{test_name}",
+                            "avg_ms": test_data["duration_ms"],
+                            "operations": 1,
+                        }
                     )
 
     # Sort operations by performance
@@ -371,5 +399,5 @@ if __name__ == "__main__":
     try:
         run_performance_tests()
     except Exception as e:
-        print(f"Performance testing failed: {e}")
+        logger.info(f"Performance testing failed: {e}")
         sys.exit(1)

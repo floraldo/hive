@@ -9,13 +9,12 @@ and optimization tasks.
 
 import argparse
 import json
-import os
 
 # Temporary path setup until package installation completes
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from ecosystemiser.hive_env import get_app_config, get_app_settings
 
@@ -41,7 +40,7 @@ except Exception as e:
         )
 
         CLIMATE_MODELS_AVAILABLE = True
-    except ImportError as import_err:
+    except ImportError:
         CLIMATE_MODELS_AVAILABLE = False
     logger.warning(f"Warning: EcoSystemiser climate service not available: {e}")
 
@@ -62,7 +61,7 @@ class EcoSystemiserAdapter:
         self.results_dir = Path.cwd() / results_dir
         self.results_dir.mkdir(exist_ok=True)
 
-    def execute_task(self, task_name: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_task(self, task_name: str, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Execute a specific EcoSystemiser task
 
@@ -89,7 +88,7 @@ class EcoSystemiserAdapter:
         else:
             return {"status": "error", "message": f"Unknown task: {task_name}"}
 
-    def health_check(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def health_check(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Perform a health check of the EcoSystemiser
 
@@ -111,7 +110,7 @@ class EcoSystemiserAdapter:
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-    def analyze_ecosystem(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze_ecosystem(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Analyze the current state of the ecosystem
 
@@ -153,7 +152,7 @@ class EcoSystemiserAdapter:
             "output_file": str(output_file),
         }
 
-    def optimize_balance(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def optimize_balance(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Optimize the balance of the ecosystem
 
@@ -166,8 +165,8 @@ class EcoSystemiserAdapter:
         self.logger.info("Optimizing ecosystem balance")
 
         # Extract parameters
-        target_metrics = payload.get("target_metrics", {})
-        constraints = payload.get("constraints", [])
+        payload.get("target_metrics", {})
+        payload.get("constraints", [])
 
         # Perform optimization (simplified for demonstration)
         optimizations = {
@@ -192,7 +191,7 @@ class EcoSystemiserAdapter:
             "output_file": str(output_file),
         }
 
-    def fetch_climate_data(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def fetch_climate_data(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Fetch real climate data using EcoSystemiser's climate service
 
@@ -287,7 +286,7 @@ class EcoSystemiserAdapter:
                 "error_type": type(e).__name__,
             }
 
-    def generate_report(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_report(self, payload: dict[str, Any]) -> dict[str, Any]:
         """
         Generate a comprehensive ecosystem report
 
@@ -301,7 +300,7 @@ class EcoSystemiserAdapter:
 
         # Extract parameters
         report_type = payload.get("report_type", "summary")
-        include_visualizations = payload.get("include_visualizations", False)
+        payload.get("include_visualizations", False)
 
         # Generate report content
         report = {
@@ -339,7 +338,7 @@ class EcoSystemiserAdapter:
             f.write(f"## Executive Summary\n{report['executive_summary']}\n\n")
             for section in report["sections"]:
                 f.write(f"## {section['title']}\n{section['content']}\n\n")
-            f.write(f"## Metrics Summary\n")
+            f.write("## Metrics Summary\n")
             for key, value in report["metrics_summary"].items():
                 f.write(f"- {key}: {value}\n")
 

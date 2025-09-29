@@ -4,10 +4,10 @@ Model registry for managing AI model configurations and providers.
 Provides centralized management of available models with
 dynamic registration and health monitoring.
 """
+
 from __future__ import annotations
 
-
-from typing import Dict, ListType
+from typing import Dict
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -44,10 +44,10 @@ class ModelRegistry:
         if provider_name not in self._providers:
             if provider_name not in self._provider_classes:
                 raise ModelUnavailableError(
-                    f"Provider '{provider_name}' not registered"
-                    model=""
-                    provider=provider_name
-                    available_models=self.list_available_models()
+                    f"Provider '{provider_name}' not registered",
+                    model="",
+                    provider=provider_name,
+                    available_models=self.list_available_models(),
                 )
 
             # Create provider instance
@@ -62,7 +62,10 @@ class ModelRegistry:
             return self.config.get_model_config(model_name)
         except ValueError as e:
             raise ModelUnavailableError(
-                str(e), model=model_name, provider="", available_models=self.list_available_models()
+                str(e),
+                model=model_name,
+                provider="",
+                available_models=self.list_available_models(),
             )
 
     def list_available_models(self) -> List[str]:
@@ -156,8 +159,8 @@ class ModelRegistry:
         providers = len(self._provider_classes)
 
         return {
-            "total_models": total_models
-            "healthy_models": healthy_models
-            "total_providers": providers
-            "health_percentage": int((healthy_models / total_models * 100) if total_models > 0 else 0)
+            "total_models": total_models,
+            "healthy_models": healthy_models,
+            "total_providers": providers,
+            "health_percentage": int((healthy_models / total_models * 100) if total_models > 0 else 0),
         }

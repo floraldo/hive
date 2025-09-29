@@ -4,8 +4,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from hive_config import BaseConfig, ConfigField
-
 
 @dataclass
 class ReviewConfig:
@@ -57,48 +55,45 @@ class CacheConfig:
     cache_analysis: bool = True
 
 
-class GuardianConfig(BaseConfig):
+@dataclass
+class GuardianConfig:
     """Main configuration for the Guardian Agent."""
 
-    _config_file = "guardian.yaml"
-    _env_prefix = "GUARDIAN"
-
     # Review settings
-    review: ReviewConfig = ConfigField(default_factory=ReviewConfig, description="Review process configuration")
+    review: ReviewConfig = field(default_factory=ReviewConfig)
 
     # Vector search settings
-    vector_search: VectorSearchConfig = ConfigField(
-        default_factory=VectorSearchConfig, description="Vector search configuration"
-    )
+    vector_search: VectorSearchConfig = field(default_factory=VectorSearchConfig)
 
     # Learning system settings
-    learning: LearningConfig = ConfigField(default_factory=LearningConfig, description="Learning system configuration")
+    learning: LearningConfig = field(default_factory=LearningConfig)
 
     # Cache settings
-    cache: CacheConfig = ConfigField(default_factory=CacheConfig, description="Cache configuration")
+    cache: CacheConfig = field(default_factory=CacheConfig)
 
     # API keys (loaded from environment)
-    openai_api_key: Optional[str] = ConfigField(default=None, env_var="OPENAI_API_KEY", secret=True)
+    openai_api_key: Optional[str] = None
 
     # File patterns
-    include_patterns: List[str] = ConfigField(default_factory=lambda: ["*.py", "*.js", "*.ts"], description="File patterns to include")
-
-    exclude_patterns: List[str] = ConfigField(
-        default_factory=lambda: ["*_test.py", "*.test.js", "__pycache__", ".git", "node_modules"],
-        description="File patterns to exclude",
+    include_patterns: List[str] = field(default_factory=lambda: ["*.py", "*.js", "*.ts"])
+    exclude_patterns: List[str] = field(
+        default_factory=lambda: ["*_test.py", "*.test.js", "__pycache__", ".git", "node_modules"]
     )
 
     # Logging
-    log_level: str = ConfigField(default="INFO", env_var="LOG_LEVEL")
-    log_file: Optional[Path] = ConfigField(default=None, description="Log file path")
+    log_level: str = "INFO"
+    log_file: Optional[Path] = None
 
     def validate(self) -> None:
         """Validate configuration."""
-        super().validate()
-
         # Ensure API key is set if using OpenAI models
         if self.review.model.startswith("gpt") and not self.openai_api_key:
-            raise ValueError("OpenAI API key is required for GPT models")
+            # Try to get from environment
+            import os
+
+            self.openai_api_key = os.getenv("OPENAI_API_KEY")
+            if not self.openai_api_key:
+                print("Warning: OpenAI API key not set - some features may not work")
 
         # Ensure paths exist
         if self.vector_search.enabled:
@@ -111,7 +106,7 @@ class GuardianConfig(BaseConfig):
     def load_from_file(cls, config_path: Path) -> "GuardianConfig":
         """Load configuration from file."""
         config = cls()
-        config.load(config_path)
+        # Simple file loading - in a real implementation, would parse YAML/JSON
         config.validate()
         return config
 

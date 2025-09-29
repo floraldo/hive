@@ -6,10 +6,8 @@ legacy Systemiser system and converts them to EcoSystemiser-compatible format.
 """
 
 import json
-import logging
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -21,16 +19,18 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-def load_legacy_output_data(output_path: Path) -> Optional[Dict[str, Any]]:
+
+def load_legacy_output_data(output_path: Path) -> dict[str, Any] | None:
     """Load existing legacy output data if available."""
     hourly_file = output_path / "solved_system_flows_hourly.json"
     if hourly_file.exists():
         logger.info(f"Loading existing legacy output: {hourly_file}")
-        with open(hourly_file, "r") as f:
+        with open(hourly_file) as f:
             return json.load(f)
     return None
 
-def extract_profiles_from_output(output_data: Dict[str, Any]) -> Dict[str, np.ndarray]:
+
+def extract_profiles_from_output(output_data: dict[str, Any]) -> dict[str, np.ndarray]:
     """Extract component profiles from legacy output flows."""
     profiles = {}
 
@@ -77,7 +77,8 @@ def extract_profiles_from_output(output_data: Dict[str, Any]) -> Dict[str, np.nd
 
     return profiles
 
-def create_weather_based_profiles(n_hours: int = 8760) -> Dict[str, np.ndarray]:
+
+def create_weather_based_profiles(n_hours: int = 8760) -> dict[str, np.ndarray]:
     """Create synthetic weather-based profiles for yearly simulation."""
     logger.info(f"Creating weather-based profiles for {n_hours} hours")
 
@@ -123,7 +124,8 @@ def create_weather_based_profiles(n_hours: int = 8760) -> Dict[str, np.ndarray]:
 
     return profiles
 
-def create_yearly_system_config() -> Dict[str, Any]:
+
+def create_yearly_system_config() -> dict[str, Any]:
     """Create system configuration for yearly simulation based on legacy."""
     config = {
         "system_id": "yearly_legacy_microgrid",
@@ -241,6 +243,7 @@ def create_yearly_system_config() -> Dict[str, Any]:
 
     return config
 
+
 def save_profiles_and_config() -> None:
     """Extract and save yearly profiles and configuration."""
     logger.info("Starting yearly profile extraction from legacy Systemiser")
@@ -279,7 +282,7 @@ def save_profiles_and_config() -> None:
     config = create_yearly_system_config()
     config["timesteps"] = n_hours  # Update with actual timesteps
 
-    config_path = configs_dir / "yearly_legacy_microgrid.yml"
+    configs_dir / "yearly_legacy_microgrid.yml"
 
     # Convert to YAML format (save as JSON for now)
     json_config_path = configs_dir / "yearly_legacy_microgrid.json"
@@ -311,10 +314,11 @@ def save_profiles_and_config() -> None:
     logger.info(f"Extraction complete! Summary saved: {summary_path}")
     return summary
 
+
 def main() -> None:
     """Main execution."""
     try:
-        summary = save_profiles_and_config()
+        save_profiles_and_config()
         logger.info("\n=== Yearly Profile Extraction Complete ===")
         logger.info("Source: {summary['source']}")
         logger.info("Timesteps: {summary['timesteps']} ({summary['duration_days']:.1f} days)")
@@ -329,6 +333,7 @@ def main() -> None:
 
         traceback.print_exc()
         return False
+
 
 if __name__ == "__main__":
     success = main()

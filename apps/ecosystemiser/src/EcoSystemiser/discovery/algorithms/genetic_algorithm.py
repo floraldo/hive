@@ -1,16 +1,14 @@
 """NSGA-II genetic algorithm implementation for multi-objective optimization."""
 
-import copy
-import random
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 from ecosystemiser.discovery.algorithms.base import (
     BaseOptimizationAlgorithm,
     OptimizationConfig,
-    OptimizationResult,
 )
 from hive_logging import get_logger
 
@@ -76,7 +74,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         logger.info(f"Initialized population of {len(population)} individuals")
         return population
 
-    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> List[Dict[str, Any]]:
+    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
         """Evaluate fitness of population."""
         evaluations = []
 
@@ -118,7 +116,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return evaluations
 
-    def update_population(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def update_population(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Update population using genetic operators."""
         # Selection
         parent_indices = self._selection(evaluations)
@@ -139,7 +137,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return combined_population[survivor_indices]
 
-    def _selection(self, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def _selection(self, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Select parents for reproduction."""
         if self.ga_config.selection_method == "tournament":
             return self._tournament_selection(evaluations)
@@ -148,7 +146,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         else:
             return self._rank_selection(evaluations)
 
-    def _tournament_selection(self, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def _tournament_selection(self, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Tournament selection for parent selection."""
         selected_indices = []
         population_size = len(evaluations)
@@ -168,7 +166,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return np.array(selected_indices)
 
-    def _roulette_selection(self, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def _roulette_selection(self, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Roulette wheel selection."""
         fitness_values = np.array([eval_result.get("fitness", float("inf")) for eval_result in evaluations])
 
@@ -190,7 +188,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return selected_indices
 
-    def _rank_selection(self, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def _rank_selection(self, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Rank-based selection."""
         fitness_values = np.array([eval_result.get("fitness", float("inf")) for eval_result in evaluations])
 
@@ -234,7 +232,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return np.array(offspring)
 
-    def _crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Crossover operation between two parents."""
         if self.ga_config.crossover_method == "sbx":
             return self._simulated_binary_crossover(parent1, parent2)
@@ -243,7 +241,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         else:
             return self._arithmetic_crossover(parent1, parent2)
 
-    def _simulated_binary_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _simulated_binary_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Simulated binary crossover (SBX)."""
         eta = 20.0  # Distribution index
         child1, child2 = parent1.copy(), parent2.copy()
@@ -266,14 +264,14 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return child1, child2
 
-    def _uniform_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _uniform_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Uniform crossover."""
         mask = np.random.random(len(parent1)) < 0.5
         child1 = np.where(mask, parent1, parent2)
         child2 = np.where(mask, parent2, parent1)
         return child1, child2
 
-    def _arithmetic_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _arithmetic_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Arithmetic crossover."""
         alpha = np.random.random()
         child1 = alpha * parent1 + (1 - alpha) * parent2
@@ -340,7 +338,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return mutated
 
-    def _environmental_selection(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def _environmental_selection(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Select survivors for next generation."""
         # Simple elitist selection for single-objective
         fitness_values = np.array([eval_result.get("fitness", float("inf")) for eval_result in evaluations])
@@ -349,7 +347,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         sorted_indices = np.argsort(fitness_values)
         return sorted_indices[: self.config.population_size]
 
-    def check_convergence(self, evaluations: List[Dict[str, Any]]) -> bool:
+    def check_convergence(self, evaluations: list[dict[str, Any]]) -> bool:
         """Check convergence based on fitness improvement."""
         if len(self.convergence_history) < self.config.convergence_patience:
             return False
@@ -392,7 +390,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         logger.info(f"Initialized NSGA-II population of {len(population)} individuals")
         return population
 
-    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> List[Dict[str, Any]]:
+    def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
         """Evaluate population objectives."""
         evaluations = []
 
@@ -435,7 +433,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return evaluations
 
-    def update_population(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def update_population(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Update population using NSGA-II selection."""
         # Create offspring
         offspring = self._create_offspring_nsga2(population, evaluations)
@@ -455,7 +453,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return combined_population[survivor_indices]
 
-    def _create_offspring_nsga2(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def _create_offspring_nsga2(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Create offspring using tournament selection and genetic operators."""
         offspring = []
 
@@ -481,7 +479,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return np.array(offspring)
 
-    def _tournament_selection_nsga2(self, evaluations: List[Dict[str, Any]]) -> int:
+    def _tournament_selection_nsga2(self, evaluations: list[dict[str, Any]]) -> int:
         """Tournament selection based on dominance and crowding distance."""
         tournament_size = min(self.ga_config.tournament_size, len(evaluations))
         tournament_indices = np.random.choice(len(evaluations), size=tournament_size, replace=False)
@@ -499,7 +497,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return best_idx
 
-    def _nsga2_selection(self, population: np.ndarray, evaluations: List[Dict[str, Any]]) -> np.ndarray:
+    def _nsga2_selection(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """NSGA-II environmental selection with non-dominated sorting and crowding distance."""
         # Perform non-dominated sorting
         fronts = self._fast_non_dominated_sort(evaluations)
@@ -528,7 +526,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return np.array(selected_indices)
 
-    def _fast_non_dominated_sort(self, evaluations: List[Dict[str, Any]]) -> List[List[int]]:
+    def _fast_non_dominated_sort(self, evaluations: list[dict[str, Any]]) -> list[list[int]]:
         """Fast non-dominated sorting algorithm."""
         n = len(evaluations)
         domination_count = [0] * n  # Number of individuals that dominate i
@@ -566,7 +564,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return fronts
 
-    def _dominates(self, eval_a: Dict[str, Any], eval_b: Dict[str, Any]) -> bool:
+    def _dominates(self, eval_a: dict[str, Any], eval_b: dict[str, Any]) -> bool:
         """Check if solution A dominates solution B."""
         objectives_a = eval_a.get("objectives", [])
         objectives_b = eval_b.get("objectives", [])
@@ -577,7 +575,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         # Assuming minimization for all objectives
         at_least_one_better = False
 
-        for obj_a, obj_b in zip(objectives_a, objectives_b):
+        for obj_a, obj_b in zip(objectives_a, objectives_b, strict=False):
             if obj_a > obj_b:  # A is worse in this objective
                 return False
             elif obj_a < obj_b:  # A is better in this objective
@@ -585,7 +583,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return at_least_one_better
 
-    def _calculate_crowding_distance(self, evaluations: List[Dict[str, Any]], front: List[int]) -> None:
+    def _calculate_crowding_distance(self, evaluations: list[dict[str, Any]], front: list[int]) -> None:
         """Calculate crowding distance for individuals in a front."""
         if len(front) <= 2:
             # Boundary solutions get infinite distance
@@ -616,7 +614,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                     distance = (front_with_obj[i + 1][1] - front_with_obj[i - 1][1]) / obj_range
                     evaluations[idx]["crowding_distance"] += distance
 
-    def _simulated_binary_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _simulated_binary_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Simulated binary crossover for real-valued variables."""
         eta = 20.0  # Distribution index
         child1, child2 = parent1.copy(), parent2.copy()
@@ -674,7 +672,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         return mutated
 
-    def check_convergence(self, evaluations: List[Dict[str, Any]]) -> bool:
+    def check_convergence(self, evaluations: list[dict[str, Any]]) -> bool:
         """Check convergence based on hypervolume or front spread."""
         if len(self.convergence_history) < self.config.convergence_patience:
             return False
@@ -695,7 +693,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
             else:
                 current_avg_objectives.append(float("inf"))
 
-        current_metric = np.mean(current_avg_objectives)
+        np.mean(current_avg_objectives)
 
         if len(self.convergence_history) >= self.config.convergence_patience:
             recent_history = self.convergence_history[-self.config.convergence_patience :]

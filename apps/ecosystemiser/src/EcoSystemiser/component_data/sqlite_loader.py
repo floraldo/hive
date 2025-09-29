@@ -144,7 +144,7 @@ class SQLiteLoader:
 
     def add_component_spec(
         self
-        component_type: str
+        component_type: str,
         name: str
         technical_params: Dict[str, Any]
         economic_params: Optional[Dict[str, Any]] = None
@@ -219,7 +219,7 @@ class SQLiteLoader:
 
     def get_component_spec(
         self
-        component_type: str
+        component_type: str,
         name: str | None = None
         version: str | None = None
     ) -> Dict[str, Any]:
@@ -270,13 +270,13 @@ class SQLiteLoader:
 
             # Convert to dict
             spec = {
-                "type": row["type_name"]
-                "category": row["category"]
-                "name": row["name"]
-                "version": row["version"]
-                "technical": json.loads(row["technical_params"])
-                "economic": (json.loads(row["economic_params"]) if row["economic_params"] else {})
-                "environmental": (json.loads(row["environmental_params"]) if row["environmental_params"] else {})
+                "type": row["type_name"],
+                "category": row["category"],
+                "name": row["name"],
+                "version": row["version"],
+                "technical": json.loads(row["technical_params"]),
+                "economic": (json.loads(row["economic_params"]) if row["economic_params"] else {}),
+                "environmental": (json.loads(row["environmental_params"]) if row["environmental_params"] else {}),
                 "metadata": json.loads(row["metadata"]) if row["metadata"] else {}
             }
 
@@ -305,9 +305,9 @@ class SQLiteLoader:
             for row in cursor.fetchall():
                 types.append(
                     {
-                        "name": row["name"]
-                        "category": row["category"]
-                        "description": row["description"]
+                        "name": row["name"],
+                        "category": row["category"],
+                        "description": row["description"],
                         "spec_count": row["spec_count"]
                     }
                 )
@@ -347,10 +347,10 @@ class SQLiteLoader:
             for row in cursor.fetchall():
                 specs.append(
                     {
-                        "type": row["type_name"]
-                        "category": row["category"]
-                        "name": row["name"]
-                        "version": row["version"]
+                        "type": row["type_name"],
+                        "category": row["category"],
+                        "name": row["name"],
+                        "version": row["version"],
                         "is_default": bool(row["is_default"])
                     }
                 )

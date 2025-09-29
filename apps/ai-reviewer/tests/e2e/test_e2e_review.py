@@ -5,20 +5,21 @@ Tests the complete review loop including drift resilience
 """
 
 import json
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import sqlite3
 import sys
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict
 
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewEngine
-from ai_reviewer.robust_claude_bridge import ClaudeReviewResponse, RobustClaudeBridge
+from ai_reviewer.robust_claude_bridge import RobustClaudeBridge
 from hive_orchestrator.core import db as hive_core_db
 
 # Imports now handled by Poetry workspace dependencies
 # Import from orchestrator core for Hive-specific database access
-from hive_orchestrator.core.db import get_database, get_pooled_connection
 
 
 def create_test_task(task_type: str = "good") -> str:
@@ -117,13 +118,13 @@ async def distributed_compute_async(tasks: List[Dict[str, Any]]) -> List[Any]:
     conn.commit()
     conn.close()
 
-    print(f"[OK] Created test task: {task_id}")
+    logger.info(f"[OK] Created test task: {task_id}")
     return task_id
 
 
 def test_json_extraction():
     """Test the robust JSON extraction from various Claude responses"""
-    print("\n=== Testing JSON Extraction (Drift Simulation) ===")
+    logger.info("\n=== Testing JSON Extraction (Drift Simulation) ===")
 
     bridge = RobustClaudeBridge()
 
@@ -160,20 +161,20 @@ Hope this helps!""",
         try:
             result = bridge._extract_and_validate_json(test["output"])
             if result and result.decision == test["expected_decision"]:
-                print(f"  [PASS] {test['name']}: Correctly extracted '{result.decision}'")
+                logger.info(f"  [PASS] {test['name']}: Correctly extracted '{result.decision}'")
                 passed += 1
             else:
-                print(f"  [FAIL] {test['name']}: Failed to extract correct decision")
+                logger.info(f"  [FAIL] {test['name']}: Failed to extract correct decision")
         except Exception as e:
-            print(f"  [ERROR] {test['name']}: Error - {str(e)[:50]}")
+            logger.info(f"  [ERROR] {test['name']}: Error - {str(e)[:50]}")
 
-    print(f"\nDrift resilience: {passed}/{len(test_cases)} tests passed")
+    logger.info(f"\nDrift resilience: {passed}/{len(test_cases)} tests passed")
     return passed == len(test_cases)
 
 
 def test_review_engine():
     """Test the complete review engine"""
-    print("\n=== Testing Review Engine ===")
+    logger.info("\n=== Testing Review Engine ===")
 
     # Use mock mode for testing to avoid Claude CLI issues
     from ai_reviewer.robust_claude_bridge import RobustClaudeBridge
@@ -189,37 +190,37 @@ def test_review_engine():
     return fib(n-1) + fib(n-2)"""
     }
 
-    print("Testing review of good code...")
+    logger.info("Testing review of good code...")
     result = engine.review_task(
         task_id="test-engine-good",
         task_description="Fibonacci implementation",
         code_files=good_code,
     )
 
-    print(f"  Decision: {result.decision}")
-    print(f"  Score: {result.metrics.overall_score}")
-    print(f"  Summary: {result.summary}")
+    logger.info(f"  Decision: {result.decision}")
+    logger.info(f"  Score: {result.metrics.overall_score}")
+    logger.info(f"  Summary: {result.summary}")
 
     # Test with bad code
     bad_code = {"vulnerable.py": "exec(user_input)  # DANGEROUS!"}
 
-    print("\nTesting review of bad code...")
+    logger.info("\nTesting review of bad code...")
     result = engine.review_task(
         task_id="test-engine-bad",
         task_description="User input processor",
         code_files=bad_code,
     )
 
-    print(f"  Decision: {result.decision}")
-    print(f"  Score: {result.metrics.overall_score}")
-    print(f"  Summary: {result.summary}")
+    logger.info(f"  Decision: {result.decision}")
+    logger.info(f"  Score: {result.metrics.overall_score}")
+    logger.info(f"  Summary: {result.summary}")
 
     return True
 
 
 def test_full_autonomous_loop():
     """Test the complete autonomous review loop"""
-    print("\n=== Testing Full Autonomous Loop ===")
+    logger.info("\n=== Testing Full Autonomous Loop ===")
 
     # Step 1: Create test tasks
     good_task_id = create_test_task("good")
@@ -234,7 +235,7 @@ def test_full_autonomous_loop():
 
     # Step 3: Process pending reviews
     pending_tasks = adapter.get_pending_reviews(limit=10)
-    print(f"\nFound {len(pending_tasks)} pending review tasks")
+    logger.info(f"\nFound {len(pending_tasks)} pending review tasks")
 
     processed = 0
     for task in pending_tasks:
@@ -242,12 +243,12 @@ def test_full_autonomous_loop():
         if task_id not in [good_task_id, bad_task_id]:
             continue
 
-        print(f"\nProcessing task: {task_id}")
+        logger.info(f"\nProcessing task: {task_id}")
 
         # Get code files
         code_files = adapter.get_task_code_files(task_id)
         if not code_files:
-            print(f"  [ERROR] No code files found")
+            logger.info("  [ERROR] No code files found")
             continue
 
         # Perform review
@@ -257,8 +258,8 @@ def test_full_autonomous_loop():
             code_files=code_files,
         )
 
-        print(f"  Review completed: {result.decision.value}")
-        print(f"  Score: {result.metrics.overall_score}")
+        logger.info(f"  Review completed: {result.decision.value}")
+        logger.info(f"  Score: {result.metrics.overall_score}")
 
         # Update task status
         status_map = {
@@ -272,38 +273,38 @@ def test_full_autonomous_loop():
         success = adapter.update_task_status(task_id, new_status, result.to_dict())
 
         if success:
-            print(f"  [OK] Status updated to '{new_status}'")
+            logger.info(f"  [OK] Status updated to '{new_status}'")
             processed += 1
         else:
-            print(f"  [ERROR] Failed to update status")
+            logger.info("  [ERROR] Failed to update status")
 
-    print(f"\n[SUCCESS] Processed {processed} tasks successfully")
+    logger.info(f"\n[SUCCESS] Processed {processed} tasks successfully")
     return processed > 0
 
 
 def test_configuration():
     """Test configuration and thresholds"""
-    print("\n=== Testing Configuration ===")
+    logger.info("\n=== Testing Configuration ===")
 
     engine = ReviewEngine()
 
-    print("Review thresholds:")
+    logger.info("Review thresholds:")
     for key, value in engine.thresholds.items():
-        print(f"  {key}: {value}")
+        logger.info(f"  {key}: {value}")
 
     # Test that thresholds are being used
     assert engine.thresholds["approve_threshold"] == 80.0
     assert engine.thresholds["reject_threshold"] == 40.0
 
-    print("[OK] Configuration validated")
+    logger.info("[OK] Configuration validated")
     return True
 
 
 def main():
     """Run all E2E tests"""
-    print("=" * 60)
-    print("AI Reviewer End-to-End Test Suite")
-    print("=" * 60)
+    logger.info("=" * 60)
+    logger.info("AI Reviewer End-to-End Test Suite")
+    logger.info("=" * 60)
 
     results = []
 
@@ -321,28 +322,28 @@ def main():
         results.append(("Configuration", test_configuration()))
 
         # Summary
-        print("\n" + "=" * 60)
-        print("Test Results Summary:")
-        print("=" * 60)
+        logger.info("\n" + "=" * 60)
+        logger.info("Test Results Summary:")
+        logger.info("=" * 60)
 
         all_passed = True
         for test_name, passed in results:
             status = "[PASSED]" if passed else "[FAILED]"
-            print(f"{test_name}: {status}")
+            logger.info(f"{test_name}: {status}")
             if not passed:
                 all_passed = False
 
-        print("\n" + "=" * 60)
+        logger.info("\n" + "=" * 60)
         if all_passed:
-            print("[SUCCESS] ALL TESTS PASSED - AI Reviewer is production-ready!")
-            print("The system is drift-resilient and ready for autonomous operation.")
+            logger.info("[SUCCESS] ALL TESTS PASSED - AI Reviewer is production-ready!")
+            logger.info("The system is drift-resilient and ready for autonomous operation.")
         else:
-            print("[FAILED] Some tests failed - Review the issues above")
+            logger.info("[FAILED] Some tests failed - Review the issues above")
 
         return 0 if all_passed else 1
 
     except Exception as e:
-        print(f"\n[ERROR] Test suite failed with error: {e}")
+        logger.info(f"\n[ERROR] Test suite failed with error: {e}")
         import traceback
 
         traceback.print_exc()

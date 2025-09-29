@@ -8,13 +8,13 @@ This is the main, user-facing entry point for accessing climate data.
 """
 
 import asyncio
-from typing import Any, Dict
+from typing import Any
 
 from .data_models import ClimateRequest, ClimateResponse
 from .service import ClimateService
 
 
-def create_climate_service(config: Dict[str, Any]) -> ClimateService:
+def create_climate_service(config: dict[str, Any]) -> ClimateService:
     """Factory function to create a new ClimateService instance with explicit configuration.
 
     Args:

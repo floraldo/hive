@@ -2,10 +2,9 @@
 Utilities for chunked data processing to manage memory usage.
 """
 
+from collections.abc import Generator
 from datetime import datetime, timedelta
-from typing import Dict, Generator, List, Optional, Tuple
 
-import numpy as np
 import pandas as pd
 import xarray as xr
 from hive_logging import get_logger
@@ -15,7 +14,7 @@ logger = get_logger(__name__)
 
 def split_date_range(
     start_date: datetime, end_date: datetime, chunk_days: int = 365
-) -> List[Tuple[datetime, datetime]]:
+) -> list[tuple[datetime, datetime]]:
     """
     Split a date range into chunks to prevent memory issues.
 
@@ -66,7 +65,7 @@ def process_in_chunks(ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: in
     return ds
 
 
-def concatenate_chunked_results(chunks: List[xr.Dataset], dim: str = "time") -> xr.Dataset:
+def concatenate_chunked_results(chunks: list[xr.Dataset], dim: str = "time") -> xr.Dataset:
     """
     Efficiently concatenate chunked datasets.
 

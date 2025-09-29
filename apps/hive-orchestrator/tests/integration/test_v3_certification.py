@@ -4,13 +4,12 @@ V3.0 Platform Certification Test
 Comprehensive integration test for all V3.0 improvements
 """
 
-import json
-import logging
-import sqlite3
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import sys
 import time
 from datetime import datetime
-from pathlib import Path
 
 # Add the package paths
 # No sys.path manipulation needed - use Poetry workspace imports
@@ -29,7 +28,7 @@ class V3CertificationTest:
     def log(self, message: str, level: str = "INFO"):
         """Log test messages"""
         timestamp = datetime.now().strftime("%H:%M:%S")
-        print(f"[{timestamp}] [{level}] {message}")
+        logger.info(f"[{timestamp}] [{level}] {message}")
 
     def run_test(self, test_name: str, test_func):
         """Run a single test and record results"""
@@ -136,7 +135,6 @@ class V3CertificationTest:
         """Test Claude service with centralized configuration"""
         try:
             self.log("Testing Claude service integration...")
-            from hive_claude_bridge.bridge import ClaudeBridgeConfig
             from hive_claude_bridge.claude_service import (
                 get_claude_service,
                 reset_claude_service,
@@ -196,7 +194,7 @@ class V3CertificationTest:
                     # This should work fine
                     cursor = conn.cursor()
                     cursor.execute("SELECT 1")
-            except Exception as e:
+            except Exception:
                 # Specific exceptions should be caught properly
                 pass
             finally:

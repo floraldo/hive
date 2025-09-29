@@ -4,8 +4,6 @@ Smart gap filling for climate data.
 Preserves diurnal and seasonal patterns for building energy modeling.
 """
 
-from typing import Dict, List, Optional, Tuple
-
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -36,7 +34,7 @@ class GapFiller:
         self.preserve_extremes = preserve_extremes
         self.fill_report = {}
 
-    def fill_dataset(self, ds: xr.Dataset) -> Tuple[xr.Dataset, Dict]:
+    def fill_dataset(self, ds: xr.Dataset) -> tuple[xr.Dataset, dict]:
         """
         Fill gaps in entire dataset using appropriate methods.
 
@@ -330,7 +328,7 @@ class GapFiller:
                         pattern_val = seasonal_pattern.sel(month=t.month, hour=t.hour).values
                         if not np.isnan(pattern_val):
                             values[i] = pattern_val
-                    except Exception as e:
+                    except Exception:
                         continue
 
             filled.values = values
@@ -385,7 +383,7 @@ class GapFiller:
         return filled
 
 
-def smart_fill_gaps(ds: xr.Dataset, **kwargs) -> Tuple[xr.Dataset, Dict]:
+def smart_fill_gaps(ds: xr.Dataset, **kwargs) -> tuple[xr.Dataset, dict]:
     """
     Convenience function for smart gap filling.
 

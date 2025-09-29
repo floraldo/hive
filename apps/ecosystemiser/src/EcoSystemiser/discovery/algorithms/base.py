@@ -13,8 +13,6 @@ logger = get_logger(__name__)
 
 class OptimizationStatus(Enum):
     """Status of optimization algorithm."""
-from __future__ import annotations
-
 
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
@@ -277,7 +275,7 @@ class BaseOptimizationAlgorithm(ABC):
 
     def _create_result(
         self
-        population: np.ndarray
+        population: np.ndarray,
         evaluations: List[Dict[str, Any]]
         start_time: float
     ) -> OptimizationResult:
@@ -317,7 +315,7 @@ class BaseOptimizationAlgorithm(ABC):
                 evaluations=self.current_evaluations
                 execution_time=time.time() - start_time
                 metadata={
-                    "final_population_size": len(population)
+                    "final_population_size": len(population),
                     "convergence_generations": len(self.convergence_history)
                 }
             )
@@ -342,7 +340,7 @@ class BaseOptimizationAlgorithm(ABC):
                 evaluations=self.current_evaluations
                 execution_time=time.time() - start_time
                 metadata={
-                    "pareto_front_size": len(pareto_solutions)
+                    "pareto_front_size": len(pareto_solutions),
                     "final_population_size": len(population)
                 }
             )

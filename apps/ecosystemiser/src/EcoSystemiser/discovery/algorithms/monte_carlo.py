@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, ListTuple
 
 import numpy as np
 from ecosystemiser.discovery.algorithms.base import (
-    BaseOptimizationAlgorithm
+    BaseOptimizationAlgorithm,
     OptimizationConfig
     OptimizationResult
     OptimizationStatus
@@ -260,9 +260,9 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                         logger.warning(f"Sample {i} evaluation failed: {e}")
                         evaluations.append(
                             {
-                                "sample_id": i
-                                "objectives": [float("inf")] * len(self.config.objectives)
-                                "valid": False
+                                "sample_id": i,
+                                "objectives": [float("inf")] * len(self.config.objectives),
+                                "valid": False,
                                 "error": str(e)
                             }
                         )
@@ -276,9 +276,9 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     logger.warning(f"Sample {i} evaluation failed: {e}")
                     evaluations.append(
                         {
-                            "sample_id": i
-                            "objectives": [float("inf")] * len(self.config.objectives)
-                            "valid": False
+                            "sample_id": i,
+                            "objectives": [float("inf")] * len(self.config.objectives),
+                            "valid": False,
                             "error": str(e)
                         }
                     )
@@ -406,12 +406,12 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
             if obj_values:
                 obj_values = np.array(obj_values)
                 statistics[obj_name] = {
-                    "mean": float(np.mean(obj_values))
-                    "std": float(np.std(obj_values))
-                    "min": float(np.min(obj_values))
-                    "max": float(np.max(obj_values))
-                    "median": float(np.median(obj_values))
-                    "skewness": float(stats.skew(obj_values))
+                    "mean": float(np.mean(obj_values)),
+                    "std": float(np.std(obj_values)),
+                    "min": float(np.min(obj_values)),
+                    "max": float(np.max(obj_values)),
+                    "median": float(np.median(obj_values)),
+                    "skewness": float(stats.skew(obj_values)),
                     "kurtosis": float(stats.kurtosis(obj_values))
                 }
 
@@ -444,8 +444,8 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     upper = np.percentile(obj_values, upper_percentile)
 
                     confidence_intervals[obj_name][f"{confidence_level:.0%}"] = {
-                        "lower": float(lower)
-                        "upper": float(upper)
+                        "lower": float(lower),
+                        "upper": float(upper),
                         "width": float(upper - lower)
                     }
 
@@ -484,10 +484,10 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     rank_correlation, rank_p_value = stats.spearmanr(param_values, obj_values)
 
                     param_sensitivity[f"param_{param_idx}"] = {
-                        "pearson_correlation": float(correlation)
-                        "pearson_p_value": float(p_value)
-                        "spearman_correlation": float(rank_correlation)
-                        "spearman_p_value": float(rank_p_value)
+                        "pearson_correlation": float(correlation),
+                        "pearson_p_value": float(p_value),
+                        "spearman_correlation": float(rank_correlation),
+                        "spearman_p_value": float(rank_p_value),
                         "sensitivity_index": float(abs(correlation))
                     }
 
@@ -526,12 +526,12 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 prob_exceed_2std = np.sum(obj_values > mean_value + 2 * np.std(obj_values)) / len(obj_values)
 
                 risk_metrics[obj_name] = {
-                    "var_95": float(var_95)
-                    "var_99": float(var_99)
-                    "cvar_95": float(cvar_95)
-                    "cvar_99": float(cvar_99)
-                    "prob_exceed_mean": float(prob_exceed_mean)
-                    "prob_exceed_2std": float(prob_exceed_2std)
+                    "var_95": float(var_95),
+                    "var_99": float(var_99),
+                    "cvar_95": float(cvar_95),
+                    "cvar_99": float(cvar_99),
+                    "prob_exceed_mean": float(prob_exceed_mean),
+                    "prob_exceed_2std": float(prob_exceed_2std),
                     "risk_ratio": (float(np.std(obj_values) / abs(mean_value)) if mean_value != 0 else float("inf"))
                 }
 
@@ -582,9 +582,9 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                         scenario_objectives = obj_values[scenario_indices]
 
                         scenarios[obj_name][scenario_name] = {
-                            "description": scenario_def["description"]
-                            "sample_count": int(np.sum(scenario_indices))
-                            "mean_objective": float(np.mean(scenario_objectives))
+                            "description": scenario_def["description"],
+                            "sample_count": int(np.sum(scenario_indices)),
+                            "mean_objective": float(np.mean(scenario_objectives)),
                             "parameter_means": [
                                 float(np.mean(scenario_samples[:, i])) for i in range(scenario_samples.shape[1])
                             ]
@@ -715,7 +715,7 @@ class UncertaintyAnalyzer:
 
     def run_uncertainty_analysis(
         self
-        fitness_function: Callable
+        fitness_function: Callable,
         parameter_uncertainties: Dict[str, Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Run complete uncertainty analysis.
@@ -737,14 +737,14 @@ class UncertaintyAnalyzer:
         result = self.engine.optimize(fitness_function)
 
         return {
-            "optimization_result": result
-            "uncertainty_analysis": result.metadata
+            "optimization_result": result,
+            "uncertainty_analysis": result.metadata,
             "summary": self._create_summary_report(result)
         }
 
     def run_sensitivity_study(
         self
-        fitness_function: Callable
+        fitness_function: Callable,
         parameter_ranges: Dict[str, Tuple[float, float]]
         n_samples: int = 1000
     ) -> Dict[str, Any]:
@@ -762,7 +762,7 @@ class UncertaintyAnalyzer:
         uncertainties = {}
         for param_name, (min_val, max_val) in parameter_ranges.items():
             uncertainties[param_name] = {
-                "distribution": "uniform"
+                "distribution": "uniform",
                 "parameters": {"a": min_val, "b": max_val}
             }
 
@@ -775,10 +775,10 @@ class UncertaintyAnalyzer:
         result = self.run_uncertainty_analysis(fitness_function, uncertainties)
 
         return {
-            "sensitivity_indices": result["uncertainty_analysis"].get("sensitivity", {})
+            "sensitivity_indices": result["uncertainty_analysis"].get("sensitivity", {}),
             "parameter_ranking": self._rank_parameters_by_sensitivity(
                 result["uncertainty_analysis"].get("sensitivity", {})
-            )
+            ),
             "summary": result["summary"]
         }
 
@@ -796,9 +796,9 @@ class UncertaintyAnalyzer:
                         sensitivity_index = sensitivity_data.get("sensitivity_index", 0)
                         param_rankings.append(
                             {
-                                "parameter": param_name
-                                "sensitivity_index": sensitivity_index
-                                "pearson_correlation": sensitivity_data.get("pearson_correlation", 0)
+                                "parameter": param_name,
+                                "sensitivity_index": sensitivity_index,
+                                "pearson_correlation": sensitivity_data.get("pearson_correlation", 0),
                                 "p_value": sensitivity_data.get("pearson_p_value", 1)
                             }
                         )
@@ -812,10 +812,10 @@ class UncertaintyAnalyzer:
     def _create_summary_report(self, result: OptimizationResult) -> Dict[str, Any]:
         """Create summary report of uncertainty analysis."""
         summary = {
-            "execution_summary": {
-                "status": result.status.value
-                "total_samples": result.evaluations
-                "execution_time": result.execution_time
+            "execution_summary": {,
+                "status": result.status.value,
+                "total_samples": result.evaluations,
+                "execution_time": result.execution_time,
                 "convergence": result.status == OptimizationStatus.CONVERGED
             }
         }

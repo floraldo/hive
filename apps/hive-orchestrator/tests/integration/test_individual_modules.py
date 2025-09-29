@@ -4,10 +4,10 @@ Individual module tests for Hive Orchestrator components.
 Tests modules individually to avoid import dependency issues.
 """
 
-import json
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import sys
-import tempfile
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 # Add the source path for testing
@@ -25,10 +25,10 @@ def test_cli_module_direct():
         assert hasattr(cli, "cli"), "CLI module should have cli function"
         assert callable(cli.cli), "cli should be callable"
 
-        print("[OK] CLI module imported and verified directly")
+        logger.info("[OK] CLI module imported and verified directly")
         return True
     except Exception as e:
-        print(f"[ERROR] CLI direct test error: {e}")
+        logger.info(f"[ERROR] CLI direct test error: {e}")
         return False
 
 
@@ -45,10 +45,10 @@ def test_clean_hive_module_direct():
         assert callable(clean_hive.clean_database), "clean_database should be callable"
         assert callable(clean_hive.main), "main should be callable"
 
-        print("[OK] clean_hive module functions verified directly")
+        logger.info("[OK] clean_hive module functions verified directly")
         return True
     except Exception as e:
-        print(f"[ERROR] clean_hive direct test error: {e}")
+        logger.info(f"[ERROR] clean_hive direct test error: {e}")
         return False
 
 
@@ -63,10 +63,10 @@ def test_dashboard_module_direct():
         assert hasattr(dashboard, "HiveDashboard"), "Should have HiveDashboard class"
         assert hasattr(dashboard, "main"), "Should have main function"
 
-        print("[OK] Dashboard module classes verified directly")
+        logger.info("[OK] Dashboard module classes verified directly")
         return True
     except Exception as e:
-        print(f"[ERROR] Dashboard direct test error: {e}")
+        logger.info(f"[ERROR] Dashboard direct test error: {e}")
         return False
 
 
@@ -82,10 +82,10 @@ def test_error_handling_patterns():
             # The function should exist and handle errors gracefully
             assert callable(clean_hive.clean_database)
 
-        print("[OK] Error handling patterns verified")
+        logger.info("[OK] Error handling patterns verified")
         return True
     except Exception as e:
-        print(f"[ERROR] Error handling test failed: {e}")
+        logger.info(f"[ERROR] Error handling test failed: {e}")
         return False
 
 
@@ -108,12 +108,12 @@ def test_cli_validation_logic():
                 result = "PASS"
             else:
                 result = "FAIL"
-                print(f"[WARN] Validation test failed for '{test_input[:20]}...'")
+                logger.info(f"[WARN] Validation test failed for '{test_input[:20]}...'")
 
-        print("[OK] CLI validation logic patterns verified")
+        logger.info("[OK] CLI validation logic patterns verified")
         return True
     except Exception as e:
-        print(f"[ERROR] CLI validation test failed: {e}")
+        logger.info(f"[ERROR] CLI validation test failed: {e}")
         return False
 
 
@@ -137,10 +137,10 @@ def test_path_safety_logic():
             # Should prevent directory traversal
             assert ".." not in str(safe_path), f"Path traversal not prevented: {safe_path}"
 
-        print("[OK] Path safety logic verified")
+        logger.info("[OK] Path safety logic verified")
         return True
     except Exception as e:
-        print(f"[ERROR] Path safety test failed: {e}")
+        logger.info(f"[ERROR] Path safety test failed: {e}")
         return False
 
 
@@ -166,17 +166,17 @@ def test_database_mock_patterns():
 
         assert count == 0, f"Expected 0 for None result, got {count}"
 
-        print("[OK] Database mock patterns verified")
+        logger.info("[OK] Database mock patterns verified")
         return True
     except Exception as e:
-        print(f"[ERROR] Database mock test failed: {e}")
+        logger.info(f"[ERROR] Database mock test failed: {e}")
         return False
 
 
 def run_all_tests():
     """Run all individual module tests"""
-    print("Running Hive Orchestrator Individual Module Tests")
-    print("=" * 55)
+    logger.info("Running Hive Orchestrator Individual Module Tests")
+    logger.info("=" * 55)
 
     tests = [
         ("CLI Module Direct", test_cli_module_direct),
@@ -190,31 +190,31 @@ def run_all_tests():
 
     results = []
     for test_name, test_func in tests:
-        print(f"\nTesting {test_name}...")
+        logger.info(f"\nTesting {test_name}...")
         try:
             success = test_func()
             results.append((test_name, success))
         except Exception as e:
-            print(f"[ERROR] Test '{test_name}' failed with exception: {e}")
+            logger.info(f"[ERROR] Test '{test_name}' failed with exception: {e}")
             results.append((test_name, False))
 
-    print("\n" + "=" * 55)
-    print("Test Results Summary:")
+    logger.info("\n" + "=" * 55)
+    logger.info("Test Results Summary:")
 
     passed = sum(1 for _, success in results if success)
     total = len(results)
 
     for test_name, success in results:
         status = "PASS" if success else "FAIL"
-        print(f"  {status:8} {test_name}")
+        logger.info(f"  {status:8} {test_name}")
 
-    print(f"\nOverall: {passed}/{total} tests passed")
+    logger.info(f"\nOverall: {passed}/{total} tests passed")
 
     if passed == total:
-        print("All tests passed!")
+        logger.info("All tests passed!")
         return 0
     else:
-        print("Some tests failed")
+        logger.info("Some tests failed")
         return 1
 
 

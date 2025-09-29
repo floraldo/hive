@@ -4,11 +4,12 @@ EcoSystemiser database schema definition.
 This module defines and manages the database schema specific to EcoSystemiser
 including tables for simulations, studies, analysis results, and optimization runs.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
+
 from ecosystemiser.db import get_ecosystemiser_connection
 from hive_logging import get_logger
 
@@ -380,7 +381,7 @@ def drop_all_tables(db_path: Path | None = None) -> None:
         for table in tables:
             # Validate table name to prevent SQL injection
             # Table names from sqlite_master are safe, but validate anyway
-            if not all(c.isalnum() or c == '_' for c in table):
+            if not all(c.isalnum() or c == "_" for c in table):
                 logger.warning(f"Skipping table with invalid name: {table}")
                 continue
             conn.execute(f"DROP TABLE IF EXISTS {table}")

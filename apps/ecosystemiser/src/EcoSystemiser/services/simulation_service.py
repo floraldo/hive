@@ -107,8 +107,8 @@ class SimulationService:
                 results_path=results_path
                 kpis=kpis
                 solver_metrics={
-                    "solve_time": solver_result.solve_time
-                    "iterations": solver_result.iterations
+                    "solve_time": solver_result.solve_time,
+                    "iterations": solver_result.iterations,
                     "objective_value": solver_result.objective_value
                 }
             )
@@ -212,8 +212,8 @@ class SimulationService:
                 # Store stage results
                 stage_results.append(
                     {
-                        "stage_name": stage.stage_name
-                        "status": stage_solver_result.status
+                        "stage_name": stage.stage_name,
+                        "status": stage_solver_result.status,
                         "solve_time": stage_solver_result.solve_time
                     }
                 )
@@ -231,8 +231,8 @@ class SimulationService:
                 results_path=Path(config.output_config.get("directory", "outputs"))
                 kpis=aggregated_kpis
                 solver_metrics={
-                    "solve_time": total_solve_time
-                    "stages": stage_results
+                    "solve_time": total_solve_time,
+                    "stages": stage_results,
                     "iterations": len(config.stages)
                 }
             )
@@ -343,8 +343,8 @@ class SimulationService:
             output_dir
             output_format
             metadata={
-                "solver_type": config.solver_type
-                "solver_status": solver_result.status
+                "solver_type": config.solver_type,
+                "solver_status": solver_result.status,
                 "solve_time": solver_result.solve_time
             }
         )
@@ -409,7 +409,7 @@ class SimulationService:
 
     def run_simulation_from_path(
         self
-        config_path: Path
+        config_path: Path,
         solver_type: str = "milp"
         output_path: Path | None = None
         solver_config: SolverConfig | None = None
@@ -443,7 +443,7 @@ class SimulationService:
             solver_type=solver_type
             solver_config=solver_config or SolverConfig(verbose=verbose, solver_type=solver_type)
             output_config={
-                "save_results": output_path is not None
+                "save_results": output_path is not None,
                 "results_path": str(output_path) if output_path else None
             }
         )
@@ -472,11 +472,11 @@ class SimulationService:
 
             # Return validation result
             return {
-                "valid": True
-                "system_id": getattr(system, "system_id", "Unknown")
-                "num_components": len(system.components)
-                "timesteps": system.N
-                "components": [
+                "valid": True,
+                "system_id": getattr(system, "system_id", "Unknown"),
+                "num_components": len(system.components),
+                "timesteps": system.N,
+                "components": [,
                     {"name": comp.name, "type": comp.__class__.__name__} for comp in system.components.values()
                 ]
             }

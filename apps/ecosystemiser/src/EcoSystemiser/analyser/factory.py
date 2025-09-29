@@ -1,6 +1,6 @@
 """Factory for creating analysis strategies dynamically."""
 
-from typing import Any, Dict, Optional, Type
+from typing import Any
 
 from ecosystemiser.analyser.strategies import BaseAnalysis
 from ecosystemiser.analyser.strategies.economic import EconomicAnalysis
@@ -19,14 +19,14 @@ class AnalyserFactory:
     """
 
     # Registry of available strategy classes
-    _strategies: Dict[str, Type[BaseAnalysis]] = {
+    _strategies: dict[str, type[BaseAnalysis]] = {
         "technical_kpi": TechnicalKPIAnalysis,
         "economic": EconomicAnalysis,
         "sensitivity": SensitivityAnalysis,
     }
 
     @classmethod
-    def register_strategy(cls, name: str, strategy_class: Type[BaseAnalysis]) -> None:
+    def register_strategy(cls, name: str, strategy_class: type[BaseAnalysis]) -> None:
         """Register a custom analysis strategy.
 
         Args:
@@ -43,7 +43,7 @@ class AnalyserFactory:
         logger.info(f"Registered strategy class: {name}")
 
     @classmethod
-    def create_strategy(cls, name: str, config: Optional[Dict[str, Any]] = None) -> BaseAnalysis:
+    def create_strategy(cls, name: str, config: dict[str, Any] | None = None) -> BaseAnalysis:
         """Create an analysis strategy instance.
 
         Args:
@@ -78,7 +78,7 @@ class AnalyserFactory:
         return instance
 
     @classmethod
-    def create_all_strategies(cls, config: Optional[Dict[str, Dict[str, Any]]] = None) -> Dict[str, BaseAnalysis]:
+    def create_all_strategies(cls, config: dict[str, dict[str, Any]] | None = None) -> dict[str, BaseAnalysis]:
         """Create instances of all registered strategies.
 
         Args:
@@ -97,7 +97,7 @@ class AnalyserFactory:
         return strategies
 
     @classmethod
-    def get_available_strategies(cls) -> Dict[str, str]:
+    def get_available_strategies(cls) -> dict[str, str]:
         """Get information about available strategies.
 
         Returns:
@@ -114,7 +114,7 @@ class AnalyserFactory:
         return info
 
     @classmethod
-    def create_strategy_for_system_type(cls, system_type: str) -> Dict[str, BaseAnalysis]:
+    def create_strategy_for_system_type(cls, system_type: str) -> dict[str, BaseAnalysis]:
         """Create appropriate strategies based on system type.
 
         Args:

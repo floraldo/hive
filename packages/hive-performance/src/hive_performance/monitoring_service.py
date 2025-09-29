@@ -2,6 +2,7 @@
 
 # golden-rule-ignore: package-app-discipline - This is infrastructure orchestration, not business logic
 """
+
 from __future__ import annotations
 
 
@@ -33,12 +34,12 @@ class MonitoringService:
     """
 
     def __init__(
-        self
-        collection_interval: float = 1.0
-        analysis_interval: float = 300.0,  # 5 minutes
-        enable_profiling: bool = True
-        enable_alerts: bool = True
-        max_history_hours: int = 24
+        self,
+        collection_interval: float = 1.0,
+        analysis_interval: float = 300.0,  # 5 minutes,
+        enable_profiling: bool = True,
+        enable_alerts: bool = True,
+        max_history_hours: int = 24,
     ):
         self.collection_interval = collection_interval
         self.analysis_interval = analysis_interval
@@ -112,7 +113,7 @@ class MonitoringService:
 
         # Stop analysis task
         if self._analysis_task:
-            self._analysis_task.cancel()
+            (self._analysis_task.cancel(),)
             try:
                 await self._analysis_task
             except asyncio.CancelledError:
@@ -186,7 +187,7 @@ class MonitoringService:
         for callback in self._alert_callbacks:
             try:
                 if asyncio.iscoroutinefunction(callback):
-                    await callback(conditions, report)
+                    (await callback(conditions, report),)
                 else:
                     callback(conditions, report)
             except Exception as e:
@@ -203,28 +204,32 @@ class MonitoringService:
         latest_analysis = self._analysis_history[-1] if self._analysis_history else None
 
         return {
-            "monitoring_active": self._monitoring
-            "profiling_enabled": self.enable_profiling
-            "alerts_enabled": self.enable_alerts
-            "collection_interval": self.collection_interval
-            "analysis_interval": self.analysis_interval
-            "current_system_metrics": {
-                "cpu_percent": current_metrics.cpu_percent if current_metrics else 0.0
-                "memory_percent": current_metrics.memory_percent if current_metrics else 0.0
-                "active_tasks": current_metrics.active_tasks if current_metrics else 0
-            }
-            if current_metrics
-            else {}
-            "latest_analysis": {
-                "overall_score": latest_analysis.overall_score
-                "performance_grade": latest_analysis.performance_grade
-                "avg_response_time": latest_analysis.avg_response_time
-                "error_rate": latest_analysis.error_rate
-                "critical_issues_count": len(latest_analysis.critical_issues)
-            }
-            if latest_analysis
-            else {}
-            "analysis_history_count": len(self._analysis_history)
+            "monitoring_active": self._monitoring,
+            "profiling_enabled": self.enable_profiling,
+            "alerts_enabled": self.enable_alerts,
+            "collection_interval": self.collection_interval,
+            "analysis_interval": self.analysis_interval,
+            "current_system_metrics": (
+                {
+                    "cpu_percent": current_metrics.cpu_percent if current_metrics else 0.0,
+                    "memory_percent": current_metrics.memory_percent if current_metrics else 0.0,
+                    "active_tasks": current_metrics.active_tasks if current_metrics else 0,
+                }
+                if current_metrics
+                else {}
+            ),
+            "latest_analysis": (
+                {
+                    "overall_score": latest_analysis.overall_score,
+                    "performance_grade": latest_analysis.performance_grade,
+                    "avg_response_time": latest_analysis.avg_response_time,
+                    "error_rate": latest_analysis.error_rate,
+                    "critical_issues_count": len(latest_analysis.critical_issues),
+                }
+                if latest_analysis
+                else {}
+            ),
+            "analysis_history_count": len(self._analysis_history),
         }
 
     async def get_health_check_async(self) -> Dict[str, Any]:
@@ -260,11 +265,11 @@ class MonitoringService:
                 health_issues.append(f"{len(latest_analysis.critical_issues)} critical issues")
 
         return {
-            "status": health_status
-            "timestamp": datetime.utcnow().isoformat()
-            "monitoring_active": self._monitoring
-            "issues": health_issues
-            "metrics": status
+            "status": health_status,
+            "timestamp": datetime.utcnow().isoformat(),
+            "monitoring_active": self._monitoring,
+            "issues": health_issues,
+            "metrics": status,
         }
 
     async def generate_report_async(
@@ -300,15 +305,17 @@ class MonitoringService:
             system_metrics = self.system_monitor.get_current_metrics()
 
             return {
-                "benchmark_results": benchmark_results
-                "system_metrics_during_benchmark": {
-                    "cpu_percent": system_metrics.cpu_percent if system_metrics else 0.0
-                    "memory_percent": system_metrics.memory_percent if system_metrics else 0.0
-                    "active_tasks": system_metrics.active_tasks if system_metrics else 0
-                }
-                if system_metrics
-                else {}
-                "timestamp": datetime.utcnow().isoformat()
+                "benchmark_results": benchmark_results,
+                "system_metrics_during_benchmark": (
+                    {
+                        "cpu_percent": system_metrics.cpu_percent if system_metrics else 0.0,
+                        "memory_percent": system_metrics.memory_percent if system_metrics else 0.0,
+                        "active_tasks": system_metrics.active_tasks if system_metrics else 0,
+                    }
+                    if system_metrics
+                    else {}
+                ),
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
         finally:
@@ -350,15 +357,15 @@ class MonitoringService:
             return (values[-1] - values[0]) / len(values)
 
         return {
-            "period_days": days
-            "data_points": len(historical_reports)
-            "score_trend": calculate_trend(scores)
-            "response_time_trend": calculate_trend(response_times)
-            "error_rate_trend": calculate_trend(error_rates)
-            "throughput_trend": calculate_trend(throughputs)
-            "current_score": scores[-1] if scores else 0.0
-            "best_score": max(scores) if scores else 0.0
-            "worst_score": min(scores) if scores else 0.0
+            "period_days": days,
+            "data_points": len(historical_reports),
+            "score_trend": calculate_trend(scores),
+            "response_time_trend": calculate_trend(response_times),
+            "error_rate_trend": calculate_trend(error_rates),
+            "throughput_trend": calculate_trend(throughputs),
+            "current_score": scores[-1] if scores else 0.0,
+            "best_score": max(scores) if scores else 0.0,
+            "worst_score": min(scores) if scores else 0.0,
         }
 
     async def optimize_performance_async(self) -> Dict[str, Any]:
@@ -375,11 +382,11 @@ class MonitoringService:
             if insight.category == "optimization":
                 optimization_recommendations.append(
                     {
-                        "title": insight.title
-                        "description": insight.description
-                        "recommendation": insight.recommendation
-                        "expected_impact": insight.impact
-                        "confidence": insight.confidence
+                        "title": insight.title,
+                        "description": insight.description,
+                        "recommendation": insight.recommendation,
+                        "expected_impact": insight.impact,
+                        "confidence": insight.confidence,
                     }
                 )
 
@@ -389,22 +396,22 @@ class MonitoringService:
             if system_metrics.memory_percent > 80:
                 optimization_recommendations.append(
                     {
-                        "title": "Memory Optimization"
-                        "description": f"Memory usage at {system_metrics.memory_percent:.1f}%"
-                        "recommendation": "Consider implementing memory-efficient algorithms or increasing memory limits"
-                        "expected_impact": "Reduced memory pressure and improved stability"
-                        "confidence": 0.9
+                        "title": "Memory Optimization",
+                        "description": f"Memory usage at {system_metrics.memory_percent:.1f}%",
+                        "recommendation": "Consider implementing memory-efficient algorithms or increasing memory limits",
+                        "expected_impact": "Reduced memory pressure and improved stability",
+                        "confidence": 0.9,
                     }
                 )
 
             if system_metrics.cpu_percent > 70:
                 optimization_recommendations.append(
                     {
-                        "title": "CPU Optimization"
-                        "description": f"CPU usage at {system_metrics.cpu_percent:.1f}%"
-                        "recommendation": "Profile CPU-intensive operations and consider async alternatives"
-                        "expected_impact": "Improved responsiveness and throughput"
-                        "confidence": 0.8
+                        "title": "CPU Optimization",
+                        "description": f"CPU usage at {system_metrics.cpu_percent:.1f}%",
+                        "recommendation": "Profile CPU-intensive operations and consider async alternatives",
+                        "expected_impact": "Improved responsiveness and throughput",
+                        "confidence": 0.8,
                     }
                 )
 
@@ -414,21 +421,21 @@ class MonitoringService:
             if async_report.concurrency_level > 100:
                 optimization_recommendations.append(
                     {
-                        "title": "Async Concurrency Control"
-                        "description": f"High concurrency level: {async_report.concurrency_level:.1f}"
-                        "recommendation": "Implement semaphores or task queuing to control concurrency"
-                        "expected_impact": "Reduced event loop congestion"
-                        "confidence": 0.85
+                        "title": "Async Concurrency Control",
+                        "description": f"High concurrency level: {async_report.concurrency_level:.1f}",
+                        "recommendation": "Implement semaphores or task queuing to control concurrency",
+                        "expected_impact": "Reduced event loop congestion",
+                        "confidence": 0.85,
                     }
                 )
 
         return {
-            "overall_score": current_report.overall_score
-            "performance_grade": current_report.performance_grade
-            "optimization_opportunities": len(optimization_recommendations)
-            "recommendations": optimization_recommendations
-            "critical_issues": len(current_report.critical_issues)
-            "analysis_timestamp": datetime.utcnow().isoformat()
+            "overall_score": current_report.overall_score,
+            "performance_grade": current_report.performance_grade,
+            "optimization_opportunities": len(optimization_recommendations),
+            "recommendations": optimization_recommendations,
+            "critical_issues": len(current_report.critical_issues),
+            "analysis_timestamp": datetime.utcnow().isoformat(),
         }
 
     def export_monitoring_data(self, time_window: timedelta | None = None, format: str = "json") -> str:
@@ -442,18 +449,18 @@ class MonitoringService:
         analysis_data = self.get_analysis_history(time_window)
 
         export_data = {
-            "export_timestamp": datetime.utcnow().isoformat()
-            "time_window_hours": time_window.total_seconds() / 3600
-            "metrics_count": len(metrics_data)
-            "system_metrics_count": len(system_data)
-            "analysis_reports_count": len(analysis_data)
-            "current_status": self.get_current_status()
+            "export_timestamp": datetime.utcnow().isoformat(),
+            "time_window_hours": time_window.total_seconds() / 3600,
+            "metrics_count": len(metrics_data),
+            "system_metrics_count": len(system_data),
+            "analysis_reports_count": len(analysis_data),
+            "current_status": self.get_current_status(),
         }
 
         if format == "json":
             import json
 
-            return json.dumps(export_data, indent=2)
+            return (json.dumps(export_data, indent=2),)
         else:
             raise ValueError(f"Unsupported export format: {format}")
 

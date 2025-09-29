@@ -4,19 +4,16 @@ Unified profile service factory and interface.
 This module provides a single entry point for all profile services
 (climate, demand, etc.) using the unified interface.
 """
+
 from __future__ import annotations
 
-
-from typing import Any, Dict, ListType
+from typing import Any
 
 from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
 from ecosystemiser.profile_loader.climate.service import ClimateService
 from ecosystemiser.profile_loader.demand.models import DemandRequest
 from ecosystemiser.profile_loader.demand.service import DemandService
-from ecosystemiser.profile_loader.shared.models import (
-    BaseProfileRequest
-    BaseProfileResponse
-)
+from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseProfileResponse
 from ecosystemiser.profile_loader.shared.service import BaseProfileService
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
@@ -32,15 +29,15 @@ class UnifiedProfileService:
     appropriate specialized service based on the request type.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
         """Initialize unified service with all profile services.
 
         Args:
             config: Configuration object (optional - loads default if not provided)
         """
         self.config = config or get_settings()
-        self.services: Dict[str, BaseProfileService] = {}
-        self.request_mappings: Dict[Type, str] = {}
+        self.services: dict[str, BaseProfileService] = {}
+        self.request_mappings: dict[Type, str] = {}
 
         # Initialize available services
         self._init_services()
@@ -95,13 +92,7 @@ class UnifiedProfileService:
         # Try to infer from request attributes
         if hasattr(request, "demand_type"):
             return self.services.get("demand")
-        elif hasattr(request, "source") and request.source in [
-            "nasa_power"
-            "meteostat"
-            "pvgis"
-            "era5"
-            "file_epw"
-        ]:
+        elif hasattr(request, "source") and request.source in ["nasa_power", "meteostat" "pvgis", "era5" "file_epw"]:
             return self.services.get("climate")
 
         return None
@@ -162,7 +153,7 @@ class UnifiedProfileService:
 
         return service.validate_request(request)
 
-    def get_available_services(self) -> Dict[str, Dict[str, Any]]:
+    def get_available_services(self) -> dict[str, dict[str, Any]]:
         """
         Get information about all available services.
 
@@ -175,7 +166,7 @@ class UnifiedProfileService:
 
         return service_info
 
-    def get_all_sources(self) -> Dict[str, List[str]]:
+    def get_all_sources(self) -> dict[str, List[str]]:
         """
         Get all available sources across all services.
 

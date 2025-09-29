@@ -7,17 +7,18 @@ Provides consistent, structured logging across the platform with:
 - Performance metrics
 - Error context preservation
 """
+
 from __future__ import annotations
 
-
+import logging
 import sys
 from contextvars import ContextVar
-from typing import Any, Dict
+from typing import Any
 
 import structlog
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
-from structlog.types import EventDict, Processor
+from structlog.types import EventDict
 
 # Context variable for correlation ID
 correlation_id_var: ContextVar[str | None] = ContextVar("correlation_id", default=None)
@@ -116,44 +117,41 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
 
     # Set up stdlib logging
     logging.basicConfig(
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        stream=sys.stdout
-        level=getattr(logging, level.upper())
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        stream=sys.stdout,
+        level=getattr(logging, level.upper()),
     )
 
     # Configure processors
     processors = [
         # Add correlation ID
-        CorrelationIDProcessor()
+        CorrelationIDProcessor(),
         # Add adapter context
-        AdapterContextProcessor()
+        AdapterContextProcessor(),
         # Filter by level
-        structlog.stdlib.filter_by_level
+        structlog.stdlib.filter_by_level,
         # Add logger name
-        structlog.stdlib.add_logger_name
+        structlog.stdlib.add_logger_name,
         # Add log level
-        structlog.stdlib.add_log_level
+        structlog.stdlib.add_log_level,
         # Handle positional arguments
-        structlog.processors.PositionalArgumentsFormatter()
+        structlog.processors.PositionalArgumentsFormatter(),
         # Add timestamp
-        structlog.processors.TimeStamper(fmt="iso")
+        structlog.processors.TimeStamper(fmt="iso"),
         # Add call site info for errors
         structlog.processors.CallsiteParameterAdder(
-            parameters=[
-                structlog.processors.CallsiteParameter.FILENAME
-                structlog.processors.CallsiteParameter.LINENO
-            ]
-            levels=["warning", "error", "critical"]
-        )
+            parameters=[structlog.processors.CallsiteParameter.FILENAME, structlog.processors.CallsiteParameter.LINENO],
+            levels=["warning", "error", "critical"],
+        ),
         # Add performance metrics
-        PerformanceProcessor()
+        PerformanceProcessor(),
         # Add enhanced error context
-        ErrorContextProcessor()
+        ErrorContextProcessor(),
         # Format stack traces
-        structlog.processors.StackInfoRenderer()
-        structlog.processors.format_exc_info
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
         # Decode unicode
-        structlog.processors.UnicodeDecoder()
+        structlog.processors.UnicodeDecoder(),
     ]
 
     # Add appropriate renderer based on format
@@ -162,20 +160,16 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     else:
         # Console output with colors
         processors.append(
-            structlog.dev.ConsoleRenderer(
-                colors=True
-                pad_event=30
-                exception_formatter=structlog.dev.plain_traceback
-            )
+            structlog.dev.ConsoleRenderer(colors=True, pad_event=30, exception_formatter=structlog.dev.plain_traceback)
         )
 
     # Configure structlog
     structlog.configure(
-        processors=processors
-        context_class=dict
-        logger_factory=structlog.stdlib.LoggerFactory()
-        wrapper_class=structlog.stdlib.BoundLogger
-        cache_logger_on_first_use=True
+        processors=processors,
+        context_class=dict,
+        logger_factory=structlog.stdlib.LoggerFactory(),
+        wrapper_class=structlog.stdlib.BoundLogger,
+        cache_logger_on_first_use=True,
     )
 
 
@@ -211,12 +205,7 @@ def clear_context() -> None:
 class LoggingContext:
     """Context manager for scoped logging context"""
 
-    def __init__(
-        self
-        correlation_id: str | None = None
-        request_id: str | None = None
-        **kwargs
-    ):
+    def __init__(self, correlation_id: str | None = None, request_id: str | None = None, **kwargs):
         self.correlation_id = correlation_id
         self.request_id = request_id
         self.extra = kwargs

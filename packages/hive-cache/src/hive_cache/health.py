@@ -1,4 +1,5 @@
 """Health monitoring and diagnostics for Hive Cache."""
+from __future__ import annotations
 
 import asyncio
 import time
@@ -18,7 +19,6 @@ logger = get_logger(__name__)
 @dataclass
 class HealthCheckResult:
     """Result of a health check operation."""
-from __future__ import annotations
 
     healthy: bool
     timestamp: datetime

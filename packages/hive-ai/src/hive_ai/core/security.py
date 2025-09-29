@@ -4,19 +4,17 @@ Security utilities for Hive AI components.
 Provides input validation, secret management, and security controls
 to prevent common security vulnerabilities in AI operations.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import hashlib
 import re
 import secrets
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, ListSet
+from typing import Any, Dict
 
 from hive_logging import get_logger
-
-from .exceptions import AIError
 
 logger = get_logger(__name__)
 
@@ -75,9 +73,8 @@ class InputValidator:
         r"human\s*:\s*"
         r"\\n\\n",  # Multiple newlines
         r"\[INST\]",  # Instruction markers
-        r"\[/INST\]"
-        r"</s>",  # Special tokens
-        r"<s>"
+        r"\[/INST\]" r"</s>",  # Special tokens
+        r"<s>",
     ]
 
     def __init__(self, security_level: SecurityLevel = SecurityLevel.STANDARD) -> None:
@@ -139,7 +136,10 @@ class InputValidator:
         is_valid = len(violations) == 0 or (self.security_level == SecurityLevel.BASIC and not injection_found)
 
         return ValidationResult(
-            is_valid=is_valid, sanitized_input=sanitized, violations=violations, risk_level=risk_level
+            is_valid=is_valid,
+            sanitized_input=sanitized,
+            violations=violations,
+            risk_level=risk_level,
         )
 
     def _sanitize_prompt(self, prompt: str) -> str:
@@ -179,10 +179,21 @@ class InputValidator:
         risk_level = "low"
 
         if not isinstance(metadata, dict):
-            return ValidationResult(is_valid=False, violations=["Metadata must be a dictionary"], risk_level="high")
+            return ValidationResult(
+                is_valid=False,
+                violations=["Metadata must be a dictionary"],
+                risk_level="high",
+            )
 
         # Check for dangerous keys
-        dangerous_keys = {"__class__", "__module__", "__dict__", "__globals__", "exec", "eval"}
+        dangerous_keys = {
+            "__class__",
+            "__module__",
+            "__dict__",
+            "__globals__",
+            "exec",
+            "eval",
+        }
         found_dangerous = dangerous_keys.intersection(metadata.keys())
         if found_dangerous:
             violations.append(f"Dangerous metadata keys detected: {found_dangerous}")

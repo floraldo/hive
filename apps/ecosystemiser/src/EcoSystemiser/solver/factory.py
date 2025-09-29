@@ -6,7 +6,6 @@ logger = get_logger(__name__)
 
 """Factory for creating solver instances."""
 
-from typing import DictType
 
 from ecosystemiser.solver.base import BaseSolver, SolverConfig
 from ecosystemiser.solver.milp_solver import MILPSolver
@@ -18,10 +17,10 @@ class SolverFactory:
     """Factory for creating solver instances based on type."""
 
     # Registry of available solvers
-    _solvers: Dict[str, Type[BaseSolver]] = {
-        "rule_based": RuleBasedEngine
-        "milp": MILPSolver
-        "rolling_horizon": RollingHorizonMILPSolver
+    _solvers: dict[str, type[BaseSolver]] = {
+        "rule_based": RuleBasedEngine,
+        "milp": MILPSolver,
+        "rolling_horizon": RollingHorizonMILPSolver,
     }
 
     @classmethod
@@ -47,7 +46,7 @@ class SolverFactory:
         return solver_class(system, config)
 
     @classmethod
-    def register_solver(cls, name: str, solver_class: Type[BaseSolver]) -> None:
+    def register_solver(cls, name: str, solver_class: type[BaseSolver]) -> None:
         """Register a new solver type.
 
         Args:

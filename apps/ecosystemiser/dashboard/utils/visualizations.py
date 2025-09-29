@@ -1,10 +1,8 @@
 """
 Visualization utilities for the EcoSystemiser dashboard
 """
+
 from __future__ import annotations
-
-
-from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -13,10 +11,7 @@ import plotly.graph_objects as go
 
 
 def create_comparison_plot(
-    df1: pd.DataFrame
-    df2: pd.DataFrame
-    variables: List[str]
-    labels: tuple[str, str] = ("Dataset 1", "Dataset 2")
+    df1: pd.DataFrame, df2: pd.DataFrame, variables: list[str], labels: tuple[str, str] = ("Dataset 1", "Dataset 2")
 ) -> go.Figure:
     """
     Create a comparison plot between two datasets.
@@ -36,34 +31,28 @@ def create_comparison_plot(
     for var in variables:
         if var in df1.columns:
             fig.add_trace(
-                go.Scatter(
-                    x=df1.index
-                    y=df1[var]
-                    mode="lines"
-                    name=f"{labels[0]} - {var}"
-                    legendgroup=labels[0]
-                )
+                go.Scatter(x=df1.index, y=df1[var], mode="lines", name=f"{labels[0]} - {var}", legendgroup=labels[0])
             )
 
         if var in df2.columns:
             fig.add_trace(
                 go.Scatter(
-                    x=df2.index
-                    y=df2[var]
-                    mode="lines"
-                    name=f"{labels[1]} - {var}"
-                    legendgroup=labels[1]
-                    line=dict(dash="dash")
+                    x=df2.index,
+                    y=df2[var],
+                    mode="lines",
+                    name=f"{labels[1]} - {var}",
+                    legendgroup=labels[1],
+                    line=dict(dash="dash"),
                 )
             )
 
     fig.update_layout(
-        title="Dataset Comparison"
-        xaxis_title="Time"
-        yaxis_title="Value"
-        hovermode="x unified"
-        height=600
-        showlegend=True
+        title="Dataset Comparison",
+        xaxis_title="Time",
+        yaxis_title="Value",
+        hovermode="x unified",
+        height=600,
+        showlegend=True,
     )
 
     return fig
@@ -106,20 +95,11 @@ def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D")
     # Create heatmap
     fig = go.Figure(
         data=go.Heatmap(
-            z=pivot.values
-            x=pivot.columns
-            y=pivot.index
-            colorscale="Viridis"
-            colorbar=dict(title=variable)
+            z=pivot.values, x=pivot.columns, y=pivot.index, colorscale="Viridis", colorbar=dict(title=variable)
         )
     )
 
-    fig.update_layout(
-        title=f"{variable} Heatmap"
-        xaxis_title=x_label
-        yaxis_title=y_label
-        height=500
-    )
+    fig.update_layout(title=f"{variable} Heatmap", xaxis_title=x_label, yaxis_title=y_label, height=500)
 
     return fig
 
@@ -141,24 +121,20 @@ def create_correlation_matrix(df: pd.DataFrame) -> go.Figure:
     # Create heatmap
     fig = go.Figure(
         data=go.Heatmap(
-            z=corr_matrix.values
-            x=corr_matrix.columns
-            y=corr_matrix.index
-            colorscale="RdBu"
-            zmid=0
-            text=corr_matrix.round(2).values
-            texttemplate="%{text}"
-            textfont={"size": 10}
-            colorbar=dict(title="Correlation")
+            z=corr_matrix.values,
+            x=corr_matrix.columns,
+            y=corr_matrix.index,
+            colorscale="RdBu",
+            zmid=0,
+            text=corr_matrix.round(2).values,
+            texttemplate="%{text}",
+            textfont={"size": 10},
+            colorbar=dict(title="Correlation"),
         )
     )
 
     fig.update_layout(
-        title="Variable Correlation Matrix"
-        height=600
-        width=800
-        xaxis={"side": "bottom"}
-        yaxis={"side": "left"}
+        title="Variable Correlation Matrix", height=600, width=800, xaxis={"side": "bottom"}, yaxis={"side": "left"}
     )
 
     return fig
@@ -224,24 +200,7 @@ def create_wind_rose(df: pd.DataFrame) -> go.Figure | None:
 
     # Create direction bins (16 compass points)
     dir_bins = np.arange(0, 361, 22.5)
-    dir_labels = [
-        "N"
-        "NNE"
-        "NE"
-        "ENE"
-        "E"
-        "ESE"
-        "SE"
-        "SSE"
-        "S"
-        "SSW"
-        "SW"
-        "WSW"
-        "W"
-        "WNW"
-        "NW"
-        "NNW"
-    ]
+    dir_labels = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
     wind_data["dir_bin"] = pd.cut(wind_data["wind_dir"], bins=dir_bins, labels=dir_labels)
 
     # Calculate frequencies
@@ -254,24 +213,24 @@ def create_wind_rose(df: pd.DataFrame) -> go.Figure | None:
         if speed_label in wind_rose.columns:
             fig.add_trace(
                 go.Barpolar(
-                    r=wind_rose[speed_label]
-                    theta=dir_labels
-                    name=f"{speed_label} m/s"
-                    marker_color=px.colors.sequential.Viridis[speed_labels.index(speed_label)]
+                    r=wind_rose[speed_label],
+                    theta=dir_labels,
+                    name=f"{speed_label} m/s",
+                    marker_color=px.colors.sequential.Viridis[speed_labels.index(speed_label)],
                 )
             )
 
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, wind_rose.values.max()]))
-        showlegend=True
-        title="Wind Rose"
-        height=500
+        polar=dict(radialaxis=dict(visible=True, range=[0, wind_rose.values.max()])),
+        showlegend=True,
+        title="Wind Rose",
+        height=500,
     )
 
     return fig
 
 
-def create_daily_profile(df: pd.DataFrame, variables: List[str], aggregation: str = "mean") -> go.Figure:
+def create_daily_profile(df: pd.DataFrame, variables: list[str], aggregation: str = "mean") -> go.Figure:
     """
     Create average daily profiles for selected variables.
 
@@ -300,22 +259,15 @@ def create_daily_profile(df: pd.DataFrame, variables: List[str], aggregation: st
 
     for var in variables:
         if var in daily_profile.columns:
-            fig.add_trace(
-                go.Scatter(
-                    x=daily_profile.index
-                    y=daily_profile[var]
-                    mode="lines+markers"
-                    name=var
-                )
-            )
+            fig.add_trace(go.Scatter(x=daily_profile.index, y=daily_profile[var], mode="lines+markers", name=var))
 
     fig.update_layout(
-        title=f"Average Daily Profile ({aggregation})"
-        xaxis_title="Hour of Day"
-        yaxis_title="Value"
-        xaxis=dict(tickmode="linear", dtick=3, range=[0, 23])
-        height=400
-        hovermode="x unified"
+        title=f"Average Daily Profile ({aggregation})",
+        xaxis_title="Hour of Day",
+        yaxis_title="Value",
+        xaxis=dict(tickmode="linear", dtick=3, range=[0, 23]),
+        height=400,
+        hovermode="x unified",
     )
 
     return fig

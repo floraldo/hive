@@ -1,8 +1,8 @@
 """
 Bridge to integrate inspect_run.py with the AI reviewer
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import json
 import subprocess
@@ -42,11 +42,11 @@ class InspectorBridge:
         """
         if not self.inspect_script.exists():
             return {
-                "error": "inspect_run.py script not found"
-                "task_id": task_id
-                "metrics": {}
-                "files": {}
-                "checks": {}
+                "error": "inspect_run.py script not found",
+                "task_id": task_id,
+                "metrics": {},
+                "files": {},
+                "checks": {},
             }
 
         try:
@@ -89,23 +89,14 @@ class InspectorBridge:
     def _create_error_response(self, task_id: str, error_msg: str) -> Dict[str, Any]:
         """Create standardized error response"""
         return {
-            "error": error_msg
-            "task_id": task_id
-            "timestamp": None
-            "files": {}
-            "metrics": {
-                "code_quality": 0
-                "test_coverage": 0
-                "documentation": 0
-                "complexity": 0
-            }
-            "checks": {
-                "syntax_valid": False
-                "tests_exist": False
-                "documentation_exists": False
-            }
-            "issues": [{"type": "analysis_error", "message": error_msg}]
-            "summary": {"total_files": 0, "total_lines": 0, "total_issues": 1}
+            "error": error_msg,
+            "task_id": task_id,
+            "timestamp": None,
+            "files": {},
+            "metrics": {"code_quality": 0, "test_coverage": 0, "documentation": 0, "complexity": 0},
+            "checks": {"syntax_valid": False, "tests_exist": False, "documentation_exists": False},
+            "issues": [{"type": "analysis_error", "message": error_msg}],
+            "summary": {"total_files": 0, "total_lines": 0, "total_issues": 1},
         }
 
     def extract_code_quality_metrics(self, analysis: Dict[str, Any]) -> Dict[str, float]:
@@ -119,11 +110,11 @@ class InspectorBridge:
             Dictionary of normalized quality scores (0-100)
         """
         metrics = {
-            "code_quality": 0.0
-            "test_coverage": 0.0
-            "documentation": 0.0
-            "security": 0.0
-            "architecture": 0.0
+            "code_quality": 0.0,
+            "test_coverage": 0.0,
+            "documentation": 0.0,
+            "security": 0.0,
+            "architecture": 0.0,
         }
 
         if "error" in analysis:

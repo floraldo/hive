@@ -514,23 +514,23 @@ async def main():
 
         # Print summary
         overall = report["overall_statistics"]
-        print(f"\n=== HIVE-AI PERFORMANCE BASELINE ===")
-        print(f"Total Operations: {overall['total_operations']}")
-        print(f"Success Rate: {overall['overall_success_rate']:.1%}")
-        print(f"Average Duration: {overall['avg_operation_duration_ms']:.2f}ms")
-        print(f"Total Time: {overall['total_benchmark_duration_ms']:.2f}ms")
+        logger.info(f"\n=== HIVE-AI PERFORMANCE BASELINE ===")
+        logger.info(f"Total Operations: {overall['total_operations']}")
+        logger.info(f"Success Rate: {overall['overall_success_rate']:.1%}")
+        logger.info(f"Average Duration: {overall['avg_operation_duration_ms']:.2f}ms")
+        logger.info(f"Total Time: {overall['total_benchmark_duration_ms']:.2f}ms")
 
         if report["performance_insights"]:
-            print(f"\nKey Insights:")
+            logger.info(f"\nKey Insights:")
             for insight in report["performance_insights"]:
-                print(f"  • {insight}")
+                logger.info(f"  • {insight}")
 
         if report["recommendations"]:
-            print(f"\nRecommendations:")
+            logger.info(f"\nRecommendations:")
             for rec in report["recommendations"]:
-                print(f"  • {rec}")
+                logger.info(f"  • {rec}")
 
-        print(f"\nDetailed report: {output_path}")
+        logger.info(f"\nDetailed report: {output_path}")
 
         return report
 

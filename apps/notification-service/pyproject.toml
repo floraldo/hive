@@ -1,0 +1,46 @@
+[tool.poetry]
+name = "notification-service"
+version = "1.0.0"
+description = "Production-ready notification service built with Hive Application Toolkit - demonstrating 5x development speed"
+authors = ["Hive Team"]
+readme = "README.md"
+packages = [{include = "notification_service", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+# Hive Application Toolkit - provides entire production foundation
+hive-app-toolkit = {path = "../../packages/hive-app-toolkit", develop = true}
+
+# Service-specific dependencies (minimal thanks to toolkit)
+sendgrid = "^6.11.0"
+slack-sdk = "^3.26.0"
+jinja2 = "^3.1.2"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.23.0"
+black = "^24.8.0"
+mypy = "^1.8.0"
+ruff = "^0.1.15"
+
+[tool.poetry.scripts]
+notification-service = "notification_service.main:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+target-version = ['py311']
+
+[tool.ruff]
+line-length = 120
+select = ["E", "F", "I", "N", "W", "B", "C90", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

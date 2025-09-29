@@ -6,7 +6,9 @@ This script orchestrates the complete V2.0 certification test automatically,
 running all services in the background and monitoring their behavior.
 """
 
-import json
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import os
 import signal
 import sqlite3
@@ -15,7 +17,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Optional, Tuple
 
 # No sys.path manipulation needed - use Poetry workspace imports
 
@@ -32,7 +34,7 @@ class CertificationTestConductor:
     def log(self, message: str, level: str = "INFO"):
         """Log with timestamp and level."""
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{timestamp}] [{level}] {message}")
+        logger.info(f"[{timestamp}] [{level}] {message}")
 
     def cleanup_processes(self):
         """Terminate all background processes."""
@@ -342,7 +344,7 @@ class CertificationTestConductor:
 
 def signal_handler(signum, frame):
     """Handle termination signals gracefully."""
-    print("\nReceived termination signal. Cleaning up...")
+    logger.info("\nReceived termination signal. Cleaning up...")
     sys.exit(1)
 
 

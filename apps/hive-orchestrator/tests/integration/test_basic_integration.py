@@ -4,11 +4,12 @@ Basic integration tests for Hive Orchestrator components.
 Tests basic functionality without complex import dependencies.
 """
 
-import json
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import sys
-import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 # No sys.path manipulation needed - use Poetry workspace imports
 
@@ -21,10 +22,10 @@ def test_module_imports():
         import hive_orchestrator.cli
         import hive_orchestrator.dashboard
 
-        print("✅ All core modules imported successfully")
+        logger.info("✅ All core modules imported successfully")
         return True
     except ImportError as e:
-        print(f"❌ Import error: {e}")
+        logger.info(f"❌ Import error: {e}")
         return False
 
 
@@ -39,13 +40,13 @@ def test_cli_module_basic():
 
         for cmd in expected_commands:
             if cmd in commands:
-                print(f"✅ CLI command '{cmd}' found")
+                logger.info(f"✅ CLI command '{cmd}' found")
             else:
-                print(f"⚠️ CLI command '{cmd}' not found")
+                logger.info(f"⚠️ CLI command '{cmd}' not found")
 
         return True
     except Exception as e:
-        print(f"❌ CLI test error: {e}")
+        logger.info(f"❌ CLI test error: {e}")
         return False
 
 
@@ -59,10 +60,10 @@ def test_clean_hive_module():
         assert callable(clean_database), "clean_database should be callable"
         assert callable(clean_main), "clean_main should be callable"
 
-        print("✅ clean_hive module functions are callable")
+        logger.info("✅ clean_hive module functions are callable")
         return True
     except Exception as e:
-        print(f"❌ clean_hive test error: {e}")
+        logger.info(f"❌ clean_hive test error: {e}")
         return False
 
 
@@ -80,10 +81,10 @@ def test_dashboard_module():
             assert dashboard.refresh_rate == 2
             assert dashboard.console is not None
 
-        print("✅ Dashboard module initialized successfully")
+        logger.info("✅ Dashboard module initialized successfully")
         return True
     except Exception as e:
-        print(f"❌ Dashboard test error: {e}")
+        logger.info(f"❌ Dashboard test error: {e}")
         return False
 
 
@@ -100,13 +101,13 @@ def test_error_handling():
             # This should not raise an exception, but handle it gracefully
             try:
                 clean_database()  # Should handle the error internally
-                print("✅ clean_database handles errors gracefully")
+                logger.info("✅ clean_database handles errors gracefully")
             except Exception as e:
-                print(f"⚠️ clean_database raised exception: {e}")
+                logger.info(f"⚠️ clean_database raised exception: {e}")
 
         return True
     except Exception as e:
-        print(f"❌ Error handling test failed: {e}")
+        logger.info(f"❌ Error handling test failed: {e}")
         return False
 
 
@@ -123,10 +124,10 @@ def test_input_validation():
         assert str(safe_path) == "passwd", f"Expected 'passwd', got '{safe_path}'"
         assert ".." not in str(safe_path), "Path traversal should be prevented"
 
-        print("✅ Basic input validation logic works")
+        logger.info("✅ Basic input validation logic works")
         return True
     except Exception as e:
-        print(f"❌ Input validation test error: {e}")
+        logger.info(f"❌ Input validation test error: {e}")
         return False
 
 
@@ -152,17 +153,17 @@ def test_configuration_handling():
         # Clean up
         Path(config_path).unlink()
 
-        print("✅ Configuration handling works")
+        logger.info("✅ Configuration handling works")
         return True
     except Exception as e:
-        print(f"❌ Configuration test error: {e}")
+        logger.info(f"❌ Configuration test error: {e}")
         return False
 
 
 def run_all_tests():
     """Run all basic integration tests"""
-    print("🧪 Running Basic Hive Orchestrator Integration Tests")
-    print("=" * 60)
+    logger.info("🧪 Running Basic Hive Orchestrator Integration Tests")
+    logger.info("=" * 60)
 
     tests = [
         ("Module Imports", test_module_imports),
@@ -176,31 +177,31 @@ def run_all_tests():
 
     results = []
     for test_name, test_func in tests:
-        print(f"\n🔍 Testing {test_name}...")
+        logger.info(f"\n🔍 Testing {test_name}...")
         try:
             success = test_func()
             results.append((test_name, success))
         except Exception as e:
-            print(f"❌ Test '{test_name}' failed with exception: {e}")
+            logger.info(f"❌ Test '{test_name}' failed with exception: {e}")
             results.append((test_name, False))
 
-    print("\n" + "=" * 60)
-    print("📊 Test Results Summary:")
+    logger.info("\n" + "=" * 60)
+    logger.info("📊 Test Results Summary:")
 
     passed = sum(1 for _, success in results if success)
     total = len(results)
 
     for test_name, success in results:
         status = "✅ PASS" if success else "❌ FAIL"
-        print(f"  {status:8} {test_name}")
+        logger.info(f"  {status:8} {test_name}")
 
-    print(f"\n🎯 Overall: {passed}/{total} tests passed")
+    logger.info(f"\n🎯 Overall: {passed}/{total} tests passed")
 
     if passed == total:
-        print("🎉 All tests passed!")
+        logger.info("🎉 All tests passed!")
         return 0
     else:
-        print("⚠️ Some tests failed")
+        logger.info("⚠️ Some tests failed")
         return 1
 
 

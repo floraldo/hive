@@ -5,7 +5,7 @@ enabling true exploration of design spaces for the intelligent co-pilot vision.
 """
 
 import copy
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -13,8 +13,8 @@ logger = get_logger(__name__)
 
 
 def apply_parameter_to_config(
-    config_dict: Dict[str, Any], component_name: str, parameter_path: str, value: Any
-) -> Dict[str, Any]:
+    config_dict: dict[str, Any], component_name: str, parameter_path: str, value: Any
+) -> dict[str, Any]:
     """Apply a parameter value to a system configuration dictionary.
 
     Args:
@@ -61,7 +61,7 @@ def apply_parameter_to_config(
     return config
 
 
-def generate_parameter_report(parameter_settings: Dict[str, Any], results: Dict[str, Any]) -> Dict[str, Any]:
+def generate_parameter_report(parameter_settings: dict[str, Any], results: dict[str, Any]) -> dict[str, Any]:
     """Generate a report for a parametric sweep result.
 
     Args:
@@ -94,7 +94,7 @@ class ParametricSweepEnhancement:
     @staticmethod
     def create_battery_capacity_sweep(
         base_capacity: float, num_points: int = 5, range_factor: float = 2.0
-    ) -> List[float]:
+    ) -> list[float]:
         """Create a sweep of battery capacity values.
 
         Args:
@@ -113,7 +113,7 @@ class ParametricSweepEnhancement:
         return list(np.linspace(min_capacity, max_capacity, num_points))
 
     @staticmethod
-    def create_solar_capacity_sweep(base_capacity: float, num_points: int = 5) -> List[float]:
+    def create_solar_capacity_sweep(base_capacity: float, num_points: int = 5) -> list[float]:
         """Create a sweep of solar PV capacity values.
 
         Args:
@@ -129,7 +129,7 @@ class ParametricSweepEnhancement:
         return list(np.linspace(0, base_capacity * 2, num_points))
 
     @staticmethod
-    def create_efficiency_sweep(num_points: int = 5) -> List[float]:
+    def create_efficiency_sweep(num_points: int = 5) -> list[float]:
         """Create a sweep of efficiency values.
 
         Args:
@@ -143,7 +143,7 @@ class ParametricSweepEnhancement:
         return list(np.linspace(0.7, 0.98, num_points))
 
     @staticmethod
-    def analyze_parameter_influence(study_result: Dict[str, Any]) -> Dict[str, Any]:
+    def analyze_parameter_influence(study_result: dict[str, Any]) -> dict[str, Any]:
         """Analyze the influence of parameters on KPIs.
 
         Args:

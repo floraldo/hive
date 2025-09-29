@@ -388,9 +388,9 @@ async def fetch_climate_data_async(
 
     ds, response = await facade.get_climate_profile_async(request)
     return {
-        "dataset": ds
-        "response": response
-        "manifest": response.manifest
-        "shape": response.shape
+        "dataset": ds,
+        "response": response,
+        "manifest": response.manifest,
+        "shape": response.shape,
         "path": response.path_parquet
     }

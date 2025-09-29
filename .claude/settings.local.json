@@ -47,7 +47,8 @@
       "Bash(poetry install:*)",
       "Read(//c/c/git/SmartHoodsOptimisationTool/**)",
       "Read(//c/git/SmartHoodsOptimisationTool/Systemiser/**)",
-      "Read(//c/git/**)"
+      "Read(//c/git/**)",
+      "Bash(pytest:*)"
     ],
     "deny": [],
     "ask": []

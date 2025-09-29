@@ -5,15 +5,15 @@ from typing import Any, Dict, List
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
+    FidelityLevel,
     StorageTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseStorageOptimization
+    BaseStorageOptimization,
     BaseStoragePhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component
+    Component,
     ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
@@ -37,20 +37,20 @@ from __future__ import annotations
     """
 
     # Core thermal storage power limits (SIMPLE fidelity)
-    max_charge_rate: float = Field(..., description="Maximum charging power [kW]")
+    max_charge_rate: float = Field(..., description="Maximum charging power [kW]"),
     max_discharge_rate: float = Field(..., description="Maximum discharge power [kW]")
 
     # Heat-specific parameters (SIMPLE fidelity)
     thermal_medium: str = Field("water", description="Thermal storage medium")
 
     # STANDARD fidelity parameters
-    heat_loss_coefficient: float = Field(0.001, description="Heat loss coefficient per timestep [fraction/hour]")
+    heat_loss_coefficient: float = Field(0.001, description="Heat loss coefficient per timestep [fraction/hour]"),
     temperature_range: Optional[Dict[str, float]] = Field(
         None, description="Operating temperature range {min_temp, max_temp} [°C]"
     )
 
     # DETAILED fidelity parameters
-    stratification_model: Optional[Dict[str, Any]] = Field(None, description="Thermal stratification model parameters")
+    stratification_model: Optional[Dict[str, Any]] = Field(None, description="Thermal stratification model parameters"),
     ambient_coupling: Optional[Dict[str, float]] = Field(None, description="Coupling to ambient temperature")
 
     # RESEARCH fidelity parameters
@@ -69,9 +69,9 @@ class HeatBufferParams(ComponentParams):
             capacity_nominal=20.0,  # Default 20 kWh thermal storage
             max_charge_rate=5.0,  # Default 5 kW charge rate
             max_discharge_rate=5.0,  # Default 5 kW discharge rate
-            efficiency_roundtrip=0.90
+            efficiency_roundtrip=0.90,
             fidelity_level=FidelityLevel.STANDARD
-        )
+        ),
         description="Technical parameters following the hierarchical archetype system"
     )
 
@@ -120,7 +120,7 @@ class HeatBufferPhysicsSimple(BaseStoragePhysics):
         Apply physical energy bounds (0 <= E <= E_max) for heat buffer.
 
         Args:
-            energy_level: Energy level to bound
+            energy_level: Energy level to bound,
 
         Returns:
             float: Bounded energy level
@@ -184,7 +184,7 @@ class HeatBufferOptimizationSimple(BaseStorageOptimization):
 
         Returns constraints for basic thermal storage without losses.
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # Get optimization variables from component
@@ -228,7 +228,7 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
 
         Adds thermal loss terms to the energy balance constraints.
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # Get optimization variables from component
@@ -255,7 +255,7 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
 
                 # STANDARD: Add thermal losses
                 heat_loss_coeff = getattr(comp.technical, "heat_loss_coefficient", 0.001)
-                thermal_loss = comp.E_opt[t - 1] * heat_loss_coeff
+                thermal_loss = comp.E_opt[t - 1] * heat_loss_coeff,
                 energy_balance = energy_balance - thermal_loss
 
                 constraints.append(comp.E_opt[t] == energy_balance)
@@ -383,7 +383,7 @@ class HeatBuffer(Component):
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 f"{self.name} at t={t}: charge={charge_power:.3f}kW, "
-                f"discharge={discharge_power:.3f}kW, initial={initial_level:.3f}kWh, "
+                f"discharge={discharge_power:.3f}kW, initial={initial_level:.3f}kWh, ",
                 f"E[{t}]={self.E[t]:.3f}kWh"
             )
 
@@ -411,8 +411,8 @@ class HeatBuffer(Component):
     def get_available_discharge(self, t: int) -> float:
         """Calculate available discharge power considering state and efficiency."""
         # Get state at START of timestep
-        if t == 0:
-            current_level = self.E_init
+        if t == 0:,
+            current_level = self.E_init,
         else:
             current_level = self.E[t - 1] if hasattr(self, "E") and t > 0 else 0.0
 
@@ -422,8 +422,8 @@ class HeatBuffer(Component):
     def get_available_charge(self, t: int) -> float:
         """Calculate available charge power considering state and capacity."""
         # Get state at START of timestep
-        if t == 0:
-            current_level = self.E_init
+        if t == 0:,
+            current_level = self.E_init,
         else:
             current_level = self.E[t - 1] if hasattr(self, "E") and t > 0 else 0.0
 

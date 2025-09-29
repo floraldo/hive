@@ -3,27 +3,19 @@ Claude Service Implementation
 Contains the business logic implementation for Claude API interactions.
 Separated from core interfaces to maintain clean architecture.
 """
+
 from __future__ import annotations
 
-
-import asyncio
 import hashlib
 import json
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List
+from typing import Any, Dict
 
-from hive_config import get_config
-from hive_errors import ErrorReporter
 from hive_logging import get_logger
-
-from ...core.claude.bridge import BaseClaludeBridge, ClaudeBridgeConfig
-from ...core.claude.exceptions import ClaudeRateLimitError, ClaudeServiceError
-from ...core.claude.planner_bridge import ClaudePlannerBridge
-from ...core.claude.reviewer_bridge import ClaudeReviewerBridge
 
 logger = get_logger(__name__)
 
@@ -57,14 +49,14 @@ class ClaudeMetrics:
     def to_dict(self) -> Dict[str, Any]:
         """Convert metrics to dictionary"""
         return {
-            "total_calls": self.total_calls
-            "successful_calls": self.successful_calls
-            "failed_calls": self.failed_calls
-            "cached_responses": self.cached_responses
-            "total_tokens": self.total_tokens
-            "average_latency_ms": self.average_latency_ms
-            "success_rate": self.success_rate
-            "rate_limited": self.rate_limited
+            "total_calls": self.total_calls,
+            "successful_calls": self.successful_calls,
+            "failed_calls": self.failed_calls,
+            "cached_responses": self.cached_responses,
+            "total_tokens": self.total_tokens,
+            "average_latency_ms": self.average_latency_ms,
+            "success_rate": self.success_rate,
+            "rate_limited": self.rate_limited,
         }
 
 
@@ -232,10 +224,10 @@ class ResponseCache:
             expired = sum(1 for entry in self.cache.values() if entry.is_expired(self.ttl_seconds))
 
         return {
-            "total_entries": total_entries
-            "total_hits": total_hits
-            "expired_entries": expired
-            "hit_rate": total_hits / max(1, total_entries + total_hits)
+            "total_entries": total_entries,
+            "total_hits": total_hits,
+            "expired_entries": expired,
+            "hit_rate": total_hits / max(1, total_entries + total_hits),
         }
 
 

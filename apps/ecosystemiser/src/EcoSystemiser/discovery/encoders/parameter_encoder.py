@@ -273,12 +273,12 @@ class ParameterEncoder:
         info = {}
         for param in self.spec.parameters:
             info[param.name] = {
-                "component": param.component
-                "parameter_path": param.parameter_path
-                "bounds": param.bounds
-                "type": param.parameter_type
-                "units": param.units
-                "description": param.description
+                "component": param.component,
+                "parameter_path": param.parameter_path,
+                "bounds": param.bounds,
+                "type": param.parameter_type,
+                "units": param.units,
+                "description": param.description,
                 "scaling": param.scaling
             }
         return info
@@ -298,7 +298,7 @@ class SystemConfigEncoder(ParameterEncoder):
     @classmethod
     def from_config(
         cls
-        config_path: str | Path
+        config_path: str | Path,
         component_selection: Optional[List[str]] = None
         custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None
     ) -> "SystemConfigEncoder":

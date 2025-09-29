@@ -4,18 +4,14 @@ EcoSystemiser Core Database Service
 This module extends the generic hive-db package with EcoSystemiser-specific
 database functionality, following the inherit→extend pattern.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import os
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from hive_db import (
-    create_table_if_not_exists
-    get_sqlite_connection
-    sqlite_transaction
-)
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

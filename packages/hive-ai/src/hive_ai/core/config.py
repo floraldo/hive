@@ -11,7 +11,7 @@ Follows the inherit-extend pattern by building upon hive-config
 with AI-specific configuration needs.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from hive_config import BaseConfig
 from pydantic import BaseModel, Field, validator
@@ -93,7 +93,8 @@ class AIConfig(BaseConfig):
 
     # Vector database configuration
     vector: VectorConfig = Field(
-        default_factory=lambda: VectorConfig(provider="chroma"), description="Vector database configuration"
+        default_factory=lambda: VectorConfig(provider="chroma"),
+        description="Vector database configuration",
     )
 
     # Prompt configuration
@@ -121,22 +122,26 @@ class AIConfig(BaseConfig):
             # Provide default model configurations
             return {
                 "claude-3-sonnet": ModelConfig(
-                    name="claude-3-sonnet-20240229"
-                    provider="anthropic"
-                    model_type="chat"
-                    max_tokens=4096
-                    cost_per_token=0.000015
-                )
+                    name="claude-3-sonnet-20240229",
+                    provider="anthropic",
+                    model_type="chat",
+                    max_tokens=4096,
+                    cost_per_token=0.000015,
+                ),
                 "gpt-4": ModelConfig(
-                    name="gpt-4", provider="openai", model_type="chat", max_tokens=4096, cost_per_token=0.00003
-                )
+                    name="gpt-4",
+                    provider="openai",
+                    model_type="chat",
+                    max_tokens=4096,
+                    cost_per_token=0.00003,
+                ),
                 "text-embedding-ada-002": ModelConfig(
-                    name="text-embedding-ada-002"
-                    provider="openai"
-                    model_type="embedding"
-                    max_tokens=8191
-                    cost_per_token=0.0000001
-                )
+                    name="text-embedding-ada-002",
+                    provider="openai",
+                    model_type="embedding",
+                    max_tokens=8191,
+                    cost_per_token=0.0000001,
+                ),
             }
         return v
 

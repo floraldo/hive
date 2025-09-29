@@ -1,10 +1,8 @@
 """KPI calculation module for system analysis."""
 
 import json
-from typing import Any, Dict, List, Optional
 
 import numpy as np
-import pandas as pd
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -18,7 +16,7 @@ class KPICalculator:
         self.results = None
         self.system_type = None
 
-    def calculate_from_system(self, system) -> Dict[str, float]:
+    def calculate_from_system(self, system) -> dict[str, float]:
         """Calculate KPIs directly from a solved system object.
 
         Args:
@@ -42,7 +40,7 @@ class KPICalculator:
 
         return kpis
 
-    def calculate_from_file(self, results_path: Path) -> Dict[str, float]:
+    def calculate_from_file(self, results_path: Path) -> dict[str, float]:
         """Calculate KPIs from saved results file.
 
         Args:
@@ -53,7 +51,7 @@ class KPICalculator:
         """
         # Load results
         if results_path.suffix == ".json":
-            with open(results_path, "r") as f:
+            with open(results_path) as f:
                 self.results = json.load(f)
         elif results_path.suffix == ".parquet":
             import pyarrow.parquet as pq
@@ -86,7 +84,7 @@ class KPICalculator:
         else:
             return "water"
 
-    def _calculate_energy_kpis(self, system) -> Dict[str, float]:
+    def _calculate_energy_kpis(self, system) -> dict[str, float]:
         """Calculate energy-specific KPIs.
 
         Args:
@@ -113,7 +111,7 @@ class KPICalculator:
                         import_values = np.maximum(0, flow)
                         total_import = float(np.sum(import_values))
                         peak_import = float(np.max(import_values))
-                    elif hasattr(flow, 'value') and flow.value is not None:
+                    elif hasattr(flow, "value") and flow.value is not None:
                         # Handle CVXPY variables
                         cvxpy_val = flow.value if isinstance(flow.value, np.ndarray) else np.array([flow.value])
                         import_values = np.maximum(0, cvxpy_val)
@@ -128,7 +126,7 @@ class KPICalculator:
                         export_values = np.maximum(0, flow)
                         total_export = float(np.sum(export_values))
                         peak_export = float(np.max(export_values))
-                    elif hasattr(flow, 'value') and flow.value is not None:
+                    elif hasattr(flow, "value") and flow.value is not None:
                         # Handle CVXPY variables
                         cvxpy_val = flow.value if isinstance(flow.value, np.ndarray) else np.array([flow.value])
                         export_values = np.maximum(0, cvxpy_val)
@@ -152,7 +150,7 @@ class KPICalculator:
                     if isinstance(comp.profile, np.ndarray):
                         gen_values = np.maximum(0, comp.profile)  # Ensure non-negative
                         gen = float(np.sum(gen_values))
-                    elif hasattr(comp.profile, 'value') and comp.profile.value is not None:
+                    elif hasattr(comp.profile, "value") and comp.profile.value is not None:
                         # Handle CVXPY variables
                         cvxpy_val = comp.profile.value
                         if isinstance(cvxpy_val, np.ndarray):
@@ -207,7 +205,7 @@ class KPICalculator:
                 if hasattr(comp, "E"):
                     if isinstance(comp.E, np.ndarray):
                         energy_levels = comp.E
-                    elif hasattr(comp.E, 'value') and comp.E.value is not None:
+                    elif hasattr(comp.E, "value") and comp.E.value is not None:
                         # Handle CVXPY variables
                         if isinstance(comp.E.value, np.ndarray):
                             energy_levels = comp.E.value
@@ -216,7 +214,7 @@ class KPICalculator:
 
                 if energy_levels is not None and len(energy_levels) > 0:
                     # Ensure energy levels are within physical bounds
-                    if hasattr(comp, 'E_max') and comp.E_max > 0:
+                    if hasattr(comp, "E_max") and comp.E_max > 0:
                         energy_levels = np.clip(energy_levels, 0, comp.E_max)
                         kpis[f"{comp.name}_avg_soc"] = float(np.mean(energy_levels) / comp.E_max)
                         kpis[f"{comp.name}_cycles"] = self._calculate_battery_cycles(energy_levels)
@@ -226,7 +224,7 @@ class KPICalculator:
 
         return kpis
 
-    def _calculate_water_kpis(self, system) -> Dict[str, float]:
+    def _calculate_water_kpis(self, system) -> dict[str, float]:
         """Calculate water-specific KPIs.
 
         Args:
@@ -293,7 +291,7 @@ class KPICalculator:
 
         return kpis
 
-    def _calculate_common_kpis(self, system) -> Dict[str, float]:
+    def _calculate_common_kpis(self, system) -> dict[str, float]:
         """Calculate KPIs common to all system types.
 
         Args:
@@ -357,7 +355,7 @@ class KPICalculator:
 
         return float(cycles)
 
-    def _calculate_kpis_from_dict(self, results_dict: Dict) -> Dict[str, float]:
+    def _calculate_kpis_from_dict(self, results_dict: dict) -> dict[str, float]:
         """Calculate KPIs from a results dictionary.
 
         Args:
@@ -386,7 +384,7 @@ class KPICalculator:
 
         return kpis
 
-    def generate_summary_report(self, kpis: Dict[str, float]) -> str:
+    def generate_summary_report(self, kpis: dict[str, float]) -> str:
         """Generate a human-readable summary report from KPIs.
 
         Args:

@@ -11,7 +11,9 @@ Enhanced with single-pass AST-based validation for superior performance
 and accuracy, plus suppression support for controlled exceptions.
 """
 
-from pathlib import Path
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 import pytest
 from hive_tests.architectural_validators import (
@@ -108,7 +110,7 @@ class TestArchitecturalCompliance:
             )
 
             # Warning for now as this is a new rule
-            print(f"Warning: {len(violations)} service layer violations found")
+            logger.info(f"Warning: {len(violations)} service layer violations found")
 
     def test_communication_patterns(self, project_root):
         """
@@ -144,7 +146,7 @@ class TestArchitecturalCompliance:
             )
 
             # Warning for now as this is a new rule
-            print(f"Warning: {len(violations)} communication pattern violations found")
+            logger.info(f"Warning: {len(violations)} communication pattern violations found")
 
     def test_colocated_tests_pattern(self, project_root):
         """
@@ -396,7 +398,7 @@ class TestArchitecturalCompliance:
 
             # For now, just warn instead of fail for this rule
             # pytest.fail(failure_message)
-            print(f"⚠️ WARNING: {len(violations)} interface contract violations found")
+            logger.info(f"⚠️ WARNING: {len(violations)} interface contract violations found")
 
     def test_error_handling_standards(self, project_root):
         """
@@ -567,8 +569,6 @@ class TestPlatformStandards:
 
 if __name__ == "__main__":
     # Allow running this file directly for quick validation
-    import sys
-    from pathlib import Path
 
     # No sys.path manipulation needed - use Poetry workspace imports
 

@@ -4,13 +4,13 @@ Production-ready job management with Redis backend.
 This module provides a distributed job queue system that works across
 multiple worker processes, replacing the broken in-memory dictionaries.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import json
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_config import load_config_for_app
 from hive_logging import get_logger
@@ -50,7 +50,7 @@ class JobManager:
         Initialize job manager.
 
         Args:
-            redis_url: Redis connection URL (defaults to env var or localhost)
+            redis_url: Redis connection URL (defaults to env var or localhost),
             ttl_hours: Time-to-live for job data in hours
         """
         self.ttl_seconds = ttl_hours * 3600
@@ -76,7 +76,7 @@ class JobManager:
             self.redis = None
             self._memory_store = {}
 
-    def create_job(self, request_data: Dict[str, Any]) -> str:
+    def create_job(self, request_data: dict[str, Any]) -> str:
         """
         Create a new job and return its ID.
 
@@ -89,14 +89,14 @@ class JobManager:
         job_id = str(uuid.uuid4())
 
         job_data = {
-            "id": job_id
-            "status": JobStatus.PENDING
-            "created_at": datetime.utcnow().isoformat()
-            "request": request_data
-            "result": None
-            "error": None
-            "progress": 0
-            "updated_at": datetime.utcnow().isoformat()
+            "id": job_id,
+            "status": JobStatus.PENDING,
+            "created_at": datetime.utcnow().isoformat(),
+            "request": request_data,
+            "result": None,
+            "error": None,
+            "progress": 0,
+            "updated_at": datetime.utcnow().isoformat(),
         }
 
         if self.redis:
@@ -104,7 +104,7 @@ class JobManager:
             key = f"job:{job_id}"
             self.redis.setex(key, self.ttl_seconds, json.dumps(job_data))
             # Add to job list for tracking
-            self.redis.zadd("job_ids", {job_id: datetime.utcnow().timestamp()}, nx=True)
+            (self.redis.zadd("job_ids", {job_id: datetime.utcnow().timestamp()}, nx=True),)
         else:
             # Fallback to memory (development only)
             self._memory_store[job_id] = job_data
@@ -112,7 +112,7 @@ class JobManager:
         logger.info(f"Created job {job_id}")
         return job_id
 
-    def get_job(self, job_id: str) -> Optional[Dict[str, Any]]:
+    def get_job(self, job_id: str) -> Optional[dict[str, Any]]:
         """
         Retrieve job data by ID.
 
@@ -126,28 +126,28 @@ class JobManager:
             key = f"job:{job_id}"
             data = self.redis.get(key)
             if data:
-                return json.loads(data)
+                return (json.loads(data),)
         else:
             return self._memory_store.get(job_id)
 
         return None
 
     def update_job_status(
-        self
-        job_id: str
-        status: str
-        result: Optional[Dict[str, Any]] = None
-        error: str | None = None
-        progress: int | None = None
+        self,
+        job_id: str,
+        status: str,
+        result: Optional[dict[str, Any]] = None,
+        error: str | None = None,
+        progress: int | None = None,
     ) -> bool:
         """
         Update job status and optionally set result or error.
 
         Args:
-            job_id: Job ID to update
-            status: New status (use JobStatus constants)
-            result: Optional result data
-            error: Optional error message
+            job_id: Job ID to update,
+            status: New status (use JobStatus constants),
+            result: Optional result data,
+            error: Optional error message,
             progress: Optional progress percentage (0-100)
 
         Returns:
@@ -172,7 +172,7 @@ class JobManager:
         if self.redis:
             key = f"job:{job_id}"
             # Refresh TTL on update
-            self.redis.setex(key, self.ttl_seconds, json.dumps(job_data))
+            (self.redis.setex(key, self.ttl_seconds, json.dumps(job_data)),)
         else:
             self._memory_store[job_id] = job_data
 
@@ -192,13 +192,13 @@ class JobManager:
         job_data = self.get_job(job_id)
         return job_data["status"] if job_data else None
 
-    def list_jobs(self, status: str | None = None, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+    def list_jobs(self, status: str | None = None, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
         """
         List jobs, optionally filtered by status.
 
         Args:
-            status: Optional status filter
-            limit: Maximum number of jobs to return
+            status: Optional status filter,
+            limit: Maximum number of jobs to return,
             offset: Offset for pagination
 
         Returns:
@@ -214,7 +214,7 @@ class JobManager:
                 job_data = self.get_job(job_id)
                 if job_data:
                     if status is None or job_data["status"] == status:
-                        jobs.append(job_data)
+                        (jobs.append(job_data),)
         else:
             # Fallback to memory
             all_jobs = list(self._memory_store.values())
@@ -243,7 +243,7 @@ class JobManager:
             self.redis.zrem("job_ids", job_id)
             if deleted:
                 logger.info(f"Deleted job {job_id}")
-            return deleted
+            return (deleted,)
         else:
             if job_id in self._memory_store:
                 del self._memory_store[job_id]
@@ -271,7 +271,7 @@ class JobManager:
 
             for job_id in old_job_ids:
                 if self.delete_job(job_id):
-                    deleted_count += 1
+                    deleted_count += (1,)
         else:
             # Fallback to memory
             to_delete = []

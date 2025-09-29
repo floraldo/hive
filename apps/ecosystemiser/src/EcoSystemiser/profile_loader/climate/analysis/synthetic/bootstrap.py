@@ -1,6 +1,6 @@
 """Seasonal block bootstrap for synthetic climate generation"""
 
-from typing import Literal
+from __future__ import annotations
 
 import numpy as np
 import pandas as pd
@@ -11,26 +11,25 @@ logger = get_logger(__name__)
 
 
 def multivariate_block_bootstrap(
-    ds_hist: xr.Dataset
-    block: str = "1D"
-    season_bins: int = 12
-    overlap_hours: int = 3
-    seed: int | None = None
-    target_length: str | None = "1Y"
+    ds_hist: xr.Dataset,
+    block: str = "1D",
+    season_bins: int = 12,
+    overlap_hours: int = 3,
+    seed: int | None = None,
+    target_length: str | None = "1Y",
 ) -> xr.Dataset:
     """
-from __future__ import annotations
 
     Generate synthetic climate data using seasonal block bootstrap.
 
     Preserves intra-block correlations between variables.
 
     Args:
-        ds_hist: Historical dataset to bootstrap from
-        block: Block size (e.g., "1D" for daily blocks, "7D" for weekly)
-        season_bins: Number of seasonal bins (12 for monthly)
-        overlap_hours: Hours of overlap for smoothing block boundaries
-        seed: Random seed for reproducibility
+        ds_hist: Historical dataset to bootstrap from,
+        block: Block size (e.g., "1D" for daily blocks, "7D" for weekly),
+        season_bins: Number of seasonal bins (12 for monthly),
+        overlap_hours: Hours of overlap for smoothing block boundaries,
+        seed: Random seed for reproducibility,
         target_length: Length of synthetic series to generate
 
     Returns:
@@ -52,7 +51,7 @@ from __future__ import annotations
     # Determine target length
     if target_length:
         target_td = pd.Timedelta(target_length)
-        n_blocks_needed = int(np.ceil(target_td / block_td))
+        n_blocks_needed = (int(np.ceil(target_td / block_td)),)
     else:
         n_blocks_needed = len(blocks)
 
@@ -80,8 +79,8 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
     Partition dataset into blocks labeled by season.
 
     Args:
-        ds: Dataset to partition
-        block_size: Size of each block
+        ds: Dataset to partition,
+        block_size: Size of each block,
         season_bins: Number of seasonal bins
 
     Returns:
@@ -109,7 +108,7 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
             if season_bins == 12:
                 season = mid_time.month - 1
             elif season_bins == 4:
-                season = (mid_time.month - 1) // 3
+                season = ((mid_time.month - 1) // 3,)
             else:
                 # Generic binning based on day of year
                 day_of_year = mid_time.dayofyear
@@ -127,8 +126,8 @@ def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list
     Sample blocks with replacement, respecting seasonal distribution.
 
     Args:
-        blocks: List of (block_data, season) tuples
-        n_blocks: Number of blocks to sample
+        blocks: List of (block_data, season) tuples,
+        n_blocks: Number of blocks to sample,
         n_seasons: Number of seasons
 
     Returns:
@@ -176,7 +175,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
     Concatenate blocks with overlap-save smoothing.
 
     Args:
-        blocks: List of block datasets
+        blocks: List of block datasets,
         overlap_hours: Hours of overlap for smoothing
 
     Returns:
@@ -196,7 +195,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
         current_block = blocks[i]
 
         # Find overlap region
-        overlap_td = pd.Timedelta(hours=overlap_hours)
+        pd.Timedelta(hours=overlap_hours)
 
         # Get overlapping portions
         result_end = result.time[-overlap_hours:]
@@ -228,7 +227,7 @@ def ensure_continuity(ds: xr.Dataset, start_time: np.datetime64) -> xr.Dataset:
     Ensure continuous time index starting from specified time.
 
     Args:
-        ds: Dataset to process
+        ds: Dataset to process,
         start_time: Starting time for new index
 
     Returns:

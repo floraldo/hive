@@ -29,7 +29,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
 from prometheus_client import (
-    CONTENT_TYPE_LATEST
+    CONTENT_TYPE_LATEST,
     CollectorRegistry
     Counter
     Gauge
@@ -193,8 +193,8 @@ class ObservabilityManager:
         """Configure OpenTelemetry tracing"""
         resource = Resource.create(
             {
-                "service.name": self.settings.observability.tracing_service_name
-                "service.version": self.settings.api.version
+                "service.name": self.settings.observability.tracing_service_name,
+                "service.version": self.settings.api.version,
                 "deployment.environment": self.settings.environment
             }
         )
@@ -361,7 +361,7 @@ def count_calls(metric: Counter, labels: Optional[Dict[str, str]] = None) -> Non
 
 @contextmanager
 def trace_span(
-    name: str
+    name: str,
     attributes: Optional[Dict[str, Any]] = None
     record_exception: bool = True
 ):

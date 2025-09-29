@@ -3,8 +3,8 @@ SQLite database connector for Hive applications.
 
 Provides simple, reliable SQLite connectivity for development and lightweight production use.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import sqlite3
 from contextlib import contextmanager

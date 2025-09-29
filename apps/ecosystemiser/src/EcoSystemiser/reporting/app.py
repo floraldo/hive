@@ -4,7 +4,7 @@ import json
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ecosystemiser.analyser import AnalyserService
 from ecosystemiser.services.reporting_service import ReportConfig, ReportingService
@@ -14,7 +14,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
-def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
+def create_app(config: dict[str, Any] | None = None) -> Flask:
     """Create and configure the Flask application.
 
     Args:
@@ -133,7 +133,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
                 )
 
         # Load study results
-        with open(study_file, "r") as f:
+        with open(study_file) as f:
             study_data = json.load(f)
 
         # Use ReportingService to generate GA report
@@ -166,7 +166,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
                 )
 
         # Load study results
-        with open(study_file, "r") as f:
+        with open(study_file) as f:
             study_data = json.load(f)
 
         # Use ReportingService to generate MC report
@@ -197,7 +197,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         for pattern in patterns:
             study_file = results_dir / pattern
             if study_file.exists():
-                with open(study_file, "r") as f:
+                with open(study_file) as f:
                     return jsonify(json.load(f))
 
         return jsonify({"error": f"Study not found: {study_id}"}), 404
@@ -259,7 +259,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             return jsonify({"error": "Session not found"}), 404
 
         data = app.config[session_key]
-        raw_results = data["raw"]
+        data["raw"]
         analysis_results = data["analysis"]
 
         # Generate report using ReportingService

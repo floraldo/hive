@@ -12,7 +12,7 @@ import requests
 import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
-    AdapterCapabilities
+    AdapterCapabilities,
     AuthType
     DataFrequency
     QualityFeatures
@@ -25,7 +25,7 @@ from hive_logging import get_logger
 # Import QC classes
 try:
     from ecosystemiser.profile_loader.climate.processing.validation import (
-        QCIssue
+        QCIssue,
         QCProfile
         QCReport
         QCSeverity
@@ -58,7 +58,7 @@ except ImportError:
     class QCProfile(ABC):
         def __init__(
             self
-            name: str
+            name: str,
             description: str
             known_issues: List[str]
             recommended_variables: List[str]
@@ -93,25 +93,25 @@ from __future__ import annotations
     # Based on PVGIS 5.3 API documentation and research findings
     VARIABLE_MAPPING = {
         # Solar radiation parameters (W/m2)
-        "ghi": "G(h)",  # Global horizontal irradiance
-        "dni": "Gb(n)",  # Direct normal irradiance (beam)
-        "dhi": "Gd(h)",  # Diffuse horizontal irradiance
-        "poa_global": "G(i)",  # Global irradiance on inclined plane
-        "poa_direct": "Gb(i)",  # Beam irradiance on inclined plane
-        "poa_sky_diffuse": "Gd(i)",  # Diffuse irradiance on inclined plane
+        "ghi": "G(h)",  # Global horizontal irradiance,
+        "dni": "Gb(n)",  # Direct normal irradiance (beam),
+        "dhi": "Gd(h)",  # Diffuse horizontal irradiance,
+        "poa_global": "G(i)",  # Global irradiance on inclined plane,
+        "poa_direct": "Gb(i)",  # Beam irradiance on inclined plane,
+        "poa_sky_diffuse": "Gd(i)",  # Diffuse irradiance on inclined plane,
         "poa_ground_diffuse": "Gr(i)",  # Reflected irradiance on inclined plane
         # Meteorological parameters
-        "temp_air": "T2m",  # Air temperature at 2 meters (degC)
-        "wind_speed": "WS10m",  # Wind speed at 10 meters (m/s)
-        "wind_dir": "WD10m",  # Wind direction at 10 meters (degrees)
-        "rel_humidity": "RH",  # Relative humidity (%)
+        "temp_air": "T2m",  # Air temperature at 2 meters (degC),
+        "wind_speed": "WS10m",  # Wind speed at 10 meters (m/s),
+        "wind_dir": "WD10m",  # Wind direction at 10 meters (degrees),
+        "rel_humidity": "RH",  # Relative humidity (%),
         "pressure": "SP",  # Surface pressure (Pa)
         # Solar position parameters
-        "solar_elevation": "H_sun",  # Solar elevation angle (degrees)
+        "solar_elevation": "H_sun",  # Solar elevation angle (degrees),
         "solar_azimuth": "A_sun",  # Solar azimuth angle (degrees)
         # Clear sky parameters
-        "ghi_clearsky": "Gc(h)",  # Clear sky global horizontal irradiance
-        "dni_clearsky": "Gbc(n)",  # Clear sky direct normal irradiance
+        "ghi_clearsky": "Gc(h)",  # Clear sky global horizontal irradiance,
+        "dni_clearsky": "Gbc(n)",  # Clear sky direct normal irradiance,
         "dhi_clearsky": "Gdc(h)",  # Clear sky diffuse horizontal irradiance
     }
 
@@ -166,7 +166,7 @@ from __future__ import annotations
     def __init__(self) -> None:
         """Initialize PVGIS adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
-            CacheConfig
+            CacheConfig,
             HTTPConfig
             RateLimitConfig
         )
@@ -251,9 +251,9 @@ from __future__ import annotations
         # Add metadata
         ds.attrs.update(
             {
-                "source": "PVGIS"
-                "adapter_version": self.ADAPTER_VERSION
-                "latitude": lat
+                "source": "PVGIS",
+                "adapter_version": self.ADAPTER_VERSION,
+                "latitude": lat,
                 "longitude": lon
             }
         )
@@ -339,7 +339,7 @@ from __future__ import annotations
 
     async def _fetch_hourly_series_async(
         self
-        lat: float
+        lat: float,
         lon: float
         variables: List[str]
         start_date: datetime
@@ -359,14 +359,14 @@ from __future__ import annotations
 
         # Prepare parameters
         params = {
-            "lat": lat
-            "lon": lon
-            "startyear": start_date.year
-            "endyear": end_date.year
-            "pvcalculation": 0,  # We want meteo data, not PV calculation
-            "peakpower": 1,  # Required even if pvcalculation=0
-            "loss": 0
-            "outputformat": "json"
+            "lat": lat,
+            "lon": lon,
+            "startyear": start_date.year,
+            "endyear": end_date.year,
+            "pvcalculation": 0,  # We want meteo data, not PV calculation,
+            "peakpower": 1,  # Required even if pvcalculation=0,
+            "loss": 0,
+            "outputformat": "json",
             "browser": 0
         }
 
@@ -394,7 +394,7 @@ from __future__ import annotations
 
     async def _fetch_daily_series_async(
         self
-        lat: float
+        lat: float,
         lon: float
         variables: List[str]
         start_date: datetime
@@ -407,12 +407,12 @@ from __future__ import annotations
         url = f"{self.BASE_URL}/DRcalc"
 
         params = {
-            "lat": lat
-            "lon": lon
-            "month": (start_date.month if start_date.month == end_date.month else 0),  # 0 for full year
-            "year": start_date.year
-            "raddatabase": database
-            "outputformat": "json"
+            "lat": lat,
+            "lon": lon,
+            "month": (start_date.month if start_date.month == end_date.month else 0),  # 0 for full year,
+            "year": start_date.year,
+            "raddatabase": database,
+            "outputformat": "json",
             "browser": 0
         }
 
@@ -453,7 +453,7 @@ from __future__ import annotations
 
     def _parse_hourly_response(
         self
-        data: Dict
+        data: Dict,
         variables: List[str]
         lat: float
         lon: float
@@ -508,8 +508,8 @@ from __future__ import annotations
             if not added and canonical_name in ["ghi", "dni", "dhi"]:
                 # Check available solar-related columns in actual response
                 fallback_mappings = {
-                    "ghi": ["G(i)", "G(h)", "GHI"],  # Try inclined, then horizontal
-                    "dni": ["DNI", "Gb(n)", "BNI"]
+                    "ghi": ["G(i)", "G(h)", "GHI"],  # Try inclined, then horizontal,
+                    "dni": ["DNI", "Gb(n)", "BNI"],
                     "dhi": ["DHI", "Gd(h)", "DIF"]
                 }
 
@@ -547,7 +547,7 @@ from __future__ import annotations
 
     def _parse_daily_response(
         self
-        data: Dict
+        data: Dict,
         variables: List[str]
         lat: float
         lon: float
@@ -615,11 +615,11 @@ from __future__ import annotations
         # Map variables
         for canonical_name in variables:
             pvgis_cols = {
-                "ghi": "G(h)"
-                "dni": "Gb(n)"
-                "dhi": "Gd(h)"
-                "temp_air": "T2m"
-                "wind_speed": "WS10m"
+                "ghi": "G(h)",
+                "dni": "Gb(n)",
+                "dhi": "Gd(h)",
+                "temp_air": "T2m",
+                "wind_speed": "WS10m",
                 "rel_humidity": "RH"
             }
 
@@ -677,19 +677,19 @@ from __future__ import annotations
         """Get variable attributes including units"""
 
         units_map = {
-            "ghi": "W/m2"
-            "dni": "W/m2"
-            "dhi": "W/m2"
-            "dewpoint": "degC"
-            "temp_air": "degC"
-            "wind_speed": "m/s"
-            "pressure": "Pa"
-            "rel_humidity": "%"
+            "ghi": "W/m2",
+            "dni": "W/m2",
+            "dhi": "W/m2",
+            "dewpoint": "degC",
+            "temp_air": "degC",
+            "wind_speed": "m/s",
+            "pressure": "Pa",
+            "rel_humidity": "%",
             "solar_zenith": "degrees"
         }
 
         return {
-            "units": units_map.get(canonical_name, "unknown")
+            "units": units_map.get(canonical_name, "unknown"),
             "long_name": canonical_name.replace("_", " ").title()
         }
 

@@ -2,14 +2,11 @@
 """Comprehensive test suite for Golden Residential Microgrid validation."""
 
 import json
-
-import sys
 import time
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import numpy as np
-import pandas as pd
 import pytest
 
 eco_path = Path(__file__).parent.parent / "src"
@@ -20,6 +17,7 @@ from ecosystemiser.utils.system_builder import create_system_from_config
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 class GoldenMicrogridValidator:
     """Comprehensive validator for golden residential microgrid systems."""
@@ -38,7 +36,7 @@ class GoldenMicrogridValidator:
         logger.info(f"Loading system config: {config_path}")
         return create_system_from_config(str(config_path))
 
-    def validate_energy_balance(self, system, results: Dict[str, Any], domain: str = "electrical") -> Dict[str, Any]:
+    def validate_energy_balance(self, system, results: dict[str, Any], domain: str = "electrical") -> dict[str, Any]:
         """Validate perfect energy conservation for specified domain."""
         balance_results = {
             "domain": domain,
@@ -62,7 +60,7 @@ class GoldenMicrogridValidator:
             sources = 0.0
             sinks = 0.0
 
-            for flow_key, flow_data in system.flows.items():
+            for _flow_key, flow_data in system.flows.items():
                 if flow_data.get("type", "electricity") == flow_type:
                     flow_value = flow_data["value"][t] if hasattr(flow_data["value"], "__getitem__") else 0.0
 
@@ -99,7 +97,7 @@ class GoldenMicrogridValidator:
 
         return balance_results
 
-    def validate_physics_constraints(self, system, results: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_physics_constraints(self, system, results: dict[str, Any]) -> dict[str, Any]:
         """Validate that all physics constraints are satisfied."""
         physics_results = {
             "storage_bounds_violations": [],
@@ -142,7 +140,7 @@ class GoldenMicrogridValidator:
 
         return physics_results
 
-    def validate_system_behavior(self, system, results: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_system_behavior(self, system, results: dict[str, Any]) -> dict[str, Any]:
         """Validate expected system behavior patterns."""
         behavior_results = {
             "solar_priority_check": False,
@@ -172,7 +170,7 @@ class GoldenMicrogridValidator:
                 behavior_results["solar_priority_check"] = solar_priority_ratio > 0.5
 
         # Check storage cycling (battery should charge and discharge)
-        for comp_name, comp in system.components.items():
+        for _comp_name, comp in system.components.items():
             if comp.type == "storage" and hasattr(comp, "E"):
                 energy_range = np.max(comp.E) - np.min(comp.E)
                 storage_capacity = comp.E_max if hasattr(comp, "E_max") else comp.params.technical.capacity_nominal
@@ -211,7 +209,7 @@ class GoldenMicrogridValidator:
 
         return behavior_results
 
-    def validate_solver_performance(self, solve_time: float, memory_usage: float = 0.0) -> Dict[str, Any]:
+    def validate_solver_performance(self, solve_time: float, memory_usage: float = 0.0) -> dict[str, Any]:
         """Validate solver performance metrics."""
         performance_results = {
             "solve_time": solve_time,
@@ -229,7 +227,7 @@ class GoldenMicrogridValidator:
 
         return performance_results
 
-    def run_comprehensive_validation(self, system, solver_results, solve_time: float) -> Dict[str, Any]:
+    def run_comprehensive_validation(self, system, solver_results, solve_time: float) -> dict[str, Any]:
         """Run all validation checks and return comprehensive results."""
         validation_results = {
             "timestamp": time.time(),
@@ -259,12 +257,15 @@ class GoldenMicrogridValidator:
 
         return validation_results
 
+
 # Test functions using pytest framework
+
 
 @pytest.fixture
 def validator():
     """Create validator instance for tests."""
     return GoldenMicrogridValidator()
+
 
 class TestGoldenMicrogrid:
     """Test class for golden residential microgrid validation."""
@@ -393,7 +394,7 @@ class TestGoldenMicrogrid:
         total_cost = 0.0
 
         # Grid import costs
-        for flow_key, flow_data in system.flows.items():
+        for _flow_key, flow_data in system.flows.items():
             if "Grid" in flow_data["source"] and "GRID" in flow_data["source"]:
                 grid_comp = system.components.get(flow_data["source"])
                 if grid_comp and hasattr(grid_comp, "params"):
@@ -401,7 +402,7 @@ class TestGoldenMicrogrid:
                     total_cost += np.sum(flow_data["value"]) * import_tariff
 
         # Grid export revenues (negative cost)
-        for flow_key, flow_data in system.flows.items():
+        for _flow_key, flow_data in system.flows.items():
             if "Grid" in flow_data["target"] and "GRID" in flow_data["target"]:
                 grid_comp = system.components.get(flow_data["target"])
                 if grid_comp and hasattr(grid_comp, "params"):
@@ -409,6 +410,7 @@ class TestGoldenMicrogrid:
                     total_cost -= np.sum(flow_data["value"]) * export_tariff
 
         return max(0.0, total_cost)
+
 
 def generate_validation_report(validator):
     """Generate comprehensive validation report."""
@@ -436,6 +438,7 @@ def generate_validation_report(validator):
     logger.info(f"Validation report saved: {report_path}")
     return report
 
+
 if __name__ == "__main__":
     # Run tests manually
     validator = GoldenMicrogridValidator()
@@ -449,12 +452,12 @@ if __name__ == "__main__":
         # Generate report
         report = generate_validation_report(validator)
 
-        print("\n" + "=" * 80)
-        print("GOLDEN MICROGRID VALIDATION COMPLETE")
-        print(
+        logger.info("\n" + "=" * 80)
+        logger.info("GOLDEN MICROGRID VALIDATION COMPLETE")
+        logger.info(
             f"Tests passed: {report['validation_summary']['passed_tests']}/{report['validation_summary']['total_tests']}"
         )
-        print("=" * 80)
+        logger.info("=" * 80)
 
     except Exception as e:
         logger.error(f"Validation failed: {e}")

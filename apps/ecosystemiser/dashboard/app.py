@@ -45,6 +45,6 @@ proper separation between the presentation layer (dashboard) and the core busine
 st.info("💡 **Tip:** The isolated dashboard can load any climate data JSON/CSV file from the results directory.")
 
 if st.button("Open app_isolated.py documentation"):
-    with open("app_isolated.py", "r") as f:
+    with open("app_isolated.py") as f:
         lines = f.readlines()[:30]
     st.code("".join(lines), language="python")

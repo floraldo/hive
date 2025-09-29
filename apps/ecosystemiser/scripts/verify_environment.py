@@ -7,15 +7,14 @@ ecosystem and all components are functioning correctly.
 """
 
 import importlib
-import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 class EnvironmentVerifier:
     """Verifies EcoSystemiser environment and Hive integration."""
@@ -54,7 +53,7 @@ class EnvironmentVerifier:
         all_good = True
         for package, description in hive_packages:
             try:
-                mod = importlib.import_module(f"packages.{package}.src.{package}")
+                importlib.import_module(f"packages.{package}.src.{package}")
                 self.results.append(f"[OK] {description} accessible ({package})")
             except ImportError:
                 self.warnings.append(f"[WARN] {description} not found ({package})")
@@ -97,7 +96,7 @@ class EnvironmentVerifier:
                 get_logger,
             )
 
-            logger = get_logger(__name__)
+            get_logger(__name__)
 
             if USING_HIVE_LOGGING:
                 self.results.append("[OK] Using Hive centralized logging")
@@ -110,7 +109,7 @@ class EnvironmentVerifier:
 
             direct_logging_count = 0
             for py_file in py_files[:20]:  # Sample first 20 files
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
                     if "import logging" in content and "hive_logging_adapter" not in content:
                         direct_logging_count += 1
@@ -130,8 +129,8 @@ class EnvironmentVerifier:
         try:
             from ecosystemiser.hive_env import get_app_config, get_app_settings
 
-            config = get_app_config()
-            settings = get_app_settings()
+            get_app_config()
+            get_app_settings()
 
             self.results.append("[OK] Configuration service accessible")
 
@@ -188,7 +187,7 @@ class EnvironmentVerifier:
         relative_imports = []
         for py_file in py_files:
             try:
-                with open(py_file, "r", encoding="utf-8") as f:
+                with open(py_file, encoding="utf-8") as f:
                     content = f.read()
 
                 tree = ast.parse(content)
@@ -199,7 +198,7 @@ class EnvironmentVerifier:
                             module_parts = py_file.relative_to(src_dir).parts[:-1]
                             if node.level > len(module_parts):
                                 relative_imports.append(str(py_file.relative_to(self.ecosystemiser_dir)))
-            except (SyntaxError, ValueError) as parse_error:
+            except (SyntaxError, ValueError):
                 # Skip files that can't be parsed
                 continue
 
@@ -262,16 +261,14 @@ class EnvironmentVerifier:
             ("Test Environment", self.check_test_environment),
         ]
 
-        all_passed = True
         for name, check_func in checks:
             logger.info(f"\nChecking {name}...")
             try:
                 result = check_func()
                 if not result:
-                    all_passed = False
+                    pass
             except Exception as e:
                 self.errors.append(f"[ERROR] {name} check crashed: {e}")
-                all_passed = False
 
         # Print summary
         logger.info("\n" + "=" * 60)
@@ -308,6 +305,7 @@ class EnvironmentVerifier:
             logger.error("  Please fix the errors above before proceeding")
             return False
 
+
 def main() -> None:
     """Main execution."""
     verifier = EnvironmentVerifier()
@@ -315,6 +313,7 @@ def main() -> None:
 
     # Exit code indicates success/failure
     sys.exit(0 if success else 1)
+
 
 if __name__ == "__main__":
     main()

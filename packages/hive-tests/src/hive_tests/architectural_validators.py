@@ -124,7 +124,7 @@ def validate_no_syspath_hacks(project_root: Path) -> Tuple[bool, List[str]]:
                             violations.append(str(py_file.relative_to(project_root)))
                             break
 
-            except Exception as e:
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -318,7 +318,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                                         )
                                         break
 
-                    except Exception as e:
+                    except Exception:
                         continue
 
     # Check apps for direct app-to-app dependencies
@@ -396,7 +396,7 @@ def validate_dependency_direction(project_root: Path) -> Tuple[bool, List[str]]:
                                                 )
                                                 break
 
-                    except Exception as e:
+                    except Exception:
                         continue
 
     return len(violations) == 0, violations
@@ -489,7 +489,7 @@ def validate_service_layer_discipline(project_root: Path) -> Tuple[bool, List[st
                                                         f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}"
                                                     )
 
-                            except Exception as e:
+                            except Exception:
                                 continue
 
     return len(violations) == 0, violations
@@ -545,7 +545,7 @@ def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]
                                         f"Daemon '{daemon_name}' in {app_name} missing command specification"
                                     )
 
-                    except Exception as e:
+                    except Exception:
                         pass
 
                 # Check for forbidden communication patterns
@@ -572,7 +572,7 @@ def validate_communication_patterns(project_root: Path) -> Tuple[bool, List[str]
                                     f"Forbidden IPC pattern '{pattern}' found: {py_file.relative_to(project_root)}"
                                 )
 
-                    except Exception as e:
+                    except Exception:
                         continue
 
     return len(violations) == 0, violations
@@ -642,7 +642,7 @@ def validate_interface_contracts(project_root: Path) -> Tuple[bool, List[str]]:
                                 f"Async function '{node.name}' should end with '_async': {py_file.relative_to(project_root)}:{node.lineno}"
                             )
 
-            except Exception as e:
+            except Exception:
                 # Skip files that can't be parsed
                 continue
 
@@ -696,7 +696,7 @@ def validate_error_handling_standards(project_root: Path) -> Tuple[bool, List[st
                                 f"Bare except without type: {py_file.relative_to(project_root)}:{node.lineno}"
                             )
 
-            except Exception as e:
+            except Exception:
                 # Skip files that can't be parsed
                 continue
 
@@ -781,7 +781,7 @@ def validate_no_hardcoded_env_values(project_root: Path) -> Tuple[bool, List[str
                             f"- Found: {match.group()}"
                         )
 
-            except Exception as e:
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -915,7 +915,7 @@ def validate_logging_standards(project_root: Path) -> Tuple[bool, List[str]]:
                                     f"Direct 'import logging' found (use hive_logging): {py_file.relative_to(project_root)}:{line_num}"
                                 )
 
-            except Exception as e:
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -1378,7 +1378,7 @@ def validate_no_global_state_access(project_root: Path) -> Tuple[bool, List[str]
                         ):
                             violations.append(f"Singleton class pattern found: {rel_path}:{line_num}")
 
-            except Exception as e:
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -1652,6 +1652,121 @@ def validate_test_file_quality(project_root: Path) -> Tuple[bool, List[str]]:
     return len(violations) == 0, violations
 
 
+def validate_pyproject_dependency_usage(project_root: Path) -> Tuple[bool, List[str]]:
+    """
+    Golden Rule 19: PyProject Dependency Usage Validation
+
+    Validate that all packages declared in pyproject.toml dependencies
+    are actually imported and used in the application code.
+
+    This prevents dependency bloat and ensures clean package management.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    violations = []
+
+    # Check all apps and packages
+    for base_dir_name in ["apps", "packages"]:
+        base_dir = project_root / base_dir_name
+        if not base_dir.exists():
+            continue
+
+        for component_dir in base_dir.iterdir():
+            if not component_dir.is_dir() or component_dir.name.startswith("."):
+                continue
+
+            pyproject_file = component_dir / "pyproject.toml"
+            if not pyproject_file.exists():
+                continue
+
+            try:
+                # Parse pyproject.toml
+                config = toml.load(pyproject_file)
+                dependencies = set()
+
+                # Extract dependencies from [tool.poetry.dependencies]
+                if "tool" in config and "poetry" in config["tool"]:
+                    if "dependencies" in config["tool"]["poetry"]:
+                        for dep_name, dep_config in config["tool"]["poetry"]["dependencies"].items():
+                            if dep_name != "python":  # Skip python version
+                                # Handle both string and dict dependency formats
+                                if isinstance(dep_config, dict):
+                                    # Local path dependencies
+                                    if "path" in dep_config:
+                                        # Extract package name from path
+                                        dep_name = dep_name.replace("-", "_")
+                                dependencies.add(dep_name)
+
+                # Find all Python source files
+                src_dir = component_dir / "src"
+                python_files = []
+
+                if src_dir.exists():
+                    python_files = list(src_dir.rglob("*.py"))
+                else:
+                    # Fallback to checking the component directory
+                    python_files = list(component_dir.rglob("*.py"))
+
+                # Extract all imports from Python files
+                imported_packages = set()
+                for py_file in python_files:
+                    try:
+                        with open(py_file, "r", encoding="utf-8", errors="ignore") as f:
+                            content = f.read()
+
+                        # Parse AST to find imports
+                        tree = ast.parse(content, filename=str(py_file))
+
+                        for node in ast.walk(tree):
+                            if isinstance(node, ast.Import):
+                                for alias in node.names:
+                                    # Get top-level package name
+                                    package_name = alias.name.split(".")[0]
+                                    imported_packages.add(package_name)
+
+                            elif isinstance(node, ast.ImportFrom):
+                                if node.module:
+                                    # Get top-level package name
+                                    package_name = node.module.split(".")[0]
+                                    imported_packages.add(package_name)
+
+                    except (SyntaxError, UnicodeDecodeError, PermissionError):
+                        # Skip files with syntax errors or encoding issues
+                        continue
+                    except Exception as e:
+                        logger.warning(f"Error analyzing {py_file}: {e}")
+                        continue
+
+                # Check for unused dependencies
+                unused_deps = dependencies - imported_packages
+
+                # Filter out common exceptions that might not be directly imported
+                exceptions = {
+                    "click",  # CLI tool, might be used via decorators
+                    "uvicorn",  # Server runner
+                    "pytest",  # Test framework
+                    "black",  # Code formatter
+                    "mypy",  # Type checker
+                    "ruff",  # Linter
+                    "isort",  # Import sorter
+                }
+
+                unused_deps = unused_deps - exceptions
+
+                # Report violations
+                component_name = f"{base_dir_name}/{component_dir.name}"
+                for unused_dep in unused_deps:
+                    violations.append(
+                        f"{component_name}: Unused dependency '{unused_dep}' declared in pyproject.toml but not imported in code"
+                    )
+
+            except Exception as e:
+                logger.warning(f"Error validating {component_dir}/pyproject.toml: {e}")
+
+    return len(violations) == 0, violations
+
+
 def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
     """
     Run all Golden Rules validation.
@@ -1670,24 +1785,25 @@ def run_all_golden_rules(project_root: Path) -> Tuple[bool, dict]:
         ("Golden Rule 8: Error Handling Standards", validate_error_handling_standards),
         ("Golden Rule 9: Logging Standards", validate_logging_standards),
         ("Golden Rule 10: Service Layer Discipline", validate_service_layer_discipline),
-        ("Golden Rule 10: Inherit → Extend Pattern", validate_inherit_extend_pattern),
-        ("Golden Rule 11: Communication Patterns", validate_communication_patterns),
+        ("Golden Rule 11: Inherit to Extend Pattern", validate_inherit_extend_pattern),
+        ("Golden Rule 12: Communication Patterns", validate_communication_patterns),
         (
-            "Golden Rule 12: Package Naming Consistency",
+            "Golden Rule 13: Package Naming Consistency",
             validate_package_naming_consistency,
         ),
         (
-            "Golden Rule 13: Development Tools Consistency",
+            "Golden Rule 14: Development Tools Consistency",
             validate_development_tools_consistency,
         ),
         (
-            "Golden Rule 14: Async Pattern Consistency",
+            "Golden Rule 15: Async Pattern Consistency",
             validate_async_pattern_consistency,
         ),
-        ("Golden Rule 15: CLI Pattern Consistency", validate_cli_pattern_consistency),
-        ("Golden Rule 16: No Global State Access", validate_no_global_state_access),
-        ("Golden Rule 17: Test-to-Source File Mapping", validate_test_coverage_mapping),
-        ("Golden Rule 18: Test File Quality Standards", validate_test_file_quality),
+        ("Golden Rule 16: CLI Pattern Consistency", validate_cli_pattern_consistency),
+        ("Golden Rule 17: No Global State Access", validate_no_global_state_access),
+        ("Golden Rule 18: Test-to-Source File Mapping", validate_test_coverage_mapping),
+        ("Golden Rule 19: Test File Quality Standards", validate_test_file_quality),
+        ("Golden Rule 20: PyProject Dependency Usage", validate_pyproject_dependency_usage),
     ]
 
     for rule_name, validator_func in golden_rules:

@@ -6,15 +6,15 @@ from typing import Any, Dict, List
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    DemandTechnicalParams
+    DemandTechnicalParams,
     FidelityLevel
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseDemandOptimization
+    BaseDemandOptimization,
     BaseDemandPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component
+    Component,
     ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
@@ -322,8 +322,8 @@ class WaterDemand(Component):
 
         # Add as flow
         self.flows["sink"]["Q_in"] = {
-            "type": "water"
-            "value": self.Q_in
+            "type": "water",
+            "value": self.Q_in,
             "profile": self.profile
         }
 

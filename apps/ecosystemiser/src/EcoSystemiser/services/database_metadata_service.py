@@ -1,10 +1,9 @@
 """Database Metadata Service for simulation index management."""
 
 import json
-import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from hive_db import get_sqlite_connection, sqlite_transaction
 from hive_logging import get_logger
@@ -15,7 +14,7 @@ logger = get_logger(__name__)
 class DatabaseMetadataService:
     """Service for managing simulation metadata in SQLite database."""
 
-    def __init__(self, db_path: Optional[str] = None) -> None:
+    def __init__(self, db_path: str | None = None) -> None:
         """Initialize database metadata service.
 
         Args:
@@ -81,7 +80,7 @@ class DatabaseMetadataService:
             logger.error(f"Failed to initialize database schema: {e}")
             raise
 
-    def log_simulation_run(self, run_summary: Dict[str, Any]) -> bool:
+    def log_simulation_run(self, run_summary: dict[str, Any]) -> bool:
         """Log a simulation run to the database.
 
         Args:
@@ -100,7 +99,6 @@ class DatabaseMetadataService:
                 "timestamp": run_summary.get("timestamp"),
                 "solver_type": run_summary.get("solver_type", "unknown"),
                 "simulation_status": run_summary.get("simulation_status", "completed"),
-
                 # KPIs
                 "total_cost": run_summary.get("total_cost"),
                 "total_co2": run_summary.get("total_co2"),
@@ -110,23 +108,38 @@ class DatabaseMetadataService:
                 "total_generation_kwh": run_summary.get("total_generation_kwh"),
                 "total_demand_kwh": run_summary.get("total_demand_kwh"),
                 "net_grid_usage_kwh": run_summary.get("net_grid_usage_kwh"),
-
                 # File paths
                 "results_path": run_summary.get("results_path"),
                 "flows_path": run_summary.get("flows_path"),
                 "components_path": run_summary.get("components_path"),
-
                 # Metadata
-                "metadata_json": json.dumps({
-                    k: v for k, v in run_summary.items()
-                    if k not in [
-                        "run_id", "study_id", "system_id", "timesteps", "timestamp",
-                        "solver_type", "simulation_status", "total_cost", "total_co2",
-                        "self_consumption_rate", "self_sufficiency_rate", "renewable_fraction",
-                        "total_generation_kwh", "total_demand_kwh", "net_grid_usage_kwh",
-                        "results_path", "flows_path", "components_path"
-                    ]
-                }),
+                "metadata_json": json.dumps(
+                    {
+                        k: v
+                        for k, v in run_summary.items()
+                        if k
+                        not in [
+                            "run_id",
+                            "study_id",
+                            "system_id",
+                            "timesteps",
+                            "timestamp",
+                            "solver_type",
+                            "simulation_status",
+                            "total_cost",
+                            "total_co2",
+                            "self_consumption_rate",
+                            "self_sufficiency_rate",
+                            "renewable_fraction",
+                            "total_generation_kwh",
+                            "total_demand_kwh",
+                            "net_grid_usage_kwh",
+                            "results_path",
+                            "flows_path",
+                            "components_path",
+                        ]
+                    }
+                ),
                 "updated_at": datetime.now().isoformat(),
             }
 
@@ -158,35 +171,41 @@ class DatabaseMetadataService:
         try:
             with sqlite_transaction(db_path=self.db_path) as conn:
                 # Insert or update study
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT OR IGNORE INTO studies (study_id, study_name)
                     VALUES (?, ?)
-                """, (study_id, study_id))
+                """,
+                    (study_id, study_id),
+                )
 
                 # Update run count
-                conn.execute("""
+                conn.execute(
+                    """
                     UPDATE studies
                     SET run_count = (
                         SELECT COUNT(*) FROM simulation_runs
                         WHERE study_id = ?
                     )
                     WHERE study_id = ?
-                """, (study_id, study_id))
+                """,
+                    (study_id, study_id),
+                )
 
         except Exception as e:
             logger.warning(f"Failed to update study run count: {e}")
 
     def query_simulation_runs(
         self,
-        study_id: Optional[str] = None,
-        solver_type: Optional[str] = None,
-        min_cost: Optional[float] = None,
-        max_cost: Optional[float] = None,
-        min_renewable_fraction: Optional[float] = None,
-        limit: Optional[int] = None,
+        study_id: str | None = None,
+        solver_type: str | None = None,
+        min_cost: float | None = None,
+        max_cost: float | None = None,
+        min_renewable_fraction: float | None = None,
+        limit: int | None = None,
         order_by: str = "timestamp",
         order_desc: bool = True,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Query simulation runs with optional filters.
 
         Args:
@@ -267,7 +286,7 @@ class DatabaseMetadataService:
             logger.error(f"Failed to query simulation runs: {e}")
             return []
 
-    def get_study_summary(self, study_id: str) -> Dict[str, Any]:
+    def get_study_summary(self, study_id: str) -> dict[str, Any]:
         """Get summary statistics for a study.
 
         Args:
@@ -280,13 +299,17 @@ class DatabaseMetadataService:
             conn = get_sqlite_connection(db_path=self.db_path)
 
             # Get study info
-            study_cursor = conn.execute("""
+            study_cursor = conn.execute(
+                """
                 SELECT * FROM studies WHERE study_id = ?
-            """, (study_id,))
+            """,
+                (study_id,),
+            )
             study_row = study_cursor.fetchone()
 
             # Get run statistics
-            stats_cursor = conn.execute("""
+            stats_cursor = conn.execute(
+                """
                 SELECT
                     COUNT(*) as run_count,
                     AVG(total_cost) as avg_cost,
@@ -298,7 +321,9 @@ class DatabaseMetadataService:
                     MAX(timestamp) as last_run
                 FROM simulation_runs
                 WHERE study_id = ?
-            """, (study_id,))
+            """,
+                (study_id,),
+            )
             stats_row = stats_cursor.fetchone()
 
             conn.close()
@@ -315,7 +340,7 @@ class DatabaseMetadataService:
             logger.error(f"Failed to get study summary: {e}")
             return {"study_id": study_id, "error": str(e)}
 
-    def get_database_stats(self) -> Dict[str, Any]:
+    def get_database_stats(self) -> dict[str, Any]:
         """Get overall database statistics.
 
         Returns:
@@ -335,15 +360,18 @@ class DatabaseMetadataService:
             stats["total_studies"] = cursor.fetchone()[0]
 
             # Solver type distribution
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT solver_type, COUNT(*) as count
                 FROM simulation_runs
                 GROUP BY solver_type
-            """)
+            """
+            )
             stats["solver_distribution"] = {row[0]: row[1] for row in cursor.fetchall()}
 
             # Performance ranges
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT
                     MIN(total_cost) as min_cost,
                     MAX(total_cost) as max_cost,
@@ -353,7 +381,8 @@ class DatabaseMetadataService:
                     AVG(renewable_fraction) as avg_renewable
                 FROM simulation_runs
                 WHERE total_cost IS NOT NULL AND renewable_fraction IS NOT NULL
-            """)
+            """
+            )
             performance_row = cursor.fetchone()
             if performance_row:
                 stats["performance_ranges"] = dict(performance_row)
@@ -380,9 +409,12 @@ class DatabaseMetadataService:
         """
         try:
             with sqlite_transaction(db_path=self.db_path) as conn:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     DELETE FROM simulation_runs WHERE run_id = ?
-                """, (run_id,))
+                """,
+                    (run_id,),
+                )
 
                 if cursor.rowcount > 0:
                     logger.info(f"Deleted simulation run: {run_id}")

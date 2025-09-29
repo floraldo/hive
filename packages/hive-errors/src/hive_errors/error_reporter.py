@@ -5,12 +5,9 @@ Provides reusable patterns for error reporting and metrics
 that can be extended for any system.
 """
 
-from abc import ABC, abstractmethod
-from collections import defaultdict
+from abc import ABC
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
-from hive_logging import get_logger
 
 from .base_exceptions import BaseError
 
@@ -93,7 +90,7 @@ class BaseErrorReporter(ABC):
         """Get error statistics"""
         return {
             "total_errors": self.error_counts["total"],
-            "errors_by_type": {,
+            "errors_by_type": {
                 k: v for k, v in self.error_counts.items() if not k.startswith("component_") and k != "total"
             },
             "errors_by_component": {

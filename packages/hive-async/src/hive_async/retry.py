@@ -1,18 +1,19 @@
 """Async retry utilities with configurable strategies."""
 
-import asyncio
+from __future__ import annotations
+
 from dataclasses import dataclass
-from typing import Any, Callable, ListType
+from typing import Any, Callable
 
 from hive_logging import get_logger
 from tenacity import (
-    AsyncRetrying
-    RetryError
-    after_log
-    before_sleep_log
-    retry_if_exception_type
-    stop_after_attempt
-    wait_exponential
+    AsyncRetrying,
+    RetryError,
+    after_log,
+    before_sleep_log,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
 )
 
 logger = get_logger(__name__)
@@ -21,8 +22,6 @@ logger = get_logger(__name__)
 @dataclass
 class AsyncRetryConfig:
     """Configuration for async retry behavior."""
-from __future__ import annotations
-
 
     max_attempts: int = 3
     min_wait: float = 1.0
@@ -69,11 +68,11 @@ async def run_async_with_retry_async(func: Callable, config: AsyncRetryConfig | 
 
     # Build retry strategy
     retry_strategy = AsyncRetrying(
-        stop=stop_after_attempt(config.max_attempts)
-        wait=wait_exponential(multiplier=config.multiplier, min=config.min_wait, max=config.max_wait)
-        retry=retry_condition
-        before_sleep=(before_sleep_log(logger, "WARNING") if config.log_before_sleep else None)
-        after=after_log(logger, "INFO") if config.log_after_attempt else None
+        stop=stop_after_attempt(config.max_attempts),
+        wait=wait_exponential(multiplier=config.multiplier, min=config.min_wait, max=config.max_wait),
+        retry=retry_condition,
+        before_sleep=(before_sleep_log(logger, "WARNING") if config.log_before_sleep else None),
+        after=after_log(logger, "INFO") if config.log_after_attempt else None,
     )
 
     try:
@@ -108,18 +107,15 @@ def create_retry_decorator(config: AsyncRetryConfig | None = None) -> None:
 # Convenience decorators for common scenarios
 retry_on_connection_error = create_retry_decorator(
     AsyncRetryConfig(
-        max_attempts=5
-        min_wait=0.5
-        max_wait=30.0
-        retry_exceptions=(ConnectionError, OSError, TimeoutError)
+        max_attempts=5, min_wait=0.5, max_wait=30.0, retry_exceptions=(ConnectionError, OSError, TimeoutError)
     )
 )
 
 retry_on_http_error = create_retry_decorator(
     AsyncRetryConfig(
-        max_attempts=3
-        min_wait=1.0
-        max_wait=10.0
+        max_attempts=3,
+        min_wait=1.0,
+        max_wait=10.0,
         retry_exceptions=(Exception,),  # Will be refined based on HTTP client used
     )
 )

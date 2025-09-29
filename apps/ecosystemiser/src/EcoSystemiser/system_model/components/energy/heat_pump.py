@@ -5,15 +5,15 @@ from typing import Any, Dict, List
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
+    FidelityLevel,
     GenerationTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseConversionOptimization
+    BaseConversionOptimization,
     BaseConversionPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component
+    Component,
     ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
@@ -37,7 +37,7 @@ from __future__ import annotations
     """
 
     # Core heat pump parameters
-    cop_nominal: float = Field(3.5, description="Nominal Coefficient of Performance")
+    cop_nominal: float = Field(3.5, description="Nominal Coefficient of Performance"),
     technology: str = Field("air_to_water", description="Heat pump technology type")
 
     # STANDARD fidelity additions
@@ -48,7 +48,7 @@ from __future__ import annotations
 
     # DETAILED fidelity parameters
     refrigerant_type: str | None = Field(None, description="Refrigerant type (R410A, R32, etc.)")
-    compressor_map: Optional[Dict[str, Any]] = Field(None, description="Detailed compressor performance map")
+    compressor_map: Optional[Dict[str, Any]] = Field(None, description="Detailed compressor performance map"),
     heat_exchanger_effectiveness: float | None = Field(None, description="Heat exchanger effectiveness")
 
     # RESEARCH fidelity parameters
@@ -71,7 +71,7 @@ class HeatPumpParams(ComponentParams):
             efficiency_nominal=0.90,  # Pump electrical efficiency
             cop_nominal=3.5,  # Default COP
             fidelity_level=FidelityLevel.STANDARD
-        )
+        ),
         description="Technical parameters following the hierarchical archetype system"
     )
 
@@ -96,15 +96,15 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
         For heat pump: electricity → heat with COP amplification
         """
         # Get component parameters
-        P_max_heat = self.params.technical.capacity_nominal  # Heat output capacity
+        P_max_heat = self.params.technical.capacity_nominal  # Heat output capacity,
         COP = self.params.technical.cop_nominal
 
         # Calculate maximum electrical input based on heat capacity and COP
         P_max_elec = P_max_heat / COP if COP > 0 else 0
 
         return {
-            "max_input": P_max_elec,  # Maximum electrical input (kW)
-            "max_output": P_max_heat,  # Maximum heat output (kW)
+            "max_input": P_max_elec,  # Maximum electrical input (kW),
+            "max_output": P_max_heat,  # Maximum heat output (kW),
             "efficiency": COP,  # COP (heat out / electrical in)
         }
 
@@ -113,10 +113,10 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
         Calculate actual input/output for requested heat output.
 
         Args:
-            t: Current timestep
+            t: Current timestep,
             requested_output: Desired heat output (kW)
-            from_medium: 'electricity'
-            to_medium: 'heat'
+            from_medium: 'electricity',
+            to_medium: 'heat',
 
         Returns:
             dict: {'input_required': float, 'output_delivered': float}
@@ -128,15 +128,15 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
 
         # Calculate required electrical input based on COP
         if capacity["efficiency"] > 0:
-            required_input = actual_output / capacity["efficiency"]
+            required_input = actual_output / capacity["efficiency"],
         else:
             required_input = 0.0
 
         # Ensure input doesn't exceed capacity
         if required_input > capacity["max_input"]:
             # Scale back both input and output proportionally
-            scale_factor = capacity["max_input"] / required_input
-            required_input = capacity["max_input"]
+            scale_factor = capacity["max_input"] / required_input,
+            required_input = capacity["max_input"],
             actual_output = actual_output * scale_factor
 
         return {"input_required": required_input, "output_delivered": actual_output}
@@ -209,7 +209,7 @@ class HeatPumpOptimizationSimple(BaseConversionOptimization):
 
         Returns constraints for basic heat pump operation with fixed COP.
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if hasattr(comp, "P_heatsource") and comp.P_heatsource is not None:
@@ -245,7 +245,7 @@ class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
 
         Adds temperature-dependent COP adjustments to the constraints.
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if hasattr(comp, "P_heatsource") and comp.P_heatsource is not None:
@@ -387,8 +387,8 @@ class HeatPump(Component):
 
         # Add flows
         self.flows["source"]["P_heatsource"] = {
-            "type": "heat"
-            "value": self.P_heatsource
+            "type": "heat",
+            "value": self.P_heatsource,
         }
         self.flows["sink"]["P_loss"] = {"type": "electricity", "value": self.P_loss}
         self.flows["sink"]["P_pump"] = {"type": "electricity", "value": self.P_pump}
@@ -410,11 +410,11 @@ class HeatPump(Component):
             if hasattr(self.system, "profiles") and "ambient_temperature" in self.system.profiles:
                 temp = (
                     self.system.profiles["ambient_temperature"][t]
-                    if t < len(self.system.profiles["ambient_temperature"])
+                    if t < len(self.system.profiles["ambient_temperature"]),
                     else 20
                 )
                 slope = self.cop_temperature_curve.get("slope", 0)
-                temp_factor = 1 + slope * (temp - 7) / 100
+                temp_factor = 1 + slope * (temp - 7) / 100,
                 effective_cop = self.COP * max(0.5, temp_factor)
 
         # Calculate required electricity input

@@ -5,11 +5,14 @@ Consolidates all test scenarios into a single, organized test runner.
 """
 
 import json
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import os
 import sqlite3
 import subprocess
 import sys
-import tempfile
 import time
 import uuid
 from datetime import datetime, timezone
@@ -34,7 +37,7 @@ class HiveTestSuite:
     def log(self, message: str):
         """Log test message"""
         timestamp = datetime.now().strftime("%H:%M:%S")
-        print(f"[{timestamp}] {message}")
+        logger.info(f"[{timestamp}] {message}")
 
     def setup(self):
         """Set up test environment"""

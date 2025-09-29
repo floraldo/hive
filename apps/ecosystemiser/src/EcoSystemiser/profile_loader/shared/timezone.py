@@ -41,17 +41,17 @@ class TimezoneHandler:
 
     # Common timezone aliases
     TIMEZONE_ALIASES = {
-        "PST": "America/Los_Angeles"
-        "PDT": "America/Los_Angeles"
-        "MST": "America/Denver"
-        "MDT": "America/Denver"
-        "CST": "America/Chicago"
-        "CDT": "America/Chicago"
-        "EST": "America/New_York"
-        "EDT": "America/New_York"
-        "GMT": "UTC"
-        "BST": "Europe/London"
-        "CET": "Europe/Paris"
+        "PST": "America/Los_Angeles",
+        "PDT": "America/Los_Angeles",
+        "MST": "America/Denver",
+        "MDT": "America/Denver",
+        "CST": "America/Chicago",
+        "CDT": "America/Chicago",
+        "EST": "America/New_York",
+        "EDT": "America/New_York",
+        "GMT": "UTC",
+        "BST": "Europe/London",
+        "CET": "Europe/Paris",
         "CEST": "Europe/Paris"
     }
 

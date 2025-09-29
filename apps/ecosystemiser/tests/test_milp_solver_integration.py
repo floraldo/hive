@@ -5,7 +5,6 @@ import sys
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 eco_path = Path(__file__).parent.parent / "src"
 
@@ -15,6 +14,7 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 def test_milp_solver_produces_valid_flows():
     """Integration test: MILP solver must produce non-zero energy flows.
@@ -63,10 +63,11 @@ def test_milp_solver_produces_valid_flows():
         }
     else:
         import yaml
-        with open(config_path, 'r') as f:
+
+        with open(config_path) as f:
             config = yaml.safe_load(f)
             # Limit to 168 hours for testing
-            config['timesteps'] = 168
+            config["timesteps"] = 168
 
     # Step 2: Create system and run MILP solver
     logger.info("Creating system from configuration")
@@ -79,8 +80,7 @@ def test_milp_solver_produces_valid_flows():
     result = solver.solve(system)
 
     # Step 3: Check solver status
-    assert result['status'] in ['optimal', 'optimal_inaccurate'], \
-        f"MILP solver failed with status: {result['status']}"
+    assert result["status"] in ["optimal", "optimal_inaccurate"], f"MILP solver failed with status: {result['status']}"
 
     logger.info(f"MILP solver status: {result['status']}")
     logger.info(f"Objective value: {result.get('objective_value', 'N/A')}")
@@ -89,10 +89,7 @@ def test_milp_solver_produces_valid_flows():
     results_io = ResultsIO()
     output_dir = Path(__file__).parent / "test_output"
     output_path = results_io.save_results(
-        system=system,
-        simulation_id="milp_validation_test",
-        output_dir=output_dir,
-        format="json"
+        system=system, simulation_id="milp_validation_test", output_dir=output_dir, format="json"
     )
 
     logger.info(f"Results saved to: {output_path}")
@@ -101,16 +98,16 @@ def test_milp_solver_produces_valid_flows():
     results = results_io.load_results(output_path)
 
     # Check that we have flows
-    assert 'flows' in results, "No flows found in results"
-    assert len(results['flows']) > 0, "Empty flows dictionary"
+    assert "flows" in results, "No flows found in results"
+    assert len(results["flows"]) > 0, "Empty flows dictionary"
 
     # Step 6: Validate critical flows are non-zero
     critical_flows_found = False
     total_energy_flow = 0.0
 
-    for flow_name, flow_data in results['flows'].items():
-        if 'value' in flow_data and flow_data['value']:
-            flow_values = np.array(flow_data['value'])
+    for flow_name, flow_data in results["flows"].items():
+        if "value" in flow_data and flow_data["value"]:
+            flow_values = np.array(flow_data["value"])
             flow_sum = np.sum(np.abs(flow_values))
 
             if flow_sum > 1e-6:  # Non-zero threshold
@@ -119,7 +116,7 @@ def test_milp_solver_produces_valid_flows():
                 critical_flows_found = True
 
                 # Check specific critical flows
-                if 'grid' in flow_name.lower() or 'battery' in flow_name.lower():
+                if "grid" in flow_name.lower() or "battery" in flow_name.lower():
                     assert flow_sum > 0, f"Critical flow {flow_name} is zero!"
 
     # The ultimate validation: Did MILP produce non-zero flows?
@@ -132,14 +129,14 @@ def test_milp_solver_produces_valid_flows():
     total_generation = 0.0
     total_consumption = 0.0
 
-    for flow_name, flow_data in results['flows'].items():
-        if 'value' in flow_data and flow_data['value']:
-            flow_sum = np.sum(flow_data['value'])
+    for flow_name, flow_data in results["flows"].items():
+        if "value" in flow_data and flow_data["value"]:
+            flow_sum = np.sum(flow_data["value"])
 
             # Classify flows
-            if 'generation' in flow_name.lower() or 'solar' in flow_name.lower():
+            if "generation" in flow_name.lower() or "solar" in flow_name.lower():
                 total_generation += flow_sum
-            elif 'demand' in flow_name.lower() or 'consumption' in flow_name.lower():
+            elif "demand" in flow_name.lower() or "consumption" in flow_name.lower():
                 total_consumption += flow_sum
 
     # Log energy balance for debugging
@@ -148,10 +145,12 @@ def test_milp_solver_produces_valid_flows():
 
     # Clean up test output
     import shutil
+
     if output_dir.exists():
         shutil.rmtree(output_dir)
 
     return True
+
 
 def test_milp_vs_rule_based_comparison():
     """Compare MILP and rule-based solvers on the same system."""
@@ -196,19 +195,19 @@ def test_milp_vs_rule_based_comparison():
     result_milp = solver_milp.solve(system_milp)
 
     # Both should succeed
-    assert result_rule['status'] == 'optimal', "Rule-based solver failed"
-    assert result_milp['status'] in ['optimal', 'optimal_inaccurate'], "MILP solver failed"
+    assert result_rule["status"] == "optimal", "Rule-based solver failed"
+    assert result_milp["status"] in ["optimal", "optimal_inaccurate"], "MILP solver failed"
 
     # Extract total flows
     def get_total_flow(system):
         total = 0.0
         for flow_data in system.flows.values():
-            if 'value' in flow_data:
-                if hasattr(flow_data['value'], 'value'):  # CVXPY variable
-                    if flow_data['value'].value is not None:
-                        total += np.sum(np.abs(flow_data['value'].value))
-                elif isinstance(flow_data['value'], (list, np.ndarray)):
-                    total += np.sum(np.abs(flow_data['value']))
+            if "value" in flow_data:
+                if hasattr(flow_data["value"], "value"):  # CVXPY variable
+                    if flow_data["value"].value is not None:
+                        total += np.sum(np.abs(flow_data["value"].value))
+                elif isinstance(flow_data["value"], (list, np.ndarray)):
+                    total += np.sum(np.abs(flow_data["value"]))
         return total
 
     total_flow_rule = get_total_flow(system_rule)
@@ -229,23 +228,25 @@ def test_milp_vs_rule_based_comparison():
     logger.info("SUCCESS: Both solvers produce valid, comparable results")
     return True
 
+
 if __name__ == "__main__":
     # Run the critical test
     try:
         success = test_milp_solver_produces_valid_flows()
         if success:
-            print("\n" + "="*50)
-            print("CRITICAL TEST PASSED: MILP solver produces valid flows!")
-            print("="*50)
+            logger.info("\n" + "=" * 50)
+            logger.info("CRITICAL TEST PASSED: MILP solver produces valid flows!")
+            logger.info("=" * 50)
 
             # Run comparison test
             test_milp_vs_rule_based_comparison()
-            print("COMPARISON TEST PASSED: Solvers are comparable")
+            logger.info("COMPARISON TEST PASSED: Solvers are comparable")
         else:
-            print("CRITICAL TEST FAILED: MILP solver is broken!")
+            logger.info("CRITICAL TEST FAILED: MILP solver is broken!")
             sys.exit(1)
     except Exception as e:
-        print(f"TEST FAILED: {e}")
+        logger.info(f"TEST FAILED: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)

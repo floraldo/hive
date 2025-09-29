@@ -9,6 +9,7 @@ import logging.handlers
 import os
 import sys
 from pathlib import Path
+
 # Import the JSON formatter if the library is available
 try:
     from pythonjsonlogger import jsonlogger
@@ -24,7 +25,7 @@ def setup_logging(
     level: str = "INFO",
     log_to_file: bool = False,
     log_file_path: str | None = None,
-    json_format: bool = False
+    json_format: bool = False,
 ) -> None:
     """
     Configure the root logger for an application. This should be called once at startup.

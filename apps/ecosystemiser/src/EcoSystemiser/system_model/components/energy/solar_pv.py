@@ -1,25 +1,15 @@
 """Solar PV component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import cvxpy as cp
-import numpy as np
-from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
-    GenerationTechnicalParams
-)
-from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseGenerationOptimization
-    BaseGenerationPhysics
-)
-from ecosystemiser.system_model.components.shared.component import (
-    Component
-    ComponentParams
-)
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, GenerationTechnicalParams
+from ecosystemiser.system_model.components.shared.base_classes import BaseGenerationOptimization, BaseGenerationPhysics
+from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -30,27 +20,27 @@ logger = get_logger(__name__)
 
 class SolarPVTechnicalParams(GenerationTechnicalParams):
     """Solar PV-specific technical parameters extending generation archetype.
-from __future__ import annotations
+    from __future__ import annotations
 
 
-    This model inherits from GenerationTechnicalParams and adds solar-specific
-    parameters for different fidelity levels.
+        This model inherits from GenerationTechnicalParams and adds solar-specific
+        parameters for different fidelity levels.
     """
 
     # Basic solar parameters (always used)
     technology: str = Field("monocrystalline", description="PV technology type")
 
     # STANDARD fidelity additions
-    panel_efficiency: float | None = Field(0.20, description="Panel efficiency at STC")
+    panel_efficiency: float | None = (Field(0.20, description="Panel efficiency at STC"),)
     inverter_efficiency: float | None = Field(0.98, description="DC to AC conversion efficiency")
 
     # DETAILED fidelity parameters
-    temperature_coefficient: float | None = Field(None, description="Power temperature coefficient [%/°C]")
-    degradation_rate_annual: float | None = Field(None, description="Annual degradation rate [%/year]")
+    temperature_coefficient: float | None = (Field(None, description="Power temperature coefficient [%/°C]"),)
+    degradation_rate_annual: float | None = (Field(None, description="Annual degradation rate [%/year]"),)
     soiling_factor: float | None = Field(None, description="Soiling derating factor")
 
     # RESEARCH fidelity parameters
-    spectral_model: Optional[Dict[str, Any]] = Field(None, description="Spectral irradiance model parameters")
+    spectral_model: Optional[dict[str, Any]] = (Field(None, description="Spectral irradiance model parameters"),)
     bifacial_gain: float | None = Field(None, description="Bifacial module gain factor")
 
 
@@ -65,9 +55,9 @@ class SolarPVParams(ComponentParams):
         default_factory=lambda: SolarPVTechnicalParams(
             capacity_nominal=10.0,  # Default 10 kW
             efficiency_nominal=1.0,  # Solar uses profile * capacity
-            fidelity_level=FidelityLevel.STANDARD
-        )
-        description="Technical parameters following the hierarchical archetype system"
+            fidelity_level=FidelityLevel.STANDARD,
+        ),
+        description="Technical parameters following the hierarchical archetype system",
     )
 
 
@@ -150,12 +140,12 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
 
         Returns constraints for basic solar generation without losses.
         """
-        constraints = []
+        constraints = ([],)
         comp = self.component
 
         if comp.P_out is not None and hasattr(comp, "profile"):
             # SIMPLE MODEL: Direct profile scaling
-            # P_out = profile * P_max
+            # P_out = profile * P_max,
             effective_generation = comp.profile * comp.P_max
 
             # Apply the generation constraint
@@ -178,7 +168,7 @@ class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
 
         Adds inverter efficiency to the generation constraints.
         """
-        constraints = []
+        constraints = ([],)
         comp = self.component
 
         if comp.P_out is not None and hasattr(comp, "profile"):
@@ -307,11 +297,11 @@ class SolarPV(Component):
 
         # Add as flow
         self.flows["source"]["P_out"] = {
-            "type": "electricity"
-            "value": self.P_out
-            "profile": self.profile
+            "type": "electricity",
+            "value": self.P_out,
+            "profile": self.profile,
         }
 
-    def set_constraints(self) -> List:
+    def set_constraints(self) -> list:
         """Delegate constraint creation to optimization strategy."""
         return self.optimization.set_constraints()

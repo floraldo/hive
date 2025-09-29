@@ -259,13 +259,13 @@ class ReportingService:
             Structured JSON content
         """
         json_content = {
-            "report_metadata": {
-                "title": config.title
-                "type": config.report_type
-                "generated_at": datetime.now().isoformat()
+            "report_metadata": {,
+                "title": config.title,
+                "type": config.report_type,
+                "generated_at": datetime.now().isoformat(),
                 "version": "3.0.0"
             }
-            "results": analysis_results
+            "results": analysis_results,
             "configuration": config.metadata
         }
 
@@ -370,8 +370,8 @@ class ReportingService:
 
         # Prepare comparison data
         comparison_data = {
-            "num_results": len(results_list)
-            "results": results_list
+            "num_results": len(results_list),
+            "results": results_list,
             "comparison_metrics": self._calculate_comparison_metrics(results_list)
         }
 

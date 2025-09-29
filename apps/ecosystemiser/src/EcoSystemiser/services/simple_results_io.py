@@ -3,7 +3,7 @@
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ class SimpleResultsIO:
         system,
         simulation_id: str,
         output_dir: Path,
-        metadata: Optional[Dict] = None,
+        metadata: dict | None = None,
     ) -> Path:
         """Save simulation results in simple two-file format.
 
@@ -64,7 +64,7 @@ class SimpleResultsIO:
 
         return run_dir
 
-    def load_results(self, run_dir: Path) -> Dict[str, Any]:
+    def load_results(self, run_dir: Path) -> dict[str, Any]:
         """Load results from simulation directory.
 
         Args:
@@ -83,7 +83,7 @@ class SimpleResultsIO:
         # Load summary
         summary_path = run_dir / "summary.json"
         if summary_path.exists():
-            with open(summary_path, "r") as f:
+            with open(summary_path) as f:
                 results["summary"] = json.load(f)
         else:
             raise FileNotFoundError(f"summary.json not found in {run_dir}")
@@ -130,11 +130,13 @@ class SimpleResultsIO:
 
                 # Add to data list
                 for t, val in enumerate(values):
-                    data.append({
-                        "timestep": t,
-                        "variable": f"flow.{flow_name}",
-                        "value": float(val),
-                    })
+                    data.append(
+                        {
+                            "timestep": t,
+                            "variable": f"flow.{flow_name}",
+                            "value": float(val),
+                        }
+                    )
 
         # Extract component states
         for comp_name, component in system.components.items():
@@ -152,21 +154,25 @@ class SimpleResultsIO:
                         energy_values = np.array([energy_values] * system.N)
 
                     for t, val in enumerate(energy_values):
-                        data.append({
-                            "timestep": t,
-                            "variable": f"state.{comp_name}.energy",
-                            "value": float(val),
-                        })
+                        data.append(
+                            {
+                                "timestep": t,
+                                "variable": f"state.{comp_name}.energy",
+                                "value": float(val),
+                            }
+                        )
 
             # Generation profiles
             if hasattr(component, "profile") and component.profile is not None:
                 if isinstance(component.profile, np.ndarray):
                     for t, val in enumerate(component.profile):
-                        data.append({
-                            "timestep": t,
-                            "variable": f"profile.{comp_name}",
-                            "value": float(val),
-                        })
+                        data.append(
+                            {
+                                "timestep": t,
+                                "variable": f"profile.{comp_name}",
+                                "value": float(val),
+                            }
+                        )
 
         # Create DataFrame
         df = pd.DataFrame(data)
@@ -179,12 +185,7 @@ class SimpleResultsIO:
 
         return df
 
-    def _create_summary(
-        self,
-        system,
-        timeseries_df: pd.DataFrame,
-        metadata: Optional[Dict] = None
-    ) -> Dict[str, Any]:
+    def _create_summary(self, system, timeseries_df: pd.DataFrame, metadata: dict | None = None) -> dict[str, Any]:
         """Create summary with metadata and aggregated KPIs.
 
         Args:

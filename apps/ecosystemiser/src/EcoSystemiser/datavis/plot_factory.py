@@ -15,13 +15,11 @@ logger = get_logger(__name__)
 
 class PlotFactory:
     """Factory for creating various plot types from simulation data."""
-from __future__ import annotations
-
 
     def __init__(self) -> None:
         """Initialize plot factory with default styling."""
         self.default_layout = {
-            "template": "plotly_white"
+            "template": "plotly_white",
             "font": {"size": 12}
             "margin": {"l": 60, "r": 30, "t": 60, "b": 60}
             "hovermode": "x unified"
@@ -51,9 +49,9 @@ from __future__ import annotations
                     if value > 0.01:  # Only show significant flows
                         flows_data.append(
                             {
-                                "source": flow_info["source"]
-                                "target": flow_info["target"]
-                                "value": float(value)
+                                "source": flow_info["source"],
+                                "target": flow_info["target"],
+                                "value": float(value),
                                 "label": f"{value:.1f} kW"
                             }
                         )
@@ -183,9 +181,9 @@ from __future__ import annotations
         """
         # Categorize KPIs
         categories = {
-            "Energy": ["grid_import", "grid_export", "generation", "solar"]
-            "Efficiency": ["self_consumption", "renewable_fraction"]
-            "Economic": ["capex", "opex"]
+            "Energy": ["grid_import", "grid_export", "generation", "solar"],
+            "Efficiency": ["self_consumption", "renewable_fraction"],
+            "Economic": ["capex", "opex"],
             "Environmental": ["co2"]
         }
 
@@ -336,17 +334,17 @@ from __future__ import annotations
                 yaxis=dict(range=[0, max([getattr(c, "E_max", 100) for c in storage_comps])])
                 updatemenus=[
                     {
-                        "type": "buttons"
-                        "showactive": False
+                        "type": "buttons",
+                        "showactive": False,
                         "buttons": [
                             {
-                                "label": "Play"
-                                "method": "animate"
+                                "label": "Play",
+                                "method": "animate",
                                 "args": [None, {"frame": {"duration": 100}}]
                             }
                             {
-                                "label": "Pause"
-                                "method": "animate"
+                                "label": "Pause",
+                                "method": "animate",
                                 "args": [
                                     [None]
                                     {"frame": {"duration": 0}, "mode": "immediate"}
@@ -363,17 +361,17 @@ from __future__ import annotations
                                     [f.name]
                                     {"frame": {"duration": 0}, "mode": "immediate"}
                                 ]
-                                "label": f"t={f.name}"
+                                "label": f"t={f.name}",
                                 "method": "animate"
                             }
                             for f in frames
                         ]
-                        "active": 0
-                        "y": 0
-                        "len": 0.9
-                        "x": 0.1
-                        "xanchor": "left"
-                        "y": 0
+                        "active": 0,
+                        "y": 0,
+                        "len": 0.9,
+                        "x": 0.1,
+                        "xanchor": "left",
+                        "y": 0,
                         "yanchor": "top"
                     }
                 ]
@@ -686,9 +684,9 @@ from __future__ import annotations
                     gauge={
                         "axis": {"range": [min_val, max_val]}
                         "bar": {"color": bar_color}
-                        "threshold": {
+                        "threshold": {,
                             "line": {"color": "black", "width": 2}
-                            "thickness": 0.75
+                            "thickness": 0.75,
                             "value": threshold
                         }
                     }
@@ -726,9 +724,9 @@ from __future__ import annotations
 
         # Create status indicator
         status_color = {
-            "optimal": "green"
-            "feasible": "yellow"
-            "infeasible": "red"
+            "optimal": "green",
+            "feasible": "yellow",
+            "infeasible": "red",
             "unknown": "gray"
         }.get(status, "gray")
 
@@ -1109,14 +1107,14 @@ from __future__ import annotations
                 gauge={
                     "axis": {"range": [None, max(var_95, cvar_95) * 1.2]}
                     "bar": {"color": "darkred"}
-                    "steps": [
+                    "steps": [,
                         {"range": [0, mean_val], "color": "lightgray"}
                         {"range": [mean_val, var_95], "color": "yellow"}
                         {"range": [var_95, max(var_95, cvar_95) * 1.2], "color": "red"}
                     ]
-                    "threshold": {
+                    "threshold": {,
                         "line": {"color": "red", "width": 4}
-                        "thickness": 0.75
+                        "thickness": 0.75,
                         "value": var_95
                     }
                 }
@@ -1132,17 +1130,17 @@ from __future__ import annotations
                 gauge={
                     "axis": {"range": [None, max(var_95, cvar_95) * 1.2]}
                     "bar": {"color": "darkred"}
-                    "steps": [
+                    "steps": [,
                         {"range": [0, mean_val], "color": "lightgray"}
                         {"range": [mean_val, cvar_95], "color": "orange"}
                         {
-                            "range": [cvar_95, max(var_95, cvar_95) * 1.2]
+                            "range": [cvar_95, max(var_95, cvar_95) * 1.2],
                             "color": "red"
                         }
                     ]
-                    "threshold": {
+                    "threshold": {,
                         "line": {"color": "red", "width": 4}
-                        "thickness": 0.75
+                        "thickness": 0.75,
                         "value": cvar_95
                     }
                 }

@@ -9,7 +9,6 @@ Initializes all components with the new architecture:
 - API versioning
 """
 
-import asyncio
 from contextlib import asynccontextmanager
 
 from ecosystemiser.observability import init_observability, shutdown_observability

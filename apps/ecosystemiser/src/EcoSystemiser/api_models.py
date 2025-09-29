@@ -14,9 +14,9 @@ Provides type-safe request/response models with validation for all API endpoints
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 
 
 class ModuleStatus(str, Enum):
@@ -32,7 +32,7 @@ class ModuleInfo(BaseModel):
     """Module information model"""
 
     status: ModuleStatus
-    endpoints: List[str] = Field(default_factory=list)
+    endpoints: list[str] = Field(default_factory=list)
     version: str | None = None
     description: str | None = None
 
@@ -42,9 +42,9 @@ class PlatformInfo(BaseModel):
 
     platform: str = Field(default="EcoSystemiser")
     version: str
-    modules: Dict[str, ModuleInfo]
+    modules: dict[str, ModuleInfo]
     uptime: str | None = None
-    build_info: Optional[Dict[str, str]] = None
+    build_info: Optional[dict[str, str]] = None
 
 
 class HealthCheck(BaseModel):
@@ -54,7 +54,7 @@ class HealthCheck(BaseModel):
     platform: str = Field(default="EcoSystemiser")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     version: str | None = None
-    checks: Optional[Dict[str, bool]] = None
+    checks: Optional[dict[str, bool]] = None
 
 
 class APIError(BaseError):
@@ -62,7 +62,7 @@ class APIError(BaseError):
 
     error: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[dict[str, Any]] = None
     correlation_id: str | None = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
@@ -73,7 +73,7 @@ class APIResponse(BaseModel):
     success: bool = True
     data: Any | None = None
     error: APIError | None = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 class ValidationError(BaseError):
@@ -90,7 +90,7 @@ class ServiceStatus(BaseModel):
     module: str
     status: str
     version: str | None = None
-    capabilities: Optional[List[str]] = None
+    capabilities: Optional[list[str]] = None
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -99,16 +99,16 @@ class SolverStatus(ServiceStatus):
     """Solver module status"""
 
     solver_type: str | None = None
-    optimization_engines: Optional[List[str]] = None
+    optimization_engines: Optional[list[str]] = None
 
 
 class SolverRequest(BaseModel):
     """Solver request model"""
 
-    system_config: Dict[str, Any]
-    optimization_targets: List[str]
-    constraints: Optional[Dict[str, Any]] = None
-    solver_options: Optional[Dict[str, Any]] = None
+    system_config: dict[str, Any]
+    optimization_targets: list[str]
+    constraints: Optional[dict[str, Any]] = None
+    solver_options: Optional[dict[str, Any]] = None
     timeout_seconds: int | None = Field(default=300, ge=10, le=3600)
 
 
@@ -117,25 +117,25 @@ class SolverResponse(BaseModel):
 
     job_id: str
     status: str
-    optimal_solution: Optional[Dict[str, Any]] = None
+    optimal_solution: Optional[dict[str, Any]] = None
     objective_value: float | None = None
     solve_time: float | None = None
-    solver_info: Optional[Dict[str, Any]] = None
+    solver_info: Optional[dict[str, Any]] = None
 
 
 # Analyser Module Models
 class AnalyserStatus(ServiceStatus):
     """Analyser module status"""
 
-    analysis_strategies: Optional[List[str]] = None
-    supported_formats: Optional[List[str]] = None
+    analysis_strategies: Optional[list[str]] = None
+    supported_formats: Optional[list[str]] = None
 
 
 class AnalysisRequest(BaseModel):
     """Analysis request model"""
 
     data_path: str
-    strategies: Optional[List[str]] = None
+    strategies: Optional[list[str]] = None
     output_format: str = Field(default="json")
     include_plots: bool = Field(default=True)
     correlation_id: str | None = None
@@ -145,10 +145,10 @@ class AnalysisResponse(BaseModel):
     """Analysis response model"""
 
     analysis_id: str
-    summary: Dict[str, Any]
-    analyses: Dict[str, Any]
-    plots: Optional[Dict[str, Any]] = None
-    metadata: Dict[str, Any]
+    summary: dict[str, Any]
+    analyses: dict[str, Any]
+    plots: Optional[dict[str, Any]] = None
+    metadata: dict[str, Any]
     processing_time: float | None = None
 
 
@@ -156,8 +156,8 @@ class AnalysisResponse(BaseModel):
 class ReportingStatus(ServiceStatus):
     """Reporting module status"""
 
-    report_types: Optional[List[str]] = None
-    export_formats: Optional[List[str]] = None
+    report_types: Optional[list[str]] = None
+    export_formats: Optional[list[str]] = None
 
 
 class ReportRequest(BaseModel):
@@ -166,7 +166,7 @@ class ReportRequest(BaseModel):
     analysis_id: str
     report_type: str = Field(default="comprehensive")
     format: str = Field(default="html")
-    options: Optional[Dict[str, Any]] = None
+    options: Optional[dict[str, Any]] = None
 
 
 class ReportResponse(BaseModel):
@@ -193,7 +193,7 @@ class JobRequest(BaseModel):
     """Generic job request model"""
 
     job_type: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     priority: JobPriority = Field(default=JobPriority.NORMAL)
     callback_url: str | None = None
     notification_email: str | None = None
@@ -221,7 +221,7 @@ class JobInfo(BaseModel):
     updated_at: datetime
     progress: float | None = Field(None, ge=0, le=100)
     result_url: str | None = None
-    error: Optional[Dict[str, Any]] = None
+    error: Optional[dict[str, Any]] = None
     eta: datetime | None = None
     priority: JobPriority
 
@@ -229,11 +229,11 @@ class JobInfo(BaseModel):
 class JobListResponse(BaseModel):
     """Job list response model"""
 
-    jobs: List[JobInfo]
+    jobs: list[JobInfo]
     total: int
     limit: int
     offset: int
-    filter: Optional[Dict[str, Any]] = None
+    filter: Optional[dict[str, Any]] = None
 
 
 # Configuration Models
@@ -260,9 +260,9 @@ class APIConfig(BaseModel):
     title: str = Field(default="EcoSystemiser API")
     description: str = Field(default="Sustainable Energy System Analysis Platform")
     version: str = Field(default="3.0.0")
-    cors_origins: List[str] = Field(default_factory=lambda: ["*"])
-    cors_methods: List[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE"])
-    cors_headers: List[str] = Field(default_factory=lambda: ["*"])
+    cors_origins: list[str] = Field(default_factory=lambda: ["*"])
+    cors_methods: list[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE"])
+    cors_headers: list[str] = Field(default_factory=lambda: ["*"])
     rate_limit: str | None = Field(default="100/hour")
 
 
@@ -305,8 +305,8 @@ class MonitoringResponse(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     system_metrics: SystemMetrics
     performance_metrics: PerformanceMetrics
-    health_checks: Dict[str, bool]
-    alerts: Optional[List[Dict[str, Any]]] = None
+    health_checks: dict[str, bool]
+    alerts: Optional[list[dict[str, Any]]] = None
 
 
 # Legacy API Models
@@ -324,7 +324,7 @@ class LegacyRedirect(BaseModel):
 class BatchRequest(BaseModel):
     """Batch processing request"""
 
-    requests: List[Dict[str, Any]] = Field(min_items=1, max_items=100)
+    requests: list[dict[str, Any]] = Field(min_items=1, max_items=100)
     parallel: bool = Field(default=True)
     partial_success: bool = Field(default=True)
     batch_id: str | None = None
@@ -337,8 +337,8 @@ class BatchResponse(BaseModel):
     total_requests: int
     successful: int
     failed: int
-    results: List[Dict[str, Any]]
-    errors: Optional[List[Dict[str, Any]]] = None
+    results: list[dict[str, Any]]
+    errors: Optional[list[dict[str, Any]]] = None
     processing_time: float
 
 
@@ -361,7 +361,7 @@ class ExportRequest(BaseModel):
     format: ExportFormat
     compression: bool = Field(default=False)
     include_metadata: bool = Field(default=True)
-    custom_fields: Optional[List[str]] = None
+    custom_fields: Optional[list[str]] = None
 
 
 class ExportResponse(BaseModel):

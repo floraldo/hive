@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
 from ecosystemiser.services.database_metadata_service import DatabaseMetadataService
 from ecosystemiser.services.results_io_enhanced import EnhancedResultsIO
@@ -25,8 +25,8 @@ class EnhancedSimulationService:
 
     def __init__(
         self,
-        results_base_dir: Optional[str] = None,
-        database_path: Optional[str] = None,
+        results_base_dir: str | None = None,
+        database_path: str | None = None,
     ) -> None:
         """Initialize enhanced simulation service.
 
@@ -41,12 +41,12 @@ class EnhancedSimulationService:
 
     def run_simulation(
         self,
-        system_config: Dict[str, Any],
+        system_config: dict[str, Any],
         simulation_id: str,
         solver_type: str = "rule_based",
-        study_id: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        study_id: str | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Run complete simulation with enhanced persistence workflow.
 
         Args:
@@ -120,7 +120,7 @@ class EnhancedSimulationService:
                 "summary": run_summary,
             }
 
-            logger.info(f"Enhanced simulation completed successfully:")
+            logger.info("Enhanced simulation completed successfully:")
             logger.info(f"  Run directory: {run_dir}")
             logger.info(f"  Database logged: {db_success}")
             logger.info(f"  Total time: {execution_time:.2f}s")
@@ -143,12 +143,12 @@ class EnhancedSimulationService:
 
     def run_parametric_study(
         self,
-        base_config: Dict[str, Any],
-        parameter_variations: List[Dict[str, Any]],
+        base_config: dict[str, Any],
+        parameter_variations: List[dict[str, Any]],
         study_id: str,
         solver_type: str = "rule_based",
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        metadata: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         """Run parametric study with multiple parameter variations.
 
         Args:
@@ -219,7 +219,7 @@ class EnhancedSimulationService:
                 "database_summary": self.db_service.get_study_summary(study_id),
             }
 
-            logger.info(f"Parametric study completed:")
+            logger.info("Parametric study completed:")
             logger.info(f"  Successful runs: {successful_runs}/{len(parameter_variations)}")
             logger.info(f"  Success rate: {successful_runs/len(parameter_variations)*100:.1f}%")
             logger.info(f"  Total time: {execution_time:.2f}s")
@@ -239,7 +239,7 @@ class EnhancedSimulationService:
             logger.error(f"Parametric study failed: {e}")
             return error_summary
 
-    def load_simulation_results(self, run_id: str) -> Optional[Dict[str, Any]]:
+    def load_simulation_results(self, run_id: str) -> dict[str, Any] | None:
         """Load complete simulation results by run ID.
 
         Args:
@@ -275,12 +275,12 @@ class EnhancedSimulationService:
 
     def query_simulations(
         self,
-        study_id: Optional[str] = None,
-        solver_type: Optional[str] = None,
-        min_renewable_fraction: Optional[float] = None,
-        max_cost: Optional[float] = None,
-        limit: Optional[int] = None,
-    ) -> List[Dict[str, Any]]:
+        study_id: str | None = None,
+        solver_type: str | None = None,
+        min_renewable_fraction: float | None = None,
+        max_cost: float | None = None,
+        limit: int | None = None,
+    ) -> List[dict[str, Any]]:
         """Query simulations with performance criteria.
 
         Args:
@@ -303,10 +303,10 @@ class EnhancedSimulationService:
 
     def get_best_performing_runs(
         self,
-        study_id: Optional[str] = None,
+        study_id: str | None = None,
         metric: str = "renewable_fraction",
         top_n: int = 10,
-    ) -> List[Dict[str, Any]]:
+    ) -> List[dict[str, Any]]:
         """Get top performing simulation runs by specified metric.
 
         Args:
@@ -326,11 +326,11 @@ class EnhancedSimulationService:
 
     def compare_solvers(
         self,
-        system_config: Dict[str, Any],
+        system_config: dict[str, Any],
         simulation_id: str,
         solvers: List[str] = None,
-        study_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+        study_id: str | None = None,
+    ) -> dict[str, Any]:
         """Compare multiple solvers on the same system configuration.
 
         Args:
@@ -373,7 +373,7 @@ class EnhancedSimulationService:
         logger.info(f"Solver comparison completed for: {solvers}")
         return comparison_summary
 
-    def _create_solver_comparison_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _create_solver_comparison_summary(self, results: dict[str, Any]) -> dict[str, Any]:
         """Create summary comparing solver performance.
 
         Args:
@@ -390,10 +390,7 @@ class EnhancedSimulationService:
         }
 
         # Compare key metrics between successful solvers
-        successful_results = {
-            solver: result for solver, result in results.items()
-            if result["status"] == "completed"
-        }
+        successful_results = {solver: result for solver, result in results.items() if result["status"] == "completed"}
 
         if len(successful_results) > 1:
             for metric in ["total_cost", "renewable_fraction", "self_sufficiency_rate", "execution_time_seconds"]:
@@ -409,7 +406,7 @@ class EnhancedSimulationService:
 
         return summary
 
-    def cleanup_study(self, study_id: str, keep_database: bool = True) -> Dict[str, Any]:
+    def cleanup_study(self, study_id: str, keep_database: bool = True) -> dict[str, Any]:
         """Clean up all files and database records for a study.
 
         Args:
@@ -423,7 +420,6 @@ class EnhancedSimulationService:
             # Get all runs for the study
             runs = self.db_service.query_simulation_runs(study_id=study_id)
 
-            files_removed = 0
             dirs_removed = 0
             db_records_removed = 0
 
@@ -432,6 +428,7 @@ class EnhancedSimulationService:
                 results_path = run.get("results_path")
                 if results_path and Path(results_path).exists():
                     import shutil
+
                     shutil.rmtree(results_path)
                     dirs_removed += 1
                     logger.info(f"Removed directory: {results_path}")

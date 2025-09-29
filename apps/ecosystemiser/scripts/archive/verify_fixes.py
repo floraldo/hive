@@ -19,7 +19,6 @@ def test_climate_response_validation() -> None:
     import xarray as xr
     from ecosystemiser.profile_loader.climate.data_models import (
         ClimateRequest,
-        ClimateResponse,
     )
     from ecosystemiser.profile_loader.climate.service import ClimateService
 

@@ -1,7 +1,5 @@
 """Subset extraction for climate data"""
 
-from typing import Dict, Optional
-
 import pandas as pd
 import xarray as xr
 from hive_logging import get_logger
@@ -9,7 +7,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
-def apply_subset(ds: xr.Dataset, subset: Dict[str, str]) -> xr.Dataset:
+def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
     """
     Apply subset selection to dataset.
 

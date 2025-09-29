@@ -214,9 +214,9 @@ from __future__ import annotations
 
                 influential.append(
                     {
-                        "parameter": param_name
-                        "average_sensitivity": float(avg_sensitivity)
-                        "max_sensitivity": float(max_sensitivity)
+                        "parameter": param_name,
+                        "average_sensitivity": float(avg_sensitivity),
+                        "max_sensitivity": float(max_sensitivity),
                         "most_affected_kpi": max(
                             indices.items()
                             key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0)
@@ -251,8 +251,8 @@ from __future__ import annotations
         if cost_results:
             min_cost = min(cost_results, key=lambda r: r["kpis"]["total_cost"])
             optimal["minimum_cost"] = {
-                "parameters": min_cost.get("output_config", {}).get("parameter_settings", {})
-                "cost": min_cost["kpis"]["total_cost"]
+                "parameters": min_cost.get("output_config", {}).get("parameter_settings", {}),
+                "cost": min_cost["kpis"]["total_cost"],
                 "other_kpis": {k: v for k, v in min_cost["kpis"].items() if k != "total_cost"}
             }
 
@@ -261,8 +261,8 @@ from __future__ import annotations
         if renewable_results:
             max_renewable = max(renewable_results, key=lambda r: r["kpis"]["renewable_fraction"])
             optimal["maximum_renewable"] = {
-                "parameters": max_renewable.get("output_config", {}).get("parameter_settings", {})
-                "renewable_fraction": max_renewable["kpis"]["renewable_fraction"]
+                "parameters": max_renewable.get("output_config", {}).get("parameter_settings", {}),
+                "renewable_fraction": max_renewable["kpis"]["renewable_fraction"],
                 "other_kpis": {k: v for k, v in max_renewable["kpis"].items() if k != "renewable_fraction"}
             }
 
@@ -281,9 +281,9 @@ from __future__ import annotations
             if balanced_results:
                 best_balanced = max(balanced_results, key=balanced_score)
                 optimal["balanced"] = {
-                    "parameters": best_balanced.get("output_config", {}).get("parameter_settings", {})
-                    "cost": best_balanced["kpis"]["total_cost"]
-                    "renewable_fraction": best_balanced["kpis"]["renewable_fraction"]
+                    "parameters": best_balanced.get("output_config", {}).get("parameter_settings", {}),
+                    "cost": best_balanced["kpis"]["total_cost"],
+                    "renewable_fraction": best_balanced["kpis"]["renewable_fraction"],
                     "score": balanced_score(best_balanced)
                 }
 
@@ -308,7 +308,7 @@ from __future__ import annotations
                 if "total_cost" in kpis and "renewable_fraction" in kpis:
                     cost_renewable.append(
                         {
-                            "cost": kpis["total_cost"]
+                            "cost": kpis["total_cost"],
                             "renewable": kpis["renewable_fraction"]
                         }
                     )

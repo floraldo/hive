@@ -4,8 +4,10 @@ Minimal V3.0 Platform Certification Test
 """
 
 import sys
-import time
-from pathlib import Path
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 # Add the package paths
 # No sys.path manipulation needed - use Poetry workspace imports
@@ -16,7 +18,7 @@ from pathlib import Path
 
 def test_1_configuration():
     """Test configuration system"""
-    print("Testing configuration...")
+    logger.info("Testing configuration...")
     try:
         from hive_config import get_config
 
@@ -24,16 +26,16 @@ def test_1_configuration():
         assert config.env in ["development", "testing", "production"]
         claude_config = config.get_claude_config()
         assert "mock_mode" in claude_config
-        print("PASS: Configuration")
+        logger.info("PASS: Configuration")
         return True
     except Exception as e:
-        print(f"FAIL: Configuration - {e}")
+        logger.info(f"FAIL: Configuration - {e}")
         return False
 
 
 def test_2_database():
     """Test database connection pool"""
-    print("Testing database...")
+    logger.info("Testing database...")
     try:
         # Test connection pool class creation and basic configuration
         import hive_db as cp
@@ -47,16 +49,16 @@ def test_2_database():
         assert "pool_size" in stats
 
         pool.close_all()
-        print("PASS: Database")
+        logger.info("PASS: Database")
         return True
     except Exception as e:
-        print(f"FAIL: Database - {e}")
+        logger.info(f"FAIL: Database - {e}")
         return False
 
 
 def test_3_claude_service():
     """Test Claude service"""
-    print("Testing Claude service...")
+    logger.info("Testing Claude service...")
     try:
         from hive_claude_bridge.claude_service import (
             get_claude_service,
@@ -68,17 +70,17 @@ def test_3_claude_service():
         assert service is not None
         metrics = service.get_metrics()
         assert "total_calls" in metrics
-        print("PASS: Claude service")
+        logger.info("PASS: Claude service")
         return True
     except Exception as e:
-        print(f"FAIL: Claude service - {e}")
+        logger.info(f"FAIL: Claude service - {e}")
         return False
 
 
 def main():
     """Run minimal certification tests"""
-    print("Starting V3.0 Platform Certification Test (Minimal)")
-    print("=" * 50)
+    logger.info("Starting V3.0 Platform Certification Test (Minimal)")
+    logger.info("=" * 50)
 
     tests = [
         ("Configuration", test_1_configuration),
@@ -94,17 +96,17 @@ def main():
             if test_func():
                 passed += 1
         except Exception as e:
-            print(f"ERROR: {name} - {e}")
+            logger.info(f"ERROR: {name} - {e}")
 
-    print("=" * 50)
-    print(f"Results: {passed}/{total} tests passed")
+    logger.info("=" * 50)
+    logger.info(f"Results: {passed}/{total} tests passed")
 
     if passed == total:
-        print("CERTIFICATION: PASSED")
-        print("V3.0 Platform ready for certification!")
+        logger.info("CERTIFICATION: PASSED")
+        logger.info("V3.0 Platform ready for certification!")
     else:
-        print("CERTIFICATION: FAILED")
-        print("Some tests failed - check logs above")
+        logger.info("CERTIFICATION: FAILED")
+        logger.info("Some tests failed - check logs above")
 
     return passed == total
 

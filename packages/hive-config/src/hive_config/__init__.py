@@ -1,6 +1,19 @@
 from hive_logging import get_logger
+from pydantic import BaseModel
 
 logger = get_logger(__name__)
+
+
+class BaseConfig(BaseModel):
+    """Base configuration class for all Hive configurations."""
+
+    class Config:
+        """Pydantic configuration."""
+
+        extra = "forbid"
+        validate_assignment = True
+        use_enum_values = True
+
 
 """
 Hive Configuration Management
@@ -22,6 +35,8 @@ from .validation import (
 )
 
 __all__ = [
+    # Base exports
+    "BaseConfig",
     # Loader exports
     "load_config_for_app",
     "get_required_keys",
@@ -62,8 +77,10 @@ __version__ = "1.1.0"
 
 from .async_config import (
     AsyncConfigLoader,
-    get_async_config_loader,
     load_app_config_async,
+)
+from .async_config import (
+    create_async_config_loader as get_async_config_loader,
 )
 from .secure_config import (
     SecureConfigLoader,

@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.shared.timezone import (
-    TimezoneHandler
+    TimezoneHandler,
     ensure_utc
     to_utc
 )
@@ -37,16 +37,16 @@ class DateTimeProcessor:
     # Standard frequency mappings
     FREQ_ALIASES = {
         # Input variations -> pandas frequency
-        "minutely": "1T"
-        "5min": "5T"
-        "15min": "15T"
-        "30min": "30T"
-        "half_hourly": "30T"
-        "hourly": "1H"
-        "daily": "1D"
-        "weekly": "1W"
-        "monthly": "1M"
-        "yearly": "1Y"
+        "minutely": "1T",
+        "5min": "5T",
+        "15min": "15T",
+        "30min": "30T",
+        "half_hourly": "30T",
+        "hourly": "1H",
+        "daily": "1D",
+        "weekly": "1W",
+        "monthly": "1M",
+        "yearly": "1Y",
         "annual": "1Y"
     }
 
@@ -244,7 +244,7 @@ class DateTimeProcessor:
     @classmethod
     def detect_gaps(
         cls
-        time_index: pd.DatetimeIndex
+        time_index: pd.DatetimeIndex,
         expected_freq: str | None = None
         tolerance_factor: float = 1.5
     ) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
@@ -560,8 +560,8 @@ class DateTimeProcessor:
 
 
 def create_time_range(
-    start: str | datetime
-    end: str | datetime
+    start: str | datetime,
+    end: str | datetime,
     freq: str = "1H"
     timezone: str = "UTC"
 ) -> pd.DatetimeIndex:
@@ -571,7 +571,7 @@ def create_time_range(
 
 def resample_data(
     data: pd.DataFrame, pd.Series | xr.Dataset
-    target_freq: str
+    target_freq: str,
     method: str = "mean"
 ) -> pd.DataFrame, pd.Series | xr.Dataset:
     """Resample data with metadata preservation."""

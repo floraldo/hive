@@ -1,5 +1,7 @@
 """Service discovery client for finding and connecting to services."""
 
+from __future__ import annotations
+
 import asyncio
 import time
 from typing import Any, Callable, Dict, List
@@ -17,8 +19,6 @@ logger = get_logger(__name__)
 
 class DiscoveryClient:
     """
-from __future__ import annotations
-
     Service discovery client for finding and connecting to services.
 
     Features:
@@ -34,10 +34,10 @@ from __future__ import annotations
         self.config = config
         self.registry = ServiceRegistry(config)
         self.load_balancer = LoadBalancer(
-            strategy=LoadBalancingStrategy(config.load_balancer.strategy)
-            circuit_breaker_threshold=config.load_balancer.circuit_breaker_threshold
-            circuit_breaker_timeout=config.load_balancer.circuit_breaker_timeout
-            enable_sticky_sessions=config.load_balancer.enable_sticky_sessions
+            strategy=LoadBalancingStrategy(config.load_balancer.strategy),
+            circuit_breaker_threshold=config.load_balancer.circuit_breaker_threshold,
+            circuit_breaker_timeout=config.load_balancer.circuit_breaker_timeout,
+            enable_sticky_sessions=config.load_balancer.enable_sticky_sessions,
         )
         self.health_monitor = HealthMonitor(config)
 
@@ -219,13 +219,13 @@ from __future__ import annotations
             raise
 
     async def execute_service_request_async(
-        self
-        service_name: str
-        request_func: Callable
-        max_retries: int = None
-        session_id: str | None = None
-        *args
-        **kwargs
+        self,
+        service_name: str,
+        request_func: Callable,
+        max_retries: int = None,
+        session_id: str | None = None,
+        *args,
+        **kwargs,
     ) -> Any:
         """Execute a request against a service with load balancing and retry.
 
@@ -307,7 +307,10 @@ from __future__ import annotations
         """Notify listeners of service addition."""
         for callback in self._service_added_callbacks:
             try:
-                await callback(service) if asyncio.iscoroutinefunction(callback) else callback(service)
+                if asyncio.iscoroutinefunction(callback):
+                    await callback(service)
+                else:
+                    callback(service)
             except Exception as e:
                 logger.error(f"Error in service added callback: {e}")
 
@@ -315,7 +318,10 @@ from __future__ import annotations
         """Notify listeners of service removal."""
         for callback in self._service_removed_callbacks:
             try:
-                await callback(service) if asyncio.iscoroutinefunction(callback) else callback(service)
+                if asyncio.iscoroutinefunction(callback):
+                    await callback(service)
+                else:
+                    callback(service)
             except Exception as e:
                 logger.error(f"Error in service removed callback: {e}")
 
@@ -374,13 +380,13 @@ from __future__ import annotations
         healthy_services = sum(len([s for s in services if s.healthy]) for services in self._service_cache.values())
 
         return {
-            "total_service_names": len(self._service_cache)
-            "total_service_instances": total_services
-            "healthy_service_instances": healthy_services
-            "unhealthy_service_instances": total_services - healthy_services
-            "cache_entries": len(self._cache_timestamps)
-            "load_balancer_stats": self.load_balancer.get_load_balancer_stats()
-            "health_monitor_stats": self.health_monitor.get_monitor_stats()
+            "total_service_names": len(self._service_cache),
+            "total_service_instances": total_services,
+            "healthy_service_instances": healthy_services,
+            "unhealthy_service_instances": total_services - healthy_services,
+            "cache_entries": len(self._cache_timestamps),
+            "load_balancer_stats": self.load_balancer.get_load_balancer_stats(),
+            "health_monitor_stats": self.health_monitor.get_monitor_stats(),
         }
 
     async def clear_cache_async(self, service_name: str | None = None) -> None:

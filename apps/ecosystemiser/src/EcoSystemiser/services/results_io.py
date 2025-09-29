@@ -4,7 +4,7 @@ import json
 import pickle  # golden-rule-ignore: rule-17 - Required for legacy scientific data compatibility
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -21,21 +21,16 @@ class ResultsIO:
         self.supported_formats = ["json", "parquet", "csv", "pickle"]
 
     def save_results(
-        self,
-        system,
-        simulation_id: str,
-        output_dir: Path,
-        format: str = "json",
-        metadata: Dict | None = None
+        self, system, simulation_id: str, output_dir: Path, format: str = "json", metadata: dict | None = None
     ) -> Path:
-        """Save simulation results to file.
+        """Save simulation results to file.,
 
         Args:
-            system: Solved system object
-            simulation_id: Unique simulation identifier
-            output_dir: Directory for output files
+            system: Solved system object,
+            simulation_id: Unique simulation identifier,
+            output_dir: Directory for output files,
             format: Output format ('json', 'parquet', 'csv', 'pickle')
-            metadata: Additional metadata to save
+            metadata: Additional metadata to save,
 
         Returns:
             Path to saved results file
@@ -44,8 +39,8 @@ class ResultsIO:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{simulation_id}_{timestamp}.{format}"
+        timestamp = (datetime.now().strftime("%Y%m%d_%H%M%S"),)
+        filename = (f"{simulation_id}_{timestamp}.{format}",)
         output_path = output_dir / filename
 
         # Extract results from system
@@ -70,11 +65,11 @@ class ResultsIO:
         logger.info(f"Results saved to {output_path}")
         return output_path
 
-    def load_results(self, file_path: Path) -> Dict[str, Any]:
+    def load_results(self, file_path: Path) -> dict[str, Any]:
         """Load simulation results from file.
 
         Args:
-            file_path: Path to results file
+            file_path: Path to results file,
 
         Returns:
             Dictionary containing results
@@ -98,21 +93,21 @@ class ResultsIO:
         else:
             raise ValueError(f"Unsupported file format: {ext}")
 
-    def _extract_system_results(self, system) -> Dict[str, Any]:
+    def _extract_system_results(self, system) -> dict[str, Any]:
         """Extract results from system object.
 
         Args:
-            system: Solved system object
+            system: Solved system object,
 
         Returns:
             Dictionary containing all results
         """
         results = {
-            "system_id": system.system_id
-            "timesteps": system.N
-            "components": {}
-            "flows": {}
-            "timestamp": datetime.now().isoformat()
+            "system_id": system.system_id,
+            "timesteps": system.N,
+            "components": {},
+            "flows": {},
+            "timestamp": datetime.now().isoformat(),
         }
 
         # Extract component states
@@ -134,7 +129,9 @@ class ResultsIO:
                         logger.warning(f"Storage {comp_name} E has None value, using zeros")
                         comp_data["E"] = [0.0] * system.N
                 else:
-                    comp_data["E"] = component.E.tolist() if hasattr(component.E, 'tolist') else [component.E] * system.N
+                    comp_data["E"] = (
+                        component.E.tolist() if hasattr(component.E, "tolist") else [component.E] * system.N
+                    )
 
                 comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
 
@@ -146,9 +143,9 @@ class ResultsIO:
             # Extract economic parameters if available
             if hasattr(component, "economic") and component.economic:
                 comp_data["economic"] = {
-                    "capex": component.economic.capex
-                    "opex_fix": component.economic.opex_fix
-                    "opex_var": component.economic.opex_var
+                    "capex": component.economic.capex,
+                    "opex_fix": component.economic.opex_fix,
+                    "opex_var": component.economic.opex_var,
                 }
 
             results["components"][comp_name] = comp_data
@@ -156,9 +153,9 @@ class ResultsIO:
         # Extract flows
         for flow_name, flow_data in system.flows.items():
             flow_result = {
-                "source": flow_data["source"]
-                "target": flow_data["target"]
-                "type": flow_data["type"]
+                "source": flow_data["source"],
+                "target": flow_data["target"],
+                "type": flow_data["type"],
             }
 
             # Convert flow values - Enhanced CVXPY handling
@@ -192,12 +189,12 @@ class ResultsIO:
 
         return results
 
-    def _save_json(self, results: Dict, path: Path) -> None:
+    def _save_json(self, results: dict, path: Path) -> None:
         """Save results as JSON."""
         with open(path, "w") as f:
             json.dump(results, f, indent=2, default=str)
 
-    def _save_parquet(self, results: Dict, path: Path) -> None:
+    def _save_parquet(self, results: dict, path: Path) -> None:
         """Save results as Parquet."""
         # Convert to DataFrame format
         flows_df = self._flows_to_dataframe(results["flows"])
@@ -206,73 +203,73 @@ class ResultsIO:
         flows_df.to_parquet(path, engine="pyarrow", compression="snappy")
 
         # Save metadata separately
-        metadata_path = path.with_suffix(".meta.json")
+        metadata_path = (path.with_suffix(".meta.json"),)
         metadata = {k: v for k, v in results.items() if k != "flows"}
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
 
-    def _save_csv(self, results: Dict, path: Path) -> None:
+    def _save_csv(self, results: dict, path: Path) -> None:
         """Save results as CSV."""
         # Convert to DataFrame format
         flows_df = self._flows_to_dataframe(results["flows"])
         flows_df.to_csv(path, index=False)
 
         # Save metadata separately
-        metadata_path = path.with_suffix(".meta.json")
+        metadata_path = (path.with_suffix(".meta.json"),)
         metadata = {k: v for k, v in results.items() if k != "flows"}
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
 
-    def _save_pickle(self, results: Dict, path: Path) -> None:
+    def _save_pickle(self, results: dict, path: Path) -> None:
         """Save results as pickle."""
         with open(path, "wb") as f:
             pickle.dump(results, f)
 
-    def _load_json(self, path: Path) -> Dict:
+    def _load_json(self, path: Path) -> dict:
         """Load results from JSON."""
-        with open(path, "r") as f:
+        with open(path) as f:
             return json.load(f)
 
-    def _load_parquet(self, path: Path) -> Dict:
+    def _load_parquet(self, path: Path) -> dict:
         """Load results from Parquet."""
         # Load flows
-        flows_df = pd.read_parquet(path)
+        flows_df = (pd.read_parquet(path),)
         results = {"flows": self._dataframe_to_flows(flows_df)}
 
         # Load metadata if exists
         metadata_path = path.with_suffix(".meta.json")
         if metadata_path.exists():
-            with open(metadata_path, "r") as f:
+            with open(metadata_path) as f:
                 metadata = json.load(f)
                 results.update(metadata)
 
         return results
 
-    def _load_csv(self, path: Path) -> Dict:
+    def _load_csv(self, path: Path) -> dict:
         """Load results from CSV."""
         # Load flows
-        flows_df = pd.read_csv(path)
+        flows_df = (pd.read_csv(path),)
         results = {"flows": self._dataframe_to_flows(flows_df)}
 
         # Load metadata if exists
         metadata_path = path.with_suffix(".meta.json")
         if metadata_path.exists():
-            with open(metadata_path, "r") as f:
+            with open(metadata_path) as f:
                 metadata = json.load(f)
                 results.update(metadata)
 
         return results
 
-    def _load_pickle(self, path: Path) -> Dict:
+    def _load_pickle(self, path: Path) -> dict:
         """Load results from pickle."""
         with open(path, "rb") as f:
             return pickle.load(f)
 
-    def _flows_to_dataframe(self, flows: Dict) -> pd.DataFrame:
+    def _flows_to_dataframe(self, flows: dict) -> pd.DataFrame:
         """Convert flows dictionary to DataFrame format.
 
         Args:
-            flows: Dictionary of flow data
+            flows: Dictionary of flow data,
 
         Returns:
             DataFrame with flow time series
@@ -284,22 +281,22 @@ class ResultsIO:
                 for t, value in enumerate(flow_info["value"]):
                     data.append(
                         {
-                            "timestep": t
-                            "flow_name": flow_name
-                            "source": flow_info["source"]
-                            "target": flow_info["target"]
-                            "type": flow_info["type"]
-                            "value": value
+                            "timestep": t,
+                            "flow_name": flow_name,
+                            "source": flow_info["source"],
+                            "target": flow_info["target"],
+                            "type": flow_info["type"],
+                            "value": value,
                         }
                     )
 
         return pd.DataFrame(data)
 
-    def _dataframe_to_flows(self, df: pd.DataFrame) -> Dict:
-        """Convert DataFrame back to flows dictionary.
+    def _dataframe_to_flows(self, df: pd.DataFrame) -> dict:
+        """Convert DataFrame back to flows dictionary.,
 
         Args:
-            df: DataFrame with flow data
+            df: DataFrame with flow data,
 
         Returns:
             Dictionary of flows
@@ -310,19 +307,19 @@ class ResultsIO:
             flow_df = df[df["flow_name"] == flow_name].sort_values("timestep")
 
             flows[flow_name] = {
-                "source": flow_df["source"].iloc[0]
-                "target": flow_df["target"].iloc[0]
-                "type": flow_df["type"].iloc[0]
-                "value": flow_df["value"].tolist()
+                "source": flow_df["source"].iloc[0],
+                "target": flow_df["target"].iloc[0],
+                "type": flow_df["type"].iloc[0],
+                "value": flow_df["value"].tolist(),
             }
 
         return flows
 
-    def create_results_summary(self, results: Dict) -> pd.DataFrame:
+    def create_results_summary(self, results: dict) -> pd.DataFrame:
         """Create a summary DataFrame from results.
 
         Args:
-            results: Results dictionary
+            results: Results dictionary,
 
         Returns:
             Summary DataFrame
@@ -336,13 +333,13 @@ class ResultsIO:
                     values = np.array(flow_info["value"])
                     summary_data.append(
                         {
-                            "category": "Flow"
-                            "name": flow_name
-                            "source": flow_info["source"]
-                            "target": flow_info["target"]
-                            "mean": np.mean(values)
-                            "max": np.max(values)
-                            "total": np.sum(values)
+                            "category": "Flow",
+                            "name": flow_name,
+                            "source": flow_info["source"],
+                            "target": flow_info["target"],
+                            "mean": np.mean(values),
+                            "max": np.max(values),
+                            "total": np.sum(values),
                         }
                     )
 
@@ -353,13 +350,13 @@ class ResultsIO:
                     levels = np.array(comp_data["E"])
                     summary_data.append(
                         {
-                            "category": "Storage"
-                            "name": comp_name
-                            "source": "-"
-                            "target": "-"
-                            "mean": np.mean(levels)
-                            "max": np.max(levels)
-                            "total": "-"
+                            "category": "Storage",
+                            "name": comp_name,
+                            "source": "-",
+                            "target": "-",
+                            "mean": np.mean(levels),
+                            "max": np.max(levels),
+                            "total": "-",
                         }
                     )
 

@@ -4,8 +4,6 @@ Arq worker configuration for processing climate jobs.
 Run with: arq ecosystemiser.worker.WorkerSettings
 """
 
-from typing import Any, Dict
-
 from arq import cron
 from arq.connections import RedisSettings
 from ecosystemiser.services.job_service import (

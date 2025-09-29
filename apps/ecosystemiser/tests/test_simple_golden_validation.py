@@ -2,17 +2,13 @@
 """Simplified golden validation test using direct component construction."""
 
 import json
-import sys
 import time
 from pathlib import Path
-from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
 
 eco_path = Path(__file__).parent.parent / "src"
-
-from hive_logging import get_logger
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (
@@ -37,8 +33,10 @@ from ecosystemiser.system_model.components.energy.solar_pv import (
 )
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 def create_simple_golden_system(N=24):
     """Create a simplified golden system using direct component construction."""
@@ -60,14 +58,14 @@ def create_simple_golden_system(N=24):
     else:
         profiles_df = pd.read_csv(profiles_path)
         if N <= len(profiles_df):
-            solar_profile = profiles_df['solar_generation_weather_adjusted'].iloc[:N].values
-            demand_profile = profiles_df['total_electrical_demand_kw'].iloc[:N].values
+            solar_profile = profiles_df["solar_generation_weather_adjusted"].iloc[:N].values
+            demand_profile = profiles_df["total_electrical_demand_kw"].iloc[:N].values
         else:
             # Repeat pattern if needed
-            solar_profile = np.tile(profiles_df['solar_generation_weather_adjusted'].values,
-                                  (N // len(profiles_df) + 1))[:N]
-            demand_profile = np.tile(profiles_df['total_electrical_demand_kw'].values,
-                                   (N // len(profiles_df) + 1))[:N]
+            solar_profile = np.tile(
+                profiles_df["solar_generation_weather_adjusted"].values, (N // len(profiles_df) + 1)
+            )[:N]
+            demand_profile = np.tile(profiles_df["total_electrical_demand_kw"].values, (N // len(profiles_df) + 1))[:N]
 
     # Normalize profiles
     solar_max = 50.0  # 50 kW peak from golden dataset
@@ -143,6 +141,7 @@ def create_simple_golden_system(N=24):
     logger.info(f"Created system with {len(system.components)} components and {len(system.flows)} flows")
     return system
 
+
 def create_synthetic_profiles(N):
     """Create synthetic profiles when real data unavailable."""
     logger.info("Creating synthetic profiles...")
@@ -154,28 +153,72 @@ def create_synthetic_profiles(N):
     solar_profile = []
     demand_profile = []
 
-    for day in range(days):
+    for _day in range(days):
         # Daily solar pattern
-        daily_solar = np.array([
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  # Night
-            0.25, 0.5, 0.707, 0.866, 0.966, 1.0,  # Morning to noon
-            0.966, 0.866, 0.707, 0.5, 0.25,  # Afternoon
-            0.0, 0.0, 0.0, 0.0, 0.0, 0.0  # Evening/night
-        ])
+        daily_solar = np.array(
+            [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,  # Night
+                0.25,
+                0.5,
+                0.707,
+                0.866,
+                0.966,
+                1.0,  # Morning to noon
+                0.966,
+                0.866,
+                0.707,
+                0.5,
+                0.25,  # Afternoon
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,  # Evening/night
+            ]
+        )
 
         # Daily demand pattern (base electrical + some thermal)
-        daily_demand = np.array([
-            0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4,  # Night baseload
-            0.8, 0.8,  # Morning peak
-            0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4,  # Day baseload
-            1.0, 1.0, 1.0,  # Evening peak
-            0.4, 0.4, 0.4  # Night baseload
-        ])
+        daily_demand = np.array(
+            [
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,  # Night baseload
+                0.8,
+                0.8,  # Morning peak
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,
+                0.4,  # Day baseload
+                1.0,
+                1.0,
+                1.0,  # Evening peak
+                0.4,
+                0.4,
+                0.4,  # Night baseload
+            ]
+        )
 
         solar_profile.extend(daily_solar)
         demand_profile.extend(daily_demand)
 
     return np.array(solar_profile[:N]), np.array(demand_profile[:N])
+
 
 def validate_energy_balance(system, tolerance=1e-6):
     """Validate perfect energy conservation."""
@@ -188,7 +231,7 @@ def validate_energy_balance(system, tolerance=1e-6):
         sources = 0.0
         sinks = 0.0
 
-        for flow_key, flow_data in system.flows.items():
+        for _flow_key, flow_data in system.flows.items():
             flow_value = flow_data["value"][t] if hasattr(flow_data["value"], "__getitem__") else 0.0
             source_comp = system.components[flow_data["source"]]
             target_comp = system.components[flow_data["target"]]
@@ -203,15 +246,11 @@ def validate_energy_balance(system, tolerance=1e-6):
         max_imbalance = max(max_imbalance, imbalance)
 
         if imbalance > tolerance:
-            violations.append({
-                "timestep": t,
-                "sources": sources,
-                "sinks": sinks,
-                "imbalance": imbalance
-            })
+            violations.append({"timestep": t, "sources": sources, "sinks": sinks, "imbalance": imbalance})
 
     logger.info(f"Energy balance validation: max_imbalance={max_imbalance:.2e}, violations={len(violations)}")
     return len(violations) == 0, max_imbalance, violations
+
 
 def validate_physics_constraints(system, tolerance=1e-6):
     """Validate physics constraints."""
@@ -238,6 +277,7 @@ def validate_physics_constraints(system, tolerance=1e-6):
     logger.info(f"Physics constraints: {len(violations)} violations")
     return len(violations) == 0, violations
 
+
 def validate_system_behavior(system):
     """Validate expected system behavior patterns."""
     logger.info("Validating system behavior...")
@@ -248,13 +288,15 @@ def validate_system_behavior(system):
     battery_comp = system.components.get("Battery")
     if battery_comp and hasattr(battery_comp, "E"):
         energy_range = np.max(battery_comp.E) - np.min(battery_comp.E)
-        capacity = battery_comp.E_max if hasattr(battery_comp, "E_max") else battery_comp.params.technical.capacity_nominal
+        capacity = (
+            battery_comp.E_max if hasattr(battery_comp, "E_max") else battery_comp.params.technical.capacity_nominal
+        )
         cycling_ratio = energy_range / capacity
         checks["storage_cycling"] = cycling_ratio > 0.01  # At least 1% cycling (more realistic
 
     # Check solar utilization
     solar_flows = 0.0
-    for flow_key, flow_data in system.flows.items():
+    for _flow_key, flow_data in system.flows.items():
         if "SolarPV" in flow_data["source"]:
             solar_flows += np.sum(flow_data["value"])
     checks["solar_utilization"] = solar_flows > 0.0
@@ -262,7 +304,7 @@ def validate_system_behavior(system):
     # Check grid interaction
     grid_import = 0.0
     grid_export = 0.0
-    for flow_key, flow_data in system.flows.items():
+    for _flow_key, flow_data in system.flows.items():
         if "Grid" in flow_data["source"]:
             grid_import += np.sum(flow_data["value"])
         elif "Grid" in flow_data["target"]:
@@ -272,17 +314,14 @@ def validate_system_behavior(system):
     logger.info(f"System behavior checks: {checks}")
     return all(checks.values()), checks
 
+
 def run_solver_validation(N=24):
     """Run comprehensive solver validation."""
     logger.info("=" * 80)
     logger.info(f"GOLDEN MICROGRID VALIDATION - {N} TIMESTEPS")
     logger.info("=" * 80)
 
-    results = {
-        "timesteps": N,
-        "start_time": time.time(),
-        "validation_passed": False
-    }
+    results = {"timesteps": N, "start_time": time.time(), "validation_passed": False}
 
     try:
         # Create system
@@ -307,15 +346,17 @@ def run_solver_validation(N=24):
             physics_valid, physics_violations = validate_physics_constraints(system)
             behavior_valid, behavior_checks = validate_system_behavior(system)
 
-            results.update({
-                "energy_balance_valid": energy_valid,
-                "max_energy_imbalance": max_imbalance,
-                "energy_violations": len(energy_violations),
-                "physics_constraints_valid": physics_valid,
-                "physics_violations": len(physics_violations),
-                "system_behavior_valid": behavior_valid,
-                "behavior_checks": behavior_checks
-            })
+            results.update(
+                {
+                    "energy_balance_valid": energy_valid,
+                    "max_energy_imbalance": max_imbalance,
+                    "energy_violations": len(energy_violations),
+                    "physics_constraints_valid": physics_valid,
+                    "physics_violations": len(physics_violations),
+                    "system_behavior_valid": behavior_valid,
+                    "behavior_checks": behavior_checks,
+                }
+            )
 
             # Overall validation
             results["validation_passed"] = energy_valid and physics_valid and behavior_valid
@@ -325,7 +366,9 @@ def run_solver_validation(N=24):
             logger.info("VALIDATION SUMMARY")
             logger.info("=" * 60)
             logger.info(f"Energy Balance: {'PASS' if energy_valid else 'FAIL'} (max imbalance: {max_imbalance:.2e})")
-            logger.info(f"Physics Constraints: {'PASS' if physics_valid else 'FAIL'} ({len(physics_violations)} violations)")
+            logger.info(
+                f"Physics Constraints: {'PASS' if physics_valid else 'FAIL'} ({len(physics_violations)} violations)"
+            )
             logger.info(f"System Behavior: {'PASS' if behavior_valid else 'FAIL'}")
             logger.info(f"Overall Result: {'PASS' if results['validation_passed'] else 'FAIL'}")
             logger.info("=" * 60)
@@ -337,6 +380,7 @@ def run_solver_validation(N=24):
         logger.error(f"Validation failed with exception: {e}")
         results["error"] = str(e)
         import traceback
+
         traceback.print_exc()
 
     results["end_time"] = time.time()
@@ -344,9 +388,10 @@ def run_solver_validation(N=24):
 
     return results
 
+
 def main():
     """Main validation execution."""
-    print("Starting Golden Microgrid Validation...")
+    logger.info("Starting Golden Microgrid Validation...")
 
     # Run 24-hour validation
     results_24h = run_solver_validation(24)
@@ -356,10 +401,10 @@ def main():
     results_dir.mkdir(parents=True, exist_ok=True)
 
     results_path = results_dir / "simple_validation_results.json"
-    
+
     # Convert any numpy types to native Python types for JSON serialization
     def convert_for_json(obj):
-        if hasattr(obj, 'item'):  # numpy scalars
+        if hasattr(obj, "item"):  # numpy scalars
             return obj.item()
         elif isinstance(obj, dict):
             return {k: convert_for_json(v) for k, v in obj.items()}
@@ -367,25 +412,27 @@ def main():
             return [convert_for_json(item) for item in obj]
         else:
             return obj
-    
+
     json_safe_results = convert_for_json(results_24h)
-    
-    with open(results_path, 'w') as f:
+
+    with open(results_path, "w") as f:
         json.dump(json_safe_results, f, indent=2)
 
-    print(f"\nValidation results saved to: {results_path}")
-    print(f"24h Validation: {'PASSED' if results_24h.get('validation_passed', False) else 'FAILED'}")
+    logger.info(f"\nValidation results saved to: {results_path}")
+    logger.info(f"24h Validation: {'PASSED' if results_24h.get('validation_passed', False) else 'FAILED'}")
 
     # Optionally run 7-day stress test (commented out for speed)
     # results_7day = run_solver_validation(168)
-    # print(f"7-day Validation: {'PASSED' if results_7day.get('validation_passed', False) else 'FAILED'}")
+    # logger.info(f"7-day Validation: {'PASSED' if results_7day.get('validation_passed', False) else 'FAILED'}")
 
-    return results_24h.get('validation_passed', False)
+    return results_24h.get("validation_passed", False)
+
 
 def test_simple_golden_validation():
     """Test simple golden validation as pytest test."""
     success = main()
     assert success, "Simple golden validation failed"
+
 
 def test_24h_solver_validation():
     """Test 24-hour solver validation."""
@@ -394,6 +441,7 @@ def test_24h_solver_validation():
     assert isinstance(results, dict)
     assert "validation_passed" in results
 
+
 def test_solver_validation_components():
     """Test solver validation with all required components."""
     results = run_solver_validation(24)
@@ -401,6 +449,7 @@ def test_solver_validation_components():
         # If validation passed, check that system has expected behavior
         assert results.get("solve_time", 0) > 0
         assert results.get("solver_status") == "optimal"
+
 
 if __name__ == "__main__":
     success = main()

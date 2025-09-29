@@ -1,15 +1,14 @@
 """Enhanced error reporter with monitoring and metrics integration."""
 
-import asyncio
+from __future__ import annotations
+
 import json
 from collections import defaultdict, deque
-from dataclasses import asdict
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
 from hive_logging import get_logger
 
-from .base_exceptions import BaseError
 from .error_reporter import BaseErrorReporter
 
 logger = get_logger(__name__)
@@ -17,7 +16,6 @@ logger = get_logger(__name__)
 
 class MonitoringErrorReporter(BaseErrorReporter):
     """
-from __future__ import annotations
 
     Enhanced error reporter with monitoring integration.
 
@@ -42,7 +40,7 @@ from __future__ import annotations
             "error_rate_per_minute": 10,
             "critical_error_rate": 5,
             "component_failure_threshold": 0.2,  # 20% failure rate,
-            "consecutive_failures": 5
+            "consecutive_failures": 5,
         }
 
         # Enhanced tracking
@@ -54,7 +52,7 @@ from __future__ import annotations
                 "last_error": None,
                 "consecutive_failures": 0,
                 "last_success": None,
-                "failure_rate": 0.0
+                "failure_rate": 0.0,
             }
         )
 
@@ -118,7 +116,7 @@ from __future__ import annotations
                     "message": f"High error rate: {current_rate} errors/minute",
                     "severity": "warning",
                     "threshold": self.alert_thresholds["error_rate_per_minute"],
-                    "current_value": current_rate
+                    "current_value": current_rate,
                 }
             )
 
@@ -129,7 +127,7 @@ from __future__ import annotations
                     "type": "critical_error",
                     "message": f"Critical error in {error_record.get('component', 'unknown')}: {error_record['message']}",
                     "severity": "critical",
-                    "error_record": error_record
+                    "error_record": error_record,
                 }
             )
 
@@ -143,7 +141,7 @@ from __future__ import annotations
                     "message": f"Component {component} has high failure rate: {component_stats['failure_rate']:.1%}",
                     "severity": "warning",
                     "component": component,
-                    "failure_rate": component_stats["failure_rate"]
+                    "failure_rate": component_stats["failure_rate"],
                 }
             )
 
@@ -155,7 +153,7 @@ from __future__ import annotations
                     "message": f"Component {component} has {component_stats['consecutive_failures']} consecutive failures",
                     "severity": "critical",
                     "component": component,
-                    "consecutive_failures": component_stats["consecutive_failures"]
+                    "consecutive_failures": component_stats["consecutive_failures"],
                 }
             )
 
@@ -169,12 +167,7 @@ from __future__ import annotations
 
         # Critical error types
         critical_types = {
-            "MemoryError"
-            "SystemExit"
-            "KeyboardInterrupt"
-            "ConnectionError"
-            "TimeoutError"
-            "CircuitBreakerOpenError"
+            "MemoryError" "SystemExit" "KeyboardInterrupt" "ConnectionError" "TimeoutError" "CircuitBreakerOpenError"
         }
 
         if error_type in critical_types:
@@ -236,7 +229,7 @@ from __future__ import annotations
             "failure_rate": stats["failure_rate"],
             "last_error": stats["last_error"],
             "last_success": stats["last_success"],
-            "status": self._get_component_status(health_score, stats["consecutive_failures"])
+            "status": self._get_component_status(health_score, stats["consecutive_failures"]),
         }
 
     def get_error_trends(self, time_window: timedelta = timedelta(hours=1)) -> Dict[str, Any]:
@@ -270,7 +263,7 @@ from __future__ import annotations
             "errors_by_hour": {h.isoformat(): count for h, count in error_by_hour.items()},
             "errors_by_component": dict(error_by_component),
             "errors_by_type": dict(error_by_type),
-            "average_errors_per_hour": len(recent_errors) / max(1, time_window.total_seconds() / 3600)
+            "average_errors_per_hour": len(recent_errors) / max(1, time_window.total_seconds() / 3600),
         }
 
     def get_performance_impact(self, component: str) -> Dict[str, Any]:
@@ -286,9 +279,9 @@ from __future__ import annotations
             "avg_response_time": sum(impact_data) / len(impact_data),
             "min_response_time": min(impact_data),
             "max_response_time": max(impact_data),
-            "response_time_trend": "improving"
-            if len(impact_data) > 10 and impact_data[-5:] < impact_data[:5]
-            else "stable"
+            "response_time_trend": (
+                "improving" if len(impact_data) > 10 and impact_data[-5:] < impact_data[:5] else "stable"
+            ),
         }
 
     def generate_health_report(self) -> Dict[str, Any]:
@@ -297,11 +290,8 @@ from __future__ import annotations
             "timestamp": datetime.utcnow().isoformat(),
             "overall_statistics": self.get_error_statistics(),
             "component_health": {},
-            "alert_summary": {,
-                "active_alerts": [],
-                "alert_thresholds": self.alert_thresholds
-            },
-            "trends": self.get_error_trends()
+            "alert_summary": {"active_alerts": [], "alert_thresholds": self.alert_thresholds},
+            "trends": self.get_error_trends(),
         }
 
         # Add component health for all tracked components
@@ -312,11 +302,7 @@ from __future__ import annotations
         current_rate = self._get_current_error_rate()
         if current_rate > self.alert_thresholds["error_rate_per_minute"]:
             report["alert_summary"]["active_alerts"].append(
-                {
-                    "type": "high_error_rate",
-                    "severity": "warning",
-                    "current_value": current_rate
-                }
+                {"type": "high_error_rate", "severity": "warning", "current_value": current_rate}
             )
 
         return report
@@ -338,7 +324,7 @@ from __future__ import annotations
             "errors": errors,
             "component_health": {
                 component: self.get_component_health(component) for component in self._component_stats.keys()
-            }
+            },
         }
 
         if format == "json":
@@ -362,7 +348,7 @@ from __future__ import annotations
                         error["error_type"],
                         error.get("component", "unknown"),
                         error["message"],
-                        error.get("operation", "unknown")
+                        error.get("operation", "unknown"),
                     ]
                 )
 
@@ -377,8 +363,8 @@ from __future__ import annotations
         # Clear old detailed history
         original_count = len(self._detailed_history)
         self._detailed_history = deque(
-            [error for error in self._detailed_history if datetime.fromisoformat(error["timestamp"]) >= cutoff_time]
-            maxlen=self.max_history
+            [error for error in self._detailed_history if datetime.fromisoformat(error["timestamp"]) >= cutoff_time],
+            maxlen=self.max_history,
         )
 
         cleared_count = original_count - len(self._detailed_history)
@@ -390,8 +376,8 @@ from __future__ import annotations
                     (timestamp, count)
                     for timestamp, count in self._error_rates[key]
                     if timestamp >= cutoff_time.replace(second=0, microsecond=0)
-                ]
-                maxlen=60
+                ],
+                maxlen=60,
             )
 
         logger.info(f"Cleared {cleared_count} old error records")

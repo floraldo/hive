@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 
 
 def get_postgres_connection(
-    config: Dict[str, Any]
+    config: Dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
@@ -87,8 +87,8 @@ def get_postgres_connection(
 
     # Use individual parameters with config fallbacks
     connection_params = {
-        "host": host or config.get("host", "localhost")
-        "port": port or config.get("port", 5432)
+        "host": host or config.get("host", "localhost"),
+        "port": port or config.get("port", 5432),
         "database": database or config.get("database"),
         "user": user or config.get("user"),
         "password": password or config.get("password"),
@@ -122,7 +122,7 @@ def get_postgres_connection(
 
 @contextmanager
 def postgres_transaction(
-    config: Dict[str, Any]
+    config: Dict[str, Any],
     host: str | None = None,
     port: int | None = None,
     database: str | None = None,
@@ -223,8 +223,8 @@ def create_connection_pool(
             raise
 
     connection_params = {
-        "host": host or config.get("host", "localhost")
-        "port": port or config.get("port", 5432)
+        "host": host or config.get("host", "localhost"),
+        "port": port or config.get("port", 5432),
         "database": database or config.get("database"),
         "user": user or config.get("user"),
         "password": password or config.get("password"),

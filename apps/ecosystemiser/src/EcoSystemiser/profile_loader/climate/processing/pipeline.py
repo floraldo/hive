@@ -70,9 +70,9 @@ class ProcessingStep:
 
             if isinstance(report, QCReport):
                 report_dict = {
-                    "qc_report": report
-                    "quality_score": report.calculate_quality_score()
-                    "issues_count": len(report.issues)
+                    "qc_report": report,
+                    "quality_score": report.calculate_quality_score(),
+                    "issues_count": len(report.issues),
                     "success": True
                 }
                 report = report_dict
@@ -211,7 +211,7 @@ class ProcessingPipeline:
 
     def add_preprocessing_step(
         self
-        name: str
+        name: str,
         function: Callable
         config: Dict | None = None
         enabled: bool = True
@@ -230,7 +230,7 @@ class ProcessingPipeline:
 
     def add_postprocessing_step(
         self
-        name: str
+        name: str,
         function: Callable
         config: Dict | None = None
         enabled: bool = True
@@ -289,7 +289,7 @@ class ProcessingPipeline:
 
     def execute(
         self
-        ds: xr.Dataset
+        ds: xr.Dataset,
         skip_preprocessing: bool = False
         skip_postprocessing: bool = False
     ) -> xr.Dataset:
@@ -317,9 +317,9 @@ class ProcessingPipeline:
     def get_execution_report(self) -> Dict[str, Any]:
         """Get detailed execution report"""
         return {
-            "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"]
-            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"]
-            "errors": [r for r in self.execution_reports if "error" in r]
+            "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"],
+            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"],
+            "errors": [r for r in self.execution_reports if "error" in r],
             "skipped": [r for r in self.execution_reports if r.get("skipped")]
         }
 
@@ -333,6 +333,6 @@ class ProcessingPipeline:
     def list_steps(self) -> Dict[str, List[str]]:
         """List all configured steps"""
         return {
-            "preprocessing": [s.name for s in self.preprocessing_steps if s.enabled]
+            "preprocessing": [s.name for s in self.preprocessing_steps if s.enabled],
             "postprocessing": [s.name for s in self.postprocessing_steps if s.enabled]
         }

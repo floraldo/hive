@@ -1,20 +1,13 @@
 """Grid component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Dict, List
+from typing import Any, Optional
 
 import cvxpy as cp
-import numpy as np
-from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel
-    TransmissionTechnicalParams
-)
-from ecosystemiser.system_model.components.shared.component import (
-    Component
-    ComponentParams
-)
+from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel, TransmissionTechnicalParams
+from ecosystemiser.system_model.components.shared.component import Component, ComponentParams
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 logger = get_logger(__name__)
 
@@ -25,7 +18,6 @@ logger = get_logger(__name__)
 
 class GridTechnicalParams(TransmissionTechnicalParams):
     """Grid-specific technical parameters extending transmission archetype.
-from __future__ import annotations
 
 
     This model inherits from TransmissionTechnicalParams and adds grid-specific
@@ -40,11 +32,11 @@ from __future__ import annotations
     grid_losses: float | None = Field(None, description="Transmission loss factor [%]")
 
     # DETAILED fidelity parameters
-    voltage_limits: Optional[Dict[str, float]] = Field(None, description="Voltage limits {min_pu, max_pu}")
-    power_factor_limits: Optional[Dict[str, float]] = Field(None, description="Power factor requirements")
+    voltage_limits: Optional[dict[str, float]] = Field(None, description="Voltage limits {min_pu, max_pu}")
+    power_factor_limits: Optional[dict[str, float]] = Field(None, description="Power factor requirements")
 
     # RESEARCH fidelity parameters
-    grid_impedance_model: Optional[Dict[str, Any]] = Field(None, description="Detailed grid impedance model")
+    grid_impedance_model: Optional[dict[str, Any]] = Field(None, description="Detailed grid impedance model")
 
 
 # =============================================================================
@@ -193,11 +185,11 @@ class GridParams(ComponentParams):
             capacity_nominal=100.0,  # Default 100 kW capacity
             max_import=100.0,  # Default 100 kW import
             max_export=100.0,  # Default 100 kW export
-            import_tariff=0.25
-            feed_in_tariff=0.08
-            fidelity_level=FidelityLevel.STANDARD
-        )
-        description="Technical parameters following the hierarchical archetype system"
+            import_tariff=0.25,
+            feed_in_tariff=0.08,
+            fidelity_level=FidelityLevel.STANDARD,
+        ),
+        description="Technical parameters following the hierarchical archetype system",
     )
 
 
@@ -295,7 +287,7 @@ class Grid(Component):
         self.flows["source"]["P_draw"] = {"type": "electricity", "value": self.P_draw}
         self.flows["sink"]["P_feed"] = {"type": "electricity", "value": self.P_feed}
 
-    def set_constraints(self) -> List:
+    def set_constraints(self) -> list:
         """Delegate constraint creation to optimization strategy."""
         return self.optimization.set_constraints()
 

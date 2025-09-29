@@ -11,9 +11,7 @@ and find optimal configurations for a renewable energy system.
 """
 
 from datetime import datetime
-from pathlib import Path
 
-import yaml
 from ecosystemiser.services.study_service import (
     ParameterSweepSpec,
     SimulationConfig,
@@ -143,7 +141,7 @@ def run_battery_capacity_sweep():
         best_params = result.best_result.get("output_config", {}).get("parameter_settings", {})
         best_kpis = result.best_result.get("kpis", {})
 
-        logger.info(f"\nOPTIMAL CONFIGURATION:")
+        logger.info("\nOPTIMAL CONFIGURATION:")
         logger.info(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
         logger.info(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
         logger.info(f"Renewable fraction: {best_kpis.get('renewable_fraction', 0)*100:.1f}%")
@@ -152,7 +150,7 @@ def run_battery_capacity_sweep():
     analysis = ParametricSweepEnhancement.analyze_parameter_influence(result.model_dump())
 
     if analysis["recommendations"]:
-        logger.info(f"\nRECOMMENDATIONS:")
+        logger.info("\nRECOMMENDATIONS:")
         for rec in analysis["recommendations"]:
             logger.info(f"- {rec}")
 
@@ -210,7 +208,7 @@ def run_multi_parameter_sweep():
         save_all_results=True,
     )
 
-    logger.info(f"\nRunning parametric sweep:")
+    logger.info("\nRunning parametric sweep:")
     logger.info(f"Battery capacity values: {battery_sweep.values} kWh")
     logger.info(f"Solar capacity values: {solar_sweep.values} kW")
     logger.info(f"Total combinations: {len(battery_sweep.values) * len(solar_sweep.values)}")
@@ -229,7 +227,7 @@ def run_multi_parameter_sweep():
         best_params = result.best_result.get("output_config", {}).get("parameter_settings", {})
         best_kpis = result.best_result.get("kpis", {})
 
-        logger.info(f"\nOPTIMAL CONFIGURATION:")
+        logger.info("\nOPTIMAL CONFIGURATION:")
         logger.info(f"Battery capacity: {best_params.get('battery.technical.capacity_nominal', 'N/A')} kWh")
         logger.info(f"Solar capacity: {best_params.get('solar_pv.technical.capacity_nominal', 'N/A')} kW")
         logger.info(f"Total cost: ${best_kpis.get('total_cost', 'N/A'):,.0f}")
@@ -237,7 +235,7 @@ def run_multi_parameter_sweep():
 
     # Create a simple visualization of the results
     if result.all_results:
-        logger.info(f"\nPARAMETER SPACE EXPLORATION:")
+        logger.info("\nPARAMETER SPACE EXPLORATION:")
         logger.info(f"{'Battery (kWh)':<15} {'Solar (kW)':<12} {'Cost ($)':<12} {'Renewable %':<12}")
         logger.info("-" * 51)
 
@@ -264,10 +262,10 @@ def main() -> None:
     logger.info("for exploring energy system design spaces.\n")
 
     # Example 1: Single parameter sweep
-    battery_result = run_battery_capacity_sweep()
+    run_battery_capacity_sweep()
 
     # Example 2: Multi-parameter sweep
-    multi_result = run_multi_parameter_sweep()
+    run_multi_parameter_sweep()
 
     logger.info("\n" + "=" * 60)
     logger.info("PARAMETRIC SWEEP EXAMPLES COMPLETE")

@@ -12,15 +12,15 @@ Key Features:
 - Detailed reporting of changes made
 - Integration with Enhanced Golden Rules Framework
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import ast
 import re
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, ListSet, Tuple
+from typing import List, Optional, Set
 
 
 @dataclass
@@ -75,9 +75,9 @@ class GoldenRulesAutoFixer:
         python_files = self._get_python_files()
 
         for py_file in python_files:
+            backup_path = None
             try:
                 # Create backup if requested
-                backup_path = None
                 if self.create_backups and not self.dry_run:
                     backup_path = self._create_backup(py_file)
 
@@ -94,14 +94,14 @@ class GoldenRulesAutoFixer:
             except Exception as e:
                 self.results.append(
                     AutofixResult(
-                        file_path=py_file
-                        rule_id="autofix-error"
-                        rule_name="Autofix Error"
-                        fixes_applied=0
-                        changes_made=[]
-                        backup_created=backup_path is not None
-                        success=False
-                        error_message=str(e)
+                        file_path=py_file,
+                        rule_id="autofix-error",
+                        rule_name="Autofix Error",
+                        fixes_applied=0,
+                        changes_made=[],
+                        backup_created=backup_path is not None,
+                        success=False,
+                        error_message=str(e),
                     )
                 )
 
@@ -180,27 +180,27 @@ class GoldenRulesAutoFixer:
             if changes_made:
                 self.results.append(
                     AutofixResult(
-                        file_path=file_path
-                        rule_id="rule-14"
-                        rule_name="Async Pattern Consistency"
-                        fixes_applied=len(changes_made)
-                        changes_made=changes_made
-                        backup_created=self.create_backups and not self.dry_run
-                        success=True
+                        file_path=file_path,
+                        rule_id="rule-14",
+                        rule_name="Async Pattern Consistency",
+                        fixes_applied=len(changes_made),
+                        changes_made=changes_made,
+                        backup_created=self.create_backups and not self.dry_run,
+                        success=True,
                     )
                 )
 
         except Exception as e:
             self.results.append(
                 AutofixResult(
-                    file_path=file_path
-                    rule_id="rule-14"
-                    rule_name="Async Pattern Consistency"
-                    fixes_applied=0
-                    changes_made=[]
-                    backup_created=False
-                    success=False
-                    error_message=f"Error fixing async naming: {e}"
+                    file_path=file_path,
+                    rule_id="rule-14",
+                    rule_name="Async Pattern Consistency",
+                    fixes_applied=0,
+                    changes_made=[],
+                    backup_created=False,
+                    success=False,
+                    error_message=f"Error fixing async naming: {e}",
                 )
             )
 
@@ -208,7 +208,7 @@ class GoldenRulesAutoFixer:
         """
         Fix print statement violations (Rule 9).
 
-        Replaces logger.info() calls with logger.info() calls.
+        Replaces print() calls with logger.info() calls.
         """
         try:
             with open(file_path, "r", encoding="utf-8") as f:
@@ -236,7 +236,7 @@ class GoldenRulesAutoFixer:
 
                 # Insert logger import
                 logger_import = "from hive_logging import get_logger"
-                logger_init = f"logger = get_logger(__name__)"
+                logger_init = "logger = get_logger(__name__)"
 
                 lines.insert(insert_index, logger_import)
                 lines.insert(insert_index + 1, logger_init)
@@ -248,7 +248,7 @@ class GoldenRulesAutoFixer:
             modified_content = content
 
             # Replace print statements with logger calls
-            # Pattern to match logger.info() calls but not method calls like console.logger.info()
+            # Pattern to match print() calls but not method calls like console.print()
             print_pattern = r"(?<!\.)\bprint\s*\("
 
             # Find all print statements
@@ -269,7 +269,7 @@ class GoldenRulesAutoFixer:
 
                 old_statement = content[start_pos:end_pos]
 
-                # Extract the arguments from logger.info()
+                # Extract the arguments from print()
                 args_start = old_statement.find("(") + 1
                 args_end = old_statement.rfind(")")
                 args = old_statement[args_start:args_end].strip()
@@ -281,7 +281,7 @@ class GoldenRulesAutoFixer:
                     new_statement = "logger.info('')"
 
                 modified_content = modified_content.replace(old_statement, new_statement)
-                changes_made.append(f"Replaced logger.info() with logger.info(): {old_statement}")
+                changes_made.append(f"Replaced print() with logger.info(): {old_statement}")
 
             # Apply changes
             if changes_made and not self.dry_run:
@@ -291,27 +291,27 @@ class GoldenRulesAutoFixer:
             if changes_made:
                 self.results.append(
                     AutofixResult(
-                        file_path=file_path
-                        rule_id="rule-9"
-                        rule_name="Logging Standards"
-                        fixes_applied=len(changes_made)
-                        changes_made=changes_made
-                        backup_created=self.create_backups and not self.dry_run
-                        success=True
+                        file_path=file_path,
+                        rule_id="rule-9",
+                        rule_name="Logging Standards",
+                        fixes_applied=len(changes_made),
+                        changes_made=changes_made,
+                        backup_created=self.create_backups and not self.dry_run,
+                        success=True,
                     )
                 )
 
         except Exception as e:
             self.results.append(
                 AutofixResult(
-                    file_path=file_path
-                    rule_id="rule-9"
-                    rule_name="Logging Standards"
-                    fixes_applied=0
-                    changes_made=[]
-                    backup_created=False
-                    success=False
-                    error_message=f"Error fixing print statements: {e}"
+                    file_path=file_path,
+                    rule_id="rule-9",
+                    rule_name="Logging Standards",
+                    fixes_applied=0,
+                    changes_made=[],
+                    backup_created=False,
+                    success=False,
+                    error_message=f"Error fixing print statements: {e}",
                 )
             )
 
@@ -394,27 +394,27 @@ class GoldenRulesAutoFixer:
             if changes_made:
                 self.results.append(
                     AutofixResult(
-                        file_path=file_path
-                        rule_id="rule-8"
-                        rule_name="Error Handling Standards"
-                        fixes_applied=len(changes_made)
-                        changes_made=changes_made
-                        backup_created=self.create_backups and not self.dry_run
-                        success=True
+                        file_path=file_path,
+                        rule_id="rule-8",
+                        rule_name="Error Handling Standards",
+                        fixes_applied=len(changes_made),
+                        changes_made=changes_made,
+                        backup_created=self.create_backups and not self.dry_run,
+                        success=True,
                     )
                 )
 
         except Exception as e:
             self.results.append(
                 AutofixResult(
-                    file_path=file_path
-                    rule_id="rule-8"
-                    rule_name="Error Handling Standards"
-                    fixes_applied=0
-                    changes_made=[]
-                    backup_created=False
-                    success=False
-                    error_message=f"Error fixing exception inheritance: {e}"
+                    file_path=file_path,
+                    rule_id="rule-8",
+                    rule_name="Error Handling Standards",
+                    fixes_applied=0,
+                    changes_made=[],
+                    backup_created=False,
+                    success=False,
+                    error_message=f"Error fixing exception inheritance: {e}",
                 )
             )
 
@@ -433,7 +433,7 @@ class GoldenRulesAutoFixer:
         successful_files = len([r for r in self.results if r.success and r.fixes_applied > 0])
         failed_operations = len([r for r in self.results if not r.success])
 
-        report.append(f"📊 Summary:")
+        report.append("📊 Summary:")
         report.append(f"  • Total fixes applied: {total_fixes}")
         report.append(f"  • Files successfully modified: {successful_files}")
         report.append(f"  • Failed operations: {failed_operations}")
@@ -516,12 +516,17 @@ def main() -> None:
     create_backups = not args.no_backup
     target_rules = set(args.rules) if args.rules else None
 
+    # Setup logger for CLI
+    from hive_logging import get_logger
+
+    logger = get_logger(__name__)
+
     logger.info("Golden Rules Autofix Tool")
     logger.info("=" * 40)
     logger.info(f"Mode: {'DRY RUN' if dry_run else 'LIVE EXECUTION'}")
     logger.info(f"Backups: {'Enabled' if create_backups and not dry_run else 'Disabled'}")
     logger.info(f"Target rules: {target_rules or 'All supported rules'}")
-    logger.info()
+    logger.info("")
 
     # Run autofix
     fixer = GoldenRulesAutoFixer(project_root=Path("."), dry_run=dry_run, create_backups=create_backups)

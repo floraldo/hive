@@ -82,17 +82,17 @@ class TMYMetrics:
 
             # Calculate comprehensive statistics
             stats_dict[var_name] = {
-                "mean": float(np.mean(valid_data))
-                "std": float(np.std(valid_data))
-                "min": float(np.min(valid_data))
-                "max": float(np.max(valid_data))
-                "median": float(np.median(valid_data))
-                "p25": float(np.percentile(valid_data, 25))
-                "p75": float(np.percentile(valid_data, 75))
-                "p05": float(np.percentile(valid_data, 5))
-                "p95": float(np.percentile(valid_data, 95))
-                "skewness": float(stats.skew(valid_data))
-                "kurtosis": float(stats.kurtosis(valid_data))
+                "mean": float(np.mean(valid_data)),
+                "std": float(np.std(valid_data)),
+                "min": float(np.min(valid_data)),
+                "max": float(np.max(valid_data)),
+                "median": float(np.median(valid_data)),
+                "p25": float(np.percentile(valid_data, 25)),
+                "p75": float(np.percentile(valid_data, 75)),
+                "p05": float(np.percentile(valid_data, 5)),
+                "p95": float(np.percentile(valid_data, 95)),
+                "skewness": float(stats.skew(valid_data)),
+                "kurtosis": float(stats.kurtosis(valid_data)),
                 "count": len(valid_data)
             }
 
@@ -184,11 +184,11 @@ class TMYMetrics:
         max_hot_hours = self._max_consecutive(hot_mask)
 
         return {
-            "max_cold_hours": max_cold_hours
-            "max_hot_hours": max_hot_hours
-            "cold_threshold": float(low_threshold)
-            "hot_threshold": float(high_threshold)
-            "cold_frequency": float(np.sum(cold_mask) / len(valid_data))
+            "max_cold_hours": max_cold_hours,
+            "max_hot_hours": max_hot_hours,
+            "cold_threshold": float(low_threshold),
+            "hot_threshold": float(high_threshold),
+            "cold_frequency": float(np.sum(cold_mask) / len(valid_data)),
             "hot_frequency": float(np.sum(hot_mask) / len(valid_data))
         }
 
@@ -252,10 +252,10 @@ class TMYMetrics:
                 hourly_maxs[hour] = np.max(values)
 
         return {
-            "mean": hourly_means
-            "std": hourly_stds
-            "min": hourly_mins
-            "max": hourly_maxs
+            "mean": hourly_means,
+            "std": hourly_stds,
+            "min": hourly_mins,
+            "max": hourly_maxs,
             "hours": np.arange(24)
         }
 
@@ -306,15 +306,15 @@ class TMYSelector:
     def __init__(self) -> None:
         """Initialize TMY selector"""
         self.quality_weights = {
-            "completeness": 0.3
-            "representativeness": 0.4
-            "extremes": 0.2
+            "completeness": 0.3,
+            "representativeness": 0.4,
+            "extremes": 0.2,
             "continuity": 0.1
         }
 
     def select_optimal_months(
         self
-        data: xr.Dataset
+        data: xr.Dataset,
         selection_criteria: Dict
         building_type: Optional[Literal["residential", "commercial", "industrial"]] = None
     ) -> Dict[int, Tuple[int, MonthQuality]]:
@@ -564,25 +564,25 @@ class TMYSelector:
         if building_type == "residential":
             # Residential buildings care more about extremes
             weights = {
-                "completeness": 0.2
-                "representativeness": 0.3
-                "extremes": 0.4
+                "completeness": 0.2,
+                "representativeness": 0.3,
+                "extremes": 0.4,
                 "continuity": 0.1
             }
         elif building_type == "commercial":
             # Commercial buildings need consistent patterns
             weights = {
-                "completeness": 0.3
-                "representativeness": 0.5
-                "extremes": 0.1
+                "completeness": 0.3,
+                "representativeness": 0.5,
+                "extremes": 0.1,
                 "continuity": 0.1
             }
         elif building_type == "industrial":
             # Industrial needs complete, reliable data
             weights = {
-                "completeness": 0.5
-                "representativeness": 0.3
-                "extremes": 0.1
+                "completeness": 0.5,
+                "representativeness": 0.3,
+                "extremes": 0.1,
                 "continuity": 0.1
             }
         else:
@@ -637,26 +637,26 @@ class TMYGenerator:
 
         # Standard TMY3 variable weights (NREL methodology)
         self.tmy3_weights = {
-            "temp_air": 2.0,  # Primary variable
-            "dewpoint": 1.0
-            "wind_speed": 1.0
-            "ghi": 2.0,  # Primary solar variable
-            "dni": 1.0
-            "rel_humidity": 0.5
-            "pressure": 0.5
+            "temp_air": 2.0,  # Primary variable,
+            "dewpoint": 1.0,
+            "wind_speed": 1.0,
+            "ghi": 2.0,  # Primary solar variable,
+            "dni": 1.0,
+            "rel_humidity": 0.5,
+            "pressure": 0.5,
             "precip": 0.5
         }
 
         # Critical months for building energy analysis
         self.critical_months = {
-            "heating": [1, 2, 12],  # Winter months
-            "cooling": [6, 7, 8],  # Summer months
+            "heating": [1, 2, 12],  # Winter months,
+            "cooling": [6, 7, 8],  # Summer months,
             "shoulder": [3, 4, 5, 9, 10, 11],  # Spring/fall months
         }
 
     def generate(
         self
-        historical_data: xr.Dataset
+        historical_data: xr.Dataset,
         start_year: int | None = None
         end_year: int | None = None
         target_year: int = 2010
@@ -710,12 +710,12 @@ class TMYGenerator:
         # Generate TMY by month
         tmy_months = {}
         selection_metadata = {
-            "method": self.method.value
-            "analysis_period": (start_year, end_year)
-            "target_year": target_year
-            "weights": weights
-            "building_type": building_type
-            "use_advanced_selection": use_advanced_selection
+            "method": self.method.value,
+            "analysis_period": (start_year, end_year),
+            "target_year": target_year,
+            "weights": weights,
+            "building_type": building_type,
+            "use_advanced_selection": use_advanced_selection,
             "selected_months": {}
         }
 
@@ -732,12 +732,12 @@ class TMYGenerator:
 
                 tmy_months[month] = month_data
                 selection_metadata["selected_months"][month] = {
-                    "selected_year": selected_year
-                    "quality": {
-                        "completeness": quality.completeness
-                        "representativeness": quality.representativeness
-                        "extremes_score": quality.extremes_score
-                        "continuity_score": quality.continuity_score
+                    "selected_year": selected_year,
+                    "quality": {,
+                        "completeness": quality.completeness,
+                        "representativeness": quality.representativeness,
+                        "extremes_score": quality.extremes_score,
+                        "continuity_score": quality.continuity_score,
                         "overall_score": quality.overall_score
                     }
                     "data_points": len(month_data.time)
@@ -757,8 +757,8 @@ class TMYGenerator:
 
                 tmy_months[month] = month_data
                 selection_metadata["selected_months"][month] = {
-                    "selected_year": selected_year
-                    "scores": scores
+                    "selected_year": selected_year,
+                    "scores": scores,
                     "data_points": len(month_data.time)
                 }
 
@@ -770,12 +770,12 @@ class TMYGenerator:
         # Add TMY metadata
         tmy_dataset.attrs.update(
             {
-                "title": f"Typical Meteorological Year {target_year}"
-                "method": self.method.value
-                "analysis_period": f"{start_year}-{end_year}"
-                "generated_on": datetime.now().isoformat()
-                "source": "EcoSystemiser TMY Generator"
-                "building_type": building_type or "general"
+                "title": f"Typical Meteorological Year {target_year}",
+                "method": self.method.value,
+                "analysis_period": f"{start_year}-{end_year}",
+                "generated_on": datetime.now().isoformat(),
+                "source": "EcoSystemiser TMY Generator",
+                "building_type": building_type or "general",
                 "advanced_selection": use_advanced_selection
             }
         )

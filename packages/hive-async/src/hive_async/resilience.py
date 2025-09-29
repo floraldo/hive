@@ -4,6 +4,7 @@ Async resilience patterns for fault tolerance.
 Provides circuit breakers, timeout management, and other resilience patterns
 specifically designed for async operations.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -20,6 +21,7 @@ logger = get_logger(__name__)
 
 class CircuitState(Enum):
     """Circuit breaker states"""
+
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
@@ -80,7 +82,7 @@ class AsyncCircuitBreaker:
 
             return result
 
-        except self.expected_exception as e:
+        except self.expected_exception:
             async with self._lock:
                 self.failure_count += 1
                 self.last_failure_time = time.time()
@@ -157,7 +159,7 @@ class AsyncTimeoutManager:
             AsyncTimeoutError: If operation times out and no fallback provided
         """
         timeout = timeout or self.default_timeout
-        operation_name = operation_name or getattr(coro, '__name__', 'unknown_operation')
+        operation_name = operation_name or getattr(coro, "__name__", "unknown_operation")
         start_time = time.time()
 
         try:
@@ -187,33 +189,33 @@ class AsyncTimeoutManager:
                 elapsed_time=elapsed,
             )
         finally:
-            if 'task' in locals():
+            if "task" in locals():
                 self._active_tasks.discard(task)
 
     def _update_stats(self, operation_name: str, elapsed: float, success: bool) -> None:
         """Update operation statistics"""
         if operation_name not in self._operation_stats:
             self._operation_stats[operation_name] = {
-                'total_calls': 0,
-                'successful_calls': 0,
-                'total_time': 0.0,
-                'timeouts': 0,
-                'avg_time': 0.0,
-                'success_rate': 0.0,
+                "total_calls": 0,
+                "successful_calls": 0,
+                "total_time": 0.0,
+                "timeouts": 0,
+                "avg_time": 0.0,
+                "success_rate": 0.0,
             }
 
         stats = self._operation_stats[operation_name]
-        stats['total_calls'] += 1
-        stats['total_time'] += elapsed
+        stats["total_calls"] += 1
+        stats["total_time"] += elapsed
 
         if success:
-            stats['successful_calls'] += 1
+            stats["successful_calls"] += 1
         else:
-            stats['timeouts'] += 1
+            stats["timeouts"] += 1
 
         # Update derived metrics
-        stats['avg_time'] = stats['total_time'] / stats['total_calls']
-        stats['success_rate'] = stats['successful_calls'] / stats['total_calls']
+        stats["avg_time"] = stats["total_time"] / stats["total_calls"]
+        stats["success_rate"] = stats["successful_calls"] / stats["total_calls"]
 
     async def cancel_all_tasks_async(self) -> None:
         """Cancel all active tasks"""
@@ -227,9 +229,9 @@ class AsyncTimeoutManager:
     def get_statistics(self) -> dict:
         """Get timeout statistics for monitoring"""
         return {
-            'active_tasks': len(self._active_tasks),
-            'default_timeout': self.default_timeout,
-            'operation_stats': self._operation_stats.copy(),
+            "active_tasks": len(self._active_tasks),
+            "default_timeout": self.default_timeout,
+            "operation_stats": self._operation_stats.copy(),
         }
 
 
@@ -252,7 +254,9 @@ def async_circuit_breaker(
         @wraps(func)
         async def wrapper_async(*args, **kwargs):
             return await breaker.call_async(func, *args, **kwargs)
+
         return wrapper_async
+
     return decorator
 
 
@@ -264,6 +268,7 @@ def async_timeout(seconds: float, operation_name: str | None = None) -> None:
         seconds: Timeout duration
         operation_name: Name for monitoring (defaults to function name)
     """
+
     def decorator(func):
         timeout_manager = AsyncTimeoutManager()
 
@@ -275,7 +280,9 @@ def async_timeout(seconds: float, operation_name: str | None = None) -> None:
                 timeout=seconds,
                 operation_name=op_name,
             )
+
         return wrapper_async
+
     return decorator
 
 
@@ -295,6 +302,7 @@ def async_resilient(
         circuit_recovery_timeout: Circuit recovery time
         operation_name: Operation name for monitoring
     """
+
     def decorator(func) -> None:
         # Apply circuit breaker first, then timeout
         circuit_protected = async_circuit_breaker(
@@ -308,4 +316,5 @@ def async_resilient(
         )(circuit_protected)
 
         return timeout_protected
+
     return decorator

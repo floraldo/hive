@@ -8,12 +8,12 @@ Extends the generic error handling toolkit with EcoSystemiser capabilities:
 - Component validation errors
 - EcoSystemiser-specific error reporting
 """
+
 from __future__ import annotations
 
-
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
 try:
     from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
@@ -26,7 +26,7 @@ except ImportError:
             super().__init__(message)
             self.message = message
             self.component = component
-            self.timestamp = datetime.now(timezone.utc)
+            self.timestamp = datetime.now(UTC)
             self.error_id = str(uuid.uuid4())
             for key, value in kwargs.items():
                 setattr(self, key, value)
@@ -57,32 +57,32 @@ class EcoSystemiserError(BaseError):
     """
 
     def __init__(
-        self
-        message: str
-        component: str = "ecosystemiser"
-        operation: str | None = None
-        simulation_id: str | None = None
-        analysis_id: str | None = None
-        optimization_id: str | None = None
-        timestep: int | None = None
-        details: Optional[Dict[str, Any]] = None
-        recovery_suggestions: Optional[List[str]] = None
-        original_error: Exception | None = None
+        self,
+        message: str,
+        component: str = "ecosystemiser",
+        operation: str | None = None,
+        simulation_id: str | None = None,
+        analysis_id: str | None = None,
+        optimization_id: str | None = None,
+        timestep: int | None = None,
+        details: Optional[dict[str, Any]] = None,
+        recovery_suggestions: Optional[list[str]] = None,
+        original_error: Exception | None = None,
     ):
         """
         Initialize an EcoSystemiser error with simulation context.
 
         Args:
-            message: Human-readable error message
-            component: Component where error occurred
-            operation: Operation being performed
-            simulation_id: Active simulation ID if applicable
-            analysis_id: Active analysis ID if applicable
-            optimization_id: Active optimization ID if applicable
-            timestep: Simulation timestep when error occurred
-            details: Additional error details
-            recovery_suggestions: Steps to recover from error
-            original_error: Original exception if wrapped
+            message: Human-readable error message,
+        component: Component where error occurred
+            operation: Operation being performed,
+        simulation_id: Active simulation ID if applicable
+            analysis_id: Active analysis ID if applicable,
+        optimization_id: Active optimization ID if applicable
+            timestep: Simulation timestep when error occurred,
+        details: Additional error details
+            recovery_suggestions: Steps to recover from error,
+        original_error: Original exception if wrapped
         """
         # Build details with EcoSystemiser context
         ecosys_details = details or {}
@@ -97,12 +97,12 @@ class EcoSystemiserError(BaseError):
             ecosys_details["timestep"] = timestep
 
         super().__init__(
-            message=message
-            component=component
-            operation=operation
-            details=ecosys_details
-            recovery_suggestions=recovery_suggestions
-            original_error=original_error
+            message=message,
+            component=component,
+            operation=operation,
+            details=ecosys_details,
+            recovery_suggestions=recovery_suggestions,
+            original_error=original_error,
         )
 
         # Store EcoSystemiser-specific attributes
@@ -110,9 +110,9 @@ class EcoSystemiserError(BaseError):
         self.analysis_id = analysis_id
         self.optimization_id = optimization_id
         self.timestep = timestep
-        self.timestamp = datetime.now(timezone.utc)
+        self.timestamp = datetime.now(UTC)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary with EcoSystemiser context"""
         data = super().to_dict()
         data["timestamp"] = self.timestamp.isoformat()
@@ -124,23 +124,18 @@ class EcoSystemiserError(BaseError):
 # ===============================================================================
 
 
-class SimulationError(BaseError):
+class SimulationError(EcoSystemiserError):
     """Base class for simulation-related errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(message=message, component=kwargs.get("component", "simulation"), **kwargs)
+        kwargs.setdefault("component", "simulation")
+        super().__init__(message=message, **kwargs)
 
 
 class SimulationConfigError(BaseError):
     """Error in simulation configuration"""
 
-    def __init__(
-        self
-        message: str
-        config_key: str | None = None
-        config_value: Any = None
-        **kwargs
-    ):
+    def __init__(self, message: str, config_key: str | None = None, config_value: Any = None, **kwargs):
         details = kwargs.get("details", {})
         if config_key:
             details["config_key"] = config_key
@@ -149,8 +144,7 @@ class SimulationConfigError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Check simulation configuration file"
                 "Verify parameter ranges and types"
                 "Ensure all required parameters are present"
@@ -165,8 +159,7 @@ class SimulationExecutionError(BaseError):
 
     def __init__(self, message: str, **kwargs) -> None:
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Check simulation input data"
                 "Verify component connections"
                 "Review solver configuration"
@@ -185,23 +178,13 @@ class ProfileError(BaseError):
     """Base class for profile-related errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(
-            message=message
-            component=kwargs.get("component", "profile_loader")
-            **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "profile_loader"), **kwargs)
 
 
 class ProfileLoadError(BaseError):
     """Error loading profile data"""
 
-    def __init__(
-        self
-        message: str
-        profile_type: str | None = None
-        source: str | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, profile_type: str | None = None, source: str | None = None, **kwargs):
         details = kwargs.get("details", {})
         if profile_type:
             details["profile_type"] = profile_type
@@ -210,8 +193,7 @@ class ProfileLoadError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Verify data source availability"
                 "Check network connection for API sources"
                 "Validate file paths for local sources"
@@ -226,11 +208,7 @@ class ProfileValidationError(BaseError):
     """Error validating profile data"""
 
     def __init__(
-        self
-        message: str
-        validation_type: str | None = None
-        failed_checks: Optional[List[str]] = None
-        **kwargs
+        self, message: str, validation_type: str | None = None, failed_checks: Optional[list[str]] = None, **kwargs
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -240,8 +218,7 @@ class ProfileValidationError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Check data format and structure"
                 "Verify time series continuity"
                 "Validate data ranges and units"
@@ -268,11 +245,7 @@ class OptimizationInfeasibleError(BaseError):
     """Error when optimization problem is infeasible"""
 
     def __init__(
-        self
-        message: str
-        solver_type: str | None = None
-        constraints_violated: Optional[List[str]] = None
-        **kwargs
+        self, message: str, solver_type: str | None = None, constraints_violated: Optional[list[str]] = None, **kwargs
     ):
         details = kwargs.get("details", {})
         if solver_type:
@@ -282,8 +255,7 @@ class OptimizationInfeasibleError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Relax constraint boundaries"
                 "Check for conflicting constraints"
                 "Verify component capacities"
@@ -298,13 +270,7 @@ class OptimizationInfeasibleError(BaseError):
 class SolverConvergenceError(BaseError):
     """Error when solver fails to converge"""
 
-    def __init__(
-        self
-        message: str
-        iterations: int | None = None
-        tolerance: float | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, iterations: int | None = None, tolerance: float | None = None, **kwargs):
         details = kwargs.get("details", {})
         if iterations is not None:
             details["iterations"] = iterations
@@ -313,8 +279,7 @@ class SolverConvergenceError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Increase maximum iterations"
                 "Adjust convergence tolerance"
                 "Improve initial solution guess"
@@ -334,13 +299,7 @@ class SolverConvergenceError(BaseError):
 class ComponentError(BaseError):
     """Base class for component-related errors"""
 
-    def __init__(
-        self
-        message: str
-        component_name: str | None = None
-        component_type: str | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, component_name: str | None = None, component_type: str | None = None, **kwargs):
         details = kwargs.get("details", {})
         if component_name:
             details["component_name"] = component_name
@@ -348,23 +307,19 @@ class ComponentError(BaseError):
             details["component_type"] = component_type
 
         kwargs["details"] = details
-        super().__init__(
-            message=message
-            component=kwargs.get("component", "component_system")
-            **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "component_system"), **kwargs)
 
 
 class ComponentConnectionError(BaseError):
     """Error in component connections"""
 
     def __init__(
-        self
-        message: str
-        source_component: str | None = None
-        target_component: str | None = None
-        connection_type: str | None = None
-        **kwargs
+        self,
+        message: str,
+        source_component: str | None = None,
+        target_component: str | None = None,
+        connection_type: str | None = None,
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if source_component:
@@ -376,8 +331,7 @@ class ComponentConnectionError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Verify component compatibility"
                 "Check connection types match"
                 "Ensure components are properly initialized"
@@ -392,12 +346,12 @@ class ComponentValidationError(BaseError):
     """Error validating component parameters"""
 
     def __init__(
-        self
-        message: str
-        parameter_name: str | None = None
-        parameter_value: Any = None
-        valid_range: str | None = None
-        **kwargs
+        self,
+        message: str,
+        parameter_name: str | None = None,
+        parameter_value: Any = None,
+        valid_range: str | None = None,
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if parameter_name:
@@ -409,8 +363,7 @@ class ComponentValidationError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Check parameter value against valid range"
                 "Verify parameter units"
                 "Ensure parameter type is correct"
@@ -443,8 +396,7 @@ class DatabaseConnectionError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Check database file exists"
                 "Verify file permissions"
                 "Ensure database is not locked"
@@ -465,8 +417,7 @@ class DatabaseTransactionError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Retry transaction"
                 "Check for database locks"
                 "Verify data integrity"
@@ -492,13 +443,7 @@ class EventBusError(BaseError):
 class EventPublishError(BaseError):
     """Error publishing event to bus"""
 
-    def __init__(
-        self
-        message: str
-        event_type: str | None = None
-        event_id: str | None = None
-        **kwargs
-    ):
+    def __init__(self, message: str, event_type: str | None = None, event_id: str | None = None, **kwargs):
         details = kwargs.get("details", {})
         if event_type:
             details["event_type"] = event_type
@@ -507,8 +452,7 @@ class EventPublishError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions"
-            [
+            "recovery_suggestions"[
                 "Check event bus connectivity"
                 "Verify event format"
                 "Ensure event handlers are registered"
@@ -535,23 +479,24 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
     def __init__(self) -> None:
         """Initialize the EcoSystemiser error reporter"""
         super().__init__()
-        self.simulation_errors: List[SimulationError] = []
-        self.profile_errors: List[ProfileError] = []
-        self.solver_errors: List[SolverError] = []
-        self.component_errors: List[ComponentError] = []
+        self.simulation_errors: list[SimulationError] = []
+        self.profile_errors: list[ProfileError] = []
+        self.solver_errors: list[SolverError] = []
+        self.component_errors: list[ComponentError] = []
+        self.error_history: list[dict[str, Any]] = []
 
     def report_error(
-        self
-        error: Exception
-        context: Optional[Dict[str, Any]] = None
-        additional_info: Optional[Dict[str, Any]] = None
+        self,
+        error: Exception,
+        context: Optional[dict[str, Any]] = None,
+        additional_info: Optional[dict[str, Any]] = None,
     ) -> str:
         """
         Report an error with EcoSystemiser-specific handling.
 
         Args:
-            error: The error to report
-            context: Error context information
+            error: The error to report,
+        context: Error context information
             additional_info: Additional information about the error
 
         Returns:
@@ -590,6 +535,36 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
 
         return error_id
 
+    def _update_metrics(self, error_record: dict[str, Any]) -> None:
+        """Update error metrics and statistics."""
+        # Implementation for tracking error metrics
+        # Could integrate with monitoring systems
+        pass
+
+    def _build_error_record(
+        self,
+        error: Exception,
+        context: Optional[dict[str, Any]] = None,
+        additional_info: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """Build a comprehensive error record."""
+        record = {
+            "timestamp": datetime.now(UTC).isoformat(),
+            "message": str(error),
+            "error_type": type(error).__name__,
+            "context": context or {},
+            "additional_info": additional_info or {},
+        }
+
+        if hasattr(error, "component"):
+            record["component"] = error.component
+        if hasattr(error, "operation"):
+            record["operation"] = error.operation
+        if hasattr(error, "details"):
+            record["details"] = error.details
+
+        return record
+
     def _handle_simulation_error(self, error: SimulationError) -> None:
         """Handle simulation-specific error reporting"""
         if error.simulation_id:
@@ -612,14 +587,14 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         logger.error(f"Component error: {error.message}")
         # Could trigger component reconfiguration
 
-    def get_error_summary(self) -> Dict[str, Any]:
+    def get_error_summary(self) -> dict[str, Any]:
         """Get summary of all reported errors"""
         return {
-            "total_errors": self.error_counts.get("total", 0)
-            "simulation_errors": len(self.simulation_errors)
-            "profile_errors": len(self.profile_errors)
-            "solver_errors": len(self.solver_errors)
-            "component_errors": len(self.component_errors)
+            "total_errors": self.error_counts.get("total", 0),
+            "simulation_errors": len(self.simulation_errors),
+            "profile_errors": len(self.profile_errors),
+            "solver_errors": len(self.solver_errors),
+            "component_errors": len(self.component_errors),
             "latest_errors": self.error_history[-10:],  # Last 10 error records
         }
 

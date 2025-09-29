@@ -16,20 +16,20 @@ from hive_async.resilience import AsyncCircuitBreaker
 from hive_logging import get_logger
 from hive_performance.metrics_collector import MetricsCollector
 from tenacity import (
-    retry
-    retry_if_exception_type
-    stop_after_attempt
-    wait_exponential
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
 )
 
 from .config import CacheConfig
 from .exceptions import (
-    CacheCircuitBreakerError
-    CacheConnectionError
-    CacheError
-    CacheKeyError
-    CacheSerializationError
-    CacheTimeoutError
+    CacheCircuitBreakerError,
+    CacheConnectionError,
+    CacheError,
+    CacheKeyError,
+    CacheSerializationError,
+    CacheTimeoutError,
 )
 
 logger = get_logger(__name__)
@@ -57,12 +57,12 @@ from __future__ import annotations
         self._redis_client = None
         self._circuit_breaker = None
         self._metrics = {
-            "hits": 0
-            "misses": 0
-            "sets": 0
-            "deletes": 0
-            "errors": 0
-            "circuit_breaker_opens": 0
+            "hits": 0,
+            "misses": 0,
+            "sets": 0,
+            "deletes": 0,
+            "errors": 0,
+            "circuit_breaker_opens": 0,
         }
         self._last_health_check = None
         self._health_status = {"healthy": True, "last_check": None, "errors": []}
@@ -72,10 +72,10 @@ from __future__ import annotations
             MetricsCollector(
                 collection_interval=self.config.performance_monitor_interval
                 if hasattr(self.config, "performance_monitor_interval")
-                else 5.0
-                max_history=1000
-                enable_system_metrics=True
-                enable_async_metrics=True
+                else 5.0,
+                max_history=1000,
+                enable_system_metrics=True,
+                enable_async_metrics=True,
             )
             if config.enable_performance_monitoring
             else None
@@ -83,8 +83,8 @@ from __future__ import annotations
 
         if config.circuit_breaker_enabled:
             self._circuit_breaker = AsyncCircuitBreaker(
-                failure_threshold=config.circuit_breaker_threshold
-                recovery_timeout=config.circuit_breaker_timeout
+                failure_threshold=config.circuit_breaker_threshold,
+                recovery_timeout=config.circuit_breaker_timeout,
             )
 
     async def initialize_async(self) -> None:
@@ -133,8 +133,8 @@ from __future__ import annotations
 
         # Start tracking
         start_id = await self._performance_monitor.start_operation_tracking_async(
-            operation_name=operation_name
-            tags={"cache_operation": operation_name, "namespace": kwargs.get("namespace", "default")}
+            operation_name=operation_name,
+            tags={"cache_operation": operation_name, "namespace": kwargs.get("namespace", "default")},
         )
 
         try:
@@ -239,12 +239,12 @@ from __future__ import annotations
         return xxhash.xxh64(key.encode()).hexdigest()
 
     async def set_async(
-        self
-        key: str
-        value: Any
-        ttl_async: int | None = None
-        namespace: str = "default"
-        overwrite: bool = True
+        self,
+        key: str,
+        value: Any,
+        ttl_async: int | None = None,
+        namespace: str = "default",
+        overwrite: bool = True,
     ) -> bool:
         """Set a value in cache with optional TTL.
 

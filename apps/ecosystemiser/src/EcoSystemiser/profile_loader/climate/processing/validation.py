@@ -62,13 +62,13 @@ class QCIssue:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
-            "type": self.type
-            "message": self.message
-            "severity": self.severity.value
-            "affected_variables": self.affected_variables
-            "affected_time_range": self.affected_time_range
-            "affected_count": self.affected_count
-            "metadata": self.metadata
+            "type": self.type,
+            "message": self.message,
+            "severity": self.severity.value,
+            "affected_variables": self.affected_variables,
+            "affected_time_range": self.affected_time_range,
+            "affected_count": self.affected_count,
+            "metadata": self.metadata,
             "suggested_action": self.suggested_action
         }
 
@@ -144,11 +144,11 @@ class QCReport:
                 variable_issues[var] += 1
 
         self.summary = {
-            "total_issues": len(self.issues)
-            "severity_counts": severity_counts
-            "quality_score": self.calculate_quality_score()
-            "variables_with_issues": len(variable_issues)
-            "variable_issue_counts": variable_issues
+            "total_issues": len(self.issues),
+            "severity_counts": severity_counts,
+            "quality_score": self.calculate_quality_score(),
+            "variables_with_issues": len(variable_issues),
+            "variable_issue_counts": variable_issues,
             "passed_checks": len(self.passed_checks)
         }
 
@@ -157,11 +157,11 @@ class QCReport:
     def to_dict(self) -> Dict[str, Any]:
         """Convert report to dictionary for serialization"""
         return {
-            "dataset_id": self.dataset_id
-            "timestamp": self.timestamp
-            "issues": [issue.to_dict() for issue in self.issues]
-            "summary": self.generate_summary()
-            "passed_checks": self.passed_checks
+            "dataset_id": self.dataset_id,
+            "timestamp": self.timestamp,
+            "issues": [issue.to_dict() for issue in self.issues],
+            "summary": self.generate_summary(),
+            "passed_checks": self.passed_checks,
             "data_quality_score": self.data_quality_score
         }
 
@@ -248,8 +248,8 @@ class QCReport:
 
 # Helper functions for creating QC issues
 def create_consistency_issue(
-    message: str
-    affected_variables: List[str]
+    message: str,
+    affected_variables: List[str],
     severity: QCSeverity = QCSeverity.HIGH
     **kwargs
 ) -> QCIssue:
@@ -264,8 +264,8 @@ def create_consistency_issue(
 
 
 def create_bounds_issue(
-    variable: str
-    n_violations: int
+    variable: str,
+    n_violations: int,
     total_points: int
     bounds: tuple
     severity: QCSeverity = QCSeverity.MEDIUM
@@ -285,8 +285,8 @@ def create_bounds_issue(
 
 
 def create_temporal_issue(
-    message: str
-    affected_variables: List[str]
+    message: str,
+    affected_variables: List[str],
     time_range: tuple = None
     severity: QCSeverity = QCSeverity.MEDIUM
     **kwargs
@@ -349,11 +349,11 @@ def get_source_profile(source: str) -> QCProfile:
     """
     # Mapping of source names to their adapter modules
     source_mapping = {
-        "nasa_power": "ecosystemiser.profile_loader.climate.adapters.nasa_power"
-        "meteostat": "ecosystemiser.profile_loader.climate.adapters.meteostat"
-        "era5": "ecosystemiser.profile_loader.climate.adapters.era5"
-        "pvgis": "ecosystemiser.profile_loader.climate.adapters.pvgis"
-        "epw": "ecosystemiser.profile_loader.climate.adapters.file_epw"
+        "nasa_power": "ecosystemiser.profile_loader.climate.adapters.nasa_power",
+        "meteostat": "ecosystemiser.profile_loader.climate.adapters.meteostat",
+        "era5": "ecosystemiser.profile_loader.climate.adapters.era5",
+        "pvgis": "ecosystemiser.profile_loader.climate.adapters.pvgis",
+        "epw": "ecosystemiser.profile_loader.climate.adapters.file_epw",
         "file_epw": "ecosystemiser.profile_loader.climate.adapters.file_epw"
     }
 
@@ -431,16 +431,16 @@ class MeteorologicalValidator:
 
     # Enhanced physical bounds with seasonal/location adjustments
     BASE_PHYSICAL_BOUNDS = {
-        "temp_air": (-70, 70),  # degC - Extended for extreme climates
-        "dewpoint": (-70, 50),  # degC - Can exceed air temp briefly in measurements
-        "rel_humidity": (0, 105),  # % - Allow slight over 100% for measurement errors
-        "wind_speed": (0, 60),  # m/s - Extended for extreme weather
-        "wind_dir": (0, 360),  # degrees
-        "ghi": (0, 1500),  # W/m2 - Extended for high altitude/low latitude
-        "dni": (0, 1200),  # W/m2
-        "dhi": (0, 700),  # W/m2
-        "precip": (0, 300),  # mm/h - Extended for extreme precipitation
-        "pressure": (700, 1100),  # hPa - Extended for high altitude
+        "temp_air": (-70, 70),  # degC - Extended for extreme climates,
+        "dewpoint": (-70, 50),  # degC - Can exceed air temp briefly in measurements,
+        "rel_humidity": (0, 105),  # % - Allow slight over 100% for measurement errors,
+        "wind_speed": (0, 60),  # m/s - Extended for extreme weather,
+        "wind_dir": (0, 360),  # degrees,
+        "ghi": (0, 1500),  # W/m2 - Extended for high altitude/low latitude,
+        "dni": (0, 1200),  # W/m2,
+        "dhi": (0, 700),  # W/m2,
+        "precip": (0, 300),  # mm/h - Extended for extreme precipitation,
+        "pressure": (700, 1100),  # hPa - Extended for high altitude,
         "cloud_cover": (0, 100),  # %
     }
 
@@ -829,10 +829,10 @@ class MeteorologicalValidator:
                 affected_variables=list(ds.data_vars.keys())
                 severity=severity
                 metadata={
-                    "n_gaps": int(n_gaps)
-                    "n_missing": int(n_missing)
-                    "max_gap_hours": (max_gap.total_seconds() / 3600 if n_gaps > 0 else 0)
-                    "expected_freq": (str(expected_freq) if expected_freq else str(expected_td))
+                    "n_gaps": int(n_gaps),
+                    "n_missing": int(n_missing),
+                    "max_gap_hours": (max_gap.total_seconds() / 3600 if n_gaps > 0 else 0),
+                    "expected_freq": (str(expected_freq) if expected_freq else str(expected_td)),
                     "freq_source": freq_source
                 }
                 suggested_action="Check data collection continuity and fill gaps if possible"
@@ -845,11 +845,11 @@ class MeteorologicalValidator:
         """Check for unrealistic rates of change in variables"""
         # Define maximum realistic hourly changes
         max_hourly_changes = {
-            "temp_air": 10,  # degC/h (extreme weather fronts)
-            "dewpoint": 8,  # degC/h
-            "rel_humidity": 30,  # %/h
-            "wind_speed": 20,  # m/s/h (gusts)
-            "pressure": 10,  # hPa/h (extreme pressure changes)
+            "temp_air": 10,  # degC/h (extreme weather fronts),
+            "dewpoint": 8,  # degC/h,
+            "rel_humidity": 30,  # %/h,
+            "wind_speed": 20,  # m/s/h (gusts),
+            "pressure": 10,  # hPa/h (extreme pressure changes),
             "ghi": 800,  # W/m2/h (cloud shadows)
         }
 
@@ -879,8 +879,8 @@ class MeteorologicalValidator:
                     severity=severity
                     affected_count=int(n_violations)
                     metadata={
-                        "max_allowed_change": max_change
-                        "max_observed_change": float(max_observed_change)
+                        "max_allowed_change": max_change,
+                        "max_observed_change": float(max_observed_change),
                         "percent_violations": percent
                     }
                     suggested_action=f"Review {var_name} measurements for sensor spikes or extreme weather events"
@@ -933,11 +933,11 @@ class MeteorologicalValidator:
     def _check_constant_values(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check for suspiciously constant values (stuck sensors)"""
         min_variation_thresholds = {
-            "temp_air": 0.1,  # degC
-            "dewpoint": 0.1,  # degC
-            "rel_humidity": 1.0,  # %
-            "wind_speed": 0.1,  # m/s
-            "pressure": 0.1,  # hPa
+            "temp_air": 0.1,  # degC,
+            "dewpoint": 0.1,  # degC,
+            "rel_humidity": 1.0,  # %,
+            "wind_speed": 0.1,  # m/s,
+            "pressure": 0.1,  # hPa,
             "ghi": 1.0,  # W/m2
         }
 
@@ -963,7 +963,7 @@ class MeteorologicalValidator:
                     severity=severity
                     affected_variables=[var_name]
                     metadata={
-                        "std_deviation": float(std_dev)
+                        "std_deviation": float(std_dev),
                         "threshold": min_variation
                     }
                     suggested_action=f"Check {var_name} sensor for malfunction or calibration issues"
@@ -1104,11 +1104,11 @@ class MeteorologicalValidator:
 
         # Add summary to report metadata
         report.metadata["validation_summary"] = {
-            "total_issues": total_issues
-            "severity_breakdown": severity_counts
-            "quality_score": quality_score
-            "recommendations": recommendations
-            "validation_level": "comprehensive"
+            "total_issues": total_issues,
+            "severity_breakdown": severity_counts,
+            "quality_score": quality_score,
+            "recommendations": recommendations,
+            "validation_level": "comprehensive",
             "checks_performed": len(report.passed_checks)
         }
 
@@ -1162,8 +1162,8 @@ class MeteorologicalValidator:
 
 
 def validate_complete(
-    ds: xr.Dataset
-    source: str | None = None
+    ds: xr.Dataset,
+    source: str | None = None,
     validation_level: str = "comprehensive"
     strict_mode: bool = False
     enable_profiling: bool = True
@@ -1194,11 +1194,11 @@ def validate_complete(
 
     # Add dataset info to metadata
     report.metadata = {
-        "dataset_info": {
-            "variables": list(ds.data_vars.keys())
-            "time_range": (str(ds.time.min().values), str(ds.time.max().values))
-            "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning
-            "attributes": dict(ds.attrs)
+        "dataset_info": {,
+            "variables": list(ds.data_vars.keys()),
+            "time_range": (str(ds.time.min().values), str(ds.time.max().values)),
+            "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning,
+            "attributes": dict(ds.attrs),
             "source": source
         }
     }
@@ -1301,8 +1301,8 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
 
         # Add source-specific information to report
         report.metadata["source_profile"] = {
-            "name": profile.name
-            "known_issues": profile.known_issues
+            "name": profile.name,
+            "known_issues": profile.known_issues,
             "spatial_accuracy": profile.spatial_accuracy
         }
 
@@ -1328,22 +1328,22 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
 
 # Physical bounds for common variables
 PHYSICAL_BOUNDS = {
-    "temp_air": (-60, 60),  # degC
-    "dewpoint": (-60, 40),  # degC
-    "rel_humidity": (0, 100),  # %
-    "wind_speed": (0, 50),  # m/s
-    "wind_dir": (0, 360),  # degrees
-    "ghi": (0, 1400),  # W/m2
-    "dni": (0, 1100),  # W/m2
-    "dhi": (0, 600),  # W/m2
-    "precip": (0, 200),  # mm/h
-    "pressure": (800, 1100),  # hPa
+    "temp_air": (-60, 60),  # degC,
+    "dewpoint": (-60, 40),  # degC,
+    "rel_humidity": (0, 100),  # %,
+    "wind_speed": (0, 50),  # m/s,
+    "wind_dir": (0, 360),  # degrees,
+    "ghi": (0, 1400),  # W/m2,
+    "dni": (0, 1100),  # W/m2,
+    "dhi": (0, 600),  # W/m2,
+    "precip": (0, 200),  # mm/h,
+    "pressure": (800, 1100),  # hPa,
     "cloud_cover": (0, 100),  # %
 }
 
 
 def apply_quality_control(
-    ds: xr.Dataset
+    ds: xr.Dataset,
     bounds: Dict[str, Tuple[float, float]] = None
     spike_filter: bool = True
     gap_fill: bool = True
@@ -1384,8 +1384,8 @@ def apply_quality_control(
 
 
 def apply_corrections(
-    ds: xr.Dataset
-    report: QCReport
+    ds: xr.Dataset,
+    report: QCReport,
     bounds: Dict[str, Tuple[float, float]] = None
     spike_filter: bool = True
     gap_fill: bool = True
@@ -1484,7 +1484,7 @@ def clip_physical_bounds(ds: xr.Dataset, bounds: Dict[str, Tuple[float, float]] 
             if n_clipped > 0:
                 ds_clipped[var_name].values = clipped
                 report[var_name] = {
-                    "n_clipped": int(n_clipped)
+                    "n_clipped": int(n_clipped),
                     "percent": float(n_clipped / original.size * 100)
                 }
                 logger.info(
@@ -1540,8 +1540,8 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> Tuple[xr.Datas
             ds_filtered[var_name].values[spikes] = np.nan
 
             report[var_name] = {
-                "n_spikes": int(n_spikes)
-                "percent": float(n_spikes / data.size * 100)
+                "n_spikes": int(n_spikes),
+                "percent": float(n_spikes / data.size * 100),
                 "bounds": (float(lower_bound), float(upper_bound))
             }
 
@@ -1599,8 +1599,8 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> Tuple[xr.Dataset, Dict]
         n_gaps_filled = n_gaps_initial - np.sum(np.isnan(data_interp.values))
         if n_gaps_filled > 0:
             report[var_name] = {
-                "n_gaps_initial": int(n_gaps_initial)
-                "n_gaps_filled": int(n_gaps_filled)
+                "n_gaps_initial": int(n_gaps_initial),
+                "n_gaps_filled": int(n_gaps_filled),
                 "fill_rate": float(n_gaps_filled / n_gaps_initial * 100)
             }
 

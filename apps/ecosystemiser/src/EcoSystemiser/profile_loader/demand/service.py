@@ -15,13 +15,13 @@ import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
 from ecosystemiser.profile_loader.demand.models import (
-    DEMAND_VARIABLES
+    DEMAND_VARIABLES,
     DemandRequest
     DemandResponse
 )
 from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
 from ecosystemiser.profile_loader.shared.service import (
-    BaseProfileService
+    BaseProfileService,
     ProfileServiceError
     ProfileValidationError
 )
@@ -47,16 +47,16 @@ class DemandService(BaseProfileService):
             # "standard_profiles": StandardProfileAdapter()
         }
         self.service_info = {
-            "service_type": "DemandService"
-            "version": "1.0.0"
-            "supported_demand_types": [
+            "service_type": "DemandService",
+            "version": "1.0.0",
+            "supported_demand_types": [,
                 "electricity"
                 "heating"
                 "cooling"
                 "hot_water"
                 "process_heat"
             ]
-            "supported_building_types": [
+            "supported_building_types": [,
                 "residential_single"
                 "residential_multi"
                 "office"
@@ -161,9 +161,9 @@ class DemandService(BaseProfileService):
         """Get coverage information for demand source."""
         if source == "file":
             return {
-                "spatial_coverage": "User-defined"
-                "temporal_coverage": "User-defined"
-                "resolution": "Variable"
+                "spatial_coverage": "User-defined",
+                "temporal_coverage": "User-defined",
+                "resolution": "Variable",
                 "data_types": ["electricity", "heating", "cooling", "hot_water"]
             }
         else:
@@ -177,10 +177,10 @@ class DemandService(BaseProfileService):
             else:
                 # Map source to adapter
                 source_mapping = {
-                    "standard_profile": "file",  # For now, map to file adapter
-                    "smart_meter": "file"
-                    "scada": "file"
-                    "simulation": "file"
+                    "standard_profile": "file",  # For now, map to file adapter,
+                    "smart_meter": "file",
+                    "scada": "file",
+                    "simulation": "file",
                     "benchmark": "file"
                 }
                 adapter_name = source_mapping.get(request.source, "file")
@@ -192,8 +192,8 @@ class DemandService(BaseProfileService):
     def _build_adapter_config(self, request: DemandRequest) -> Dict[str, Any]:
         """Build configuration for selected adapter."""
         config = {
-            "demand_type": request.demand_type
-            "building_type": request.building_type
+            "demand_type": request.demand_type,
+            "building_type": request.building_type,
             "variables": request.variables
         }
 
@@ -238,11 +238,11 @@ class DemandService(BaseProfileService):
         # Add metadata
         dataset.attrs.update(
             {
-                "source": request.source or "file"
-                "demand_type": request.demand_type
-                "building_type": request.building_type
-                "location": str(request.location)
-                "resolution": request.resolution
+                "source": request.source or "file",
+                "demand_type": request.demand_type,
+                "building_type": request.building_type,
+                "location": str(request.location),
+                "resolution": request.resolution,
                 "variables": list(profiles.keys())
             }
         )
@@ -251,7 +251,7 @@ class DemandService(BaseProfileService):
 
     def _build_response(
         self
-        dataset: xr.Dataset
+        dataset: xr.Dataset,
         request: DemandRequest
         profiles: Dict[str, np.ndarray]
     ) -> DemandResponse:

@@ -36,7 +36,7 @@ class AnalyserWorker:
 
     def __init__(
         self
-        event_bus: EcoSystemiserEventBus | None = None
+        event_bus: EcoSystemiserEventBus | None = None,
         analyser_service: AnalyserService | None = None
         auto_analysis_strategies: Optional[List[str]] = None
     ):
@@ -123,8 +123,8 @@ class AnalyserWorker:
                 results_path=results_path
                 strategies=strategies
                 metadata={
-                    "study_id": study_id
-                    "study_type": study_type
+                    "study_id": study_id,
+                    "study_type": study_type,
                     "trigger": "auto_study_completion"
                 }
             )
@@ -154,7 +154,7 @@ class AnalyserWorker:
                 results_path=results_path
                 strategies=strategies
                 metadata={
-                    "simulation_id": simulation_id
+                    "simulation_id": simulation_id,
                     "trigger": "auto_simulation_completion"
                 }
             )
@@ -164,7 +164,7 @@ class AnalyserWorker:
 
     async def _execute_analysis_async(
         self
-        analysis_id: str
+        analysis_id: str,
         results_path: str
         strategies: List[str]
         metadata: Optional[Dict[str, Any]] = None
@@ -184,8 +184,8 @@ class AnalyserWorker:
             analysis_id=analysis_id
             analysis_type="automated_analysis"
             parameters={
-                "source_agent": "AnalyserWorker"
-                "source_results_path": str(results_path)
+                "source_agent": "AnalyserWorker",
+                "source_results_path": str(results_path),
                 "strategies_executed": strategies
             }
         )
@@ -213,10 +213,10 @@ class AnalyserWorker:
             analysis_completed_event = AnalysisEvent.completed(
                 analysis_id=analysis_id
                 results={
-                    "source_agent": "AnalyserWorker"
-                    "source_results_path": str(results_path)
-                    "analysis_results_path": str(output_path)
-                    "strategies_executed": strategies
+                    "source_agent": "AnalyserWorker",
+                    "source_results_path": str(results_path),
+                    "analysis_results_path": str(output_path),
+                    "strategies_executed": strategies,
                     "duration_seconds": execution_time
                 }
             )
@@ -232,9 +232,9 @@ class AnalyserWorker:
                 analysis_id=analysis_id
                 error_message=str(e)
                 error_details={
-                    "source_agent": "AnalyserWorker"
-                    "source_results_path": str(results_path)
-                    "strategies_executed": strategies
+                    "source_agent": "AnalyserWorker",
+                    "source_results_path": str(results_path),
+                    "strategies_executed": strategies,
                     "duration_seconds": execution_time
                 }
             )
@@ -284,7 +284,7 @@ class AnalyserWorker:
 
     async def process_analysis_request_async(
         self
-        results_path: str
+        results_path: str,
         strategies: Optional[List[str]] = None
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
@@ -320,9 +320,9 @@ class AnalyserWorker:
             Dictionary with worker status information
         """
         return {
-            "is_running": self.is_running
-            "subscriptions": len(self._subscription_ids)
-            "auto_strategies": self.auto_analysis_strategies
+            "is_running": self.is_running,
+            "subscriptions": len(self._subscription_ids),
+            "auto_strategies": self.auto_analysis_strategies,
             "registered_strategies": list(self.analyser_service.strategies.keys())
         }
 
@@ -385,7 +385,7 @@ class AnalyserWorkerPool:
 
     async def process_analysis_request_async(
         self
-        results_path: str
+        results_path: str,
         strategies: Optional[List[str]] = None
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
@@ -409,7 +409,7 @@ class AnalyserWorkerPool:
             Dictionary with pool status information
         """
         return {
-            "pool_size": self.pool_size
-            "active_workers": len([w for w in self.workers if w.is_running])
+            "pool_size": self.pool_size,
+            "active_workers": len([w for w in self.workers if w.is_running]),
             "workers": [w.get_status() for w in self.workers]
         }

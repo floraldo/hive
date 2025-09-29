@@ -7,7 +7,6 @@ Ultimate CLI Test Suite for EcoSystemiser
 Cross-platform, comprehensive end-to-end testing
 """
 
-import json
 import platform
 import shlex
 import shutil
@@ -83,7 +82,7 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
     except FileNotFoundError:
         elapsed = time.time() - start_time
         logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (FileNotFoundError){TColors.ENDC}")
-        logger.error(f"    ERROR: Command not found. Is the package installed in editable mode?")
+        logger.error("    ERROR: Command not found. Is the package installed in editable mode?")
         return False, elapsed
 
     except subprocess.CalledProcessError as e:
@@ -244,7 +243,7 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
         cleanup = input(f"\n{TColors.BOLD}Delete test output directory? (y/N): {TColors.ENDC}")
         if cleanup.lower() == "y":
             shutil.rmtree(OUTPUT_DIR)
-            logger.info(f"Test output directory cleaned up.")
+            logger.info("Test output directory cleaned up.")
 
         sys.exit(0)
     else:

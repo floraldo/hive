@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_name }}
+  namespace: {{ namespace | default('hive-platform') }}
+  labels:
+    app: {{ app_name }}
+    component: {{ component | default('api-service') }}
+    version: {{ app_version | default('v1.0.0') }}
+    toolkit: hive-app-toolkit
+spec:
+  replicas: {{ replicas | default('3') }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: {{ app_name }}
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}
+        component: {{ component | default('api-service') }}
+        version: {{ app_version | default('v1.0.0') }}
+        toolkit: hive-app-toolkit
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ port | default('8000') }}"
+        prometheus.io/path: "/api/metrics"
+        {% if config_checksum %}
+        config/checksum: "{{ config_checksum }}"
+        {% endif %}
+    spec:
+      serviceAccountName: {{ service_account | default(app_name) }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: {{ app_name }}
+        image: {{ image_repository }}/{{ app_name }}:{{ image_tag | default('latest') }}
+        imagePullPolicy: {{ image_pull_policy | default('Always') }}
+        ports:
+        - name: http
+          containerPort: {{ port | default('8000') }}
+          protocol: TCP
+        env:
+        - name: {{ app_name | upper }}_ENV
+          value: "{{ environment | default('production') }}"
+        - name: {{ app_name | upper }}_LOG_LEVEL
+          value: "{{ log_level | default('INFO') }}"
+        {% if secrets %}
+        {% for secret in secrets %}
+        - name: {{ secret.name }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ secret.secret_name | default(app_name + '-secrets') }}
+              key: {{ secret.key }}
+        {% endfor %}
+        {% endif %}
+        {% if config_vars %}
+        {% for var in config_vars %}
+        - name: {{ var.name }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ var.config_map | default(app_name + '-config') }}
+              key: {{ var.key }}
+        {% endfor %}
+        {% endif %}
+        - name: DATA_PATH
+          value: "/data"
+        - name: CACHE_PATH
+          value: "/cache"
+        {% if cost_limits %}
+        - name: DAILY_COST_LIMIT
+          value: "{{ cost_limits.daily | default('100.0') }}"
+        - name: MONTHLY_COST_LIMIT
+          value: "{{ cost_limits.monthly | default('2000.0') }}"
+        - name: PER_OPERATION_LIMIT
+          value: "{{ cost_limits.per_operation | default('1.0') }}"
+        {% endif %}
+        resources:
+          requests:
+            cpu: {{ resources.requests.cpu | default('500m') }}
+            memory: {{ resources.requests.memory | default('1Gi') }}
+          limits:
+            cpu: {{ resources.limits.cpu | default('2000m') }}
+            memory: {{ resources.limits.memory | default('4Gi') }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: {{ health_check.liveness.initial_delay | default('10') }}
+          periodSeconds: {{ health_check.liveness.period | default('30') }}
+          timeoutSeconds: {{ health_check.liveness.timeout | default('5') }}
+          failureThreshold: {{ health_check.liveness.failure_threshold | default('3') }}
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: {{ health_check.readiness.initial_delay | default('15') }}
+          periodSeconds: {{ health_check.readiness.period | default('10') }}
+          timeoutSeconds: {{ health_check.readiness.timeout | default('5') }}
+          failureThreshold: {{ health_check.readiness.failure_threshold | default('3') }}
+        {% if volumes %}
+        volumeMounts:
+        {% for volume in volumes %}
+        - name: {{ volume.name }}
+          mountPath: {{ volume.mount_path }}
+          {% if volume.read_only %}readOnly: true{% endif %}
+        {% endfor %}
+        {% endif %}
+      {% if volumes %}
+      volumes:
+      {% for volume in volumes %}
+      - name: {{ volume.name }}
+        {% if volume.type == 'pvc' %}
+        persistentVolumeClaim:
+          claimName: {{ volume.pvc_name | default(app_name + '-' + volume.name + '-pvc') }}
+        {% elif volume.type == 'configmap' %}
+        configMap:
+          name: {{ volume.config_map | default(app_name + '-config') }}
+        {% elif volume.type == 'secret' %}
+        secret:
+          secretName: {{ volume.secret_name | default(app_name + '-secrets') }}
+        {% elif volume.type == 'emptydir' %}
+        emptyDir:
+          {% if volume.size_limit %}sizeLimit: {{ volume.size_limit }}{% endif %}
+        {% endif %}
+      {% endfor %}
+      {% endif %}
+      {% if node_selector %}
+      nodeSelector:
+        {% for key, value in node_selector.items() %}
+        {{ key }}: {{ value }}
+        {% endfor %}
+      {% endif %}
+      {% if tolerations %}
+      tolerations:
+      {% for toleration in tolerations %}
+      - key: "{{ toleration.key }}"
+        operator: "{{ toleration.operator | default('Equal') }}"
+        value: "{{ toleration.value }}"
+        effect: "{{ toleration.effect }}"
+      {% endfor %}
+      {% endif %}
+      {% if enable_pod_anti_affinity %}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - {{ app_name }}
+              topologyKey: kubernetes.io/hostname
+      {% endif %}

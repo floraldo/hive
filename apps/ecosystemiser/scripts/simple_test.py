@@ -5,10 +5,12 @@ Bypasses import issues by directly instantiating the adapter.
 """
 
 import asyncio
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 import logging
-import sys
 from datetime import datetime
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -18,9 +20,6 @@ import xarray as xr
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 log = logging.getLogger(__name__)
 
-from ecosystemiser.core.errors import ComponentValidationError as ValidationError
-from ecosystemiser.core.errors import ProfileLoadError as DataFetchError
-from ecosystemiser.core.errors import ProfileValidationError as DataParseError
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities,
@@ -197,7 +196,7 @@ def test_direct_adapter() -> None:
         # Show sample data
         df = ds.to_dataframe()
         log.info("\nFirst 5 records:")
-        print(df.head())
+        logger.info(df.head())
 
         log.info("\nVariable statistics:")
         for var in ds.data_vars:
@@ -241,7 +240,7 @@ def test_service_with_mock() -> None:
 
         # This will likely fail due to import issues, but shows the structure
         try:
-            result = service.process_request(request)
+            service.process_request(request)
             log.info("Request processed successfully!")
             return True
         except Exception as e:

@@ -2,6 +2,7 @@
 
 # golden-rule-ignore: package-app-discipline - This is infrastructure registry, not business logic
 """
+
 from __future__ import annotations
 
 
@@ -10,15 +11,14 @@ import json
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any, Dict, List, Set
 
 import aioredis
 from hive_logging import get_logger
-from pydantic import BaseModel
 
 from .config import ServiceDiscoveryConfig
-from .exceptions import ServiceNotFoundError, ServiceRegistrationError
+from .exceptions import ServiceRegistrationError
 
 logger = get_logger(__name__)
 
@@ -497,12 +497,12 @@ class ServiceRegistry:
             service_names = len(set(s.service_name for s in self._service_cache.values()))
 
             return {
-                "total_services": total_services
-                "healthy_services": healthy_services
-                "unhealthy_services": total_services - healthy_services
-                "unique_service_names": service_names
-                "cache_last_updated": self._cache_last_updated
-                "registry_backend": self.config.registry_backend
+                "total_services": total_services,
+                "healthy_services": healthy_services,
+                "unhealthy_services": total_services - healthy_services,
+                "unique_service_names": service_names,
+                "cache_last_updated": self._cache_last_updated,
+                "registry_backend": self.config.registry_backend,
             }
 
         except Exception as e:

@@ -14,7 +14,7 @@ for electricity, heating, cooling, and other energy demands.
 from typing import Any, Dict, List, LiteralTuple
 
 from ecosystemiser.profile_loader.shared.models import (
-    BaseProfileRequest
+    BaseProfileRequest,
     BaseProfileResponse
     ProfileMode
 )

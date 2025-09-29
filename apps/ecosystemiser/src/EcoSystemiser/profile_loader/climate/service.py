@@ -25,8 +25,8 @@ from ecosystemiser.core.errors import ProfileError as TemporalError
 from ecosystemiser.core.errors import ProfileLoadError as AdapterError
 from ecosystemiser.core.errors import ProfileValidationError as ValidationError
 from ecosystemiser.profile_loader.climate.adapters.factory import (
-    get_adapter
-    get_enabled_adapters
+    get_adapter,
+    get_enabled_adapters,
     list_available_adapters
 )
 from ecosystemiser.profile_loader.climate.analysis.building_science import (
@@ -40,17 +40,17 @@ from ecosystemiser.profile_loader.climate.analysis.synthetic.copula import (
     copula_synthetic_generation
 )
 from ecosystemiser.profile_loader.climate.analysis.synthetic.tmy import (
-    TMYGenerator
+    TMYGenerator,
     TMYMethod
 )
 from ecosystemiser.profile_loader.climate.cache import (
-    cache_key_from_request
-    load_from_cache
+    cache_key_from_request,
+    load_from_cache,
     save_parquet_and_manifest
 )
 from ecosystemiser.profile_loader.climate.data_models import (
-    CANONICAL_VARIABLES
-    ClimateRequest
+    CANONICAL_VARIABLES,
+    ClimateRequest,
     ClimateResponse
 )
 from ecosystemiser.profile_loader.climate.manifest import build_manifest
@@ -62,7 +62,7 @@ from ecosystemiser.profile_loader.climate.processing.validation import (
 from ecosystemiser.profile_loader.climate.subsets import apply_subset
 from ecosystemiser.profile_loader.shared.models import BaseProfileRequest
 from ecosystemiser.profile_loader.shared.service import (
-    BaseProfileService
+    BaseProfileService,
     ProfileServiceError
     ProfileValidationError
 )
@@ -90,43 +90,43 @@ class LocationResolver:
         # Well-known locations for fast lookup
         self.known_locations = {
             # Major cities
-            "london": (51.5074, -0.1278)
-            "london, uk": (51.5074, -0.1278)
-            "paris": (48.8566, 2.3522)
-            "paris, france": (48.8566, 2.3522)
-            "berlin": (52.5200, 13.4050)
-            "berlin, germany": (52.5200, 13.4050)
-            "madrid": (40.4168, -3.7038)
-            "madrid, spain": (40.4168, -3.7038)
-            "rome": (41.9028, 12.4964)
-            "rome, italy": (41.9028, 12.4964)
-            "amsterdam": (52.3676, 4.9041)
-            "amsterdam, netherlands": (52.3676, 4.9041)
-            "lisbon": (38.7223, -9.1393)
-            "lisbon, portugal": (38.7223, -9.1393)
-            "stockholm": (59.3293, 18.0686)
-            "stockholm, sweden": (59.3293, 18.0686)
-            "copenhagen": (55.6761, 12.5683)
-            "copenhagen, denmark": (55.6761, 12.5683)
-            "vienna": (48.2082, 16.3738)
-            "vienna, austria": (48.2082, 16.3738)
-            "zurich": (47.3769, 8.5417)
+            "london": (51.5074, -0.1278),
+            "london, uk": (51.5074, -0.1278),
+            "paris": (48.8566, 2.3522),
+            "paris, france": (48.8566, 2.3522),
+            "berlin": (52.5200, 13.4050),
+            "berlin, germany": (52.5200, 13.4050),
+            "madrid": (40.4168, -3.7038),
+            "madrid, spain": (40.4168, -3.7038),
+            "rome": (41.9028, 12.4964),
+            "rome, italy": (41.9028, 12.4964),
+            "amsterdam": (52.3676, 4.9041),
+            "amsterdam, netherlands": (52.3676, 4.9041),
+            "lisbon": (38.7223, -9.1393),
+            "lisbon, portugal": (38.7223, -9.1393),
+            "stockholm": (59.3293, 18.0686),
+            "stockholm, sweden": (59.3293, 18.0686),
+            "copenhagen": (55.6761, 12.5683),
+            "copenhagen, denmark": (55.6761, 12.5683),
+            "vienna": (48.2082, 16.3738),
+            "vienna, austria": (48.2082, 16.3738),
+            "zurich": (47.3769, 8.5417),
             "zurich, switzerland": (47.3769, 8.5417)
             # US cities
-            "new york": (40.7128, -74.0060)
-            "new york, ny": (40.7128, -74.0060)
-            "los angeles": (34.0522, -118.2437)
-            "los angeles, ca": (34.0522, -118.2437)
-            "chicago": (41.8781, -87.6298)
-            "chicago, il": (41.8781, -87.6298)
-            "san francisco": (37.7749, -122.4194)
+            "new york": (40.7128, -74.0060),
+            "new york, ny": (40.7128, -74.0060),
+            "los angeles": (34.0522, -118.2437),
+            "los angeles, ca": (34.0522, -118.2437),
+            "chicago": (41.8781, -87.6298),
+            "chicago, il": (41.8781, -87.6298),
+            "san francisco": (37.7749, -122.4194),
             "san francisco, ca": (37.7749, -122.4194)
             # Other major cities
-            "tokyo": (35.6762, 139.6503)
-            "tokyo, japan": (35.6762, 139.6503)
-            "sydney": (-33.8688, 151.2093)
-            "sydney, australia": (-33.8688, 151.2093)
-            "toronto": (43.6532, -79.3832)
+            "tokyo": (35.6762, 139.6503),
+            "tokyo, japan": (35.6762, 139.6503),
+            "sydney": (-33.8688, 151.2093),
+            "sydney, australia": (-33.8688, 151.2093),
+            "toronto": (43.6532, -79.3832),
             "toronto, canada": (43.6532, -79.3832)
         }
 
@@ -274,22 +274,22 @@ class LocationResolver:
         """
         # Adapter coverage regions (can be configured or loaded from adapter metadata)
         coverage_regions = {
-            "nasa_power": {"global": True, "score": 0.8},  # Good global coverage
-            "era5": {"global": True, "score": 0.9},  # Excellent global coverage
-            "meteostat": {
+            "nasa_power": {"global": True, "score": 0.8},  # Good global coverage,
+            "era5": {"global": True, "score": 0.9},  # Excellent global coverage,
+            "meteostat": {,
                 "regions": [
                     {
-                        "bounds": (30, -130, 70, 30)
+                        "bounds": (30, -130, 70, 30),
                         "score": 0.9
                     },  # North America/Europe
                     {
-                        "bounds": (-60, -180, 60, 180)
+                        "bounds": (-60, -180, 60, 180),
                         "score": 0.7
                     },  # Global with lower quality
                 ]
             }
-            "pvgis": {
-                "regions": [
+            "pvgis": {,
+                "regions": [,
                     {"bounds": (30, -25, 75, 75), "score": 0.95},  # Europe/Africa/Asia
                     {"bounds": (-60, -180, 30, -30), "score": 0.8},  # Americas
                 ]
@@ -623,7 +623,7 @@ class ClimateService(BaseProfileService):
             "All available adapters failed to fetch data"
             adapter_name="factory"
             details={
-                "available_adapters": available_adapters
+                "available_adapters": available_adapters,
                 "preferred_adapters": preferred_adapters
             }
             recovery_suggestion="Check adapter configuration and try again later"
@@ -876,19 +876,19 @@ class ClimateService(BaseProfileService):
     def get_service_info(self) -> Dict[str, Any]:
         """Get service information"""
         return {
-            "service_name": "ClimateService"
-            "version": "1.0.0"
-            "config": {
-                "caching_enabled": hasattr(self.config, "features") and self.config.features.enable_caching
+            "service_name": "ClimateService",
+            "version": "1.0.0",
+            "config": {,
+                "caching_enabled": hasattr(self.config, "features") and self.config.features.enable_caching,
                 "preprocessing_enabled": hasattr(self.config, "profile_loader")
                 and self.config.profile_loader.preprocessing_enabled
                 "postprocessing_enabled": hasattr(self.config, "profile_loader")
                 and self.config.profile_loader.postprocessing_enabled
             }
-            "statistics": {
-                "total_requests": self.total_requests
-                "successful_requests": self.successful_requests
-                "failed_requests": self.failed_requests
+            "statistics": {,
+                "total_requests": self.total_requests,
+                "successful_requests": self.successful_requests,
+                "failed_requests": self.failed_requests,
                 "success_rate": (
                     self.successful_requests / self.total_requests * 100 if self.total_requests > 0 else 0
                 )
@@ -901,9 +901,9 @@ class ClimateService(BaseProfileService):
         adapters = list_available_adapters()
         enabled_adapters = get_enabled_adapters()
         return {
-            "total_adapters": len(adapters)
-            "enabled_adapters": len(enabled_adapters)
-            "available_adapters": adapters
+            "total_adapters": len(adapters),
+            "enabled_adapters": len(enabled_adapters),
+            "available_adapters": adapters,
             "enabled_list": enabled_adapters
         }
 
@@ -973,16 +973,16 @@ class ClimateService(BaseProfileService):
         try:
             capabilities = get_adapter_capabilities(source)
             return {
-                "spatial_coverage": capabilities.get("spatial_coverage", "Global")
-                "temporal_coverage": capabilities.get("temporal_coverage", "Variable")
-                "resolution": capabilities.get("resolutions", ["1H"])
+                "spatial_coverage": capabilities.get("spatial_coverage", "Global"),
+                "temporal_coverage": capabilities.get("temporal_coverage", "Variable"),
+                "resolution": capabilities.get("resolutions", ["1H"]),
                 "variables": capabilities.get("variables", [])
             }
         except Exception as e:
             return {
-                "spatial_coverage": "Unknown"
-                "temporal_coverage": "Unknown"
-                "resolution": ["1H"]
+                "spatial_coverage": "Unknown",
+                "temporal_coverage": "Unknown",
+                "resolution": ["1H"],
                 "variables": []
             }
 

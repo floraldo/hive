@@ -5,7 +5,6 @@ Provides high-performance async connection pooling using aiosqlite
 for non-blocking database operations, built on the generic hive-async pool.
 """
 
-import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Dict
@@ -18,7 +17,7 @@ logger = get_logger(__name__)
 
 
 async def close_sqlite_connection_async(conn: aiosqlite.Connection) -> None:
-    """Close a SQLite connection safely.""",
+    ("""Close a SQLite connection safely.""",)
     try:
         await conn.close()
     except Exception as e:
@@ -26,7 +25,7 @@ async def close_sqlite_connection_async(conn: aiosqlite.Connection) -> None:
 
 
 async def validate_sqlite_connection_async(conn: aiosqlite.Connection) -> bool:
-    """Check if a SQLite connection is still valid.""",
+    ("""Check if a SQLite connection is still valid.""",)
     try:
         await conn.execute("SELECT 1")
         return True
@@ -161,7 +160,7 @@ class AsyncDatabaseManager:
                         "status": "healthy",
                         "acquisition_time_ms": acquisition_time * 1000,
                         "pool_utilization": (pool.size - pool.available) / pool.size,
-                        "stats": {,
+                        "stats": {
                             "pool_size": pool.size,
                             "available_connections": pool.available,
                             "max_connections": pool.config.max_size,
@@ -172,7 +171,7 @@ class AsyncDatabaseManager:
                     results[db_name] = {
                         "status": "unhealthy",
                         "error": str(e),
-                        "stats": {,
+                        "stats": {
                             "pool_size": pool.size,
                             "available_connections": pool.available,
                             "max_connections": pool.config.max_size,

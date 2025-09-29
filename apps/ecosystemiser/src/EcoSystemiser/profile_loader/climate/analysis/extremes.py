@@ -2,8 +2,6 @@
 Extreme event analysis for climate data.
 """
 
-from typing import Dict, List, Optional, Tuple
-
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -17,7 +15,7 @@ def find_extreme_events(
     variable: str = "temp_air",
     threshold_percentile: float = 95,
     min_duration_hours: int = 24,
-) -> List[Dict]:
+) -> list[dict]:
     """
     Find extreme events (hot/cold spells, high wind, etc).
 
@@ -59,7 +57,7 @@ def find_extreme_events(
         event_start = None
         event_values = []
 
-        for i, (is_extreme, time) in enumerate(zip(extreme_values, time_values)):
+        for i, (is_extreme, time) in enumerate(zip(extreme_values, time_values, strict=False)):
             if is_extreme and not in_event:
                 # Start of event
                 in_event = True
@@ -98,7 +96,7 @@ def identify_heat_waves(
     temp_threshold: float = 32,
     min_duration_days: int = 3,
     night_relief_threshold: float = 20,
-) -> List[Dict]:
+) -> list[dict]:
     """
     Identify heat wave events using temperature criteria.
 
@@ -115,7 +113,7 @@ def identify_heat_waves(
         return []
 
     temp = ds["temp_air"]
-    time_index = pd.DatetimeIndex(temp.time.values)
+    pd.DatetimeIndex(temp.time.values)
 
     # Calculate daily max and min
     daily_max = temp.resample(time="1D").max()
@@ -134,7 +132,7 @@ def identify_heat_waves(
     wave_temps_max = []
     wave_temps_min = []
 
-    for i, (is_wave, date) in enumerate(zip(heat_wave_values, dates)):
+    for i, (is_wave, date) in enumerate(zip(heat_wave_values, dates, strict=False)):
         if is_wave and not in_wave:
             in_wave = True
             wave_start = date
@@ -164,7 +162,7 @@ def identify_heat_waves(
     return heat_waves
 
 
-def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration_days: int = 3) -> List[Dict]:
+def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration_days: int = 3) -> list[dict]:
     """
     Identify cold snap events.
 
@@ -196,7 +194,7 @@ def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration
     snap_start = None
     snap_temps = []
 
-    for i, (is_cold, date) in enumerate(zip(cold_values, dates)):
+    for i, (is_cold, date) in enumerate(zip(cold_values, dates, strict=False)):
         if is_cold and not in_snap:
             in_snap = True
             snap_start = date
@@ -225,9 +223,9 @@ def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration
 
 def calculate_percentiles(
     ds: xr.Dataset,
-    variables: Optional[List[str]] = None,
-    percentiles: List[float] = [1, 5, 25, 50, 75, 95, 99],
-) -> Dict:
+    variables: list[str] | None = None,
+    percentiles: list[float] = None,
+) -> dict:
     """
     Calculate percentile values for variables.
 
@@ -239,6 +237,8 @@ def calculate_percentiles(
     Returns:
         Dictionary with percentile values
     """
+    if percentiles is None:
+        percentiles = [1, 5, 25, 50, 75, 95, 99]
     if variables is None:
         variables = [v for v in ds.data_vars if v != "qc_flag"]
 
@@ -267,9 +267,9 @@ def calculate_percentiles(
 def calculate_return_periods(
     ds: xr.Dataset,
     variable: str,
-    return_years: List[int] = [2, 5, 10, 25, 50, 100],
+    return_years: list[int] = None,
     extreme_type: str = "max",
-) -> Dict:
+) -> dict:
     """
     Estimate return period values using simple statistical methods.
 
@@ -284,6 +284,8 @@ def calculate_return_periods(
     Returns:
         Dictionary with return period estimates
     """
+    if return_years is None:
+        return_years = [2, 5, 10, 25, 50, 100]
     if variable not in ds or "time" not in ds[variable].dims:
         logger.warning(f"Cannot calculate return periods for {variable}")
         return {}
@@ -342,7 +344,7 @@ def calculate_return_periods(
     return results
 
 
-def summarize_extremes(ds: xr.Dataset) -> Dict:
+def summarize_extremes(ds: xr.Dataset) -> dict:
     """
     Comprehensive summary of extreme events in the dataset.
 

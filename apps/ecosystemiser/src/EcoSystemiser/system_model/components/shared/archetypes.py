@@ -15,7 +15,6 @@ Specific models inherit from these archetypes in their component files.
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -207,7 +206,7 @@ class DemandTechnicalParams(BaseTechnicalParams):
 # =============================================================================
 
 
-def validate_fidelity_consistency(components: List[BaseTechnicalParams]) -> bool:
+def validate_fidelity_consistency(components: list[BaseTechnicalParams]) -> bool:
     """Check if all components have consistent fidelity levels.
 
     This is useful for ensuring a simulation uses consistent fidelity

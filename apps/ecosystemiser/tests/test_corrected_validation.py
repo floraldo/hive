@@ -2,12 +2,10 @@
 """Corrected golden validation test."""
 
 import json
-import sys
 import time
 from pathlib import Path
 
 import numpy as np
-import pandas as pd
 
 eco_path = Path(__file__).parent.parent / "src"
 
@@ -37,6 +35,7 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
 
 def create_golden_system():
     """Create the exact golden system matching the original validation."""
@@ -164,6 +163,7 @@ def create_golden_system():
 
     return system
 
+
 def validate_against_golden_dataset(system):
     """Compare results against the golden dataset."""
     golden_path = Path(__file__).parent.parent / "tests" / "systemiser_minimal_golden.json"
@@ -172,7 +172,7 @@ def validate_against_golden_dataset(system):
         logger.warning("Golden dataset not found, skipping comparison")
         return True, "Golden dataset not available"
 
-    with open(golden_path, "r") as f:
+    with open(golden_path) as f:
         golden_data = json.load(f)
 
     # Compare key metrics
@@ -200,6 +200,7 @@ def validate_against_golden_dataset(system):
         "battery_diff": final_battery_energy - golden_final_energy,
         "flow_diff": solar_to_grid - golden_solar_to_grid,
     }
+
 
 def run_validation():
     """Run the comprehensive validation."""
@@ -233,7 +234,7 @@ def run_validation():
                 sources = 0.0
                 sinks = 0.0
 
-                for flow_key, flow_data in system.flows.items():
+                for _flow_key, flow_data in system.flows.items():
                     flow_value = flow_data["value"][t]
                     source_comp = system.components[flow_data["source"]]
                     target_comp = system.components[flow_data["target"]]
@@ -302,6 +303,7 @@ def run_validation():
 
     return results
 
+
 def main():
     """Main execution."""
     results = run_validation()
@@ -329,16 +331,18 @@ def main():
     with open(results_path, "w") as f:
         json.dump(json_results, f, indent=2)
 
-    print(f"\nValidation complete!")
-    print(f"Results saved to: {results_path}")
-    print(f"Status: {'PASSED' if results.get('validation_passed', False) else 'FAILED'}")
+    logger.info("\nValidation complete!")
+    logger.info(f"Results saved to: {results_path}")
+    logger.info(f"Status: {'PASSED' if results.get('validation_passed', False) else 'FAILED'}")
 
     return results.get("validation_passed", False)
+
 
 def test_corrected_golden_validation():
     """Test corrected golden validation as pytest test."""
     success = main()
     assert success, "Corrected golden validation failed"
+
 
 def test_golden_system_creation():
     """Test golden system can be created successfully."""
@@ -346,6 +350,7 @@ def test_golden_system_creation():
     assert system is not None
     assert system.N == 24
     assert len(system.components) >= 3  # Should have Grid, Battery, Solar, etc.
+
 
 def test_corrected_validation_logic():
     """Test corrected validation logic."""
@@ -356,7 +361,8 @@ def test_corrected_validation_logic():
 
     # Basic assertions about solver result
     assert result is not None
-    assert hasattr(result, 'status')
+    assert hasattr(result, "status")
+
 
 if __name__ == "__main__":
     success = main()

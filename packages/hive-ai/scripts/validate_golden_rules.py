@@ -6,8 +6,11 @@ Validates compliance with all 18 Golden Rules for architectural governance.
 """
 
 import sys
-from pathlib import Path
 
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
+from pathlib import Path
 
 from hive_tests.architectural_validators import run_all_golden_rules
 
@@ -19,8 +22,8 @@ def validate_hive_ai_compliance() -> bool:
     Returns:
         bool: True if all rules pass, False otherwise
     """
-    print("VALIDATING hive-ai package against Golden Rules...")
-    print("=" * 60)
+    logger.info("VALIDATING hive-ai package against Golden Rules...")
+    logger.info("=" * 60)
 
     # Run all golden rules validation
     all_passed, results = run_all_golden_rules(project_root)
@@ -40,18 +43,18 @@ def validate_hive_ai_compliance() -> bool:
 
     # Report results
     if not hive_ai_violations:
-        print("PASS: All Golden Rules compliance checks PASSED for hive-ai package!")
-        print(f"INFO: Validated against {len(results)} rules")
+        logger.info("PASS: All Golden Rules compliance checks PASSED for hive-ai package!")
+        logger.info(f"INFO: Validated against {len(results)} rules")
         return True
 
-    print(f"FAIL: Found {total_violations} Golden Rules violations in hive-ai package:")
-    print()
+    logger.info(f"FAIL: Found {total_violations} Golden Rules violations in hive-ai package:")
+    logger.info(str())
 
     for rule_name, violations in hive_ai_violations.items():
-        print(f"RULE: {rule_name}")
+        logger.info(f"RULE: {rule_name}")
         for violation in violations:
-            print(f"   - {violation}")
-        print()
+            logger.info(f"   - {violation}")
+        logger.info(str())
 
     return False
 
@@ -60,7 +63,7 @@ def generate_compliance_report() -> None:
     """Generate detailed compliance report for hive-ai package."""
     report_path = project_root / "packages" / "hive-ai" / "GOLDEN_RULES_COMPLIANCE.md"
 
-    print(f"INFO: Generating compliance report: {report_path}")
+    logger.info(f"INFO: Generating compliance report: {report_path}")
 
     # Run validation
     all_passed, results = run_all_golden_rules(project_root)
@@ -99,7 +102,7 @@ Generated on: {Path(__file__).stat().st_mtime}
             else:
                 report_content += "*No hive-ai specific violations found.*\n\n"
 
-    report_content += f"""
+    report_content += """
 ## Architecture Compliance
 
 The hive-ai package has been designed to strictly follow the Hive platform's
@@ -145,7 +148,7 @@ cd packages/hive-ai && mypy src/
     with open(report_path, "w", encoding="utf-8") as f:
         f.write(report_content)
 
-    print(f"SUCCESS: Compliance report generated: {report_path}")
+    logger.info(f"SUCCESS: Compliance report generated: {report_path}")
 
 
 if __name__ == "__main__":
@@ -163,8 +166,8 @@ if __name__ == "__main__":
     success = validate_hive_ai_compliance()
 
     if success:
-        print("\nSUCCESS: hive-ai package is fully compliant with Golden Rules!")
+        logger.info("\nSUCCESS: hive-ai package is fully compliant with Golden Rules!")
         sys.exit(0)
     else:
-        print("\nWARNING: Please fix violations before proceeding.")
+        logger.info("\nWARNING: Please fix violations before proceeding.")
         sys.exit(1)

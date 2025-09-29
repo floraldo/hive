@@ -13,7 +13,7 @@ import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
-    AdapterCapabilities
+    AdapterCapabilities,
     AuthType
     DataFrequency
     QualityFeatures
@@ -27,7 +27,7 @@ from hive_logging import get_logger
 # Import QC classes
 try:
     from ecosystemiser.profile_loader.climate.processing.validation import (
-        QCIssue
+        QCIssue,
         QCProfile
         QCReport
         QCSeverity
@@ -60,7 +60,7 @@ except ImportError:
     class QCProfile(ABC):
         def __init__(
             self
-            name: str
+            name: str,
             description: str
             known_issues: List[str]
             recommended_variables: List[str]
@@ -134,67 +134,67 @@ from __future__ import annotations
     # Based on EPW Data Dictionary and EnergyPlus documentation
     VARIABLE_MAPPING = {
         # Temperature parameters (degC)
-        "temp_air": 6,  # Dry Bulb Temperature (degC)
+        "temp_air": 6,  # Dry Bulb Temperature (degC),
         "dewpoint": 7,  # Dew Point Temperature (degC)
         # Humidity parameters
-        "rel_humidity": 8,  # Relative Humidity (%)
+        "rel_humidity": 8,  # Relative Humidity (%),
         "precipitable_water": 28,  # Precipitable Water (mm)
         # Pressure parameters
         "pressure": 9,  # Atmospheric Station Pressure (Pa)
         # Solar radiation parameters (Wh/m2)
-        "extraterrestrial_horizontal": 10,  # Extraterrestrial Horizontal Radiation
-        "extraterrestrial_normal": 11,  # Extraterrestrial Direct Normal Radiation
-        "ghi": 13,  # Global Horizontal Radiation
-        "dni": 14,  # Direct Normal Radiation
+        "extraterrestrial_horizontal": 10,  # Extraterrestrial Horizontal Radiation,
+        "extraterrestrial_normal": 11,  # Extraterrestrial Direct Normal Radiation,
+        "ghi": 13,  # Global Horizontal Radiation,
+        "dni": 14,  # Direct Normal Radiation,
         "dhi": 15,  # Diffuse Horizontal Radiation
         # Longwave radiation parameters
         "horizontal_infrared": 12,  # Horizontal Infrared Radiation Intensity (Wh/m2)
         # Illuminance parameters (lux and Cd/m2)
-        "global_illuminance": 16,  # Global Horizontal Illuminance (lux)
-        "direct_illuminance": 17,  # Direct Normal Illuminance (lux)
-        "diffuse_illuminance": 18,  # Diffuse Horizontal Illuminance (lux)
+        "global_illuminance": 16,  # Global Horizontal Illuminance (lux),
+        "direct_illuminance": 17,  # Direct Normal Illuminance (lux),
+        "diffuse_illuminance": 18,  # Diffuse Horizontal Illuminance (lux),
         "zenith_luminance": 19,  # Zenith Luminance (Cd/m2)
         # Wind parameters
-        "wind_dir": 20,  # Wind Direction (degrees)
+        "wind_dir": 20,  # Wind Direction (degrees),
         "wind_speed": 21,  # Wind Speed (m/s)
         # Cloud and sky parameters
-        "cloud_cover": 22,  # Total Sky Cover (tenths)
+        "cloud_cover": 22,  # Total Sky Cover (tenths),
         "opaque_sky_cover": 23,  # Opaque Sky Cover (tenths)
         # Visibility and atmospheric parameters
-        "visibility": 24,  # Visibility (km)
-        "ceiling_height": 25,  # Ceiling Height (m)
+        "visibility": 24,  # Visibility (km),
+        "ceiling_height": 25,  # Ceiling Height (m),
         "aerosol_optical_depth": 29,  # Aerosol Optical Depth (thousandths)
         # Weather condition parameters
-        "present_weather_obs": 26,  # Present Weather Observation (code)
+        "present_weather_obs": 26,  # Present Weather Observation (code),
         "present_weather_codes": 27,  # Present Weather Codes (codes)
         # Precipitation and snow parameters
-        "precip": 33,  # Liquid Precipitation Depth (mm)
-        "precip_quantity": 34,  # Liquid Precipitation Quantity (hr)
-        "snow_depth": 30,  # Snow Depth (cm)
+        "precip": 33,  # Liquid Precipitation Depth (mm),
+        "precip_quantity": 34,  # Liquid Precipitation Quantity (hr),
+        "snow_depth": 30,  # Snow Depth (cm),
         "days_since_snow": 31,  # Days Since Last Snowfall (days)
         # Surface parameters
         "albedo": 32,  # Albedo (hundredths)
         # Time parameters (for reference)
-        "year": 0,  # Year
-        "month": 1,  # Month (1-12)
-        "day": 2,  # Day (1-31)
-        "hour": 3,  # Hour (1-24)
+        "year": 0,  # Year,
+        "month": 1,  # Month (1-12),
+        "day": 2,  # Day (1-31),
+        "hour": 3,  # Hour (1-24),
         "minute": 4,  # Minute (0-59)
     }
 
     # EPW data quality and range validation
     EPW_DATA_RANGES = {
-        "temp_air": (-70, 70, 99.9),  # (min, max, missing_value)
-        "dewpoint": (-70, 70, 99.9),  # (min, max, missing_value)
-        "rel_humidity": (0, 110, 999),  # (min, max, missing_value)
-        "pressure": (31000, 120000, 999999),  # (min, max, missing_value)
-        "ghi": (0, 9999, 9999),  # (min, max, missing_value)
-        "dni": (0, 9999, 9999),  # (min, max, missing_value)
-        "dhi": (0, 9999, 9999),  # (min, max, missing_value)
-        "wind_speed": (0, 40, 999),  # (min, max, missing_value)
-        "wind_dir": (0, 360, 999),  # (min, max, missing_value)
-        "cloud_cover": (0, 10, 99),  # (min, max, missing_value)
-        "visibility": (0, 9999, 9999),  # (min, max, missing_value)
+        "temp_air": (-70, 70, 99.9),  # (min, max, missing_value),
+        "dewpoint": (-70, 70, 99.9),  # (min, max, missing_value),
+        "rel_humidity": (0, 110, 999),  # (min, max, missing_value),
+        "pressure": (31000, 120000, 999999),  # (min, max, missing_value),
+        "ghi": (0, 9999, 9999),  # (min, max, missing_value),
+        "dni": (0, 9999, 9999),  # (min, max, missing_value),
+        "dhi": (0, 9999, 9999),  # (min, max, missing_value),
+        "wind_speed": (0, 40, 999),  # (min, max, missing_value),
+        "wind_dir": (0, 360, 999),  # (min, max, missing_value),
+        "cloud_cover": (0, 10, 99),  # (min, max, missing_value),
+        "visibility": (0, 9999, 9999),  # (min, max, missing_value),
         "snow_depth": (0, 150, 999),  # (min, max, missing_value)
     }
 
@@ -214,26 +214,26 @@ from __future__ import annotations
 
     # EPW missing value indicators
     MISSING_VALUES = {
-        "temp_air": 99.9
-        "dewpoint": 99.9
-        "rel_humidity": 999
-        "pressure": 999999
-        "ghi": 9999
-        "dni": 9999
-        "dhi": 9999
-        "wind_speed": 999
-        "wind_dir": 999
-        "cloud_cover": 99
-        "visibility": 9999
-        "snow_depth": 999
-        "precip": 999
+        "temp_air": 99.9,
+        "dewpoint": 99.9,
+        "rel_humidity": 999,
+        "pressure": 999999,
+        "ghi": 9999,
+        "dni": 9999,
+        "dhi": 9999,
+        "wind_speed": 999,
+        "wind_dir": 999,
+        "cloud_cover": 99,
+        "visibility": 9999,
+        "snow_depth": 999,
+        "precip": 999,
         "albedo": 999
     }
 
     def __init__(self) -> None:
         """Initialize EPW file adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
-            CacheConfig
+            CacheConfig,
             HTTPConfig
             RateLimitConfig
         )
@@ -295,9 +295,9 @@ from __future__ import annotations
         # Add metadata
         ds.attrs.update(
             {
-                "source": "EPW"
-                "adapter_version": self.ADAPTER_VERSION
-                "latitude": lat
+                "source": "EPW",
+                "adapter_version": self.ADAPTER_VERSION,
+                "latitude": lat,
                 "longitude": lon
             }
         )
@@ -413,8 +413,8 @@ from __future__ import annotations
                     f"Failed to parse EPW CSV data: {str(e)}"
                     field="csv_data"
                     details={
-                        "parser_error": str(e)
-                        "data_lines": len(data_lines)
+                        "parser_error": str(e),
+                        "data_lines": len(data_lines),
                         "first_line": data_lines[0][:100] if data_lines else None
                     }
                 )
@@ -573,16 +573,16 @@ from __future__ import annotations
 
         # EPW missing value indicators
         missing_values = {
-            "temp_air": 99.9
-            "dewpoint": 99.9
-            "rel_humidity": 999
-            "pressure": 999999
-            "ghi": 9999
-            "dni": 9999
-            "dhi": 9999
-            "wind_dir": 999
-            "wind_speed": 999
-            "cloud_cover": 99
+            "temp_air": 99.9,
+            "dewpoint": 99.9,
+            "rel_humidity": 999,
+            "pressure": 999999,
+            "ghi": 9999,
+            "dni": 9999,
+            "dhi": 9999,
+            "wind_dir": 999,
+            "wind_speed": 999,
+            "cloud_cover": 99,
             "visibility": 9999
         }
 
@@ -596,8 +596,8 @@ from __future__ import annotations
         """Convert EPW units to canonical units"""
 
         conversions = {
-            "cloud_cover": lambda x: x * 10,  # tenths to percentage
-            "albedo": lambda x: x / 100,  # hundredths to fraction
+            "cloud_cover": lambda x: x * 10,  # tenths to percentage,
+            "albedo": lambda x: x / 100,  # hundredths to fraction,
             "snow": lambda x: x * 10,  # cm to mm
         }
 
@@ -633,24 +633,24 @@ from __future__ import annotations
         """Get variable attributes including units"""
 
         units_map = {
-            "temp_air": "degC"
-            "dewpoint": "degC"
-            "rel_humidity": "%"
-            "pressure": "Pa"
-            "ghi": "W/m2",  # EPW hourly energy represents average power
-            "dni": "W/m2"
-            "dhi": "W/m2"
-            "wind_dir": "degrees"
-            "wind_speed": "m/s"
-            "cloud_cover": "%"
-            "precip": "mm/h",  # EPW: accumulated liquid precip depth over preceding hour
-            "snow": "mm"
-            "visibility": "km"
+            "temp_air": "degC",
+            "dewpoint": "degC",
+            "rel_humidity": "%",
+            "pressure": "Pa",
+            "ghi": "W/m2",  # EPW hourly energy represents average power,
+            "dni": "W/m2",
+            "dhi": "W/m2",
+            "wind_dir": "degrees",
+            "wind_speed": "m/s",
+            "cloud_cover": "%",
+            "precip": "mm/h",  # EPW: accumulated liquid precip depth over preceding hour,
+            "snow": "mm",
+            "visibility": "km",
             "albedo": "fraction"
         }
 
         return {
-            "units": units_map.get(canonical_name, "unknown")
+            "units": units_map.get(canonical_name, "unknown"),
             "long_name": canonical_name.replace("_", " ").title()
         }
 

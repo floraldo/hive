@@ -4,14 +4,13 @@ Async Configuration Management for High-Performance Applications
 Provides non-blocking configuration loading with concurrent file I/O
 optional hot-reload capability, and caching.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import asyncio
 import json
-import os
 from pathlib import Path
-from typing import Any, Dict, ListSet
+from typing import Any, Dict, List, Set
 
 import aiofiles
 import aiofiles.os
@@ -77,10 +76,10 @@ class AsyncConfigLoader:
     """
 
     def __init__(
-        self
-        enable_hot_reload: bool = False
-        cache_configs: bool = True
-        secure_loader: SecureConfigLoader | None = None
+        self,
+        enable_hot_reload: bool = False,
+        cache_configs: bool = True,
+        secure_loader: SecureConfigLoader | None = None,
     ):
         """
         Initialize async configuration loader
@@ -389,12 +388,12 @@ async def load_app_config_async(app_name: str, project_root: Path, enable_hot_re
     # Define config file hierarchy
     app_dir = project_root / "apps" / app_name
     config_paths = [
-        project_root / ".env"
-        project_root / ".env.prod"
-        project_root / ".env.prod.encrypted"
-        app_dir / ".env"
-        app_dir / ".env.prod"
-        app_dir / ".env.prod.encrypted"
+        project_root / ".env",
+        project_root / ".env.prod",
+        project_root / ".env.prod.encrypted",
+        app_dir / ".env",
+        app_dir / ".env.prod",
+        app_dir / ".env.prod.encrypted",
     ]
 
     # Filter to existing files

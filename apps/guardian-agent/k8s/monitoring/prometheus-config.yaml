@@ -1,0 +1,134 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guardian-prometheus-config
+  namespace: hive-platform
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
+    scrape_configs:
+      - job_name: 'guardian-agent'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - hive-platform
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: guardian-agent
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: guardian-alert-rules
+  namespace: hive-platform
+data:
+  alerts.yml: |
+    groups:
+      - name: guardian_agent_alerts
+        interval: 30s
+        rules:
+          # High error rate
+          - alert: GuardianHighErrorRate
+            expr: rate(review_errors[5m]) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+              component: guardian-agent
+            annotations:
+              summary: "High error rate in Guardian Agent"
+              description: "Error rate is {{ $value | humanizePercentage }} for the last 5 minutes"
+
+          # Cost limit approaching
+          - alert: GuardianCostLimitApproaching
+            expr: guardian_daily_usage / guardian_daily_limit > 0.8
+            for: 1m
+            labels:
+              severity: warning
+              component: guardian-agent
+            annotations:
+              summary: "Guardian Agent approaching daily cost limit"
+              description: "Daily usage is at {{ $value | humanizePercentage }} of limit"
+
+          # Cost limit exceeded
+          - alert: GuardianCostLimitExceeded
+            expr: guardian_daily_usage > guardian_daily_limit
+            for: 1m
+            labels:
+              severity: critical
+              component: guardian-agent
+            annotations:
+              summary: "Guardian Agent exceeded daily cost limit"
+              description: "Daily usage (${{ $value }}) has exceeded the limit"
+
+          # Review latency high
+          - alert: GuardianHighReviewLatency
+            expr: histogram_quantile(0.95, rate(review_time_bucket[5m])) > 30
+            for: 10m
+            labels:
+              severity: warning
+              component: guardian-agent
+            annotations:
+              summary: "Guardian Agent review latency is high"
+              description: "P95 latency is {{ $value }}s (threshold: 30s)"
+
+          # Pod restarts
+          - alert: GuardianPodRestarts
+            expr: rate(kube_pod_container_status_restarts_total{container="guardian-agent"}[1h]) > 0
+            for: 5m
+            labels:
+              severity: warning
+              component: guardian-agent
+            annotations:
+              summary: "Guardian Agent pod is restarting"
+              description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last hour"
+
+          # Memory usage high
+          - alert: GuardianHighMemoryUsage
+            expr: container_memory_usage_bytes{container="guardian-agent"} / container_spec_memory_limit_bytes > 0.9
+            for: 5m
+            labels:
+              severity: warning
+              component: guardian-agent
+            annotations:
+              summary: "Guardian Agent memory usage is high"
+              description: "Memory usage is at {{ $value | humanizePercentage }} of limit"
+
+          # API availability
+          - alert: GuardianAPIDown
+            expr: up{job="guardian-agent"} == 0
+            for: 2m
+            labels:
+              severity: critical
+              component: guardian-agent
+            annotations:
+              summary: "Guardian Agent API is down"
+              description: "Guardian Agent API has been down for 2 minutes"

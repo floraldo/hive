@@ -5,11 +5,10 @@ Provides encrypted secrets management for production deployments.
 Supports both plain .env files (development) and encrypted .env.prod files (production).
 Enhanced with random salt encryption to prevent rainbow table attacks.
 """
+
 from __future__ import annotations
 
-
 import base64
-import json
 import os
 import secrets
 from pathlib import Path
@@ -17,7 +16,7 @@ from typing import Any, Dict
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -49,12 +48,7 @@ class SecureConfigLoader:
 
     def _derive_key(self, salt: bytes) -> bytes:
         """Derive encryption key from master key and salt"""
-        kdf = PBKDF2(
-            algorithm=hashes.SHA256()
-            length=32
-            salt=salt
-            iterations=100000
-        )
+        kdf = PBKDF2HMAC(algorithm=hashes.SHA256(), length=32, salt=salt, iterations=100000)
         return base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))
 
     def _initialize_cipher(self) -> None:
@@ -248,12 +242,12 @@ class SecureConfigLoader:
         # Define potential config files
         app_dir = project_root / "apps" / app_name
         config_files = [
-            (project_root / ".env.prod.encrypted", True)
-            (project_root / ".env.prod", False)
-            (project_root / ".env", False)
-            (app_dir / ".env.prod.encrypted", True)
-            (app_dir / ".env.prod", False)
-            (app_dir / ".env", False)
+            (project_root / ".env.prod.encrypted", True),
+            (project_root / ".env.prod", False),
+            (project_root / ".env", False),
+            (app_dir / ".env.prod.encrypted", True),
+            (app_dir / ".env.prod", False),
+            (app_dir / ".env", False),
         ]
 
         # Load configs in priority order
@@ -297,7 +291,7 @@ def encrypt_production_config(env_file: str = ".env.prod", output_file: str = No
     try:
         encrypted_path = loader.encrypt_file(input_path, output_path)
         logger.info(f"Successfully encrypted {input_path} to {encrypted_path}")
-        logger.info(f"Enhanced security: Random salt used to prevent rainbow table attacks")
+        logger.info("Enhanced security: Random salt used to prevent rainbow table attacks")
         logger.info(f"To decrypt, ensure HIVE_MASTER_KEY is set to: {master_key[:8]}...")
     except Exception as e:
         logger.info(f"Encryption failed: {e}")
@@ -313,7 +307,7 @@ def generate_master_key() -> str:
     key = secrets.token_urlsafe(32)
     logger.info(f"Generated master key: {key}")
     logger.info(f"Set this as environment variable: export HIVE_MASTER_KEY='{key}'")
-    logger.info(f"Store this key securely - it cannot be recovered if lost!")
+    logger.info("Store this key securely - it cannot be recovered if lost!")
     return key
 
 

@@ -11,10 +11,6 @@ core database service, following the inherit→extend pattern.
 
 # Import from ecosystemiser core database service
 from ecosystemiser.core.db import (
-    ecosystemiser_transaction,
-    get_db_connection,
-    get_ecosystemiser_connection,
-    get_ecosystemiser_db_path,
     validate_ecosystemiser_database,
 )
 

@@ -8,7 +8,7 @@ import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
-    AdapterCapabilities
+    AdapterCapabilities,
     AuthType
     DataFrequency
     QualityFeatures
@@ -17,19 +17,19 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     TemporalCoverage
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import (
-    DataFetchError
+    DataFetchError,
     DataParseError
     ValidationError
 )
 from ecosystemiser.profile_loader.climate.data_models import CANONICAL_VARIABLES
 from ecosystemiser.profile_loader.climate.processing.validation import (
-    QCIssue
+    QCIssue,
     QCProfile
     QCReport
     QCSeverity
 )
 from ecosystemiser.profile_loader.climate.utils.chunking import (
-    concatenate_chunked_results
+    concatenate_chunked_results,
     estimate_memory_usage
     split_date_range
 )
@@ -50,65 +50,65 @@ from __future__ import annotations
     # Mapping from canonical names to NASA POWER parameter codes
     VARIABLE_MAPPING = {
         # Temperature parameters
-        "temp_air": "T2M",  # Air temperature at 2 meters (degC)
-        "temp_air_max": "T2M_MAX",  # Maximum air temperature at 2 meters (degC)
-        "temp_air_min": "T2M_MIN",  # Minimum air temperature at 2 meters (degC)
-        "dewpoint": "T2MDEW",  # Dew point temperature at 2 meters (degC)
-        "temp_air_range": "T2M_RANGE",  # Temperature range at 2 meters (degC)
+        "temp_air": "T2M",  # Air temperature at 2 meters (degC),
+        "temp_air_max": "T2M_MAX",  # Maximum air temperature at 2 meters (degC),
+        "temp_air_min": "T2M_MIN",  # Minimum air temperature at 2 meters (degC),
+        "dewpoint": "T2MDEW",  # Dew point temperature at 2 meters (degC),
+        "temp_air_range": "T2M_RANGE",  # Temperature range at 2 meters (degC),
         "earth_skin_temp": "TS",  # Earth skin temperature (degC)
         # Humidity parameters
-        "rel_humidity": "RH2M",  # Relative humidity at 2 meters (%)
+        "rel_humidity": "RH2M",  # Relative humidity at 2 meters (%),
         "specific_humidity": "QV2M",  # Specific humidity at 2 meters (g/kg)
         # Wind parameters
-        "wind_speed": "WS10M",  # Wind speed at 10 meters (m/s)
-        "wind_speed_max": "WS10M_MAX",  # Maximum wind speed at 10 meters (m/s)
-        "wind_speed_min": "WS10M_MIN",  # Minimum wind speed at 10 meters (m/s)
-        "wind_speed_50m": "WS50M",  # Wind speed at 50 meters (m/s)
-        "wind_speed_50m_max": "WS50M_MAX",  # Maximum wind speed at 50 meters (m/s)
-        "wind_speed_50m_min": "WS50M_MIN",  # Minimum wind speed at 50 meters (m/s)
-        "wind_dir": "WD10M",  # Wind direction at 10 meters (degrees)
+        "wind_speed": "WS10M",  # Wind speed at 10 meters (m/s),
+        "wind_speed_max": "WS10M_MAX",  # Maximum wind speed at 10 meters (m/s),
+        "wind_speed_min": "WS10M_MIN",  # Minimum wind speed at 10 meters (m/s),
+        "wind_speed_50m": "WS50M",  # Wind speed at 50 meters (m/s),
+        "wind_speed_50m_max": "WS50M_MAX",  # Maximum wind speed at 50 meters (m/s),
+        "wind_speed_50m_min": "WS50M_MIN",  # Minimum wind speed at 50 meters (m/s),
+        "wind_dir": "WD10M",  # Wind direction at 10 meters (degrees),
         "wind_dir_50m": "WD50M",  # Wind direction at 50 meters (degrees)
         # Solar radiation parameters (W/m2)
-        "ghi": "ALLSKY_SFC_SW_DWN",  # Global horizontal irradiance
-        "dni": "DNI",  # Direct normal irradiance
-        "dhi": "DIFF",  # Diffuse horizontal irradiance
-        "ghi_clearsky": "CLRSKY_SFC_SW_DWN",  # Clear sky global horizontal irradiance
-        "dni_clearsky": "CLRSKY_DNI",  # Clear sky direct normal irradiance
-        "dhi_clearsky": "CLRSKY_DIFF",  # Clear sky diffuse horizontal irradiance
-        "par": "ALLSKY_SFC_PAR_TOT",  # Photosynthetically active radiation
-        "par_clearsky": "CLRSKY_SFC_PAR_TOT",  # Clear sky PAR
-        "uv": "ALLSKY_SFC_UVA",  # UV-A irradiance
+        "ghi": "ALLSKY_SFC_SW_DWN",  # Global horizontal irradiance,
+        "dni": "DNI",  # Direct normal irradiance,
+        "dhi": "DIFF",  # Diffuse horizontal irradiance,
+        "ghi_clearsky": "CLRSKY_SFC_SW_DWN",  # Clear sky global horizontal irradiance,
+        "dni_clearsky": "CLRSKY_DNI",  # Clear sky direct normal irradiance,
+        "dhi_clearsky": "CLRSKY_DIFF",  # Clear sky diffuse horizontal irradiance,
+        "par": "ALLSKY_SFC_PAR_TOT",  # Photosynthetically active radiation,
+        "par_clearsky": "CLRSKY_SFC_PAR_TOT",  # Clear sky PAR,
+        "uv": "ALLSKY_SFC_UVA",  # UV-A irradiance,
         "uvb": "ALLSKY_SFC_UVB",  # UV-B irradiance
         # Longwave radiation parameters
-        "lw_down": "ALLSKY_SFC_LW_DWN",  # Longwave radiation downward
-        "lw_up": "ALLSKY_SFC_LW_UP",  # Longwave radiation upward (estimated)
+        "lw_down": "ALLSKY_SFC_LW_DWN",  # Longwave radiation downward,
+        "lw_up": "ALLSKY_SFC_LW_UP",  # Longwave radiation upward (estimated),
         "lw_net": "ALLSKY_SFC_LW_NET",  # Net longwave radiation
         # Precipitation parameters
-        "precip": "PRECTOTCORR",  # Corrected precipitation (mm/hour)
-        "precip_land": "PRECTOTLAND",  # Precipitation over land (mm/hour)
+        "precip": "PRECTOTCORR",  # Corrected precipitation (mm/hour),
+        "precip_land": "PRECTOTLAND",  # Precipitation over land (mm/hour),
         "snow": "SNOW",  # Snowfall (mm water equivalent)
         # Pressure parameters
         "pressure": "PS",  # Surface pressure (kPa)
         # Cloud parameters
-        "cloud_cover": "CLOUD_AMT",  # Cloud amount (%)
+        "cloud_cover": "CLOUD_AMT",  # Cloud amount (%),
         "cloud_cover_low": "CLDTT",  # Cloud transmittance (%)
         # Atmospheric parameters
-        "wind_shear": "WS_SHEAR",  # Wind shear between 10m and 50m
-        "atmospheric_water": "TQV",  # Total column water vapor (g/cm2)
-        "ozone": "TO3",  # Total ozone (Dobson Units)
+        "wind_shear": "WS_SHEAR",  # Wind shear between 10m and 50m,
+        "atmospheric_water": "TQV",  # Total column water vapor (g/cm2),
+        "ozone": "TO3",  # Total ozone (Dobson Units),
         "aerosol_optical_depth": "AOD",  # Aerosol optical depth
         # Evapotranspiration and soil parameters
-        "evapotranspiration": "EVPTRNS",  # Evapotranspiration energy flux (MJ/m2/day)
-        "evaporation": "EVAP",  # Evaporation from wet soil (mm/day)
-        "soil_temp_0_10cm": "T0_10CM",  # Soil temperature 0-10cm depth (degC)
-        "soil_temp_10_40cm": "T10_40CM",  # Soil temperature 10-40cm depth (degC)
-        "soil_temp_40_100cm": "T40_100CM",  # Soil temperature 40-100cm depth (degC)
+        "evapotranspiration": "EVPTRNS",  # Evapotranspiration energy flux (MJ/m2/day),
+        "evaporation": "EVAP",  # Evaporation from wet soil (mm/day),
+        "soil_temp_0_10cm": "T0_10CM",  # Soil temperature 0-10cm depth (degC),
+        "soil_temp_10_40cm": "T10_40CM",  # Soil temperature 10-40cm depth (degC),
+        "soil_temp_40_100cm": "T40_100CM",  # Soil temperature 40-100cm depth (degC),
         "soil_temp_100_200cm": "T100_200CM",  # Soil temperature 100-200cm depth (degC)
         # Additional meteorological parameters
-        "frost_days": "FROST_DAYS",  # Number of frost days
-        "wet_bulb_temp": "T2MWET",  # Wet bulb temperature at 2m (degC)
-        "heating_degree_days": "T2M_HDD",  # Heating degree days base 18.3degC
-        "cooling_degree_days": "T2M_CDD",  # Cooling degree days base 18.3degC
+        "frost_days": "FROST_DAYS",  # Number of frost days,
+        "wet_bulb_temp": "T2MWET",  # Wet bulb temperature at 2m (degC),
+        "heating_degree_days": "T2M_HDD",  # Heating degree days base 18.3degC,
+        "cooling_degree_days": "T2M_CDD",  # Cooling degree days base 18.3degC,
         "growing_degree_days": "T2M_GDD",  # Growing degree days base 10degC
     }
 
@@ -162,10 +162,10 @@ from __future__ import annotations
         # Add metadata
         ds.attrs.update(
             {
-                "source": "NASA POWER"
-                "adapter_version": self.ADAPTER_VERSION
-                "latitude": lat
-                "longitude": lon
+                "source": "NASA POWER",
+                "adapter_version": self.ADAPTER_VERSION,
+                "latitude": lat,
+                "longitude": lon,
                 "license": "NASA Open Data Policy"
             }
         )
@@ -234,7 +234,7 @@ from __future__ import annotations
 
     def build_request_params(
         self
-        lat: float
+        lat: float,
         lon: float
         variables: List[str]
         period: Dict[str, Any]
@@ -273,13 +273,13 @@ from __future__ import annotations
             )
 
         return {
-            "start": start_date.strftime("%Y%m%d")
-            "end": end_date.strftime("%Y%m%d")
-            "latitude": f"{float(lat):.4f}"
-            "longitude": f"{float(lon):.4f}"
-            "parameters": ",".join(nasa_params)
-            "community": "RE"
-            "format": "JSON"
+            "start": start_date.strftime("%Y%m%d"),
+            "end": end_date.strftime("%Y%m%d"),
+            "latitude": f"{float(lat):.4f}",
+            "longitude": f"{float(lon):.4f}",
+            "parameters": ",".join(nasa_params),
+            "community": "RE",
+            "format": "JSON",
             "time_standard": "UTC"
         }
 
@@ -430,7 +430,7 @@ from __future__ import annotations
     def __init__(self) -> None:
         """Initialize NASA POWER adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
-            CacheConfig
+            CacheConfig,
             HTTPConfig
             RateLimitConfig
         )
@@ -513,7 +513,7 @@ from __future__ import annotations
 
     async def _fetch_chunked_async(
         self
-        lat: float
+        lat: float,
         lon: float
         variables: List[str]
         period: Dict
@@ -543,7 +543,7 @@ from __future__ import annotations
 
             # Create period dict for this chunk
             chunk_period = {
-                "start": chunk_start.strftime("%Y%m%d")
+                "start": chunk_start.strftime("%Y%m%d"),
                 "end": chunk_end.strftime("%Y%m%d")
             }
 
@@ -571,7 +571,7 @@ from __future__ import annotations
 
     async def _fetch_batched_async(
         self
-        lat: float
+        lat: float,
         lon: float
         variables: List[str]
         period: Dict[str, Any]

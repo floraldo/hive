@@ -1,7 +1,7 @@
 """Base solver abstract class for all solver implementations."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 from hive_logging import get_logger
 from pydantic import BaseModel
@@ -15,10 +15,10 @@ class SolverConfig(BaseModel):
     max_iterations: int = 1000
     tolerance: float = 1e-6
     verbose: bool = False
-    solver_specific: Dict[str, Any] = {}
+    solver_specific: dict[str, Any] = {}
 
     # Multi-objective configuration
-    objective_weights: Optional[Dict[str, float]] = None  # e.g., {"cost": 0.7, "emissions": 0.3}
+    objective_weights: dict[str, float] | None = None  # e.g., {"cost": 0.7, "emissions": 0.3}
     normalize_objectives: bool = True  # Normalize objectives before combining
     pareto_mode: bool = False  # Generate Pareto frontier instead of single solution
 

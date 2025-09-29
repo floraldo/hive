@@ -1,9 +1,10 @@
 """Technical KPI analysis strategy implementation."""
 
-from typing import Any, Dict
+from __future__ import annotations
+
+from typing import Any
 
 import numpy as np
-import pandas as pd
 from ecosystemiser.analyser.strategies.base import BaseAnalysis
 from hive_logging import get_logger
 
@@ -12,7 +13,6 @@ logger = get_logger(__name__)
 
 class TechnicalKPIAnalysis(BaseAnalysis):
     """Calculate technical key performance indicators from simulation results.
-from __future__ import annotations
 
 
     This strategy computes core technical metrics such as:
@@ -27,7 +27,7 @@ from __future__ import annotations
         """Initialize technical KPI analysis."""
         super().__init__(name="TechnicalKPI")
 
-    def run(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
+    def run(self, results_data: dict[str, Any], metadata: dict | None = None) -> dict[str, Any]:
         """Calculate technical KPIs from results data.
 
         Args:
@@ -55,7 +55,7 @@ from __future__ import annotations
 
         return kpis
 
-    def _detect_system_type(self, results_data: Dict[str, Any]) -> str:
+    def _detect_system_type(self, results_data: dict[str, Any]) -> str:
         """Detect the type of system from components.
 
         Args:
@@ -83,7 +83,7 @@ from __future__ import annotations
         else:
             return "unknown"
 
-    def _calculate_energy_kpis(self, results_data: Dict[str, Any]) -> Dict[str, float]:
+    def _calculate_energy_kpis(self, results_data: dict[str, Any]) -> dict[str, float]:
         """Calculate energy-specific KPIs.
 
         Args:
@@ -131,7 +131,7 @@ from __future__ import annotations
 
         return kpis
 
-    def _calculate_water_kpis(self, results_data: Dict[str, Any]) -> Dict[str, float]:
+    def _calculate_water_kpis(self, results_data: dict[str, Any]) -> dict[str, float]:
         """Calculate water-specific KPIs.
 
         Args:
@@ -164,7 +164,7 @@ from __future__ import annotations
 
         return kpis
 
-    def _calculate_common_kpis(self, results_data: Dict[str, Any]) -> Dict[str, float]:
+    def _calculate_common_kpis(self, results_data: dict[str, Any]) -> dict[str, float]:
         """Calculate common KPIs applicable to all systems.
 
         Args:
@@ -202,7 +202,7 @@ from __future__ import annotations
 
         return kpis
 
-    def _calculate_battery_kpis(self, flows: Dict, components: Dict) -> Dict[str, float]:
+    def _calculate_battery_kpis(self, flows: dict, components: dict) -> dict[str, float]:
         """Calculate battery-specific KPIs.
 
         Args:
@@ -216,7 +216,7 @@ from __future__ import annotations
 
         # Find battery component
         battery = None
-        for comp_name, comp_data in components.items():
+        for _comp_name, comp_data in components.items():
             if comp_data.get("type") == "battery":
                 battery = comp_data
                 break
@@ -246,7 +246,7 @@ from __future__ import annotations
 
         return kpis
 
-    def _calculate_peak_shaving_kpis(self, flows: Dict) -> Dict[str, float]:
+    def _calculate_peak_shaving_kpis(self, flows: dict) -> dict[str, float]:
         """Calculate peak shaving KPIs.
 
         Args:
@@ -283,7 +283,7 @@ from __future__ import annotations
 
         return kpis
 
-    def _get_flow_sum(self, flows: Dict, component: str, direction: str = None) -> float:
+    def _get_flow_sum(self, flows: dict, component: str, direction: str = None) -> float:
         """Get the sum of flows for a component.
 
         Args:

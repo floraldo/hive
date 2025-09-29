@@ -9,24 +9,19 @@ with support for:
 - Resource pooling and cleanup
 """
 
-from typing import Any, Dict, Optional, Type
+from typing import Any
 
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
-from ecosystemiser.profile_loader.climate.config_models import (
-    CacheConfig,
-    HTTPConfig,
-    RateLimitConfig,
-)
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 # Global adapter registry for dynamic registration
-_adapter_registry: Dict[str, Type[BaseAdapter]] = {}
+_adapter_registry: dict[str, type[BaseAdapter]] = {}
 
 # Singleton adapter instances
-_adapter_instances: Dict[str, BaseAdapter] = {}
+_adapter_instances: dict[str, BaseAdapter] = {}
 
 
 def register_adapter(name: str) -> None:
@@ -39,7 +34,7 @@ def register_adapter(name: str) -> None:
             ...
     """
 
-    def decorator(cls: Type[BaseAdapter]):
+    def decorator(cls: type[BaseAdapter]):
         _adapter_registry[name] = cls
         logger.info(f"Registered adapter: {name}")
         return cls
@@ -50,7 +45,7 @@ def register_adapter(name: str) -> None:
 def get_adapter(
     adapter_name: str,
     use_cache: bool = True,
-    custom_config: Optional[Dict[str, Any]] = None,
+    custom_config: dict[str, Any] | None = None,
     force_new: bool = False,
 ) -> BaseAdapter:
     """
@@ -93,15 +88,15 @@ def get_adapter(
 
     # Build configuration
     if custom_config:
-        config = custom_config
+        pass
     else:
         # Get adapter-specific config from settings
-        config = settings.get_adapter_config(adapter_name)
+        settings.get_adapter_config(adapter_name)
 
     # Get common configurations
-    http_config = settings.get_http_config() if hasattr(settings, "get_http_config") else None
-    cache_config = settings.get_cache_config() if use_cache and hasattr(settings, "get_cache_config") else None
-    rate_limit_config = settings.get_rate_limit_config() if hasattr(settings, "get_rate_limit_config") else None
+    settings.get_http_config() if hasattr(settings, "get_http_config") else None
+    settings.get_cache_config() if use_cache and hasattr(settings, "get_cache_config") else None
+    settings.get_rate_limit_config() if hasattr(settings, "get_rate_limit_config") else None
 
     # Create adapter instance
     try:

@@ -27,7 +27,7 @@ import xarray as xr
 
 # Import config models from centralized location to avoid circular dependency
 from ecosystemiser.profile_loader.climate.config_models import (
-    CacheConfig
+    CacheConfig,
     HTTPConfig
     RateLimitConfig
     RateLimitStrategy
@@ -37,7 +37,7 @@ from ecosystemiser.profile_loader.climate.config_models import (
 from ecosystemiser.settings import Settings, get_settings
 from hive_logging import get_logger
 from tenacity import (
-    before_sleep_log
+    before_sleep_log,
     retry
     retry_if_exception_type
     stop_after_attempt
@@ -227,7 +227,7 @@ class SharedHTTPClient:
 
     def __init__(
         self
-        config: HTTPConfig = HTTPConfig()
+        config: HTTPConfig = HTTPConfig(),
         rate_limit_config: RateLimitConfig | None = None
     ):
         self.config = config
@@ -253,7 +253,7 @@ class SharedHTTPClient:
     )
     async def get_async(
         self
-        url: str
+        url: str,
         params: Dict | None = None
         headers: Dict | None = None
         **kwargs
@@ -274,7 +274,7 @@ class SharedHTTPClient:
     )
     async def post_async(
         self
-        url: str
+        url: str,
         json: Dict | None = None
         data: Any | None = None
         headers: Dict | None = None
@@ -313,7 +313,7 @@ class BaseAdapter(ABC):
 
     def __init__(
         self
-        name: str
+        name: str,
         http_config: HTTPConfig | None = None
         rate_limit_config: RateLimitConfig | None = None
         cache_config: CacheConfig | None = None
@@ -446,10 +446,10 @@ class BaseAdapter(ABC):
         cache_hit_rate = self.cache_hits / max(self.cache_hits + self.cache_misses, 1)
 
         return {
-            "adapter": self.name
-            "request_count": self.request_count
-            "cache_hits": self.cache_hits
-            "cache_misses": self.cache_misses
+            "adapter": self.name,
+            "request_count": self.request_count,
+            "cache_hits": self.cache_hits,
+            "cache_misses": self.cache_misses,
             "cache_hit_rate": cache_hit_rate
         }
 
