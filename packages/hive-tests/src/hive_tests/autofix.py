@@ -12,13 +12,15 @@ Key Features:
 - Detailed reporting of changes made
 - Integration with Enhanced Golden Rules Framework
 """
+from __future__ import annotations
+
 
 import ast
 import re
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, ListSet, Tuple
 
 
 @dataclass
@@ -32,7 +34,7 @@ class AutofixResult:
     changes_made: List[str]
     backup_created: bool
     success: bool
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class GoldenRulesAutoFixer:
@@ -92,14 +94,14 @@ class GoldenRulesAutoFixer:
             except Exception as e:
                 self.results.append(
                     AutofixResult(
-                        file_path=py_file,
-                        rule_id="autofix-error",
-                        rule_name="Autofix Error",
-                        fixes_applied=0,
-                        changes_made=[],
-                        backup_created=backup_path is not None,
-                        success=False,
-                        error_message=str(e),
+                        file_path=py_file
+                        rule_id="autofix-error"
+                        rule_name="Autofix Error"
+                        fixes_applied=0
+                        changes_made=[]
+                        backup_created=backup_path is not None
+                        success=False
+                        error_message=str(e)
                     )
                 )
 
@@ -178,27 +180,27 @@ class GoldenRulesAutoFixer:
             if changes_made:
                 self.results.append(
                     AutofixResult(
-                        file_path=file_path,
-                        rule_id="rule-14",
-                        rule_name="Async Pattern Consistency",
-                        fixes_applied=len(changes_made),
-                        changes_made=changes_made,
-                        backup_created=self.create_backups and not self.dry_run,
-                        success=True,
+                        file_path=file_path
+                        rule_id="rule-14"
+                        rule_name="Async Pattern Consistency"
+                        fixes_applied=len(changes_made)
+                        changes_made=changes_made
+                        backup_created=self.create_backups and not self.dry_run
+                        success=True
                     )
                 )
 
         except Exception as e:
             self.results.append(
                 AutofixResult(
-                    file_path=file_path,
-                    rule_id="rule-14",
-                    rule_name="Async Pattern Consistency",
-                    fixes_applied=0,
-                    changes_made=[],
-                    backup_created=False,
-                    success=False,
-                    error_message=f"Error fixing async naming: {e}",
+                    file_path=file_path
+                    rule_id="rule-14"
+                    rule_name="Async Pattern Consistency"
+                    fixes_applied=0
+                    changes_made=[]
+                    backup_created=False
+                    success=False
+                    error_message=f"Error fixing async naming: {e}"
                 )
             )
 
@@ -289,27 +291,27 @@ class GoldenRulesAutoFixer:
             if changes_made:
                 self.results.append(
                     AutofixResult(
-                        file_path=file_path,
-                        rule_id="rule-9",
-                        rule_name="Logging Standards",
-                        fixes_applied=len(changes_made),
-                        changes_made=changes_made,
-                        backup_created=self.create_backups and not self.dry_run,
-                        success=True,
+                        file_path=file_path
+                        rule_id="rule-9"
+                        rule_name="Logging Standards"
+                        fixes_applied=len(changes_made)
+                        changes_made=changes_made
+                        backup_created=self.create_backups and not self.dry_run
+                        success=True
                     )
                 )
 
         except Exception as e:
             self.results.append(
                 AutofixResult(
-                    file_path=file_path,
-                    rule_id="rule-9",
-                    rule_name="Logging Standards",
-                    fixes_applied=0,
-                    changes_made=[],
-                    backup_created=False,
-                    success=False,
-                    error_message=f"Error fixing print statements: {e}",
+                    file_path=file_path
+                    rule_id="rule-9"
+                    rule_name="Logging Standards"
+                    fixes_applied=0
+                    changes_made=[]
+                    backup_created=False
+                    success=False
+                    error_message=f"Error fixing print statements: {e}"
                 )
             )
 
@@ -392,27 +394,27 @@ class GoldenRulesAutoFixer:
             if changes_made:
                 self.results.append(
                     AutofixResult(
-                        file_path=file_path,
-                        rule_id="rule-8",
-                        rule_name="Error Handling Standards",
-                        fixes_applied=len(changes_made),
-                        changes_made=changes_made,
-                        backup_created=self.create_backups and not self.dry_run,
-                        success=True,
+                        file_path=file_path
+                        rule_id="rule-8"
+                        rule_name="Error Handling Standards"
+                        fixes_applied=len(changes_made)
+                        changes_made=changes_made
+                        backup_created=self.create_backups and not self.dry_run
+                        success=True
                     )
                 )
 
         except Exception as e:
             self.results.append(
                 AutofixResult(
-                    file_path=file_path,
-                    rule_id="rule-8",
-                    rule_name="Error Handling Standards",
-                    fixes_applied=0,
-                    changes_made=[],
-                    backup_created=False,
-                    success=False,
-                    error_message=f"Error fixing exception inheritance: {e}",
+                    file_path=file_path
+                    rule_id="rule-8"
+                    rule_name="Error Handling Standards"
+                    fixes_applied=0
+                    changes_made=[]
+                    backup_created=False
+                    success=False
+                    error_message=f"Error fixing exception inheritance: {e}"
                 )
             )
 

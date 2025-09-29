@@ -13,7 +13,7 @@ from .advanced_timeout import (
     AdvancedTimeoutManager,
     TimeoutConfig,
     TimeoutMetrics,
-    timeout_context,
+    timeout_context_async,
     with_adaptive_timeout,
 )
 from .context import AsyncResourceManager, async_context
@@ -26,30 +26,24 @@ from .resilience import (
     async_resilient,
     async_timeout,
 )
-from .retry import (
-    AsyncRetryConfig,
-    async_retry,
-    create_retry_decorator,
-    retry_on_connection_error,
-)
-from .tasks import gather_with_concurrency, run_with_timeout
+from .retry import AsyncRetryConfig, create_retry_decorator, run_async_with_retry_async
+from .tasks import gather_with_concurrency_async, run_with_timeout_async
 
 __all__ = [
     # Context management
     "AsyncResourceManager",
     "async_context",
     # Retry utilities
-    "async_retry",
-    "AsyncRetryConfig",
+    "run_async_with_retry_async",
+    "AsyncRetryConfig", 
     "create_retry_decorator",
-    "retry_on_connection_error",
     # Connection pooling
     "ConnectionPool",
     "AsyncConnectionManager",
     "PoolConfig",
     # Task management
-    "gather_with_concurrency",
-    "run_with_timeout",
+    "gather_with_concurrency_async",
+    "run_with_timeout_async",
     # Resilience patterns (consolidated from hive-performance)
     "AsyncCircuitBreaker",
     "AsyncTimeoutManager",
@@ -61,6 +55,6 @@ __all__ = [
     "AdvancedTimeoutManager",
     "TimeoutConfig",
     "TimeoutMetrics",
-    "timeout_context",
+    "timeout_context_async",
     "with_adaptive_timeout",
 ]

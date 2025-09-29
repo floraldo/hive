@@ -1,6 +1,6 @@
 """Economic analysis strategy implementation."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,8 @@ logger = get_logger(__name__)
 
 class EconomicAnalysis(BaseAnalysis):
     """Calculate economic metrics from simulation results.
+from __future__ import annotations
+
 
     This strategy computes financial indicators such as:
     - Levelized Cost of Energy (LCOE)
@@ -27,7 +29,7 @@ class EconomicAnalysis(BaseAnalysis):
         self.discount_rate = 0.05  # Default 5% discount rate
         self.project_lifetime = 20  # Default 20 years
 
-    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
         """Calculate economic metrics from results data.
 
         Args:

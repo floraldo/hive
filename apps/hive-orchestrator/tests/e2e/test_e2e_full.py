@@ -409,5 +409,33 @@ def main():
     sys.exit(runner.run())
 
 
+def test_e2e_full_workflow():
+    """Test the complete end-to-end workflow as a pytest test."""
+    runner = E2ETestRunner()
+    exit_code = runner.run()
+    assert exit_code == 0, "E2E test failed"
+
+
+def test_e2e_test_runner_initialization():
+    """Test E2E test runner can be initialized."""
+    runner = E2ETestRunner()
+    assert runner is not None
+    assert runner.test_results == {}
+    assert runner.task_ids == {}
+
+
+def test_e2e_logging():
+    """Test E2E test logging functionality."""
+    runner = E2ETestRunner()
+
+    # Test logging doesn't raise exceptions
+    runner.log("Test message", "INFO")
+    runner.log("Success message", "SUCCESS")
+    runner.log("Error message", "ERROR")
+
+    # Basic assertion that runner still exists after logging
+    assert runner is not None
+
+
 if __name__ == "__main__":
     main()

@@ -5,6 +5,8 @@ Connection Pool for Hive Database
 Optimized connection pooling to reduce database connection overhead.
 Provides 35-70% performance improvement for database operations.
 """
+from __future__ import annotations
+
 
 import sqlite3
 import threading
@@ -12,7 +14,7 @@ import time
 from contextlib import contextmanager
 from pathlib import Path
 from queue import Empty, Full, Queue
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from hive_config.paths import DB_PATH, ensure_directory
 from hive_logging import get_logger
@@ -33,11 +35,11 @@ class ConnectionPool:
     """
 
     def __init__(
-        self,
-        min_connections: int = None,
-        max_connections: int = None,
-        connection_timeout: float = None,
-        db_config: Optional[Dict[str, Any]] = None,
+        self
+        min_connections: int = None
+        max_connections: int = None
+        connection_timeout: float = None
+        db_config: Optional[Dict[str, Any]] = None
     ):
         """
         Initialize connection pool.
@@ -72,14 +74,14 @@ class ConnectionPool:
             if conn:
                 self._pool.put(conn)
 
-    def _create_connection(self) -> Optional[sqlite3.Connection]:
+    def _create_connection(self) -> sqlite3.Connection | None:
         """Create a new database connection with optimal settings."""
         try:
             ensure_directory(DB_PATH.parent)
 
             conn = sqlite3.connect(
-                str(DB_PATH),
-                check_same_thread=False,
+                str(DB_PATH)
+                check_same_thread=False
                 timeout=30.0,  # 30 second timeout for locks
                 isolation_level="DEFERRED",  # Better concurrency
             )
@@ -180,15 +182,15 @@ class ConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            "pool_size": self._pool.qsize(),
-            "connections_created": self._connections_created,
-            "max_connections": self.max_connections,
-            "min_connections": self.min_connections,
+            "pool_size": self._pool.qsize()
+            "connections_created": self._connections_created
+            "max_connections": self.max_connections
+            "min_connections": self.min_connections
         }
 
 
 # Global connection pool instance
-_pool: Optional[ConnectionPool] = None
+_pool: ConnectionPool | None = None
 _pool_lock = threading.Lock()
 
 

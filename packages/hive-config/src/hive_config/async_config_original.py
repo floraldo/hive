@@ -1,15 +1,17 @@
 """
 Async Configuration Management for High-Performance Applications
 
-Provides non-blocking configuration loading with concurrent file I/O,
+Provides non-blocking configuration loading with concurrent file I/O
 hot-reload capability, and caching.
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, ListSet
 
 import aiofiles
 import aiofiles.os
@@ -55,7 +57,7 @@ class AsyncConfigLoader:
     """
 
     def __init__(
-        self, cache_ttl: float = 300.0, enable_hot_reload: bool = False, master_key: Optional[str] = None  # 5 minutes
+        self, cache_ttl: float = 300.0, enable_hot_reload: bool = False, master_key: str | None = None  # 5 minutes
     ):
         """
         Initialize async config loader
@@ -159,14 +161,14 @@ class AsyncConfigLoader:
         if not config_files:
             app_dir = project_root / "apps" / app_name
             config_files = [
-                project_root / ".env",
-                project_root / ".env.local",
-                project_root / ".env.prod",
-                project_root / ".env.prod.encrypted",
-                app_dir / ".env",
-                app_dir / ".env.local",
-                app_dir / "config.json",
-                app_dir / "config.toml",
+                project_root / ".env"
+                project_root / ".env.local"
+                project_root / ".env.prod"
+                project_root / ".env.prod.encrypted"
+                app_dir / ".env"
+                app_dir / ".env.local"
+                app_dir / "config.json"
+                app_dir / "config.toml"
             ]
 
         # Convert to Path objects
@@ -269,7 +271,7 @@ class AsyncConfigLoader:
         if callback in self._reload_callbacks:
             self._reload_callbacks.remove(callback)
 
-    async def clear_cache_async(self, app_name: Optional[str] = None) -> None:
+    async def clear_cache_async(self, app_name: str | None = None) -> None:
         """Clear configuration cache"""
         async with self._lock:
             if app_name:
@@ -290,11 +292,11 @@ class AsyncConfigLoader:
         current_time = time.time()
 
         return {
-            "cached_configs": len(self._cache),
-            "cache_ttl": self._cache_ttl,
-            "watched_files": len(self._watched_files),
-            "hot_reload_enabled": self._enable_hot_reload,
-            "cache_ages": {key: current_time - timestamp for key, timestamp in self._cache_timestamps.items()},
+            "cached_configs": len(self._cache)
+            "cache_ttl": self._cache_ttl
+            "watched_files": len(self._watched_files)
+            "hot_reload_enabled": self._enable_hot_reload
+            "cache_ages": {key: current_time - timestamp for key, timestamp in self._cache_timestamps.items()}
         }
 
     async def shutdown_async(self) -> None:
@@ -311,11 +313,11 @@ class AsyncConfigLoader:
 
 
 # Global async config loader instance
-_global_async_loader: Optional[AsyncConfigLoader] = None
+_global_async_loader: AsyncConfigLoader | None = None
 
 
 async def get_async_config_loader_async(
-    enable_hot_reload: bool = False, master_key: Optional[str] = None
+    enable_hot_reload: bool = False, master_key: str | None = None
 ) -> AsyncConfigLoader:
     """Get or create global async config loader"""
     global _global_async_loader

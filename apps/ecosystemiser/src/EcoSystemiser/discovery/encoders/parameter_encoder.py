@@ -3,7 +3,7 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, ListTuple
 
 import numpy as np
 import yaml
@@ -15,14 +15,16 @@ logger = get_logger(__name__)
 @dataclass
 class ParameterSpec:
     """Specification for an optimizable parameter."""
+from __future__ import annotations
+
 
     name: str
     component: str
     parameter_path: str  # e.g., "technical.capacity_nominal"
     bounds: Tuple[float, float]  # (min, max)
     parameter_type: str = "continuous"  # continuous, integer, categorical
-    units: Optional[str] = None
-    description: Optional[str] = None
+    units: str | None = None
+    description: str | None = None
     scaling: str = "linear"  # linear, log, normalized
 
 
@@ -271,13 +273,13 @@ class ParameterEncoder:
         info = {}
         for param in self.spec.parameters:
             info[param.name] = {
-                "component": param.component,
-                "parameter_path": param.parameter_path,
-                "bounds": param.bounds,
-                "type": param.parameter_type,
-                "units": param.units,
-                "description": param.description,
-                "scaling": param.scaling,
+                "component": param.component
+                "parameter_path": param.parameter_path
+                "bounds": param.bounds
+                "type": param.parameter_type
+                "units": param.units
+                "description": param.description
+                "scaling": param.scaling
             }
         return info
 
@@ -295,10 +297,10 @@ class SystemConfigEncoder(ParameterEncoder):
 
     @classmethod
     def from_config(
-        cls,
-        config_path: Union[str, Path],
-        component_selection: Optional[List[str]] = None,
-        custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None,
+        cls
+        config_path: str | Path
+        component_selection: Optional[List[str]] = None
+        custom_bounds: Optional[Dict[str, Tuple[float, float]]] = None
     ) -> "SystemConfigEncoder":
         """Create encoder from system configuration file.
 
@@ -398,14 +400,14 @@ class SystemConfigEncoder(ParameterEncoder):
 
                 # Create ParameterSpec
                 param_spec = ParameterSpec(
-                    name=f"{component_name}_{param_name}",
-                    component=component_name,
-                    parameter_path=parameter_path,
-                    bounds=bounds,
-                    parameter_type=param_config.get("parameter_type", "continuous"),
-                    units=param_config.get("units"),
-                    description=param_config.get("description", f"{param_name} for {component_name}"),
-                    scaling=param_config.get("scaling", "linear"),
+                    name=f"{component_name}_{param_name}"
+                    component=component_name
+                    parameter_path=parameter_path
+                    bounds=bounds
+                    parameter_type=param_config.get("parameter_type", "continuous")
+                    units=param_config.get("units")
+                    description=param_config.get("description", f"{param_name} for {component_name}")
+                    scaling=param_config.get("scaling", "linear")
                 )
 
                 parameters.append(param_spec)

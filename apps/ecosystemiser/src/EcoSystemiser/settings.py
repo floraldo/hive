@@ -4,6 +4,8 @@ Centralized configuration management for EcoSystemiser platform.
 Combines all configuration needs for the modular architecture including
 profile_loader (climate, demand), solver, analyser, and reporting modules.
 """
+from __future__ import annotations
+
 
 from hive_logging import get_logger
 
@@ -12,7 +14,7 @@ logger = get_logger(__name__)
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Pydantic v2 imports
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -22,12 +24,12 @@ from pydantic_settings import BaseSettings
 class DatabaseConfig(BaseSettings):
     """Database configuration"""
 
-    url: Optional[str] = None
+    url: str | None = None
     host: str = Field(default="localhost")
     port: int = Field(default=5432)
     name: str = Field(default="ecosystemiser")
     user: str = Field(default="postgres")
-    password: Optional[str] = None
+    password: str | None = None
 
     @field_validator("url", mode="before")
     @classmethod
@@ -66,7 +68,7 @@ class CacheSettings(BaseSettings):
     disk_ttl: int = Field(default=3600, ge=300, le=86400)
 
     # Redis cache (optional)
-    redis_url: Optional[str] = Field(default=None)
+    redis_url: str | None = Field(default=None)
     redis_ttl: int = Field(default=86400, ge=3600, le=604800)
     redis_key_prefix: str = Field(default="ecosystemiser:")
 
@@ -124,7 +126,7 @@ class ObservabilitySettings(BaseSettings):
     # Tracing
     tracing_enabled: bool = Field(default=True)
     tracing_service_name: str = Field(default="ecosystemiser")
-    tracing_endpoint: Optional[str] = Field(default=None)
+    tracing_endpoint: str | None = Field(default=None)
     tracing_sample_rate: float = Field(default=0.1, ge=0.0, le=1.0)
 
     class Config:
@@ -167,11 +169,11 @@ class ProfileLoaderSettings(BaseSettings):
     nasa_power_chunk_days: int = Field(default=365)
 
     meteostat_enabled: bool = Field(default=True)
-    meteostat_api_key: Optional[str] = Field(default=None)
+    meteostat_api_key: str | None = Field(default=None)
     meteostat_rate_limit: int = Field(default=100)
 
     era5_enabled: bool = Field(default=True)
-    era5_api_key: Optional[str] = Field(default=None)
+    era5_api_key: str | None = Field(default=None)
     era5_api_url: str = Field(default="https://cds.climate.copernicus.eu/api/v2")
 
     pvgis_enabled: bool = Field(default=True)
@@ -317,12 +319,12 @@ class Settings(BaseSettings):
         from ecosystemiser.profile_loader.climate.config_models import CacheConfig
 
         return CacheConfig(
-            memory_size=self.cache.memory_size,
-            memory_ttl=self.cache.memory_ttl,
-            cache_dir=str(self.cache.cache_dir),
-            disk_ttl=self.cache.disk_ttl,
-            redis_url=self.cache.redis_url,
-            redis_ttl=self.cache.redis_ttl,
+            memory_size=self.cache.memory_size
+            memory_ttl=self.cache.memory_ttl
+            cache_dir=str(self.cache.cache_dir)
+            disk_ttl=self.cache.disk_ttl
+            redis_url=self.cache.redis_url
+            redis_ttl=self.cache.redis_ttl
         )
 
     def get_http_config(self):
@@ -330,11 +332,11 @@ class Settings(BaseSettings):
         from ecosystemiser.profile_loader.climate.config_models import HTTPConfig
 
         return HTTPConfig(
-            timeout=self.http.timeout,
-            max_retries=self.http.max_retries,
-            retry_backoff_factor=self.http.retry_backoff_factor,
-            connection_pool_size=self.http.connection_pool_size,
-            keepalive_expiry=self.http.keepalive_expiry,
+            timeout=self.http.timeout
+            max_retries=self.http.max_retries
+            retry_backoff_factor=self.http.retry_backoff_factor
+            connection_pool_size=self.http.connection_pool_size
+            keepalive_expiry=self.http.keepalive_expiry
         )
 
     def get_rate_limit_config(self):
@@ -343,21 +345,21 @@ class Settings(BaseSettings):
         from ecosystemiser.profile_loader.climate.config_models import RateLimitConfig
 
         return RateLimitConfig(
-            requests_per_minute=self.rate_limit.requests_per_minute,
-            burst_size=self.rate_limit.burst_size,
+            requests_per_minute=self.rate_limit.requests_per_minute
+            burst_size=self.rate_limit.burst_size
         )
 
     model_config = ConfigDict(
-        env_prefix="ECOSYSTEMISER_",
-        env_file=".env",
-        env_file_encoding="utf-8",
-        case_sensitive=False,
+        env_prefix="ECOSYSTEMISER_"
+        env_file=".env"
+        env_file_encoding="utf-8"
+        case_sensitive=False
         extra="ignore",  # Allow extra environment variables
     )
 
 
 # Singleton instance
-_settings: Optional[Settings] = None
+_settings: Settings | None = None
 
 
 @lru_cache()

@@ -63,9 +63,14 @@ class DatabaseOptimizer:
         # Get row counts
         table_stats = {}
         for table in tables:
-            cursor.execute(f"SELECT COUNT(*) as count FROM {table['name']}")
+            # Table names come from sqlite_master, so they're safe, but let's validate anyway
+            table_name = table['name']
+            if not all(c.isalnum() or c == '_' for c in table_name):
+                logger.warning(f"Skipping table with invalid name: {table_name}")
+                continue
+            cursor.execute(f"SELECT COUNT(*) as count FROM {table_name}")
             count = cursor.fetchone()["count"]
-            table_stats[table["name"]] = count
+            table_stats[table_name] = count
 
         return {"tables": [dict(t) for t in tables], "indexes": [dict(i) for i in indexes], "table_stats": table_stats}
 

@@ -2,31 +2,31 @@
 
 import os
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, ListTuple
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
-    AdapterCapabilities,
-    AuthType,
-    DataFrequency,
-    QualityFeatures,
-    RateLimits,
-    SpatialCoverage,
-    TemporalCoverage,
+    AdapterCapabilities
+    AuthType
+    DataFrequency
+    QualityFeatures
+    RateLimits
+    SpatialCoverage
+    TemporalCoverage
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import (
-    DataFetchError,
-    DataParseError,
-    ValidationError,
+    DataFetchError
+    DataParseError
+    ValidationError
 )
 from ecosystemiser.profile_loader.climate.processing.validation import (
-    QCIssue,
-    QCProfile,
-    QCReport,
-    QCSeverity,
+    QCIssue
+    QCProfile
+    QCReport
+    QCSeverity
 )
 from hive_logging import get_logger
 
@@ -35,6 +35,8 @@ logger = get_logger(__name__)
 
 class ERA5Adapter(BaseAdapter):
     """Adapter for ERA5 reanalysis climate data"""
+from __future__ import annotations
+
 
     ADAPTER_NAME = "era5"
     ADAPTER_VERSION = "0.1.0"
@@ -141,16 +143,16 @@ class ERA5Adapter(BaseAdapter):
     def __init__(self) -> None:
         """Initialize ERA5 adapter"""
         from ecosystemiser.profile_loader.climate.adapters.base import (
-            CacheConfig,
-            HTTPConfig,
-            RateLimitConfig,
+            CacheConfig
+            HTTPConfig
+            RateLimitConfig
         )
 
         # Configure rate limiting (CDS API has no strict limits but be reasonable)
         rate_config = RateLimitConfig(
             requests_per_minute=6,  # Conservative for large requests
-            requests_per_hour=60,
-            burst_size=3,
+            requests_per_hour=60
+            burst_size=3
         )
 
         # Configure caching (ERA5 data doesn't change)
@@ -160,9 +162,9 @@ class ERA5Adapter(BaseAdapter):
         )
 
         super().__init__(
-            name=self.ADAPTER_NAME,
-            rate_limit_config=rate_config,
-            cache_config=cache_config,
+            name=self.ADAPTER_NAME
+            rate_limit_config=rate_config
+            cache_config=cache_config
         )
         self._cdsapi_available = self._check_cdsapi()
 
@@ -182,19 +184,19 @@ class ERA5Adapter(BaseAdapter):
             return False
 
     async def _fetch_raw_async(
-        self,
-        location: Tuple[float, float],
-        variables: List[str],
-        period: Dict,
-        **kwargs,
-    ) -> Optional[Any]:
+        self
+        location: Tuple[float, float]
+        variables: List[str]
+        period: Dict
+        **kwargs
+    ) -> Any | None:
         """Fetch raw data from ERA5 CDS API"""
         if not self._cdsapi_available:
             raise DataFetchError(
-                self.ADAPTER_NAME,
+                self.ADAPTER_NAME
                 "cdsapi library not installed or not configured. "
-                "Install with: pip install cdsapi and configure ~/.cdsapirc",
-                suggested_action="Visit https://cds.climate.copernicus.eu/api-how-to for setup instructions",
+                "Install with: pip install cdsapi and configure ~/.cdsapirc"
+                suggested_action="Visit https://cds.climate.copernicus.eu/api-how-to for setup instructions"
             )
 
         import tempfile
@@ -214,10 +216,10 @@ class ERA5Adapter(BaseAdapter):
 
         if not era5_params:
             raise ValidationError(
-                f"No valid variables for ERA5 from: {variables}",
-                field="variables",
-                value=variables,
-                suggested_action=f"Available variables: {list(self.VARIABLE_MAPPING.keys())}",
+                f"No valid variables for ERA5 from: {variables}"
+                field="variables"
+                value=variables
+                suggested_action=f"Available variables: {list(self.VARIABLE_MAPPING.keys())}"
             )
 
         # Initialize CDS API client
@@ -243,15 +245,15 @@ class ERA5Adapter(BaseAdapter):
             client.retrieve(dataset, request_params, tmp_path)
         except Exception as e:
             raise DataFetchError(
-                self.ADAPTER_NAME,
-                f"CDS API request failed: {str(e)}",
+                self.ADAPTER_NAME
+                f"CDS API request failed: {str(e)}"
                 details={
-                    "dataset": dataset,
-                    "params": request_params,
-                    "lat": lat,
-                    "lon": lon,
-                },
-                suggested_action="Check CDS API status and request parameters",
+                    "dataset": dataset
+                    "params": request_params
+                    "lat": lat
+                    "lon": lon
+                }
+                suggested_action="Check CDS API status and request parameters"
             )
 
         # Load data with xarray
@@ -262,9 +264,9 @@ class ERA5Adapter(BaseAdapter):
             return ds
         except Exception as e:
             raise DataParseError(
-                self.ADAPTER_NAME,
-                f"Failed to load NetCDF data: {str(e)}",
-                details={"file_path": tmp_path},
+                self.ADAPTER_NAME
+                f"Failed to load NetCDF data: {str(e)}"
+                details={"file_path": tmp_path}
             )
         finally:
             # Clean up temp file
@@ -287,11 +289,11 @@ class ERA5Adapter(BaseAdapter):
         # Add metadata
         ds.attrs.update(
             {
-                "source": "ERA5",
-                "adapter_version": self.ADAPTER_VERSION,
-                "latitude": lat,
-                "longitude": lon,
-                "license": "Copernicus Climate Change Service",
+                "source": "ERA5"
+                "adapter_version": self.ADAPTER_VERSION
+                "latitude": lat
+                "longitude": lon
+                "license": "Copernicus Climate Change Service"
             }
         )
 
@@ -307,13 +309,13 @@ class ERA5Adapter(BaseAdapter):
             raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
     async def fetch_async(
-        self,
-        *,
-        lat: float,
-        lon: float,
-        variables: List[str],
-        period: Dict,
-        resolution: str = "1H",
+        self
+        *
+        lat: float
+        lon: float
+        variables: List[str]
+        period: Dict
+        resolution: str = "1H"
     ) -> xr.Dataset:
         """
         Fetch climate data from ERA5 reanalysis.
@@ -336,27 +338,27 @@ class ERA5Adapter(BaseAdapter):
 
         if not self._cdsapi_available:
             raise DataFetchError(
-                self.ADAPTER_NAME,
+                self.ADAPTER_NAME
                 "cdsapi library not installed or not configured. "
-                "Install with: pip install cdsapi and configure ~/.cdsapirc",
-                suggested_action="Visit https://cds.climate.copernicus.eu/api-how-to for setup instructions",
+                "Install with: pip install cdsapi and configure ~/.cdsapirc"
+                suggested_action="Visit https://cds.climate.copernicus.eu/api-how-to for setup instructions"
             )
 
         try:
             # Use base class fetch method
             return await super().fetch_async(
-                location=(lat, lon),
-                variables=variables,
-                period=period,
-                resolution=resolution,
+                location=(lat, lon)
+                variables=variables
+                period=period
+                resolution=resolution
             )
 
         except Exception as e:
             # Wrap unexpected errors
             error = DataFetchError(
-                self.ADAPTER_NAME,
-                f"Unexpected error fetching ERA5 data: {str(e)}",
-                details={"lat": lat, "lon": lon, "variables": variables},
+                self.ADAPTER_NAME
+                f"Unexpected error fetching ERA5 data: {str(e)}"
+                details={"lat": lat, "lon": lon, "variables": variables}
             )
             self.logger.error(f"Unexpected error: {error}")
             raise error
@@ -371,29 +373,29 @@ class ERA5Adapter(BaseAdapter):
                 # ERA5 available from 1940 to present
                 if year < 1940:
                     raise ValidationError(
-                        "ERA5 data only available from 1940 onwards",
-                        field="period.year",
-                        value=year,
-                        suggested_action="Use year >= 1940",
+                        "ERA5 data only available from 1940 onwards"
+                        field="period.year"
+                        value=year
+                        suggested_action="Use year >= 1940"
                     )
 
                 # Check if year is too recent (ERA5 has ~5 day delay)
                 current_year = datetime.now().year
                 if year > current_year:
                     raise ValidationError(
-                        f"ERA5 data not yet available for year {year}",
-                        field="period.year",
-                        value=year,
-                        suggested_action=f"Use year <= {current_year}",
+                        f"ERA5 data not yet available for year {year}"
+                        field="period.year"
+                        value=year
+                        suggested_action=f"Use year <= {current_year}"
                     )
 
                 if "month" in period:
                     month = int(period["month"]) if isinstance(period["month"], str) else period["month"]
                     if not 1 <= month <= 12:
                         raise ValidationError(
-                            "Month must be between 1 and 12",
-                            field="period.month",
-                            value=month,
+                            "Month must be between 1 and 12"
+                            field="period.month"
+                            value=month
                         )
 
                     start_date = datetime(year, month, 1)
@@ -411,17 +413,17 @@ class ERA5Adapter(BaseAdapter):
                     end_date = pd.to_datetime(period["end"]).to_pydatetime()
                 except Exception as e:
                     raise ValidationError(
-                        f"Invalid date format in period: {e}",
-                        field="period.start/end",
-                        value=period,
-                        suggested_action="Use ISO format (YYYY-MM-DD) or datetime objects",
+                        f"Invalid date format in period: {e}"
+                        field="period.start/end"
+                        value=period
+                        suggested_action="Use ISO format (YYYY-MM-DD) or datetime objects"
                     )
 
                 if start_date > end_date:
                     raise ValidationError(
-                        "Start date must be before end date",
-                        field="period",
-                        value=period,
+                        "Start date must be before end date"
+                        field="period"
+                        value=period
                     )
 
             else:
@@ -432,26 +434,26 @@ class ERA5Adapter(BaseAdapter):
 
                     if start_year < 1940:
                         raise ValidationError(
-                            "ERA5 data only available from 1940 onwards",
-                            field="period.start_year",
-                            value=start_year,
+                            "ERA5 data only available from 1940 onwards"
+                            field="period.start_year"
+                            value=start_year
                         )
 
                     if start_year > end_year:
                         raise ValidationError(
-                            "Start year must be before or equal to end year",
-                            field="period",
-                            value=period,
+                            "Start year must be before or equal to end year"
+                            field="period"
+                            value=period
                         )
 
                     start_date = datetime(start_year, 1, 1)
                     end_date = datetime(end_year, 12, 31)
                 else:
                     raise ValidationError(
-                        f"Invalid period specification: {period}",
-                        field="period",
-                        value=period,
-                        suggested_action="Use 'year', 'start'/'end', or 'start_year'/'end_year'",
+                        f"Invalid period specification: {period}"
+                        field="period"
+                        value=period
+                        suggested_action="Use 'year', 'start'/'end', or 'start_year'/'end_year'"
                     )
 
             return start_date, end_date
@@ -502,13 +504,13 @@ class ERA5Adapter(BaseAdapter):
         return "reanalysis-era5-single-levels"
 
     def _build_request(
-        self,
-        lat: float,
-        lon: float,
-        variables: List[str],
-        start_date: datetime,
-        end_date: datetime,
-        resolution: str,
+        self
+        lat: float
+        lon: float
+        variables: List[str]
+        start_date: datetime
+        end_date: datetime
+        resolution: str
     ) -> Dict:
         """Build CDS API request parameters"""
 
@@ -542,14 +544,14 @@ class ERA5Adapter(BaseAdapter):
             current += timedelta(days=1)
 
         request = {
-            "product_type": "reanalysis",
-            "format": "netcdf",
-            "variable": variables,
-            "year": sorted(list(years)),
-            "month": sorted(list(months)),
-            "day": sorted(list(days)),
-            "time": times,
-            "area": area,
+            "product_type": "reanalysis"
+            "format": "netcdf"
+            "variable": variables
+            "year": sorted(list(years))
+            "month": sorted(list(months))
+            "day": sorted(list(days))
+            "time": times
+            "area": area
         }
 
         return request
@@ -613,15 +615,15 @@ class ERA5Adapter(BaseAdapter):
             available_dims = list(ds.dims.keys())
             available_coords = list(ds.coords.keys())
             raise DataParseError(
-                self.ADAPTER_NAME,
+                self.ADAPTER_NAME
                 f"Could not find latitude/longitude coordinates in ERA5 dataset. "
-                f"Available dimensions: {available_dims}, coordinates: {available_coords}",
+                f"Available dimensions: {available_dims}, coordinates: {available_coords}"
                 details={
-                    "requested_lat": lat,
-                    "requested_lon": lon,
-                    "available_dimensions": available_dims,
-                    "available_coordinates": available_coords,
-                },
+                    "requested_lat": lat
+                    "requested_lon": lon
+                    "available_dimensions": available_dims
+                    "available_coordinates": available_coords
+                }
             )
 
         # Standard coordinate selection
@@ -629,14 +631,14 @@ class ERA5Adapter(BaseAdapter):
             return ds.sel({lat_coord: lat, lon_coord: lon}, method="nearest")
         except Exception as e:
             raise DataParseError(
-                self.ADAPTER_NAME,
-                f"Failed to select coordinates ({lat}, {lon}) from ERA5 dataset: {str(e)}",
+                self.ADAPTER_NAME
+                f"Failed to select coordinates ({lat}, {lon}) from ERA5 dataset: {str(e)}"
                 details={
-                    "lat_coord": lat_coord,
-                    "lon_coord": lon_coord,
-                    "requested_lat": lat,
-                    "requested_lon": lon,
-                },
+                    "lat_coord": lat_coord
+                    "lon_coord": lon_coord
+                    "requested_lat": lat
+                    "requested_lon": lon
+                }
             )
 
     def _process_era5_data(self, ds: xr.Dataset, variables: List[str], lat: float, lon: float) -> xr.Dataset:
@@ -663,8 +665,8 @@ class ERA5Adapter(BaseAdapter):
                     wind_speed = np.sqrt(ds["u10"] ** 2 + ds["v10"] ** 2)
                     out_ds[canonical_name] = wind_speed
                     out_ds[canonical_name].attrs = {
-                        "units": "m/s",
-                        "long_name": "Wind Speed",
+                        "units": "m/s"
+                        "long_name": "Wind Speed"
                     }
 
             elif canonical_name == "wind_dir":
@@ -674,8 +676,8 @@ class ERA5Adapter(BaseAdapter):
                     wind_dir = (wind_dir + 360) % 360  # Convert to 0-360
                     out_ds[canonical_name] = wind_dir
                     out_ds[canonical_name].attrs = {
-                        "units": "degrees",
-                        "long_name": "Wind Direction",
+                        "units": "degrees"
+                        "long_name": "Wind Direction"
                     }
 
             elif canonical_name == "rel_humidity":
@@ -687,8 +689,8 @@ class ERA5Adapter(BaseAdapter):
                     RH = 100 * np.exp((17.625 * Td) / (243.04 + Td)) / np.exp((17.625 * T) / (243.04 + T))
                     out_ds[canonical_name] = RH
                     out_ds[canonical_name].attrs = {
-                        "units": "%",
-                        "long_name": "Relative Humidity",
+                        "units": "%"
+                        "long_name": "Relative Humidity"
                     }
 
             elif canonical_name == "ghi":
@@ -705,8 +707,8 @@ class ERA5Adapter(BaseAdapter):
                     ghi = xr.where(ghi < 0, 0, ghi)
                     out_ds[canonical_name] = ghi
                     out_ds[canonical_name].attrs = {
-                        "units": "W/m2",
-                        "long_name": "Global Horizontal Irradiance",
+                        "units": "W/m2"
+                        "long_name": "Global Horizontal Irradiance"
                     }
 
             elif canonical_name in self.VARIABLE_MAPPING:
@@ -714,39 +716,39 @@ class ERA5Adapter(BaseAdapter):
                 # Comprehensive mapping from ERA5 short names to actual variable names in dataset
                 var_map = {
                     # Temperature variables
-                    "2m_temperature": "t2m",
-                    "2m_dewpoint_temperature": "d2m",
-                    "soil_temperature_level_1": "stl1",
+                    "2m_temperature": "t2m"
+                    "2m_dewpoint_temperature": "d2m"
+                    "soil_temperature_level_1": "stl1"
                     # Pressure variables
-                    "surface_pressure": "sp",
-                    "mean_sea_level_pressure": "msl",
+                    "surface_pressure": "sp"
+                    "mean_sea_level_pressure": "msl"
                     # Wind variables
-                    "10m_u_component_of_wind": "u10",
-                    "10m_v_component_of_wind": "v10",
-                    "10m_wind_gust": "i10fg",
+                    "10m_u_component_of_wind": "u10"
+                    "10m_v_component_of_wind": "v10"
+                    "10m_wind_gust": "i10fg"
                     # Precipitation variables
-                    "total_precipitation": "tp",
-                    "snowfall": "sf",
-                    "evaporation": "e",
+                    "total_precipitation": "tp"
+                    "snowfall": "sf"
+                    "evaporation": "e"
                     # Solar radiation variables
-                    "surface_solar_radiation_downwards": "ssrd",
-                    "direct_solar_radiation": "fdir",
-                    "surface_thermal_radiation_downwards": "strd",
+                    "surface_solar_radiation_downwards": "ssrd"
+                    "direct_solar_radiation": "fdir"
+                    "surface_thermal_radiation_downwards": "strd"
                     # Cloud and humidity variables
-                    "total_cloud_cover": "tcc",
-                    "low_cloud_cover": "lcc",
-                    "medium_cloud_cover": "mcc",
-                    "high_cloud_cover": "hcc",
+                    "total_cloud_cover": "tcc"
+                    "low_cloud_cover": "lcc"
+                    "medium_cloud_cover": "mcc"
+                    "high_cloud_cover": "hcc"
                     # Soil variables
-                    "volumetric_soil_water_layer_1": "swvl1",
-                    "volumetric_soil_water_layer_2": "swvl2",
-                    "volumetric_soil_water_layer_3": "swvl3",
-                    "volumetric_soil_water_layer_4": "swvl4",
+                    "volumetric_soil_water_layer_1": "swvl1"
+                    "volumetric_soil_water_layer_2": "swvl2"
+                    "volumetric_soil_water_layer_3": "swvl3"
+                    "volumetric_soil_water_layer_4": "swvl4"
                     # Additional variables
-                    "leaf_area_index_high_vegetation": "lai_hv",
-                    "leaf_area_index_low_vegetation": "lai_lv",
-                    "forecast_albedo": "fal",
-                    "skin_temperature": "skt",
+                    "leaf_area_index_high_vegetation": "lai_hv"
+                    "leaf_area_index_low_vegetation": "lai_lv"
+                    "forecast_albedo": "fal"
+                    "skin_temperature": "skt"
                 }
 
                 if era5_name in var_map and var_map[era5_name] in ds:
@@ -772,12 +774,12 @@ class ERA5Adapter(BaseAdapter):
         # Validate that we have at least one variable
         if not out_ds.data_vars:
             raise DataParseError(
-                self.ADAPTER_NAME,
-                f"No variables could be processed from ERA5 data",
+                self.ADAPTER_NAME
+                f"No variables could be processed from ERA5 data"
                 details={
-                    "requested_variables": variables,
-                    "available_in_dataset": list(ds.data_vars.keys()),
-                },
+                    "requested_variables": variables
+                    "available_in_dataset": list(ds.data_vars.keys())
+                }
             )
 
         return out_ds
@@ -795,90 +797,90 @@ class ERA5Adapter(BaseAdapter):
         """Get variable attributes including units"""
 
         units_map = {
-            "temp_air": "degC",
-            "dewpoint": "degC",
-            "pressure": "Pa",
-            "wind_speed": "m/s",
-            "wind_dir": "degrees",
-            "ghi": "W/m2",
-            "dni": "W/m2",
+            "temp_air": "degC"
+            "dewpoint": "degC"
+            "pressure": "Pa"
+            "wind_speed": "m/s"
+            "wind_dir": "degrees"
+            "ghi": "W/m2"
+            "dni": "W/m2"
             "precip": "mm/h",  # ERA5 provides accumulation over preceding hour
-            "rel_humidity": "%",
-            "cloud_cover": "%",
+            "rel_humidity": "%"
+            "cloud_cover": "%"
             "snow": "mm/h",  # ERA5 provides accumulation over preceding hour
             "evaporation": "mm/h",  # ERA5 provides accumulation over preceding hour
-            "soil_temp": "degC",
-            "soil_moisture": "m3/m3",
+            "soil_temp": "degC"
+            "soil_moisture": "m3/m3"
         }
 
         return {
-            "units": units_map.get(canonical_name, "unknown"),
-            "long_name": canonical_name.replace("_", " ").title(),
+            "units": units_map.get(canonical_name, "unknown")
+            "long_name": canonical_name.replace("_", " ").title()
         }
 
     def get_capabilities(self) -> AdapterCapabilities:
         """Return ERA5 adapter capabilities"""
         return AdapterCapabilities(
-            name="ERA5",
-            version=self.ADAPTER_VERSION,
-            description="ECMWF's fifth generation atmospheric reanalysis of global climate",
+            name="ERA5"
+            version=self.ADAPTER_VERSION
+            description="ECMWF's fifth generation atmospheric reanalysis of global climate"
             temporal=TemporalCoverage(
-                start_date=date(1940, 1, 1),
+                start_date=date(1940, 1, 1)
                 end_date=None,  # Present (5 days behind real-time)
-                historical_years=84,
-                forecast_days=0,
-                real_time=False,
+                historical_years=84
+                forecast_days=0
+                real_time=False
                 delay_hours=120,  # 5 days delay
-            ),
+            )
             spatial=SpatialCoverage(
-                global_coverage=True,
-                regions=None,
+                global_coverage=True
+                regions=None
                 resolution_km=31,  # 0.25deg x 0.25deg
-                station_based=False,
-                grid_based=True,
-                custom_locations=True,
-            ),
-            supported_variables=list(self.VARIABLE_MAPPING.keys()),
+                station_based=False
+                grid_based=True
+                custom_locations=True
+            )
+            supported_variables=list(self.VARIABLE_MAPPING.keys())
             primary_variables=[
-                "temp_air",
-                "pressure",
-                "wind_speed",
-                "precip",
-                "soil_temp",
+                "temp_air"
+                "pressure"
+                "wind_speed"
+                "precip"
+                "soil_temp"
                 "soil_moisture",  # Unique land surface vars
-            ],
-            derived_variables=["rel_humidity", "wind_speed", "wind_dir"],
+            ]
+            derived_variables=["rel_humidity", "wind_speed", "wind_dir"]
             supported_frequencies=[
-                DataFrequency.HOURLY,
-                DataFrequency.THREEHOURLY,
-                DataFrequency.DAILY,
-                DataFrequency.MONTHLY,
-            ],
-            native_frequency=DataFrequency.HOURLY,
-            auth_type=AuthType.API_KEY,
+                DataFrequency.HOURLY
+                DataFrequency.THREEHOURLY
+                DataFrequency.DAILY
+                DataFrequency.MONTHLY
+            ]
+            native_frequency=DataFrequency.HOURLY
+            auth_type=AuthType.API_KEY
             requires_subscription=False,  # Free with registration
             free_tier_limits=None,  # No hard limits, but be reasonable
             quality=QualityFeatures(
                 gap_filling=True,  # Complete coverage
-                quality_flags=False,
+                quality_flags=False
                 uncertainty_estimates=True,  # Through ensemble
                 ensemble_members=True,  # 10-member ensemble available
-                bias_correction=True,
-            ),
+                bias_correction=True
+            )
             max_request_days=None,  # Can request decades
-            max_variables_per_request=20,
-            batch_requests_supported=True,
+            max_variables_per_request=20
+            batch_requests_supported=True
             async_requests_required=True,  # Large requests queued
             special_features=[
-                "Most comprehensive reanalysis dataset",
-                "Global coverage since 1940",
-                "137 atmospheric levels",
-                "10-member ensemble for uncertainty",
-                "Land, ocean, and atmospheric variables",
-                "Consistent long-term climate record",
-                "High temporal and spatial resolution",
-            ],
-            data_products=["Reanalysis", "ERA5-Land", "Ensemble", "Pressure Levels"],
+                "Most comprehensive reanalysis dataset"
+                "Global coverage since 1940"
+                "137 atmospheric levels"
+                "10-member ensemble for uncertainty"
+                "Land, ocean, and atmospheric variables"
+                "Consistent long-term climate record"
+                "High temporal and spatial resolution"
+            ]
+            data_products=["Reanalysis", "ERA5-Land", "Ensemble", "Pressure Levels"]
         )
 
 
@@ -887,24 +889,24 @@ class ERA5QCProfile(QCProfile):
 
     def __init__(self) -> None:
         super().__init__(
-            name="ERA5",
-            description="ECMWF's fifth-generation atmospheric reanalysis",
+            name="ERA5"
+            description="ECMWF's fifth-generation atmospheric reanalysis"
             known_issues=[
-                "Smoothed data due to reanalysis model constraints",
-                "May not capture extreme local weather events accurately",
-                "Precipitation and cloud fields have known biases",
-                "Surface variables affected by model topography vs real topography",
-            ],
+                "Smoothed data due to reanalysis model constraints"
+                "May not capture extreme local weather events accurately"
+                "Precipitation and cloud fields have known biases"
+                "Surface variables affected by model topography vs real topography"
+            ]
             recommended_variables=[
-                "temp_air",
-                "dewpoint",
-                "wind_speed",
-                "wind_dir",
-                "pressure",
-                "rel_humidity",
-            ],
-            temporal_resolution_limits={"all": "hourly"},
-            spatial_accuracy="0.25deg x 0.25deg (~30km resolution)",
+                "temp_air"
+                "dewpoint"
+                "wind_speed"
+                "wind_dir"
+                "pressure"
+                "rel_humidity"
+            ]
+            temporal_resolution_limits={"all": "hourly"}
+            spatial_accuracy="0.25deg x 0.25deg (~30km resolution)"
         )
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
@@ -926,23 +928,23 @@ class ERA5QCProfile(QCProfile):
 
                 if smooth_ratio > 0.8:  # 80% of changes are very small
                     issue = QCIssue(
-                        type="reanalysis_smoothing",
-                        message=f"Data appears over-smoothed in {var_name} (typical of reanalysis)",
-                        severity=QCSeverity.LOW,
-                        affected_variables=[var_name],
-                        metadata={"smooth_ratio": float(smooth_ratio)},
-                        suggested_action="Consider supplementing with higher-resolution data for local applications",
+                        type="reanalysis_smoothing"
+                        message=f"Data appears over-smoothed in {var_name} (typical of reanalysis)"
+                        severity=QCSeverity.LOW
+                        affected_variables=[var_name]
+                        metadata={"smooth_ratio": float(smooth_ratio)}
+                        suggested_action="Consider supplementing with higher-resolution data for local applications"
                     )
                     report.add_issue(issue)
 
         # Warn about precipitation biases
         if "precip" in ds:
             issue = QCIssue(
-                type="reanalysis_limitation",
-                message="ERA5 precipitation has known regional biases and may not represent local extremes",
-                severity=QCSeverity.LOW,
-                affected_variables=["precip"],
-                suggested_action="Validate against local observations for precipitation-sensitive applications",
+                type="reanalysis_limitation"
+                message="ERA5 precipitation has known regional biases and may not represent local extremes"
+                severity=QCSeverity.LOW
+                affected_variables=["precip"]
+                suggested_action="Validate against local observations for precipitation-sensitive applications"
             )
             report.add_issue(issue)
 

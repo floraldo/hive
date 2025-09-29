@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -9,7 +11,7 @@ Provides rich context for AI operations while maintaining
 consistency with the platform's error handling patterns.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from hive_errors import BaseError
 
@@ -21,7 +23,7 @@ class AIError(BaseError):
     model and provider context for better error tracking and debugging.
     """
 
-    def __init__(self, message: str, model: Optional[str] = None, provider: Optional[str] = None, **kwargs) -> None:
+    def __init__(self, message: str, model: str | None = None, provider: str | None = None, **kwargs) -> None:
         """Initialize AI error with model and provider context.
 
         Args:
@@ -38,17 +40,17 @@ class AIError(BaseError):
 class ModelError(BaseError):
     """Errors related to AI model operations.
 
-    Specialized error for model-specific issues like API failures,
+    Specialized error for model-specific issues like API failures
     invalid responses, or rate limiting.
     """
 
     def __init__(
-        self,
-        message: str,
-        model: Optional[str] = None,
-        provider: Optional[str] = None,
-        request_id: Optional[str] = None,
-        **kwargs,
+        self
+        message: str
+        model: str | None = None
+        provider: str | None = None
+        request_id: str | None = None
+        **kwargs
     ) -> None:
         """Initialize model error with request tracking.
 
@@ -70,7 +72,7 @@ class VectorError(BaseError):
     """
 
     def __init__(
-        self, message: str, collection: Optional[str] = None, operation: Optional[str] = None, **kwargs
+        self, message: str, collection: str | None = None, operation: str | None = None, **kwargs
     ) -> None:
         """Initialize vector error with operation context.
 
@@ -92,7 +94,7 @@ class PromptError(BaseError):
     """
 
     def __init__(
-        self, message: str, template_name: Optional[str] = None, missing_variables: Optional[list] = None, **kwargs
+        self, message: str, template_name: str | None = None, missing_variables: list | None = None, **kwargs
     ) -> None:
         """Initialize prompt error with template context.
 
@@ -132,12 +134,12 @@ class CostLimitError(BaseError):
 class ModelUnavailableError(BaseError):
     """Error when requested model is unavailable.
 
-    Indicates the requested model is not configured or not accessible,
+    Indicates the requested model is not configured or not accessible
     with suggestions for available alternatives.
     """
 
     def __init__(
-        self, message: str, model: str, provider: str, available_models: Optional[list] = None, **kwargs
+        self, message: str, model: str, provider: str, available_models: list | None = None, **kwargs
     ) -> None:
         """Initialize model unavailable error with alternatives.
 

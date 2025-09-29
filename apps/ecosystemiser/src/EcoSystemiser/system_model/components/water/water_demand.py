@@ -1,21 +1,21 @@
 """Water demand component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    DemandTechnicalParams,
-    FidelityLevel,
+    DemandTechnicalParams
+    FidelityLevel
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseDemandOptimization,
-    BaseDemandPhysics,
+    BaseDemandOptimization
+    BaseDemandPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -30,6 +30,8 @@ logger = get_logger(__name__)
 
 class WaterDemandTechnicalParams(DemandTechnicalParams):
     """Water demand-specific technical parameters extending demand archetype.
+from __future__ import annotations
+
 
     This model inherits from DemandTechnicalParams and adds water demand-specific
     parameters for different fidelity levels.
@@ -37,10 +39,10 @@ class WaterDemandTechnicalParams(DemandTechnicalParams):
 
     # Water-specific parameters (in cubic meters and m³/h)
     demand_type: str = Field("residential", description="Type of water demand")
-    pressure_requirement: Optional[float] = Field(None, description="Required supply pressure [bar]")
+    pressure_requirement: float | None = Field(None, description="Required supply pressure [bar]")
 
     # STANDARD fidelity additions
-    seasonal_variation: Optional[float] = Field(None, description="Seasonal variation factor (0-1)")
+    seasonal_variation: float | None = Field(None, description="Seasonal variation factor (0-1)")
     pressure_dependency: Optional[Dict[str, float]] = Field(None, description="Pressure-dependent demand response")
 
     # DETAILED fidelity parameters
@@ -63,10 +65,10 @@ class WaterDemandParams(ComponentParams):
         default_factory=lambda: WaterDemandTechnicalParams(
             capacity_nominal=3.0,  # Default 3 m³/h peak demand
             peak_demand=3.0,  # Default 3 m³/h peak
-            load_profile_type="variable",
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            load_profile_type="variable"
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -310,7 +312,7 @@ class WaterDemand(Component):
 
         return demand_output
 
-    def add_optimization_vars(self, N: Optional[int] = None) -> None:
+    def add_optimization_vars(self, N: int | None = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N
@@ -320,9 +322,9 @@ class WaterDemand(Component):
 
         # Add as flow
         self.flows["sink"]["Q_in"] = {
-            "type": "water",
-            "value": self.Q_in,
-            "profile": self.profile,
+            "type": "water"
+            "value": self.Q_in
+            "profile": self.profile
         }
 
     def set_constraints(self) -> List:

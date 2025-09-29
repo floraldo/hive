@@ -2,8 +2,6 @@
 
 import json
 from pathlib import Path
-from typing import Optional
-
 import click
 from ecosystemiser.analyser import AnalyserService
 from ecosystemiser.reporting import create_app, run_server
@@ -15,6 +13,8 @@ logger = get_logger(__name__)
 @click.group()
 def report() -> None:
     """Report generation and server commands."""
+from __future__ import annotations
+
     pass
 
 
@@ -22,19 +22,19 @@ def report() -> None:
 @click.argument("results_file", type=click.Path(exists=True))
 @click.option("--output", "-o", type=click.Path(), help="Output directory for report files")
 @click.option(
-    "--strategies",
-    "-s",
-    multiple=True,
-    help="Analysis strategies to run (default: all)",
+    "--strategies"
+    "-s"
+    multiple=True
+    help="Analysis strategies to run (default: all)"
 )
 @click.option(
-    "--format",
-    "output_format",
-    type=click.Choice(["json", "html"]),
-    default="json",
-    help="Output format",
+    "--format"
+    "output_format"
+    type=click.Choice(["json", "html"])
+    default="json"
+    help="Output format"
 )
-def analyze(results_file: str, output: Optional[str], strategies: tuple, output_format: str) -> None:
+def analyze(results_file: str, output: str | None, strategies: tuple, output_format: str) -> None:
     """Analyze simulation results and generate report data.
 
     Args:
@@ -133,11 +133,11 @@ def server(host: str, port: int, debug: bool) -> None:
 @report.command()
 @click.argument("results_file", type=click.Path(exists=True))
 @click.option(
-    "--output",
-    "-o",
-    type=click.Path(),
-    default="report.html",
-    help="Output HTML file path",
+    "--output"
+    "-o"
+    type=click.Path()
+    default="report.html"
+    help="Output HTML file path"
 )
 def generate(results_file: str, output: str) -> None:
     """Generate a standalone HTML report.
@@ -356,11 +356,11 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         """
         economic = analyses["economic"]
         economic_keys = [
-            "lcoe",
-            "npv",
-            "payback_period_years",
-            "capex_total",
-            "opex_annual",
+            "lcoe"
+            "npv"
+            "payback_period_years"
+            "capex_total"
+            "opex_annual"
         ]
 
         for key in economic_keys:

@@ -1,21 +1,21 @@
 """Power demand component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    DemandTechnicalParams,
-    FidelityLevel,
+    DemandTechnicalParams
+    FidelityLevel
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseDemandOptimization,
-    BaseDemandPhysics,
+    BaseDemandOptimization
+    BaseDemandPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -30,18 +30,20 @@ logger = get_logger(__name__)
 
 class PowerDemandTechnicalParams(DemandTechnicalParams):
     """Power demand-specific technical parameters extending demand archetype.
+from __future__ import annotations
+
 
     This model inherits from DemandTechnicalParams and adds electricity-specific
     parameters for different fidelity levels.
     """
 
     # STANDARD fidelity additions
-    power_factor: Optional[float] = Field(0.95, description="Power factor for the load")
+    power_factor: float | None = Field(0.95, description="Power factor for the load")
 
     # DETAILED fidelity parameters
     demand_flexibility: Optional[Dict[str, float]] = Field(
-        None,
-        description="Demand response capabilities {shift_capacity_kw, shed_capacity_kw}",
+        None
+        description="Demand response capabilities {shift_capacity_kw, shed_capacity_kw}"
     )
 
     # RESEARCH fidelity parameters
@@ -60,10 +62,10 @@ class PowerDemandParams(ComponentParams):
         default_factory=lambda: PowerDemandTechnicalParams(
             capacity_nominal=5.0,  # Required by base archetype
             peak_demand=5.0,  # Default 5 kW peak
-            load_profile_type="variable",
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            load_profile_type="variable"
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -313,9 +315,9 @@ class PowerDemand(Component):
 
         # Add as flow
         self.flows["sink"]["P_in"] = {
-            "type": "electricity",
-            "value": self.P_in,
-            "profile": self.profile,
+            "type": "electricity"
+            "value": self.P_in
+            "profile": self.profile
         }
 
     def set_constraints(self) -> List:

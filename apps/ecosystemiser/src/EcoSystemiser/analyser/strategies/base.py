@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -13,6 +13,8 @@ logger = get_logger(__name__)
 
 class BaseAnalysis(ABC):
     """Abstract base class for all analysis strategies.
+from __future__ import annotations
+
 
     This follows the Strategy Pattern, allowing different analysis
     algorithms to be swapped at runtime while maintaining a consistent
@@ -30,7 +32,7 @@ class BaseAnalysis(ABC):
         self.metadata = None
 
     @abstractmethod
-    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
         """Execute the analysis on the provided results data.
 
         This is the main method that each strategy must implement.
@@ -81,7 +83,7 @@ class BaseAnalysis(ABC):
     def postprocess_results(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Postprocess analysis results.
 
-        Override this method in subclasses to add specific postprocessing,
+        Override this method in subclasses to add specific postprocessing
         such as rounding, unit conversion, or adding derived metrics.
 
         Args:
@@ -102,10 +104,10 @@ class BaseAnalysis(ABC):
 
         return processed
 
-    def execute(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    def execute(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
         """Execute the complete analysis pipeline.
 
-        This method orchestrates validation, preprocessing, analysis,
+        This method orchestrates validation, preprocessing, analysis
         and postprocessing. Subclasses should implement the `run` method
         rather than overriding this.
 

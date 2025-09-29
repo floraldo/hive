@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -9,7 +11,7 @@ Follows the inherit-extend pattern by building upon hive-config
 with AI-specific configuration needs.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_config import BaseConfig
 from pydantic import BaseModel, Field, validator
@@ -21,8 +23,8 @@ class ModelConfig(BaseModel):
     name: str = Field(..., description="Model identifier")
     provider: str = Field(..., description="Provider name (anthropic, openai, local)")
     model_type: str = Field(..., description="Model type (completion, chat, embedding)")
-    api_key: Optional[str] = Field(None, description="API key for provider")
-    api_base: Optional[str] = Field(None, description="Custom API base URL")
+    api_key: str | None = Field(None, description="API key for provider")
+    api_base: str | None = Field(None, description="Custom API base URL")
     max_tokens: int = Field(4096, description="Maximum tokens per request")
     temperature: float = Field(0.7, description="Sampling temperature")
     timeout_seconds: int = Field(30, description="Request timeout")
@@ -49,7 +51,7 @@ class VectorConfig(BaseModel):
     """Configuration for vector database operations."""
 
     provider: str = Field(..., description="Vector DB provider")
-    connection_string: Optional[str] = Field(None, description="Database connection")
+    connection_string: str | None = Field(None, description="Database connection")
     collection_name: str = Field("default", description="Collection/index name")
     dimension: int = Field(1536, description="Vector dimension")
     distance_metric: str = Field("cosine", description="Distance metric")
@@ -119,22 +121,22 @@ class AIConfig(BaseConfig):
             # Provide default model configurations
             return {
                 "claude-3-sonnet": ModelConfig(
-                    name="claude-3-sonnet-20240229",
-                    provider="anthropic",
-                    model_type="chat",
-                    max_tokens=4096,
-                    cost_per_token=0.000015,
-                ),
+                    name="claude-3-sonnet-20240229"
+                    provider="anthropic"
+                    model_type="chat"
+                    max_tokens=4096
+                    cost_per_token=0.000015
+                )
                 "gpt-4": ModelConfig(
                     name="gpt-4", provider="openai", model_type="chat", max_tokens=4096, cost_per_token=0.00003
-                ),
+                )
                 "text-embedding-ada-002": ModelConfig(
-                    name="text-embedding-ada-002",
-                    provider="openai",
-                    model_type="embedding",
-                    max_tokens=8191,
-                    cost_per_token=0.0000001,
-                ),
+                    name="text-embedding-ada-002"
+                    provider="openai"
+                    model_type="embedding"
+                    max_tokens=8191
+                    cost_per_token=0.0000001
+                )
             }
         return v
 
@@ -146,7 +148,7 @@ class AIConfig(BaseConfig):
             raise ValueError(f'Default model "{v}" not found in configured models')
         return v
 
-    def get_model_config(self, model_name: Optional[str] = None) -> ModelConfig:
+    def get_model_config(self, model_name: str | None = None) -> ModelConfig:
         """Get configuration for specific model or default.
 
         Args:

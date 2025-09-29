@@ -2,12 +2,14 @@
 Unified Hive Configuration System
 Provides centralized configuration management for all Hive components
 """
+from __future__ import annotations
+
 
 import json
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_logging import get_logger
 from pydantic import BaseModel, Field, ValidationError
@@ -46,12 +48,12 @@ class OrchestrationConfig(BaseModel):
     max_parallel_workers: int = Field(default=4, ge=1)
     phase_timeouts: Dict[str, int] = Field(
         default_factory=lambda: {
-            "analysis": 300,
-            "design": 600,
-            "implementation": 900,
-            "testing": 600,
-            "validation": 300,
-            "review": 180,
+            "analysis": 300
+            "design": 600
+            "implementation": 900
+            "testing": 600
+            "validation": 300
+            "review": 180
         }
     )
     zombie_task_threshold: int = Field(default=3600)
@@ -114,8 +116,8 @@ class HiveConfig(BaseModel):
     debug_mode: bool = Field(default=False)
 
     # Project paths
-    project_root: Optional[Path] = None
-    config_file_path: Optional[Path] = None
+    project_root: Path | None = None
+    config_file_path: Path | None = None
 
     @classmethod
     def from_file(cls, config_path: Path) -> "HiveConfig":
@@ -160,18 +162,18 @@ class HiveConfig(BaseModel):
 
         # Map environment variables to configuration structure
         env_mappings = {
-            "HIVE_ENVIRONMENT": "environment",
-            "HIVE_DEBUG_MODE": "debug_mode",
-            "HIVE_DATABASE_PATH": "database.path",
-            "HIVE_DATABASE_POOL_MIN": "database.connection_pool_min",
-            "HIVE_DATABASE_POOL_MAX": "database.connection_pool_max",
-            "HIVE_CLAUDE_MOCK_MODE": "claude.mock_mode",
-            "HIVE_CLAUDE_TIMEOUT": "claude.timeout",
-            "HIVE_WORKER_TIMEOUT": "orchestration.worker_timeout",
-            "HIVE_POLL_INTERVAL": "orchestration.poll_interval",
-            "HIVE_LOG_LEVEL": "logging.level",
-            "HIVE_AI_PLANNER_ENABLED": "ai.planner_enabled",
-            "HIVE_AI_REVIEWER_ENABLED": "ai.reviewer_enabled",
+            "HIVE_ENVIRONMENT": "environment"
+            "HIVE_DEBUG_MODE": "debug_mode"
+            "HIVE_DATABASE_PATH": "database.path"
+            "HIVE_DATABASE_POOL_MIN": "database.connection_pool_min"
+            "HIVE_DATABASE_POOL_MAX": "database.connection_pool_max"
+            "HIVE_CLAUDE_MOCK_MODE": "claude.mock_mode"
+            "HIVE_CLAUDE_TIMEOUT": "claude.timeout"
+            "HIVE_WORKER_TIMEOUT": "orchestration.worker_timeout"
+            "HIVE_POLL_INTERVAL": "orchestration.poll_interval"
+            "HIVE_LOG_LEVEL": "logging.level"
+            "HIVE_AI_PLANNER_ENABLED": "ai.planner_enabled"
+            "HIVE_AI_REVIEWER_ENABLED": "ai.reviewer_enabled"
         }
 
         def set_nested(data: dict, path: str, value: Any) -> None:
@@ -228,30 +230,30 @@ class HiveConfig(BaseModel):
         """
         component_mappings = {
             "ai-planner": {
-                "claude": self.claude.dict(),
-                "database": self.database.dict(),
-                "poll_interval": self.ai.planner_poll_interval,
-                "enabled": self.ai.planner_enabled,
-                "logging": self.logging.dict(),
-            },
+                "claude": self.claude.dict()
+                "database": self.database.dict()
+                "poll_interval": self.ai.planner_poll_interval
+                "enabled": self.ai.planner_enabled
+                "logging": self.logging.dict()
+            }
             "ai-reviewer": {
-                "claude": self.claude.dict(),
-                "database": self.database.dict(),
-                "poll_interval": self.ai.reviewer_poll_interval,
-                "enabled": self.ai.reviewer_enabled,
+                "claude": self.claude.dict()
+                "database": self.database.dict()
+                "poll_interval": self.ai.reviewer_poll_interval
+                "enabled": self.ai.reviewer_enabled
                 "thresholds": {
-                    "approval": self.ai.auto_approval_threshold,
-                    "rejection": self.ai.auto_rejection_threshold,
-                    "escalation": self.ai.escalation_threshold,
-                },
-                "logging": self.logging.dict(),
-            },
+                    "approval": self.ai.auto_approval_threshold
+                    "rejection": self.ai.auto_rejection_threshold
+                    "escalation": self.ai.escalation_threshold
+                }
+                "logging": self.logging.dict()
+            }
             "hive-orchestrator": {
-                "database": self.database.dict(),
-                "orchestration": self.orchestration.dict(),
-                "worker": self.worker.dict(),
-                "logging": self.logging.dict(),
-            },
+                "database": self.database.dict()
+                "orchestration": self.orchestration.dict()
+                "worker": self.worker.dict()
+                "logging": self.logging.dict()
+            }
         }
 
         return component_mappings.get(component, {})
@@ -285,7 +287,7 @@ class HiveConfig(BaseModel):
 
 
 # Configuration loading utilities for dependency injection
-def create_config_from_sources(config_path: Optional[Path] = None, use_environment: bool = True) -> HiveConfig:
+def create_config_from_sources(config_path: Path | None = None, use_environment: bool = True) -> HiveConfig:
     """
     Create a Hive configuration instance from various sources
 
@@ -305,9 +307,9 @@ def create_config_from_sources(config_path: Optional[Path] = None, use_environme
     else:
         # Look for default config locations
         default_paths = [
-            Path("hive_config.json"),
-            Path("config/hive_config.json"),
-            Path.home() / ".hive" / "config.json",
+            Path("hive_config.json")
+            Path("config/hive_config.json")
+            Path.home() / ".hive" / "config.json"
         ]
 
         config = None

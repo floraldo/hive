@@ -1,9 +1,11 @@
 """
 Base agent framework for autonomous AI operations.
 
-Provides foundation for building intelligent agents with state management,
+Provides foundation for building intelligent agents with state management
 tool integration, and workflow orchestration capabilities.
 """
+from __future__ import annotations
+
 
 import asyncio
 import uuid
@@ -11,7 +13,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -96,7 +98,7 @@ class BaseAgent(ABC):
     """
 
     def __init__(
-        self, config: AgentConfig, model_client: ModelClient, metrics_collector: Optional[AIMetricsCollector] = None
+        self, config: AgentConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
     ):
         self.config = config
         self.model_client = model_client
@@ -109,8 +111,8 @@ class BaseAgent(ABC):
         # State management
         self.state = AgentState.CREATED
         self.current_iteration = 0
-        self.start_time: Optional[datetime] = None
-        self.end_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
+        self.end_time: datetime | None = None
 
         # Memory system
         self.memory = AgentMemory() if config.memory_enabled else None
@@ -136,17 +138,17 @@ class BaseAgent(ABC):
         """Register default tools available to all agents."""
         self.add_tool(
             AgentTool(
-                name="think",
-                description="Think about the current situation and plan next steps",
-                function=self._think_tool_async,
+                name="think"
+                description="Think about the current situation and plan next steps"
+                function=self._think_tool_async
             )
         )
 
         self.add_tool(
             AgentTool(
-                name="remember",
-                description="Store information in memory for later use",
-                function=self._remember_tool_async,
+                name="remember"
+                description="Store information in memory for later use"
+                function=self._remember_tool_async
             )
         )
 
@@ -166,8 +168,8 @@ Provide your reasoning and any insights that might help with the current task.
 Think step by step and be specific about your analysis.
 
 Thoughts:
-""",
-            variables=[],
+"""
+            variables=[]
         )
 
         rendered_prompt = thinking_prompt.render(agent_name=self.config.name, prompt=prompt)
@@ -180,10 +182,10 @@ Thoughts:
         if self.memory:
             self.memory.episodic.append(
                 {
-                    "type": "thinking",
-                    "prompt": prompt,
-                    "thoughts": response.content,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "type": "thinking"
+                    "prompt": prompt
+                    "thoughts": response.content
+                    "timestamp": datetime.utcnow().isoformat()
                 }
             )
 
@@ -267,12 +269,12 @@ Thoughts:
     async def send_message_async(self, recipient: str, content: str, message_type: str = "message") -> str:
         """Send a message to another agent or system."""
         message = AgentMessage(
-            id=str(uuid.uuid4()),
-            sender=self.id,
-            recipient=recipient,
-            content=content,
-            message_type=message_type,
-            timestamp=datetime.utcnow(),
+            id=str(uuid.uuid4())
+            sender=self.id
+            recipient=recipient
+            content=content
+            message_type=message_type
+            timestamp=datetime.utcnow()
         )
 
         # Store in conversation memory
@@ -329,7 +331,7 @@ Thoughts:
         """Implementation-specific initialization logic."""
         pass
 
-    async def run_async(self, input_data: Optional[Any] = None) -> Any:
+    async def run_async(self, input_data: Any | None = None) -> Any:
         """
         Execute the agent's main logic.
 
@@ -353,10 +355,10 @@ Thoughts:
             # Start metrics tracking
             if self.metrics:
                 operation_id = self.metrics.start_operation(
-                    operation_type="agent_execution",
-                    model=self.config.model,
-                    provider="agent_framework",
-                    metadata={"agent_id": self.id, "agent_name": self.config.name},
+                    operation_type="agent_execution"
+                    model=self.config.model
+                    provider="agent_framework"
+                    metadata={"agent_id": self.id, "agent_name": self.config.name}
                 )
             else:
                 operation_id = None
@@ -373,9 +375,9 @@ Thoughts:
             if self.metrics and operation_id:
                 duration_ms = int((self.end_time - self.start_time).total_seconds() * 1000)
                 self.metrics.end_operation(
-                    operation_id,
-                    success=True,
-                    additional_metadata={"iterations": self.current_iteration, "duration_ms": duration_ms},
+                    operation_id
+                    success=True
+                    additional_metadata={"iterations": self.current_iteration, "duration_ms": duration_ms}
                 )
 
             logger.info(f"Agent {self.id} completed successfully in {self.current_iteration} iterations")
@@ -391,21 +393,21 @@ Thoughts:
             if self.metrics and operation_id:
                 duration_ms = int((self.end_time - self.start_time).total_seconds() * 1000)
                 self.metrics.end_operation(
-                    operation_id,
-                    success=False,
-                    error_type=type(e).__name__,
+                    operation_id
+                    success=False
+                    error_type=type(e).__name__
                     additional_metadata={
-                        "iterations": self.current_iteration,
-                        "duration_ms": duration_ms,
-                        "error": error_msg,
-                    },
+                        "iterations": self.current_iteration
+                        "duration_ms": duration_ms
+                        "error": error_msg
+                    }
                 )
 
             logger.error(error_msg)
             raise AIError(error_msg) from e
 
     @abstractmethod
-    async def _execute_main_logic_async(self, input_data: Optional[Any] = None) -> Any:
+    async def _execute_main_logic_async(self, input_data: Any | None = None) -> Any:
         """Implementation-specific execution logic."""
         pass
 
@@ -435,20 +437,20 @@ Thoughts:
             duration = (end_time - self.start_time).total_seconds()
 
         return {
-            "id": self.id,
-            "name": self.config.name,
-            "state": self.state.value,
-            "current_iteration": self.current_iteration,
-            "max_iterations": self.config.max_iterations,
-            "created_at": self.created_at.isoformat(),
-            "start_time": self.start_time.isoformat() if self.start_time else None,
-            "end_time": self.end_time.isoformat() if self.end_time else None,
-            "duration_seconds": duration,
-            "tools_available": len(self.tools),
-            "messages_sent": len(self.message_queue),
-            "memory_enabled": self.memory is not None,
-            "errors": len(self.errors),
-            "results": len(self.results),
+            "id": self.id
+            "name": self.config.name
+            "state": self.state.value
+            "current_iteration": self.current_iteration
+            "max_iterations": self.config.max_iterations
+            "created_at": self.created_at.isoformat()
+            "start_time": self.start_time.isoformat() if self.start_time else None
+            "end_time": self.end_time.isoformat() if self.end_time else None
+            "duration_seconds": duration
+            "tools_available": len(self.tools)
+            "messages_sent": len(self.message_queue)
+            "memory_enabled": self.memory is not None
+            "errors": len(self.errors)
+            "results": len(self.results)
         }
 
     def get_memory_summary(self) -> Dict[str, Any]:
@@ -457,65 +459,65 @@ Thoughts:
             return {"memory_enabled": False}
 
         return {
-            "memory_enabled": True,
-            "short_term_items": len(self.memory.short_term),
-            "long_term_items": len(self.memory.long_term),
-            "episodic_memories": len(self.memory.episodic),
-            "conversation_messages": len(self.memory.conversation),
-            "short_term_keys": list(self.memory.short_term.keys()),
-            "long_term_keys": list(self.memory.long_term.keys()),
+            "memory_enabled": True
+            "short_term_items": len(self.memory.short_term)
+            "long_term_items": len(self.memory.long_term)
+            "episodic_memories": len(self.memory.episodic)
+            "conversation_messages": len(self.memory.conversation)
+            "short_term_keys": list(self.memory.short_term.keys())
+            "long_term_keys": list(self.memory.long_term.keys())
         }
 
     async def export_state_async(self) -> Dict[str, Any]:
         """Export agent state for persistence or debugging."""
         return {
             "agent_info": {
-                "id": self.id,
+                "id": self.id
                 "config": {
-                    "name": self.config.name,
-                    "description": self.config.description,
-                    "model": self.config.model,
-                    "temperature": self.config.temperature,
-                    "max_tokens": self.config.max_tokens,
-                    "max_iterations": self.config.max_iterations,
-                    "metadata": self.config.metadata,
-                },
-                "created_at": self.created_at.isoformat(),
-            },
+                    "name": self.config.name
+                    "description": self.config.description
+                    "model": self.config.model
+                    "temperature": self.config.temperature
+                    "max_tokens": self.config.max_tokens
+                    "max_iterations": self.config.max_iterations
+                    "metadata": self.config.metadata
+                }
+                "created_at": self.created_at.isoformat()
+            }
             "execution_state": {
-                "state": self.state.value,
-                "current_iteration": self.current_iteration,
-                "start_time": self.start_time.isoformat() if self.start_time else None,
-                "end_time": self.end_time.isoformat() if self.end_time else None,
-                "errors": self.errors,
-                "results": self.results,
-            },
+                "state": self.state.value
+                "current_iteration": self.current_iteration
+                "start_time": self.start_time.isoformat() if self.start_time else None
+                "end_time": self.end_time.isoformat() if self.end_time else None
+                "errors": self.errors
+                "results": self.results
+            }
             "memory": {
-                "short_term": self.memory.short_term if self.memory else {},
-                "long_term": self.memory.long_term if self.memory else {},
-                "episodic": self.memory.episodic if self.memory else [],
+                "short_term": self.memory.short_term if self.memory else {}
+                "long_term": self.memory.long_term if self.memory else {}
+                "episodic": self.memory.episodic if self.memory else []
                 "conversation": [
                     {
-                        "id": msg.id,
-                        "sender": msg.sender,
-                        "recipient": msg.recipient,
-                        "content": msg.content,
-                        "message_type": msg.message_type,
-                        "timestamp": msg.timestamp.isoformat(),
-                        "metadata": msg.metadata,
+                        "id": msg.id
+                        "sender": msg.sender
+                        "recipient": msg.recipient
+                        "content": msg.content
+                        "message_type": msg.message_type
+                        "timestamp": msg.timestamp.isoformat()
+                        "metadata": msg.metadata
                     }
                     for msg in (self.memory.conversation if self.memory else [])
-                ],
-            },
+                ]
+            }
             "tools": {
                 name: {
-                    "name": tool.name,
-                    "description": tool.description,
-                    "enabled": tool.enabled,
-                    "parameters": tool.parameters,
+                    "name": tool.name
+                    "description": tool.description
+                    "enabled": tool.enabled
+                    "parameters": tool.parameters
                 }
                 for name, tool in self.tools.items()
-            },
+            }
         }
 
     async def close_async(self) -> None:
@@ -533,11 +535,11 @@ class SimpleTaskAgent(BaseAgent):
     """
 
     def __init__(
-        self,
-        task_prompt: str,
-        config: AgentConfig,
-        model_client: ModelClient,
-        metrics_collector: Optional[AIMetricsCollector] = None,
+        self
+        task_prompt: str
+        config: AgentConfig
+        model_client: ModelClient
+        metrics_collector: AIMetricsCollector | None = None
     ):
         super().__init__(config, model_client, metrics_collector)
         self.task_prompt = task_prompt
@@ -548,7 +550,7 @@ class SimpleTaskAgent(BaseAgent):
         if self.memory:
             await self._remember_tool_async("task_prompt", self.task_prompt, "long_term")
 
-    async def _execute_main_logic_async(self, input_data: Optional[Any] = None) -> Any:
+    async def _execute_main_logic_async(self, input_data: Any | None = None) -> Any:
         """Execute the task prompt with optional input data."""
         # Build prompt with input data if provided
         if input_data:

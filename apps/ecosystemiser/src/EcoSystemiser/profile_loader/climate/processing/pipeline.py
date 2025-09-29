@@ -1,13 +1,15 @@
 """
 Processing pipeline manager for climate data.
 
-Manages the separation between preprocessing and postprocessing stages,
+Manages the separation between preprocessing and postprocessing stages
 with configurable steps and proper error handling.
 """
+from __future__ import annotations
+
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, ListTuple
 
 import xarray as xr
 from ecosystemiser.settings import get_settings
@@ -68,10 +70,10 @@ class ProcessingStep:
 
             if isinstance(report, QCReport):
                 report_dict = {
-                    "qc_report": report,
-                    "quality_score": report.calculate_quality_score(),
-                    "issues_count": len(report.issues),
-                    "success": True,
+                    "qc_report": report
+                    "quality_score": report.calculate_quality_score()
+                    "issues_count": len(report.issues)
+                    "success": True
                 }
                 report = report_dict
 
@@ -122,7 +124,7 @@ class ProcessingPipeline:
             from ecosystemiser.profile_loader.climate.gap_filling import smart_fill_gaps
             from ecosystemiser.profile_loader.climate.resampling import resample_dataset
             from ecosystemiser.profile_loader.climate.validation import (
-                apply_quality_control,
+                apply_quality_control
             )
 
             # from .timezone import convert_timezone, attach_units
@@ -136,48 +138,48 @@ class ProcessingPipeline:
 
         # 1. Quality control (always enabled)
         self.add_preprocessing_step(
-            "quality_control",
-            apply_quality_control,
-            config={"comprehensive": True, "source": None},
-            enabled=True,
-            required=True,
+            "quality_control"
+            apply_quality_control
+            config={"comprehensive": True, "source": None}
+            enabled=True
+            required=True
         )
 
         # 2. Gap filling
         gap_fill_enabled = profile_config.gap_fill_enabled if profile_config else True
         if gap_fill_enabled:
             self.add_preprocessing_step(
-                "gap_filling",
-                smart_fill_gaps,
+                "gap_filling"
+                smart_fill_gaps
                 config={
                     "max_linear_gap": (
                         profile_config.gap_fill_max_hours // 8
                         if profile_config and hasattr(profile_config, "gap_fill_max_hours")
                         else 3
-                    ),
+                    )
                     "max_pattern_gap": (
                         profile_config.gap_fill_max_hours
                         if profile_config and hasattr(profile_config, "gap_fill_max_hours")
                         else 24
-                    ),
-                    "preserve_extremes": True,
-                },
-                enabled=gap_fill_enabled,
+                    )
+                    "preserve_extremes": True
+                }
+                enabled=gap_fill_enabled
             )
 
         # 3. Resampling (disabled by default, enabled on-demand)
         self.add_preprocessing_step(
-            "resample",
-            lambda ds, **kw: resample_dataset(ds, kw.get("resolution", "H")),
-            config={"resolution": "H"},
+            "resample"
+            lambda ds, **kw: resample_dataset(ds, kw.get("resolution", "H"))
+            config={"resolution": "H"}
             enabled=False,  # Only enabled when resolution is requested
         )
 
         # 4. Timezone conversion (disabled by default, enabled on-demand)
         self.add_preprocessing_step(
-            "timezone_conversion",
+            "timezone_conversion"
             lambda ds, **kw: ds,  # Placeholder for timezone conversion
-            config={"target_tz": "UTC"},
+            config={"target_tz": "UTC"}
             enabled=False,  # Only enabled when timezone is requested
         )
 
@@ -202,46 +204,46 @@ class ProcessingPipeline:
         if postprocessing_enabled:
             # Placeholder for future postprocessing steps
             self.add_postprocessing_step(
-                "placeholder_postprocessing",
+                "placeholder_postprocessing"
                 lambda ds, **kw: ds,  # No-op for now
-                enabled=False,
+                enabled=False
             )
 
     def add_preprocessing_step(
-        self,
-        name: str,
-        function: Callable,
-        config: Optional[Dict] = None,
-        enabled: bool = True,
-        required: bool = False,
+        self
+        name: str
+        function: Callable
+        config: Dict | None = None
+        enabled: bool = True
+        required: bool = False
     ):
         """Add a preprocessing step to the pipeline"""
         step = ProcessingStep(
-            name=name,
-            function=function,
-            stage=PipelineStage.PREPROCESSING,
-            config=config or {},
-            enabled=enabled,
-            required=required,
+            name=name
+            function=function
+            stage=PipelineStage.PREPROCESSING
+            config=config or {}
+            enabled=enabled
+            required=required
         )
         self.preprocessing_steps.append(step)
 
     def add_postprocessing_step(
-        self,
-        name: str,
-        function: Callable,
-        config: Optional[Dict] = None,
-        enabled: bool = True,
-        required: bool = False,
+        self
+        name: str
+        function: Callable
+        config: Dict | None = None
+        enabled: bool = True
+        required: bool = False
     ):
         """Add a postprocessing step to the pipeline"""
         step = ProcessingStep(
-            name=name,
-            function=function,
-            stage=PipelineStage.POSTPROCESSING,
-            config=config or {},
-            enabled=enabled,
-            required=required,
+            name=name
+            function=function
+            stage=PipelineStage.POSTPROCESSING
+            config=config or {}
+            enabled=enabled
+            required=required
         )
         self.postprocessing_steps.append(step)
 
@@ -286,10 +288,10 @@ class ProcessingPipeline:
         return ds_processed
 
     def execute(
-        self,
-        ds: xr.Dataset,
-        skip_preprocessing: bool = False,
-        skip_postprocessing: bool = False,
+        self
+        ds: xr.Dataset
+        skip_preprocessing: bool = False
+        skip_postprocessing: bool = False
     ) -> xr.Dataset:
         """
         Execute full pipeline.
@@ -315,13 +317,13 @@ class ProcessingPipeline:
     def get_execution_report(self) -> Dict[str, Any]:
         """Get detailed execution report"""
         return {
-            "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"],
-            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"],
-            "errors": [r for r in self.execution_reports if "error" in r],
-            "skipped": [r for r in self.execution_reports if r.get("skipped")],
+            "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"]
+            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"]
+            "errors": [r for r in self.execution_reports if "error" in r]
+            "skipped": [r for r in self.execution_reports if r.get("skipped")]
         }
 
-    def clear_steps(self, stage: Optional[PipelineStage] = None) -> None:
+    def clear_steps(self, stage: PipelineStage | None = None) -> None:
         """Clear processing steps"""
         if stage == PipelineStage.PREPROCESSING or stage is None:
             self.preprocessing_steps = []
@@ -331,6 +333,6 @@ class ProcessingPipeline:
     def list_steps(self) -> Dict[str, List[str]]:
         """List all configured steps"""
         return {
-            "preprocessing": [s.name for s in self.preprocessing_steps if s.enabled],
-            "postprocessing": [s.name for s in self.postprocessing_steps if s.enabled],
+            "preprocessing": [s.name for s in self.preprocessing_steps if s.enabled]
+            "postprocessing": [s.name for s in self.postprocessing_steps if s.enabled]
         }

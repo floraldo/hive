@@ -5,7 +5,7 @@ import gzip
 import json
 import time
 from datetime import datetime, timedelta
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Union
+from typing import Any, AsyncGenerator, Callable, Dict, List
 
 import msgpack
 import orjson
@@ -16,20 +16,20 @@ from hive_async.resilience import AsyncCircuitBreaker
 from hive_logging import get_logger
 from hive_performance.metrics_collector import MetricsCollector
 from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
+    retry
+    retry_if_exception_type
+    stop_after_attempt
+    wait_exponential
 )
 
 from .config import CacheConfig
 from .exceptions import (
-    CacheCircuitBreakerError,
-    CacheConnectionError,
-    CacheError,
-    CacheKeyError,
-    CacheSerializationError,
-    CacheTimeoutError,
+    CacheCircuitBreakerError
+    CacheConnectionError
+    CacheError
+    CacheKeyError
+    CacheSerializationError
+    CacheTimeoutError
 )
 
 logger = get_logger(__name__)
@@ -37,6 +37,8 @@ logger = get_logger(__name__)
 
 class HiveCacheClient:
     """
+from __future__ import annotations
+
     High-performance async Redis cache client with circuit breaker protection.
 
     Features:
@@ -55,12 +57,12 @@ class HiveCacheClient:
         self._redis_client = None
         self._circuit_breaker = None
         self._metrics = {
-            "hits": 0,
-            "misses": 0,
-            "sets": 0,
-            "deletes": 0,
-            "errors": 0,
-            "circuit_breaker_opens": 0,
+            "hits": 0
+            "misses": 0
+            "sets": 0
+            "deletes": 0
+            "errors": 0
+            "circuit_breaker_opens": 0
         }
         self._last_health_check = None
         self._health_status = {"healthy": True, "last_check": None, "errors": []}
@@ -70,10 +72,10 @@ class HiveCacheClient:
             MetricsCollector(
                 collection_interval=self.config.performance_monitor_interval
                 if hasattr(self.config, "performance_monitor_interval")
-                else 5.0,
-                max_history=1000,
-                enable_system_metrics=True,
-                enable_async_metrics=True,
+                else 5.0
+                max_history=1000
+                enable_system_metrics=True
+                enable_async_metrics=True
             )
             if config.enable_performance_monitoring
             else None
@@ -81,8 +83,8 @@ class HiveCacheClient:
 
         if config.circuit_breaker_enabled:
             self._circuit_breaker = AsyncCircuitBreaker(
-                failure_threshold=config.circuit_breaker_threshold,
-                recovery_timeout=config.circuit_breaker_timeout,
+                failure_threshold=config.circuit_breaker_threshold
+                recovery_timeout=config.circuit_breaker_timeout
             )
 
     async def initialize_async(self) -> None:
@@ -90,8 +92,8 @@ class HiveCacheClient:
         try:
             # Parse Redis URL and create connection pool
             self._redis_pool = redis.ConnectionPool.from_url(
-                self.config.redis_url,
-                **self.config.get_redis_connection_kwargs(),
+                self.config.redis_url
+                **self.config.get_redis_connection_kwargs()
             )
 
             # Create reusable Redis client
@@ -131,8 +133,8 @@ class HiveCacheClient:
 
         # Start tracking
         start_id = await self._performance_monitor.start_operation_tracking_async(
-            operation_name=operation_name,
-            tags={"cache_operation": operation_name, "namespace": kwargs.get("namespace", "default")},
+            operation_name=operation_name
+            tags={"cache_operation": operation_name, "namespace": kwargs.get("namespace", "default")}
         )
 
         try:
@@ -237,12 +239,12 @@ class HiveCacheClient:
         return xxhash.xxh64(key.encode()).hexdigest()
 
     async def set_async(
-        self,
-        key: str,
-        value: Any,
-        ttl_async: Optional[int] = None,
-        namespace: str = "default",
-        overwrite: bool = True,
+        self
+        key: str
+        value: Any
+        ttl_async: int | None = None
+        namespace: str = "default"
+        overwrite: bool = True
     ) -> bool:
         """Set a value in cache with optional TTL.
 
@@ -329,13 +331,13 @@ class HiveCacheClient:
             raise CacheError(f"Failed to get_async cache key: {e}", operation="get_async", key=key)
 
     async def get_or_set_async(
-        self,
-        key: str,
-        factory: Callable,
-        ttl_async: Optional[int] = None,
-        namespace: str = "default",
-        *args,
-        **kwargs,
+        self
+        key: str
+        factory: Callable
+        ttl_async: int | None = None
+        namespace: str = "default"
+        *args
+        **kwargs
     ) -> Any:
         """Get value from cache or compute and set_async if missing.
 
@@ -579,7 +581,7 @@ class HiveCacheClient:
             raise CacheError(f"Failed to get_async multiple keys: {e}", operation="mget_async")
 
     async def mset_async(
-        self, mapping: Dict[str, Any], ttl_async: Optional[int] = None, namespace: str = "default"
+        self, mapping: Dict[str, Any], ttl_async: int | None = None, namespace: str = "default"
     ) -> bool:
         """Set multiple values in cache.
 
@@ -639,13 +641,13 @@ class HiveCacheClient:
             response_time = (time.time() - start_time) * 1000  # Convert to milliseconds
 
             self._health_status = {
-                "healthy": True,
-                "last_check": datetime.utcnow().isoformat(),
-                "response_time_ms": round(response_time, 2),
-                "ping_result": ping_result,
-                "set_get_test": get_result == b"test_value",
-                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
-                "errors": [],
+                "healthy": True
+                "last_check": datetime.utcnow().isoformat()
+                "response_time_ms": round(response_time, 2)
+                "ping_result": ping_result
+                "set_get_test": get_result == b"test_value"
+                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled"
+                "errors": []
             }
 
             self._last_health_check = time.time()
@@ -653,10 +655,10 @@ class HiveCacheClient:
 
         except Exception as e:
             self._health_status = {
-                "healthy": False,
-                "last_check": datetime.utcnow().isoformat(),
-                "errors": [str(e)],
-                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
+                "healthy": False
+                "last_check": datetime.utcnow().isoformat()
+                "errors": [str(e)]
+                "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled"
             }
             return self._health_status
 
@@ -670,11 +672,11 @@ class HiveCacheClient:
         hit_rate = (self._metrics["hits"] / total_operations * 100) if total_operations > 0 else 0
 
         return {
-            **self._metrics,
-            "hit_rate_percent": round(hit_rate, 2),
-            "total_operations": total_operations,
-            "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled",
-            "last_health_check": self._last_health_check,
+            **self._metrics
+            "hit_rate_percent": round(hit_rate, 2)
+            "total_operations": total_operations
+            "circuit_breaker_state": self._circuit_breaker.state.value if self._circuit_breaker else "disabled"
+            "last_health_check": self._last_health_check
         }
 
     def reset_metrics(self) -> None:
@@ -697,15 +699,15 @@ class HiveCacheClient:
             operation_metrics = self._performance_monitor.get_metrics(operation_name)
             if operation_metrics:
                 metrics[operation_name] = {
-                    "total_operations": len(operation_metrics),
-                    "avg_execution_time": sum(m.execution_time for m in operation_metrics) / len(operation_metrics),
-                    "avg_memory_usage": sum(m.memory_usage for m in operation_metrics) / len(operation_metrics),
+                    "total_operations": len(operation_metrics)
+                    "avg_execution_time": sum(m.execution_time for m in operation_metrics) / len(operation_metrics)
+                    "avg_memory_usage": sum(m.memory_usage for m in operation_metrics) / len(operation_metrics)
                     "avg_operations_per_second": sum(m.operations_per_second for m in operation_metrics)
-                    / len(operation_metrics),
-                    "total_bytes_processed": sum(m.bytes_processed for m in operation_metrics),
+                    / len(operation_metrics)
+                    "total_bytes_processed": sum(m.bytes_processed for m in operation_metrics)
                     "error_rate": sum(m.error_count for m in operation_metrics) / len(operation_metrics)
                     if operation_metrics
-                    else 0.0,
+                    else 0.0
                 }
 
         # Add system-level metrics
@@ -717,10 +719,10 @@ class HiveCacheClient:
 
 
 # Global cache client instance
-_global_cache_client: Optional[HiveCacheClient] = None
+_global_cache_client: HiveCacheClient | None = None
 
 
-async def get_cache_client_async(config: Optional[CacheConfig] = None) -> HiveCacheClient:
+async def get_cache_client_async(config: CacheConfig | None = None) -> HiveCacheClient:
     """Get or create global cache client instance.
 
     Args:

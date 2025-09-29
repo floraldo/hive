@@ -1,20 +1,20 @@
 """Heat pump component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    GenerationTechnicalParams,
+    FidelityLevel
+    GenerationTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseConversionOptimization,
-    BaseConversionPhysics,
+    BaseConversionOptimization
+    BaseConversionPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -29,6 +29,8 @@ logger = get_logger(__name__)
 
 class HeatPumpTechnicalParams(GenerationTechnicalParams):
     """Heat pump-specific technical parameters extending generation archetype.
+from __future__ import annotations
+
 
     This model inherits from GenerationTechnicalParams and adds heat pump-specific
     parameters for different fidelity levels.
@@ -42,12 +44,12 @@ class HeatPumpTechnicalParams(GenerationTechnicalParams):
     cop_temperature_curve: Optional[Dict[str, float]] = Field(
         None, description="COP variation with temperature {slope, intercept}"
     )
-    defrost_power_penalty: Optional[float] = Field(None, description="Power penalty during defrost cycles [%]")
+    defrost_power_penalty: float | None = Field(None, description="Power penalty during defrost cycles [%]")
 
     # DETAILED fidelity parameters
-    refrigerant_type: Optional[str] = Field(None, description="Refrigerant type (R410A, R32, etc.)")
+    refrigerant_type: str | None = Field(None, description="Refrigerant type (R410A, R32, etc.)")
     compressor_map: Optional[Dict[str, Any]] = Field(None, description="Detailed compressor performance map")
-    heat_exchanger_effectiveness: Optional[float] = Field(None, description="Heat exchanger effectiveness")
+    heat_exchanger_effectiveness: float | None = Field(None, description="Heat exchanger effectiveness")
 
     # RESEARCH fidelity parameters
     detailed_refrigerant_model: Optional[Dict[str, Any]] = Field(
@@ -59,7 +61,7 @@ class HeatPumpTechnicalParams(GenerationTechnicalParams):
 class HeatPumpParams(ComponentParams):
     """Heat pump parameters using the hierarchical technical parameter system.
 
-    COP and capacity are now specified through the technical parameter block,
+    COP and capacity are now specified through the technical parameter block
     following the archetype inheritance pattern.
     """
 
@@ -68,9 +70,9 @@ class HeatPumpParams(ComponentParams):
             capacity_nominal=10.0,  # Default 10 kW heat output
             efficiency_nominal=0.90,  # Pump electrical efficiency
             cop_nominal=3.5,  # Default COP
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -385,8 +387,8 @@ class HeatPump(Component):
 
         # Add flows
         self.flows["source"]["P_heatsource"] = {
-            "type": "heat",
-            "value": self.P_heatsource,
+            "type": "heat"
+            "value": self.P_heatsource
         }
         self.flows["sink"]["P_loss"] = {"type": "electricity", "value": self.P_loss}
         self.flows["sink"]["P_pump"] = {"type": "electricity", "value": self.P_pump}

@@ -55,8 +55,8 @@ def simulate() -> None:
               help='Subset to season')
 @option('--seed', type=int, help='Random seed for synthetic generation')
 @option('--stats', is_flag=True, help='Show statistics')
-def get(loc, file, year, start, end, vars, source, mode, resolution, timezone,
-        out, json_out, subset_month, subset_season, seed, stats):
+def get(loc: str, file: str, year: int, start: str, end: str, vars: str, source: str, mode: str, resolution: str, timezone: str,
+        out: str, json_out: str, subset_month: int, subset_season: str, seed: int, stats: bool) -> None:
     """
     Get climate profile for a location.
 

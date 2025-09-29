@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -12,7 +14,7 @@ to build any event-driven system.
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 
 @dataclass
@@ -35,18 +37,18 @@ class BaseEvent:
     source: str = ""
     payload: Dict[str, Any] = field(default_factory=dict)
     metadata: Dict[str, Any] = field(default_factory=dict)
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert event to dictionary for serialization"""
         return {
-            "event_id": self.event_id,
-            "event_type": self.event_type,
-            "timestamp": self.timestamp.isoformat(),
-            "source": self.source,
-            "payload": self.payload,
-            "metadata": self.metadata,
-            "correlation_id": self.correlation_id,
+            "event_id": self.event_id
+            "event_type": self.event_type
+            "timestamp": self.timestamp.isoformat()
+            "source": self.source
+            "payload": self.payload
+            "metadata": self.metadata
+            "correlation_id": self.correlation_id
         }
 
     @classmethod
@@ -55,11 +57,11 @@ class BaseEvent:
         timestamp = datetime.fromisoformat(data["timestamp"])
 
         return cls(
-            event_id=data["event_id"],
-            event_type=data["event_type"],
-            timestamp=timestamp,
-            source=data["source"],
-            payload=data.get("payload", {}),
-            metadata=data.get("metadata", {}),
-            correlation_id=data.get("correlation_id"),
+            event_id=data["event_id"]
+            event_type=data["event_type"]
+            timestamp=timestamp
+            source=data["source"]
+            payload=data.get("payload", {})
+            metadata=data.get("metadata", {})
+            correlation_id=data.get("correlation_id")
         )

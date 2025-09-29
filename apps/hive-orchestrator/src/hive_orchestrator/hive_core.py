@@ -3,6 +3,8 @@
 HiveCore - Streamlined Hive Manager
 Unified task management with built-in cleanup and configuration
 """
+from __future__ import annotations
+
 
 import argparse
 import json
@@ -11,7 +13,7 @@ import shutil
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Hive utilities for path management
 from hive_config.paths import HIVE_DIR, LOGS_DIR, PROJECT_ROOT, WORKTREES_DIR
@@ -28,7 +30,7 @@ from .core.db import get_connection, get_pooled_connection
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
 
-    def __init__(self, root_dir: Optional[Path] = None, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, root_dir: Path | None = None, config: Optional[Dict[str, Any]] = None) -> None:
         # Use authoritative paths from singleton
         self.root = PROJECT_ROOT
         self.hive_dir = HIVE_DIR
@@ -76,17 +78,17 @@ class HiveCore:
 
         # Default configuration
         default_config = {
-            "max_parallel_per_role": {"backend": 2, "frontend": 2, "infra": 1},
-            "worker_timeout_minutes": 30,
-            "zombie_detection_minutes": 5,
-            "fresh_cleanup_enabled": True,
-            "pr_creation_enabled": False,
-            "default_max_retries": 2,
+            "max_parallel_per_role": {"backend": 2, "frontend": 2, "infra": 1}
+            "worker_timeout_minutes": 30
+            "zombie_detection_minutes": 5
+            "fresh_cleanup_enabled": True
+            "pr_creation_enabled": False
+            "default_max_retries": 2
             "orchestration": {
-                "task_retry_limit": 2,
-                "status_refresh_seconds": 10,
-                "graceful_shutdown_seconds": 5,
-            },
+                "task_retry_limit": 2
+                "status_refresh_seconds": 10
+                "graceful_shutdown_seconds": 5
+            }
         }
 
         if config_file.exists():
@@ -100,7 +102,7 @@ class HiveCore:
 
         return default_config
 
-    def get_config(self, key: str, worker_type: Optional[str] = None) -> Any:
+    def get_config(self, key: str, worker_type: str | None = None) -> Any:
         """Get configuration value with optional worker-specific override"""
         # Check for worker-specific config
         if worker_type:
@@ -120,13 +122,13 @@ class HiveCore:
     def ensure_directories(self) -> None:
         """Create all required directories"""
         dirs = [
-            self.hive_dir,
-            self.tasks_dir,
-            self.results_dir,
-            self.bus_dir,
-            self.worktrees_dir,
-            self.logs_dir,
-            self.workers_dir,
+            self.hive_dir
+            self.tasks_dir
+            self.results_dir
+            self.bus_dir
+            self.worktrees_dir
+            self.logs_dir
+            self.workers_dir
         ]
         for d in dirs:
             d.mkdir(parents=True, exist_ok=True)
@@ -168,10 +170,10 @@ class HiveCore:
         try:
             result_path = self.get_result_path(task_id, run_id)
             result_data = {
-                "task_id": task_id,
-                "run_id": run_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                **result,
+                "task_id": task_id
+                "run_id": run_id
+                "timestamp": datetime.now(timezone.utc).isoformat()
+                **result
             }
 
             # Atomic write: write to temp, then move
@@ -242,26 +244,26 @@ class HiveCore:
 
                 # Extract payload (other task data)
                 payload_keys = {
-                    "id",
-                    "title",
-                    "description",
-                    "task_type",
-                    "priority",
-                    "max_retries",
-                    "tags",
-                    "status",
-                    "assignee",
+                    "id"
+                    "title"
+                    "description"
+                    "task_type"
+                    "priority"
+                    "max_retries"
+                    "tags"
+                    "status"
+                    "assignee"
                 }
                 payload = {k: v for k, v in task.items() if k not in payload_keys}
 
                 new_task_id = hive_core_db.create_task(
-                    title=title,
-                    task_type=task_type,
-                    description=description,
-                    payload=payload,
-                    priority=priority,
-                    max_retries=max_retries,
-                    tags=tags,
+                    title=title
+                    task_type=task_type
+                    description=description
+                    payload=payload
+                    priority=priority
+                    max_retries=max_retries
+                    tags=tags
                 )
 
                 if new_task_id != task_id:
@@ -301,11 +303,11 @@ class HiveCore:
 
                 # Remove assignment details - ALWAYS clear worktree in fresh mode
                 for key in [
-                    "assignee",
-                    "assigned_at",
-                    "started_at",
-                    "worktree",
-                    "workspace_type",
+                    "assignee"
+                    "assigned_at"
+                    "started_at"
+                    "worktree"
+                    "workspace_type"
                 ]:
                     if key in task:
                         del task[key]
@@ -389,11 +391,11 @@ class HiveCore:
         task["status"] = "queued"
         task["current_phase"] = "plan"
         for key in [
-            "assignee",
-            "assigned_at",
-            "started_at",
-            "worktree",
-            "workspace_type",
+            "assignee"
+            "assigned_at"
+            "started_at"
+            "worktree"
+            "workspace_type"
         ]:
             if key in task:
                 del task[key]
@@ -405,12 +407,12 @@ class HiveCore:
     def get_task_stats(self) -> Dict[str, int]:
         """Get current task statistics"""
         stats = {
-            "queued": 0,
-            "assigned": 0,
-            "in_progress": 0,
-            "completed": 0,
-            "failed": 0,
-            "total": 0,
+            "queued": 0
+            "assigned": 0
+            "in_progress": 0
+            "completed": 0
+            "failed": 0
+            "total": 0
         }
 
         for task in self.get_all_tasks():
@@ -424,9 +426,9 @@ class HiveCore:
     def emit_event(self, event_type: str, **data) -> None:
         """Emit event to bus for tracking"""
         event = {
-            "type": event_type,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            **data,
+            "type": event_type
+            "timestamp": datetime.now(timezone.utc).isoformat()
+            **data
         }
 
         # Write to daily events file
@@ -476,7 +478,7 @@ class HiveCore:
         self.save_task(task)
         return True
 
-    def get_next_phase(self, current_phase: str) -> Optional[str]:
+    def get_next_phase(self, current_phase: str) -> str | None:
         """Get the next phase in the execution workflow"""
         phase_order = ["apply", "test"]
         try:
@@ -700,15 +702,15 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
     # Prepare review data
     if args.format == "json":
         review_data = {
-            "task_id": task_id,
-            "run_id": run_id,
-            "title": task.get("title", "Unknown"),
-            "description": task.get("description", ""),
-            "current_phase": task.get("current_phase", "unknown"),
-            "workflow": task.get("workflow"),
-            "inspection_report": inspection_report,
-            "transcript_available": bool(transcript),
-            "transcript_length": len(transcript) if transcript else 0,
+            "task_id": task_id
+            "run_id": run_id
+            "title": task.get("title", "Unknown")
+            "description": task.get("description", "")
+            "current_phase": task.get("current_phase", "unknown")
+            "workflow": task.get("workflow")
+            "inspection_report": inspection_report
+            "transcript_available": bool(transcript)
+            "transcript_length": len(transcript) if transcript else 0
         }
         logger.info(json.dumps(review_data, indent=2))
     else:
@@ -793,10 +795,10 @@ def cmd_complete_review(args, core: HiveCore) -> None:
     new_status = "completed" if new_phase == "completed" else "failed" if new_phase == "failed" else "queued"
 
     metadata = {
-        "current_phase": new_phase,
-        "review_decision": decision,
-        "review_reason": reason or "No reason provided",
-        "reviewed_at": datetime.utcnow().isoformat(),
+        "current_phase": new_phase
+        "review_decision": decision
+        "review_reason": reason or "No reason provided"
+        "reviewed_at": datetime.utcnow().isoformat()
     }
 
     success = hive_core_db.update_task_status(task_id, new_status, metadata)
@@ -867,10 +869,10 @@ def main() -> None:
     # Review next task command (for AI reviewer)
     review_next_parser = subparsers.add_parser("review-next-task", help="Get the next task awaiting review")
     review_next_parser.add_argument(
-        "--format",
-        choices=["json", "summary"],
-        default="summary",
-        help="Output format for review task",
+        "--format"
+        choices=["json", "summary"]
+        default="summary"
+        help="Output format for review task"
     )
     review_next_parser.set_defaults(func=cmd_review_next_task)
 
@@ -878,10 +880,10 @@ def main() -> None:
     complete_review_parser = subparsers.add_parser("complete-review", help="Complete review of a task")
     complete_review_parser.add_argument("task_id", help="Task ID to complete review for")
     complete_review_parser.add_argument(
-        "--decision",
-        choices=["approve", "reject", "rework"],
-        required=True,
-        help="Review decision",
+        "--decision"
+        choices=["approve", "reject", "rework"]
+        required=True
+        help="Review decision"
     )
     complete_review_parser.add_argument("--reason", help="Reason for the decision")
     complete_review_parser.add_argument("--next-phase", help="Override next phase (optional)")

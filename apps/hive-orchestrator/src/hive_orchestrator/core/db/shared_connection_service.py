@@ -5,13 +5,15 @@ Shared Database Connection Service
 Provides connection pooling for multiple SQLite databases across the Hive platform.
 Consolidates connection management while maintaining database isolation.
 """
+from __future__ import annotations
+
 
 import sqlite3
 import threading
 from contextlib import contextmanager
 from pathlib import Path
 from queue import Empty, Full, Queue
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from hive_config.paths import ensure_directory
 from hive_logging import get_logger
@@ -32,11 +34,11 @@ class DatabaseConnectionPool:
     """
 
     def __init__(
-        self,
-        db_path: Path,
-        min_connections: int = 2,
-        max_connections: int = 10,
-        connection_timeout: float = 30.0,
+        self
+        db_path: Path
+        min_connections: int = 2
+        max_connections: int = 10
+        connection_timeout: float = 30.0
     ):
         """
         Initialize connection pool for a specific database.
@@ -66,14 +68,14 @@ class DatabaseConnectionPool:
             if conn:
                 self._pool.put(conn)
 
-    def _create_connection(self) -> Optional[sqlite3.Connection]:
+    def _create_connection(self) -> sqlite3.Connection | None:
         """Create a new database connection with optimal settings."""
         try:
             ensure_directory(self.db_path.parent)
 
             conn = sqlite3.connect(
-                str(self.db_path),
-                check_same_thread=False,
+                str(self.db_path)
+                check_same_thread=False
                 timeout=30.0,  # 30 second timeout for locks
                 isolation_level="DEFERRED",  # Better concurrency
             )
@@ -174,11 +176,11 @@ class DatabaseConnectionPool:
     def get_stats(self) -> Dict[str, Any]:
         """Get pool statistics."""
         return {
-            "db_path": str(self.db_path),
-            "pool_size": self._pool.qsize(),
-            "connections_created": self._connections_created,
-            "max_connections": self.max_connections,
-            "min_connections": self.min_connections,
+            "db_path": str(self.db_path)
+            "pool_size": self._pool.qsize()
+            "connections_created": self._connections_created
+            "max_connections": self.max_connections
+            "min_connections": self.min_connections
         }
 
 
@@ -218,10 +220,10 @@ class SharedDatabaseService:
                     db_config = self._config.get("database", {})
 
                     self._pools[db_name] = DatabaseConnectionPool(
-                        db_path=db_path,
-                        min_connections=2,
-                        max_connections=db_config.get("max_connections", 10),
-                        connection_timeout=db_config.get("connection_timeout", 30.0),
+                        db_path=db_path
+                        min_connections=2
+                        max_connections=db_config.get("max_connections", 10)
+                        connection_timeout=db_config.get("connection_timeout", 30.0)
                     )
                     logger.info(f"Created connection pool for database: {db_name}")
 
@@ -277,12 +279,12 @@ class SharedDatabaseService:
 
 
 # Global shared database service instance
-_shared_service: Optional[SharedDatabaseService] = None
+_shared_service: SharedDatabaseService | None = None
 _service_lock = threading.Lock()
 
 
 def get_shared_database_service(
-    config: Optional[Dict[str, Any]] = None,
+    config: Optional[Dict[str, Any]] = None
 ) -> SharedDatabaseService:
     """Get or create the global shared database service with DI support.
 

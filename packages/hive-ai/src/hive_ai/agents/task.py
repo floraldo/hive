@@ -1,9 +1,11 @@
 """
 Task definition and execution framework for AI agents.
 
-Provides structured task definitions, execution patterns,
+Provides structured task definitions, execution patterns
 and coordination mechanisms for complex workflows.
 """
+from __future__ import annotations
+
 
 import asyncio
 import uuid
@@ -11,7 +13,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Type, Union
+from typing import Any, Callable, Dict, ListType
 
 from hive_logging import get_logger
 
@@ -48,10 +50,10 @@ class TaskResult:
     task_id: str
     status: TaskStatus
     result: Any
-    error: Optional[str] = None
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    duration_seconds: Optional[float] = None
+    error: str | None = None
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    duration_seconds: float | None = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -94,21 +96,21 @@ class BaseTask(ABC):
         self.status = TaskStatus.PENDING
 
         # Execution tracking
-        self.start_time: Optional[datetime] = None
-        self.end_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
+        self.end_time: datetime | None = None
         self.attempt_count = 0
-        self.result: Optional[TaskResult] = None
+        self.result: TaskResult | None = None
 
         # Dependencies and outputs
         self.dependency_results: Dict[str, TaskResult] = {}
-        self.output_data: Optional[Any] = None
+        self.output_data: Any | None = None
 
     @abstractmethod
     async def execute_async(
-        self,
-        agent: BaseAgent,
-        input_data: Optional[Any] = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None,
+        self
+        agent: BaseAgent
+        input_data: Any | None = None
+        dependency_results: Optional[Dict[str, TaskResult]] = None
     ) -> TaskResult:
         """
         Execute the task using the provided agent.
@@ -162,10 +164,10 @@ class BaseTask(ABC):
         return dependency_results
 
     async def _execute_with_retry_async(
-        self,
-        agent: BaseAgent,
-        input_data: Optional[Any] = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None,
+        self
+        agent: BaseAgent
+        input_data: Any | None = None
+        dependency_results: Optional[Dict[str, TaskResult]] = None
     ) -> TaskResult:
         """Execute task with retry logic."""
         last_error = None
@@ -202,13 +204,13 @@ class BaseTask(ABC):
         duration = (self.end_time - self.start_time).total_seconds() if self.start_time else 0
 
         self.result = TaskResult(
-            task_id=self.id,
-            status=TaskStatus.FAILED,
-            result=None,
-            error=f"Task failed after {self.config.retry_attempts} attempts. Last error: {last_error}",
-            start_time=self.start_time,
-            end_time=self.end_time,
-            duration_seconds=duration,
+            task_id=self.id
+            status=TaskStatus.FAILED
+            result=None
+            error=f"Task failed after {self.config.retry_attempts} attempts. Last error: {last_error}"
+            start_time=self.start_time
+            end_time=self.end_time
+            duration_seconds=duration
         )
 
         return self.result
@@ -221,18 +223,18 @@ class BaseTask(ABC):
             duration = (end_time - self.start_time).total_seconds()
 
         return {
-            "id": self.id,
-            "name": self.config.name,
-            "status": self.status.value,
-            "priority": self.config.priority.value,
-            "attempt_count": self.attempt_count,
-            "max_attempts": self.config.retry_attempts,
-            "created_at": self.created_at.isoformat(),
-            "start_time": self.start_time.isoformat() if self.start_time else None,
-            "end_time": self.end_time.isoformat() if self.end_time else None,
-            "duration_seconds": duration,
-            "dependencies": [dep.task_id for dep in self.config.dependencies],
-            "required_tools": self.config.required_tools,
+            "id": self.id
+            "name": self.config.name
+            "status": self.status.value
+            "priority": self.config.priority.value
+            "attempt_count": self.attempt_count
+            "max_attempts": self.config.retry_attempts
+            "created_at": self.created_at.isoformat()
+            "start_time": self.start_time.isoformat() if self.start_time else None
+            "end_time": self.end_time.isoformat() if self.end_time else None
+            "duration_seconds": duration
+            "dependencies": [dep.task_id for dep in self.config.dependencies]
+            "required_tools": self.config.required_tools
         }
 
 
@@ -249,10 +251,10 @@ class PromptTask(BaseTask):
         self.expected_output_type = expected_output_type
 
     async def execute_async(
-        self,
-        agent: BaseAgent,
-        input_data: Optional[Any] = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None,
+        self
+        agent: BaseAgent
+        input_data: Any | None = None
+        dependency_results: Optional[Dict[str, TaskResult]] = None
     ) -> TaskResult:
         """Execute the prompt task."""
         try:
@@ -261,10 +263,10 @@ class PromptTask(BaseTask):
 
             # Execute using agent's model
             response = await agent.model_client.generate_async(
-                final_prompt,
-                model=agent.config.model,
-                temperature=agent.config.temperature,
-                max_tokens=agent.config.max_tokens,
+                final_prompt
+                model=agent.config.model
+                temperature=agent.config.temperature
+                max_tokens=agent.config.max_tokens
             )
 
             # Process output based on expected type
@@ -273,29 +275,29 @@ class PromptTask(BaseTask):
             duration = (datetime.utcnow() - self.start_time).total_seconds() if self.start_time else 0
 
             return TaskResult(
-                task_id=self.id,
-                status=TaskStatus.COMPLETED,
-                result=processed_output,
-                start_time=self.start_time,
-                end_time=datetime.utcnow(),
-                duration_seconds=duration,
-                metadata={"tokens_used": response.tokens_used, "cost": response.cost, "model": response.model},
+                task_id=self.id
+                status=TaskStatus.COMPLETED
+                result=processed_output
+                start_time=self.start_time
+                end_time=datetime.utcnow()
+                duration_seconds=duration
+                metadata={"tokens_used": response.tokens_used, "cost": response.cost, "model": response.model}
             )
 
         except Exception as e:
             duration = (datetime.utcnow() - self.start_time).total_seconds() if self.start_time else 0
 
             return TaskResult(
-                task_id=self.id,
-                status=TaskStatus.FAILED,
-                result=None,
-                error=str(e),
-                start_time=self.start_time,
-                end_time=datetime.utcnow(),
-                duration_seconds=duration,
+                task_id=self.id
+                status=TaskStatus.FAILED
+                result=None
+                error=str(e)
+                start_time=self.start_time
+                end_time=datetime.utcnow()
+                duration_seconds=duration
             )
 
-    def _build_prompt(self, input_data: Optional[Any], dependency_results: Optional[Dict[str, TaskResult]]) -> str:
+    def _build_prompt(self, input_data: Any | None, dependency_results: Optional[Dict[str, TaskResult]]) -> str:
         """Build the final prompt with input data and dependency results."""
         prompt_parts = [self.prompt]
 
@@ -353,10 +355,10 @@ class ToolTask(BaseTask):
         self.tool_sequence = tool_sequence
 
     async def execute_async(
-        self,
-        agent: BaseAgent,
-        input_data: Optional[Any] = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None,
+        self
+        agent: BaseAgent
+        input_data: Any | None = None
+        dependency_results: Optional[Dict[str, TaskResult]] = None
     ) -> TaskResult:
         """Execute the tool sequence."""
         try:
@@ -382,26 +384,26 @@ class ToolTask(BaseTask):
             duration = (datetime.utcnow() - self.start_time).total_seconds() if self.start_time else 0
 
             return TaskResult(
-                task_id=self.id,
-                status=TaskStatus.COMPLETED,
-                result=results,
-                start_time=self.start_time,
-                end_time=datetime.utcnow(),
-                duration_seconds=duration,
-                metadata={"tools_used": [call["tool"] for call in self.tool_sequence], "steps_completed": len(results)},
+                task_id=self.id
+                status=TaskStatus.COMPLETED
+                result=results
+                start_time=self.start_time
+                end_time=datetime.utcnow()
+                duration_seconds=duration
+                metadata={"tools_used": [call["tool"] for call in self.tool_sequence], "steps_completed": len(results)}
             )
 
         except Exception as e:
             duration = (datetime.utcnow() - self.start_time).total_seconds() if self.start_time else 0
 
             return TaskResult(
-                task_id=self.id,
-                status=TaskStatus.FAILED,
-                result=None,
-                error=str(e),
-                start_time=self.start_time,
-                end_time=datetime.utcnow(),
-                duration_seconds=duration,
+                task_id=self.id
+                status=TaskStatus.FAILED
+                result=None
+                error=str(e)
+                start_time=self.start_time
+                end_time=datetime.utcnow()
+                duration_seconds=duration
             )
 
     def _process_parameters(self, parameters: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
@@ -473,7 +475,7 @@ class TaskSequence:
         self.execution_order = execution_order
         logger.info(f"Task sequence {self.name}: execution order calculated")
 
-    async def execute_async(self, agent: BaseAgent, input_data: Optional[Any] = None) -> Dict[str, TaskResult]:
+    async def execute_async(self, agent: BaseAgent, input_data: Any | None = None) -> Dict[str, TaskResult]:
         """
         Execute all tasks in the sequence.
 
@@ -504,8 +506,8 @@ class TaskSequence:
             # Execute task with timeout
             try:
                 result = await asyncio.wait_for(
-                    task._execute_with_retry_async(agent, input_data, dependency_results),
-                    timeout=task.config.timeout_seconds,
+                    task._execute_with_retry_async(agent, input_data, dependency_results)
+                    timeout=task.config.timeout_seconds
                 )
 
                 self.completed_tasks[task_id] = result
@@ -518,12 +520,12 @@ class TaskSequence:
 
             except asyncio.TimeoutError:
                 timeout_result = TaskResult(
-                    task_id=task_id,
-                    status=TaskStatus.FAILED,
-                    result=None,
-                    error=f"Task timed out after {task.config.timeout_seconds} seconds",
-                    start_time=task.start_time,
-                    end_time=datetime.utcnow(),
+                    task_id=task_id
+                    status=TaskStatus.FAILED
+                    result=None
+                    error=f"Task timed out after {task.config.timeout_seconds} seconds"
+                    start_time=task.start_time
+                    end_time=datetime.utcnow()
                 )
                 self.completed_tasks[task_id] = timeout_result
                 logger.error(f"Task {task_id} timed out")
@@ -538,14 +540,14 @@ class TaskSequence:
         failed_count = sum(1 for result in self.completed_tasks.values() if result.status == TaskStatus.FAILED)
 
         return {
-            "sequence_id": self.id,
-            "sequence_name": self.name,
-            "total_tasks": len(self.tasks),
-            "completed_tasks": completed_count,
-            "failed_tasks": failed_count,
-            "remaining_tasks": len(self.tasks) - len(self.completed_tasks),
-            "execution_order": self.execution_order,
-            "task_status": {task_id: result.status.value for task_id, result in self.completed_tasks.items()},
+            "sequence_id": self.id
+            "sequence_name": self.name
+            "total_tasks": len(self.tasks)
+            "completed_tasks": completed_count
+            "failed_tasks": failed_count
+            "remaining_tasks": len(self.tasks) - len(self.completed_tasks)
+            "execution_order": self.execution_order
+            "task_status": {task_id: result.status.value for task_id, result in self.completed_tasks.items()}
         }
 
 
@@ -558,12 +560,12 @@ class TaskBuilder:
 
     @staticmethod
     def create_prompt_task(
-        name: str,
-        prompt: str,
-        description: str = "",
-        priority: TaskPriority = TaskPriority.NORMAL,
-        expected_output_type: str = "text",
-        dependencies: Optional[List[str]] = None,
+        name: str
+        prompt: str
+        description: str = ""
+        priority: TaskPriority = TaskPriority.NORMAL
+        expected_output_type: str = "text"
+        dependencies: Optional[List[str]] = None
     ) -> PromptTask:
         """Create a prompt-based task."""
         task_deps = []
@@ -571,21 +573,21 @@ class TaskBuilder:
             task_deps = [TaskDependency(task_id=dep_id) for dep_id in dependencies]
 
         config = TaskConfig(
-            name=name,
-            description=description or f"Execute prompt: {prompt[:50]}...",
-            priority=priority,
-            dependencies=task_deps,
+            name=name
+            description=description or f"Execute prompt: {prompt[:50]}..."
+            priority=priority
+            dependencies=task_deps
         )
 
         return PromptTask(config, prompt, expected_output_type)
 
     @staticmethod
     def create_tool_task(
-        name: str,
-        tool_sequence: List[Dict[str, Any]],
-        description: str = "",
-        priority: TaskPriority = TaskPriority.NORMAL,
-        dependencies: Optional[List[str]] = None,
+        name: str
+        tool_sequence: List[Dict[str, Any]]
+        description: str = ""
+        priority: TaskPriority = TaskPriority.NORMAL
+        dependencies: Optional[List[str]] = None
     ) -> ToolTask:
         """Create a tool-based task."""
         task_deps = []
@@ -596,11 +598,11 @@ class TaskBuilder:
         required_tools = list(set(call["tool"] for call in tool_sequence))
 
         config = TaskConfig(
-            name=name,
-            description=description or f"Execute tool sequence: {required_tools}",
-            priority=priority,
-            dependencies=task_deps,
-            required_tools=required_tools,
+            name=name
+            description=description or f"Execute tool sequence: {required_tools}"
+            priority=priority
+            dependencies=task_deps
+            required_tools=required_tools
         )
 
         return ToolTask(config, tool_sequence)
@@ -625,10 +627,10 @@ Analysis:
 """
 
         return TaskBuilder.create_prompt_task(
-            name=name,
-            prompt=full_prompt,
-            description=f"Data analysis task: {analysis_prompt[:50]}...",
-            priority=TaskPriority.NORMAL,
-            expected_output_type="text",
-            dependencies=dependencies,
+            name=name
+            prompt=full_prompt
+            description=f"Data analysis task: {analysis_prompt[:50]}..."
+            priority=TaskPriority.NORMAL
+            expected_output_type="text"
+            dependencies=dependencies
         )

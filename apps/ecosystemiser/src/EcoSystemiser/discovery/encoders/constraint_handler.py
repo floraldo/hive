@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 from hive_logging import get_logger
@@ -13,13 +13,15 @@ logger = get_logger(__name__)
 @dataclass
 class Constraint:
     """Definition of an optimization constraint."""
+from __future__ import annotations
+
 
     name: str
     constraint_type: str  # equality, inequality, bounds
     function: Callable[[np.ndarray], float]
     tolerance: float = 1e-6
     weight: float = 1.0
-    description: Optional[str] = None
+    description: str | None = None
 
 
 class ConstraintHandler:
@@ -45,11 +47,11 @@ class ConstraintHandler:
         logger.debug(f"Added constraint: {constraint.name}")
 
     def add_equality_constraint(
-        self,
-        name: str,
-        function: Callable[[np.ndarray], float],
-        tolerance: float = 1e-6,
-        weight: float = 1.0,
+        self
+        name: str
+        function: Callable[[np.ndarray], float]
+        tolerance: float = 1e-6
+        weight: float = 1.0
     ):
         """Add an equality constraint.
 
@@ -60,11 +62,11 @@ class ConstraintHandler:
             weight: Weight in penalty calculation
         """
         constraint = Constraint(
-            name=name,
-            constraint_type="equality",
-            function=function,
-            tolerance=tolerance,
-            weight=weight,
+            name=name
+            constraint_type="equality"
+            function=function
+            tolerance=tolerance
+            weight=weight
         )
         self.add_constraint(constraint)
 
@@ -279,7 +281,7 @@ class TechnicalConstraintValidator:
 
     @staticmethod
     def renewable_generation_demand_balance(
-        solution: np.ndarray, encoder, demand_profile: Optional[np.ndarray] = None
+        solution: np.ndarray, encoder, demand_profile: np.ndarray | None = None
     ) -> float:
         """Constraint: Renewable generation should be sufficient for demand.
 
@@ -369,27 +371,27 @@ class TechnicalConstraintValidator:
 
         # Battery power-capacity ratio constraint
         handler.add_inequality_constraint(
-            name="battery_power_capacity_ratio",
-            function=lambda x: cls.battery_power_capacity_ratio(x, encoder),
-            weight=10.0,
+            name="battery_power_capacity_ratio"
+            function=lambda x: cls.battery_power_capacity_ratio(x, encoder)
+            weight=10.0
         )
 
         # Budget constraint if specified
         if "max_budget" in config:
             max_budget = config["max_budget"]
             handler.add_inequality_constraint(
-                name="budget_constraint",
-                function=lambda x: cls.budget_constraint(x, encoder, max_budget),
-                weight=5.0,
+                name="budget_constraint"
+                function=lambda x: cls.budget_constraint(x, encoder, max_budget)
+                weight=5.0
             )
 
         # Renewable generation constraint if demand profile available
         if "demand_profile" in config:
             demand_profile = np.array(config["demand_profile"])
             handler.add_inequality_constraint(
-                name="renewable_demand_balance",
-                function=lambda x: cls.renewable_generation_demand_balance(x, encoder, demand_profile),
-                weight=2.0,
+                name="renewable_demand_balance"
+                function=lambda x: cls.renewable_generation_demand_balance(x, encoder, demand_profile)
+                weight=2.0
             )
 
         logger.info(f"Created {len(handler.constraints)} standard constraints")

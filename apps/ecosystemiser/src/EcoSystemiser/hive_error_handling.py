@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_errors import BaseError
 from hive_logging import get_logger
 
@@ -11,30 +13,30 @@ This module provides backward compatibility by importing from the new core modul
 All new code should import directly from ecosystemiser.core.errors.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 # Import everything from the new core module
 from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Profile errors; Solver errors; Component errors; Database errors; Event bus errors; Error reporter
-    ComponentConnectionError,
-    ComponentError,
-    ComponentValidationError,
-    DatabaseConnectionError,
-    DatabaseError,
-    DatabaseTransactionError,
-    EcoSystemiserError,
-    EcoSystemiserErrorReporter,
-    EventBusError,
-    EventPublishError,
-    OptimizationInfeasibleError,
-    ProfileError,
-    ProfileLoadError,
-    ProfileValidationError,
-    SimulationConfigError,
-    SimulationError,
-    SimulationExecutionError,
-    SolverConvergenceError,
-    SolverError,
-    get_error_reporter,
+    ComponentConnectionError
+    ComponentError
+    ComponentValidationError
+    DatabaseConnectionError
+    DatabaseError
+    DatabaseTransactionError
+    EcoSystemiserError
+    EcoSystemiserErrorReporter
+    EventBusError
+    EventPublishError
+    OptimizationInfeasibleError
+    ProfileError
+    ProfileLoadError
+    ProfileValidationError
+    SimulationConfigError
+    SimulationError
+    SimulationExecutionError
+    SolverConvergenceError
+    SolverError
+    get_error_reporter
 )
 
 # Legacy aliases for common patterns
@@ -48,7 +50,7 @@ TimeoutError = SolverConvergenceError
 class ValidationError(BaseError):
     """Legacy ValidationError with field parameter support"""
 
-    def __init__(self, message: str, field: Optional[str] = None, **kwargs) -> None:
+    def __init__(self, message: str, field: str | None = None, **kwargs) -> None:
         # Map 'field' to 'parameter_name' for compatibility
         if field is not None:
             kwargs["parameter_name"] = field
@@ -56,9 +58,9 @@ class ValidationError(BaseError):
 
 
 def handle_error(
-    error: Exception,
-    context: Optional[str] = None,
-    additional_info: Optional[Dict[str, Any]] = None,
+    error: Exception
+    context: str | None = None
+    additional_info: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Legacy handle_error function"""
     return get_error_reporter().report_error(error, context, additional_info)
@@ -67,31 +69,31 @@ def handle_error(
 # Export main components
 __all__ = [
     # New core classes
-    "EcoSystemiserError",
-    "SimulationError",
-    "SimulationConfigError",
-    "SimulationExecutionError",
-    "ProfileError",
-    "ProfileLoadError",
-    "ProfileValidationError",
-    "SolverError",
-    "OptimizationInfeasibleError",
-    "SolverConvergenceError",
-    "ComponentError",
-    "ComponentConnectionError",
-    "ComponentValidationError",
-    "DatabaseError",
-    "DatabaseConnectionError",
-    "DatabaseTransactionError",
-    "EventBusError",
-    "EventPublishError",
-    "EcoSystemiserErrorReporter",
-    "get_error_reporter",
+    "EcoSystemiserError"
+    "SimulationError"
+    "SimulationConfigError"
+    "SimulationExecutionError"
+    "ProfileError"
+    "ProfileLoadError"
+    "ProfileValidationError"
+    "SolverError"
+    "OptimizationInfeasibleError"
+    "SolverConvergenceError"
+    "ComponentError"
+    "ComponentConnectionError"
+    "ComponentValidationError"
+    "DatabaseError"
+    "DatabaseConnectionError"
+    "DatabaseTransactionError"
+    "EventBusError"
+    "EventPublishError"
+    "EcoSystemiserErrorReporter"
+    "get_error_reporter"
     # Legacy aliases
-    "BaseError",
-    "ValidationError",
-    "ConfigurationError",
-    "ResourceError",
-    "TimeoutError",
-    "handle_error",
+    "BaseError"
+    "ValidationError"
+    "ConfigurationError"
+    "ResourceError"
+    "TimeoutError"
+    "handle_error"
 ]

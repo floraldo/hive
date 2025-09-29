@@ -8,25 +8,27 @@ This service provides:
 - Integration with V4.0 async infrastructure
 - Proper timeout handling and resource management
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, ListTuple
 
 import yaml
 from ecosystemiser.component_data.repository import ComponentRepository
 from ecosystemiser.profile_loader import ClimateRequest
 from ecosystemiser.profile_loader.climate import (
-    create_climate_service,
-    get_profile_async,
+    create_climate_service
+    get_profile_async
 )
 from ecosystemiser.services.results_io import ResultsIO
 from ecosystemiser.services.simulation_service import (
-    SimulationConfig,
-    SimulationResult,
-    StageConfig,
+    SimulationConfig
+    SimulationResult
+    StageConfig
 )
 from ecosystemiser.solver.base import SolverConfig
 from ecosystemiser.solver.factory import SolverFactory
@@ -51,7 +53,7 @@ class AsyncSimulationService:
     - Proper resource management and cleanup
     """
 
-    def __init__(self, component_repo: Optional[ComponentRepository] = None) -> None:
+    def __init__(self, component_repo: ComponentRepository | None = None) -> None:
         """Initialize async simulation service.
 
         Args:
@@ -64,11 +66,11 @@ class AsyncSimulationService:
         # Performance tracking
         self.active_simulations = {}
         self.simulation_metrics = {
-            "total_simulations": 0,
-            "successful_simulations": 0,
-            "failed_simulations": 0,
-            "average_execution_time": 0.0,
-            "peak_concurrent_simulations": 0,
+            "total_simulations": 0
+            "successful_simulations": 0
+            "failed_simulations": 0
+            "average_execution_time": 0.0
+            "peak_concurrent_simulations": 0
         }
 
         # Resource management
@@ -102,7 +104,7 @@ class AsyncSimulationService:
             logger.error(f"Failed to initialize async components: {e}")
             raise
 
-    async def run_simulation_async(self, config: SimulationConfig, timeout: Optional[float] = None) -> SimulationResult:
+    async def run_simulation_async(self, config: SimulationConfig, timeout: float | None = None) -> SimulationResult:
         """Run a complete simulation asynchronously with timeout support.
 
         Args:
@@ -144,9 +146,9 @@ class AsyncSimulationService:
                 logger.error(f"Simulation {config.simulation_id} timed out after {timeout}s")
                 self.simulation_metrics["failed_simulations"] += 1
                 return SimulationResult(
-                    simulation_id=config.simulation_id,
-                    status="timeout",
-                    error=f"Simulation timed out after {timeout} seconds",
+                    simulation_id=config.simulation_id
+                    status="timeout"
+                    error=f"Simulation timed out after {timeout} seconds"
                 )
 
             except Exception as e:
@@ -190,15 +192,15 @@ class AsyncSimulationService:
         kpis = await self._calculate_kpis_async(system)
 
         return SimulationResult(
-            simulation_id=config.simulation_id,
-            status=solver_result.status,
-            results_path=results_path,
-            kpis=kpis,
+            simulation_id=config.simulation_id
+            status=solver_result.status
+            results_path=results_path
+            kpis=kpis
             solver_metrics={
-                "solve_time": solver_result.solve_time,
-                "iterations": solver_result.iterations,
-                "objective_value": solver_result.objective_value,
-            },
+                "solve_time": solver_result.solve_time
+                "iterations": solver_result.iterations
+                "objective_value": solver_result.objective_value
+            }
         )
 
     async def _run_staged_simulation_async(self, config: SimulationConfig) -> SimulationResult:
@@ -275,16 +277,16 @@ class AsyncSimulationService:
             all_success = all(r.get("status") == "optimal" for r in stage_results if isinstance(r, dict))
 
             return SimulationResult(
-                simulation_id=config.simulation_id,
-                status="optimal" if all_success else "feasible",
-                results_path=Path(config.output_config.get("directory", "outputs")),
-                kpis=aggregated_kpis,
+                simulation_id=config.simulation_id
+                status="optimal" if all_success else "feasible"
+                results_path=Path(config.output_config.get("directory", "outputs"))
+                kpis=aggregated_kpis
                 solver_metrics={
-                    "solve_time": total_solve_time,
-                    "stages": stage_results,
-                    "iterations": len(config.stages),
-                    "parallel_groups": len(execution_groups),
-                },
+                    "solve_time": total_solve_time
+                    "stages": stage_results
+                    "iterations": len(config.stages)
+                    "parallel_groups": len(execution_groups)
+                }
             )
 
         except Exception as e:
@@ -356,11 +358,11 @@ class AsyncSimulationService:
         return stage_groups
 
     async def _execute_single_stage_async(
-        self,
-        stage: StageConfig,
-        config: SimulationConfig,
-        base_profiles: Dict[str, Any],
-        intermediate_profiles: Dict[str, Any],
+        self
+        stage: StageConfig
+        config: SimulationConfig
+        base_profiles: Dict[str, Any]
+        intermediate_profiles: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Execute a single stage asynchronously.
 
@@ -391,11 +393,11 @@ class AsyncSimulationService:
 
         # Build and solve this stage's system
         stage_config = SimulationConfig(
-            simulation_id=f"{config.simulation_id}_{stage.stage_name}",
-            system_config_path=stage.system_config_path,
-            solver_type=stage.solver_type,
-            solver_config=config.solver_config,
-            output_config=config.output_config,
+            simulation_id=f"{config.simulation_id}_{stage.stage_name}"
+            system_config_path=stage.system_config_path
+            solver_type=stage.solver_type
+            solver_config=config.solver_config
+            output_config=config.output_config
         )
 
         # Build system for this stage
@@ -411,10 +413,10 @@ class AsyncSimulationService:
         await self._save_results_async(stage_system, stage_config, stage_solver_result)
 
         return {
-            "stage_name": stage.stage_name,
-            "status": stage_solver_result.status,
-            "solve_time": stage_solver_result.solve_time,
-            "kpis": stage_kpis,
+            "stage_name": stage.stage_name
+            "status": stage_solver_result.status
+            "solve_time": stage_solver_result.solve_time
+            "kpis": stage_kpis
             "system": stage_system,  # Keep reference for output extraction
         }
 
@@ -623,15 +625,15 @@ class AsyncSimulationService:
         output_format = output_config.get("format", "json")
 
         return self.results_io.save_results(
-            system,
-            config.simulation_id,
-            output_dir,
-            output_format,
+            system
+            config.simulation_id
+            output_dir
+            output_format
             metadata={
-                "solver_type": config.solver_type,
-                "solver_status": solver_result.status,
-                "solve_time": solver_result.solve_time,
-            },
+                "solver_type": config.solver_type
+                "solver_status": solver_result.status
+                "solve_time": solver_result.solve_time
+            }
         )
 
     async def _calculate_kpis_async(self, system: System) -> Dict[str, float]:
@@ -700,7 +702,7 @@ class AsyncSimulationService:
         ) / total_sims
 
     async def run_batch_simulations_async(
-        self, configs: List[SimulationConfig], max_concurrent: Optional[int] = None
+        self, configs: List[SimulationConfig], max_concurrent: int | None = None
     ) -> List[SimulationResult]:
         """Run multiple simulations concurrently with controlled parallelism.
 
@@ -732,9 +734,9 @@ class AsyncSimulationService:
             if isinstance(result, Exception):
                 final_results.append(
                     SimulationResult(
-                        simulation_id=configs[i].simulation_id,
-                        status="error",
-                        error=f"Batch execution failed: {result}",
+                        simulation_id=configs[i].simulation_id
+                        status="error"
+                        error=f"Batch execution failed: {result}"
                     )
                 )
             else:
@@ -780,9 +782,9 @@ class AsyncSimulationService:
             Dictionary of performance metrics
         """
         return {
-            **self.simulation_metrics,
-            "active_simulations": len(self.active_simulations),
-            "max_concurrent_simulations": self.max_concurrent_simulations,
+            **self.simulation_metrics
+            "active_simulations": len(self.active_simulations)
+            "max_concurrent_simulations": self.max_concurrent_simulations
         }
 
     async def shutdown_async(self) -> None:

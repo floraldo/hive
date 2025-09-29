@@ -1,12 +1,14 @@
 """
 Database adapter for AI Reviewer to interact with Hive Core DB
 """
+from __future__ import annotations
+
 
 import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import hive_db as hive_core_db
 from hive_logging import get_logger
@@ -147,7 +149,7 @@ class DatabaseAdapter:
             logger.error(f"Error fetching test results for task {task_id}: {e}")
             return None
 
-    def get_task_transcript(self, task_id: str) -> Optional[str]:
+    def get_task_transcript(self, task_id: str) -> str | None:
         """
         Retrieve conversation transcript for a task
 
@@ -206,9 +208,9 @@ class DatabaseAdapter:
 
             # Update task status with metadata
             metadata = {
-                "review": review_data,
-                "review_timestamp": datetime.now().isoformat(),
-                "reviewed_by": "ai-reviewer",
+                "review": review_data
+                "review_timestamp": datetime.now().isoformat()
+                "reviewed_by": "ai-reviewer"
             }
 
             # Store escalation details if present
@@ -219,9 +221,9 @@ class DatabaseAdapter:
 
             # Add tracking info
             metadata["last_review"] = {
-                "status": new_status,
-                "timestamp": datetime.now().isoformat(),
-                "score": review_data.get("overall_score", 0),
+                "status": new_status
+                "timestamp": datetime.now().isoformat()
+                "score": review_data.get("overall_score", 0)
             }
 
             success = hive_core_db.update_task_status(task_id, new_status, metadata)
@@ -334,12 +336,12 @@ class DatabaseAdapter:
                 pending = session.query(Task).filter(Task.status == TaskStatus.REVIEW_PENDING).count()
 
                 return {
-                    "total_reviewed": total_reviewed,
-                    "approved": approved,
-                    "rejected": rejected,
-                    "rework_needed": rework,
-                    "pending_review": pending,
-                    "approval_rate": ((approved / total_reviewed * 100) if total_reviewed > 0 else 0),
+                    "total_reviewed": total_reviewed
+                    "approved": approved
+                    "rejected": rejected
+                    "rework_needed": rework
+                    "pending_review": pending
+                    "approval_rate": ((approved / total_reviewed * 100) if total_reviewed > 0 else 0)
                 }
 
         except Exception as e:

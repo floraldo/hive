@@ -196,10 +196,10 @@ class PlatformTestEnvironment:
                 if process.poll() is None:
                     process.terminate()
                     process.wait(timeout=5)
-            except:
+            except (subprocess.TimeoutExpired, ProcessLookupError, OSError):
                 try:
                     process.kill()
-                except:
+                except (ProcessLookupError, OSError):
                     pass
 
         # Run cleanup functions

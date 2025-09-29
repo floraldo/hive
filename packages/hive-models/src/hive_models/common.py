@@ -4,9 +4,11 @@ Common shared models used across multiple Hive applications.
 These models represent common concepts and data structures that are
 used throughout the platform.
 """
+from __future__ import annotations
+
 
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 from datetime import datetime
 
 from pydantic import Field, field_validator
@@ -51,16 +53,16 @@ class ExecutionResult(BaseModel):
     """Result of executing an operation or task."""
 
     success: bool = Field(description="Whether the execution succeeded")
-    message: Optional[str] = Field(default=None, description="Human-readable message about the execution")
+    message: str | None = Field(default=None, description="Human-readable message about the execution")
     data: Optional[Dict[str, Any]] = Field(default=None, description="Any data returned from the execution")
-    error: Optional[str] = Field(default=None, description="Error message if execution failed")
+    error: str | None = Field(default=None, description="Error message if execution failed")
     error_details: Optional[Dict[str, Any]] = Field(
         default=None, description="Detailed error information for debugging"
     )
-    duration_ms: Optional[float] = Field(default=None, description="Execution duration in milliseconds")
+    duration_ms: float | None = Field(default=None, description="Execution duration in milliseconds")
 
     @field_validator("error")
-    def validate_error_consistency(cls, v: Optional[str], values: Dict[str, Any]) -> Optional[str]:
+    def validate_error_consistency(cls, v: str | None, values: Dict[str, Any]) -> str | None:
         """Ensure error is only set when success is False."""
         if v and values.get("success", True):
             raise ValueError("Error cannot be set when success is True")
@@ -73,12 +75,12 @@ class ResourceMetrics(BaseModel):
     cpu_percent: float = Field(ge=0, le=100, description="CPU usage percentage")
     memory_mb: float = Field(ge=0, description="Memory usage in megabytes")
     memory_percent: float = Field(ge=0, le=100, description="Memory usage percentage")
-    disk_io_read_mb: Optional[float] = Field(default=None, ge=0, description="Disk I/O read in megabytes")
-    disk_io_write_mb: Optional[float] = Field(default=None, ge=0, description="Disk I/O write in megabytes")
-    network_sent_mb: Optional[float] = Field(default=None, ge=0, description="Network data sent in megabytes")
-    network_recv_mb: Optional[float] = Field(default=None, ge=0, description="Network data received in megabytes")
-    open_connections: Optional[int] = Field(default=None, ge=0, description="Number of open network connections")
-    thread_count: Optional[int] = Field(default=None, ge=0, description="Number of active threads")
+    disk_io_read_mb: float | None = Field(default=None, ge=0, description="Disk I/O read in megabytes")
+    disk_io_write_mb: float | None = Field(default=None, ge=0, description="Disk I/O write in megabytes")
+    network_sent_mb: float | None = Field(default=None, ge=0, description="Network data sent in megabytes")
+    network_recv_mb: float | None = Field(default=None, ge=0, description="Network data received in megabytes")
+    open_connections: int | None = Field(default=None, ge=0, description="Number of open network connections")
+    thread_count: int | None = Field(default=None, ge=0, description="Number of active threads")
 
 
 class HealthStatus(BaseModel, TimestampMixin):
@@ -87,9 +89,9 @@ class HealthStatus(BaseModel, TimestampMixin):
     component: str = Field(description="Name of the component or service")
     healthy: bool = Field(description="Whether the component is healthy")
     status: Status = Field(default=Status.PENDING, description="Current status of the component")
-    message: Optional[str] = Field(default=None, description="Additional health information")
+    message: str | None = Field(default=None, description="Additional health information")
     checks: Dict[str, bool] = Field(default_factory=dict, description="Individual health check results")
-    metrics: Optional[ResourceMetrics] = Field(default=None, description="Resource usage metrics")
+    metrics: ResourceMetrics | None = Field(default=None, description="Resource usage metrics")
     last_check: datetime = Field(default_factory=datetime.utcnow, description="When health was last checked")
 
     @property
@@ -109,7 +111,7 @@ class Configuration(BaseModel):
     name: str = Field(description="Configuration name or identifier")
     version: str = Field(default="1.0.0", description="Configuration version")
     values: Dict[str, Any] = Field(default_factory=dict, description="Configuration key-value pairs")
-    environment: Optional[Environment] = Field(default=None, description="Target environment for this configuration")
+    environment: Environment | None = Field(default=None, description="Target environment for this configuration")
     encrypted_values: List[str] = Field(default_factory=list, description="List of keys that contain encrypted values")
 
     def get(self, key: str, default: Any = None) -> Any:

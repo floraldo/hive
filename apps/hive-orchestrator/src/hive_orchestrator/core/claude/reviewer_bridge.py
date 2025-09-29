@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -7,7 +9,7 @@ Specialized Claude Bridge for AI Code Review
 """
 
 import json
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal
 
 from pydantic import BaseModel, Field
 
@@ -49,31 +51,31 @@ class ReviewResponseValidator(PydanticValidator):
         task_description = context.get("task_description", "Unknown task")
 
         return ClaudeReviewResponse(
-            decision="escalate",
-            summary=f"Escalated: {error_message}",
-            issues=[error_message],
-            suggestions=["Manual review required"],
-            quality_score=0,
-            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
-            confidence=0.0,
+            decision="escalate"
+            summary=f"Escalated: {error_message}"
+            issues=[error_message]
+            suggestions=["Manual review required"]
+            quality_score=0
+            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0)
+            confidence=0.0
         )
 
 
 class ClaudeReviewerBridge(BaseClaludeBridge):
     """Specialized Claude bridge for AI code review tasks"""
 
-    def __init__(self, config: Optional[ClaudeBridgeConfig] = None) -> None:
+    def __init__(self, config: ClaudeBridgeConfig | None = None) -> None:
         super().__init__(config)
         self.validator = ReviewResponseValidator()
 
     def review_code(
-        self,
-        task_id: str,
-        task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
-        transcript: Optional[str] = None,
+        self
+        task_id: str
+        task_description: str
+        code_files: Dict[str, str]
+        test_results: Optional[Dict[str, Any]] = None
+        objective_analysis: Optional[Dict[str, Any]] = None
+        transcript: str | None = None
     ) -> Dict[str, Any]:
         """
         Perform robust code review with drift-resilient JSON contract
@@ -92,21 +94,21 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         prompt = self._create_review_prompt(task_description, code_files, test_results, objective_analysis, transcript)
 
         context = {
-            "task_id": task_id,
-            "task_description": task_description,
-            "code_files": code_files,
-            "test_results": test_results,
+            "task_id": task_id
+            "task_description": task_description
+            "code_files": code_files
+            "test_results": test_results
         }
 
         return self.call_claude(prompt, validator=self.validator, context=context)
 
     def _create_review_prompt(
-        self,
-        task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]],
-        objective_analysis: Optional[Dict[str, Any]],
-        transcript: Optional[str],
+        self
+        task_description: str
+        code_files: Dict[str, str]
+        test_results: Optional[Dict[str, Any]]
+        objective_analysis: Optional[Dict[str, Any]]
+        transcript: str | None
     ) -> str:
         """Create comprehensive review prompt for Claude"""
 
@@ -138,18 +140,18 @@ Code Files:
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
 {{
-  "decision": "approve" or "reject" or "rework" or "escalate",
-  "summary": "One sentence summary of your review",
-  "issues": ["List of specific issues found", "Or empty list if none"],
-  "suggestions": ["List of improvement suggestions", "Or empty list if none"],
-  "quality_score": 75,
+  "decision": "approve" or "reject" or "rework" or "escalate"
+  "summary": "One sentence summary of your review"
+  "issues": ["List of specific issues found", "Or empty list if none"]
+  "suggestions": ["List of improvement suggestions", "Or empty list if none"]
+  "quality_score": 75
   "metrics": {{
-    "code_quality": 80,
-    "security": 85,
-    "testing": 70,
-    "architecture": 75,
+    "code_quality": 80
+    "security": 85
+    "testing": 70
+    "architecture": 75
     "documentation": 60
-  }},
+  }}
   "confidence": 0.8
 }}
 
@@ -199,37 +201,37 @@ Respond with ONLY the JSON object, no other text."""
         quality_score = quality_scores.get(decision, 50)
 
         return ClaudeReviewResponse(
-            decision=decision,
-            summary=summary,
-            issues=issues,
-            suggestions=suggestions,
-            quality_score=quality_score,
+            decision=decision
+            summary=summary
+            issues=issues
+            suggestions=suggestions
+            quality_score=quality_score
             metrics=ReviewMetrics(
-                code_quality=quality_score,
-                security=quality_score - 5,
-                testing=quality_score - 10,
-                architecture=quality_score,
-                documentation=quality_score - 15,
-            ),
+                code_quality=quality_score
+                security=quality_score - 5
+                testing=quality_score - 10
+                architecture=quality_score
+                documentation=quality_score - 15
+            )
             confidence=0.5,  # Lower confidence for parsed responses
         )
 
     def _create_mock_response(self, prompt: str) -> str:
         """Create a mock response for testing"""
         mock_review = ClaudeReviewResponse(
-            decision="approve" if "test" in prompt.lower() else "rework",
-            summary="Mock review for testing purposes",
-            issues=[] if "good" in prompt.lower() else ["Mock issue found"],
-            suggestions=["Mock suggestion for improvement"],
-            quality_score=75,
+            decision="approve" if "test" in prompt.lower() else "rework"
+            summary="Mock review for testing purposes"
+            issues=[] if "good" in prompt.lower() else ["Mock issue found"]
+            suggestions=["Mock suggestion for improvement"]
+            quality_score=75
             metrics=ReviewMetrics(
-                code_quality=80,
-                security=85,
-                testing=70,
-                architecture=75,
-                documentation=65,
-            ),
-            confidence=0.9,
+                code_quality=80
+                security=85
+                testing=70
+                architecture=75
+                documentation=65
+            )
+            confidence=0.9
         )
         return json.dumps(mock_review.dict())
 

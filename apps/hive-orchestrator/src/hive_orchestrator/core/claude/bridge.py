@@ -2,21 +2,23 @@
 Unified Claude CLI Bridge
 Central implementation for all Claude API interactions
 """
+from __future__ import annotations
+
 
 import os
 import subprocess
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_logging import get_logger
 
 from .exceptions import (
-    ClaudeNotFoundError,
-    ClaudeResponseError,
-    ClaudeTimeoutError,
-    ClaudeValidationError,
+    ClaudeNotFoundError
+    ClaudeResponseError
+    ClaudeTimeoutError
+    ClaudeValidationError
 )
 from .json_parser import JsonExtractionStrategy, JsonExtractor
 from .validators import BaseResponseValidator
@@ -43,7 +45,7 @@ class BaseClaludeBridge(ABC):
     Provides common functionality for finding and calling Claude
     """
 
-    def __init__(self, config: Optional[ClaudeBridgeConfig] = None) -> None:
+    def __init__(self, config: ClaudeBridgeConfig | None = None) -> None:
         """
         Initialize the bridge
 
@@ -62,7 +64,7 @@ class BaseClaludeBridge(ABC):
             if not self.claude_cmd and not self.config.fallback_enabled:
                 raise ClaudeNotFoundError("Claude CLI not found and fallback disabled")
 
-    def _find_claude_cmd(self) -> Optional[str]:
+    def _find_claude_cmd(self) -> str | None:
         """
         Find Claude CLI command on the system
 
@@ -71,14 +73,14 @@ class BaseClaludeBridge(ABC):
         """
         # Check common locations
         possible_paths = [
-            Path.home() / ".npm-global" / "claude.cmd",
-            Path.home() / ".npm-global" / "claude",
+            Path.home() / ".npm-global" / "claude.cmd"
+            Path.home() / ".npm-global" / "claude"
             Path.home() / "AppData" / "Roaming" / "npm" / "claude.cmd",  # Windows npm global
-            Path.home() / "AppData" / "Roaming" / "npm" / "claude",
+            Path.home() / "AppData" / "Roaming" / "npm" / "claude"
             Path("/usr/local/bin/claude"),  # macOS/Linux system install
-            Path("/usr/bin/claude"),
-            Path("claude.cmd"),
-            Path("claude"),
+            Path("/usr/bin/claude")
+            Path("claude.cmd")
+            Path("claude")
         ]
 
         for path in possible_paths:
@@ -140,10 +142,10 @@ class BaseClaludeBridge(ABC):
                 logger.debug(f"Executing Claude command: {' '.join(cmd[:2])}...")
 
             result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.config.timeout,
+                cmd
+                capture_output=True
+                text=True
+                timeout=self.config.timeout
             )
 
             if result.returncode != 0:
@@ -163,11 +165,11 @@ class BaseClaludeBridge(ABC):
             raise ClaudeResponseError(error_msg)
 
     def call_claude(
-        self,
-        prompt: str,
-        validator: Optional[BaseResponseValidator] = None,
-        extraction_strategies: Optional[List[JsonExtractionStrategy]] = None,
-        context: Optional[Dict[str, Any]] = None,
+        self
+        prompt: str
+        validator: BaseResponseValidator | None = None
+        extraction_strategies: Optional[List[JsonExtractionStrategy]] = None
+        context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Call Claude and get validated response
@@ -211,10 +213,10 @@ class BaseClaludeBridge(ABC):
             raise
 
     def call_claude_with_retry(
-        self,
-        prompt: str,
-        validator: Optional[BaseResponseValidator] = None,
-        context: Optional[Dict[str, Any]] = None,
+        self
+        prompt: str
+        validator: BaseResponseValidator | None = None
+        context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Call Claude with retry logic

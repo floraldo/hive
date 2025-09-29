@@ -4,11 +4,13 @@ Production-ready job management with Redis backend.
 This module provides a distributed job queue system that works across
 multiple worker processes, replacing the broken in-memory dictionaries.
 """
+from __future__ import annotations
+
 
 import json
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_config import load_config_for_app
 from hive_logging import get_logger
@@ -43,7 +45,7 @@ class JobManager:
     production environments.
     """
 
-    def __init__(self, redis_url: Optional[str] = None, ttl_hours: int = 24) -> None:
+    def __init__(self, redis_url: str | None = None, ttl_hours: int = 24) -> None:
         """
         Initialize job manager.
 
@@ -87,14 +89,14 @@ class JobManager:
         job_id = str(uuid.uuid4())
 
         job_data = {
-            "id": job_id,
-            "status": JobStatus.PENDING,
-            "created_at": datetime.utcnow().isoformat(),
-            "request": request_data,
-            "result": None,
-            "error": None,
-            "progress": 0,
-            "updated_at": datetime.utcnow().isoformat(),
+            "id": job_id
+            "status": JobStatus.PENDING
+            "created_at": datetime.utcnow().isoformat()
+            "request": request_data
+            "result": None
+            "error": None
+            "progress": 0
+            "updated_at": datetime.utcnow().isoformat()
         }
 
         if self.redis:
@@ -131,12 +133,12 @@ class JobManager:
         return None
 
     def update_job_status(
-        self,
-        job_id: str,
-        status: str,
-        result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
-        progress: Optional[int] = None,
+        self
+        job_id: str
+        status: str
+        result: Optional[Dict[str, Any]] = None
+        error: str | None = None
+        progress: int | None = None
     ) -> bool:
         """
         Update job status and optionally set result or error.
@@ -177,7 +179,7 @@ class JobManager:
         logger.info(f"Updated job {job_id}: status={status}, progress={progress}")
         return True
 
-    def get_job_status(self, job_id: str) -> Optional[str]:
+    def get_job_status(self, job_id: str) -> str | None:
         """
         Get just the status of a job.
 
@@ -190,7 +192,7 @@ class JobManager:
         job_data = self.get_job(job_id)
         return job_data["status"] if job_data else None
 
-    def list_jobs(self, status: Optional[str] = None, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
+    def list_jobs(self, status: str | None = None, limit: int = 100, offset: int = 0) -> List[Dict[str, Any]]:
         """
         List jobs, optionally filtered by status.
 

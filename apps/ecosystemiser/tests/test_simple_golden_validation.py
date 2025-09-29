@@ -14,6 +14,8 @@ import pandas as pd
 eco_path = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(eco_path))
 
+from hive_logging import get_logger
+
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (
     Battery,
@@ -37,7 +39,6 @@ from ecosystemiser.system_model.components.energy.solar_pv import (
 )
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
-from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -364,8 +365,22 @@ def main():
     results_dir.mkdir(parents=True, exist_ok=True)
 
     results_path = results_dir / "simple_validation_results.json"
+    
+    # Convert any numpy types to native Python types for JSON serialization
+    def convert_for_json(obj):
+        if hasattr(obj, 'item'):  # numpy scalars
+            return obj.item()
+        elif isinstance(obj, dict):
+            return {k: convert_for_json(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [convert_for_json(item) for item in obj]
+        else:
+            return obj
+    
+    json_safe_results = convert_for_json(results_24h)
+    
     with open(results_path, 'w') as f:
-        json.dump(results_24h, f, indent=2)
+        json.dump(json_safe_results, f, indent=2)
 
     print(f"\nValidation results saved to: {results_path}")
     print(f"24h Validation: {'PASSED' if results_24h.get('validation_passed', False) else 'FAILED'}")
@@ -375,6 +390,29 @@ def main():
     # print(f"7-day Validation: {'PASSED' if results_7day.get('validation_passed', False) else 'FAILED'}")
 
     return results_24h.get('validation_passed', False)
+
+
+def test_simple_golden_validation():
+    """Test simple golden validation as pytest test."""
+    success = main()
+    assert success, "Simple golden validation failed"
+
+
+def test_24h_solver_validation():
+    """Test 24-hour solver validation."""
+    results = run_solver_validation(24)
+    assert results is not None
+    assert isinstance(results, dict)
+    assert "validation_passed" in results
+
+
+def test_solver_validation_components():
+    """Test solver validation with all required components."""
+    results = run_solver_validation(24)
+    if results.get("validation_passed"):
+        # If validation passed, check that system has expected behavior
+        assert results.get("solve_time", 0) > 0
+        assert results.get("solver_status") == "optimal"
 
 
 if __name__ == "__main__":

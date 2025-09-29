@@ -1,7 +1,7 @@
 """Base solver abstract class for all solver implementations."""
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from hive_logging import get_logger
 from pydantic import BaseModel
@@ -27,7 +27,7 @@ class SolverResult(BaseModel):
     """Result structure from solver execution."""
 
     status: str  # "optimal", "infeasible", "error"
-    objective_value: Optional[float] = None
+    objective_value: float | None = None
     solve_time: float
     iterations: int = 0
     message: str = ""
@@ -36,7 +36,7 @@ class SolverResult(BaseModel):
 class BaseSolver(ABC):
     """Abstract base class for all system solvers."""
 
-    def __init__(self, system, config: Optional[SolverConfig] = None) -> None:
+    def __init__(self, system, config: SolverConfig | None = None) -> None:
         """Initialize solver with system and configuration.
 
         Args:
@@ -60,7 +60,7 @@ class BaseSolver(ABC):
     def prepare_system(self) -> None:
         """Prepare the system for solving.
 
-        This method should handle any solver-specific initialization,
+        This method should handle any solver-specific initialization
         such as creating optimization variables or initializing arrays.
         """
         pass

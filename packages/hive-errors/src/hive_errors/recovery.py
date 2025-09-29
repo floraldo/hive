@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 
 from hive_logging import get_logger
@@ -13,7 +15,7 @@ to build resilient systems.
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 
 class RecoveryStatus(Enum):
@@ -39,7 +41,7 @@ class RecoveryStrategy(ABC):
         self.attempt_count = 0
 
     @abstractmethod
-    def attempt_recovery(self, error: Exception, context: Optional[dict] = None) -> RecoveryStatus:
+    def attempt_recovery(self, error: Exception, context: dict | None = None) -> RecoveryStatus:
         """
         Attempt recovery from an error.
 
@@ -69,7 +71,7 @@ class RetryStrategy(RecoveryStrategy):
         self.operation = operation
         self.delay_seconds = delay_seconds
 
-    def attempt_recovery(self, error: Exception, context: Optional[dict] = None) -> RecoveryStatus:
+    def attempt_recovery(self, error: Exception, context: dict | None = None) -> RecoveryStatus:
         """Attempt recovery by retrying the operation"""
         import time
 
@@ -81,7 +83,7 @@ class RetryStrategy(RecoveryStrategy):
         try:
             # Wait before retry
             if self.delay_seconds > 0:
-                await asyncio.sleep(self.delay_seconds)
+                time.sleep(self.delay_seconds)
 
             # Retry the operation
             self.operation()

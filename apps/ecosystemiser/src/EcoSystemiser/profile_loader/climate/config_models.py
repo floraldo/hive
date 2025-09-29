@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -10,9 +12,6 @@ Extracted to avoid circular dependencies between settings.py and base.py.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
-
-
 class RateLimitStrategy(Enum):
     """Rate limiting strategies"""
 
@@ -45,7 +44,7 @@ class CacheConfig:
     memory_ttl: int = 3600  # seconds
     cache_dir: str = "/tmp/ecosystemiser_cache"
     disk_ttl: int = 86400  # seconds
-    redis_url: Optional[str] = None
+    redis_url: str | None = None
     redis_ttl: int = 7200  # seconds
 
 
@@ -54,7 +53,7 @@ class RateLimitConfig:
     """Rate limiting configuration"""
 
     requests_per_minute: int = 60
-    requests_per_hour: Optional[int] = None
-    requests_per_day: Optional[int] = None
+    requests_per_hour: int | None = None
+    requests_per_day: int | None = None
     burst_size: int = 10
     strategy: RateLimitStrategy = RateLimitStrategy.TOKEN_BUCKET

@@ -384,6 +384,32 @@ def main():
     return results.get("validation_passed", False)
 
 
+def test_milp_validation():
+    """Test MILP validation as pytest test."""
+    success = main()
+    assert success, "MILP validation failed"
+
+
+def test_milp_optimization_system_creation():
+    """Test creation of optimization test system."""
+    system = create_optimization_test_system()
+    assert system is not None
+    assert len(system.components) == 4
+    assert "Battery" in system.components
+    assert "Grid" in system.components
+
+
+def test_operational_cost_calculation():
+    """Test operational cost calculation function."""
+    system = create_optimization_test_system()
+    # Run solver to generate flows
+    solver = RuleBasedEngine(system)
+    solver.solve()
+    cost = calculate_operational_cost(system)
+    assert isinstance(cost, float)
+    assert cost != 0.0  # Should have some cost
+
+
 if __name__ == "__main__":
     success = main()
     exit(0 if success else 1)

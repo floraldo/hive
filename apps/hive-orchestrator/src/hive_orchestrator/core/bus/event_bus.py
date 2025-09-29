@@ -5,20 +5,22 @@ Provides a database-backed event bus for reliable inter-agent communication.
 The bus makes the implicit choreography pattern explicit and adds full
 event history for debugging and replay capabilities.
 """
+from __future__ import annotations
+
 
 import json
 import sqlite3
 import threading
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 from hive_db import get_sqlite_connection
 from hive_logging import get_logger
 from hive_orchestrator.core.errors.hive_exceptions import (
-    EventBusError,
-    EventPublishError,
-    EventSubscribeError,
+    EventBusError
+    EventPublishError
+    EventSubscribeError
 )
 
 # Async imports for Phase 4.1
@@ -69,13 +71,13 @@ class EventBus:
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS events (
-                    event_id TEXT PRIMARY KEY,
-                    event_type TEXT NOT NULL,
-                    timestamp TEXT NOT NULL,
-                    source_agent TEXT NOT NULL,
-                    correlation_id TEXT,
-                    payload TEXT NOT NULL,
-                    metadata TEXT NOT NULL,
+                    event_id TEXT PRIMARY KEY
+                    event_type TEXT NOT NULL
+                    timestamp TEXT NOT NULL
+                    source_agent TEXT NOT NULL
+                    correlation_id TEXT
+                    payload TEXT NOT NULL
+                    metadata TEXT NOT NULL
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
@@ -85,11 +87,11 @@ class EventBus:
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS event_subscriptions (
-                    subscription_id TEXT PRIMARY KEY,
-                    event_pattern TEXT NOT NULL,
-                    subscriber_agent TEXT NOT NULL,
-                    callback_info TEXT,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    subscription_id TEXT PRIMARY KEY
+                    event_pattern TEXT NOT NULL
+                    subscriber_agent TEXT NOT NULL
+                    callback_info TEXT
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     active INTEGER DEFAULT 1
                 )
             """
@@ -119,7 +121,7 @@ class EventBus:
 
             conn.commit()
 
-    def publish(self, event: Union[Event, Dict[str, Any]], correlation_id: Optional[str] = None) -> str:
+    def publish(self, event: Union[Event, Dict[str, Any]], correlation_id: str | None = None) -> str:
         """
         Publish an event to the bus
 
@@ -148,19 +150,19 @@ class EventBus:
                 cursor.execute(
                     """
                     INSERT INTO events (
-                        event_id, event_type, timestamp, source_agent,
+                        event_id, event_type, timestamp, source_agent
                         correlation_id, payload, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                """,
+                """
                     (
-                        event.event_id,
-                        event.event_type,
-                        event.timestamp.isoformat(),
-                        event.source_agent,
-                        event.correlation_id,
-                        json.dumps(event.payload),
-                        json.dumps(event.metadata),
-                    ),
+                        event.event_id
+                        event.event_type
+                        event.timestamp.isoformat()
+                        event.source_agent
+                        event.correlation_id
+                        json.dumps(event.payload)
+                        json.dumps(event.metadata)
+                    )
                 )
                 conn.commit()
 
@@ -174,10 +176,10 @@ class EventBus:
             raise EventPublishError(f"Failed to publish event: {e}") from e
 
     def subscribe(
-        self,
-        event_pattern: str,
-        callback: Callable[[Event], None],
-        subscriber_name: str = "anonymous",
+        self
+        event_pattern: str
+        callback: Callable[[Event], None]
+        subscriber_name: str = "anonymous"
     ) -> str:
         """
         Subscribe to events matching a pattern
@@ -192,9 +194,9 @@ class EventBus:
         """
         try:
             subscriber = EventSubscriber(
-                pattern=event_pattern,
-                callback=callback,
-                subscriber_name=subscriber_name,
+                pattern=event_pattern
+                callback=callback
+                subscriber_name=subscriber_name
             )
 
             with self._subscriber_lock:
@@ -249,12 +251,12 @@ class EventBus:
         return False
 
     def get_events(
-        self,
-        event_type: Optional[str] = None,
-        correlation_id: Optional[str] = None,
-        source_agent: Optional[str] = None,
-        since: Optional[datetime] = None,
-        limit: int = 100,
+        self
+        event_type: str | None = None
+        correlation_id: str | None = None
+        source_agent: str | None = None
+        since: datetime | None = None
+        limit: int = 100
     ) -> List[Event]:
         """
         Query events from the bus
@@ -301,13 +303,13 @@ class EventBus:
         events = []
         for row in rows:
             event_data = {
-                "event_id": row[0],
-                "event_type": row[1],
-                "timestamp": row[2],
-                "source_agent": row[3],
-                "correlation_id": row[4],
-                "payload": json.loads(row[5]) if row[5] else {},
-                "metadata": json.loads(row[6]) if row[6] else {},
+                "event_id": row[0]
+                "event_type": row[1]
+                "timestamp": row[2]
+                "source_agent": row[3]
+                "correlation_id": row[4]
+                "payload": json.loads(row[5]) if row[5] else {}
+                "metadata": json.loads(row[6]) if row[6] else {}
             }
             events.append(Event.from_dict(event_data))
 
@@ -344,19 +346,19 @@ class EventBus:
                     await conn.execute(
                         """
                         INSERT INTO events (
-                            event_id, event_type, timestamp, source_agent,
+                            event_id, event_type, timestamp, source_agent
                             correlation_id, payload, metadata
                         ) VALUES (?, ?, ?, ?, ?, ?, ?)
-                    """,
+                    """
                         (
-                            event.event_id,
-                            event.event_type,
-                            event.timestamp.isoformat(),
-                            event.source_agent,
-                            event.correlation_id,
-                            json.dumps(event.payload),
-                            json.dumps(event.metadata),
-                        ),
+                            event.event_id
+                            event.event_type
+                            event.timestamp.isoformat()
+                            event.source_agent
+                            event.correlation_id
+                            json.dumps(event.payload)
+                            json.dumps(event.metadata)
+                        )
                     )
                     await conn.commit()
 
@@ -371,11 +373,11 @@ class EventBus:
                 raise EventPublishError(f"Async event publishing failed: {e}") from e
 
         async def get_events_async(
-            self,
-            event_type: str = None,
-            correlation_id: str = None,
-            source_agent: str = None,
-            limit: int = 100,
+            self
+            event_type: str = None
+            correlation_id: str = None
+            source_agent: str = None
+            limit: int = 100
         ) -> List[Event]:
             """
             Async version of get_events for high-performance event retrieval.
@@ -416,8 +418,8 @@ class EventBus:
                         WHERE {where_sql}
                         ORDER BY timestamp DESC
                         LIMIT ?
-                    """,
-                        params,
+                    """
+                        params
                     )
 
                     rows = await cursor.fetchall()
@@ -452,8 +454,8 @@ class EventBus:
                         SELECT * FROM events
                         WHERE correlation_id = ?
                         ORDER BY timestamp ASC
-                    """,
-                        (correlation_id,),
+                    """
+                        (correlation_id,)
                     )
 
                     rows = await cursor.fetchall()
@@ -521,7 +523,7 @@ class EventBus:
 
 
 # Global event bus instance
-_event_bus: Optional[EventBus] = None
+_event_bus: EventBus | None = None
 _bus_lock = threading.Lock()
 
 

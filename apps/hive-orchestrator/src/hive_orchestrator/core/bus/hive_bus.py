@@ -7,10 +7,12 @@ Extends the generic messaging toolkit with Hive orchestration capabilities:
 - Workflow coordination
 - Hive-specific error handling
 """
+from __future__ import annotations
+
 
 import json
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from hive_bus import BaseBus, BaseEvent
 from hive_errors import BaseError
@@ -18,9 +20,9 @@ from hive_logging import get_logger
 
 from ..db.connection_pool import get_pooled_connection
 from ..errors.hive_exceptions import (
-    EventBusError,
-    EventPublishError,
-    EventSubscribeError,
+    EventBusError
+    EventPublishError
+    EventSubscribeError
 )
 from .hive_events import AgentEvent, TaskEvent, WorkflowEvent
 
@@ -57,16 +59,16 @@ class HiveEventBus(BaseBus):
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS hive_events (
-                    event_id TEXT PRIMARY KEY,
-                    event_type TEXT NOT NULL,
-                    timestamp TEXT NOT NULL,
-                    source_agent TEXT NOT NULL,
-                    correlation_id TEXT,
-                    workflow_id TEXT,
-                    task_id TEXT,
-                    agent_id TEXT,
-                    payload TEXT NOT NULL,
-                    metadata TEXT NOT NULL,
+                    event_id TEXT PRIMARY KEY
+                    event_type TEXT NOT NULL
+                    timestamp TEXT NOT NULL
+                    source_agent TEXT NOT NULL
+                    correlation_id TEXT
+                    workflow_id TEXT
+                    task_id TEXT
+                    agent_id TEXT
+                    payload TEXT NOT NULL
+                    metadata TEXT NOT NULL
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """
@@ -97,9 +99,9 @@ class HiveEventBus(BaseBus):
             conn.commit()
 
     def publish(
-        self,
-        event: Union[BaseEvent, Dict[str, Any]],
-        correlation_id: Optional[str] = None,
+        self
+        event: Union[BaseEvent, Dict[str, Any]]
+        correlation_id: str | None = None
     ) -> str:
         """
         Publish a Hive event with orchestration context.
@@ -131,23 +133,23 @@ class HiveEventBus(BaseBus):
                 cursor.execute(
                     """
                     INSERT INTO hive_events (
-                        event_id, event_type, timestamp, source_agent,
-                        correlation_id, workflow_id, task_id, agent_id,
+                        event_id, event_type, timestamp, source_agent
+                        correlation_id, workflow_id, task_id, agent_id
                         payload, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
+                """
                     (
-                        event.event_id,
-                        event.event_type,
-                        event.timestamp.isoformat(),
-                        event.source,
-                        event.correlation_id,
-                        workflow_id,
-                        task_id,
-                        agent_id,
-                        json.dumps(event.payload),
-                        json.dumps(event.metadata),
-                    ),
+                        event.event_id
+                        event.event_type
+                        event.timestamp.isoformat()
+                        event.source
+                        event.correlation_id
+                        workflow_id
+                        task_id
+                        agent_id
+                        json.dumps(event.payload)
+                        json.dumps(event.metadata)
+                    )
                 )
                 conn.commit()
 
@@ -159,10 +161,10 @@ class HiveEventBus(BaseBus):
 
         except Exception as e:
             raise EventPublishError(
-                message=f"Failed to publish Hive event: {e}",
-                component="hive-event-bus",
-                operation="publish",
-                original_error=e,
+                message=f"Failed to publish Hive event: {e}"
+                component="hive-event-bus"
+                operation="publish"
+                original_error=e
             ) from e
 
     def _create_hive_event_from_dict(self, data: Dict[str, Any]) -> BaseEvent:
@@ -191,13 +193,13 @@ class HiveEventBus(BaseBus):
         return self._get_hive_events(agent_id=agent_id, limit=limit)
 
     def _get_hive_events(
-        self,
-        event_type: Optional[str] = None,
-        correlation_id: Optional[str] = None,
-        workflow_id: Optional[str] = None,
-        task_id: Optional[str] = None,
-        agent_id: Optional[str] = None,
-        limit: int = 100,
+        self
+        event_type: str | None = None
+        correlation_id: str | None = None
+        workflow_id: str | None = None
+        task_id: str | None = None
+        agent_id: str | None = None
+        limit: int = 100
     ) -> List[BaseEvent]:
         """Query Hive events with orchestration filters"""
         query_parts = ["SELECT * FROM hive_events WHERE 1=1"]
@@ -236,13 +238,13 @@ class HiveEventBus(BaseBus):
         events = []
         for row in rows:
             event_data = {
-                "event_id": row[0],
-                "event_type": row[1],
-                "timestamp": row[2],
-                "source": row[3],
-                "correlation_id": row[4],
-                "payload": json.loads(row[7]) if row[7] else {},
-                "metadata": json.loads(row[8]) if row[8] else {},
+                "event_id": row[0]
+                "event_type": row[1]
+                "timestamp": row[2]
+                "source": row[3]
+                "correlation_id": row[4]
+                "payload": json.loads(row[7]) if row[7] else {}
+                "metadata": json.loads(row[8]) if row[8] else {}
             }
 
             # Add Hive-specific fields
@@ -266,7 +268,7 @@ class HiveEventBus(BaseBus):
 
 
 # Global Hive event bus instance
-_hive_event_bus: Optional[HiveEventBus] = None
+_hive_event_bus: HiveEventBus | None = None
 
 
 def get_hive_event_bus() -> HiveEventBus:

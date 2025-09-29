@@ -4,16 +4,18 @@ Unified profile service factory and interface.
 This module provides a single entry point for all profile services
 (climate, demand, etc.) using the unified interface.
 """
+from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Type
+
+from typing import Any, Dict, ListType
 
 from ecosystemiser.profile_loader.climate.data_models import ClimateRequest
 from ecosystemiser.profile_loader.climate.service import ClimateService
 from ecosystemiser.profile_loader.demand.models import DemandRequest
 from ecosystemiser.profile_loader.demand.service import DemandService
 from ecosystemiser.profile_loader.shared.models import (
-    BaseProfileRequest,
-    BaseProfileResponse,
+    BaseProfileRequest
+    BaseProfileResponse
 )
 from ecosystemiser.profile_loader.shared.service import BaseProfileService
 from ecosystemiser.settings import get_settings
@@ -62,7 +64,7 @@ class UnifiedProfileService:
         except Exception as e:
             logger.warning(f"Failed to initialize demand service: {e}")
 
-    def get_service(self, service_type: str) -> Optional[BaseProfileService]:
+    def get_service(self, service_type: str) -> BaseProfileService | None:
         """
         Get a specific profile service by type.
 
@@ -74,7 +76,7 @@ class UnifiedProfileService:
         """
         return self.services.get(service_type)
 
-    def get_service_for_request(self, request: BaseProfileRequest) -> Optional[BaseProfileService]:
+    def get_service_for_request(self, request: BaseProfileRequest) -> BaseProfileService | None:
         """
         Get the appropriate service for a given request.
 
@@ -94,11 +96,11 @@ class UnifiedProfileService:
         if hasattr(request, "demand_type"):
             return self.services.get("demand")
         elif hasattr(request, "source") and request.source in [
-            "nasa_power",
-            "meteostat",
-            "pvgis",
-            "era5",
-            "file_epw",
+            "nasa_power"
+            "meteostat"
+            "pvgis"
+            "era5"
+            "file_epw"
         ]:
             return self.services.get("climate")
 
@@ -199,7 +201,7 @@ class UnifiedProfileService:
 
 
 # Global unified service instance
-_unified_service: Optional[UnifiedProfileService] = None
+_unified_service: UnifiedProfileService | None = None
 
 
 def get_unified_profile_service() -> UnifiedProfileService:

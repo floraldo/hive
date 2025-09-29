@@ -4,11 +4,13 @@ AI-specific metrics collection and analysis.
 Provides comprehensive observability for AI operations with
 performance tracking, cost analysis, and usage patterns.
 """
+from __future__ import annotations
+
 
 import time
 import asyncio
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Callable
+from typing import Dict, List, AnyCallable
 from dataclasses import dataclass, field
 from collections import defaultdict, deque
 from enum import Enum
@@ -60,12 +62,12 @@ class AIOperationMetrics:
     model: str
     provider: str
     start_time: datetime
-    end_time: Optional[datetime] = None
-    duration_ms: Optional[int] = None
-    tokens_used: Optional[TokenUsage] = None
+    end_time: datetime | None = None
+    duration_ms: int | None = None
+    tokens_used: TokenUsage | None = None
     cost: float = 0.0
     success: bool = True
-    error_type: Optional[str] = None
+    error_type: str | None = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -97,51 +99,51 @@ class AIMetricsCollector(MetricsCollectorInterface):
         """Register default AI metrics."""
         default_metrics = [
             MetricDefinition(
-                name="ai.model.requests",
-                type=MetricType.COUNTER,
-                description="Total AI model requests",
+                name="ai.model.requests"
+                type=MetricType.COUNTER
+                description="Total AI model requests"
                 unit="requests"
-            ),
+            )
             MetricDefinition(
-                name="ai.model.tokens",
-                type=MetricType.COUNTER,
-                description="Total tokens processed",
+                name="ai.model.tokens"
+                type=MetricType.COUNTER
+                description="Total tokens processed"
                 unit="tokens"
-            ),
+            )
             MetricDefinition(
-                name="ai.model.latency",
-                type=MetricType.HISTOGRAM,
-                description="AI model response latency",
+                name="ai.model.latency"
+                type=MetricType.HISTOGRAM
+                description="AI model response latency"
                 unit="ms"
-            ),
+            )
             MetricDefinition(
-                name="ai.model.cost",
-                type=MetricType.COUNTER,
-                description="Total AI costs",
+                name="ai.model.cost"
+                type=MetricType.COUNTER
+                description="Total AI costs"
                 unit="usd"
-            ),
+            )
             MetricDefinition(
-                name="ai.model.errors",
-                type=MetricType.COUNTER,
-                description="AI model errors",
+                name="ai.model.errors"
+                type=MetricType.COUNTER
+                description="AI model errors"
                 unit="errors"
-            ),
+            )
             MetricDefinition(
-                name="ai.vector.operations",
-                type=MetricType.COUNTER,
-                description="Vector database operations",
+                name="ai.vector.operations"
+                type=MetricType.COUNTER
+                description="Vector database operations"
                 unit="operations"
-            ),
+            )
             MetricDefinition(
-                name="ai.prompt.optimizations",
-                type=MetricType.COUNTER,
-                description="Prompt optimizations performed",
+                name="ai.prompt.optimizations"
+                type=MetricType.COUNTER
+                description="Prompt optimizations performed"
                 unit="optimizations"
-            ),
+            )
             MetricDefinition(
-                name="ai.active.connections",
-                type=MetricType.GAUGE,
-                description="Active AI provider connections",
+                name="ai.active.connections"
+                type=MetricType.GAUGE
+                description="Active AI provider connections"
                 unit="connections"
             )
         ]
@@ -150,11 +152,11 @@ class AIMetricsCollector(MetricsCollectorInterface):
             self._metrics[metric.name] = metric
 
     def start_operation(
-        self,
-        operation_type: str,
-        model: str,
-        provider: str,
-        operation_id: Optional[str] = None,
+        self
+        operation_type: str
+        model: str
+        provider: str
+        operation_id: str | None = None
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """
@@ -174,11 +176,11 @@ class AIMetricsCollector(MetricsCollectorInterface):
             operation_id = f"{operation_type}_{int(time.time() * 1000000)}"
 
         operation_metrics = AIOperationMetrics(
-            operation_id=operation_id,
-            operation_type=operation_type,
-            model=model,
-            provider=provider,
-            start_time=datetime.utcnow(),
+            operation_id=operation_id
+            operation_type=operation_type
+            model=model
+            provider=provider
+            start_time=datetime.utcnow()
             metadata=metadata or {}
         )
 
@@ -186,8 +188,8 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         # Record operation start
         self.record_metric(
-            "ai.model.requests",
-            1.0,
+            "ai.model.requests"
+            1.0
             tags={"model": model, "provider": provider, "operation": operation_type}
         )
 
@@ -195,12 +197,12 @@ class AIMetricsCollector(MetricsCollectorInterface):
         return operation_id
 
     def end_operation(
-        self,
-        operation_id: str,
-        success: bool = True,
-        tokens_used: Optional[TokenUsage] = None,
-        cost: float = 0.0,
-        error_type: Optional[str] = None,
+        self
+        operation_id: str
+        success: bool = True
+        tokens_used: TokenUsage | None = None
+        cost: float = 0.0
+        error_type: str | None = None
         additional_metadata: Optional[Dict[str, Any]] = None
     ) -> AIOperationMetrics:
         """
@@ -238,9 +240,9 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         # Record metrics
         tags = {
-            "model": operation.model,
-            "provider": operation.provider,
-            "operation": operation.operation_type,
+            "model": operation.model
+            "provider": operation.provider
+            "operation": operation.operation_type
             "success": str(success)
         }
 
@@ -263,11 +265,11 @@ class AIMetricsCollector(MetricsCollectorInterface):
         return operation
 
     def record_metric(
-        self,
-        metric_name: str,
-        value: float,
-        tags: Optional[Dict[str, str]] = None,
-        timestamp: Optional[datetime] = None
+        self
+        metric_name: str
+        value: float
+        tags: Optional[Dict[str, str]] = None
+        timestamp: datetime | None = None
     ) -> None:
         """
         Record a metric value.
@@ -283,9 +285,9 @@ class AIMetricsCollector(MetricsCollectorInterface):
             return
 
         metric_value = MetricValue(
-            metric_name=metric_name,
-            value=value,
-            timestamp=timestamp or datetime.utcnow(),
+            metric_name=metric_name
+            value=value
+            timestamp=timestamp or datetime.utcnow()
             tags=tags or {}
         )
 
@@ -298,10 +300,10 @@ class AIMetricsCollector(MetricsCollectorInterface):
         logger.debug(f"Recorded metric: {metric_name} = {value}")
 
     async def record_model_usage_async(
-        self,
-        model: str,
-        tokens: TokenUsage,
-        latency_ms: int,
+        self
+        model: str
+        tokens: TokenUsage
+        latency_ms: int
         success: bool
     ) -> None:
         """Record model usage metrics (for MetricsCollectorInterface compatibility)."""
@@ -317,10 +319,10 @@ class AIMetricsCollector(MetricsCollectorInterface):
             self.record_metric("ai.model.errors", 1.0, tags=tags)
 
     async def record_vector_operation_async(
-        self,
-        operation: str,
-        count: int,
-        latency_ms: int,
+        self
+        operation: str
+        count: int
+        latency_ms: int
         success: bool
     ) -> None:
         """Record vector operation metrics (for MetricsCollectorInterface compatibility)."""
@@ -351,27 +353,27 @@ class AIMetricsCollector(MetricsCollectorInterface):
         # Calculate summary statistics
         summary = {
             "overview": {
-                "total_operations": len(self._recent_operations),
-                "operations_last_hour": len(recent_operations),
-                "operations_last_day": len(day_operations),
+                "total_operations": len(self._recent_operations)
+                "operations_last_hour": len(recent_operations)
+                "operations_last_day": len(day_operations)
                 "active_operations": len(self._active_operations)
-            },
+            }
             "performance": {
-                "avg_latency_ms": self._calculate_avg_latency(recent_operations),
-                "success_rate": self._calculate_success_rate(recent_operations),
+                "avg_latency_ms": self._calculate_avg_latency(recent_operations)
+                "success_rate": self._calculate_success_rate(recent_operations)
                 "total_tokens_hour": sum(
                     op.tokens_used.total_tokens for op in recent_operations
                     if op.tokens_used
-                ),
+                )
                 "total_cost_hour": sum(op.cost for op in recent_operations)
-            },
+            }
             "usage_patterns": {
-                "top_models": self._get_top_models(day_operations),
-                "top_operations": self._get_top_operations(day_operations),
+                "top_models": self._get_top_models(day_operations)
+                "top_operations": self._get_top_operations(day_operations)
                 "provider_distribution": self._get_provider_distribution(day_operations)
-            },
+            }
             "errors": {
-                "error_rate": self._calculate_error_rate(recent_operations),
+                "error_rate": self._calculate_error_rate(recent_operations)
                 "top_errors": self._get_top_errors(recent_operations)
             }
         }
@@ -453,10 +455,10 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         # Group by hour
         hourly_stats = defaultdict(lambda: {
-            "operations": 0,
-            "total_latency": 0,
-            "total_tokens": 0,
-            "total_cost": 0.0,
+            "operations": 0
+            "total_latency": 0
+            "total_tokens": 0
+            "total_cost": 0.0
             "errors": 0
         })
 
@@ -477,13 +479,13 @@ class AIMetricsCollector(MetricsCollectorInterface):
         trends = {}
         for hour, stats in hourly_stats.items():
             trends[hour] = {
-                "operations": stats["operations"],
+                "operations": stats["operations"]
                 "avg_latency_ms": (
                     stats["total_latency"] / stats["operations"]
                     if stats["operations"] > 0 else 0
-                ),
-                "total_tokens": stats["total_tokens"],
-                "total_cost": stats["total_cost"],
+                )
+                "total_tokens": stats["total_tokens"]
+                "total_cost": stats["total_cost"]
                 "error_rate": (
                     stats["errors"] / stats["operations"]
                     if stats["operations"] > 0 else 0
@@ -491,12 +493,12 @@ class AIMetricsCollector(MetricsCollectorInterface):
             }
 
         return {
-            "time_period_hours": hours,
-            "hourly_trends": trends,
+            "time_period_hours": hours
+            "hourly_trends": trends
             "summary": {
-                "total_operations": len(operations),
-                "avg_operations_per_hour": len(operations) / hours,
-                "total_cost": sum(op.cost for op in operations),
+                "total_operations": len(operations)
+                "avg_operations_per_hour": len(operations) / hours
+                "total_cost": sum(op.cost for op in operations)
                 "total_tokens": sum(
                     op.tokens_used.total_tokens for op in operations
                     if op.tokens_used
@@ -505,8 +507,8 @@ class AIMetricsCollector(MetricsCollectorInterface):
         }
 
     async def export_metrics_async(
-        self,
-        format: str = "json",
+        self
+        format: str = "json"
         time_range: Optional[Tuple[datetime, datetime]] = None
     ) -> Dict[str, Any]:
         """Export metrics data for external analysis."""
@@ -521,35 +523,35 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         export_data = {
             "metadata": {
-                "exported_at": datetime.utcnow().isoformat(),
-                "format": format,
-                "operation_count": len(operations),
+                "exported_at": datetime.utcnow().isoformat()
+                "format": format
+                "operation_count": len(operations)
                 "time_range": {
-                    "start": time_range[0].isoformat() if time_range else None,
+                    "start": time_range[0].isoformat() if time_range else None
                     "end": time_range[1].isoformat() if time_range else None
                 }
-            },
+            }
             "operations": [
                 {
-                    "operation_id": op.operation_id,
-                    "operation_type": op.operation_type,
-                    "model": op.model,
-                    "provider": op.provider,
-                    "start_time": op.start_time.isoformat(),
-                    "end_time": op.end_time.isoformat() if op.end_time else None,
-                    "duration_ms": op.duration_ms,
-                    "success": op.success,
-                    "cost": op.cost,
+                    "operation_id": op.operation_id
+                    "operation_type": op.operation_type
+                    "model": op.model
+                    "provider": op.provider
+                    "start_time": op.start_time.isoformat()
+                    "end_time": op.end_time.isoformat() if op.end_time else None
+                    "duration_ms": op.duration_ms
+                    "success": op.success
+                    "cost": op.cost
                     "tokens_used": {
-                        "total_tokens": op.tokens_used.total_tokens,
-                        "prompt_tokens": op.tokens_used.prompt_tokens,
+                        "total_tokens": op.tokens_used.total_tokens
+                        "prompt_tokens": op.tokens_used.prompt_tokens
                         "completion_tokens": op.tokens_used.completion_tokens
-                    } if op.tokens_used else None,
-                    "error_type": op.error_type,
+                    } if op.tokens_used else None
+                    "error_type": op.error_type
                     "metadata": op.metadata
                 }
                 for op in operations
-            ],
+            ]
             "metrics_summary": self.get_metrics_summary()
         }
 

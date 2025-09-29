@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -11,8 +13,6 @@ import logging.handlers
 import os
 import sys
 from pathlib import Path
-from typing import Optional
-
 # Import the JSON formatter if the library is available
 try:
     from pythonjsonlogger import jsonlogger
@@ -24,11 +24,11 @@ except ImportError:
 
 
 def setup_logging(
-    name: str,
-    level: str = "INFO",
-    log_to_file: bool = False,
-    log_file_path: Optional[str] = None,
-    json_format: bool = False,
+    name: str
+    level: str = "INFO"
+    log_to_file: bool = False
+    log_file_path: str | None = None
+    json_format: bool = False
 ) -> None:
     """
     Configure the root logger for an application. This should be called once at startup.
@@ -77,7 +77,7 @@ def setup_logging(
 
         # Use a rotating file handler to prevent log files from growing infinitely
         file_handler = logging.handlers.RotatingFileHandler(
-            log_file_path,
+            log_file_path
             maxBytes=(10 * 1024 * 1024),  # 10 MB per file
             backupCount=5,  # Keep 5 backup files
         )
@@ -89,9 +89,9 @@ def setup_logging(
     )
 
 
-def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
+def get_logger(name: str, level: str | None = None) -> logging.Logger:
     """
-    Get a logger instance. Assumes setup_logging() has already been called for applications,
+    Get a logger instance. Assumes setup_logging() has already been called for applications
     or provides basic configuration for standalone use.
 
     Args:
@@ -103,7 +103,7 @@ def get_logger(name: str, level: Optional[str] = None) -> logging.Logger:
     """
     logger = logging.getLogger(name)
 
-    # If this is being called standalone (no root logger configured),
+    # If this is being called standalone (no root logger configured)
     # provide basic configuration for backward compatibility
     if not logging.getLogger().hasHandlers():
         # Set level from parameter or environment

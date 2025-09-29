@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 """Factory for creating solver instances."""
 
-from typing import Dict, Optional, Type
+from typing import DictType
 
 from ecosystemiser.solver.base import BaseSolver, SolverConfig
 from ecosystemiser.solver.milp_solver import MILPSolver
@@ -17,13 +19,13 @@ class SolverFactory:
 
     # Registry of available solvers
     _solvers: Dict[str, Type[BaseSolver]] = {
-        "rule_based": RuleBasedEngine,
-        "milp": MILPSolver,
-        "rolling_horizon": RollingHorizonMILPSolver,
+        "rule_based": RuleBasedEngine
+        "milp": MILPSolver
+        "rolling_horizon": RollingHorizonMILPSolver
     }
 
     @classmethod
-    def get_solver(cls, solver_type: str, system, config: Optional[SolverConfig] = None) -> BaseSolver:
+    def get_solver(cls, solver_type: str, system, config: SolverConfig | None = None) -> BaseSolver:
         """Get a solver instance of the specified type.
 
         Args:

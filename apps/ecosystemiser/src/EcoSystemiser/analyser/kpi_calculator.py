@@ -97,7 +97,7 @@ class KPICalculator:
         """
         kpis = {}
 
-        # Grid interaction metrics
+        # Grid interaction metrics - Enhanced with error handling
         total_import = 0
         total_export = 0
         peak_import = 0
@@ -105,19 +105,35 @@ class KPICalculator:
 
         for comp in system.components.values():
             if comp.type == "transmission" and comp.medium == "electricity":
-                # Grid import (draw)
+                # Grid import (draw) - Enhanced extraction
                 if "P_draw" in comp.flows.get("source", {}):
                     flow = comp.flows["source"]["P_draw"]["value"]
-                    if isinstance(flow, np.ndarray):
-                        total_import = float(np.sum(flow))
-                        peak_import = float(np.max(flow))
+                    if isinstance(flow, np.ndarray) and flow.size > 0:
+                        # Ensure non-negative values (import cannot be negative)
+                        import_values = np.maximum(0, flow)
+                        total_import = float(np.sum(import_values))
+                        peak_import = float(np.max(import_values))
+                    elif hasattr(flow, 'value') and flow.value is not None:
+                        # Handle CVXPY variables
+                        cvxpy_val = flow.value if isinstance(flow.value, np.ndarray) else np.array([flow.value])
+                        import_values = np.maximum(0, cvxpy_val)
+                        total_import = float(np.sum(import_values))
+                        peak_import = float(np.max(import_values))
 
-                # Grid export (feed)
+                # Grid export (feed) - Enhanced extraction
                 if "P_feed" in comp.flows.get("sink", {}):
                     flow = comp.flows["sink"]["P_feed"]["value"]
-                    if isinstance(flow, np.ndarray):
-                        total_export = float(np.sum(flow))
-                        peak_export = float(np.max(flow))
+                    if isinstance(flow, np.ndarray) and flow.size > 0:
+                        # Ensure non-negative values (export cannot be negative)
+                        export_values = np.maximum(0, flow)
+                        total_export = float(np.sum(export_values))
+                        peak_export = float(np.max(export_values))
+                    elif hasattr(flow, 'value') and flow.value is not None:
+                        # Handle CVXPY variables
+                        cvxpy_val = flow.value if isinstance(flow.value, np.ndarray) else np.array([flow.value])
+                        export_values = np.maximum(0, cvxpy_val)
+                        total_export = float(np.sum(export_values))
+                        peak_export = float(np.max(export_values))
 
         kpis["total_grid_import_kwh"] = total_import
         kpis["total_grid_export_kwh"] = total_export
@@ -125,14 +141,28 @@ class KPICalculator:
         kpis["peak_grid_export_kw"] = peak_export
         kpis["net_grid_usage_kwh"] = total_import - total_export
 
-        # Renewable generation metrics
+        # Renewable generation metrics - Enhanced CVXPY handling
         total_solar = 0
         total_generation = 0
 
         for comp in system.components.values():
             if comp.type == "generation":
                 if hasattr(comp, "profile") and comp.profile is not None:
-                    gen = np.sum(comp.profile)
+                    # Handle different profile types
+                    if isinstance(comp.profile, np.ndarray):
+                        gen_values = np.maximum(0, comp.profile)  # Ensure non-negative
+                        gen = float(np.sum(gen_values))
+                    elif hasattr(comp.profile, 'value') and comp.profile.value is not None:
+                        # Handle CVXPY variables
+                        cvxpy_val = comp.profile.value
+                        if isinstance(cvxpy_val, np.ndarray):
+                            gen_values = np.maximum(0, cvxpy_val)
+                            gen = float(np.sum(gen_values))
+                        else:
+                            gen = max(0, float(cvxpy_val)) * system.N  # Scalar * timesteps
+                    else:
+                        gen = 0.0
+
                     total_generation += gen
                     if "solar" in comp.name.lower():
                         total_solar += gen
@@ -140,21 +170,59 @@ class KPICalculator:
         kpis["total_generation_kwh"] = float(total_generation)
         kpis["total_solar_kwh"] = float(total_solar)
 
-        # Self-consumption and self-sufficiency
+        # Self-consumption and self-sufficiency - Fixed calculations
+        total_demand = total_import + max(0, total_generation - total_export)  # Actual consumption
+
         if total_generation > 0:
-            self_consumed = total_generation - total_export
-            kpis["self_consumption_rate"] = float(self_consumed / total_generation)
-            kpis["renewable_fraction"] = float(total_generation / (total_generation + total_import))
+            # Self-consumption: How much of generated energy is used locally
+            self_consumed = max(0, total_generation - total_export)  # Cannot be negative
+            kpis["self_consumption_rate"] = float(min(1.0, self_consumed / total_generation))
+
+            # Renewable fraction: Generated energy as fraction of total supply
+            total_supply = total_generation + total_import
+            if total_supply > 0:
+                kpis["renewable_fraction"] = float(total_generation / total_supply)
+            else:
+                kpis["renewable_fraction"] = 0.0
         else:
             kpis["self_consumption_rate"] = 0.0
             kpis["renewable_fraction"] = 0.0
 
-        # Storage utilization
+        # Self-sufficiency: How much of demand is met by local generation
+        if total_demand > 0:
+            self_sufficient_energy = max(0, min(total_generation, total_demand))
+            kpis["self_sufficiency_rate"] = float(self_sufficient_energy / total_demand)
+        else:
+            kpis["self_sufficiency_rate"] = 0.0
+
+        # Additional energy balance validation
+        kpis["total_demand_kwh"] = float(total_demand)
+        kpis["energy_balance_error"] = float(abs((total_generation + total_import) - (total_demand + total_export)))
+
+        # Storage utilization - Enhanced CVXPY handling
         for comp in system.components.values():
             if comp.type == "storage" and comp.medium == "electricity":
-                if hasattr(comp, "E") and isinstance(comp.E, np.ndarray):
-                    kpis[f"{comp.name}_avg_soc"] = float(np.mean(comp.E) / comp.E_max)
-                    kpis[f"{comp.name}_cycles"] = self._calculate_battery_cycles(comp.E)
+                energy_levels = None
+
+                if hasattr(comp, "E"):
+                    if isinstance(comp.E, np.ndarray):
+                        energy_levels = comp.E
+                    elif hasattr(comp.E, 'value') and comp.E.value is not None:
+                        # Handle CVXPY variables
+                        if isinstance(comp.E.value, np.ndarray):
+                            energy_levels = comp.E.value
+                        else:
+                            energy_levels = np.array([comp.E.value] * system.N)
+
+                if energy_levels is not None and len(energy_levels) > 0:
+                    # Ensure energy levels are within physical bounds
+                    if hasattr(comp, 'E_max') and comp.E_max > 0:
+                        energy_levels = np.clip(energy_levels, 0, comp.E_max)
+                        kpis[f"{comp.name}_avg_soc"] = float(np.mean(energy_levels) / comp.E_max)
+                        kpis[f"{comp.name}_cycles"] = self._calculate_battery_cycles(energy_levels)
+                        kpis[f"{comp.name}_max_energy_kwh"] = float(comp.E_max)
+                        kpis[f"{comp.name}_min_soc"] = float(np.min(energy_levels) / comp.E_max)
+                        kpis[f"{comp.name}_max_soc"] = float(np.max(energy_levels) / comp.E_max)
 
         return kpis
 

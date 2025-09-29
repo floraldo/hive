@@ -4,13 +4,15 @@ Security utilities for Hive AI components.
 Provides input validation, secret management, and security controls
 to prevent common security vulnerabilities in AI operations.
 """
+from __future__ import annotations
+
 
 import hashlib
 import re
 import secrets
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, ListSet
 
 from hive_logging import get_logger
 
@@ -32,7 +34,7 @@ class ValidationResult:
     """Result of input validation."""
 
     is_valid: bool
-    sanitized_input: Optional[str] = None
+    sanitized_input: str | None = None
     violations: List[str] = None
     risk_level: str = "low"
 
@@ -64,18 +66,18 @@ class InputValidator:
 
     # Patterns that might indicate prompt injection
     PROMPT_INJECTION_PATTERNS = [
-        r"ignore\s+previous\s+instructions",
-        r"forget\s+everything",
-        r"act\s+as\s+if",
-        r"pretend\s+to\s+be",
-        r"system\s*:\s*",
-        r"assistant\s*:\s*",
-        r"human\s*:\s*",
+        r"ignore\s+previous\s+instructions"
+        r"forget\s+everything"
+        r"act\s+as\s+if"
+        r"pretend\s+to\s+be"
+        r"system\s*:\s*"
+        r"assistant\s*:\s*"
+        r"human\s*:\s*"
         r"\\n\\n",  # Multiple newlines
         r"\[INST\]",  # Instruction markers
-        r"\[/INST\]",
+        r"\[/INST\]"
         r"</s>",  # Special tokens
-        r"<s>",
+        r"<s>"
     ]
 
     def __init__(self, security_level: SecurityLevel = SecurityLevel.STANDARD) -> None:
@@ -338,7 +340,7 @@ class RateLimiter:
 
         return False
 
-    def get_reset_time(self, identifier: str) -> Optional[float]:
+    def get_reset_time(self, identifier: str) -> float | None:
         """Get the time when rate limit resets for identifier.
 
         Args:

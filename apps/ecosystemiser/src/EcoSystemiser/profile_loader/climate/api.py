@@ -8,6 +8,8 @@ Key improvements:
 - Standardized error responses
 - OpenAPI documentation
 """
+from __future__ import annotations
+
 
 import asyncio
 import gzip
@@ -17,7 +19,7 @@ import uuid
 from datetime import datetime
 from enum import Enum
 from io import BytesIO
-from typing import Any, AsyncIterator, Dict, List, Optional, Tuple, Union
+from typing import Any, AsyncIterator, Dict, ListTuple
 
 import numpy as np
 import pandas as pd
@@ -26,25 +28,25 @@ from ecosystemiser.core.errors import ProfileError as ClimateError
 from ecosystemiser.core.errors import ProfileLoadError as DataFetchError
 from ecosystemiser.core.errors import ProfileValidationError as ValidationError
 from ecosystemiser.profile_loader.data_models import (
-    ClimateRequest,
-    ClimateResponse,
-    Mode,
-    Resolution,
+    ClimateRequest
+    ClimateResponse
+    Mode
+    Resolution
 )
 from ecosystemiser.profile_loader.job_manager import (
-    JobManager,
-    JobStatus,
-    get_job_manager,
+    JobManager
+    JobStatus
+    get_job_manager
 )
 from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
 from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    Header,
-    HTTPException,
-    Query,
-    Response,
+    APIRouter
+    BackgroundTasks
+    Depends
+    Header
+    HTTPException
+    Query
+    Response
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -66,10 +68,10 @@ class BatchClimateRequest(BaseModel):
     """Batch request for multiple climate data queries"""
 
     requests: List[ClimateRequest] = Field(
-        ...,
-        min_items=1,
-        max_items=100,
-        description="List of climate requests to process",
+        ...
+        min_items=1
+        max_items=100
+        description="List of climate requests to process"
     )
     parallel: bool = Field(default=True, description="Process requests in parallel")
     partial_success: bool = Field(default=True, description="Return partial results if some requests fail")
@@ -88,10 +90,10 @@ class JobStatus(str, Enum):
 class JobRequest(BaseModel):
     """Async job request"""
 
-    request: Union[ClimateRequest, BatchClimateRequest]
+    request: ClimateRequest | BatchClimateRequest
     priority: int = Field(default=5, ge=1, le=10)
-    callback_url: Optional[str] = None
-    notification_email: Optional[str] = None
+    callback_url: str | None = None
+    notification_email: str | None = None
 
 
 class JobResponse(BaseModel):
@@ -101,10 +103,10 @@ class JobResponse(BaseModel):
     status: JobStatus
     created_at: datetime
     updated_at: datetime
-    progress: Optional[float] = Field(None, ge=0, le=100)
-    result_url: Optional[str] = None
+    progress: float | None = Field(None, ge=0, le=100)
+    result_url: str | None = None
     error: Optional[Dict[str, Any]] = None
-    eta: Optional[datetime] = None
+    eta: datetime | None = None
 
 
 class StreamFormat(str, Enum):
@@ -126,17 +128,17 @@ class StreamFormat(str, Enum):
 async def health_check_async() -> None:
     """Health check endpoint"""
     return {
-        "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
-        "version": "2.0.0",
+        "status": "healthy"
+        "timestamp": datetime.utcnow().isoformat()
+        "version": "2.0.0"
     }
 
 
 @router.post("/single", response_model=ClimateResponse)
 async def get_climate_single_async(
-    request: ClimateRequest,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
-    accept_encoding: Optional[str] = Header(None, alias="Accept-Encoding"),
+    request: ClimateRequest
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
+    accept_encoding: str | None = Header(None, alias="Accept-Encoding")
 ):
     """
     Get climate data for a single location and period.
@@ -148,10 +150,10 @@ async def get_climate_single_async(
         correlation_id = str(uuid.uuid4())
 
     context = dict(
-        correlation_id=correlation_id,
-        location=request.location if isinstance(request.location, tuple) else None,
-        variables=request.variables,
-        period=request.period,
+        correlation_id=correlation_id
+        location=request.location if isinstance(request.location, tuple) else None
+        variables=request.variables
+        period=request.period
     )
 
     try:
@@ -169,25 +171,25 @@ async def get_climate_single_async(
         # Already structured error
         error_response = {"error": str(e), "status_code": 400}
         return JSONResponse(
-            content=error_response,
-            status_code=error_response["status_code"],
-            headers={"X-Correlation-ID": correlation_id},
+            content=error_response
+            status_code=error_response["status_code"]
+            headers={"X-Correlation-ID": correlation_id}
         )
     except Exception as e:
         # Unexpected error
         climate_error = ClimateError(f"Internal error: {str(e)}")
         error_response = {"error": str(climate_error), "status_code": 500}
         return JSONResponse(
-            content=error_response,
-            status_code=500,
-            headers={"X-Correlation-ID": correlation_id},
+            content=error_response
+            status_code=500
+            headers={"X-Correlation-ID": correlation_id}
         )
 
 
 @router.post("/batch")
 async def get_climate_batch_async(
-    batch_request: BatchClimateRequest,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    batch_request: BatchClimateRequest
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
     """
     Process multiple climate requests in batch.
@@ -229,21 +231,21 @@ async def get_climate_batch_async(
                     raise HTTPException(status_code=400, detail=f"Request {i} failed: {e}")
 
     return {
-        "correlation_id": correlation_id,
-        "total_requests": len(batch_request.requests),
-        "successful": len(results),
-        "failed": len(errors),
-        "results": results,
-        "errors": errors if errors else None,
+        "correlation_id": correlation_id
+        "total_requests": len(batch_request.requests)
+        "successful": len(results)
+        "failed": len(errors)
+        "results": results
+        "errors": errors if errors else None
     }
 
 
 @router.post("/stream")
 async def stream_climate_data_async(
-    request: ClimateRequest,
-    format: StreamFormat = Query(StreamFormat.NDJSON),
-    chunk_size: int = Query(1000, ge=100, le=10000),
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    request: ClimateRequest
+    format: StreamFormat = Query(StreamFormat.NDJSON)
+    chunk_size: int = Query(1000, ge=100, le=10000)
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
     """
     Stream climate data for large requests.
@@ -286,29 +288,29 @@ async def stream_climate_data_async(
 
     # Set appropriate content type
     content_type_map = {
-        StreamFormat.NDJSON: "application/x-ndjson",
-        StreamFormat.CSV: "text/csv",
-        StreamFormat.PARQUET: "application/octet-stream",
-        StreamFormat.NETCDF: "application/x-netcdf",
+        StreamFormat.NDJSON: "application/x-ndjson"
+        StreamFormat.CSV: "text/csv"
+        StreamFormat.PARQUET: "application/octet-stream"
+        StreamFormat.NETCDF: "application/x-netcdf"
     }
 
     return StreamingResponse(
-        generate_stream_async(),
-        media_type=content_type_map[format],
+        generate_stream_async()
+        media_type=content_type_map[format]
         headers={
-            "X-Correlation-ID": correlation_id,
-            "Cache-Control": "no-cache",
+            "X-Correlation-ID": correlation_id
+            "Cache-Control": "no-cache"
             "X-Accel-Buffering": "no",  # Disable nginx buffering
-        },
+        }
     )
 
 
 @router.post("/jobs", response_model=JobResponse)
 async def create_climate_job_async(
-    job_request: JobRequest,
-    background_tasks: BackgroundTasks,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
-    job_manager: JobManager = Depends(get_job_manager),
+    job_request: JobRequest
+    background_tasks: BackgroundTasks
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """
     Create async job for heavy climate data processing.
@@ -320,10 +322,10 @@ async def create_climate_job_async(
 
     # Store the job request data for the worker
     request_data = {
-        "type": "climate_request",
-        "request": job_request.model_dump(),
-        "correlation_id": correlation_id,
-        "priority": job_request.priority,
+        "type": "climate_request"
+        "request": job_request.model_dump()
+        "correlation_id": correlation_id
+        "priority": job_request.priority
     }
 
     # Create job using the distributed job manager
@@ -339,19 +341,19 @@ async def create_climate_job_async(
 
     # Convert to API response format
     return JobResponse(
-        job_id=job_data["id"],
-        status=JobStatus(job_data["status"]),
-        created_at=datetime.fromisoformat(job_data["created_at"]),
-        updated_at=datetime.fromisoformat(job_data["updated_at"]),
-        progress=job_data.get("progress", 0),
+        job_id=job_data["id"]
+        status=JobStatus(job_data["status"])
+        created_at=datetime.fromisoformat(job_data["created_at"])
+        updated_at=datetime.fromisoformat(job_data["updated_at"])
+        progress=job_data.get("progress", 0)
     )
 
 
 @router.get("/jobs/{job_id}", response_model=JobResponse)
 async def get_job_status_async(
-    job_id: str,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
-    job_manager: JobManager = Depends(get_job_manager),
+    job_id: str
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """Get status of async job from distributed job manager"""
     job_data = job_manager.get_job(job_id)
@@ -360,23 +362,23 @@ async def get_job_status_async(
 
     # Convert to API response format
     return JobResponse(
-        job_id=job_data["id"],
-        status=JobStatus(job_data["status"]),
-        created_at=datetime.fromisoformat(job_data["created_at"]),
-        updated_at=datetime.fromisoformat(job_data["updated_at"]),
-        progress=job_data.get("progress", 0),
-        result_url=(f"/api/v2/climate/jobs/{job_id}/result" if job_data["status"] == "completed" else None),
-        error=job_data.get("error"),
-        eta=datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None,
+        job_id=job_data["id"]
+        status=JobStatus(job_data["status"])
+        created_at=datetime.fromisoformat(job_data["created_at"])
+        updated_at=datetime.fromisoformat(job_data["updated_at"])
+        progress=job_data.get("progress", 0)
+        result_url=(f"/api/v2/climate/jobs/{job_id}/result" if job_data["status"] == "completed" else None)
+        error=job_data.get("error")
+        eta=datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None
     )
 
 
 @router.get("/jobs/{job_id}/result")
 async def get_job_result_async(
-    job_id: str,
-    format: StreamFormat = Query(StreamFormat.NDJSON),
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
-    job_manager: JobManager = Depends(get_job_manager),
+    job_id: str
+    format: StreamFormat = Query(StreamFormat.NDJSON)
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """
     Get result of completed job from distributed storage.
@@ -405,9 +407,9 @@ async def get_job_result_async(
                 yield json.dumps(result).encode() + b"\n"
 
             return StreamingResponse(
-                generate_result_stream_async(),
-                media_type="application/x-ndjson",
-                headers={"X-Correlation-ID": correlation_id or ""},
+                generate_result_stream_async()
+                media_type="application/x-ndjson"
+                headers={"X-Correlation-ID": correlation_id or ""}
             )
 
     # Return raw result for other formats
@@ -416,9 +418,9 @@ async def get_job_result_async(
 
 @router.delete("/jobs/{job_id}")
 async def cancel_job_async(
-    job_id: str,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
-    job_manager: JobManager = Depends(get_job_manager),
+    job_id: str
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """Cancel a queued or running job using distributed job manager"""
     job_data = job_manager.get_job(job_id)
@@ -427,8 +429,8 @@ async def cancel_job_async(
 
     if job_data["status"] in ["completed", "failed"]:
         raise HTTPException(
-            status_code=400,
-            detail=f"Cannot cancel job with status {job_data['status']}",
+            status_code=400
+            detail=f"Cannot cancel job with status {job_data['status']}"
         )
 
     # Update job status to cancelled
@@ -442,11 +444,11 @@ async def cancel_job_async(
 
 @router.get("/jobs")
 async def list_jobs_async(
-    status: Optional[str] = Query(None, description="Filter by job status"),
-    limit: int = Query(50, ge=1, le=100, description="Maximum number of jobs to return"),
-    offset: int = Query(0, ge=0, description="Offset for pagination"),
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
-    job_manager: JobManager = Depends(get_job_manager),
+    status: str | None = Query(None, description="Filter by job status")
+    limit: int = Query(50, ge=1, le=100, description="Maximum number of jobs to return")
+    offset: int = Query(0, ge=0, description="Offset for pagination")
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """
     List jobs with optional filtering and pagination.
@@ -461,25 +463,25 @@ async def list_jobs_async(
         jobs = []
         for job_data in jobs_data:
             job_response = JobResponse(
-                job_id=job_data["id"],
-                status=JobStatus(job_data["status"]),
-                created_at=datetime.fromisoformat(job_data["created_at"]),
-                updated_at=datetime.fromisoformat(job_data["updated_at"]),
-                progress=job_data.get("progress", 0),
+                job_id=job_data["id"]
+                status=JobStatus(job_data["status"])
+                created_at=datetime.fromisoformat(job_data["created_at"])
+                updated_at=datetime.fromisoformat(job_data["updated_at"])
+                progress=job_data.get("progress", 0)
                 result_url=(
                     f"/api/v2/climate/jobs/{job_data['id']}/result" if job_data["status"] == "completed" else None
-                ),
-                error=job_data.get("error"),
-                eta=(datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None),
+                )
+                error=job_data.get("error")
+                eta=(datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None)
             )
             jobs.append(job_response)
 
         return {
-            "jobs": jobs,
-            "total": len(jobs),
-            "limit": limit,
-            "offset": offset,
-            "filter": {"status": status} if status else None,
+            "jobs": jobs
+            "total": len(jobs)
+            "limit": limit
+            "offset": offset
+            "filter": {"status": status} if status else None
         }
 
     except Exception as e:
@@ -489,9 +491,9 @@ async def list_jobs_async(
 
 @router.delete("/jobs/cleanup")
 async def cleanup_old_jobs_async(
-    days: int = Query(7, ge=1, le=365, description="Delete jobs older than this many days"),
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
-    job_manager: JobManager = Depends(get_job_manager),
+    days: int = Query(7, ge=1, le=365, description="Delete jobs older than this many days")
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
+    job_manager: JobManager = Depends(get_job_manager)
 ):
     """
     Clean up old jobs for maintenance.
@@ -502,9 +504,9 @@ async def cleanup_old_jobs_async(
         deleted_count = job_manager.cleanup_old_jobs_async(days=days)
 
         return {
-            "message": f"Cleaned up {deleted_count} old jobs",
-            "deleted_count": deleted_count,
-            "cutoff_days": days,
+            "message": f"Cleaned up {deleted_count} old jobs"
+            "deleted_count": deleted_count
+            "cutoff_days": days
         }
 
     except Exception as e:
@@ -545,10 +547,10 @@ async def fetch_climate_data_async(request: ClimateRequest, context: dict) -> xr
 
     ds = xr.Dataset(
         {
-            "temp_air": (["time"], np.random.randn(8760) * 10 + 15),
-            "ghi": (["time"], np.maximum(0, np.random.randn(8760) * 200 + 300)),
-        },
-        coords={"time": time},
+            "temp_air": (["time"], np.random.randn(8760) * 10 + 15)
+            "ghi": (["time"], np.maximum(0, np.random.randn(8760) * 200 + 300))
+        }
+        coords={"time": time}
     )
 
     return ds
@@ -653,10 +655,10 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 
             # Convert result to serializable format
             serializable_result = {
-                "type": "climate_response",
-                "data": (result.model_dump() if hasattr(result, "model_dump") else result),
-                "correlation_id": correlation_id,
-                "processed_at": datetime.utcnow().isoformat(),
+                "type": "climate_response"
+                "data": (result.model_dump() if hasattr(result, "model_dump") else result)
+                "correlation_id": correlation_id
+                "processed_at": datetime.utcnow().isoformat()
             }
         else:
             # Batch request processing
@@ -664,10 +666,10 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 
             # Process batch (simplified for now)
             serializable_result = {
-                "type": "batch_response",
-                "data": {"batch": "result", "processed": "placeholder"},
-                "correlation_id": correlation_id,
-                "processed_at": datetime.utcnow().isoformat(),
+                "type": "batch_response"
+                "data": {"batch": "result", "processed": "placeholder"}
+                "correlation_id": correlation_id
+                "processed_at": datetime.utcnow().isoformat()
             }
 
         # Update job as completed with result
@@ -697,9 +699,9 @@ class AnalyticsRequest(BaseModel):
     """Request for analytics/postprocessing only"""
 
     location: Union[Tuple[float, float], str]
-    period: Dict[str, Union[int, str]]
+    period: Dict[str, int | str]
     source: str = "nasa_power"
-    resolution: Optional[str] = "1H"
+    resolution: str | None = "1H"
     analytics_options: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -727,8 +729,8 @@ class ExtendedClimateRequest(ClimateRequest):
 
 @router.post("/analyze")
 async def analyze_climate_data_async(
-    request: AnalyticsRequest,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    request: AnalyticsRequest
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
     """
     Run analytics on existing climate data (postprocessing only).
@@ -742,12 +744,12 @@ async def analyze_climate_data_async(
     try:
         # Import processing modules
         from ecosystemiser.profile_loader.analysis.building_science import (
-            calculate_design_conditions,
-            derive_building_variables,
+            calculate_design_conditions
+            derive_building_variables
         )
         from ecosystemiser.profile_loader.analysis.extremes import analyze_extremes
         from ecosystemiser.profile_loader.analysis.statistics import (
-            calculate_statistics,
+            calculate_statistics
         )
         from ecosystemiser.profile_loader.climate import create_climate_service
         from ecosystemiser.settings import get_settings
@@ -756,11 +758,11 @@ async def analyze_climate_data_async(
         config = get_settings()
         service = create_climate_service(config)
         climate_req = ClimateRequest(
-            location=request.location,
-            period=request.period,
-            source=request.source,
-            resolution=request.resolution or "1H",
-            mode="observed",
+            location=request.location
+            period=request.period
+            source=request.source
+            resolution=request.resolution or "1H"
+            mode="observed"
         )
 
         # Fetch and preprocess data
@@ -793,11 +795,11 @@ async def analyze_climate_data_async(
         # Building variables
         if options.get("building_metrics", False):
             building_config = {
-                "calculate_degree_days": True,
-                "calculate_wet_bulb": True,
-                "calculate_heat_index": True,
-                "hdd_base_temp": options.get("hdd_base", 18.0),
-                "cdd_base_temp": options.get("cdd_base", 24.0),
+                "calculate_degree_days": True
+                "calculate_wet_bulb": True
+                "calculate_heat_index": True
+                "hdd_base_temp": options.get("hdd_base", 18.0)
+                "cdd_base_temp": options.get("cdd_base", 24.0)
             }
             ds_building = derive_building_variables(ds, config=building_config)
 
@@ -808,12 +810,12 @@ async def analyze_climate_data_async(
                 analytics_results["cooling_degree_days"] = float(ds_building.cdd.sum().values)
 
         return {
-            "correlation_id": correlation_id,
-            "location": request.location,
-            "period": request.period,
-            "analytics": analytics_results,
-            "data_shape": response.shape,
-            "data_path": response.path_parquet,
+            "correlation_id": correlation_id
+            "location": request.location
+            "period": request.period
+            "analytics": analytics_results
+            "data_shape": response.shape
+            "data_path": response.path_parquet
         }
 
     except Exception as e:
@@ -823,8 +825,8 @@ async def analyze_climate_data_async(
 
 @router.post("/profile")
 async def get_climate_profile_async(
-    request: ExtendedClimateRequest,
-    correlation_id: Optional[str] = Header(None, alias="X-Correlation-ID"),
+    request: ExtendedClimateRequest
+    correlation_id: str | None = Header(None, alias="X-Correlation-ID")
 ):
     """
     Get climate data with optional preprocessing and postprocessing.
@@ -874,55 +876,55 @@ async def get_processing_options_async(config: Dict[str, Any]) -> None:
     return {
         "preprocessing": {
             "resampling": {
-                "enabled": config.preprocessing.auto_resample,
-                "default_resolution": config.preprocessing.default_resolution,
-                "available_resolutions": ["15min", "30min", "1H", "3H", "1D"],
-            },
+                "enabled": config.preprocessing.auto_resample
+                "default_resolution": config.preprocessing.default_resolution
+                "available_resolutions": ["15min", "30min", "1H", "3H", "1D"]
+            }
             "quality_control": {
-                "enabled": config.preprocessing.apply_qc,
-                "bounds_check": config.preprocessing.qc_bounds_check,
-                "consistency_check": config.preprocessing.qc_consistency_check,
-            },
+                "enabled": config.preprocessing.apply_qc
+                "bounds_check": config.preprocessing.qc_bounds_check
+                "consistency_check": config.preprocessing.qc_consistency_check
+            }
             "gap_filling": {
-                "enabled": config.preprocessing.fill_gaps,
-                "method": config.preprocessing.gap_fill_method,
-                "available_methods": ["smart", "linear", "pattern", "seasonal"],
-                "max_gap_hours": config.preprocessing.max_pattern_gap_hours,
-            },
+                "enabled": config.preprocessing.fill_gaps
+                "method": config.preprocessing.gap_fill_method
+                "available_methods": ["smart", "linear", "pattern", "seasonal"]
+                "max_gap_hours": config.preprocessing.max_pattern_gap_hours
+            }
             "derivations": {
-                "basic_vars": config.preprocessing.derive_basic_vars,
-                "variables": ["dewpoint", "rel_humidity", "pressure"],
-            },
-        },
+                "basic_vars": config.preprocessing.derive_basic_vars
+                "variables": ["dewpoint", "rel_humidity", "pressure"]
+            }
+        }
         "postprocessing": {
             "building_metrics": {
                 "degree_days": {
-                    "enabled": config.postprocessing.calculate_degree_days,
-                    "hdd_base": config.postprocessing.hdd_base_temp,
-                    "cdd_base": config.postprocessing.cdd_base_temp,
-                },
+                    "enabled": config.postprocessing.calculate_degree_days
+                    "hdd_base": config.postprocessing.hdd_base_temp
+                    "cdd_base": config.postprocessing.cdd_base_temp
+                }
                 "comfort": {
-                    "wet_bulb": config.postprocessing.calculate_wet_bulb,
-                    "heat_index": config.postprocessing.calculate_heat_index,
-                },
-            },
+                    "wet_bulb": config.postprocessing.calculate_wet_bulb
+                    "heat_index": config.postprocessing.calculate_heat_index
+                }
+            }
             "solar": {
-                "clearness_index": config.postprocessing.calculate_clearness_index,
-                "solar_angles": config.postprocessing.calculate_solar_angles,
-            },
+                "clearness_index": config.postprocessing.calculate_clearness_index
+                "solar_angles": config.postprocessing.calculate_solar_angles
+            }
             "statistics": {
-                "enabled": config.postprocessing.include_statistics,
-                "percentiles": config.postprocessing.stats_percentiles,
-            },
+                "enabled": config.postprocessing.include_statistics
+                "percentiles": config.postprocessing.stats_percentiles
+            }
             "extremes": {
-                "enabled": config.postprocessing.analyze_extremes,
-                "percentile": config.postprocessing.extreme_percentile,
-            },
+                "enabled": config.postprocessing.analyze_extremes
+                "percentile": config.postprocessing.extreme_percentile
+            }
             "design_conditions": {
-                "enabled": config.postprocessing.calculate_design_conditions,
-                "percentiles": config.postprocessing.design_percentiles,
-            },
-        },
+                "enabled": config.postprocessing.calculate_design_conditions
+                "percentiles": config.postprocessing.design_percentiles
+            }
+        }
     }
 
 
@@ -936,18 +938,18 @@ async def _send_callback_notification_async(job_id: str, callback_url: str, resu
         import httpx
 
         payload = {
-            "job_id": job_id,
-            "status": "completed",
-            "result": result,
-            "timestamp": datetime.utcnow().isoformat(),
+            "job_id": job_id
+            "status": "completed"
+            "result": result
+            "timestamp": datetime.utcnow().isoformat()
         }
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                callback_url,
-                json=payload,
-                timeout=30.0,
-                headers={"Content-Type": "application/json"},
+                callback_url
+                json=payload
+                timeout=30.0
+                headers={"Content-Type": "application/json"}
             )
             response.raise_for_status()
             logger.info(f"Callback notification sent successfully for job {job_id}")
@@ -968,9 +970,9 @@ async def _send_email_notification_async(job_id: str, email: str, result: Dict[s
         # This would integrate with SendGrid, AWS SES, or similar service
         # Implementation deferred to v3.1 - email notifications are optional
         # await email_service.send_notification(
-        #     to=email,
-        #     subject=f"Climate Data Job {job_id} Complete",
-        #     template="job_completion",
+        #     to=email
+        #     subject=f"Climate Data Job {job_id} Complete"
+        #     template="job_completion"
         #     context={"job_id": job_id, "result": result}
         # )
 

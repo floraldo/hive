@@ -1,21 +1,21 @@
 """Solar PV component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    GenerationTechnicalParams,
+    FidelityLevel
+    GenerationTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseGenerationOptimization,
-    BaseGenerationPhysics,
+    BaseGenerationOptimization
+    BaseGenerationPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -30,6 +30,8 @@ logger = get_logger(__name__)
 
 class SolarPVTechnicalParams(GenerationTechnicalParams):
     """Solar PV-specific technical parameters extending generation archetype.
+from __future__ import annotations
+
 
     This model inherits from GenerationTechnicalParams and adds solar-specific
     parameters for different fidelity levels.
@@ -39,17 +41,17 @@ class SolarPVTechnicalParams(GenerationTechnicalParams):
     technology: str = Field("monocrystalline", description="PV technology type")
 
     # STANDARD fidelity additions
-    panel_efficiency: Optional[float] = Field(0.20, description="Panel efficiency at STC")
-    inverter_efficiency: Optional[float] = Field(0.98, description="DC to AC conversion efficiency")
+    panel_efficiency: float | None = Field(0.20, description="Panel efficiency at STC")
+    inverter_efficiency: float | None = Field(0.98, description="DC to AC conversion efficiency")
 
     # DETAILED fidelity parameters
-    temperature_coefficient: Optional[float] = Field(None, description="Power temperature coefficient [%/°C]")
-    degradation_rate_annual: Optional[float] = Field(None, description="Annual degradation rate [%/year]")
-    soiling_factor: Optional[float] = Field(None, description="Soiling derating factor")
+    temperature_coefficient: float | None = Field(None, description="Power temperature coefficient [%/°C]")
+    degradation_rate_annual: float | None = Field(None, description="Annual degradation rate [%/year]")
+    soiling_factor: float | None = Field(None, description="Soiling derating factor")
 
     # RESEARCH fidelity parameters
     spectral_model: Optional[Dict[str, Any]] = Field(None, description="Spectral irradiance model parameters")
-    bifacial_gain: Optional[float] = Field(None, description="Bifacial module gain factor")
+    bifacial_gain: float | None = Field(None, description="Bifacial module gain factor")
 
 
 class SolarPVParams(ComponentParams):
@@ -63,9 +65,9 @@ class SolarPVParams(ComponentParams):
         default_factory=lambda: SolarPVTechnicalParams(
             capacity_nominal=10.0,  # Default 10 kW
             efficiency_nominal=1.0,  # Solar uses profile * capacity
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -305,9 +307,9 @@ class SolarPV(Component):
 
         # Add as flow
         self.flows["source"]["P_out"] = {
-            "type": "electricity",
-            "value": self.P_out,
-            "profile": self.profile,
+            "type": "electricity"
+            "value": self.P_out
+            "profile": self.profile
         }
 
     def set_constraints(self) -> List:

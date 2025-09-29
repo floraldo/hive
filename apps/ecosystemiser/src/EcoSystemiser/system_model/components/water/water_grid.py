@@ -1,16 +1,16 @@
 """Water grid component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    TransmissionTechnicalParams,
+    FidelityLevel
+    TransmissionTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -25,6 +25,8 @@ logger = get_logger(__name__)
 
 class WaterGridTechnicalParams(TransmissionTechnicalParams):
     """Water grid-specific technical parameters extending transmission archetype.
+from __future__ import annotations
+
 
     This model inherits from TransmissionTechnicalParams and adds water grid-specific
     parameters for different fidelity levels.
@@ -41,7 +43,7 @@ class WaterGridTechnicalParams(TransmissionTechnicalParams):
 
     # STANDARD fidelity additions
     pressure_losses: Optional[Dict[str, float]] = Field(None, description="Pressure loss factors in distribution")
-    water_quality_degradation: Optional[float] = Field(None, description="Water quality degradation factor")
+    water_quality_degradation: float | None = Field(None, description="Water quality degradation factor")
 
     # DETAILED fidelity parameters
     network_topology: Optional[Dict[str, Any]] = Field(None, description="Detailed network topology model")
@@ -200,11 +202,11 @@ class WaterGridParams(ComponentParams):
             capacity_nominal=10.0,  # Default 10 m³/h capacity
             max_import=10.0,  # Default 10 m³/h import
             max_export=5.0,  # Default 5 m³/h discharge
-            water_tariff=1.5,
-            wastewater_tariff=2.0,
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            water_tariff=1.5
+            wastewater_tariff=2.0
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -291,7 +293,7 @@ class WaterGrid(Component):
         else:
             raise ValueError(f"Unknown fidelity level for WaterGrid optimization: {fidelity}")
 
-    def add_optimization_vars(self, N: Optional[int] = None) -> None:
+    def add_optimization_vars(self, N: int | None = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N

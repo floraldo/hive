@@ -1,16 +1,16 @@
 """Grid component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    TransmissionTechnicalParams,
+    FidelityLevel
+    TransmissionTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -25,6 +25,8 @@ logger = get_logger(__name__)
 
 class GridTechnicalParams(TransmissionTechnicalParams):
     """Grid-specific technical parameters extending transmission archetype.
+from __future__ import annotations
+
 
     This model inherits from TransmissionTechnicalParams and adds grid-specific
     parameters for different fidelity levels.
@@ -35,7 +37,7 @@ class GridTechnicalParams(TransmissionTechnicalParams):
     feed_in_tariff: float = Field(0.08, description="Export electricity price [$/kWh]")
 
     # STANDARD fidelity additions
-    grid_losses: Optional[float] = Field(None, description="Transmission loss factor [%]")
+    grid_losses: float | None = Field(None, description="Transmission loss factor [%]")
 
     # DETAILED fidelity parameters
     voltage_limits: Optional[Dict[str, float]] = Field(None, description="Voltage limits {min_pu, max_pu}")
@@ -191,11 +193,11 @@ class GridParams(ComponentParams):
             capacity_nominal=100.0,  # Default 100 kW capacity
             max_import=100.0,  # Default 100 kW import
             max_export=100.0,  # Default 100 kW export
-            import_tariff=0.25,
-            feed_in_tariff=0.08,
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            import_tariff=0.25
+            feed_in_tariff=0.08
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 

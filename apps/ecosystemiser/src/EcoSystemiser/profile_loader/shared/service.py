@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_errors import BaseError
 from hive_logging import get_logger
 
@@ -12,12 +14,12 @@ This module defines the common service interface that all profile loaders
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, ListTuple
 
 import xarray as xr
 from ecosystemiser.profile_loader.shared.models import (
-    BaseProfileRequest,
-    BaseProfileResponse,
+    BaseProfileRequest
+    BaseProfileResponse
 )
 
 
@@ -25,7 +27,7 @@ class BaseProfileService(ABC):
     """
     Abstract base class for all profile services.
 
-    This defines the unified interface that all profile loaders should implement,
+    This defines the unified interface that all profile loaders should implement
     ensuring consistency between climate, demand, and future profile types.
     """
 
@@ -85,7 +87,7 @@ class BaseProfileService(ABC):
         pass
 
     @abstractmethod
-    def get_available_variables(self, source: Optional[str] = None) -> Dict[str, Dict[str, str]]:
+    def get_available_variables(self, source: str | None = None) -> Dict[str, Dict[str, str]]:
         """
         Get available variables for this profile type.
 
@@ -118,14 +120,14 @@ class BaseProfileService(ABC):
             Service metadata including capabilities and version
         """
         return {
-            "service_type": self.__class__.__name__,
-            "version": "1.0.0",
-            "available_sources": self.get_available_sources(),
+            "service_type": self.__class__.__name__
+            "version": "1.0.0"
+            "available_sources": self.get_available_sources()
             "capabilities": {
-                "async_processing": True,
-                "caching": True,
-                "validation": True,
-            },
+                "async_processing": True
+                "caching": True
+                "validation": True
+            }
         }
 
 
@@ -133,10 +135,10 @@ class ProfileServiceError(Exception):
     """Base exception for profile service errors."""
 
     def __init__(
-        self,
-        message: str,
-        error_code: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
+        self
+        message: str
+        error_code: str | None = None
+        details: Optional[Dict[str, Any]] = None
     ):
         super().__init__(message)
         self.error_code = error_code

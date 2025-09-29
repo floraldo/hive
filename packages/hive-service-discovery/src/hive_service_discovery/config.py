@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -5,7 +7,7 @@ logger = get_logger(__name__)
 """Configuration for service discovery components."""
 
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, validator
 
@@ -68,12 +70,12 @@ class ServiceDiscoveryConfig(BaseModel):
 
     # Network settings
     bind_address: str = Field(default="0.0.0.0", description="Bind address for service")
-    advertise_address: Optional[str] = Field(default=None, description="Advertised address (auto-detect if None)")
+    advertise_address: str | None = Field(default=None, description="Advertised address (auto-detect if None)")
 
     # Security settings
     enable_tls: bool = Field(default=False, description="Enable TLS for service communication")
-    tls_cert_path: Optional[str] = Field(default=None, description="TLS certificate path")
-    tls_key_path: Optional[str] = Field(default=None, description="TLS private key path")
+    tls_cert_path: str | None = Field(default=None, description="TLS certificate path")
+    tls_key_path: str | None = Field(default=None, description="TLS private key path")
 
     # Monitoring and metrics
     enable_metrics: bool = Field(default=True, description="Enable metrics collection")
@@ -105,18 +107,18 @@ class ServiceDiscoveryConfig(BaseModel):
 
         # Map environment variables to config fields
         env_mapping = {
-            "HIVE_SERVICE_REGISTRY_BACKEND": "registry_backend",
-            "HIVE_SERVICE_REGISTRY_URL": "registry_url",
-            "HIVE_SERVICE_TTL": "service_ttl",
-            "HIVE_SERVICE_BIND_ADDRESS": "bind_address",
-            "HIVE_SERVICE_ADVERTISE_ADDRESS": "advertise_address",
-            "HIVE_SERVICE_ENVIRONMENT": "environment",
-            "HIVE_SERVICE_DATACENTER": "datacenter",
-            "HIVE_SERVICE_REGION": "region",
-            "HIVE_SERVICE_ENABLE_TLS": "enable_tls",
-            "HIVE_SERVICE_HEALTH_CHECK_INTERVAL": "health_check.interval",
-            "HIVE_SERVICE_DISCOVERY_INTERVAL": "discovery_interval",
-            "HIVE_SERVICE_LB_STRATEGY": "load_balancer.strategy",
+            "HIVE_SERVICE_REGISTRY_BACKEND": "registry_backend"
+            "HIVE_SERVICE_REGISTRY_URL": "registry_url"
+            "HIVE_SERVICE_TTL": "service_ttl"
+            "HIVE_SERVICE_BIND_ADDRESS": "bind_address"
+            "HIVE_SERVICE_ADVERTISE_ADDRESS": "advertise_address"
+            "HIVE_SERVICE_ENVIRONMENT": "environment"
+            "HIVE_SERVICE_DATACENTER": "datacenter"
+            "HIVE_SERVICE_REGION": "region"
+            "HIVE_SERVICE_ENABLE_TLS": "enable_tls"
+            "HIVE_SERVICE_HEALTH_CHECK_INTERVAL": "health_check.interval"
+            "HIVE_SERVICE_DISCOVERY_INTERVAL": "discovery_interval"
+            "HIVE_SERVICE_LB_STRATEGY": "load_balancer.strategy"
         }
 
         for env_var, config_path in env_mapping.items():
@@ -152,11 +154,11 @@ class ServiceDiscoveryConfig(BaseModel):
     def get_service_tags(self, additional_tags: List[str] = None) -> List[str]:
         """Get standard service tags with optional additional tags."""
         tags = [
-            f"environment:{self.environment}",
-            f"datacenter:{self.datacenter}",
-            f"region:{self.region}",
-            f"version:1.0.0",
-            "platform:hive",
+            f"environment:{self.environment}"
+            f"datacenter:{self.datacenter}"
+            f"region:{self.region}"
+            f"version:1.0.0"
+            "platform:hive"
         ]
 
         if additional_tags:

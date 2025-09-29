@@ -1,13 +1,15 @@
 """Centralized Reporting Service for EcoSystemiser.
 
-This service provides a single source of truth for generating reports,
+This service provides a single source of truth for generating reports
 eliminating duplication between CLI and web interfaces.
 """
+from __future__ import annotations
+
 
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from hive_logging import get_logger
 from pydantic import BaseModel, Field
@@ -24,7 +26,7 @@ class ReportConfig(BaseModel):
     title: str = Field(default="EcoSystemiser Analysis Report", description="Title of the report")
     include_plots: bool = Field(default=True, description="Whether to include visualizations in the report")
     output_format: str = Field(default="html", description="Output format: html, json, or both")
-    save_path: Optional[Path] = Field(default=None, description="Optional path to save the report")
+    save_path: Path | None = Field(default=None, description="Optional path to save the report")
     metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata for report customization")
 
 
@@ -33,11 +35,11 @@ class ReportResult(BaseModel):
 
     report_id: str
     report_type: str
-    html_content: Optional[str] = None
+    html_content: str | None = None
     json_content: Optional[Dict[str, Any]] = None
     plots: Optional[Dict[str, Any]] = None
     generation_time: datetime
-    save_path: Optional[Path] = None
+    save_path: Path | None = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -51,7 +53,7 @@ class ReportingService:
         self._html_generator = None
         logger.info("ReportingService initialized")
 
-    def generate_report(self, analysis_results: Dict[str, Any], config: Optional[ReportConfig] = None) -> ReportResult:
+    def generate_report(self, analysis_results: Dict[str, Any], config: ReportConfig | None = None) -> ReportResult:
         """Generate a report from analysis results.
 
         This is the main entry point for all report generation.
@@ -98,14 +100,14 @@ class ReportingService:
 
         # Create result
         result = ReportResult(
-            report_id=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            report_type=config.report_type,
-            html_content=html_content,
-            json_content=json_content,
-            plots=plots,
-            generation_time=datetime.now(),
-            save_path=config.save_path,
-            metadata=config.metadata,
+            report_id=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            report_type=config.report_type
+            html_content=html_content
+            json_content=json_content
+            plots=plots
+            generation_time=datetime.now()
+            save_path=config.save_path
+            metadata=config.metadata
         )
 
         logger.info(f"Report generated successfully: {result.report_id}")
@@ -258,13 +260,13 @@ class ReportingService:
         """
         json_content = {
             "report_metadata": {
-                "title": config.title,
-                "type": config.report_type,
-                "generated_at": datetime.now().isoformat(),
-                "version": "3.0.0",
-            },
-            "results": analysis_results,
-            "configuration": config.metadata,
+                "title": config.title
+                "type": config.report_type
+                "generated_at": datetime.now().isoformat()
+                "version": "3.0.0"
+            }
+            "results": analysis_results
+            "configuration": config.metadata
         }
 
         # Add report-specific sections
@@ -323,7 +325,7 @@ class ReportingService:
         return summary
 
     def _save_report(
-        self, html_content: Optional[str], json_content: Optional[Dict[str, Any]], save_path: Path
+        self, html_content: str | None, json_content: Optional[Dict[str, Any]], save_path: Path
     ) -> None:
         """Save report content to disk.
 
@@ -353,7 +355,7 @@ class ReportingService:
             raise
 
     def generate_comparison_report(
-        self, results_list: List[Dict[str, Any]], config: Optional[ReportConfig] = None
+        self, results_list: List[Dict[str, Any]], config: ReportConfig | None = None
     ) -> ReportResult:
         """Generate a comparison report for multiple results.
 
@@ -368,9 +370,9 @@ class ReportingService:
 
         # Prepare comparison data
         comparison_data = {
-            "num_results": len(results_list),
-            "results": results_list,
-            "comparison_metrics": self._calculate_comparison_metrics(results_list),
+            "num_results": len(results_list)
+            "results": results_list
+            "comparison_metrics": self._calculate_comparison_metrics(results_list)
         }
 
         # Generate report using the main method

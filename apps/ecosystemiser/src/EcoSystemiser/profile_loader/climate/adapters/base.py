@@ -8,6 +8,8 @@ This module provides the foundation for all climate data adapters with:
 - Layered caching strategy
 - Standardized error handling
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib
@@ -17,7 +19,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, ListTuple
 
 import httpx
 import numpy as np
@@ -25,21 +27,21 @@ import xarray as xr
 
 # Import config models from centralized location to avoid circular dependency
 from ecosystemiser.profile_loader.climate.config_models import (
-    CacheConfig,
-    HTTPConfig,
-    RateLimitConfig,
-    RateLimitStrategy,
+    CacheConfig
+    HTTPConfig
+    RateLimitConfig
+    RateLimitStrategy
 )
 
 # Import centralized settings
 from ecosystemiser.settings import Settings, get_settings
 from hive_logging import get_logger
 from tenacity import (
-    before_sleep_log,
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
+    before_sleep_log
+    retry
+    retry_if_exception_type
+    stop_after_attempt
+    wait_exponential
 )
 
 logger = get_logger(__name__)
@@ -134,7 +136,7 @@ class LayeredCache:
         key_str = json.dumps(sorted_kwargs, sort_keys=True)
         return hashlib.sha256(key_str.encode()).hexdigest()
 
-    async def get_async(self, **kwargs) -> Optional[Any]:
+    async def get_async(self, **kwargs) -> Any | None:
         """Get value from cache hierarchy"""
         key = self._make_key(**kwargs)
 
@@ -224,37 +226,37 @@ class SharedHTTPClient:
     """Shared async HTTP client with retry and rate limiting"""
 
     def __init__(
-        self,
-        config: HTTPConfig = HTTPConfig(),
-        rate_limit_config: Optional[RateLimitConfig] = None,
+        self
+        config: HTTPConfig = HTTPConfig()
+        rate_limit_config: RateLimitConfig | None = None
     ):
         self.config = config
         self.rate_limiter = RateLimiter(rate_limit_config) if rate_limit_config else None
 
         # Create connection pool with limits
         self._client = httpx.AsyncClient(
-            timeout=httpx.Timeout(config.timeout),
+            timeout=httpx.Timeout(config.timeout)
             limits=httpx.Limits(
-                max_connections=config.connection_pool_size,
-                max_keepalive_connections=config.connection_pool_size // 2,
-                keepalive_expiry=config.keepalive_expiry,
-            ),
-            verify=config.verify_ssl,
-            follow_redirects=config.follow_redirects,
+                max_connections=config.connection_pool_size
+                max_keepalive_connections=config.connection_pool_size // 2
+                keepalive_expiry=config.keepalive_expiry
+            )
+            verify=config.verify_ssl
+            follow_redirects=config.follow_redirects
         )
 
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=60),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
-        before_sleep=before_sleep_log(logger, "WARNING"),
+        stop=stop_after_attempt(3)
+        wait=wait_exponential(multiplier=1, min=1, max=60)
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError))
+        before_sleep=before_sleep_log(logger, "WARNING")
     )
     async def get_async(
-        self,
-        url: str,
-        params: Optional[Dict] = None,
-        headers: Optional[Dict] = None,
-        **kwargs,
+        self
+        url: str
+        params: Dict | None = None
+        headers: Dict | None = None
+        **kwargs
     ) -> httpx.Response:
         """Make GET request with retry and rate limiting"""
         if self.rate_limiter:
@@ -265,18 +267,18 @@ class SharedHTTPClient:
         return response
 
     @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=60),
-        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError)),
-        before_sleep=before_sleep_log(logger, "WARNING"),
+        stop=stop_after_attempt(3)
+        wait=wait_exponential(multiplier=1, min=1, max=60)
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError))
+        before_sleep=before_sleep_log(logger, "WARNING")
     )
     async def post_async(
-        self,
-        url: str,
-        json: Optional[Dict] = None,
-        data: Optional[Any] = None,
-        headers: Optional[Dict] = None,
-        **kwargs,
+        self
+        url: str
+        json: Dict | None = None
+        data: Any | None = None
+        headers: Dict | None = None
+        **kwargs
     ) -> httpx.Response:
         """Make POST request with retry and rate limiting"""
         if self.rate_limiter:
@@ -310,11 +312,11 @@ class BaseAdapter(ABC):
     """
 
     def __init__(
-        self,
-        name: str,
-        http_config: Optional[HTTPConfig] = None,
-        rate_limit_config: Optional[RateLimitConfig] = None,
-        cache_config: Optional[CacheConfig] = None,
+        self
+        name: str
+        http_config: HTTPConfig | None = None
+        rate_limit_config: RateLimitConfig | None = None
+        cache_config: CacheConfig | None = None
     ):
         self.name = name
         self.logger = get_logger(f"{__name__}.{name}")
@@ -334,12 +336,12 @@ class BaseAdapter(ABC):
         self.cache_misses = 0
 
     async def fetch_async(
-        self,
-        location: Tuple[float, float],
-        variables: List[str],
-        period: Dict[str, Any],
-        **kwargs,
-    ) -> Optional[xr.Dataset]:
+        self
+        location: Tuple[float, float]
+        variables: List[str]
+        period: Dict[str, Any]
+        **kwargs
+    ) -> xr.Dataset | None:
         """
         Main entry point for fetching climate data.
 
@@ -354,11 +356,11 @@ class BaseAdapter(ABC):
 
         # Check cache first
         cached = await self.cache.get_async(
-            source=self.name,
-            location=location,
-            variables=variables,
-            period=period,
-            **kwargs,
+            source=self.name
+            location=location
+            variables=variables
+            period=period
+            **kwargs
         )
 
         if cached is not None:
@@ -383,12 +385,12 @@ class BaseAdapter(ABC):
 
             # Cache results
             await self.cache.set_async(
-                ds,
-                source=self.name,
-                location=location,
-                variables=variables,
-                period=period,
-                **kwargs,
+                ds
+                source=self.name
+                location=location
+                variables=variables
+                period=period
+                **kwargs
             )
 
             return ds
@@ -399,12 +401,12 @@ class BaseAdapter(ABC):
 
     @abstractmethod
     async def _fetch_raw_async(
-        self,
-        location: Tuple[float, float],
-        variables: List[str],
-        period: Dict[str, Any],
-        **kwargs,
-    ) -> Optional[Any]:
+        self
+        location: Tuple[float, float]
+        variables: List[str]
+        period: Dict[str, Any]
+        **kwargs
+    ) -> Any | None:
         """Fetch raw data from the specific source"""
         pass
 
@@ -444,11 +446,11 @@ class BaseAdapter(ABC):
         cache_hit_rate = self.cache_hits / max(self.cache_hits + self.cache_misses, 1)
 
         return {
-            "adapter": self.name,
-            "request_count": self.request_count,
-            "cache_hits": self.cache_hits,
-            "cache_misses": self.cache_misses,
-            "cache_hit_rate": cache_hit_rate,
+            "adapter": self.name
+            "request_count": self.request_count
+            "cache_hits": self.cache_hits
+            "cache_misses": self.cache_misses
+            "cache_hit_rate": cache_hit_rate
         }
 
     async def close_async(self) -> None:

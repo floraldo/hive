@@ -61,7 +61,7 @@ class EndToEndIntegrationTest:
         """Cleanup test environment"""
         try:
             os.unlink(self.temp_db_path)
-        except:
+        except (OSError, FileNotFoundError):
             pass
 
     def init_test_database(self):

@@ -1,21 +1,21 @@
 """Water storage component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    StorageTechnicalParams,
+    FidelityLevel
+    StorageTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseStorageOptimization,
-    BaseStoragePhysics,
+    BaseStorageOptimization
+    BaseStoragePhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -30,6 +30,8 @@ logger = get_logger(__name__)
 
 class WaterStorageTechnicalParams(StorageTechnicalParams):
     """Water storage-specific technical parameters extending storage archetype.
+from __future__ import annotations
+
 
     This model inherits from StorageTechnicalParams and adds water storage-specific
     parameters for different fidelity levels.
@@ -38,9 +40,9 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
     # Water-specific parameters (in cubic meters and m³/h)
     storage_type: str = Field("tank", description="Type of water storage (tank, reservoir, cistern)")
     loss_rate_daily: float = Field(0.01, description="Daily loss rate (evaporation, leakage) [%]")
-    water_quality_class: Optional[str] = Field(
-        None,
-        description="Water quality classification (potable, greywater, blackwater)",
+    water_quality_class: str | None = Field(
+        None
+        description="Water quality classification (potable, greywater, blackwater)"
     )
 
     # Flow rate parameters
@@ -49,7 +51,7 @@ class WaterStorageTechnicalParams(StorageTechnicalParams):
 
     # STANDARD fidelity additions
     temperature_effects: Optional[Dict[str, float]] = Field(None, description="Temperature-dependent loss rates")
-    mixing_model: Optional[str] = Field(None, description="Water mixing model (FIFO, LIFO, perfect_mix)")
+    mixing_model: str | None = Field(None, description="Water mixing model (FIFO, LIFO, perfect_mix)")
 
     # DETAILED fidelity parameters
     stratification_model: Optional[Dict[str, Any]] = Field(None, description="Thermal stratification in water storage")
@@ -283,7 +285,7 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
 class WaterStorageParams(ComponentParams):
     """Water storage parameters using the hierarchical technical parameter system.
 
-    Capacity and flow rates are specified through the technical parameter block,
+    Capacity and flow rates are specified through the technical parameter block
     following the archetype inheritance pattern. Units are in m³ and m³/h.
     """
 
@@ -296,9 +298,9 @@ class WaterStorageParams(ComponentParams):
             initial_soc_pct=0.5,  # Start at 50% full
             soc_min=0.05,  # Minimum 5% (emergency reserve)
             soc_max=1.0,  # Maximum 100%
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -418,7 +420,7 @@ class WaterStorage(Component):
                 f"{self.name} at t={t}: inflow={inflow:.3f}m³/h, " f"outflow={outflow:.3f}m³/h, level={new_level:.3f}m³"
             )
 
-    def add_optimization_vars(self, N: Optional[int] = None) -> None:
+    def add_optimization_vars(self, N: int | None = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N

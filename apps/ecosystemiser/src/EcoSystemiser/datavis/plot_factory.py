@@ -1,7 +1,7 @@
 """Plot factory for creating visualizations from simulation results."""
 
 import json
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -15,17 +15,19 @@ logger = get_logger(__name__)
 
 class PlotFactory:
     """Factory for creating various plot types from simulation data."""
+from __future__ import annotations
+
 
     def __init__(self) -> None:
         """Initialize plot factory with default styling."""
         self.default_layout = {
-            "template": "plotly_white",
-            "font": {"size": 12},
-            "margin": {"l": 60, "r": 30, "t": 60, "b": 60},
-            "hovermode": "x unified",
+            "template": "plotly_white"
+            "font": {"size": 12}
+            "margin": {"l": 60, "r": 30, "t": 60, "b": 60}
+            "hovermode": "x unified"
         }
 
-    def create_energy_flow_plot(self, system, timestep: Optional[int] = None) -> Dict:
+    def create_energy_flow_plot(self, system, timestep: int | None = None) -> Dict:
         """Create energy flow visualization.
 
         Args:
@@ -49,10 +51,10 @@ class PlotFactory:
                     if value > 0.01:  # Only show significant flows
                         flows_data.append(
                             {
-                                "source": flow_info["source"],
-                                "target": flow_info["target"],
-                                "value": float(value),
-                                "label": f"{value:.1f} kW",
+                                "source": flow_info["source"]
+                                "target": flow_info["target"]
+                                "value": float(value)
+                                "label": f"{value:.1f} kW"
                             }
                         )
 
@@ -71,18 +73,18 @@ class PlotFactory:
                 data=[
                     go.Sankey(
                         node=dict(
-                            pad=15,
-                            thickness=20,
-                            line=dict(color="black", width=0.5),
-                            label=node_list,
-                            color="lightblue",
-                        ),
+                            pad=15
+                            thickness=20
+                            line=dict(color="black", width=0.5)
+                            label=node_list
+                            color="lightblue"
+                        )
                         link=dict(
-                            source=[node_dict[f["source"]] for f in flows_data],
-                            target=[node_dict[f["target"]] for f in flows_data],
-                            value=[f["value"] for f in flows_data],
-                            label=[f["label"] for f in flows_data],
-                        ),
+                            source=[node_dict[f["source"]] for f in flows_data]
+                            target=[node_dict[f["target"]] for f in flows_data]
+                            value=[f["value"] for f in flows_data]
+                            label=[f["label"] for f in flows_data]
+                        )
                     )
                 ]
             )
@@ -105,11 +107,11 @@ class PlotFactory:
             Plotly figure as dictionary
         """
         fig = make_subplots(
-            rows=2,
-            cols=1,
-            subplot_titles=("Power Flows", "Storage Levels"),
-            shared_xaxes=True,
-            vertical_spacing=0.1,
+            rows=2
+            cols=1
+            subplot_titles=("Power Flows", "Storage Levels")
+            shared_xaxes=True
+            vertical_spacing=0.1
         )
 
         time_axis = list(range(system.N))
@@ -121,14 +123,14 @@ class PlotFactory:
                 if isinstance(values, np.ndarray) and np.max(np.abs(values)) > 0.01:
                     fig.add_trace(
                         go.Scatter(
-                            x=time_axis,
-                            y=values,
-                            mode="lines",
-                            name=f"{flow_info['source']}→{flow_info['target']}",
-                            hovertemplate="%{y:.2f} kW",
-                        ),
-                        row=1,
-                        col=1,
+                            x=time_axis
+                            y=values
+                            mode="lines"
+                            name=f"{flow_info['source']}→{flow_info['target']}"
+                            hovertemplate="%{y:.2f} kW"
+                        )
+                        row=1
+                        col=1
                     )
 
         # Plot storage levels
@@ -140,25 +142,25 @@ class PlotFactory:
                 if isinstance(comp.E, np.ndarray):
                     fig.add_trace(
                         go.Scatter(
-                            x=time_axis,
-                            y=comp.E,
-                            mode="lines",
-                            name=f"{comp_name} Level",
-                            hovertemplate="%{y:.2f} kWh",
-                        ),
-                        row=2,
-                        col=1,
+                            x=time_axis
+                            y=comp.E
+                            mode="lines"
+                            name=f"{comp_name} Level"
+                            hovertemplate="%{y:.2f} kWh"
+                        )
+                        row=2
+                        col=1
                     )
 
                     # Add capacity limit line
                     if hasattr(comp, "E_max"):
                         fig.add_hline(
-                            y=comp.E_max,
-                            line_dash="dash",
-                            line_color="red",
-                            annotation_text=f"{comp_name} Max",
-                            row=2,
-                            col=1,
+                            y=comp.E_max
+                            line_dash="dash"
+                            line_color="red"
+                            annotation_text=f"{comp_name} Max"
+                            row=2
+                            col=1
                         )
 
         # Update layout
@@ -181,21 +183,21 @@ class PlotFactory:
         """
         # Categorize KPIs
         categories = {
-            "Energy": ["grid_import", "grid_export", "generation", "solar"],
-            "Efficiency": ["self_consumption", "renewable_fraction"],
-            "Economic": ["capex", "opex"],
-            "Environmental": ["co2"],
+            "Energy": ["grid_import", "grid_export", "generation", "solar"]
+            "Efficiency": ["self_consumption", "renewable_fraction"]
+            "Economic": ["capex", "opex"]
+            "Environmental": ["co2"]
         }
 
         # Create subplots for different KPI categories
         fig = make_subplots(
-            rows=2,
-            cols=2,
-            subplot_titles=list(categories.keys()),
+            rows=2
+            cols=2
+            subplot_titles=list(categories.keys())
             specs=[
-                [{"type": "bar"}, {"type": "bar"}],
-                [{"type": "bar"}, {"type": "indicator"}],
-            ],
+                [{"type": "bar"}, {"type": "bar"}]
+                [{"type": "bar"}, {"type": "indicator"}]
+            ]
         )
 
         row_col_map = [(1, 1), (1, 2), (2, 1), (2, 2)]
@@ -212,14 +214,14 @@ class PlotFactory:
                     value = list(cat_kpis.values())[0]
                     fig.add_trace(
                         go.Indicator(
-                            mode="number+delta",
-                            value=value,
-                            title={"text": "Total CO2 (kg)"},
+                            mode="number+delta"
+                            value=value
+                            title={"text": "Total CO2 (kg)"}
                             delta={"reference": value * 1.2},  # Compare to 20% higher
-                            domain={"x": [0, 1], "y": [0, 1]},
-                        ),
-                        row=row,
-                        col=col,
+                            domain={"x": [0, 1], "y": [0, 1]}
+                        )
+                        row=row
+                        col=col
                     )
                 else:
                     # Use bar chart for multiple values
@@ -228,14 +230,14 @@ class PlotFactory:
 
                     fig.add_trace(
                         go.Bar(
-                            x=labels,
-                            y=values,
-                            name=category,
-                            text=[f"{v:.2f}" for v in values],
-                            textposition="auto",
-                        ),
-                        row=row,
-                        col=col,
+                            x=labels
+                            y=values
+                            name=category
+                            text=[f"{v:.2f}" for v in values]
+                            textposition="auto"
+                        )
+                        row=row
+                        col=col
                     )
 
         fig.update_layout(title="KPI Dashboard", height=600, showlegend=False, **self.default_layout)
@@ -258,19 +260,19 @@ class PlotFactory:
         for name, profile in profiles.items():
             fig.add_trace(
                 go.Scatter(
-                    x=time_axis,
-                    y=profile,
-                    mode="lines",
-                    name=name.replace("_", " ").title(),
-                    stackgroup="one" if "demand" in name.lower() else None,
+                    x=time_axis
+                    y=profile
+                    mode="lines"
+                    name=name.replace("_", " ").title()
+                    stackgroup="one" if "demand" in name.lower() else None
                 )
             )
 
         fig.update_layout(
-            title="Load and Generation Profiles",
-            xaxis_title="Hour",
-            yaxis_title="Power (kW) / Demand (kWh)",
-            **self.default_layout,
+            title="Load and Generation Profiles"
+            xaxis_title="Hour"
+            yaxis_title="Power (kW) / Demand (kWh)"
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -299,11 +301,11 @@ class PlotFactory:
                     max_level = getattr(comp, "E_max", 100)
                     frame_data.append(
                         go.Bar(
-                            x=[comp.name],
-                            y=[level],
-                            name=comp.name,
-                            text=f"{level:.1f}/{max_level:.0f}",
-                            textposition="auto",
+                            x=[comp.name]
+                            y=[level]
+                            name=comp.name
+                            text=f"{level:.1f}/{max_level:.0f}"
+                            textposition="auto"
                         )
                     )
 
@@ -317,66 +319,66 @@ class PlotFactory:
                 max_level = getattr(comp, "E_max", 100)
                 initial_data.append(
                     go.Bar(
-                        x=[comp.name],
-                        y=[level],
-                        name=comp.name,
-                        text=f"{level:.1f}/{max_level:.0f}",
-                        textposition="auto",
+                        x=[comp.name]
+                        y=[level]
+                        name=comp.name
+                        text=f"{level:.1f}/{max_level:.0f}"
+                        textposition="auto"
                     )
                 )
 
         # Create figure with animation
         fig = go.Figure(
-            data=initial_data,
-            frames=frames,
+            data=initial_data
+            frames=frames
             layout=go.Layout(
-                title="Storage Levels Animation",
-                yaxis=dict(range=[0, max([getattr(c, "E_max", 100) for c in storage_comps])]),
+                title="Storage Levels Animation"
+                yaxis=dict(range=[0, max([getattr(c, "E_max", 100) for c in storage_comps])])
                 updatemenus=[
                     {
-                        "type": "buttons",
-                        "showactive": False,
+                        "type": "buttons"
+                        "showactive": False
                         "buttons": [
                             {
-                                "label": "Play",
-                                "method": "animate",
-                                "args": [None, {"frame": {"duration": 100}}],
-                            },
+                                "label": "Play"
+                                "method": "animate"
+                                "args": [None, {"frame": {"duration": 100}}]
+                            }
                             {
-                                "label": "Pause",
-                                "method": "animate",
+                                "label": "Pause"
+                                "method": "animate"
                                 "args": [
-                                    [None],
-                                    {"frame": {"duration": 0}, "mode": "immediate"},
-                                ],
-                            },
-                        ],
+                                    [None]
+                                    {"frame": {"duration": 0}, "mode": "immediate"}
+                                ]
+                            }
+                        ]
                     }
-                ],
+                ]
                 sliders=[
                     {
                         "steps": [
                             {
                                 "args": [
-                                    [f.name],
-                                    {"frame": {"duration": 0}, "mode": "immediate"},
-                                ],
-                                "label": f"t={f.name}",
-                                "method": "animate",
+                                    [f.name]
+                                    {"frame": {"duration": 0}, "mode": "immediate"}
+                                ]
+                                "label": f"t={f.name}"
+                                "method": "animate"
                             }
                             for f in frames
-                        ],
-                        "active": 0,
-                        "y": 0,
-                        "len": 0.9,
-                        "x": 0.1,
-                        "xanchor": "left",
-                        "y": 0,
-                        "yanchor": "top",
+                        ]
+                        "active": 0
+                        "y": 0
+                        "len": 0.9
+                        "x": 0.1
+                        "xanchor": "left"
+                        "y": 0
+                        "yanchor": "top"
                     }
-                ],
-                **self.default_layout,
-            ),
+                ]
+                **self.default_layout
+            )
         )
 
         return fig.to_dict()
@@ -433,18 +435,18 @@ class PlotFactory:
         """
         # Create subplots for different economic metrics
         fig = make_subplots(
-            rows=2,
-            cols=2,
+            rows=2
+            cols=2
             subplot_titles=(
-                "Cost Breakdown",
-                "Component Costs",
-                "Cash Flow Analysis",
-                "Economic Indicators",
-            ),
+                "Cost Breakdown"
+                "Component Costs"
+                "Cash Flow Analysis"
+                "Economic Indicators"
+            )
             specs=[
-                [{"type": "pie"}, {"type": "bar"}],
-                [{"type": "scatter"}, {"type": "indicator"}],
-            ],
+                [{"type": "pie"}, {"type": "bar"}]
+                [{"type": "scatter"}, {"type": "indicator"}]
+            ]
         )
 
         # Cost breakdown pie chart
@@ -476,14 +478,14 @@ class PlotFactory:
 
             fig.add_trace(
                 go.Scatter(
-                    x=years,
-                    y=cash_flows,
-                    mode="lines+markers",
-                    name="Cumulative Cash Flow",
-                    line=dict(width=2),
-                ),
-                row=2,
-                col=1,
+                    x=years
+                    y=cash_flows
+                    mode="lines+markers"
+                    name="Cumulative Cash Flow"
+                    line=dict(width=2)
+                )
+                row=2
+                col=1
             )
             fig.add_hline(y=0, line_dash="dash", line_color="red", row=2, col=1)
 
@@ -491,21 +493,21 @@ class PlotFactory:
         if "lcoe" in economic_data:
             fig.add_trace(
                 go.Indicator(
-                    mode="number+delta",
-                    value=economic_data["lcoe"],
-                    title={"text": "LCOE ($/kWh)"},
+                    mode="number+delta"
+                    value=economic_data["lcoe"]
+                    title={"text": "LCOE ($/kWh)"}
                     delta={"reference": 0.15},  # Reference grid price
-                    domain={"x": [0, 1], "y": [0, 1]},
-                ),
-                row=2,
-                col=2,
+                    domain={"x": [0, 1], "y": [0, 1]}
+                )
+                row=2
+                col=2
             )
 
         fig.update_layout(
-            title="Economic Analysis Summary",
-            height=700,
-            showlegend=True,
-            **self.default_layout,
+            title="Economic Analysis Summary"
+            height=700
+            showlegend=True
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -544,23 +546,23 @@ class PlotFactory:
         # Create heatmap
         fig = go.Figure(
             data=go.Heatmap(
-                z=matrix,
-                x=kpis,
-                y=params,
-                colorscale="RdBu",
-                zmid=0,
-                text=[[f"{v:.3f}" for v in row] for row in matrix],
-                texttemplate="%{text}",
-                textfont={"size": 10},
+                z=matrix
+                x=kpis
+                y=params
+                colorscale="RdBu"
+                zmid=0
+                text=[[f"{v:.3f}" for v in row] for row in matrix]
+                texttemplate="%{text}"
+                textfont={"size": 10}
             )
         )
 
         fig.update_layout(
-            title="Parameter Sensitivity Analysis",
-            xaxis_title="KPIs",
-            yaxis_title="Parameters",
-            height=max(400, len(params) * 30),
-            **self.default_layout,
+            title="Parameter Sensitivity Analysis"
+            xaxis_title="KPIs"
+            yaxis_title="Parameters"
+            height=max(400, len(params) * 30)
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -590,14 +592,14 @@ class PlotFactory:
         # Add Pareto frontier points
         fig.add_trace(
             go.Scatter(
-                x=costs,
-                y=renewables,
-                mode="markers+lines",
-                name="Pareto Frontier",
-                marker=dict(size=10, color="red"),
-                line=dict(color="red", dash="dash"),
-                text=[f"Cost: ${c:,.0f}<br>Renewable: {r:.2%}" for c, r in zip(costs, renewables)],
-                hovertemplate="%{text}<extra></extra>",
+                x=costs
+                y=renewables
+                mode="markers+lines"
+                name="Pareto Frontier"
+                marker=dict(size=10, color="red")
+                line=dict(color="red", dash="dash")
+                text=[f"Cost: ${c:,.0f}<br>Renewable: {r:.2%}" for c, r in zip(costs, renewables)]
+                hovertemplate="%{text}<extra></extra>"
             )
         )
 
@@ -605,25 +607,25 @@ class PlotFactory:
         if "cost_renewable_correlation" in trade_offs:
             correlation = trade_offs["cost_renewable_correlation"]
             fig.add_annotation(
-                text=f"Correlation: {correlation:.3f}",
-                xref="paper",
-                yref="paper",
-                x=0.02,
-                y=0.98,
-                showarrow=False,
-                font=dict(size=12),
-                bgcolor="white",
-                bordercolor="gray",
-                borderwidth=1,
+                text=f"Correlation: {correlation:.3f}"
+                xref="paper"
+                yref="paper"
+                x=0.02
+                y=0.98
+                showarrow=False
+                font=dict(size=12)
+                bgcolor="white"
+                bordercolor="gray"
+                borderwidth=1
             )
 
         fig.update_layout(
-            title="Cost vs Renewable Fraction Trade-off",
-            xaxis_title="Total Cost ($)",
-            yaxis_title="Renewable Fraction",
-            yaxis_tickformat=".0%",
-            height=500,
-            **self.default_layout,
+            title="Cost vs Renewable Fraction Trade-off"
+            xaxis_title="Total Cost ($)"
+            yaxis_title="Renewable Fraction"
+            yaxis_tickformat=".0%"
+            height=500
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -639,10 +641,10 @@ class PlotFactory:
         """
         # Define KPIs to display as gauges
         gauge_kpis = [
-            ("grid_self_sufficiency", "Grid Self-Sufficiency", 0, 1, 0.7),
-            ("renewable_fraction", "Renewable Fraction", 0, 1, 0.5),
-            ("battery_efficiency", "Battery Efficiency", 0, 1, 0.85),
-            ("load_factor", "Load Factor", 0, 1, 0.6),
+            ("grid_self_sufficiency", "Grid Self-Sufficiency", 0, 1, 0.7)
+            ("renewable_fraction", "Renewable Fraction", 0, 1, 0.5)
+            ("battery_efficiency", "Battery Efficiency", 0, 1, 0.85)
+            ("load_factor", "Load Factor", 0, 1, 0.6)
         ]
 
         # Filter available KPIs
@@ -656,10 +658,10 @@ class PlotFactory:
         rows = (len(available_gauges) + 1) // 2
 
         fig = make_subplots(
-            rows=rows,
-            cols=cols,
-            subplot_titles=[g[1] for g in available_gauges],
-            specs=[[{"type": "indicator"} for _ in range(cols)] for _ in range(rows)],
+            rows=rows
+            cols=cols
+            subplot_titles=[g[1] for g in available_gauges]
+            specs=[[{"type": "indicator"} for _ in range(cols)] for _ in range(rows)]
         )
 
         # Add gauge charts
@@ -679,27 +681,27 @@ class PlotFactory:
 
             fig.add_trace(
                 go.Indicator(
-                    mode="gauge+number",
-                    value=value,
+                    mode="gauge+number"
+                    value=value
                     gauge={
-                        "axis": {"range": [min_val, max_val]},
-                        "bar": {"color": bar_color},
+                        "axis": {"range": [min_val, max_val]}
+                        "bar": {"color": bar_color}
                         "threshold": {
-                            "line": {"color": "black", "width": 2},
-                            "thickness": 0.75,
-                            "value": threshold,
-                        },
-                    },
-                    number={"valueformat": ".1%" if max_val == 1 else ".2f"},
-                ),
-                row=row,
-                col=col,
+                            "line": {"color": "black", "width": 2}
+                            "thickness": 0.75
+                            "value": threshold
+                        }
+                    }
+                    number={"valueformat": ".1%" if max_val == 1 else ".2f"}
+                )
+                row=row
+                col=col
             )
 
         fig.update_layout(
-            title="Technical Performance Indicators",
-            height=300 * rows,
-            **self.default_layout,
+            title="Technical Performance Indicators"
+            height=300 * rows
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -724,31 +726,31 @@ class PlotFactory:
 
         # Create status indicator
         status_color = {
-            "optimal": "green",
-            "feasible": "yellow",
-            "infeasible": "red",
-            "unknown": "gray",
+            "optimal": "green"
+            "feasible": "yellow"
+            "infeasible": "red"
+            "unknown": "gray"
         }.get(status, "gray")
 
         fig.add_trace(
             go.Indicator(
-                mode="number+delta+gauge",
-                value=objective_value,
-                title={"text": f"Optimization Status: {status.upper()}"},
-                gauge={"axis": {"visible": False}, "bar": {"color": status_color}},
-                domain={"x": [0.25, 0.75], "y": [0.3, 0.7]},
+                mode="number+delta+gauge"
+                value=objective_value
+                title={"text": f"Optimization Status: {status.upper()}"}
+                gauge={"axis": {"visible": False}, "bar": {"color": status_color}}
+                domain={"x": [0.25, 0.75], "y": [0.3, 0.7]}
             )
         )
 
         # Add solve time annotation
         fig.add_annotation(
-            text=f"Solve Time: {solve_time:.2f}s",
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=0.15,
-            showarrow=False,
-            font=dict(size=14),
+            text=f"Solve Time: {solve_time:.2f}s"
+            xref="paper"
+            yref="paper"
+            x=0.5
+            y=0.15
+            showarrow=False
+            font=dict(size=14)
         )
 
         fig.update_layout(title="Optimization Results", height=400, **self.default_layout)
@@ -780,22 +782,22 @@ class PlotFactory:
         # Add Pareto front points
         fig.add_trace(
             go.Scatter(
-                x=obj1,
-                y=obj2,
-                mode="markers+lines",
-                name="Pareto Front",
+                x=obj1
+                y=obj2
+                mode="markers+lines"
+                name="Pareto Front"
                 marker=dict(
-                    size=10,
-                    color=np.arange(len(obj1)),
-                    colorscale="Viridis",
-                    showscale=True,
-                    colorbar=dict(title="Solution Index"),
-                ),
-                line=dict(color="rgba(0,0,0,0.3)", width=1),
+                    size=10
+                    color=np.arange(len(obj1))
+                    colorscale="Viridis"
+                    showscale=True
+                    colorbar=dict(title="Solution Index")
+                )
+                line=dict(color="rgba(0,0,0,0.3)", width=1)
                 text=[
                     f"Solution {i}<br>Obj1: {o1:.4f}<br>Obj2: {o2:.4f}" for i, (o1, o2) in enumerate(zip(obj1, obj2))
-                ],
-                hovertemplate="%{text}<extra></extra>",
+                ]
+                hovertemplate="%{text}<extra></extra>"
             )
         )
 
@@ -805,22 +807,22 @@ class PlotFactory:
             if len(best_obj) >= 2:
                 fig.add_trace(
                     go.Scatter(
-                        x=[best_obj[0]],
-                        y=[best_obj[1]],
-                        mode="markers",
-                        name="Best Compromise",
-                        marker=dict(size=15, color="red", symbol="star"),
-                        text=f"Best Compromise<br>Obj1: {best_obj[0]:.4f}<br>Obj2: {best_obj[1]:.4f}",
-                        hovertemplate="%{text}<extra></extra>",
+                        x=[best_obj[0]]
+                        y=[best_obj[1]]
+                        mode="markers"
+                        name="Best Compromise"
+                        marker=dict(size=15, color="red", symbol="star")
+                        text=f"Best Compromise<br>Obj1: {best_obj[0]:.4f}<br>Obj2: {best_obj[1]:.4f}"
+                        hovertemplate="%{text}<extra></extra>"
                     )
                 )
 
         fig.update_layout(
-            title="Multi-Objective Optimization: Pareto Front",
-            xaxis_title="Objective 1 (minimize)",
-            yaxis_title="Objective 2 (minimize)",
-            height=500,
-            **self.default_layout,
+            title="Multi-Objective Optimization: Pareto Front"
+            xaxis_title="Objective 1 (minimize)"
+            yaxis_title="Objective 2 (minimize)"
+            height=500
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -845,34 +847,34 @@ class PlotFactory:
         # Add convergence line
         fig.add_trace(
             go.Scatter(
-                x=generations,
-                y=convergence_history,
-                mode="lines+markers",
-                name="Best Fitness",
-                line=dict(color="blue", width=2),
-                marker=dict(size=6),
+                x=generations
+                y=convergence_history
+                mode="lines+markers"
+                name="Best Fitness"
+                line=dict(color="blue", width=2)
+                marker=dict(size=6)
             )
         )
 
         # Add final value annotation
         final_fitness = convergence_history[-1]
         fig.add_annotation(
-            x=generations[-1],
-            y=final_fitness,
-            text=f"Final: {final_fitness:.4f}",
-            showarrow=True,
-            arrowhead=2,
-            bgcolor="white",
-            bordercolor="blue",
-            borderwidth=1,
+            x=generations[-1]
+            y=final_fitness
+            text=f"Final: {final_fitness:.4f}"
+            showarrow=True
+            arrowhead=2
+            bgcolor="white"
+            bordercolor="blue"
+            borderwidth=1
         )
 
         fig.update_layout(
-            title="Genetic Algorithm Convergence",
-            xaxis_title="Generation",
-            yaxis_title="Best Fitness",
-            height=400,
-            **self.default_layout,
+            title="Genetic Algorithm Convergence"
+            xaxis_title="Generation"
+            yaxis_title="Best Fitness"
+            height=400
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -919,26 +921,26 @@ class PlotFactory:
         # Create horizontal bar chart
         fig.add_trace(
             go.Bar(
-                y=sorted_names,
-                x=sorted_sens,
-                orientation="h",
+                y=sorted_names
+                x=sorted_sens
+                orientation="h"
                 marker=dict(
-                    color=sorted_sens,
-                    colorscale="RdBu",
-                    showscale=True,
-                    colorbar=dict(title="Sensitivity Index"),
-                ),
-                text=[f"{s:.3f}" for s in sorted_sens],
-                textposition="outside",
+                    color=sorted_sens
+                    colorscale="RdBu"
+                    showscale=True
+                    colorbar=dict(title="Sensitivity Index")
+                )
+                text=[f"{s:.3f}" for s in sorted_sens]
+                textposition="outside"
             )
         )
 
         fig.update_layout(
-            title="Parameter Sensitivity Analysis",
-            xaxis_title="Sensitivity Index",
-            yaxis_title="Parameters",
-            height=max(400, len(params) * 30),
-            **self.default_layout,
+            title="Parameter Sensitivity Analysis"
+            xaxis_title="Sensitivity Index"
+            yaxis_title="Parameters"
+            height=max(400, len(params) * 30)
+            **self.default_layout
         )
 
         return fig.to_dict()
@@ -990,42 +992,42 @@ class PlotFactory:
                 fig.add_trace(
                     go.Histogram(
                         x=np.random.normal(mean, std, 1000),  # Simulated data for visualization
-                        nbinsx=30,
-                        name=f"{obj_name} Distribution",
-                        opacity=0.7,
-                        histnorm="probability density",
+                        nbinsx=30
+                        name=f"{obj_name} Distribution"
+                        opacity=0.7
+                        histnorm="probability density"
                     )
                 )
 
                 # Add normal distribution overlay
                 fig.add_trace(
                     go.Scatter(
-                        x=x_range,
-                        y=normal_dist,
-                        mode="lines",
-                        name="Normal Fit",
-                        line=dict(color="red", width=2),
+                        x=x_range
+                        y=normal_dist
+                        mode="lines"
+                        name="Normal Fit"
+                        line=dict(color="red", width=2)
                     )
                 )
 
                 # Add statistics
                 fig.add_vline(
-                    x=mean,
-                    line_dash="dash",
-                    line_color="green",
-                    annotation_text=f"Mean: {mean:.3f}",
+                    x=mean
+                    line_dash="dash"
+                    line_color="green"
+                    annotation_text=f"Mean: {mean:.3f}"
                 )
                 fig.add_vline(
-                    x=mean + std,
-                    line_dash="dot",
-                    line_color="orange",
-                    annotation_text=f"+1σ: {mean+std:.3f}",
+                    x=mean + std
+                    line_dash="dot"
+                    line_color="orange"
+                    annotation_text=f"+1σ: {mean+std:.3f}"
                 )
                 fig.add_vline(
-                    x=mean - std,
-                    line_dash="dot",
-                    line_color="orange",
-                    annotation_text=f"-1σ: {mean-std:.3f}",
+                    x=mean - std
+                    line_dash="dot"
+                    line_color="orange"
+                    annotation_text=f"-1σ: {mean-std:.3f}"
                 )
             else:
                 # Multiple subplots
@@ -1034,35 +1036,35 @@ class PlotFactory:
 
                 fig.add_trace(
                     go.Histogram(
-                        x=np.random.normal(mean, std, 1000),
-                        nbinsx=20,
-                        name=obj_name,
-                        opacity=0.7,
-                        histnorm="probability density",
-                    ),
-                    row=row,
-                    col=col,
+                        x=np.random.normal(mean, std, 1000)
+                        nbinsx=20
+                        name=obj_name
+                        opacity=0.7
+                        histnorm="probability density"
+                    )
+                    row=row
+                    col=col
                 )
 
                 fig.add_trace(
                     go.Scatter(
-                        x=x_range,
-                        y=normal_dist,
-                        mode="lines",
-                        name=f"{obj_name} Normal Fit",
-                        line=dict(color="red", width=2),
-                        showlegend=False,
-                    ),
-                    row=row,
-                    col=col,
+                        x=x_range
+                        y=normal_dist
+                        mode="lines"
+                        name=f"{obj_name} Normal Fit"
+                        line=dict(color="red", width=2)
+                        showlegend=False
+                    )
+                    row=row
+                    col=col
                 )
 
         title = "Output Uncertainty Distributions" if n_objectives > 1 else f"{objectives[0]} Uncertainty Distribution"
 
         fig.update_layout(
-            title=title,
-            height=400 if single_plot else 300 * rows,
-            **self.default_layout,
+            title=title
+            height=400 if single_plot else 300 * rows
+            **self.default_layout
         )
 
         if single_plot:
@@ -1101,50 +1103,50 @@ class PlotFactory:
         # Create risk indicator
         fig.add_trace(
             go.Indicator(
-                mode="number+gauge",
-                value=var_95,
-                title={"text": "Value at Risk (95%)"},
+                mode="number+gauge"
+                value=var_95
+                title={"text": "Value at Risk (95%)"}
                 gauge={
-                    "axis": {"range": [None, max(var_95, cvar_95) * 1.2]},
-                    "bar": {"color": "darkred"},
+                    "axis": {"range": [None, max(var_95, cvar_95) * 1.2]}
+                    "bar": {"color": "darkred"}
                     "steps": [
-                        {"range": [0, mean_val], "color": "lightgray"},
-                        {"range": [mean_val, var_95], "color": "yellow"},
-                        {"range": [var_95, max(var_95, cvar_95) * 1.2], "color": "red"},
-                    ],
+                        {"range": [0, mean_val], "color": "lightgray"}
+                        {"range": [mean_val, var_95], "color": "yellow"}
+                        {"range": [var_95, max(var_95, cvar_95) * 1.2], "color": "red"}
+                    ]
                     "threshold": {
-                        "line": {"color": "red", "width": 4},
-                        "thickness": 0.75,
-                        "value": var_95,
-                    },
-                },
-                domain={"x": [0, 0.5], "y": [0, 1]},
+                        "line": {"color": "red", "width": 4}
+                        "thickness": 0.75
+                        "value": var_95
+                    }
+                }
+                domain={"x": [0, 0.5], "y": [0, 1]}
             )
         )
 
         fig.add_trace(
             go.Indicator(
-                mode="number+gauge",
-                value=cvar_95,
-                title={"text": "Conditional VaR (95%)"},
+                mode="number+gauge"
+                value=cvar_95
+                title={"text": "Conditional VaR (95%)"}
                 gauge={
-                    "axis": {"range": [None, max(var_95, cvar_95) * 1.2]},
-                    "bar": {"color": "darkred"},
+                    "axis": {"range": [None, max(var_95, cvar_95) * 1.2]}
+                    "bar": {"color": "darkred"}
                     "steps": [
-                        {"range": [0, mean_val], "color": "lightgray"},
-                        {"range": [mean_val, cvar_95], "color": "orange"},
+                        {"range": [0, mean_val], "color": "lightgray"}
+                        {"range": [mean_val, cvar_95], "color": "orange"}
                         {
-                            "range": [cvar_95, max(var_95, cvar_95) * 1.2],
-                            "color": "red",
-                        },
-                    ],
+                            "range": [cvar_95, max(var_95, cvar_95) * 1.2]
+                            "color": "red"
+                        }
+                    ]
                     "threshold": {
-                        "line": {"color": "red", "width": 4},
-                        "thickness": 0.75,
-                        "value": cvar_95,
-                    },
-                },
-                domain={"x": [0.5, 1], "y": [0, 1]},
+                        "line": {"color": "red", "width": 4}
+                        "thickness": 0.75
+                        "value": cvar_95
+                    }
+                }
+                domain={"x": [0.5, 1], "y": [0, 1]}
             )
         )
 
@@ -1199,57 +1201,57 @@ class PlotFactory:
         # Add bars
         fig.add_trace(
             go.Bar(
-                y=parameters,
-                x=sensitivities,
-                orientation="h",
-                marker=dict(color=colors, line=dict(width=1, color="rgba(0,0,0,0.3)")),
-                text=[f"{s:.3f}" for s in sensitivities],
-                textposition="outside",
-                hovertemplate="<b>%{y}</b><br>" + "Sensitivity: %{x:.3f}<br>" + "<extra></extra>",
+                y=parameters
+                x=sensitivities
+                orientation="h"
+                marker=dict(color=colors, line=dict(width=1, color="rgba(0,0,0,0.3)"))
+                text=[f"{s:.3f}" for s in sensitivities]
+                textposition="outside"
+                hovertemplate="<b>%{y}</b><br>" + "Sensitivity: %{x:.3f}<br>" + "<extra></extra>"
             )
         )
 
         # Update layout
         fig.update_layout(
             title=dict(
-                text="Sensitivity Analysis - Parameter Importance",
-                font=dict(size=20, color="#333"),
-            ),
+                text="Sensitivity Analysis - Parameter Importance"
+                font=dict(size=20, color="#333")
+            )
             xaxis=dict(
-                title="Sensitivity Index",
-                titlefont=dict(size=14),
-                showgrid=True,
-                gridwidth=1,
-                gridcolor="lightgray",
-                range=[0, max(sensitivities) * 1.1] if sensitivities else [0, 1],
-            ),
-            yaxis=dict(title="Parameters", titlefont=dict(size=14), showgrid=False),
+                title="Sensitivity Index"
+                titlefont=dict(size=14)
+                showgrid=True
+                gridwidth=1
+                gridcolor="lightgray"
+                range=[0, max(sensitivities) * 1.1] if sensitivities else [0, 1]
+            )
+            yaxis=dict(title="Parameters", titlefont=dict(size=14), showgrid=False)
             height=max(400, len(parameters) * 40),  # Dynamic height based on parameters
-            margin=dict(l=150, r=50, t=50, b=50),
-            paper_bgcolor="white",
-            plot_bgcolor="rgba(0,0,0,0)",
-            font=dict(family="Segoe UI", size=12),
+            margin=dict(l=150, r=50, t=50, b=50)
+            paper_bgcolor="white"
+            plot_bgcolor="rgba(0,0,0,0)"
+            font=dict(family="Segoe UI", size=12)
         )
 
         # Add reference line at 0.5 if applicable
         if max(sensitivities) > 0.5:
             fig.add_shape(
-                type="line",
-                x0=0.5,
-                y0=-0.5,
-                x1=0.5,
-                y1=len(parameters) - 0.5,
-                line=dict(color="red", width=2, dash="dash"),
+                type="line"
+                x0=0.5
+                y0=-0.5
+                x1=0.5
+                y1=len(parameters) - 0.5
+                line=dict(color="red", width=2, dash="dash")
             )
             fig.add_annotation(
-                x=0.5,
-                y=len(parameters) - 1,
-                text="High Sensitivity Threshold",
-                showarrow=False,
-                font=dict(size=10, color="red"),
-                textangle=90,
-                xanchor="right",
-                yanchor="top",
+                x=0.5
+                y=len(parameters) - 1
+                text="High Sensitivity Threshold"
+                showarrow=False
+                font=dict(size=10, color="red")
+                textangle=90
+                xanchor="right"
+                yanchor="top"
             )
 
         return fig.to_dict()
@@ -1281,23 +1283,23 @@ class PlotFactory:
         # Create bar chart for scenarios
         fig.add_trace(
             go.Bar(
-                x=scenario_names,
-                y=scenario_means,
+                x=scenario_names
+                y=scenario_means
                 marker=dict(
-                    color=["green", "yellow", "red"][: len(scenario_names)],
-                    line=dict(color="black", width=1),
-                ),
-                text=[f"{m:.3f}" for m in scenario_means],
-                textposition="auto",
+                    color=["green", "yellow", "red"][: len(scenario_names)]
+                    line=dict(color="black", width=1)
+                )
+                text=[f"{m:.3f}" for m in scenario_means]
+                textposition="auto"
             )
         )
 
         fig.update_layout(
-            title=f"Scenario Analysis: {first_obj}",
-            xaxis_title="Scenario",
-            yaxis_title=first_obj,
-            height=400,
-            **self.default_layout,
+            title=f"Scenario Analysis: {first_obj}"
+            xaxis_title="Scenario"
+            yaxis_title=first_obj
+            height=400
+            **self.default_layout
         )
 
         return fig.to_dict()

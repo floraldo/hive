@@ -4,23 +4,23 @@ EcoSystemiser Logging Configuration.
 Extends hive-logging with EcoSystemiser-specific structured logging while maintaining
 compatibility with the existing structlog implementation.
 """
+from __future__ import annotations
 
-from typing import Optional
 
 # Import the existing structlog configuration for backward compatibility
 from ecosystemiser.profile_loader.climate.logging_config import (
-    AdapterContextProcessor,
-    CorrelationIDProcessor,
-    ErrorContextProcessor,
-    LoggingContext,
-    PerformanceProcessor,
-    clear_context,
-    log_with_context,
-    set_correlation_id,
-    set_request_id,
+    AdapterContextProcessor
+    CorrelationIDProcessor
+    ErrorContextProcessor
+    LoggingContext
+    PerformanceProcessor
+    clear_context
+    log_with_context
+    set_correlation_id
+    set_request_id
 )
 from ecosystemiser.profile_loader.climate.logging_config import (
-    setup_logging as setup_structlog_logging,
+    setup_logging as setup_structlog_logging
 )
 from hive_logging import get_logger as get_hive_logger
 from hive_logging import setup_logging as setup_hive_logging
@@ -29,7 +29,7 @@ from hive_logging import setup_logging as setup_hive_logging
 try:
     import structlog
     from ecosystemiser.profile_loader.climate.logging_config import (
-        get_logger as get_structlog_logger,
+        get_logger as get_structlog_logger
     )
 
     STRUCTLOG_AVAILABLE = True
@@ -38,7 +38,7 @@ except ImportError:
 
 
 def setup_logging(
-    log_level: Optional[str] = None, log_format: Optional[str] = None, use_structlog: bool = True
+    log_level: str | None = None, log_format: str | None = None, use_structlog: bool = True
 ) -> None:
     """
     Setup logging for EcoSystemiser with choice between hive-logging and structlog.
@@ -58,7 +58,7 @@ def setup_logging(
         )
 
 
-def get_logger(name: str, use_structlog: Optional[bool] = None) -> None:
+def get_logger(name: str, use_structlog: bool | None = None) -> None:
     """
     Get a logger instance with automatic selection between structlog and hive-logging.
 
@@ -83,12 +83,12 @@ def get_logger(name: str, use_structlog: Optional[bool] = None) -> None:
 
 # Re-export context management functions for structured logging
 __all__ = [
-    "setup_logging",
-    "get_logger",
-    "LoggingContext",
-    "set_correlation_id",
-    "set_request_id",
-    "clear_context",
-    "log_with_context",
-    "STRUCTLOG_AVAILABLE",
+    "setup_logging"
+    "get_logger"
+    "LoggingContext"
+    "set_correlation_id"
+    "set_request_id"
+    "clear_context"
+    "log_with_context"
+    "STRUCTLOG_AVAILABLE"
 ]

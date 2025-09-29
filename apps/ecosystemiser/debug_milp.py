@@ -37,7 +37,7 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
-def create_debug_system():
+def create_debug_system() -> System:
     """Create a simple system for debugging."""
     N = 3  # Short simulation for debugging
     system = System(system_id="debug_system", n=N)
@@ -73,7 +73,7 @@ def create_debug_system():
     return system
 
 
-def debug_cost_contributions():
+def debug_cost_contributions() -> None:
     """Debug the cost contribution calculation."""
     system = create_debug_system()
 

@@ -49,9 +49,9 @@ class TimeoutMetrics:
     average_duration: float = 0.0
     p95_duration: float = 0.0
     p99_duration: float = 0.0
-    last_success_duration: Optional[float] = None
+    last_success_duration: float | None = None
     consecutive_timeouts: int = 0
-    recommended_timeout: Optional[float] = None
+    recommended_timeout: float | None = None
     durations: deque = field(default_factory=lambda: deque(maxlen=100))
 
 
@@ -68,7 +68,7 @@ class AdvancedTimeoutManager:
     - Comprehensive logging and alerting
     """
 
-    def __init__(self, config: Optional[TimeoutConfig] = None) -> None:
+    def __init__(self, config: TimeoutConfig | None = None) -> None:
         self.config = config or TimeoutConfig()
 
         # Metrics tracking
@@ -337,7 +337,7 @@ class AdvancedTimeoutManager:
         """Add alert callback for timeout events."""
         self._alert_callbacks.append(callback)
 
-    def get_operation_metrics(self, operation_name: str) -> Optional[TimeoutMetrics]:
+    def get_operation_metrics(self, operation_name: str) -> TimeoutMetrics | None:
         """Get metrics for a specific operation."""
         return self._operation_metrics.get(operation_name)
 
@@ -406,7 +406,7 @@ class AdvancedTimeoutManager:
 
         return recommendations
 
-    def reset_adaptive_timeouts(self, operation_name: Optional[str] = None) -> None:
+    def reset_adaptive_timeouts(self, operation_name: str | None = None) -> None:
         """Reset adaptive timeouts for debugging/testing."""
         if operation_name:
             self._adaptive_timeouts.pop(operation_name, None)

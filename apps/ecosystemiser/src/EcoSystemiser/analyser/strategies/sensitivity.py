@@ -1,6 +1,6 @@
 """Sensitivity analysis strategy implementation."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,8 @@ logger = get_logger(__name__)
 
 class SensitivityAnalysis(BaseAnalysis):
     """Analyze parameter sensitivity and system robustness.
+from __future__ import annotations
+
 
     This strategy evaluates how system performance changes with
     parameter variations, identifying:
@@ -25,7 +27,7 @@ class SensitivityAnalysis(BaseAnalysis):
         """Initialize sensitivity analysis."""
         super().__init__(name="Sensitivity")
 
-    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
         """Perform sensitivity analysis on results.
 
         This expects results from a parametric study where multiple
@@ -212,13 +214,13 @@ class SensitivityAnalysis(BaseAnalysis):
 
                 influential.append(
                     {
-                        "parameter": param_name,
-                        "average_sensitivity": float(avg_sensitivity),
-                        "max_sensitivity": float(max_sensitivity),
+                        "parameter": param_name
+                        "average_sensitivity": float(avg_sensitivity)
+                        "max_sensitivity": float(max_sensitivity)
                         "most_affected_kpi": max(
-                            indices.items(),
-                            key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0),
-                        )[0],
+                            indices.items()
+                            key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0)
+                        )[0]
                     }
                 )
 
@@ -249,9 +251,9 @@ class SensitivityAnalysis(BaseAnalysis):
         if cost_results:
             min_cost = min(cost_results, key=lambda r: r["kpis"]["total_cost"])
             optimal["minimum_cost"] = {
-                "parameters": min_cost.get("output_config", {}).get("parameter_settings", {}),
-                "cost": min_cost["kpis"]["total_cost"],
-                "other_kpis": {k: v for k, v in min_cost["kpis"].items() if k != "total_cost"},
+                "parameters": min_cost.get("output_config", {}).get("parameter_settings", {})
+                "cost": min_cost["kpis"]["total_cost"]
+                "other_kpis": {k: v for k, v in min_cost["kpis"].items() if k != "total_cost"}
             }
 
         # Find maximum renewable configuration
@@ -259,9 +261,9 @@ class SensitivityAnalysis(BaseAnalysis):
         if renewable_results:
             max_renewable = max(renewable_results, key=lambda r: r["kpis"]["renewable_fraction"])
             optimal["maximum_renewable"] = {
-                "parameters": max_renewable.get("output_config", {}).get("parameter_settings", {}),
-                "renewable_fraction": max_renewable["kpis"]["renewable_fraction"],
-                "other_kpis": {k: v for k, v in max_renewable["kpis"].items() if k != "renewable_fraction"},
+                "parameters": max_renewable.get("output_config", {}).get("parameter_settings", {})
+                "renewable_fraction": max_renewable["kpis"]["renewable_fraction"]
+                "other_kpis": {k: v for k, v in max_renewable["kpis"].items() if k != "renewable_fraction"}
             }
 
         # Find best balanced configuration (multi-objective)
@@ -279,10 +281,10 @@ class SensitivityAnalysis(BaseAnalysis):
             if balanced_results:
                 best_balanced = max(balanced_results, key=balanced_score)
                 optimal["balanced"] = {
-                    "parameters": best_balanced.get("output_config", {}).get("parameter_settings", {}),
-                    "cost": best_balanced["kpis"]["total_cost"],
-                    "renewable_fraction": best_balanced["kpis"]["renewable_fraction"],
-                    "score": balanced_score(best_balanced),
+                    "parameters": best_balanced.get("output_config", {}).get("parameter_settings", {})
+                    "cost": best_balanced["kpis"]["total_cost"]
+                    "renewable_fraction": best_balanced["kpis"]["renewable_fraction"]
+                    "score": balanced_score(best_balanced)
                 }
 
         return optimal
@@ -306,8 +308,8 @@ class SensitivityAnalysis(BaseAnalysis):
                 if "total_cost" in kpis and "renewable_fraction" in kpis:
                     cost_renewable.append(
                         {
-                            "cost": kpis["total_cost"],
-                            "renewable": kpis["renewable_fraction"],
+                            "cost": kpis["total_cost"]
+                            "renewable": kpis["renewable_fraction"]
                         }
                     )
 

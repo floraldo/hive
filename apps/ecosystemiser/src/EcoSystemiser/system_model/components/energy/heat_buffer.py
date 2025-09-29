@@ -1,20 +1,20 @@
 """Heat buffer (thermal storage) component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    StorageTechnicalParams,
+    FidelityLevel
+    StorageTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseStorageOptimization,
-    BaseStoragePhysics,
+    BaseStorageOptimization
+    BaseStoragePhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -29,6 +29,8 @@ logger = get_logger(__name__)
 
 class HeatBufferTechnicalParams(StorageTechnicalParams):
     """Heat buffer-specific technical parameters extending storage archetype.
+from __future__ import annotations
+
 
     This model inherits from StorageTechnicalParams and adds thermal storage-specific
     parameters for different fidelity levels.
@@ -58,7 +60,7 @@ class HeatBufferTechnicalParams(StorageTechnicalParams):
 class HeatBufferParams(ComponentParams):
     """Heat buffer parameters using the hierarchical technical parameter system.
 
-    Thermal capacity is now specified through the technical parameter block,
+    Thermal capacity is now specified through the technical parameter block
     not as flat parameters.
     """
 
@@ -67,10 +69,10 @@ class HeatBufferParams(ComponentParams):
             capacity_nominal=20.0,  # Default 20 kWh thermal storage
             max_charge_rate=5.0,  # Default 5 kW charge rate
             max_discharge_rate=5.0,  # Default 5 kW discharge rate
-            efficiency_roundtrip=0.90,
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            efficiency_roundtrip=0.90
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -385,7 +387,7 @@ class HeatBuffer(Component):
                 f"E[{t}]={self.E[t]:.3f}kWh"
             )
 
-    def add_optimization_vars(self, N: Optional[int] = None) -> None:
+    def add_optimization_vars(self, N: int | None = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N

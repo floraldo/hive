@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -8,7 +10,7 @@ Specialized Claude Bridge for AI Planning
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal
 
 from pydantic import BaseModel, Field
 
@@ -91,100 +93,100 @@ class PlanningResponseValidator(PydanticValidator):
         task_description = context.get("task_description", "Unknown task")
 
         return ClaudePlanningResponse(
-            plan_id=f"fallback-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
-            plan_name=f"Fallback Plan: {task_description[:50]}...",
-            plan_summary="Fallback plan generated due to Claude unavailability",
+            plan_id=f"fallback-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+            plan_name=f"Fallback Plan: {task_description[:50]}..."
+            plan_summary="Fallback plan generated due to Claude unavailability"
             sub_tasks=[
                 SubTask(
-                    id="fallback-001",
-                    title="Analyze Requirements",
-                    description=f"Analyze and understand: {task_description}",
-                    assignee="worker:backend",
-                    estimated_duration=30,
-                    complexity="medium",
-                    dependencies=[],
-                    workflow_phase="analysis",
-                    required_skills=["analysis"],
-                    deliverables=["requirements.md"],
-                ),
+                    id="fallback-001"
+                    title="Analyze Requirements"
+                    description=f"Analyze and understand: {task_description}"
+                    assignee="worker:backend"
+                    estimated_duration=30
+                    complexity="medium"
+                    dependencies=[]
+                    workflow_phase="analysis"
+                    required_skills=["analysis"]
+                    deliverables=["requirements.md"]
+                )
                 SubTask(
-                    id="fallback-002",
-                    title="Implement Solution",
-                    description="Implement the requested functionality",
-                    assignee="worker:backend",
-                    estimated_duration=120,
-                    complexity="medium",
-                    dependencies=["fallback-001"],
-                    workflow_phase="implementation",
-                    required_skills=["programming"],
-                    deliverables=["implementation.py"],
-                ),
+                    id="fallback-002"
+                    title="Implement Solution"
+                    description="Implement the requested functionality"
+                    assignee="worker:backend"
+                    estimated_duration=120
+                    complexity="medium"
+                    dependencies=["fallback-001"]
+                    workflow_phase="implementation"
+                    required_skills=["programming"]
+                    deliverables=["implementation.py"]
+                )
                 SubTask(
-                    id="fallback-003",
-                    title="Test and Validate",
-                    description="Test the implementation and validate requirements",
-                    assignee="worker:backend",
-                    estimated_duration=60,
-                    complexity="simple",
-                    dependencies=["fallback-002"],
-                    workflow_phase="testing",
-                    required_skills=["testing"],
-                    deliverables=["test_results.md"],
-                ),
-            ],
+                    id="fallback-003"
+                    title="Test and Validate"
+                    description="Test the implementation and validate requirements"
+                    assignee="worker:backend"
+                    estimated_duration=60
+                    complexity="simple"
+                    dependencies=["fallback-002"]
+                    workflow_phase="testing"
+                    required_skills=["testing"]
+                    deliverables=["test_results.md"]
+                )
+            ]
             dependencies=DependencyMap(
-                critical_path=["fallback-001", "fallback-002", "fallback-003"],
-                parallel_groups=[],
+                critical_path=["fallback-001", "fallback-002", "fallback-003"]
+                parallel_groups=[]
                 blocking_dependencies={
-                    "fallback-002": ["fallback-001"],
-                    "fallback-003": ["fallback-002"],
-                },
-            ),
+                    "fallback-002": ["fallback-001"]
+                    "fallback-003": ["fallback-002"]
+                }
+            )
             workflow=WorkflowDefinition(
-                lifecycle_phases=["analysis", "implementation", "testing"],
+                lifecycle_phases=["analysis", "implementation", "testing"]
                 phase_transitions={
-                    "analysis": "implementation",
-                    "implementation": "testing",
-                },
+                    "analysis": "implementation"
+                    "implementation": "testing"
+                }
                 validation_gates={
-                    "analysis": ["requirements_clear"],
-                    "implementation": ["code_complete"],
-                    "testing": ["tests_pass"],
-                },
-                rollback_strategy="manual rollback with git revert",
-            ),
+                    "analysis": ["requirements_clear"]
+                    "implementation": ["code_complete"]
+                    "testing": ["tests_pass"]
+                }
+                rollback_strategy="manual rollback with git revert"
+            )
             metrics=PlanningMetrics(
-                total_estimated_duration=210,
-                critical_path_duration=210,
-                complexity_breakdown={"simple": 1, "medium": 2, "complex": 0},
-                skill_requirements={"programming": 2, "testing": 1, "analysis": 1},
-                confidence_score=0.6,
-                risk_factors=["claude_unavailable", "simplified_planning"],
-            ),
+                total_estimated_duration=210
+                critical_path_duration=210
+                complexity_breakdown={"simple": 1, "medium": 2, "complex": 0}
+                skill_requirements={"programming": 2, "testing": 1, "analysis": 1}
+                confidence_score=0.6
+                risk_factors=["claude_unavailable", "simplified_planning"]
+            )
             recommendations=[
-                "Validate requirements before implementation",
-                "Test thoroughly before deployment",
-            ],
+                "Validate requirements before implementation"
+                "Test thoroughly before deployment"
+            ]
             considerations=[
-                "This is a fallback plan - consider human review",
-                "Claude integration should be restored for better planning",
-            ],
+                "This is a fallback plan - consider human review"
+                "Claude integration should be restored for better planning"
+            ]
         )
 
 
 class ClaudePlannerBridge(BaseClaludeBridge):
     """Specialized Claude bridge for AI planning tasks"""
 
-    def __init__(self, config: Optional[ClaudeBridgeConfig] = None) -> None:
+    def __init__(self, config: ClaudeBridgeConfig | None = None) -> None:
         super().__init__(config)
         self.validator = PlanningResponseValidator()
 
     def generate_execution_plan(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any] = None,
-        priority: int = 50,
-        requestor: str = "system",
+        self
+        task_description: str
+        context_data: Dict[str, Any] = None
+        priority: int = 50
+        requestor: str = "system"
     ) -> Dict[str, Any]:
         """
         Generate intelligent execution plan using Claude API
@@ -201,20 +203,20 @@ class ClaudePlannerBridge(BaseClaludeBridge):
         prompt = self._create_planning_prompt(task_description, context_data or {}, priority, requestor)
 
         context = {
-            "task_description": task_description,
-            "priority": priority,
-            "requestor": requestor,
-            "context_data": context_data,
+            "task_description": task_description
+            "priority": priority
+            "requestor": requestor
+            "context_data": context_data
         }
 
         return self.call_claude(prompt, validator=self.validator, context=context)
 
     def _create_planning_prompt(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any],
-        priority: int,
-        requestor: str,
+        self
+        task_description: str
+        context_data: Dict[str, Any]
+        priority: int
+        requestor: str
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
 
@@ -265,40 +267,40 @@ Generate the execution plan now:"""
         import uuid
 
         mock_plan = ClaudePlanningResponse(
-            plan_id=f"mock-plan-{uuid.uuid4().hex[:8]}",
-            plan_name="Mock Execution Plan",
-            plan_summary="Mock plan for testing purposes",
+            plan_id=f"mock-plan-{uuid.uuid4().hex[:8]}"
+            plan_name="Mock Execution Plan"
+            plan_summary="Mock plan for testing purposes"
             sub_tasks=[
                 SubTask(
-                    id="mock-001",
-                    title="Mock Analysis Task",
-                    description="Mock task for testing",
-                    assignee="worker:backend",
-                    estimated_duration=30,
-                    complexity="medium",
-                    dependencies=[],
-                    workflow_phase="analysis",
-                    required_skills=["testing"],
-                    deliverables=["mock_output.txt"],
+                    id="mock-001"
+                    title="Mock Analysis Task"
+                    description="Mock task for testing"
+                    assignee="worker:backend"
+                    estimated_duration=30
+                    complexity="medium"
+                    dependencies=[]
+                    workflow_phase="analysis"
+                    required_skills=["testing"]
+                    deliverables=["mock_output.txt"]
                 )
-            ],
-            dependencies=DependencyMap(critical_path=["mock-001"], parallel_groups=[], blocking_dependencies={}),
+            ]
+            dependencies=DependencyMap(critical_path=["mock-001"], parallel_groups=[], blocking_dependencies={})
             workflow=WorkflowDefinition(
-                lifecycle_phases=["analysis"],
-                phase_transitions={},
-                validation_gates={"analysis": ["mock_validation"]},
-                rollback_strategy="mock rollback",
-            ),
+                lifecycle_phases=["analysis"]
+                phase_transitions={}
+                validation_gates={"analysis": ["mock_validation"]}
+                rollback_strategy="mock rollback"
+            )
             metrics=PlanningMetrics(
-                total_estimated_duration=30,
-                critical_path_duration=30,
-                complexity_breakdown={"simple": 0, "medium": 1, "complex": 0},
-                skill_requirements={"testing": 1},
-                confidence_score=0.9,
-                risk_factors=["mock_risk"],
-            ),
-            recommendations=["Mock recommendation"],
-            considerations=["Mock consideration"],
+                total_estimated_duration=30
+                critical_path_duration=30
+                complexity_breakdown={"simple": 0, "medium": 1, "complex": 0}
+                skill_requirements={"testing": 1}
+                confidence_score=0.9
+                risk_factors=["mock_risk"]
+            )
+            recommendations=["Mock recommendation"]
+            considerations=["Mock consideration"]
         )
         return json.dumps(mock_plan.dict())
 

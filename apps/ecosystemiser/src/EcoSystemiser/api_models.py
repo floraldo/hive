@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_errors import BaseError
 from hive_logging import get_logger
 
@@ -12,7 +14,7 @@ Provides type-safe request/response models with validation for all API endpoints
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from pydantic import BaseModel, Field, validator
 
@@ -31,8 +33,8 @@ class ModuleInfo(BaseModel):
 
     status: ModuleStatus
     endpoints: List[str] = Field(default_factory=list)
-    version: Optional[str] = None
-    description: Optional[str] = None
+    version: str | None = None
+    description: str | None = None
 
 
 class PlatformInfo(BaseModel):
@@ -41,7 +43,7 @@ class PlatformInfo(BaseModel):
     platform: str = Field(default="EcoSystemiser")
     version: str
     modules: Dict[str, ModuleInfo]
-    uptime: Optional[str] = None
+    uptime: str | None = None
     build_info: Optional[Dict[str, str]] = None
 
 
@@ -51,7 +53,7 @@ class HealthCheck(BaseModel):
     status: str = Field(default="healthy")
     platform: str = Field(default="EcoSystemiser")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    version: Optional[str] = None
+    version: str | None = None
     checks: Optional[Dict[str, bool]] = None
 
 
@@ -61,7 +63,7 @@ class APIError(BaseError):
     error: str
     message: str
     details: Optional[Dict[str, Any]] = None
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -69,8 +71,8 @@ class APIResponse(BaseModel):
     """Standard API response wrapper"""
 
     success: bool = True
-    data: Optional[Any] = None
-    error: Optional[APIError] = None
+    data: Any | None = None
+    error: APIError | None = None
     metadata: Optional[Dict[str, Any]] = None
 
 
@@ -79,7 +81,7 @@ class ValidationError(BaseError):
 
     field: str
     message: str
-    invalid_value: Optional[Any] = None
+    invalid_value: Any | None = None
 
 
 class ServiceStatus(BaseModel):
@@ -87,7 +89,7 @@ class ServiceStatus(BaseModel):
 
     module: str
     status: str
-    version: Optional[str] = None
+    version: str | None = None
     capabilities: Optional[List[str]] = None
     last_updated: datetime = Field(default_factory=datetime.utcnow)
 
@@ -96,7 +98,7 @@ class ServiceStatus(BaseModel):
 class SolverStatus(ServiceStatus):
     """Solver module status"""
 
-    solver_type: Optional[str] = None
+    solver_type: str | None = None
     optimization_engines: Optional[List[str]] = None
 
 
@@ -107,7 +109,7 @@ class SolverRequest(BaseModel):
     optimization_targets: List[str]
     constraints: Optional[Dict[str, Any]] = None
     solver_options: Optional[Dict[str, Any]] = None
-    timeout_seconds: Optional[int] = Field(default=300, ge=10, le=3600)
+    timeout_seconds: int | None = Field(default=300, ge=10, le=3600)
 
 
 class SolverResponse(BaseModel):
@@ -116,8 +118,8 @@ class SolverResponse(BaseModel):
     job_id: str
     status: str
     optimal_solution: Optional[Dict[str, Any]] = None
-    objective_value: Optional[float] = None
-    solve_time: Optional[float] = None
+    objective_value: float | None = None
+    solve_time: float | None = None
     solver_info: Optional[Dict[str, Any]] = None
 
 
@@ -136,7 +138,7 @@ class AnalysisRequest(BaseModel):
     strategies: Optional[List[str]] = None
     output_format: str = Field(default="json")
     include_plots: bool = Field(default=True)
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
 
 
 class AnalysisResponse(BaseModel):
@@ -147,7 +149,7 @@ class AnalysisResponse(BaseModel):
     analyses: Dict[str, Any]
     plots: Optional[Dict[str, Any]] = None
     metadata: Dict[str, Any]
-    processing_time: Optional[float] = None
+    processing_time: float | None = None
 
 
 # Reporting Module Models
@@ -173,8 +175,8 @@ class ReportResponse(BaseModel):
     report_id: str
     download_url: str
     format: str
-    size_bytes: Optional[int] = None
-    expires_at: Optional[datetime] = None
+    size_bytes: int | None = None
+    expires_at: datetime | None = None
 
 
 # Job Management Models (for async operations)
@@ -193,9 +195,9 @@ class JobRequest(BaseModel):
     job_type: str
     parameters: Dict[str, Any]
     priority: JobPriority = Field(default=JobPriority.NORMAL)
-    callback_url: Optional[str] = None
-    notification_email: Optional[str] = None
-    timeout_seconds: Optional[int] = Field(default=3600, ge=60, le=86400)
+    callback_url: str | None = None
+    notification_email: str | None = None
+    timeout_seconds: int | None = Field(default=3600, ge=60, le=86400)
 
 
 class JobStatus(str, Enum):
@@ -217,10 +219,10 @@ class JobInfo(BaseModel):
     status: JobStatus
     created_at: datetime
     updated_at: datetime
-    progress: Optional[float] = Field(None, ge=0, le=100)
-    result_url: Optional[str] = None
+    progress: float | None = Field(None, ge=0, le=100)
+    result_url: str | None = None
     error: Optional[Dict[str, Any]] = None
-    eta: Optional[datetime] = None
+    eta: datetime | None = None
     priority: JobPriority
 
 
@@ -239,8 +241,8 @@ class DatabaseConfig(BaseModel):
     """Database configuration model"""
 
     url: str
-    pool_size: Optional[int] = Field(default=10, ge=1, le=50)
-    timeout: Optional[int] = Field(default=30, ge=5, le=300)
+    pool_size: int | None = Field(default=10, ge=1, le=50)
+    timeout: int | None = Field(default=30, ge=5, le=300)
     ssl_enabled: bool = Field(default=False)
 
 
@@ -261,7 +263,7 @@ class APIConfig(BaseModel):
     cors_origins: List[str] = Field(default_factory=lambda: ["*"])
     cors_methods: List[str] = Field(default_factory=lambda: ["GET", "POST", "PUT", "DELETE"])
     cors_headers: List[str] = Field(default_factory=lambda: ["*"])
-    rate_limit: Optional[str] = Field(default="100/hour")
+    rate_limit: str | None = Field(default="100/hour")
 
 
 class SystemConfig(BaseModel):
@@ -315,7 +317,7 @@ class LegacyRedirect(BaseModel):
     redirect: str
     deprecated_version: str
     current_version: str
-    migration_guide: Optional[str] = None
+    migration_guide: str | None = None
 
 
 # Batch Processing Models
@@ -325,7 +327,7 @@ class BatchRequest(BaseModel):
     requests: List[Dict[str, Any]] = Field(min_items=1, max_items=100)
     parallel: bool = Field(default=True)
     partial_success: bool = Field(default=True)
-    batch_id: Optional[str] = None
+    batch_id: str | None = None
 
 
 class BatchResponse(BaseModel):
@@ -370,4 +372,4 @@ class ExportResponse(BaseModel):
     format: ExportFormat
     size_bytes: int
     expires_at: datetime
-    checksum: Optional[str] = None
+    checksum: str | None = None

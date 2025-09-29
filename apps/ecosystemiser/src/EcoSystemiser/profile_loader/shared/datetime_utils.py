@@ -1,22 +1,24 @@
 """
 Enhanced date/time utilities with pandas optimizations.
 
-This module provides comprehensive date/time handling capabilities,
+This module provides comprehensive date/time handling capabilities
 building on the existing timezone and timeseries modules with modern
 pandas best practices and performance optimizations.
 """
+from __future__ import annotations
+
 
 import warnings
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, ListTuple
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.shared.timezone import (
-    TimezoneHandler,
-    ensure_utc,
-    to_utc,
+    TimezoneHandler
+    ensure_utc
+    to_utc
 )
 from hive_logging import get_logger
 
@@ -27,7 +29,7 @@ class DateTimeProcessor:
     """
     Enhanced date/time processing with pandas optimizations.
 
-    Provides high-level operations for profile data time handling,
+    Provides high-level operations for profile data time handling
     including frequency inference, gap detection, resampling, and
     period management.
     """
@@ -35,17 +37,17 @@ class DateTimeProcessor:
     # Standard frequency mappings
     FREQ_ALIASES = {
         # Input variations -> pandas frequency
-        "minutely": "1T",
-        "5min": "5T",
-        "15min": "15T",
-        "30min": "30T",
-        "half_hourly": "30T",
-        "hourly": "1H",
-        "daily": "1D",
-        "weekly": "1W",
-        "monthly": "1M",
-        "yearly": "1Y",
-        "annual": "1Y",
+        "minutely": "1T"
+        "5min": "5T"
+        "15min": "15T"
+        "30min": "30T"
+        "half_hourly": "30T"
+        "hourly": "1H"
+        "daily": "1D"
+        "weekly": "1W"
+        "monthly": "1M"
+        "yearly": "1Y"
+        "annual": "1Y"
     }
 
     @classmethod
@@ -121,7 +123,7 @@ class DateTimeProcessor:
         return normalized
 
     @classmethod
-    def normalize_frequency(cls, frequency: Union[str, None]) -> str:
+    def normalize_frequency(cls, frequency: str | None) -> str:
         """
         Normalize frequency specification to pandas frequency string.
 
@@ -144,11 +146,11 @@ class DateTimeProcessor:
 
     @classmethod
     def create_time_index(
-        cls,
-        start: Union[str, datetime, pd.Timestamp],
-        end: Union[str, datetime, pd.Timestamp],
-        freq: str = "1H",
-        timezone: str = "UTC",
+        cls
+        start: str, datetime | pd.Timestamp
+        end: str, datetime | pd.Timestamp
+        freq: str = "1H"
+        timezone: str = "UTC"
     ) -> pd.DatetimeIndex:
         """
         Create optimized pandas DatetimeIndex.
@@ -178,7 +180,7 @@ class DateTimeProcessor:
         return index
 
     @classmethod
-    def infer_frequency_robust(cls, time_index: pd.DatetimeIndex) -> Optional[str]:
+    def infer_frequency_robust(cls, time_index: pd.DatetimeIndex) -> str | None:
         """
         Robustly infer frequency from DatetimeIndex.
 
@@ -241,10 +243,10 @@ class DateTimeProcessor:
 
     @classmethod
     def detect_gaps(
-        cls,
-        time_index: pd.DatetimeIndex,
-        expected_freq: Optional[str] = None,
-        tolerance_factor: float = 1.5,
+        cls
+        time_index: pd.DatetimeIndex
+        expected_freq: str | None = None
+        tolerance_factor: float = 1.5
     ) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
         """
         Detect gaps in time series.
@@ -284,12 +286,12 @@ class DateTimeProcessor:
 
     @classmethod
     def resample_with_metadata(
-        cls,
-        data: Union[pd.DataFrame, pd.Series, xr.Dataset],
-        target_freq: str,
-        method: str = "mean",
-        preserve_attrs: bool = True,
-    ) -> Union[pd.DataFrame, pd.Series, xr.Dataset]:
+        cls
+        data: pd.DataFrame, pd.Series | xr.Dataset
+        target_freq: str
+        method: str = "mean"
+        preserve_attrs: bool = True
+    ) -> pd.DataFrame, pd.Series | xr.Dataset:
         """
         Resample data with metadata preservation.
 
@@ -358,11 +360,11 @@ class DateTimeProcessor:
 
     @classmethod
     def align_time_series(
-        cls,
-        *datasets: Union[pd.DataFrame, pd.Series, xr.Dataset],
-        method: str = "outer",
-        fill_value: Optional[Any] = None,
-    ) -> List[Union[pd.DataFrame, pd.Series, xr.Dataset]]:
+        cls
+        *datasets: pd.DataFrame, pd.Series | xr.Dataset
+        method: str = "outer"
+        fill_value: Any | None = None
+    ) -> List[pd.DataFrame, pd.Series | xr.Dataset]:
         """
         Align multiple time series to common time index.
 
@@ -427,10 +429,10 @@ class DateTimeProcessor:
 
     @classmethod
     def validate_temporal_consistency(
-        cls,
-        data: Union[pd.DataFrame, pd.Series, xr.Dataset],
-        expected_freq: Optional[str] = None,
-        timezone: str = "UTC",
+        cls
+        data: pd.DataFrame, pd.Series | xr.Dataset
+        expected_freq: str | None = None
+        timezone: str = "UTC"
     ) -> Dict[str, Any]:
         """
         Validate temporal consistency of dataset.
@@ -558,34 +560,34 @@ class DateTimeProcessor:
 
 
 def create_time_range(
-    start: Union[str, datetime],
-    end: Union[str, datetime],
-    freq: str = "1H",
-    timezone: str = "UTC",
+    start: str | datetime
+    end: str | datetime
+    freq: str = "1H"
+    timezone: str = "UTC"
 ) -> pd.DatetimeIndex:
     """Create optimized time range."""
     return DateTimeProcessor.create_time_index(start, end, freq, timezone)
 
 
 def resample_data(
-    data: Union[pd.DataFrame, pd.Series, xr.Dataset],
-    target_freq: str,
-    method: str = "mean",
-) -> Union[pd.DataFrame, pd.Series, xr.Dataset]:
+    data: pd.DataFrame, pd.Series | xr.Dataset
+    target_freq: str
+    method: str = "mean"
+) -> pd.DataFrame, pd.Series | xr.Dataset:
     """Resample data with metadata preservation."""
     return DateTimeProcessor.resample_with_metadata(data, target_freq, method)
 
 
 def align_datasets(
-    *datasets: Union[pd.DataFrame, pd.Series, xr.Dataset], method: str = "outer"
-) -> List[Union[pd.DataFrame, pd.Series, xr.Dataset]]:
+    *datasets: pd.DataFrame, pd.Series | xr.Dataset, method: str = "outer"
+) -> List[pd.DataFrame, pd.Series | xr.Dataset]:
     """Align multiple datasets to common time index."""
     return DateTimeProcessor.align_time_series(*datasets, method=method)
 
 
 def validate_time_data(
-    data: Union[pd.DataFrame, pd.Series, xr.Dataset],
-    expected_freq: Optional[str] = None,
+    data: pd.DataFrame, pd.Series | xr.Dataset
+    expected_freq: str | None = None
 ) -> Dict[str, Any]:
     """Validate temporal consistency."""
     return DateTimeProcessor.validate_temporal_consistency(data, expected_freq)
@@ -597,7 +599,7 @@ def normalize_period_spec(period: Dict[str, Any]) -> Dict[str, pd.Timestamp]:
 
 
 def detect_time_gaps(
-    time_index: pd.DatetimeIndex, expected_freq: Optional[str] = None
+    time_index: pd.DatetimeIndex, expected_freq: str | None = None
 ) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
     """Detect gaps in time series."""
     return DateTimeProcessor.detect_gaps(time_index, expected_freq)

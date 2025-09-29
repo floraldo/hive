@@ -7,7 +7,7 @@ from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, AsyncGenerator, Callable, Dict, List, Optional, Union
+from typing import Any, AsyncGenerator, Callable, Dict, List
 
 from hive_logging import get_logger
 
@@ -20,16 +20,18 @@ logger = get_logger(__name__)
 @dataclass
 class ErrorContext:
     """Context information for async error handling."""
+from __future__ import annotations
+
 
     operation_name: str
     component: str
     start_time: datetime = field(default_factory=datetime.utcnow)
-    timeout_duration: Optional[float] = None
+    timeout_duration: float | None = None
     retry_attempt: int = 0
     max_retries: int = 0
-    correlation_id: Optional[str] = None
-    user_id: Optional[str] = None
-    request_id: Optional[str] = None
+    correlation_id: str | None = None
+    user_id: str | None = None
+    request_id: str | None = None
     custom_context: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -42,7 +44,7 @@ class ErrorStats:
     errors_by_component: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
     recent_errors: deque = field(default_factory=lambda: deque(maxlen=100))
     error_rate_per_minute: float = 0.0
-    last_error_time: Optional[datetime] = None
+    last_error_time: datetime | None = None
 
 
 class AsyncErrorHandler:
@@ -59,10 +61,10 @@ class AsyncErrorHandler:
     """
 
     def __init__(
-        self,
-        error_reporter: Optional[BaseErrorReporter] = None,
-        enable_monitoring: bool = True,
-        max_error_history: int = 1000,
+        self
+        error_reporter: BaseErrorReporter | None = None
+        enable_monitoring: bool = True
+        max_error_history: int = 1000
     ):
         self.error_reporter = error_reporter
         self.enable_monitoring = enable_monitoring
@@ -79,7 +81,7 @@ class AsyncErrorHandler:
 
     async def handle_error_async(
         self, error: Exception, context: ErrorContext, suppress: bool = False
-    ) -> Optional[Exception]:
+    ) -> Exception | None:
         """
         Handle an error with full context and monitoring.
 
@@ -129,26 +131,26 @@ class AsyncErrorHandler:
     async def _record_error_async(self, error: Exception, context: ErrorContext) -> Dict[str, Any]:
         """Record error details for analysis."""
         error_record = {
-            "timestamp": datetime.utcnow(),
-            "error_type": error.__class__.__name__,
-            "error_message": str(error),
-            "operation_name": context.operation_name,
-            "component": context.component,
-            "retry_attempt": context.retry_attempt,
-            "max_retries": context.max_retries,
-            "execution_time": (datetime.utcnow() - context.start_time).total_seconds(),
-            "correlation_id": context.correlation_id,
-            "timeout_duration": context.timeout_duration,
-            "custom_context": context.custom_context,
+            "timestamp": datetime.utcnow()
+            "error_type": error.__class__.__name__
+            "error_message": str(error)
+            "operation_name": context.operation_name
+            "component": context.component
+            "retry_attempt": context.retry_attempt
+            "max_retries": context.max_retries
+            "execution_time": (datetime.utcnow() - context.start_time).total_seconds()
+            "correlation_id": context.correlation_id
+            "timeout_duration": context.timeout_duration
+            "custom_context": context.custom_context
         }
 
         # Add enhanced error details for BaseError instances
         if isinstance(error, BaseError):
             error_record.update(
                 {
-                    "error_details": error.details,
-                    "recovery_suggestions": error.recovery_suggestions,
-                    "original_error": str(error.original_error) if error.original_error else None,
+                    "error_details": error.details
+                    "recovery_suggestions": error.recovery_suggestions
+                    "original_error": str(error.original_error) if error.original_error else None
                 }
             )
 
@@ -201,11 +203,11 @@ class AsyncErrorHandler:
     async def _log_error_async(self, error: Exception, context: ErrorContext) -> None:
         """Log error with structured context."""
         log_data = {
-            "operation": context.operation_name,
-            "component": context.component,
-            "error_type": error.__class__.__name__,
-            "retry_attempt": context.retry_attempt,
-            "correlation_id": context.correlation_id,
+            "operation": context.operation_name
+            "component": context.component
+            "error_type": error.__class__.__name__
+            "retry_attempt": context.retry_attempt
+            "correlation_id": context.correlation_id
         }
 
         if context.retry_attempt > 0:
@@ -218,15 +220,15 @@ class AsyncErrorHandler:
     def get_error_statistics(self) -> Dict[str, Any]:
         """Get comprehensive error statistics."""
         return {
-            "total_errors": self._error_stats.total_errors,
-            "errors_by_type": dict(self._error_stats.errors_by_type),
-            "errors_by_component": dict(self._error_stats.errors_by_component),
-            "error_rate_per_minute": self._error_stats.error_rate_per_minute,
-            "component_health": dict(self._component_health),
-            "success_rates": dict(self._success_rates),
+            "total_errors": self._error_stats.total_errors
+            "errors_by_type": dict(self._error_stats.errors_by_type)
+            "errors_by_component": dict(self._error_stats.errors_by_component)
+            "error_rate_per_minute": self._error_stats.error_rate_per_minute
+            "component_health": dict(self._component_health)
+            "success_rates": dict(self._success_rates)
             "last_error_time": self._error_stats.last_error_time.isoformat()
             if self._error_stats.last_error_time
-            else None,
+            else None
         }
 
     def get_component_health(self, component: str) -> float:
@@ -237,14 +239,14 @@ class AsyncErrorHandler:
         """Get statistics for a specific operation."""
         times = list(self._operation_times[operation])
         return {
-            "success_rate": self._success_rates[operation],
-            "total_calls": len(times),
-            "avg_execution_time": sum(times) / len(times) if times else 0.0,
-            "min_execution_time": min(times) if times else 0.0,
-            "max_execution_time": max(times) if times else 0.0,
+            "success_rate": self._success_rates[operation]
+            "total_calls": len(times)
+            "avg_execution_time": sum(times) / len(times) if times else 0.0
+            "min_execution_time": min(times) if times else 0.0
+            "max_execution_time": max(times) if times else 0.0
         }
 
-    def get_recent_errors(self, component: Optional[str] = None, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_recent_errors(self, component: str | None = None, limit: int = 10) -> List[Dict[str, Any]]:
         """Get recent errors, optionally filtered by component."""
         errors = list(self._error_history)
 
@@ -275,12 +277,12 @@ class AsyncErrorHandler:
         risk_score = health_risk * 0.4 + success_risk * 0.4 + trend_risk * 0.2
 
         return {
-            "risk_score": risk_score,
-            "risk_level": "high" if risk_score > 0.7 else "medium" if risk_score > 0.4 else "low",
-            "component_health": component_health,
-            "success_rate": operation_stats["success_rate"],
-            "recent_error_count": len(recent_errors),
-            "recommendations": self._get_risk_recommendations(risk_score, component, operation),
+            "risk_score": risk_score
+            "risk_level": "high" if risk_score > 0.7 else "medium" if risk_score > 0.4 else "low"
+            "component_health": component_health
+            "success_rate": operation_stats["success_rate"]
+            "recent_error_count": len(recent_errors)
+            "recommendations": self._get_risk_recommendations(risk_score, component, operation)
         }
 
     def _get_risk_recommendations(self, risk_score: float, component: str, operation: str) -> List[str]:
@@ -290,17 +292,17 @@ class AsyncErrorHandler:
         if risk_score > 0.7:
             recommendations.extend(
                 [
-                    "Consider implementing circuit breaker for this component",
-                    "Increase monitoring and alerting",
-                    "Review error patterns and implement preventive measures",
+                    "Consider implementing circuit breaker for this component"
+                    "Increase monitoring and alerting"
+                    "Review error patterns and implement preventive measures"
                 ]
             )
         elif risk_score > 0.4:
             recommendations.extend(
                 [
-                    "Monitor component health closely",
-                    "Consider adding retry mechanisms",
-                    "Review recent error logs for patterns",
+                    "Monitor component health closely"
+                    "Consider adding retry mechanisms"
+                    "Review recent error logs for patterns"
                 ]
             )
 
@@ -315,21 +317,21 @@ class AsyncErrorHandler:
 # Context manager for automatic error handling
 @asynccontextmanager
 async def error_context_async(
-    handler: AsyncErrorHandler,
-    operation_name: str,
-    component: str,
-    timeout: Optional[float] = None,
-    suppress_errors: bool = False,
-    correlation_id: Optional[str] = None,
-    **context_kwargs,
+    handler: AsyncErrorHandler
+    operation_name: str
+    component: str
+    timeout: float | None = None
+    suppress_errors: bool = False
+    correlation_id: str | None = None
+    **context_kwargs
 ) -> AsyncGenerator[ErrorContext, None]:
     """Context manager for automatic async error handling."""
     context = ErrorContext(
-        operation_name=operation_name,
-        component=component,
-        timeout_duration=timeout,
-        correlation_id=correlation_id,
-        custom_context=context_kwargs,
+        operation_name=operation_name
+        component=component
+        timeout_duration=timeout
+        correlation_id=correlation_id
+        custom_context=context_kwargs
     )
 
     start_time = time.perf_counter()
@@ -347,11 +349,11 @@ async def error_context_async(
 
     except asyncio.TimeoutError as e:
         timeout_error = AsyncTimeoutError(
-            message=f"Operation {operation_name} timed out after {timeout}s",
-            component=component,
-            operation=operation_name,
-            timeout_duration=timeout,
-            elapsed_time=time.perf_counter() - start_time,
+            message=f"Operation {operation_name} timed out after {timeout}s"
+            component=component
+            operation=operation_name
+            timeout_duration=timeout
+            elapsed_time=time.perf_counter() - start_time
         )
 
         processed_error = await handler.handle_error_async(timeout_error, context, suppress_errors)
@@ -366,14 +368,14 @@ async def error_context_async(
 
 # Decorator for automatic async error handling
 def handle_async_errors(
-    handler: AsyncErrorHandler,
-    component: str,
-    operation_name: Optional[str] = None,
-    timeout: Optional[float] = None,
-    suppress_errors: bool = False,
-    max_retries: int = 0,
-    retry_delay: float = 1.0,
-    exponential_backoff: bool = True,
+    handler: AsyncErrorHandler
+    component: str
+    operation_name: str | None = None
+    timeout: float | None = None
+    suppress_errors: bool = False
+    max_retries: int = 0
+    retry_delay: float = 1.0
+    exponential_backoff: bool = True
 ):
     """Decorator for automatic async error handling with retry logic."""
 
@@ -388,21 +390,21 @@ def handle_async_errors(
 
             for attempt in range(max_retries + 1):
                 context = ErrorContext(
-                    operation_name=operation_name,
-                    component=component,
-                    timeout_duration=timeout,
-                    retry_attempt=attempt,
-                    max_retries=max_retries,
+                    operation_name=operation_name
+                    component=component
+                    timeout_duration=timeout
+                    retry_attempt=attempt
+                    max_retries=max_retries
                 )
 
                 try:
                     async with error_context_async(
-                        handler,
-                        operation_name,
-                        component,
-                        timeout=timeout,
-                        suppress_errors=False,
-                        correlation_id=kwargs.get("correlation_id"),
+                        handler
+                        operation_name
+                        component
+                        timeout=timeout
+                        suppress_errors=False
+                        correlation_id=kwargs.get("correlation_id")
                     ):
                         return await func(*args, **kwargs)
 
@@ -420,12 +422,12 @@ def handle_async_errors(
                     else:
                         # All retries exhausted
                         retry_error = RetryExhaustedError(
-                            message=f"All {max_retries} retry attempts failed for {operation_name}",
-                            component=component,
-                            operation=operation_name,
-                            max_attempts=max_retries,
-                            attempt_count=attempt + 1,
-                            last_error=e,
+                            message=f"All {max_retries} retry attempts failed for {operation_name}"
+                            component=component
+                            operation=operation_name
+                            max_attempts=max_retries
+                            attempt_count=attempt + 1
+                            last_error=e
                         )
 
                         processed_error = await handler.handle_error_async(retry_error, context, suppress_errors)
@@ -441,19 +443,19 @@ def handle_async_errors(
 
 # Utility function for creating error contexts
 def create_error_context(
-    operation_name: str,
-    component: str,
-    correlation_id: Optional[str] = None,
-    user_id: Optional[str] = None,
-    request_id: Optional[str] = None,
-    **custom_context,
+    operation_name: str
+    component: str
+    correlation_id: str | None = None
+    user_id: str | None = None
+    request_id: str | None = None
+    **custom_context
 ) -> ErrorContext:
     """Create an error context with common parameters."""
     return ErrorContext(
-        operation_name=operation_name,
-        component=component,
-        correlation_id=correlation_id,
-        user_id=user_id,
-        request_id=request_id,
-        custom_context=custom_context,
+        operation_name=operation_name
+        component=component
+        correlation_id=correlation_id
+        user_id=user_id
+        request_id=request_id
+        custom_context=custom_context
     )

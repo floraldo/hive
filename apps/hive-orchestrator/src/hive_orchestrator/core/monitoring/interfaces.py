@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -9,7 +11,7 @@ No business logic, only interface definitions.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class PipelineMonitorInterface(ABC):
@@ -21,13 +23,13 @@ class PipelineMonitorInterface(ABC):
         pass
 
     @abstractmethod
-    def end_execution(self, execution_id: str, success: bool, error: Optional[str] = None) -> None:
+    def end_execution(self, execution_id: str, success: bool, error: str | None = None) -> None:
         """End tracking a pipeline execution"""
         pass
 
     @abstractmethod
     def record_stage_execution(
-        self, stage_name: str, duration_ms: float, success: bool, error: Optional[str] = None
+        self, stage_name: str, duration_ms: float, success: bool, error: str | None = None
     ) -> None:
         """Record execution of a pipeline stage"""
         pass

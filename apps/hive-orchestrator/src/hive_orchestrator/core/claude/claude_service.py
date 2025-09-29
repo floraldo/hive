@@ -2,6 +2,8 @@
 Centralized Claude Service
 Manages all Claude API interactions with rate limiting, caching, and monitoring
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib
@@ -11,7 +13,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from hive_config import get_config
 from hive_errors import ErrorReporter
@@ -54,14 +56,14 @@ class ClaudeMetrics:
     def to_dict(self) -> Dict[str, Any]:
         """Convert metrics to dictionary"""
         return {
-            "total_calls": self.total_calls,
-            "successful_calls": self.successful_calls,
-            "failed_calls": self.failed_calls,
-            "cached_responses": self.cached_responses,
-            "total_tokens": self.total_tokens,
-            "average_latency_ms": self.average_latency_ms,
-            "success_rate": self.success_rate,
-            "rate_limited": self.rate_limited,
+            "total_calls": self.total_calls
+            "successful_calls": self.successful_calls
+            "failed_calls": self.failed_calls
+            "cached_responses": self.cached_responses
+            "total_tokens": self.total_tokens
+            "average_latency_ms": self.average_latency_ms
+            "success_rate": self.success_rate
+            "rate_limited": self.rate_limited
         }
 
 
@@ -165,11 +167,11 @@ class ClaudeService:
     """
 
     def __init__(
-        self,
-        config: Optional[ClaudeBridgeConfig] = None,
-        rate_config: Optional[RateLimitConfig] = None,
-        cache_ttl: Optional[int] = None,
-        claude_config: Optional[Dict[str, Any]] = None,
+        self
+        config: ClaudeBridgeConfig | None = None
+        rate_config: RateLimitConfig | None = None
+        cache_ttl: int | None = None
+        claude_config: Optional[Dict[str, Any]] = None
     ):
         """Initialize Claude service
 
@@ -182,28 +184,28 @@ class ClaudeService:
         # Use provided claude_config if available, otherwise use defaults
         if claude_config is None:
             claude_config = {
-                "mock_mode": False,
-                "timeout": 30,
-                "max_retries": 3,
-                "rate_limit_per_minute": 10,
-                "rate_limit_per_hour": 100,
-                "burst_size": 5,
-                "cache_ttl": 300,
+                "mock_mode": False
+                "timeout": 30
+                "max_retries": 3
+                "rate_limit_per_minute": 10
+                "rate_limit_per_hour": 100
+                "burst_size": 5
+                "cache_ttl": 300
             }
 
         # Use provided config or create from claude_config
         if config is None:
             config = ClaudeBridgeConfig(
-                mock_mode=claude_config.get("mock_mode", False),
-                timeout=claude_config.get("timeout", 30),
-                max_retries=claude_config.get("max_retries", 3),
+                mock_mode=claude_config.get("mock_mode", False)
+                timeout=claude_config.get("timeout", 30)
+                max_retries=claude_config.get("max_retries", 3)
             )
 
         if rate_config is None:
             rate_config = RateLimitConfig(
-                max_calls_per_minute=claude_config.get("rate_limit_per_minute", 10),
-                max_calls_per_hour=claude_config.get("rate_limit_per_hour", 100),
-                burst_size=claude_config.get("burst_size", 5),
+                max_calls_per_minute=claude_config.get("rate_limit_per_minute", 10)
+                max_calls_per_hour=claude_config.get("rate_limit_per_hour", 100)
+                burst_size=claude_config.get("burst_size", 5)
             )
 
         self.config = config
@@ -230,7 +232,7 @@ class ClaudeService:
         key_str = json.dumps(key_data, sort_keys=True)
         return hashlib.sha256(key_str.encode()).hexdigest()
 
-    def _get_cached_response(self, cache_key: str) -> Optional[Any]:
+    def _get_cached_response(self, cache_key: str) -> Any | None:
         """Get response from cache if available"""
         if cache_key in self.cache:
             entry = self.cache[cache_key]
@@ -343,9 +345,9 @@ class ClaudeService:
             self.metrics.failed_calls += 1
 
             error = ClaudeServiceError(
-                message=f"Claude operation {operation} failed",
-                operation=operation,
-                original_error=e,
+                message=f"Claude operation {operation} failed"
+                operation=operation
+                original_error=e
             )
             self.error_reporter.report_error(error)
 
@@ -361,12 +363,12 @@ class ClaudeService:
     # Planning Operations
 
     def generate_execution_plan(
-        self,
-        task_description: str,
-        context_data: Optional[Dict[str, Any]] = None,
-        priority: int = 1,
-        requestor: Optional[str] = None,
-        use_cache: bool = True,
+        self
+        task_description: str
+        context_data: Optional[Dict[str, Any]] = None
+        priority: int = 1
+        requestor: str | None = None
+        use_cache: bool = True
     ) -> Dict[str, Any]:
         """Generate execution plan for a task
 
@@ -381,25 +383,25 @@ class ClaudeService:
             Execution plan dictionary
         """
         return self._execute_with_metrics(
-            "generate_plan",
-            self.planner_bridge.generate_execution_plan,
-            use_cache=use_cache,
-            task_description=task_description,
-            context_data=context_data or {},
-            priority=priority,
-            requestor=requestor,
+            "generate_plan"
+            self.planner_bridge.generate_execution_plan
+            use_cache=use_cache
+            task_description=task_description
+            context_data=context_data or {}
+            priority=priority
+            requestor=requestor
         )
 
     # Review Operations
 
     def review_code(
-        self,
-        task_id: str,
-        task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
-        transcript: Optional[str] = None,
+        self
+        task_id: str
+        task_description: str
+        code_files: Dict[str, str]
+        test_results: Optional[Dict[str, Any]] = None
+        objective_analysis: Optional[Dict[str, Any]] = None
+        transcript: str | None = None
         use_cache: bool = False,  # Don't cache reviews by default
     ) -> Dict[str, Any]:
         """Review code implementation
@@ -417,61 +419,61 @@ class ClaudeService:
             Review result dictionary
         """
         return self._execute_with_metrics(
-            "review_code",
-            self.reviewer_bridge.review_code,
-            use_cache=use_cache,
-            task_id=task_id,
-            task_description=task_description,
-            code_files=code_files,
-            test_results=test_results,
-            objective_analysis=objective_analysis,
-            transcript=transcript,
+            "review_code"
+            self.reviewer_bridge.review_code
+            use_cache=use_cache
+            task_id=task_id
+            task_description=task_description
+            code_files=code_files
+            test_results=test_results
+            objective_analysis=objective_analysis
+            transcript=transcript
         )
 
     # Async Support
 
     async def generate_execution_plan_async(
-        self,
-        task_description: str,
-        context_data: Optional[Dict[str, Any]] = None,
-        priority: int = 1,
-        requestor: Optional[str] = None,
-        use_cache: bool = True,
+        self
+        task_description: str
+        context_data: Optional[Dict[str, Any]] = None
+        priority: int = 1
+        requestor: str | None = None
+        use_cache: bool = True
     ) -> Dict[str, Any]:
         """Async version of generate_execution_plan"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None,
-            self.generate_execution_plan,
-            task_description,
-            context_data,
-            priority,
-            requestor,
-            use_cache,
+            None
+            self.generate_execution_plan
+            task_description
+            context_data
+            priority
+            requestor
+            use_cache
         )
 
     async def review_code_async(
-        self,
-        task_id: str,
-        task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
-        transcript: Optional[str] = None,
-        use_cache: bool = False,
+        self
+        task_id: str
+        task_description: str
+        code_files: Dict[str, str]
+        test_results: Optional[Dict[str, Any]] = None
+        objective_analysis: Optional[Dict[str, Any]] = None
+        transcript: str | None = None
+        use_cache: bool = False
     ) -> Dict[str, Any]:
         """Async version of review_code"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None,
-            self.review_code,
-            task_id,
-            task_description,
-            code_files,
-            test_results,
-            objective_analysis,
-            transcript,
-            use_cache,
+            None
+            self.review_code
+            task_id
+            task_description
+            code_files
+            test_results
+            objective_analysis
+            transcript
+            use_cache
         )
 
     # Monitoring and Management
@@ -500,12 +502,12 @@ class ClaudeService:
 
 
 # Global service instance
-_service: Optional[ClaudeService] = None
+_service: ClaudeService | None = None
 
 
 def get_claude_service(
-    config: Optional[ClaudeBridgeConfig] = None,
-    rate_config: Optional[RateLimitConfig] = None,
+    config: ClaudeBridgeConfig | None = None
+    rate_config: RateLimitConfig | None = None
 ) -> ClaudeService:
     """Get or create the global Claude service
 

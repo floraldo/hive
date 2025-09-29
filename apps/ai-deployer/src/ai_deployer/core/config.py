@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -8,7 +10,7 @@ AI Deployer Configuration Management.
 Extends hive-config with deployer-specific settings following the inherit→extend pattern.
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 try:
     from hive_config import HiveConfig
@@ -35,7 +37,7 @@ class SSHDeploymentConfig(BaseModel):
 
     default_user: str = "deploy"
     default_port: int = 22
-    key_path: Optional[str] = None
+    key_path: str | None = None
     timeout_seconds: int = 300
     retry_attempts: int = 3
 
@@ -43,7 +45,7 @@ class SSHDeploymentConfig(BaseModel):
 class DockerDeploymentConfig(BaseModel):
     """Docker deployment strategy configuration"""
 
-    registry_url: Optional[str] = None
+    registry_url: str | None = None
     default_tag: str = "latest"
     health_check_timeout: int = 60
     rollback_on_failure: bool = True
@@ -53,7 +55,7 @@ class KubernetesDeploymentConfig(BaseModel):
     """Kubernetes deployment strategy configuration"""
 
     namespace: str = "default"
-    kubeconfig_path: Optional[str] = None
+    kubeconfig_path: str | None = None
     canary_percentage: int = 10
     promotion_timeout: int = 300
 

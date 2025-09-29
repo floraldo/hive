@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -9,7 +11,7 @@ No business logic, only interface definitions.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class ClaudeServiceInterface(ABC):
@@ -83,7 +85,7 @@ class ReviewerBridgeInterface(ABC):
 
     @abstractmethod
     async def review_code_async(
-        self, code: str, language: str = "python", context: Optional[str] = None
+        self, code: str, language: str = "python", context: str | None = None
     ) -> Dict[str, Any]:
         """
         Review code using Claude.

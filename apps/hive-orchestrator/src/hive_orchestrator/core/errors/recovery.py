@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 
 """
@@ -9,7 +11,7 @@ import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from hive_logging import get_logger
 
@@ -34,8 +36,8 @@ class RecoveryResult:
 
     success: bool
     action_taken: RecoveryAction
-    result: Optional[Any] = None
-    error: Optional[Exception] = None
+    result: Any | None = None
+    error: Exception | None = None
     attempts: int = 0
     message: str = ""
 
@@ -64,10 +66,10 @@ class RetryStrategy(RecoveryStrategy):
     """Simple retry strategy"""
 
     def __init__(
-        self,
-        max_retries: int = 3,
-        delay: float = 1.0,
-        exceptions: Optional[List[type]] = None,
+        self
+        max_retries: int = 3
+        delay: float = 1.0
+        exceptions: Optional[List[type]] = None
     ):
         """
         Initialize retry strategy
@@ -86,10 +88,10 @@ class RetryStrategy(RecoveryStrategy):
         # Check if we should retry this exception
         if not any(isinstance(error, exc) for exc in self.exceptions):
             return RecoveryResult(
-                success=False,
-                action_taken=RecoveryAction.ABORT,
-                error=error,
-                message=f"Exception {type(error).__name__} not retryable",
+                success=False
+                action_taken=RecoveryAction.ABORT
+                error=error
+                message=f"Exception {type(error).__name__} not retryable"
             )
 
         attempts = 0
@@ -104,22 +106,22 @@ class RetryStrategy(RecoveryStrategy):
             try:
                 result = operation(*args, **kwargs)
                 return RecoveryResult(
-                    success=True,
-                    action_taken=RecoveryAction.RETRY,
-                    result=result,
-                    attempts=attempts,
-                    message=f"Recovered after {attempts} attempts",
+                    success=True
+                    action_taken=RecoveryAction.RETRY
+                    result=result
+                    attempts=attempts
+                    message=f"Recovered after {attempts} attempts"
                 )
             except Exception as e:
                 last_error = e
                 logger.warning(f"Retry {attempts} failed: {e}")
 
         return RecoveryResult(
-            success=False,
-            action_taken=RecoveryAction.RETRY,
-            error=last_error,
-            attempts=attempts,
-            message=f"Failed after {attempts} retry attempts",
+            success=False
+            action_taken=RecoveryAction.RETRY
+            error=last_error
+            attempts=attempts
+            message=f"Failed after {attempts} retry attempts"
         )
 
 
@@ -127,12 +129,12 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
     """Retry with exponential backoff"""
 
     def __init__(
-        self,
-        max_retries: int = 5,
-        base_delay: float = 1.0,
-        max_delay: float = 60.0,
-        exponential_base: float = 2.0,
-        jitter: bool = True,
+        self
+        max_retries: int = 5
+        base_delay: float = 1.0
+        max_delay: float = 60.0
+        exponential_base: float = 2.0
+        jitter: bool = True
     ):
         """
         Initialize exponential backoff strategy
@@ -173,22 +175,22 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
             try:
                 result = operation(*args, **kwargs)
                 return RecoveryResult(
-                    success=True,
-                    action_taken=RecoveryAction.RETRY_WITH_BACKOFF,
-                    result=result,
-                    attempts=attempts,
-                    message=f"Recovered with backoff after {attempts} attempts",
+                    success=True
+                    action_taken=RecoveryAction.RETRY_WITH_BACKOFF
+                    result=result
+                    attempts=attempts
+                    message=f"Recovered with backoff after {attempts} attempts"
                 )
             except Exception as e:
                 last_error = e
                 logger.warning(f"Backoff attempt {attempts} failed: {e}")
 
         return RecoveryResult(
-            success=False,
-            action_taken=RecoveryAction.RETRY_WITH_BACKOFF,
-            error=last_error,
-            attempts=attempts,
-            message=f"Failed after {attempts} backoff attempts",
+            success=False
+            action_taken=RecoveryAction.RETRY_WITH_BACKOFF
+            error=last_error
+            attempts=attempts
+            message=f"Failed after {attempts} backoff attempts"
         )
 
 
@@ -196,10 +198,10 @@ class FallbackStrategy(RecoveryStrategy):
     """Fallback to alternative operation"""
 
     def __init__(
-        self,
-        fallback_operation: Callable,
-        fallback_args: Optional[tuple] = None,
-        fallback_kwargs: Optional[dict] = None,
+        self
+        fallback_operation: Callable
+        fallback_args: tuple | None = None
+        fallback_kwargs: dict | None = None
     ):
         """
         Initialize fallback strategy
@@ -220,19 +222,19 @@ class FallbackStrategy(RecoveryStrategy):
         try:
             result = self.fallback_operation(*self.fallback_args, **self.fallback_kwargs)
             return RecoveryResult(
-                success=True,
-                action_taken=RecoveryAction.FALLBACK,
-                result=result,
-                attempts=1,
-                message="Recovered using fallback operation",
+                success=True
+                action_taken=RecoveryAction.FALLBACK
+                result=result
+                attempts=1
+                message="Recovered using fallback operation"
             )
         except Exception as e:
             return RecoveryResult(
-                success=False,
-                action_taken=RecoveryAction.FALLBACK,
-                error=e,
-                attempts=1,
-                message=f"Fallback also failed: {e}",
+                success=False
+                action_taken=RecoveryAction.FALLBACK
+                error=e
+                attempts=1
+                message=f"Fallback also failed: {e}"
             )
 
 
@@ -265,11 +267,11 @@ class CompositeStrategy(RecoveryStrategy):
 
         # All strategies failed
         return RecoveryResult(
-            success=False,
-            action_taken=RecoveryAction.ESCALATE,
-            error=error,
-            attempts=sum(r.attempts for r in [last_result] if r),
-            message="All recovery strategies exhausted",
+            success=False
+            action_taken=RecoveryAction.ESCALATE
+            error=error
+            attempts=sum(r.attempts for r in [last_result] if r)
+            message="All recovery strategies exhausted"
         )
 
 
@@ -277,10 +279,10 @@ class CircuitBreakerStrategy(RecoveryStrategy):
     """Circuit breaker pattern for failing operations"""
 
     def __init__(
-        self,
-        failure_threshold: int = 5,
-        timeout: float = 60.0,
-        half_open_requests: int = 1,
+        self
+        failure_threshold: int = 5
+        timeout: float = 60.0
+        half_open_requests: int = 1
     ):
         """
         Initialize circuit breaker
@@ -311,10 +313,10 @@ class CircuitBreakerStrategy(RecoveryStrategy):
                 self.half_open_attempts = 0
             else:
                 return RecoveryResult(
-                    success=False,
-                    action_taken=RecoveryAction.ABORT,
-                    error=error,
-                    message="Circuit breaker is open",
+                    success=False
+                    action_taken=RecoveryAction.ABORT
+                    error=error
+                    message="Circuit breaker is open"
                 )
 
         # Try the operation
@@ -330,11 +332,11 @@ class CircuitBreakerStrategy(RecoveryStrategy):
                 self.failure_count = max(0, self.failure_count - 1)
 
             return RecoveryResult(
-                success=True,
-                action_taken=RecoveryAction.RETRY,
-                result=result,
-                attempts=1,
-                message="Operation successful",
+                success=True
+                action_taken=RecoveryAction.RETRY
+                result=result
+                attempts=1
+                message="Operation successful"
             )
 
         except Exception as e:
@@ -352,10 +354,10 @@ class CircuitBreakerStrategy(RecoveryStrategy):
                 self.state = "open"
 
             return RecoveryResult(
-                success=False,
-                action_taken=RecoveryAction.ABORT,
-                error=e,
-                message=f"Circuit breaker: State={self.state}, Failures={self.failure_count}",
+                success=False
+                action_taken=RecoveryAction.ABORT
+                error=e
+                message=f"Circuit breaker: State={self.state}, Failures={self.failure_count}"
             )
 
 

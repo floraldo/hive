@@ -720,10 +720,10 @@ if __name__ == "__main__":
             try:
                 self.queen_process.terminate()
                 self.queen_process.wait(timeout=5)
-            except:
+            except (subprocess.TimeoutExpired, ProcessLookupError, OSError):
                 try:
                     self.queen_process.kill()
-                except:
+                except (ProcessLookupError, OSError):
                     pass
 
         # Stop Worker processes

@@ -4,12 +4,14 @@ Async resilience patterns for fault tolerance.
 Provides circuit breakers, timeout management, and other resilience patterns
 specifically designed for async operations.
 """
+from __future__ import annotations
+
 
 import asyncio
 import time
 from enum import Enum
 from functools import wraps
-from typing import Any, Callable, Optional
+from typing import Any, Callable
 
 from hive_errors import AsyncTimeoutError, CircuitBreakerOpenError
 from hive_logging import get_logger
@@ -33,10 +35,10 @@ class AsyncCircuitBreaker:
     """
 
     def __init__(
-        self,
-        failure_threshold: int = 5,
-        recovery_timeout: int = 60,
-        expected_exception: type = Exception,
+        self
+        failure_threshold: int = 5
+        recovery_timeout: int = 60
+        expected_exception: type = Exception
     ):
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
@@ -59,8 +61,8 @@ class AsyncCircuitBreaker:
                     logger.info("Circuit breaker transitioning to HALF_OPEN")
                 else:
                     raise CircuitBreakerOpenError(
-                        "Circuit breaker is OPEN - operation blocked",
-                        failure_count=self.failure_count,
+                        "Circuit breaker is OPEN - operation blocked"
+                        failure_count=self.failure_count
                         recovery_time=self.recovery_timeout
                     )
 
@@ -112,10 +114,10 @@ class AsyncCircuitBreaker:
     def get_status(self) -> dict:
         """Get current status for monitoring"""
         return {
-            "state": self.state.value,
-            "failure_count": self.failure_count,
-            "failure_threshold": self.failure_threshold,
-            "last_failure_time": self.last_failure_time,
+            "state": self.state.value
+            "failure_count": self.failure_count
+            "failure_threshold": self.failure_threshold
+            "last_failure_time": self.last_failure_time
             "recovery_timeout": self.recovery_timeout
         }
 
@@ -134,11 +136,11 @@ class AsyncTimeoutManager:
         self._operation_stats = {}
 
     async def run_with_timeout_async(
-        self,
-        coro,
-        timeout: Optional[float] = None,
-        operation_name: Optional[str] = None,
-        fallback: Optional[Any] = None
+        self
+        coro
+        timeout: float | None = None
+        operation_name: str | None = None
+        fallback: Any | None = None
     ) -> Any:
         """
         Run coroutine with timeout and enhanced error context.
@@ -180,9 +182,9 @@ class AsyncTimeoutManager:
                 return fallback
 
             raise AsyncTimeoutError(
-                f"Operation '{operation_name}' timed out",
-                operation=operation_name,
-                timeout_duration=timeout,
+                f"Operation '{operation_name}' timed out"
+                operation=operation_name
+                timeout_duration=timeout
                 elapsed_time=elapsed
             )
         finally:
@@ -193,11 +195,11 @@ class AsyncTimeoutManager:
         """Update operation statistics"""
         if operation_name not in self._operation_stats:
             self._operation_stats[operation_name] = {
-                'total_calls': 0,
-                'successful_calls': 0,
-                'total_time': 0.0,
-                'timeouts': 0,
-                'avg_time': 0.0,
+                'total_calls': 0
+                'successful_calls': 0
+                'total_time': 0.0
+                'timeouts': 0
+                'avg_time': 0.0
                 'success_rate': 0.0
             }
 
@@ -226,16 +228,16 @@ class AsyncTimeoutManager:
     def get_statistics(self) -> dict:
         """Get timeout statistics for monitoring"""
         return {
-            'active_tasks': len(self._active_tasks),
-            'default_timeout': self.default_timeout,
+            'active_tasks': len(self._active_tasks)
+            'default_timeout': self.default_timeout
             'operation_stats': self._operation_stats.copy()
         }
 
 
 def async_circuit_breaker(
-    failure_threshold: int = 5,
-    recovery_timeout: int = 60,
-    expected_exception: type = Exception,
+    failure_threshold: int = 5
+    recovery_timeout: int = 60
+    expected_exception: type = Exception
 ):
     """
     Decorator to add circuit breaker protection to async functions.
@@ -255,7 +257,7 @@ def async_circuit_breaker(
     return decorator
 
 
-def async_timeout(seconds: float, operation_name: Optional[str] = None) -> None:
+def async_timeout(seconds: float, operation_name: str | None = None) -> None:
     """
     Decorator to add timeout protection to async functions.
 
@@ -270,8 +272,8 @@ def async_timeout(seconds: float, operation_name: Optional[str] = None) -> None:
         async def wrapper_async(*args, **kwargs):
             op_name = operation_name or func.__name__
             return await timeout_manager.run_with_timeout_async(
-                func(*args, **kwargs),
-                timeout=seconds,
+                func(*args, **kwargs)
+                timeout=seconds
                 operation_name=op_name
             )
         return wrapper_async
@@ -280,10 +282,10 @@ def async_timeout(seconds: float, operation_name: Optional[str] = None) -> None:
 
 # Composite resilience decorator
 def async_resilient(
-    timeout: float = 30.0,
-    circuit_failure_threshold: int = 5,
-    circuit_recovery_timeout: int = 60,
-    operation_name: Optional[str] = None
+    timeout: float = 30.0
+    circuit_failure_threshold: int = 5
+    circuit_recovery_timeout: int = 60
+    operation_name: str | None = None
 ):
     """
     Composite decorator providing both timeout and circuit breaker protection.
@@ -297,12 +299,12 @@ def async_resilient(
     def decorator(func) -> None:
         # Apply circuit breaker first, then timeout
         circuit_protected = async_circuit_breaker(
-            circuit_failure_threshold,
+            circuit_failure_threshold
             circuit_recovery_timeout
         )(func)
 
         timeout_protected = async_timeout(
-            timeout,
+            timeout
             operation_name
         )(circuit_protected)
 

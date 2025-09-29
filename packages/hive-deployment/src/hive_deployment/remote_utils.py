@@ -3,12 +3,14 @@
 Remote utility functions for Hive Deployment.
 Adapted from SmartHoodsOptimisationTool Apper project.
 """
+from __future__ import annotations
+
 
 import fnmatch
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, ListTuple
 
 from hive_logging import get_logger
 
@@ -69,7 +71,7 @@ def should_ignore_path(path: str, ignore_patterns: List[str], base_dir: str = ""
     return False
 
 
-def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> Optional[int]:
+def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> int | None:
     """Finds an available TCP port on the remote server."""
     logging.info(f"Searching for available port starting from {start_port}...")
     try:
@@ -117,12 +119,12 @@ def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> Opt
 
 
 def run_remote_command(
-    ssh_client: SSHClient,
-    command: str,
-    config: Dict[str, Any],
-    sudo: bool = False,
-    check: bool = True,
-    log_output: bool = True,
+    ssh_client: SSHClient
+    command: str
+    config: Dict[str, Any]
+    sudo: bool = False
+    check: bool = True
+    log_output: bool = True
 ) -> Tuple[int, str, str]:
     """
     Executes a command on the remote server using the provided SSH client.
@@ -167,11 +169,11 @@ def run_remote_command(
 
 
 def upload_directory(
-    ssh_client: SSHClient,
-    local_dir: str,
-    remote_dir: str,
-    config: Dict[str, Any],
-    sudo_upload: bool = False,
+    ssh_client: SSHClient
+    local_dir: str
+    remote_dir: str
+    config: Dict[str, Any]
+    sudo_upload: bool = False
 ) -> bool:
     """
     Uploads a local directory to a remote server via SFTP.
@@ -203,12 +205,12 @@ def upload_directory(
         logging.info(f"Creating remote directory (if needed): {remote_dir}")
         # Use run_remote_command for directory creation
         exit_code, _, stderr = run_remote_command(
-            ssh_client,
-            f"mkdir -p '{remote_dir}'",
-            config,
-            sudo=sudo_upload,
-            check=False,
-            log_output=False,
+            ssh_client
+            f"mkdir -p '{remote_dir}'"
+            config
+            sudo=sudo_upload
+            check=False
+            log_output=False
         )
         if exit_code != 0:
             # Check if error is "File exists" - that's okay
@@ -233,12 +235,12 @@ def upload_directory(
             if relative_path != Path("."):  # Don't try to create the base dir again
                 logging.debug(f"Creating remote subdirectory: {remote_root}")
                 exit_code, _, stderr = run_remote_command(
-                    ssh_client,
-                    f"mkdir -p '{remote_root}'",
-                    config,
-                    sudo=sudo_upload,
-                    check=False,
-                    log_output=False,
+                    ssh_client
+                    f"mkdir -p '{remote_root}'"
+                    config
+                    sudo=sudo_upload
+                    check=False
+                    log_output=False
                 )
                 # Again, ignore "File exists" type errors
                 if exit_code != 0 and "File exists" not in stderr:
@@ -268,7 +270,7 @@ def upload_directory(
         return False
 
 
-def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict) -> Optional[str]:
+def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict) -> str | None:
     """Finds the next available app name (e.g., app1, app2) on the remote server."""
     logging.info(f"Finding existing apps in '{base_dir}' with prefix '{prefix}'...")
     # Use find for potentially better handling of names and errors

@@ -3,13 +3,15 @@ Pipeline Monitoring Implementation
 Contains the business logic for pipeline monitoring.
 Separated from core interfaces to maintain clean architecture.
 """
+from __future__ import annotations
+
 
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, ListTuple
 
 from hive_logging import get_logger
 
@@ -26,7 +28,7 @@ class PipelineMetrics:
     total_duration_ms: float = 0.0
     stage_durations: Dict[str, float] = field(default_factory=dict)
     error_counts: Dict[str, int] = field(default_factory=lambda: defaultdict(int))
-    last_execution_time: Optional[datetime] = None
+    last_execution_time: datetime | None = None
 
     @property
     def success_rate(self) -> float:
@@ -45,15 +47,15 @@ class PipelineMetrics:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
         return {
-            "total_executions": self.total_executions,
-            "successful_executions": self.successful_executions,
-            "failed_executions": self.failed_executions,
-            "success_rate": self.success_rate,
-            "average_duration_ms": self.average_duration_ms,
-            "total_duration_ms": self.total_duration_ms,
-            "stage_durations": self.stage_durations,
-            "error_counts": dict(self.error_counts),
-            "last_execution_time": self.last_execution_time.isoformat() if self.last_execution_time else None,
+            "total_executions": self.total_executions
+            "successful_executions": self.successful_executions
+            "failed_executions": self.failed_executions
+            "success_rate": self.success_rate
+            "average_duration_ms": self.average_duration_ms
+            "total_duration_ms": self.total_duration_ms
+            "stage_durations": self.stage_durations
+            "error_counts": dict(self.error_counts)
+            "last_execution_time": self.last_execution_time.isoformat() if self.last_execution_time else None
         }
 
 
@@ -65,8 +67,8 @@ class StageMetrics:
     execution_count: int = 0
     total_duration_ms: float = 0.0
     error_count: int = 0
-    last_error: Optional[str] = None
-    last_execution: Optional[datetime] = None
+    last_error: str | None = None
+    last_execution: datetime | None = None
 
     @property
     def average_duration_ms(self) -> float:
@@ -101,7 +103,7 @@ class PipelineMonitor:
             self._active_executions[execution_id] = time.time()
             logger.debug(f"Started tracking execution {execution_id} for pipeline {self.pipeline_name}")
 
-    def end_execution(self, execution_id: str, success: bool, error: Optional[str] = None) -> None:
+    def end_execution(self, execution_id: str, success: bool, error: str | None = None) -> None:
         """End tracking a pipeline execution"""
         with self.lock:
             if execution_id not in self._active_executions:
@@ -126,18 +128,18 @@ class PipelineMonitor:
             # Add to history
             self.execution_history.append(
                 {
-                    "execution_id": execution_id,
-                    "timestamp": datetime.now(),
-                    "duration_ms": duration_ms,
-                    "success": success,
-                    "error": error,
+                    "execution_id": execution_id
+                    "timestamp": datetime.now()
+                    "duration_ms": duration_ms
+                    "success": success
+                    "error": error
                 }
             )
 
             logger.info(f"Completed execution {execution_id}: success={success}, duration={duration_ms:.2f}ms")
 
     def record_stage_execution(
-        self, stage_name: str, duration_ms: float, success: bool, error: Optional[str] = None
+        self, stage_name: str, duration_ms: float, success: bool, error: str | None = None
     ) -> None:
         """Record execution of a pipeline stage"""
         with self.lock:
@@ -166,11 +168,11 @@ class PipelineMonitor:
             metrics["active_executions"] = len(self._active_executions)
             metrics["stages"] = {
                 name: {
-                    "execution_count": stage.execution_count,
-                    "average_duration_ms": stage.average_duration_ms,
-                    "error_rate": stage.error_rate,
-                    "last_error": stage.last_error,
-                    "last_execution": stage.last_execution.isoformat() if stage.last_execution else None,
+                    "execution_count": stage.execution_count
+                    "average_duration_ms": stage.average_duration_ms
+                    "error_rate": stage.error_rate
+                    "last_error": stage.last_error
+                    "last_execution": stage.last_execution.isoformat() if stage.last_execution else None
                 }
                 for name, stage in self.stage_metrics.items()
             }
@@ -212,14 +214,14 @@ class PipelineMonitor:
                 health = "healthy"
 
             return {
-                "pipeline": self.pipeline_name,
-                "health": health,
-                "success_rate": self.metrics.success_rate,
-                "recent_failures": recent_failures,
-                "active_executions": len(self._active_executions),
+                "pipeline": self.pipeline_name
+                "health": health
+                "success_rate": self.metrics.success_rate
+                "recent_failures": recent_failures
+                "active_executions": len(self._active_executions)
                 "last_execution": self.metrics.last_execution_time.isoformat()
                 if self.metrics.last_execution_time
-                else None,
+                else None
             }
 
 

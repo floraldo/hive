@@ -1,14 +1,14 @@
 """Base component class for all system components."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.economic_params import (
-    EconomicParamsModel,
+    EconomicParamsModel
 )
 from ecosystemiser.system_model.components.shared.environmental_params import (
-    EnvironmentalParamsModel,
+    EnvironmentalParamsModel
 )
 from hive_logging import get_logger
 from pydantic import BaseModel
@@ -18,9 +18,11 @@ logger = get_logger(__name__)
 
 class ComponentParams(BaseModel):
     """Base parameters for all components."""
+from __future__ import annotations
 
-    economic: Optional[EconomicParamsModel] = EconomicParamsModel()
-    environmental: Optional[EnvironmentalParamsModel] = EnvironmentalParamsModel()
+
+    economic: EconomicParamsModel | None = EconomicParamsModel()
+    environmental: EnvironmentalParamsModel | None = EnvironmentalParamsModel()
 
     class Config:
         extra = "allow"  # Allow additional fields for component-specific params

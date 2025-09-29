@@ -1,13 +1,15 @@
 """
 Scenario management system for EcoSystemiser results storage and retrieval.
 """
+from __future__ import annotations
+
 
 import json
 import sqlite3
 import hashlib
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 import pandas as pd
 import numpy as np
 
@@ -21,7 +23,7 @@ logger = get_logger(__name__)
 class ScenarioManager:
     """Manages scenario storage, organization, and retrieval."""
 
-    def __init__(self, base_path: Optional[Path] = None):
+    def __init__(self, base_path: Path | None = None):
         """Initialize scenario manager.
 
         Args:
@@ -35,17 +37,17 @@ class ScenarioManager:
     def _ensure_directory_structure(self) -> None:
         """Create the scenario directory structure."""
         directories = [
-            "scenarios/baseline",
-            "scenarios/parametric",
-            "scenarios/temporal",
-            "scenarios/optimization",
-            "scenarios/validation",
-            "profiles/climate",
-            "profiles/demand",
-            "profiles/generation",
-            "results",
-            "cache/preprocessed_profiles",
-            "cache/kpi_aggregations",
+            "scenarios/baseline"
+            "scenarios/parametric"
+            "scenarios/temporal"
+            "scenarios/optimization"
+            "scenarios/validation"
+            "profiles/climate"
+            "profiles/demand"
+            "profiles/generation"
+            "results"
+            "cache/preprocessed_profiles"
+            "cache/kpi_aggregations"
             "cache/visualization_data"
         ]
 
@@ -58,11 +60,11 @@ class ScenarioManager:
             # Scenarios table
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS scenarios (
-                    scenario_id TEXT PRIMARY KEY,
-                    scenario_type TEXT NOT NULL,
-                    scenario_name TEXT NOT NULL,
-                    config_hash TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    scenario_id TEXT PRIMARY KEY
+                    scenario_type TEXT NOT NULL
+                    scenario_name TEXT NOT NULL
+                    config_hash TEXT NOT NULL
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     metadata JSON
                 )
             """)
@@ -70,16 +72,16 @@ class ScenarioManager:
             # Simulation runs table (extends base schema)
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS simulation_runs_enhanced (
-                    run_id TEXT PRIMARY KEY,
-                    scenario_id TEXT NOT NULL,
-                    solver_type TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    started_at TIMESTAMP NOT NULL,
-                    completed_at TIMESTAMP,
-                    duration_seconds REAL,
-                    results_path TEXT,
-                    config_snapshot JSON,
-                    error_message TEXT,
+                    run_id TEXT PRIMARY KEY
+                    scenario_id TEXT NOT NULL
+                    solver_type TEXT NOT NULL
+                    status TEXT NOT NULL
+                    started_at TIMESTAMP NOT NULL
+                    completed_at TIMESTAMP
+                    duration_seconds REAL
+                    results_path TEXT
+                    config_snapshot JSON
+                    error_message TEXT
                     FOREIGN KEY (scenario_id) REFERENCES scenarios (scenario_id)
                 )
             """)
@@ -87,12 +89,12 @@ class ScenarioManager:
             # KPI results table
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS kpi_results (
-                    run_id TEXT,
-                    kpi_name TEXT NOT NULL,
-                    kpi_value REAL NOT NULL,
-                    unit TEXT,
-                    category TEXT,
-                    PRIMARY KEY (run_id, kpi_name),
+                    run_id TEXT
+                    kpi_name TEXT NOT NULL
+                    kpi_value REAL NOT NULL
+                    unit TEXT
+                    category TEXT
+                    PRIMARY KEY (run_id, kpi_name)
                     FOREIGN KEY (run_id) REFERENCES simulation_runs_enhanced (run_id)
                 )
             """)
@@ -100,13 +102,13 @@ class ScenarioManager:
             # Profile files table
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS profile_files (
-                    run_id TEXT,
-                    profile_type TEXT NOT NULL,
-                    file_path TEXT NOT NULL,
-                    timesteps INTEGER,
-                    start_time TEXT,
-                    resolution_minutes INTEGER,
-                    PRIMARY KEY (run_id, profile_type),
+                    run_id TEXT
+                    profile_type TEXT NOT NULL
+                    file_path TEXT NOT NULL
+                    timesteps INTEGER
+                    start_time TEXT
+                    resolution_minutes INTEGER
+                    PRIMARY KEY (run_id, profile_type)
                     FOREIGN KEY (run_id) REFERENCES simulation_runs_enhanced (run_id)
                 )
             """)
@@ -119,9 +121,9 @@ class ScenarioManager:
 
             conn.commit()
 
-    def register_scenario(self, scenario_id: str, scenario_type: str,
-                         scenario_name: str, config: Dict[str, Any],
-                         metadata: Optional[Dict] = None) -> None:
+    def register_scenario(self, scenario_id: str, scenario_type: str
+                         scenario_name: str, config: Dict[str, Any]
+                         metadata: Dict | None = None) -> None:
         """Register a new scenario configuration.
 
         Args:
@@ -138,14 +140,14 @@ class ScenarioManager:
                 INSERT OR REPLACE INTO scenarios
                 (scenario_id, scenario_type, scenario_name, config_hash, metadata)
                 VALUES (?, ?, ?, ?, ?)
-            """, (scenario_id, scenario_type, scenario_name, config_hash,
+            """, (scenario_id, scenario_type, scenario_name, config_hash
                   json.dumps(metadata or {})))
             conn.commit()
 
         logger.info(f"Registered scenario: {scenario_id}")
 
-    def store_result(self, scenario_id: str, solver_type: str, system,
-                    metadata: Optional[Dict] = None) -> str:
+    def store_result(self, scenario_id: str, solver_type: str, system
+                    metadata: Dict | None = None) -> str:
         """Store complete simulation result with profiles.
 
         Args:
@@ -170,12 +172,12 @@ class ScenarioManager:
             metadata_file = result_dir / "metadata.json"
             with open(metadata_file, 'w') as f:
                 json.dump({
-                    "run_id": run_id,
-                    "scenario_id": scenario_id,
-                    "solver_type": solver_type,
-                    "started_at": started_at,
-                    "completed_at": datetime.now().isoformat(),
-                    "kpis": kpis,
+                    "run_id": run_id
+                    "scenario_id": scenario_id
+                    "solver_type": solver_type
+                    "started_at": started_at
+                    "completed_at": datetime.now().isoformat()
+                    "kpis": kpis
                     "metadata": metadata or {}
                 }, f, indent=2)
 
@@ -187,11 +189,11 @@ class ScenarioManager:
                 # Insert run record
                 conn.execute("""
                     INSERT INTO simulation_runs_enhanced
-                    (run_id, scenario_id, solver_type, status, started_at,
+                    (run_id, scenario_id, solver_type, status, started_at
                      completed_at, results_path, config_snapshot)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """, (run_id, scenario_id, solver_type, "completed", started_at,
-                      datetime.now().isoformat(), str(result_dir),
+                """, (run_id, scenario_id, solver_type, "completed", started_at
+                      datetime.now().isoformat(), str(result_dir)
                       json.dumps(metadata or {})))
 
                 # Insert KPI records
@@ -200,7 +202,7 @@ class ScenarioManager:
                         INSERT INTO kpi_results
                         (run_id, kpi_name, kpi_value, unit, category)
                         VALUES (?, ?, ?, ?, ?)
-                    """, (run_id, kpi_name, kpi_data["value"],
+                    """, (run_id, kpi_name, kpi_data["value"]
                           kpi_data.get("unit"), kpi_data.get("category")))
 
                 # Insert profile file records
@@ -278,34 +280,34 @@ class ScenarioManager:
         kpis.update({
             "solar_generation_mwh": {
                 "value": solar_total / 1000, "unit": "MWh", "category": "energy"
-            },
+            }
             "total_demand_mwh": {
                 "value": demand_total / 1000, "unit": "MWh", "category": "energy"
-            },
+            }
             "grid_import_mwh": {
                 "value": grid_import_total / 1000, "unit": "MWh", "category": "energy"
-            },
+            }
             "grid_export_mwh": {
                 "value": grid_export_total / 1000, "unit": "MWh", "category": "energy"
-            },
+            }
             "net_grid_mwh": {
-                "value": (grid_import_total - grid_export_total) / 1000,
+                "value": (grid_import_total - grid_export_total) / 1000
                 "unit": "MWh", "category": "energy"
-            },
+            }
             "self_consumption_ratio": {
-                "value": min(1.0, demand_total / solar_total) if solar_total > 0 else 0,
+                "value": min(1.0, demand_total / solar_total) if solar_total > 0 else 0
                 "unit": "ratio", "category": "performance"
-            },
+            }
             "self_sufficiency_ratio": {
-                "value": min(1.0, (solar_total - grid_export_total) / demand_total) if demand_total > 0 else 0,
+                "value": min(1.0, (solar_total - grid_export_total) / demand_total) if demand_total > 0 else 0
                 "unit": "ratio", "category": "performance"
-            },
+            }
             "battery_cycles": {
                 "value": battery_cycles, "unit": "cycles", "category": "storage"
-            },
+            }
             "battery_avg_soc": {
                 "value": battery_avg_soc, "unit": "ratio", "category": "storage"
-            },
+            }
             "battery_range_kwh": {
                 "value": battery_range_kwh, "unit": "kWh", "category": "storage"
             }
@@ -332,11 +334,11 @@ class ScenarioManager:
                 values = np.array(flow_data["value"])
                 for t, value in enumerate(values):
                     flows_data.append({
-                        "timestep": t,
-                        "flow_name": flow_key,
-                        "source": flow_data["source"],
-                        "target": flow_data["target"],
-                        "type": flow_data["type"],
+                        "timestep": t
+                        "flow_name": flow_key
+                        "source": flow_data["source"]
+                        "target": flow_data["target"]
+                        "type": flow_data["type"]
                         "value": value
                     })
 
@@ -354,12 +356,12 @@ class ScenarioManager:
                 if isinstance(component.E, np.ndarray):
                     for t, energy in enumerate(component.E):
                         components_data.append({
-                            "timestep": t,
-                            "component": comp_name,
-                            "type": component.type,
-                            "medium": component.medium,
-                            "variable": "E",
-                            "value": energy,
+                            "timestep": t
+                            "component": comp_name
+                            "type": component.type
+                            "medium": component.medium
+                            "variable": "E"
+                            "value": energy
                             "unit": "kWh"
                         })
 
@@ -368,12 +370,12 @@ class ScenarioManager:
                 if isinstance(component.profile, np.ndarray):
                     for t, power in enumerate(component.profile):
                         components_data.append({
-                            "timestep": t,
-                            "component": comp_name,
-                            "type": component.type,
-                            "medium": component.medium,
-                            "variable": "profile",
-                            "value": power,
+                            "timestep": t
+                            "component": comp_name
+                            "type": component.type
+                            "medium": component.medium
+                            "variable": "profile"
+                            "value": power
                             "unit": "kW"
                         })
 
@@ -385,7 +387,7 @@ class ScenarioManager:
 
         return profile_paths
 
-    def load_latest_result(self, scenario_id: str, solver_type: str) -> Optional[Dict]:
+    def load_latest_result(self, scenario_id: str, solver_type: str) -> Dict | None:
         """Load the most recent result for a scenario/solver combination.
 
         Args:
@@ -422,7 +424,7 @@ class ScenarioManager:
 
         return None
 
-    def _load_profile(self, results_path: str, profile_type: str) -> Optional[pd.DataFrame]:
+    def _load_profile(self, results_path: str, profile_type: str) -> pd.DataFrame | None:
         """Load a specific profile type from results.
 
         Args:
@@ -437,8 +439,8 @@ class ScenarioManager:
             return pd.read_parquet(profile_file)
         return None
 
-    def compare_scenarios(self, scenario_ids: List[str],
-                         solver_type: Optional[str] = None) -> pd.DataFrame:
+    def compare_scenarios(self, scenario_ids: List[str]
+                         solver_type: str | None = None) -> pd.DataFrame:
         """Compare KPIs across multiple scenarios.
 
         Args:
@@ -449,12 +451,13 @@ class ScenarioManager:
             DataFrame with comparison results
         """
         with get_ecosystemiser_connection() as conn:
-            query = """
+            placeholders = ",".join(["?"] * len(scenario_ids))
+            query = f"""
                 SELECT sr.scenario_id, sr.solver_type, kr.kpi_name, kr.kpi_value, kr.unit
                 FROM simulation_runs_enhanced sr
                 JOIN kpi_results kr ON sr.run_id = kr.run_id
-                WHERE sr.scenario_id IN ({}) AND sr.status = 'completed'
-            """.format(",".join(["?"] * len(scenario_ids)))
+                WHERE sr.scenario_id IN ({placeholders}) AND sr.status = 'completed'
+            """
 
             params = scenario_ids
             if solver_type:

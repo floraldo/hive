@@ -5,6 +5,8 @@ Performance baseline establishment for hive-ai package.
 Measures key performance metrics across all components to establish
 baseline for optimization tracking and regression detection.
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
@@ -12,7 +14,7 @@ import statistics
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Import hive-ai components for benchmarking
 from hive_ai.core.config import AIConfig, ModelConfig, VectorConfig
@@ -33,10 +35,10 @@ class PerformanceMetric:
     component: str
     operation: str
     duration_ms: float
-    memory_mb: Optional[float] = None
-    cpu_percent: Optional[float] = None
+    memory_mb: float | None = None
+    cpu_percent: float | None = None
     success: bool = True
-    error: Optional[str] = None
+    error: str | None = None
     metadata: Dict[str, Any] = None
 
     def __post_init__(self):
@@ -60,11 +62,11 @@ class PerformanceBenchmark:
         start_time = time.time()
 
         benchmark_suites = [
-            ("security_benchmarks", self.run_security_benchmarks_async),
-            ("config_benchmarks", self.run_config_benchmarks_async),
-            ("embedding_benchmarks", self.run_embedding_benchmarks_async),
-            ("vector_benchmarks", self.run_vector_benchmarks_async),
-            ("model_benchmarks", self.run_model_benchmarks_async),
+            ("security_benchmarks", self.run_security_benchmarks_async)
+            ("config_benchmarks", self.run_config_benchmarks_async)
+            ("embedding_benchmarks", self.run_embedding_benchmarks_async)
+            ("vector_benchmarks", self.run_vector_benchmarks_async)
+            ("model_benchmarks", self.run_model_benchmarks_async)
         ]
 
         for suite_name, benchmark_func in benchmark_suites:
@@ -91,7 +93,7 @@ class PerformanceBenchmark:
         validator = InputValidator()
 
         test_prompts = [
-            "Simple test prompt",
+            "Simple test prompt"
             "A" * 1000,  # Medium length
             "A" * 10000,  # Large prompt
             "javascript:alert('test')",  # Injection attempt
@@ -105,10 +107,10 @@ class PerformanceBenchmark:
 
             self.metrics.append(
                 PerformanceMetric(
-                    component="security",
-                    operation=f"validate_prompt_size_{len(prompt)}",
-                    duration_ms=duration,
-                    metadata={"prompt_length": len(prompt)},
+                    component="security"
+                    operation=f"validate_prompt_size_{len(prompt)}"
+                    duration_ms=duration
+                    metadata={"prompt_length": len(prompt)}
                 )
             )
 
@@ -121,10 +123,10 @@ class PerformanceBenchmark:
 
             self.metrics.append(
                 PerformanceMetric(
-                    component="security",
-                    operation="mask_secret",
-                    duration_ms=duration,
-                    metadata={"secret_length": len(secret)},
+                    component="security"
+                    operation="mask_secret"
+                    duration_ms=duration
+                    metadata={"secret_length": len(secret)}
                 )
             )
 
@@ -152,12 +154,12 @@ class PerformanceBenchmark:
         # Model config validation
         model_configs = [
             ModelConfig(
-                name=f"test_model_{i}",
-                provider="test",
-                model_type="completion",
-                max_tokens=4096,
-                temperature=0.7,
-                cost_per_token=0.001,
+                name=f"test_model_{i}"
+                provider="test"
+                model_type="completion"
+                max_tokens=4096
+                temperature=0.7
+                cost_per_token=0.001
             )
             for i in range(10)
         ]
@@ -168,10 +170,10 @@ class PerformanceBenchmark:
 
         self.metrics.append(
             PerformanceMetric(
-                component="config",
-                operation="model_config_batch_serialize",
-                duration_ms=duration,
-                metadata={"config_count": len(model_configs)},
+                component="config"
+                operation="model_config_batch_serialize"
+                duration_ms=duration
+                metadata={"config_count": len(model_configs)}
             )
         )
 
@@ -181,10 +183,10 @@ class PerformanceBenchmark:
             embedding_manager = EmbeddingManager(self.ai_config)
 
             test_texts = [
-                "Short text",
-                "Medium length text that contains more words and complexity",
+                "Short text"
+                "Medium length text that contains more words and complexity"
                 "Long text " * 100,  # Very long text
-                "Technical documentation with complex terminology and detailed explanations",
+                "Technical documentation with complex terminology and detailed explanations"
             ]
 
             # Test individual embedding generation (simulated)
@@ -195,25 +197,25 @@ class PerformanceBenchmark:
 
                 self.metrics.append(
                     PerformanceMetric(
-                        component="embedding",
-                        operation=f"generate_single_length_{len(text)}",
-                        duration_ms=duration,
-                        metadata={"text_length": len(text)},
+                        component="embedding"
+                        operation=f"generate_single_length_{len(text)}"
+                        duration_ms=duration
+                        metadata={"text_length": len(text)}
                     )
                 )
 
             # Test batch embedding generation
             duration = await self._time_operation_async(
-                lambda: embedding_manager.generate_batch_embeddings_async(test_texts, use_cache=False),
-                "batch_embedding_generation",
+                lambda: embedding_manager.generate_batch_embeddings_async(test_texts, use_cache=False)
+                "batch_embedding_generation"
             )
 
             self.metrics.append(
                 PerformanceMetric(
-                    component="embedding",
-                    operation="generate_batch",
-                    duration_ms=duration,
-                    metadata={"batch_size": len(test_texts)},
+                    component="embedding"
+                    operation="generate_batch"
+                    duration_ms=duration
+                    metadata={"batch_size": len(test_texts)}
                 )
             )
 
@@ -227,10 +229,10 @@ class PerformanceBenchmark:
 
             self.metrics.append(
                 PerformanceMetric(
-                    component="embedding",
-                    operation="cosine_similarity",
-                    duration_ms=duration,
-                    metadata={"vector_dimension": len(vec1)},
+                    component="embedding"
+                    operation="cosine_similarity"
+                    duration_ms=duration
+                    metadata={"vector_dimension": len(vec1)}
                 )
             )
 
@@ -266,10 +268,10 @@ class PerformanceBenchmark:
 
             self.metrics.append(
                 PerformanceMetric(
-                    component="vector_store",
-                    operation="config_batch_validation",
-                    duration_ms=duration,
-                    metadata={"config_count": len(test_configs)},
+                    component="vector_store"
+                    operation="config_batch_validation"
+                    duration_ms=duration
+                    metadata={"config_count": len(test_configs)}
                 )
             )
 
@@ -298,11 +300,11 @@ class PerformanceBenchmark:
             # Test model registration
             test_models = [
                 ModelConfig(
-                    name=f"benchmark_model_{i}",
-                    provider="test",
-                    model_type="completion",
-                    max_tokens=4096,
-                    cost_per_token=0.001,
+                    name=f"benchmark_model_{i}"
+                    provider="test"
+                    model_type="completion"
+                    max_tokens=4096
+                    cost_per_token=0.001
                 )
                 for i in range(20)
             ]
@@ -313,10 +315,10 @@ class PerformanceBenchmark:
 
             self.metrics.append(
                 PerformanceMetric(
-                    component="model_registry",
-                    operation="register_batch_20",
-                    duration_ms=duration,
-                    metadata={"model_count": len(test_models)},
+                    component="model_registry"
+                    operation="register_batch_20"
+                    duration_ms=duration
+                    metadata={"model_count": len(test_models)}
                 )
             )
 
@@ -327,10 +329,10 @@ class PerformanceBenchmark:
 
             self.metrics.append(
                 PerformanceMetric(
-                    component="model_registry",
-                    operation="lookup_batch_100",
-                    duration_ms=duration,
-                    metadata={"lookup_count": 100},
+                    component="model_registry"
+                    operation="lookup_batch_100"
+                    duration_ms=duration
+                    metadata={"lookup_count": 100}
                 )
             )
 
@@ -380,30 +382,30 @@ class PerformanceBenchmark:
 
             if durations:
                 component_stats[component] = {
-                    "operation_count": len(metrics),
-                    "success_count": len(successful_metrics),
-                    "success_rate": len(successful_metrics) / len(metrics),
-                    "avg_duration_ms": statistics.mean(durations),
-                    "median_duration_ms": statistics.median(durations),
-                    "min_duration_ms": min(durations),
-                    "max_duration_ms": max(durations),
-                    "total_duration_ms": sum(durations),
+                    "operation_count": len(metrics)
+                    "success_count": len(successful_metrics)
+                    "success_rate": len(successful_metrics) / len(metrics)
+                    "avg_duration_ms": statistics.mean(durations)
+                    "median_duration_ms": statistics.median(durations)
+                    "min_duration_ms": min(durations)
+                    "max_duration_ms": max(durations)
+                    "total_duration_ms": sum(durations)
                     "operations": [
                         {
-                            "operation": m.operation,
-                            "duration_ms": m.duration_ms,
-                            "success": m.success,
-                            "metadata": m.metadata,
+                            "operation": m.operation
+                            "duration_ms": m.duration_ms
+                            "success": m.success
+                            "metadata": m.metadata
                         }
                         for m in metrics
-                    ],
+                    ]
                 }
             else:
                 component_stats[component] = {
-                    "operation_count": len(metrics),
-                    "success_count": 0,
-                    "success_rate": 0.0,
-                    "error": "No successful operations",
+                    "operation_count": len(metrics)
+                    "success_count": 0
+                    "success_rate": 0.0
+                    "error": "No successful operations"
                 }
 
         # Overall statistics
@@ -411,23 +413,23 @@ class PerformanceBenchmark:
         all_durations = [m.duration_ms for m in all_successful]
 
         overall_stats = {
-            "total_operations": len(self.metrics),
-            "successful_operations": len(all_successful),
-            "overall_success_rate": len(all_successful) / len(self.metrics) if self.metrics else 0,
-            "total_benchmark_duration_ms": sum(all_durations) if all_durations else 0,
-            "avg_operation_duration_ms": statistics.mean(all_durations) if all_durations else 0,
+            "total_operations": len(self.metrics)
+            "successful_operations": len(all_successful)
+            "overall_success_rate": len(all_successful) / len(self.metrics) if self.metrics else 0
+            "total_benchmark_duration_ms": sum(all_durations) if all_durations else 0
+            "avg_operation_duration_ms": statistics.mean(all_durations) if all_durations else 0
         }
 
         # Performance insights
         insights = self._generate_performance_insights(component_stats, overall_stats)
 
         return {
-            "timestamp": time.time(),
-            "benchmark_version": "1.0.0",
-            "overall_statistics": overall_stats,
-            "component_statistics": component_stats,
-            "performance_insights": insights,
-            "recommendations": self._generate_recommendations(component_stats),
+            "timestamp": time.time()
+            "benchmark_version": "1.0.0"
+            "overall_statistics": overall_stats
+            "component_statistics": component_stats
+            "performance_insights": insights
+            "recommendations": self._generate_recommendations(component_stats)
         }
 
     def _generate_performance_insights(
@@ -490,7 +492,7 @@ class PerformanceBenchmark:
 
         return recommendations
 
-    def save_report(self, report: Dict[str, Any], output_path: Optional[Path] = None) -> Path:
+    def save_report(self, report: Dict[str, Any], output_path: Path | None = None) -> Path:
         """Save performance report to file."""
         if output_path is None:
             output_path = Path(__file__).parent / "performance_baseline_report.json"

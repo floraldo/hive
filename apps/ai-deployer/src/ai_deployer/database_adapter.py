@@ -1,10 +1,12 @@
 """
 Database adapter for deployment agent interactions
 """
+from __future__ import annotations
+
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_errors import BaseError
 from hive_logging import get_logger
@@ -45,8 +47,8 @@ class DatabaseAdapter:
                 cursor.execute(
                     """
                     SELECT
-                        id, title, description, created_at, updated_at,
-                        worker_id, priority, task_data, metadata,
+                        id, title, description, created_at, updated_at
+                        worker_id, priority, task_data, metadata
                         status, estimated_duration
                     FROM tasks
                     WHERE status = 'deployment_pending'
@@ -60,17 +62,17 @@ class DatabaseAdapter:
                 tasks = []
                 for row in rows:
                     task = {
-                        "id": row[0],
-                        "title": row[1],
-                        "description": row[2],
-                        "created_at": row[3],
-                        "updated_at": row[4],
-                        "worker_id": row[5],
-                        "priority": row[6],
-                        "task_data": self._parse_json_field(row[7]),
-                        "metadata": self._parse_json_field(row[8]),
-                        "status": row[9],
-                        "estimated_duration": row[10],
+                        "id": row[0]
+                        "title": row[1]
+                        "description": row[2]
+                        "created_at": row[3]
+                        "updated_at": row[4]
+                        "worker_id": row[5]
+                        "priority": row[6]
+                        "task_data": self._parse_json_field(row[7])
+                        "metadata": self._parse_json_field(row[8])
+                        "status": row[9]
+                        "estimated_duration": row[10]
                     }
                     tasks.append(task)
 
@@ -117,8 +119,8 @@ class DatabaseAdapter:
                         UPDATE tasks
                         SET status = ?, metadata = ?, updated_at = ?
                         WHERE id = ?
-                    """,
-                        (status, metadata_json, datetime.now().isoformat(), task_id),
+                    """
+                        (status, metadata_json, datetime.now().isoformat(), task_id)
                     )
                 else:
                     # Update status only
@@ -127,8 +129,8 @@ class DatabaseAdapter:
                         UPDATE tasks
                         SET status = ?, updated_at = ?
                         WHERE id = ?
-                    """,
-                        (status, datetime.now().isoformat(), task_id),
+                    """
+                        (status, datetime.now().isoformat(), task_id)
                     )
 
                 conn.commit()
@@ -161,13 +163,13 @@ class DatabaseAdapter:
                 cursor.execute(
                     """
                     SELECT
-                        id, title, description, created_at, updated_at,
-                        worker_id, priority, task_data, metadata,
+                        id, title, description, created_at, updated_at
+                        worker_id, priority, task_data, metadata
                         status, estimated_duration
                     FROM tasks
                     WHERE id = ?
-                """,
-                    (task_id,),
+                """
+                    (task_id,)
                 )
 
                 row = cursor.fetchone()
@@ -175,17 +177,17 @@ class DatabaseAdapter:
                     return None
 
                 return {
-                    "id": row[0],
-                    "title": row[1],
-                    "description": row[2],
-                    "created_at": row[3],
-                    "updated_at": row[4],
-                    "worker_id": row[5],
-                    "priority": row[6],
-                    "task_data": self._parse_json_field(row[7]),
-                    "metadata": self._parse_json_field(row[8]),
-                    "status": row[9],
-                    "estimated_duration": row[10],
+                    "id": row[0]
+                    "title": row[1]
+                    "description": row[2]
+                    "created_at": row[3]
+                    "updated_at": row[4]
+                    "worker_id": row[5]
+                    "priority": row[6]
+                    "task_data": self._parse_json_field(row[7])
+                    "metadata": self._parse_json_field(row[8])
+                    "status": row[9]
+                    "estimated_duration": row[10]
                 }
 
         except Exception as e:
@@ -212,11 +214,11 @@ class DatabaseAdapter:
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS deployment_events (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        task_id TEXT NOT NULL,
-                        event_type TEXT NOT NULL,
-                        details TEXT,
-                        timestamp TEXT NOT NULL,
+                        id INTEGER PRIMARY KEY AUTOINCREMENT
+                        task_id TEXT NOT NULL
+                        event_type TEXT NOT NULL
+                        details TEXT
+                        timestamp TEXT NOT NULL
                         FOREIGN KEY (task_id) REFERENCES tasks (id)
                     )
                 """
@@ -228,13 +230,13 @@ class DatabaseAdapter:
                     INSERT INTO deployment_events
                     (task_id, event_type, details, timestamp)
                     VALUES (?, ?, ?, ?)
-                """,
+                """
                     (
-                        task_id,
-                        event_type,
-                        json.dumps(details),
-                        datetime.now().isoformat(),
-                    ),
+                        task_id
+                        event_type
+                        json.dumps(details)
+                        datetime.now().isoformat()
+                    )
                 )
 
                 conn.commit()
@@ -265,8 +267,8 @@ class DatabaseAdapter:
                     FROM deployment_events
                     WHERE task_id = ?
                     ORDER BY timestamp DESC
-                """,
-                    (task_id,),
+                """
+                    (task_id,)
                 )
 
                 rows = cursor.fetchall()
@@ -275,9 +277,9 @@ class DatabaseAdapter:
                 for row in rows:
                     events.append(
                         {
-                            "event_type": row[0],
-                            "details": self._parse_json_field(row[1]),
-                            "timestamp": row[2],
+                            "event_type": row[0]
+                            "details": self._parse_json_field(row[1])
+                            "timestamp": row[2]
                         }
                     )
 
@@ -323,16 +325,16 @@ class DatabaseAdapter:
                 recent_deployments = cursor.fetchone()[0]
 
                 return {
-                    "status_counts": status_counts,
-                    "recent_deployments": recent_deployments,
-                    "timestamp": datetime.now().isoformat(),
+                    "status_counts": status_counts
+                    "recent_deployments": recent_deployments
+                    "timestamp": datetime.now().isoformat()
                 }
 
         except Exception as e:
             logger.error(f"Error getting deployment stats: {e}")
             raise DeploymentDatabaseError(f"Failed to get deployment stats: {e}") from e
 
-    def _parse_json_field(self, field_value: Optional[str]) -> Dict[str, Any]:
+    def _parse_json_field(self, field_value: str | None) -> Dict[str, Any]:
         """
         Safely parse JSON field value
 

@@ -1,15 +1,17 @@
 """
 Metrics collection and analysis for AI model operations.
 
-Provides comprehensive tracking of usage, costs, performance,
+Provides comprehensive tracking of usage, costs, performance
 and trends with integration to the Hive observability stack.
 """
+from __future__ import annotations
+
 
 import time
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_cache import CacheManager
 from hive_db import AsyncSession, get_async_session
@@ -68,13 +70,13 @@ class ModelMetrics(MetricsCollectorInterface):
         cost = tokens.estimated_cost
 
         record = ModelUsageRecord(
-            timestamp=timestamp,
-            model=model,
-            provider=provider,
-            tokens=tokens,
-            latency_ms=latency_ms,
-            success=success,
-            cost=cost,
+            timestamp=timestamp
+            model=model
+            provider=provider
+            tokens=tokens
+            latency_ms=latency_ms
+            success=success
+            cost=cost
         )
 
         # Store in recent usage queue
@@ -116,7 +118,7 @@ class ModelMetrics(MetricsCollectorInterface):
 
         logger.debug(f"Recorded vector operation: {operation} ({count} items, {latency_ms}ms)")
 
-    async def get_daily_cost_async(self, date: Optional[datetime] = None) -> float:
+    async def get_daily_cost_async(self, date: datetime | None = None) -> float:
         """Get total cost for specific date (default: today)."""
         target_date = date or datetime.utcnow()
         cache_key = f"daily_cost_{target_date.strftime('%Y-%m-%d')}"
@@ -176,11 +178,11 @@ class ModelMetrics(MetricsCollectorInterface):
         """Get real-time metrics summary from in-memory data."""
         if not self._recent_usage:
             return {
-                "total_requests": 0,
-                "successful_requests": 0,
-                "total_cost": 0.0,
-                "avg_latency_ms": 0.0,
-                "success_rate": 0.0,
+                "total_requests": 0
+                "successful_requests": 0
+                "total_cost": 0.0
+                "avg_latency_ms": 0.0
+                "success_rate": 0.0
             }
 
         total_requests = len(self._recent_usage)
@@ -189,12 +191,12 @@ class ModelMetrics(MetricsCollectorInterface):
         total_latency = sum(r.latency_ms for r in self._recent_usage)
 
         return {
-            "total_requests": total_requests,
-            "successful_requests": successful_requests,
-            "total_cost": total_cost,
-            "avg_latency_ms": total_latency / total_requests if total_requests > 0 else 0.0,
-            "success_rate": successful_requests / total_requests if total_requests > 0 else 0.0,
-            "time_range": "recent_1000_operations",
+            "total_requests": total_requests
+            "successful_requests": successful_requests
+            "total_cost": total_cost
+            "avg_latency_ms": total_latency / total_requests if total_requests > 0 else 0.0
+            "success_rate": successful_requests / total_requests if total_requests > 0 else 0.0
+            "time_range": "recent_1000_operations"
         }
 
     async def get_model_performance_async(self, model: str) -> ModelPerformanceStats:
@@ -225,13 +227,13 @@ class ModelMetrics(MetricsCollectorInterface):
             requests_per_hour = 0.0
 
         stats = ModelPerformanceStats(
-            total_requests=total_requests,
-            successful_requests=successful_requests,
-            total_tokens=total_tokens,
-            total_cost=total_cost,
-            avg_latency_ms=avg_latency,
-            success_rate=successful_requests / total_requests if total_requests > 0 else 0.0,
-            requests_per_hour=requests_per_hour,
+            total_requests=total_requests
+            successful_requests=successful_requests
+            total_tokens=total_tokens
+            total_cost=total_cost
+            avg_latency_ms=avg_latency
+            success_rate=successful_requests / total_requests if total_requests > 0 else 0.0
+            requests_per_hour=requests_per_hour
         )
 
         # Cache for 2 minutes
@@ -256,16 +258,16 @@ class ModelMetrics(MetricsCollectorInterface):
         recent_24h = [r for r in self._recent_usage if r.timestamp > now - timedelta(hours=24)]
 
         return {
-            "costs": {"today": today_cost, "current_month": current_month_cost},
+            "costs": {"today": today_cost, "current_month": current_month_cost}
             "usage_last_24h": {
-                "total_requests": len(recent_24h),
-                "successful_requests": sum(1 for r in recent_24h if r.success),
-                "total_tokens": sum(r.tokens.total_tokens for r in recent_24h),
-                "avg_latency_ms": (sum(r.latency_ms for r in recent_24h) / len(recent_24h) if recent_24h else 0.0),
-            },
-            "model_distribution": dict(model_usage),
-            "provider_distribution": dict(provider_usage),
-            "hourly_stats": dict(self._hourly_stats),
+                "total_requests": len(recent_24h)
+                "successful_requests": sum(1 for r in recent_24h if r.success)
+                "total_tokens": sum(r.tokens.total_tokens for r in recent_24h)
+                "avg_latency_ms": (sum(r.latency_ms for r in recent_24h) / len(recent_24h) if recent_24h else 0.0)
+            }
+            "model_distribution": dict(model_usage)
+            "provider_distribution": dict(provider_usage)
+            "hourly_stats": dict(self._hourly_stats)
         }
 
     def _invalidate_caches(self) -> None:

@@ -2,6 +2,8 @@
 
 # golden-rule-ignore: package-app-discipline - This is infrastructure registry, not business logic
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
@@ -9,7 +11,7 @@ import time
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Set
 
 import aioredis
 from hive_logging import get_logger
@@ -31,7 +33,7 @@ class ServiceInfo:
     port: int
     tags: List[str] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
-    health_check_url: Optional[str] = None
+    health_check_url: str | None = None
     ttl: int = 60
     registered_at: datetime = field(default_factory=datetime.utcnow)
     last_heartbeat: datetime = field(default_factory=datetime.utcnow)
@@ -147,11 +149,11 @@ class ServiceRegistry:
         service_name: str,
         host: str,
         port: int,
-        service_id: Optional[str] = None,
+        service_id: str | None = None,
         tags: List[str] = None,
         metadata: Dict[str, Any] = None,
-        health_check_url: Optional[str] = None,
-        ttl: Optional[int] = None,
+        health_check_url: str | None = None,
+        ttl: int | None = None,
     ) -> str:
         """Register a service instance.
 
@@ -271,7 +273,7 @@ class ServiceRegistry:
         heartbeat_key = f"{self._heartbeat_key_prefix}:{service_id}"
         await self._redis.setex(heartbeat_key, self.config.service_ttl, time.time())
 
-    async def get_service_async(self, service_id: str) -> Optional[ServiceInfo]:
+    async def get_service_async(self, service_id: str) -> ServiceInfo | None:
         """Get service information by ID.
 
         Args:
@@ -495,12 +497,12 @@ class ServiceRegistry:
             service_names = len(set(s.service_name for s in self._service_cache.values()))
 
             return {
-                "total_services": total_services,
-                "healthy_services": healthy_services,
-                "unhealthy_services": total_services - healthy_services,
-                "unique_service_names": service_names,
-                "cache_last_updated": self._cache_last_updated,
-                "registry_backend": self.config.registry_backend,
+                "total_services": total_services
+                "healthy_services": healthy_services
+                "unhealthy_services": total_services - healthy_services
+                "unique_service_names": service_names
+                "cache_last_updated": self._cache_last_updated
+                "registry_backend": self.config.registry_backend
             }
 
         except Exception as e:

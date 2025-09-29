@@ -7,10 +7,12 @@ Implements hierarchical configuration loading with proper precedence:
 3. apps/{app_name}/.env (app-specific) - HIGH priority
 4. System environment variables - HIGHEST priority
 """
+from __future__ import annotations
+
 
 import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from hive_logging import get_logger
 
@@ -45,9 +47,9 @@ def load_config_for_app(app_name: str) -> AppConfig:
 
     # Load in order of increasing priority
     env_files = [
-        (root / ".env.global", ConfigSources.GLOBAL),
-        (root / ".env.shared", ConfigSources.SHARED),
-        (root / "apps" / app_name / ".env", ConfigSources.APP),
+        (root / ".env.global", ConfigSources.GLOBAL)
+        (root / ".env.shared", ConfigSources.SHARED)
+        (root / "apps" / app_name / ".env", ConfigSources.APP)
     ]
 
     for env_file, source in env_files:
@@ -113,7 +115,7 @@ def get_required_keys(app_name: str, required: List[str]) -> Dict[str, str]:
     return result
 
 
-def get_global_api_keys() -> Dict[str, Optional[str]]:
+def get_global_api_keys() -> Dict[str, str | None]:
     """
     Get all global API keys that are available for sharing across apps.
 
@@ -167,10 +169,10 @@ def audit_app_config(app_name: str) -> Dict:
         ]
 
         audit_report["security"] = {
-            "sensitive_keys_count": len(sensitive_keys),
-            "sensitive_keys": sensitive_keys,
-            "app_has_secrets": len(config.get_keys_by_source(ConfigSources.APP)) > 0,
-            "uses_global_secrets": len(config.get_keys_by_source(ConfigSources.GLOBAL)) > 0,
+            "sensitive_keys_count": len(sensitive_keys)
+            "sensitive_keys": sensitive_keys
+            "app_has_secrets": len(config.get_keys_by_source(ConfigSources.APP)) > 0
+            "uses_global_secrets": len(config.get_keys_by_source(ConfigSources.GLOBAL)) > 0
         }
 
         return audit_report

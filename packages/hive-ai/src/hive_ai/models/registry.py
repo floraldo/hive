@@ -4,8 +4,10 @@ Model registry for managing AI model configurations and providers.
 Provides centralized management of available models with
 dynamic registration and health monitoring.
 """
+from __future__ import annotations
 
-from typing import Dict, List, Optional, Type
+
+from typing import Dict, ListType
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -42,10 +44,10 @@ class ModelRegistry:
         if provider_name not in self._providers:
             if provider_name not in self._provider_classes:
                 raise ModelUnavailableError(
-                    f"Provider '{provider_name}' not registered",
-                    model="",
-                    provider=provider_name,
-                    available_models=self.list_available_models(),
+                    f"Provider '{provider_name}' not registered"
+                    model=""
+                    provider=provider_name
+                    available_models=self.list_available_models()
                 )
 
             # Create provider instance
@@ -127,7 +129,7 @@ class ModelRegistry:
                 models.append(name)
         return models
 
-    def get_cheapest_model(self, model_type: str) -> Optional[str]:
+    def get_cheapest_model(self, model_type: str) -> str | None:
         """Get the cheapest available model of specified type."""
         models = self.get_models_by_type(model_type)
         if not models:
@@ -154,8 +156,8 @@ class ModelRegistry:
         providers = len(self._provider_classes)
 
         return {
-            "total_models": total_models,
-            "healthy_models": healthy_models,
-            "total_providers": providers,
-            "health_percentage": int((healthy_models / total_models * 100) if total_models > 0 else 0),
+            "total_models": total_models
+            "healthy_models": healthy_models
+            "total_providers": providers
+            "health_percentage": int((healthy_models / total_models * 100) if total_models > 0 else 0)
         }

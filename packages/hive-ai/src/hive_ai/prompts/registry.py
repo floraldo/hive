@@ -4,11 +4,13 @@ Centralized registry for prompt template management.
 Provides storage, versioning, and organization of prompt templates
 with search, categorization, and access control features.
 """
+from __future__ import annotations
+
 
 import os
 import json
 import asyncio
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, AnySet
 from pathlib import Path
 from datetime import datetime
 
@@ -32,8 +34,8 @@ class PromptRegistry:
     """
 
     def __init__(
-        self,
-        storage_path: str = "prompts/",
+        self
+        storage_path: str = "prompts/"
         cache_enabled: bool = True
     ):
         self.storage_path = Path(storage_path)
@@ -102,9 +104,9 @@ class PromptRegistry:
             self._categories[category].add(name)
 
     async def register_template_async(
-        self,
-        template: PromptTemplate,
-        name: Optional[str] = None,
+        self
+        template: PromptTemplate
+        name: str | None = None
         overwrite: bool = False
     ) -> str:
         """
@@ -163,8 +165,8 @@ class PromptRegistry:
             ) from e
 
     async def _save_template_async(
-        self,
-        name: str,
+        self
+        name: str
         template: PromptTemplate
     ) -> None:
         """Save template to storage file."""
@@ -212,10 +214,10 @@ class PromptRegistry:
         return template
 
     def list_templates(
-        self,
-        category: Optional[str] = None,
-        tags: Optional[List[str]] = None,
-        search: Optional[str] = None
+        self
+        category: str | None = None
+        tags: Optional[List[str]] = None
+        search: str | None = None
     ) -> List[str]:
         """
         List templates with optional filtering.
@@ -329,9 +331,9 @@ class PromptRegistry:
             ) from e
 
     async def clone_template_async(
-        self,
-        source_name: str,
-        new_name: str,
+        self
+        source_name: str
+        new_name: str
         modifications: Optional[Dict[str, Any]] = None
     ) -> str:
         """
@@ -371,8 +373,8 @@ class PromptRegistry:
         return await self.register_template_async(cloned_template, new_name)
 
     async def export_templates_async(
-        self,
-        output_path: str,
+        self
+        output_path: str
         template_names: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """
@@ -392,10 +394,10 @@ class PromptRegistry:
             export_names = template_names or list(self._templates.keys())
             export_data = {
                 "metadata": {
-                    "exported_at": datetime.utcnow().isoformat(),
-                    "template_count": len(export_names),
+                    "exported_at": datetime.utcnow().isoformat()
+                    "template_count": len(export_names)
                     "registry_version": "1.0.0"
-                },
+                }
                 "templates": {}
             }
 
@@ -408,8 +410,8 @@ class PromptRegistry:
                 json.dump(export_data, f, indent=2, ensure_ascii=False)
 
             stats = {
-                "exported_count": len(export_data["templates"]),
-                "output_path": output_path,
+                "exported_count": len(export_data["templates"])
+                "output_path": output_path
                 "file_size": os.path.getsize(output_path)
             }
 
@@ -422,8 +424,8 @@ class PromptRegistry:
             ) from e
 
     async def import_templates_async(
-        self,
-        import_path: str,
+        self
+        import_path: str
         overwrite: bool = False
     ) -> Dict[str, Any]:
         """
@@ -459,9 +461,9 @@ class PromptRegistry:
                     errors.append(f"{name}: {str(e)}")
 
             stats = {
-                "imported_count": imported_count,
-                "failed_count": failed_count,
-                "total_in_file": len(templates_data),
+                "imported_count": imported_count
+                "failed_count": failed_count
+                "total_in_file": len(templates_data)
                 "errors": errors
             }
 
@@ -476,18 +478,18 @@ class PromptRegistry:
     def get_registry_stats(self) -> Dict[str, Any]:
         """Get comprehensive registry statistics."""
         return {
-            "total_templates": len(self._templates),
-            "categories": len(self._categories),
-            "tags": len(self._tags),
-            "storage_path": str(self.storage_path),
-            "cache_enabled": self.cache is not None,
+            "total_templates": len(self._templates)
+            "categories": len(self._categories)
+            "tags": len(self._tags)
+            "storage_path": str(self.storage_path)
+            "cache_enabled": self.cache is not None
             "category_breakdown": {
                 category: len(templates)
                 for category, templates in self._categories.items()
-            },
+            }
             "top_tags": sorted(
-                [(tag, len(templates)) for tag, templates in self._tags.items()],
-                key=lambda x: x[1],
+                [(tag, len(templates)) for tag, templates in self._tags.items()]
+                key=lambda x: x[1]
                 reverse=True
             )[:10]
         }
@@ -495,9 +497,9 @@ class PromptRegistry:
     async def validate_registry_async(self) -> Dict[str, Any]:
         """Validate all templates in registry."""
         validation_results = {
-            "valid_templates": [],
-            "invalid_templates": [],
-            "total_templates": len(self._templates),
+            "valid_templates": []
+            "invalid_templates": []
+            "total_templates": len(self._templates)
             "validation_errors": []
         }
 

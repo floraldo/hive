@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -11,7 +13,7 @@ by specific profile types (climate, demand, etc.).
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, ListTuple
 
 import pandas as pd
 from pydantic import BaseModel, Field, validator
@@ -59,13 +61,13 @@ class BaseProfileRequest(BaseModel):
     variables: List[str]
 
     # Data resolution/frequency
-    resolution: Optional[str] = "1H"
+    resolution: str | None = "1H"
 
     # Profile generation mode
     mode: ProfileMode = ProfileMode.OBSERVED
 
     # Data source preference
-    source: Optional[str] = None
+    source: str | None = None
 
     # Timezone for output
     timezone: str = "UTC"
@@ -74,11 +76,11 @@ class BaseProfileRequest(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
     # Request ID for tracking
-    request_id: Optional[str] = None
+    request_id: str | None = None
 
     # Caching preferences
     use_cache: bool = True
-    cache_ttl: Optional[int] = None  # seconds
+    cache_ttl: int | None = None  # seconds
 
     @validator("period")
     def validate_period(cls, v) -> None:
@@ -114,17 +116,17 @@ class BaseProfileRequest(BaseModel):
     def to_dict(self) -> Dict[str, Any]:
         """Convert request to dictionary."""
         return {
-            "location": self.location,
-            "period": self.period,
-            "variables": self.variables,
-            "resolution": self.resolution,
-            "mode": (self.mode.value if isinstance(self.mode, ProfileMode) else self.mode),
-            "source": self.source,
-            "timezone": self.timezone,
-            "metadata": self.metadata,
-            "request_id": self.request_id,
-            "use_cache": self.use_cache,
-            "cache_ttl": self.cache_ttl,
+            "location": self.location
+            "period": self.period
+            "variables": self.variables
+            "resolution": self.resolution
+            "mode": (self.mode.value if isinstance(self.mode, ProfileMode) else self.mode)
+            "source": self.source
+            "timezone": self.timezone
+            "metadata": self.metadata
+            "request_id": self.request_id
+            "use_cache": self.use_cache
+            "cache_ttl": self.cache_ttl
         }
 
     def get_normalized_period(self) -> Dict[str, pd.Timestamp]:
@@ -168,18 +170,18 @@ class BaseProfileResponse(BaseModel):
 
     # Cache information
     cached: bool = False
-    cache_key: Optional[str] = None
+    cache_key: str | None = None
 
     # File paths if data is persisted
-    path_parquet: Optional[str] = None
-    path_csv: Optional[str] = None
+    path_parquet: str | None = None
+    path_csv: str | None = None
 
     # Metadata and manifest
     metadata: Dict[str, Any] = Field(default_factory=dict)
     manifest: Optional[Dict[str, Any]] = None
 
     # Timing information
-    processing_time_ms: Optional[int] = None
+    processing_time_ms: int | None = None
 
     # Warnings or notes
     warnings: List[str] = Field(default_factory=list)
@@ -187,21 +189,21 @@ class BaseProfileResponse(BaseModel):
     def to_dict(self) -> Dict[str, Any]:
         """Convert response to dictionary."""
         return {
-            "shape": self.shape,
-            "start_time": self.start_time.isoformat() if self.start_time else None,
-            "end_time": self.end_time.isoformat() if self.end_time else None,
-            "variables": self.variables,
-            "source": self.source,
-            "processing_steps": self.processing_steps,
-            "quality": self.quality,
-            "cached": self.cached,
-            "cache_key": self.cache_key,
-            "path_parquet": self.path_parquet,
-            "path_csv": self.path_csv,
-            "metadata": self.metadata,
-            "manifest": self.manifest,
-            "processing_time_ms": self.processing_time_ms,
-            "warnings": self.warnings,
+            "shape": self.shape
+            "start_time": self.start_time.isoformat() if self.start_time else None
+            "end_time": self.end_time.isoformat() if self.end_time else None
+            "variables": self.variables
+            "source": self.source
+            "processing_steps": self.processing_steps
+            "quality": self.quality
+            "cached": self.cached
+            "cache_key": self.cache_key
+            "path_parquet": self.path_parquet
+            "path_csv": self.path_csv
+            "metadata": self.metadata
+            "manifest": self.manifest
+            "processing_time_ms": self.processing_time_ms
+            "warnings": self.warnings
         }
 
 
@@ -225,9 +227,9 @@ class LocationInfo(BaseModel):
 
     latitude: float
     longitude: float
-    elevation: Optional[float] = None
-    timezone: Optional[str] = None
-    name: Optional[str] = None
-    country: Optional[str] = None
-    region: Optional[str] = None
+    elevation: float | None = None
+    timezone: str | None = None
+    name: str | None = None
+    country: str | None = None
+    region: str | None = None
     metadata: Dict[str, Any] = Field(default_factory=dict)

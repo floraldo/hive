@@ -7,7 +7,7 @@ import weakref
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any, Callable, Dict, ListSet, Tuple
 
 from hive_logging import get_logger
 
@@ -17,16 +17,18 @@ logger = get_logger(__name__)
 @dataclass
 class TaskProfile:
     """Profile data for an individual async task."""
+from __future__ import annotations
+
 
     task_id: str
     task_name: str
     coro_name: str
     created_at: datetime
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     state: str = "pending"  # pending, running, done, cancelled, failed
-    exception: Optional[Exception] = None
-    stack_trace: Optional[str] = None
+    exception: Exception | None = None
+    stack_trace: str | None = None
 
     # Timing metrics
     queue_time: float = 0.0  # Time waiting to start
@@ -96,10 +98,10 @@ class AsyncProfiler:
     """
 
     def __init__(
-        self,
-        max_task_history: int = 10000,
-        enable_stack_traces: bool = False,
-        enable_memory_tracking: bool = True,
+        self
+        max_task_history: int = 10000
+        enable_stack_traces: bool = False
+        enable_memory_tracking: bool = True
         sample_rate: float = 1.0,  # 0.0-1.0, for performance
     ):
         self.max_task_history = max_task_history
@@ -114,8 +116,8 @@ class AsyncProfiler:
 
         # Profiling state
         self._profiling = False
-        self._profile_start: Optional[datetime] = None
-        self._monitor_task: Optional[asyncio.Task] = None
+        self._profile_start: datetime | None = None
+        self._monitor_task: asyncio.Task | None = None
 
         # Statistics
         self._task_counter = 0
@@ -123,8 +125,8 @@ class AsyncProfiler:
         self._concurrency_samples: deque = deque(maxlen=1000)
 
         # Event hooks
-        self._original_task_factory: Optional[Callable] = None
-        self._hooked_loop: Optional[asyncio.AbstractEventLoop] = None
+        self._original_task_factory: Callable | None = None
+        self._hooked_loop: asyncio.AbstractEventLoop | None = None
 
     async def start_profiling_async(self) -> None:
         """Start async profiling."""
@@ -191,11 +193,11 @@ class AsyncProfiler:
 
         # Create profile
         profile = TaskProfile(
-            task_id=str(task_id),
-            task_name=task_name,
-            coro_name=coro_name,
-            created_at=datetime.utcnow(),
-            state="pending",
+            task_id=str(task_id)
+            task_name=task_name
+            coro_name=coro_name
+            created_at=datetime.utcnow()
+            state="pending"
         )
 
         # Capture stack trace if enabled
@@ -279,7 +281,7 @@ class AsyncProfiler:
         return [profile for profile in self._task_profiles.values()]
 
     def get_completed_tasks(
-        self, limit: Optional[int] = None, time_window: Optional[timedelta] = None
+        self, limit: int | None = None, time_window: timedelta | None = None
     ) -> List[TaskProfile]:
         """Get completed task profiles."""
         profiles = list(self._completed_profiles)
@@ -295,7 +297,7 @@ class AsyncProfiler:
 
         return profiles
 
-    def analyze_performance(self, time_window: Optional[timedelta] = None) -> ProfileReport:
+    def analyze_performance(self, time_window: timedelta | None = None) -> ProfileReport:
         """Generate comprehensive performance analysis."""
         completed_tasks = self.get_completed_tasks(time_window=time_window)
         active_tasks = self.get_active_tasks()
@@ -348,26 +350,26 @@ class AsyncProfiler:
         profile_duration = (profile_end - (self._profile_start or profile_end)).total_seconds()
 
         return ProfileReport(
-            total_tasks=total_tasks,
-            completed_tasks=completed_count,
-            failed_tasks=failed_count,
-            cancelled_tasks=cancelled_count,
-            active_tasks=len(active_tasks),
-            avg_queue_time=avg_queue,
-            avg_execution_time=avg_execution,
-            max_execution_time=max_execution,
-            min_execution_time=min_execution,
-            throughput=throughput,
-            concurrency_level=avg_concurrency,
-            slowest_tasks=slowest_tasks,
-            failed_tasks=failed_tasks,
-            long_running_tasks=long_running_tasks,
-            task_types=dict(task_types),
-            bottlenecks=bottlenecks,
-            recommendations=recommendations,
-            profile_start=self._profile_start or datetime.utcnow(),
-            profile_end=profile_end,
-            profile_duration=profile_duration,
+            total_tasks=total_tasks
+            completed_tasks=completed_count
+            failed_tasks=failed_count
+            cancelled_tasks=cancelled_count
+            active_tasks=len(active_tasks)
+            avg_queue_time=avg_queue
+            avg_execution_time=avg_execution
+            max_execution_time=max_execution
+            min_execution_time=min_execution
+            throughput=throughput
+            concurrency_level=avg_concurrency
+            slowest_tasks=slowest_tasks
+            failed_tasks=failed_tasks
+            long_running_tasks=long_running_tasks
+            task_types=dict(task_types)
+            bottlenecks=bottlenecks
+            recommendations=recommendations
+            profile_start=self._profile_start or datetime.utcnow()
+            profile_end=profile_end
+            profile_duration=profile_duration
         )
 
     def _analyze_bottlenecks(
@@ -413,7 +415,7 @@ class AsyncProfiler:
 
         return bottlenecks, recommendations
 
-    def export_report(self, format: str = "json", time_window: Optional[timedelta] = None) -> str:
+    def export_report(self, format: str = "json", time_window: timedelta | None = None) -> str:
         """Export performance report in specified format."""
         report = self.analyze_performance(time_window)
 
@@ -423,39 +425,39 @@ class AsyncProfiler:
             return json.dumps(
                 {
                     "summary": {
-                        "total_tasks": report.total_tasks,
-                        "completed_tasks": report.completed_tasks,
-                        "failed_tasks": report.failed_tasks,
-                        "active_tasks": report.active_tasks,
-                        "throughput": report.throughput,
-                        "avg_execution_time": report.avg_execution_time,
-                        "concurrency_level": report.concurrency_level,
-                    },
-                    "bottlenecks": report.bottlenecks,
-                    "recommendations": report.recommendations,
-                    "task_types": report.task_types,
-                    "profile_duration": report.profile_duration,
-                },
-                indent=2,
+                        "total_tasks": report.total_tasks
+                        "completed_tasks": report.completed_tasks
+                        "failed_tasks": report.failed_tasks
+                        "active_tasks": report.active_tasks
+                        "throughput": report.throughput
+                        "avg_execution_time": report.avg_execution_time
+                        "concurrency_level": report.concurrency_level
+                    }
+                    "bottlenecks": report.bottlenecks
+                    "recommendations": report.recommendations
+                    "task_types": report.task_types
+                    "profile_duration": report.profile_duration
+                }
+                indent=2
             )
 
         elif format == "text":
             lines = [
-                "=== Async Performance Report ===",
-                f"Profile Duration: {report.profile_duration:.2f}s",
-                f"Total Tasks: {report.total_tasks}",
-                f"Completed: {report.completed_tasks}, Failed: {report.failed_tasks}, Active: {report.active_tasks}",
-                f"Throughput: {report.throughput:.2f} tasks/sec",
-                f"Avg Execution Time: {report.avg_execution_time:.3f}s",
-                f"Concurrency Level: {report.concurrency_level:.1f}",
-                "",
-                "=== Bottlenecks ===",
+                "=== Async Performance Report ==="
+                f"Profile Duration: {report.profile_duration:.2f}s"
+                f"Total Tasks: {report.total_tasks}"
+                f"Completed: {report.completed_tasks}, Failed: {report.failed_tasks}, Active: {report.active_tasks}"
+                f"Throughput: {report.throughput:.2f} tasks/sec"
+                f"Avg Execution Time: {report.avg_execution_time:.3f}s"
+                f"Concurrency Level: {report.concurrency_level:.1f}"
+                ""
+                "=== Bottlenecks ==="
             ]
             lines.extend(f"- {bottleneck}" for bottleneck in report.bottlenecks)
             lines.extend(
                 [
-                    "",
-                    "=== Recommendations ===",
+                    ""
+                    "=== Recommendations ==="
                 ]
             )
             lines.extend(f"- {rec}" for rec in report.recommendations)

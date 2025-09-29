@@ -4,18 +4,20 @@ Async CLI wrapper for EcoSystemiser to enable high-performance I/O operations.
 This wrapper provides async versions of key CLI operations while maintaining
 backward compatibility with the existing synchronous CLI interface.
 """
+from __future__ import annotations
+
 
 import asyncio
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import click
 from ecosystemiser.profile_loader import ClimateRequest
 from ecosystemiser.services.async_facade import (
-    fetch_climate_data_async,
-    get_async_facade,
-    run_simulation_with_async_io,
+    fetch_climate_data_async
+    get_async_facade
+    run_simulation_with_async_io
 )
 from ecosystemiser.services.simulation_service import SimulationConfig
 from ecosystemiser.solver.base import SolverConfig
@@ -52,12 +54,12 @@ class AsyncCLIWrapper:
             raise
 
     async def run_simulation_async_cli_async(
-        self,
-        config_path: str,
-        output: Optional[str] = None,
-        solver: str = "milp",
-        verbose: bool = False,
-        timeout: Optional[float] = None,
+        self
+        config_path: str
+        output: str | None = None
+        solver: str = "milp"
+        verbose: bool = False
+        timeout: float | None = None
     ) -> Dict[str, Any]:
         """Run simulation with async I/O optimizations.
 
@@ -80,11 +82,11 @@ class AsyncCLIWrapper:
             from datetime import datetime
 
             sim_config = SimulationConfig(
-                simulation_id=f"async_sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-                system_config_path=config_path,
-                solver_type=solver,
-                solver_config=SolverConfig(verbose=verbose, solver_type=solver),
-                output_config={"save_results": output is not None, "directory": output or "outputs", "format": "json"},
+                simulation_id=f"async_sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                system_config_path=config_path
+                solver_type=solver
+                solver_config=SolverConfig(verbose=verbose, solver_type=solver)
+                output_config={"save_results": output is not None, "directory": output or "outputs", "format": "json"}
             )
 
             # Run simulation with timeout
@@ -120,12 +122,12 @@ class AsyncCLIWrapper:
             return {"status": "error", "error": str(e)}
 
     async def run_batch_simulations_async_cli_async(
-        self,
-        config_paths: List[str],
-        output_dir: Optional[str] = None,
-        solver: str = "milp",
-        max_concurrent: int = 4,
-        verbose: bool = False,
+        self
+        config_paths: List[str]
+        output_dir: str | None = None
+        solver: str = "milp"
+        max_concurrent: int = 4
+        verbose: bool = False
     ) -> List[Dict[str, Any]]:
         """Run multiple simulations concurrently.
 
@@ -149,15 +151,15 @@ class AsyncCLIWrapper:
             configs = []
             for i, config_path in enumerate(config_paths):
                 sim_config = SimulationConfig(
-                    simulation_id=f"batch_sim_{i}_{datetime.now().strftime('%H%M%S')}",
-                    system_config_path=config_path,
-                    solver_type=solver,
-                    solver_config=SolverConfig(verbose=verbose, solver_type=solver),
+                    simulation_id=f"batch_sim_{i}_{datetime.now().strftime('%H%M%S')}"
+                    system_config_path=config_path
+                    solver_type=solver
+                    solver_config=SolverConfig(verbose=verbose, solver_type=solver)
                     output_config={
-                        "save_results": output_dir is not None,
-                        "directory": output_dir or "outputs",
-                        "format": "json",
-                    },
+                        "save_results": output_dir is not None
+                        "directory": output_dir or "outputs"
+                        "format": "json"
+                    }
                 )
                 configs.append(sim_config)
 
@@ -186,17 +188,17 @@ class AsyncCLIWrapper:
             return [{"status": "error", "error": str(e)}]
 
     async def get_climate_async_cli_async(
-        self,
-        location: str,
-        year: Optional[int] = None,
-        start: Optional[str] = None,
-        end: Optional[str] = None,
-        variables: str = "temp_air,ghi,wind_speed",
-        source: str = "nasa_power",
-        mode: str = "observed",
-        resolution: str = "1H",
-        output: Optional[str] = None,
-        stats: bool = False,
+        self
+        location: str
+        year: int | None = None
+        start: str | None = None
+        end: str | None = None
+        variables: str = "temp_air,ghi,wind_speed"
+        source: str = "nasa_power"
+        mode: str = "observed"
+        resolution: str = "1H"
+        output: str | None = None
+        stats: bool = False
     ) -> Dict[str, Any]:
         """Get climate data with async I/O optimizations.
 
@@ -243,12 +245,12 @@ class AsyncCLIWrapper:
 
             # Create request
             request = ClimateRequest(
-                location=location_parsed,
-                variables=variables_list,
-                source=source,
-                period=period,
-                mode=mode,
-                resolution=resolution,
+                location=location_parsed
+                variables=variables_list
+                source=source
+                period=period
+                mode=mode
+                resolution=resolution
             )
 
             # Get climate data asynchronously
@@ -281,11 +283,11 @@ class AsyncCLIWrapper:
                         info(f"    Max:  {var_stats.get('max', 'N/A'):.2f}")
 
             return {
-                "status": "success",
-                "shape": response.shape,
-                "path": response.path_parquet,
-                "manifest": response.manifest,
-                "stats": response.stats,
+                "status": "success"
+                "shape": response.shape
+                "path": response.path_parquet
+                "manifest": response.manifest
+                "stats": response.stats
             }
 
         except Exception as e:
@@ -381,11 +383,11 @@ def get_async_cli_wrapper() -> AsyncCLIWrapper:
 
 
 def run_async_simulation_from_cli(
-    config_path: str,
-    output: Optional[str] = None,
-    solver: str = "milp",
-    verbose: bool = False,
-    timeout: Optional[float] = None,
+    config_path: str
+    output: str | None = None
+    solver: str = "milp"
+    verbose: bool = False
+    timeout: float | None = None
 ) -> Dict[str, Any]:
     """Run async simulation from CLI (sync wrapper).
 
@@ -408,16 +410,16 @@ def run_async_simulation_from_cli(
 
 
 def get_async_climate_from_cli(
-    location: str,
-    year: Optional[int] = None,
-    start: Optional[str] = None,
-    end: Optional[str] = None,
-    variables: str = "temp_air,ghi,wind_speed",
-    source: str = "nasa_power",
-    mode: str = "observed",
-    resolution: str = "1H",
-    output: Optional[str] = None,
-    stats: bool = False,
+    location: str
+    year: int | None = None
+    start: str | None = None
+    end: str | None = None
+    variables: str = "temp_air,ghi,wind_speed"
+    source: str = "nasa_power"
+    mode: str = "observed"
+    resolution: str = "1H"
+    output: str | None = None
+    stats: bool = False
 ) -> Dict[str, Any]:
     """Get climate data async from CLI (sync wrapper).
 

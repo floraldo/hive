@@ -5,7 +5,7 @@ import json
 from collections import defaultdict, deque
 from dataclasses import asdict
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from hive_logging import get_logger
 
@@ -17,6 +17,8 @@ logger = get_logger(__name__)
 
 class MonitoringErrorReporter(BaseErrorReporter):
     """
+from __future__ import annotations
+
     Enhanced error reporter with monitoring integration.
 
     Features:
@@ -37,10 +39,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         # Alert thresholds
         self.alert_thresholds = alert_thresholds or {
-            "error_rate_per_minute": 10,
-            "critical_error_rate": 5,
+            "error_rate_per_minute": 10
+            "critical_error_rate": 5
             "component_failure_threshold": 0.2,  # 20% failure rate
-            "consecutive_failures": 5,
+            "consecutive_failures": 5
         }
 
         # Enhanced tracking
@@ -48,11 +50,11 @@ class MonitoringErrorReporter(BaseErrorReporter):
         self._error_rates: Dict[str, deque] = defaultdict(lambda: deque(maxlen=60))  # Per-minute tracking
         self._component_stats: Dict[str, Dict[str, Any]] = defaultdict(
             lambda: {
-                "total_errors": 0,
-                "last_error": None,
-                "consecutive_failures": 0,
-                "last_success": None,
-                "failure_rate": 0.0,
+                "total_errors": 0
+                "last_error": None
+                "consecutive_failures": 0
+                "last_success": None
+                "failure_rate": 0.0
             }
         )
 
@@ -63,10 +65,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
         self._error_impact: Dict[str, List[float]] = defaultdict(list)  # Response time impact
 
     def report_error(
-        self,
-        error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None,
+        self
+        error: Exception
+        context: Optional[Dict[str, Any]] = None
+        additional_info: Optional[Dict[str, Any]] = None
     ) -> str:
         """Report an error with enhanced monitoring."""
         # Build error record
@@ -89,10 +91,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
         return error_id
 
     async def report_error_async(
-        self,
-        error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None,
+        self
+        error: Exception
+        context: Optional[Dict[str, Any]] = None
+        additional_info: Optional[Dict[str, Any]] = None
     ) -> str:
         """Async version of error reporting."""
         error_id = self.report_error(error, context, additional_info)
@@ -141,11 +143,11 @@ class MonitoringErrorReporter(BaseErrorReporter):
         if current_rate > self.alert_thresholds["error_rate_per_minute"]:
             alerts.append(
                 {
-                    "type": "high_error_rate",
-                    "message": f"High error rate: {current_rate} errors/minute",
-                    "severity": "warning",
-                    "threshold": self.alert_thresholds["error_rate_per_minute"],
-                    "current_value": current_rate,
+                    "type": "high_error_rate"
+                    "message": f"High error rate: {current_rate} errors/minute"
+                    "severity": "warning"
+                    "threshold": self.alert_thresholds["error_rate_per_minute"]
+                    "current_value": current_rate
                 }
             )
 
@@ -153,10 +155,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
         if self._is_critical_error(error_record):
             alerts.append(
                 {
-                    "type": "critical_error",
-                    "message": f"Critical error in {error_record.get('component', 'unknown')}: {error_record['message']}",
-                    "severity": "critical",
-                    "error_record": error_record,
+                    "type": "critical_error"
+                    "message": f"Critical error in {error_record.get('component', 'unknown')}: {error_record['message']}"
+                    "severity": "critical"
+                    "error_record": error_record
                 }
             )
 
@@ -166,11 +168,11 @@ class MonitoringErrorReporter(BaseErrorReporter):
         if component_stats["failure_rate"] > self.alert_thresholds["component_failure_threshold"]:
             alerts.append(
                 {
-                    "type": "component_degradation",
-                    "message": f"Component {component} has high failure rate: {component_stats['failure_rate']:.1%}",
-                    "severity": "warning",
-                    "component": component,
-                    "failure_rate": component_stats["failure_rate"],
+                    "type": "component_degradation"
+                    "message": f"Component {component} has high failure rate: {component_stats['failure_rate']:.1%}"
+                    "severity": "warning"
+                    "component": component
+                    "failure_rate": component_stats["failure_rate"]
                 }
             )
 
@@ -178,11 +180,11 @@ class MonitoringErrorReporter(BaseErrorReporter):
         if component_stats["consecutive_failures"] >= self.alert_thresholds["consecutive_failures"]:
             alerts.append(
                 {
-                    "type": "consecutive_failures",
-                    "message": f"Component {component} has {component_stats['consecutive_failures']} consecutive failures",
-                    "severity": "critical",
-                    "component": component,
-                    "consecutive_failures": component_stats["consecutive_failures"],
+                    "type": "consecutive_failures"
+                    "message": f"Component {component} has {component_stats['consecutive_failures']} consecutive failures"
+                    "severity": "critical"
+                    "component": component
+                    "consecutive_failures": component_stats["consecutive_failures"]
                 }
             )
 
@@ -196,12 +198,12 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         # Critical error types
         critical_types = {
-            "MemoryError",
-            "SystemExit",
-            "KeyboardInterrupt",
-            "ConnectionError",
-            "TimeoutError",
-            "CircuitBreakerOpenError",
+            "MemoryError"
+            "SystemExit"
+            "KeyboardInterrupt"
+            "ConnectionError"
+            "TimeoutError"
+            "CircuitBreakerOpenError"
         }
 
         if error_type in critical_types:
@@ -247,7 +249,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         """Add alert callback function."""
         self._alert_callbacks.append(callback)
 
-    def record_success(self, component: str, response_time: Optional[float] = None) -> None:
+    def record_success(self, component: str, response_time: float | None = None) -> None:
         """Record successful operation for component health tracking."""
         stats = self._component_stats[component]
         stats["last_success"] = datetime.utcnow().isoformat()
@@ -273,14 +275,14 @@ class MonitoringErrorReporter(BaseErrorReporter):
         health_score = max(0.0, 1.0 - stats["failure_rate"])
 
         return {
-            "component": component,
-            "health_score": health_score,
-            "total_errors": stats["total_errors"],
-            "consecutive_failures": stats["consecutive_failures"],
-            "failure_rate": stats["failure_rate"],
-            "last_error": stats["last_error"],
-            "last_success": stats["last_success"],
-            "status": self._get_component_status(health_score, stats["consecutive_failures"]),
+            "component": component
+            "health_score": health_score
+            "total_errors": stats["total_errors"]
+            "consecutive_failures": stats["consecutive_failures"]
+            "failure_rate": stats["failure_rate"]
+            "last_error": stats["last_error"]
+            "last_success": stats["last_success"]
+            "status": self._get_component_status(health_score, stats["consecutive_failures"])
         }
 
     def _get_component_status(self, health_score: float, consecutive_failures: int) -> str:
@@ -320,12 +322,12 @@ class MonitoringErrorReporter(BaseErrorReporter):
             error_by_type[error["error_type"]] += 1
 
         return {
-            "time_window_hours": time_window.total_seconds() / 3600,
-            "total_errors": len(recent_errors),
-            "errors_by_hour": {h.isoformat(): count for h, count in error_by_hour.items()},
-            "errors_by_component": dict(error_by_component),
-            "errors_by_type": dict(error_by_type),
-            "average_errors_per_hour": len(recent_errors) / max(1, time_window.total_seconds() / 3600),
+            "time_window_hours": time_window.total_seconds() / 3600
+            "total_errors": len(recent_errors)
+            "errors_by_hour": {h.isoformat(): count for h, count in error_by_hour.items()}
+            "errors_by_component": dict(error_by_component)
+            "errors_by_type": dict(error_by_type)
+            "average_errors_per_hour": len(recent_errors) / max(1, time_window.total_seconds() / 3600)
         }
 
     def get_performance_impact(self, component: str) -> Dict[str, Any]:
@@ -336,27 +338,27 @@ class MonitoringErrorReporter(BaseErrorReporter):
             return {"no_data": True}
 
         return {
-            "component": component,
-            "sample_count": len(impact_data),
-            "avg_response_time": sum(impact_data) / len(impact_data),
-            "min_response_time": min(impact_data),
-            "max_response_time": max(impact_data),
+            "component": component
+            "sample_count": len(impact_data)
+            "avg_response_time": sum(impact_data) / len(impact_data)
+            "min_response_time": min(impact_data)
+            "max_response_time": max(impact_data)
             "response_time_trend": "improving"
             if len(impact_data) > 10 and impact_data[-5:] < impact_data[:5]
-            else "stable",
+            else "stable"
         }
 
     def generate_health_report(self) -> Dict[str, Any]:
         """Generate comprehensive health report."""
         report = {
-            "timestamp": datetime.utcnow().isoformat(),
-            "overall_statistics": self.get_error_statistics(),
-            "component_health": {},
+            "timestamp": datetime.utcnow().isoformat()
+            "overall_statistics": self.get_error_statistics()
+            "component_health": {}
             "alert_summary": {
-                "active_alerts": [],
-                "alert_thresholds": self.alert_thresholds,
-            },
-            "trends": self.get_error_trends(),
+                "active_alerts": []
+                "alert_thresholds": self.alert_thresholds
+            }
+            "trends": self.get_error_trends()
         }
 
         # Add component health for all tracked components
@@ -368,15 +370,15 @@ class MonitoringErrorReporter(BaseErrorReporter):
         if current_rate > self.alert_thresholds["error_rate_per_minute"]:
             report["alert_summary"]["active_alerts"].append(
                 {
-                    "type": "high_error_rate",
-                    "severity": "warning",
-                    "current_value": current_rate,
+                    "type": "high_error_rate"
+                    "severity": "warning"
+                    "current_value": current_rate
                 }
             )
 
         return report
 
-    def export_error_data(self, time_window: Optional[timedelta] = None, format: str = "json") -> str:
+    def export_error_data(self, time_window: timedelta | None = None, format: str = "json") -> str:
         """Export error data in specified format."""
         if time_window:
             cutoff_time = datetime.utcnow() - time_window
@@ -387,13 +389,13 @@ class MonitoringErrorReporter(BaseErrorReporter):
             errors = list(self._detailed_history)
 
         export_data = {
-            "export_timestamp": datetime.utcnow().isoformat(),
-            "time_window": time_window.total_seconds() if time_window else "all",
-            "error_count": len(errors),
-            "errors": errors,
+            "export_timestamp": datetime.utcnow().isoformat()
+            "time_window": time_window.total_seconds() if time_window else "all"
+            "error_count": len(errors)
+            "errors": errors
             "component_health": {
                 component: self.get_component_health(component) for component in self._component_stats.keys()
-            },
+            }
         }
 
         if format == "json":
@@ -413,11 +415,11 @@ class MonitoringErrorReporter(BaseErrorReporter):
             for error in errors:
                 writer.writerow(
                     [
-                        error["timestamp"],
-                        error["error_type"],
-                        error.get("component", "unknown"),
-                        error["message"],
-                        error.get("operation", "unknown"),
+                        error["timestamp"]
+                        error["error_type"]
+                        error.get("component", "unknown")
+                        error["message"]
+                        error.get("operation", "unknown")
                     ]
                 )
 
@@ -432,8 +434,8 @@ class MonitoringErrorReporter(BaseErrorReporter):
         # Clear old detailed history
         original_count = len(self._detailed_history)
         self._detailed_history = deque(
-            [error for error in self._detailed_history if datetime.fromisoformat(error["timestamp"]) >= cutoff_time],
-            maxlen=self.max_history,
+            [error for error in self._detailed_history if datetime.fromisoformat(error["timestamp"]) >= cutoff_time]
+            maxlen=self.max_history
         )
 
         cleared_count = original_count - len(self._detailed_history)
@@ -445,8 +447,8 @@ class MonitoringErrorReporter(BaseErrorReporter):
                     (timestamp, count)
                     for timestamp, count in self._error_rates[key]
                     if timestamp >= cutoff_time.replace(second=0, microsecond=0)
-                ],
-                maxlen=60,
+                ]
+                maxlen=60
             )
 
         logger.info(f"Cleared {cleared_count} old error records")

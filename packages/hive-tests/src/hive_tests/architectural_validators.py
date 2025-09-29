@@ -1143,11 +1143,11 @@ def validate_async_pattern_consistency(project_root: Path) -> Tuple[bool, List[s
 
         except (UnicodeDecodeError, SyntaxError) as e:
             # Skip files that can't be parsed (binary files, syntax errors)
-            logger.debug(f"Cannot parse file {file_path}: {e}")
+            logger.debug(f"Cannot parse file {py_file}: {e}")
             continue
         except Exception as e:
             # Skip other parsing errors
-            logger.warning(f"Unexpected error parsing {file_path}: {e}")
+            logger.warning(f"Unexpected error parsing {py_file}: {e}")
             continue
 
     return len(violations) == 0, violations

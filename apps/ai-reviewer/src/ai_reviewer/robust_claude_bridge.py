@@ -2,13 +2,15 @@
 Robust Claude CLI bridge with drift-resilient JSON contract
 Production-ready implementation that handles model and prompt drift
 """
+from __future__ import annotations
+
 
 import json
 import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal
 
 from hive_logging import get_logger
 from pydantic import BaseModel, Field, ValidationError
@@ -57,14 +59,14 @@ class RobustClaudeBridge:
             if not self.claude_cmd:
                 logger.warning("Claude CLI not found - review will use fallback mode")
 
-    def _find_claude_cmd(self) -> Optional[str]:
+    def _find_claude_cmd(self) -> str | None:
         """Find Claude CLI command"""
         # Check common locations
         possible_paths = [
-            Path.home() / ".npm-global" / "claude.cmd",
-            Path.home() / ".npm-global" / "claude",
-            Path("claude.cmd"),
-            Path("claude"),
+            Path.home() / ".npm-global" / "claude.cmd"
+            Path.home() / ".npm-global" / "claude"
+            Path("claude.cmd")
+            Path("claude")
         ]
 
         for path in possible_paths:
@@ -75,16 +77,16 @@ class RobustClaudeBridge:
         # Try system PATH
         claude_path = (
             subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"],
-                capture_output=True,
-                text=True,
+                ["where" if os.name == "nt" else "which", "claude"]
+                capture_output=True
+                text=True
             )
             .stdout.strip()
             .split("\n")[0]
             if subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"],
-                capture_output=True,
-                text=True,
+                ["where" if os.name == "nt" else "which", "claude"]
+                capture_output=True
+                text=True
             ).returncode
             == 0
             else None
@@ -97,13 +99,13 @@ class RobustClaudeBridge:
         return None
 
     def review_code(
-        self,
-        task_id: str,
-        task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
-        transcript: Optional[str] = None,
+        self
+        task_id: str
+        task_description: str
+        code_files: Dict[str, str]
+        test_results: Optional[Dict[str, Any]] = None
+        objective_analysis: Optional[Dict[str, Any]] = None
+        transcript: str | None = None
     ) -> Dict[str, Any]:
         """
         Perform robust code review with drift-resilient JSON contract
@@ -123,19 +125,19 @@ class RobustClaudeBridge:
             # Return a mock response for testing
             logger.info(f"Mock mode: generating mock review for task {task_id}")
             mock_response = ClaudeReviewResponse(
-                decision="approve" if "test" in task_description.lower() else "rework",
-                summary="Mock review for testing purposes",
-                issues=([] if "good" in str(code_files).lower() else ["Mock issue found"]),
-                suggestions=["Mock suggestion for improvement"],
-                quality_score=75,
+                decision="approve" if "test" in task_description.lower() else "rework"
+                summary="Mock review for testing purposes"
+                issues=([] if "good" in str(code_files).lower() else ["Mock issue found"])
+                suggestions=["Mock suggestion for improvement"]
+                quality_score=75
                 metrics=ReviewMetrics(
-                    code_quality=80,
-                    security=85,
-                    testing=70,
-                    architecture=75,
-                    documentation=65,
-                ),
-                confidence=0.9,
+                    code_quality=80
+                    security=85
+                    testing=70
+                    architecture=75
+                    documentation=65
+                )
+                confidence=0.9
             )
             return mock_response.dict()
 
@@ -145,20 +147,20 @@ class RobustClaudeBridge:
         try:
             # Create comprehensive prompt with JSON contract
             prompt = self._create_json_prompt(
-                task_description,
-                code_files,
-                test_results,
-                objective_analysis,
-                transcript,
+                task_description
+                code_files
+                test_results
+                objective_analysis
+                transcript
             )
 
             # Execute Claude CLI with --print flag to ensure it exits after responding
             # Add --dangerously-skip-permissions for automated environments
             result = subprocess.run(
-                [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt],
-                capture_output=True,
-                text=True,
-                timeout=45,
+                [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt]
+                capture_output=True
+                text=True
+                timeout=45
             )
 
             if result.returncode != 0:
@@ -175,9 +177,9 @@ class RobustClaudeBridge:
             else:
                 logger.warning(f"Failed to extract valid JSON from Claude response")
                 return self._create_escalation_response(
-                    "Invalid response format from Claude",
-                    task_description,
-                    raw_output=claude_output,
+                    "Invalid response format from Claude"
+                    task_description
+                    raw_output=claude_output
                 )
 
         except subprocess.TimeoutExpired:
@@ -188,12 +190,12 @@ class RobustClaudeBridge:
             return self._create_escalation_response(f"Unexpected error: {str(e)}", task_description)
 
     def _create_json_prompt(
-        self,
-        task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]],
-        objective_analysis: Optional[Dict[str, Any]],
-        transcript: Optional[str],
+        self
+        task_description: str
+        code_files: Dict[str, str]
+        test_results: Optional[Dict[str, Any]]
+        objective_analysis: Optional[Dict[str, Any]]
+        transcript: str | None
     ) -> str:
         """Create a comprehensive prompt that enforces JSON contract"""
 
@@ -225,18 +227,18 @@ Code Files:
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
 {{
-  "decision": "approve" or "reject" or "rework" or "escalate",
-  "summary": "One sentence summary of your review",
-  "issues": ["List of specific issues found", "Or empty list if none"],
-  "suggestions": ["List of improvement suggestions", "Or empty list if none"],
-  "quality_score": 75,
+  "decision": "approve" or "reject" or "rework" or "escalate"
+  "summary": "One sentence summary of your review"
+  "issues": ["List of specific issues found", "Or empty list if none"]
+  "suggestions": ["List of improvement suggestions", "Or empty list if none"]
+  "quality_score": 75
   "metrics": {{
-    "code_quality": 80,
-    "security": 85,
-    "testing": 70,
-    "architecture": 75,
+    "code_quality": 80
+    "security": 85
+    "testing": 70
+    "architecture": 75
     "documentation": 60
-  }},
+  }}
   "confidence": 0.8
 }}
 
@@ -250,7 +252,7 @@ Respond with ONLY the JSON object, no other text."""
 
         return prompt
 
-    def _extract_and_validate_json(self, output: str) -> Optional[ClaudeReviewResponse]:
+    def _extract_and_validate_json(self, output: str) -> ClaudeReviewResponse | None:
         """
         Extract JSON from Claude output and validate against contract
 
@@ -270,9 +272,9 @@ Respond with ONLY the JSON object, no other text."""
 
         # Strategy 2: Extract from markdown code blocks
         code_block_patterns = [
-            r"```json\s*(.*?)\s*```",
-            r"```\s*(.*?)\s*```",
-            r"`(.*?)`",
+            r"```json\s*(.*?)\s*```"
+            r"```\s*(.*?)\s*```"
+            r"`(.*?)`"
         ]
 
         for pattern in code_block_patterns:
@@ -341,34 +343,34 @@ Respond with ONLY the JSON object, no other text."""
         quality_score = quality_scores.get(decision, 50)
 
         return ClaudeReviewResponse(
-            decision=decision,
-            summary=summary,
-            issues=issues,
-            suggestions=suggestions,
-            quality_score=quality_score,
+            decision=decision
+            summary=summary
+            issues=issues
+            suggestions=suggestions
+            quality_score=quality_score
             metrics=ReviewMetrics(
-                code_quality=quality_score,
-                security=quality_score - 5,
-                testing=quality_score - 10,
-                architecture=quality_score,
-                documentation=quality_score - 15,
-            ),
+                code_quality=quality_score
+                security=quality_score - 5
+                testing=quality_score - 10
+                architecture=quality_score
+                documentation=quality_score - 15
+            )
             confidence=0.5,  # Lower confidence for parsed responses
         )
 
     def _create_escalation_response(
-        self, reason: str, task_description: str, raw_output: Optional[str] = None
+        self, reason: str, task_description: str, raw_output: str | None = None
     ) -> Dict[str, Any]:
         """Create a structured escalation response when review fails"""
 
         response = ClaudeReviewResponse(
-            decision="escalate",
-            summary=f"Escalated: {reason}",
-            issues=[reason],
-            suggestions=["Manual review required"],
-            quality_score=0,
-            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
-            confidence=0.0,
+            decision="escalate"
+            summary=f"Escalated: {reason}"
+            issues=[reason]
+            suggestions=["Manual review required"]
+            quality_score=0
+            metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0)
+            confidence=0.0
         )
 
         result = response.dict()

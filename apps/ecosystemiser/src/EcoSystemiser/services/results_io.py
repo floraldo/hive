@@ -4,7 +4,7 @@ import json
 import pickle  # golden-rule-ignore: rule-17 - Required for legacy scientific data compatibility
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -21,12 +21,12 @@ class ResultsIO:
         self.supported_formats = ["json", "parquet", "csv", "pickle"]
 
     def save_results(
-        self,
-        system,
-        simulation_id: str,
-        output_dir: Path,
-        format: str = "json",
-        metadata: Optional[Dict] = None,
+        self
+        system
+        simulation_id: str
+        output_dir: Path
+        format: str = "json"
+        metadata: Dict | None = None
     ) -> Path:
         """Save simulation results to file.
 
@@ -108,22 +108,35 @@ class ResultsIO:
             Dictionary containing all results
         """
         results = {
-            "system_id": system.system_id,
-            "timesteps": system.N,
-            "components": {},
-            "flows": {},
-            "timestamp": datetime.now().isoformat(),
+            "system_id": system.system_id
+            "timesteps": system.N
+            "components": {}
+            "flows": {}
+            "timestamp": datetime.now().isoformat()
         }
 
         # Extract component states
         for comp_name, component in system.components.items():
             comp_data = {"type": component.type, "medium": component.medium}
 
-            # Extract storage levels
+            # Extract storage levels - Enhanced CVXPY handling
             if component.type == "storage" and hasattr(component, "E"):
                 if isinstance(component.E, np.ndarray):
                     comp_data["E"] = component.E.tolist()
-                    comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
+                elif hasattr(component.E, "value"):  # CVXPY variable
+                    if component.E.value is not None:
+                        cvxpy_value = component.E.value
+                        if isinstance(cvxpy_value, np.ndarray):
+                            comp_data["E"] = cvxpy_value.tolist()
+                        else:
+                            comp_data["E"] = [float(cvxpy_value)] * system.N
+                    else:
+                        logger.warning(f"Storage {comp_name} E has None value, using zeros")
+                        comp_data["E"] = [0.0] * system.N
+                else:
+                    comp_data["E"] = component.E.tolist() if hasattr(component.E, 'tolist') else [component.E] * system.N
+
+                comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
 
             # Extract generation profiles
             if component.type == "generation" and hasattr(component, "profile"):
@@ -133,9 +146,9 @@ class ResultsIO:
             # Extract economic parameters if available
             if hasattr(component, "economic") and component.economic:
                 comp_data["economic"] = {
-                    "capex": component.economic.capex,
-                    "opex_fix": component.economic.opex_fix,
-                    "opex_var": component.economic.opex_var,
+                    "capex": component.economic.capex
+                    "opex_fix": component.economic.opex_fix
+                    "opex_var": component.economic.opex_var
                 }
 
             results["components"][comp_name] = comp_data
@@ -143,18 +156,37 @@ class ResultsIO:
         # Extract flows
         for flow_name, flow_data in system.flows.items():
             flow_result = {
-                "source": flow_data["source"],
-                "target": flow_data["target"],
-                "type": flow_data["type"],
+                "source": flow_data["source"]
+                "target": flow_data["target"]
+                "type": flow_data["type"]
             }
 
-            # Convert flow values
+            # Convert flow values - Enhanced CVXPY handling
             if "value" in flow_data:
-                if isinstance(flow_data["value"], np.ndarray):
-                    flow_result["value"] = flow_data["value"].tolist()
-                elif hasattr(flow_data["value"], "value"):  # CVXPY variable
-                    if flow_data["value"].value is not None:
-                        flow_result["value"] = flow_data["value"].value.tolist()
+                flow_value = flow_data["value"]
+
+                if isinstance(flow_value, np.ndarray):
+                    # Direct numpy array
+                    flow_result["value"] = flow_value.tolist()
+                elif hasattr(flow_value, "value"):  # CVXPY variable
+                    if flow_value.value is not None:
+                        # Handle both scalar and array CVXPY variables
+                        cvxpy_value = flow_value.value
+                        if isinstance(cvxpy_value, np.ndarray):
+                            flow_result["value"] = cvxpy_value.tolist()
+                        else:
+                            # Scalar CVXPY variable - broadcast to timestep array
+                            flow_result["value"] = [float(cvxpy_value)] * system.N
+                    else:
+                        # CVXPY variable with None value - populate with zeros
+                        logger.warning(f"CVXPY variable {flow_name} has None value, using zeros")
+                        flow_result["value"] = [0.0] * system.N
+                elif hasattr(flow_value, "__iter__") and not isinstance(flow_value, str):
+                    # Generic iterable (list, tuple, etc.)
+                    flow_result["value"] = list(flow_value)
+                else:
+                    # Scalar value - broadcast to timestep array
+                    flow_result["value"] = [float(flow_value)] * system.N
 
             results["flows"][flow_name] = flow_result
 
@@ -252,12 +284,12 @@ class ResultsIO:
                 for t, value in enumerate(flow_info["value"]):
                     data.append(
                         {
-                            "timestep": t,
-                            "flow_name": flow_name,
-                            "source": flow_info["source"],
-                            "target": flow_info["target"],
-                            "type": flow_info["type"],
-                            "value": value,
+                            "timestep": t
+                            "flow_name": flow_name
+                            "source": flow_info["source"]
+                            "target": flow_info["target"]
+                            "type": flow_info["type"]
+                            "value": value
                         }
                     )
 
@@ -278,10 +310,10 @@ class ResultsIO:
             flow_df = df[df["flow_name"] == flow_name].sort_values("timestep")
 
             flows[flow_name] = {
-                "source": flow_df["source"].iloc[0],
-                "target": flow_df["target"].iloc[0],
-                "type": flow_df["type"].iloc[0],
-                "value": flow_df["value"].tolist(),
+                "source": flow_df["source"].iloc[0]
+                "target": flow_df["target"].iloc[0]
+                "type": flow_df["type"].iloc[0]
+                "value": flow_df["value"].tolist()
             }
 
         return flows
@@ -304,13 +336,13 @@ class ResultsIO:
                     values = np.array(flow_info["value"])
                     summary_data.append(
                         {
-                            "category": "Flow",
-                            "name": flow_name,
-                            "source": flow_info["source"],
-                            "target": flow_info["target"],
-                            "mean": np.mean(values),
-                            "max": np.max(values),
-                            "total": np.sum(values),
+                            "category": "Flow"
+                            "name": flow_name
+                            "source": flow_info["source"]
+                            "target": flow_info["target"]
+                            "mean": np.mean(values)
+                            "max": np.max(values)
+                            "total": np.sum(values)
                         }
                     )
 
@@ -321,13 +353,13 @@ class ResultsIO:
                     levels = np.array(comp_data["E"])
                     summary_data.append(
                         {
-                            "category": "Storage",
-                            "name": comp_name,
-                            "source": "-",
-                            "target": "-",
-                            "mean": np.mean(levels),
-                            "max": np.max(levels),
-                            "total": "-",
+                            "category": "Storage"
+                            "name": comp_name
+                            "source": "-"
+                            "target": "-"
+                            "mean": np.mean(levels)
+                            "max": np.max(levels)
+                            "total": "-"
                         }
                     )
 

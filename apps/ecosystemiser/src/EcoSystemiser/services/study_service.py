@@ -5,7 +5,7 @@ import json
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 import yaml
@@ -14,23 +14,23 @@ import yaml
 from ecosystemiser.core.bus import get_ecosystemiser_event_bus
 from ecosystemiser.core.events import SimulationEvent, StudyEvent
 from ecosystemiser.discovery.algorithms.genetic_algorithm import (
-    GeneticAlgorithm,
-    GeneticAlgorithmConfig,
-    NSGAIIOptimizer,
+    GeneticAlgorithm
+    GeneticAlgorithmConfig
+    NSGAIIOptimizer
 )
 from ecosystemiser.discovery.algorithms.monte_carlo import (
-    MonteCarloConfig,
-    MonteCarloEngine,
-    UncertaintyAnalyzer,
+    MonteCarloConfig
+    MonteCarloEngine
+    UncertaintyAnalyzer
 )
 from ecosystemiser.discovery.encoders.constraint_handler import (
-    ConstraintHandler,
-    TechnicalConstraintValidator,
+    ConstraintHandler
+    TechnicalConstraintValidator
 )
 from ecosystemiser.discovery.encoders.parameter_encoder import (
-    EncodingSpec,
-    ParameterSpec,
-    SystemConfigEncoder,
+    EncodingSpec
+    ParameterSpec
+    SystemConfigEncoder
 )
 from ecosystemiser.services.job_facade import JobFacade
 
@@ -45,10 +45,12 @@ logger = get_logger(__name__)
 
 class ParameterSweepSpec(BaseModel):
     """Specification for a parameter sweep."""
+from __future__ import annotations
+
 
     component_name: str
     parameter_path: str  # dot notation e.g., "technical.capacity_nominal"
-    values: List[Union[float, int, str]]
+    values: List[float, int | str]
 
 
 class FidelitySweepSpec(BaseModel):
@@ -56,12 +58,12 @@ class FidelitySweepSpec(BaseModel):
 
     component_names: List[str] = Field(default_factory=list, description="Components to sweep, empty means all")
     fidelity_levels: List[str] = Field(
-        default_factory=lambda: ["SIMPLE", "STANDARD"],
-        description="Fidelity levels to test",
+        default_factory=lambda: ["SIMPLE", "STANDARD"]
+        description="Fidelity levels to test"
     )
     mixed_fidelity_configs: Optional[List[Dict[str, str]]] = Field(
-        default=None,
-        description="Pre-defined mixed fidelity configurations as {component: fidelity_level}",
+        default=None
+        description="Pre-defined mixed fidelity configurations as {component: fidelity_level}"
     )
 
 
@@ -76,10 +78,10 @@ class StudyConfig(BaseModel):
     parameter_sweeps: Optional[List[ParameterSweepSpec]] = None
 
     # For fidelity studies
-    fidelity_sweep: Optional[FidelitySweepSpec] = None
+    fidelity_sweep: FidelitySweepSpec | None = None
 
     # For optimization studies
-    optimization_objective: Optional[str] = None  # e.g., "minimize_cost", "maximize_renewable"
+    optimization_objective: str | None = None  # e.g., "minimize_cost", "maximize_renewable"
     optimization_constraints: Optional[List[Dict[str, Any]]] = None
     optimization_variables: Optional[List[Dict[str, Any]]] = None  # Parameter definitions for optimization
 
@@ -115,7 +117,7 @@ class StudyResult(BaseModel):
 class StudyService:
     """Service for orchestrating multi-simulation studies."""
 
-    def __init__(self, job_facade: Optional[JobFacade] = None) -> None:
+    def __init__(self, job_facade: JobFacade | None = None) -> None:
         """Initialize study service.
 
         Args:
@@ -140,12 +142,12 @@ class StudyService:
         # Publish study started event
         event_bus = get_ecosystemiser_event_bus()
         study_started_event = StudyEvent.started(
-            study_id=config.study_id,
+            study_id=config.study_id
             config={
-                "study_type": config.study_type,
-                "results_path": str(config.output_dir) if config.output_dir else None,
-            },
-            source_agent="StudyService",
+                "study_type": config.study_type
+                "results_path": str(config.output_dir) if config.output_dir else None
+            }
+            source_agent="StudyService"
         )
         try:
             event_bus.publish(study_started_event)
@@ -182,15 +184,15 @@ class StudyService:
 
             # Publish study completed event
             study_completed_event = StudyEvent.completed(
-                study_id=config.study_id,
+                study_id=config.study_id
                 results={
-                    "study_type": config.study_type,
-                    "results_path": (str(config.output_dir) if config.output_dir else None),
-                    "total_simulations": study_result.num_simulations,
-                    "completed_simulations": study_result.successful_simulations,
-                },
-                duration_seconds=study_result.execution_time,
-                source_agent="StudyService",
+                    "study_type": config.study_type
+                    "results_path": (str(config.output_dir) if config.output_dir else None)
+                    "total_simulations": study_result.num_simulations
+                    "completed_simulations": study_result.successful_simulations
+                }
+                duration_seconds=study_result.execution_time
+                source_agent="StudyService"
             )
             try:
                 event_bus.publish(study_completed_event)
@@ -203,14 +205,14 @@ class StudyService:
             # Publish study failed event
             execution_time = (datetime.now() - start_time).total_seconds()
             study_failed_event = StudyEvent.failed(
-                study_id=config.study_id,
-                error_message=str(e),
+                study_id=config.study_id
+                error_message=str(e)
                 error_details={
-                    "study_type": config.study_type,
-                    "results_path": (str(config.output_dir) if config.output_dir else None),
-                    "duration_seconds": execution_time,
-                },
-                source_agent="StudyService",
+                    "study_type": config.study_type
+                    "results_path": (str(config.output_dir) if config.output_dir else None)
+                    "duration_seconds": execution_time
+                }
+                source_agent="StudyService"
             )
             try:
                 event_bus.publish(study_failed_event)
@@ -425,12 +427,12 @@ class StudyService:
         logger.warning("Optimization studies not yet fully implemented")
 
         return StudyResult(
-            study_id=config.study_id,
-            study_type="optimization",
-            num_simulations=0,
-            successful_simulations=0,
-            failed_simulations=0,
-            execution_time=0.0,
+            study_id=config.study_id
+            study_type="optimization"
+            num_simulations=0
+            successful_simulations=0
+            failed_simulations=0
+            execution_time=0.0
         )
 
     def _run_genetic_algorithm_study(self, config: StudyConfig) -> StudyResult:
@@ -459,18 +461,18 @@ class StudyService:
             ga_config_data = config.ga_config or {}
 
             ga_config = GeneticAlgorithmConfig(
-                dimensions=encoder.spec.dimensions,
-                bounds=encoder.spec.bounds,
+                dimensions=encoder.spec.dimensions
+                bounds=encoder.spec.bounds
                 objectives=(
                     config.optimization_objective.split(",") if config.optimization_objective else ["total_cost"]
-                ),
-                population_size=ga_config_data.get("population_size", 50),
-                max_generations=ga_config_data.get("max_generations", 100),
-                mutation_rate=ga_config_data.get("mutation_rate", 0.1),
-                crossover_rate=ga_config_data.get("crossover_rate", 0.9),
-                parallel_evaluation=config.parallel_execution,
-                max_workers=config.max_workers,
-                verbose=True,
+                )
+                population_size=ga_config_data.get("population_size", 50)
+                max_generations=ga_config_data.get("max_generations", 100)
+                mutation_rate=ga_config_data.get("mutation_rate", 0.1)
+                crossover_rate=ga_config_data.get("crossover_rate", 0.9)
+                parallel_evaluation=config.parallel_execution
+                max_workers=config.max_workers
+                verbose=True
             )
 
             # Choose algorithm based on objectives
@@ -488,27 +490,27 @@ class StudyService:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id,
-                study_type="genetic_algorithm",
-                num_simulations=result.evaluations,
+                study_id=config.study_id
+                study_type="genetic_algorithm"
+                num_simulations=result.evaluations
                 successful_simulations=result.evaluations,  # Assuming all evaluations are valid
-                failed_simulations=0,
+                failed_simulations=0
                 best_result={
-                    "best_solution": (result.best_solution.tolist() if result.best_solution is not None else None),
-                    "best_fitness": result.best_fitness,
-                    "best_objectives": result.best_objectives,
-                    "pareto_front": ([sol.tolist() for sol in result.pareto_front] if result.pareto_front else None),
-                    "pareto_objectives": result.pareto_objectives,
-                    "convergence_history": result.convergence_history,
-                    "algorithm_metadata": result.metadata,
-                },
+                    "best_solution": (result.best_solution.tolist() if result.best_solution is not None else None)
+                    "best_fitness": result.best_fitness
+                    "best_objectives": result.best_objectives
+                    "pareto_front": ([sol.tolist() for sol in result.pareto_front] if result.pareto_front else None)
+                    "pareto_objectives": result.pareto_objectives
+                    "convergence_history": result.convergence_history
+                    "algorithm_metadata": result.metadata
+                }
                 summary_statistics={
-                    "final_generation": result.iterations,
-                    "total_evaluations": result.evaluations,
-                    "convergence_status": result.status.value,
-                    "pareto_front_size": (len(result.pareto_front) if result.pareto_front else 1),
-                },
-                execution_time=execution_time,
+                    "final_generation": result.iterations
+                    "total_evaluations": result.evaluations
+                    "convergence_status": result.status.value
+                    "pareto_front_size": (len(result.pareto_front) if result.pareto_front else 1)
+                }
+                execution_time=execution_time
             )
 
         except Exception as e:
@@ -516,13 +518,13 @@ class StudyService:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id,
-                study_type="genetic_algorithm",
-                num_simulations=0,
-                successful_simulations=0,
-                failed_simulations=1,
-                execution_time=execution_time,
-                summary_statistics={"error": str(e)},
+                study_id=config.study_id
+                study_type="genetic_algorithm"
+                num_simulations=0
+                successful_simulations=0
+                failed_simulations=1
+                execution_time=execution_time
+                summary_statistics={"error": str(e)}
             )
 
     def _run_monte_carlo_study(self, config: StudyConfig) -> StudyResult:
@@ -548,23 +550,23 @@ class StudyService:
             mc_config_data = config.mc_config or {}
 
             mc_config = MonteCarloConfig(
-                dimensions=encoder.spec.dimensions,
-                bounds=encoder.spec.bounds,
+                dimensions=encoder.spec.dimensions
+                bounds=encoder.spec.bounds
                 objectives=(
                     config.optimization_objective.split(",") if config.optimization_objective else ["total_cost"]
-                ),
-                max_evaluations=mc_config_data.get("n_samples", 1000),
-                sampling_method=mc_config_data.get("sampling_method", "lhs"),
-                uncertainty_variables=config.uncertainty_variables or {},
-                confidence_levels=mc_config_data.get("confidence_levels", [0.05, 0.25, 0.50, 0.75, 0.95]),
-                sensitivity_analysis=mc_config_data.get("sensitivity_analysis", True),
-                risk_analysis=mc_config_data.get("risk_analysis", True),
-                parallel_evaluation=config.parallel_execution,
-                max_workers=config.max_workers,
-                save_all_samples=config.save_all_results,
+                )
+                max_evaluations=mc_config_data.get("n_samples", 1000)
+                sampling_method=mc_config_data.get("sampling_method", "lhs")
+                uncertainty_variables=config.uncertainty_variables or {}
+                confidence_levels=mc_config_data.get("confidence_levels", [0.05, 0.25, 0.50, 0.75, 0.95])
+                sensitivity_analysis=mc_config_data.get("sensitivity_analysis", True)
+                risk_analysis=mc_config_data.get("risk_analysis", True)
+                parallel_evaluation=config.parallel_execution
+                max_workers=config.max_workers
+                save_all_samples=config.save_all_results
                 sample_storage_path=(
                     str(config.output_directory / "monte_carlo_samples") if config.save_all_results else None
-                ),
+                )
             )
 
             # Run uncertainty analysis
@@ -582,28 +584,28 @@ class StudyService:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id,
-                study_type="monte_carlo",
-                num_simulations=mc_config.max_evaluations,
+                study_id=config.study_id
+                study_type="monte_carlo"
+                num_simulations=mc_config.max_evaluations
                 successful_simulations=mc_config.max_evaluations,  # Assuming all evaluations are valid
-                failed_simulations=0,
+                failed_simulations=0
                 best_result={
                     "best_solution": (
                         opt_result.best_solution.tolist() if opt_result.best_solution is not None else None
-                    ),
-                    "best_fitness": opt_result.best_fitness,
-                    "best_objectives": opt_result.best_objectives,
-                    "uncertainty_analysis": uncertainty_analysis,
-                },
+                    )
+                    "best_fitness": opt_result.best_fitness
+                    "best_objectives": opt_result.best_objectives
+                    "uncertainty_analysis": uncertainty_analysis
+                }
                 summary_statistics={
-                    "sampling_method": mc_config.sampling_method,
-                    "total_samples": mc_config.max_evaluations,
-                    "statistics": uncertainty_analysis.get("statistics", {}),
-                    "confidence_intervals": uncertainty_analysis.get("confidence_intervals", {}),
-                    "sensitivity_indices": uncertainty_analysis.get("sensitivity", {}),
-                    "risk_metrics": uncertainty_analysis.get("risk", {}),
-                },
-                execution_time=execution_time,
+                    "sampling_method": mc_config.sampling_method
+                    "total_samples": mc_config.max_evaluations
+                    "statistics": uncertainty_analysis.get("statistics", {})
+                    "confidence_intervals": uncertainty_analysis.get("confidence_intervals", {})
+                    "sensitivity_indices": uncertainty_analysis.get("sensitivity", {})
+                    "risk_metrics": uncertainty_analysis.get("risk", {})
+                }
+                execution_time=execution_time
             )
 
         except Exception as e:
@@ -611,13 +613,13 @@ class StudyService:
             execution_time = (datetime.now() - start_time).total_seconds()
 
             return StudyResult(
-                study_id=config.study_id,
-                study_type="monte_carlo",
-                num_simulations=0,
-                successful_simulations=0,
-                failed_simulations=1,
-                execution_time=execution_time,
-                summary_statistics={"error": str(e)},
+                study_id=config.study_id
+                study_type="monte_carlo"
+                num_simulations=0
+                successful_simulations=0
+                failed_simulations=1
+                execution_time=execution_time
+                summary_statistics={"error": str(e)}
             )
 
     def _create_parameter_encoder(self, config: StudyConfig) -> SystemConfigEncoder:
@@ -635,7 +637,7 @@ class StudyService:
         else:
             # Auto-detect from system configuration
             return SystemConfigEncoder.from_config(
-                config.base_config.system_config_path,
+                config.base_config.system_config_path
                 component_selection=None,  # Optimize all available components
             )
 
@@ -674,8 +676,8 @@ class StudyService:
                 # Run simulation using JobFacade (uses self.job_facade from parent class)
                 # Note: We need to pass the job facade reference through closure
                 job_result = self.job_facade.submit_simulation_job(
-                    config=sim_config.dict(),
-                    correlation_id=f"opt_{hash(tuple(parameter_vector))}",
+                    config=sim_config.dict()
+                    correlation_id=f"opt_{hash(tuple(parameter_vector))}"
                     blocking=True,  # Synchronous for now
                 )
 
@@ -688,20 +690,20 @@ class StudyService:
                     temp_config_path.unlink(missing_ok=True)
                     return {
                         "objectives": [float("inf")]
-                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
-                        "fitness": float("inf"),
-                        "valid": False,
-                        "error": job_result.error or "Simulation job failed",
+                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                        "fitness": float("inf")
+                        "valid": False
+                        "error": job_result.error or "Simulation job failed"
                     }
                 else:
                     # Unexpected status
                     temp_config_path.unlink(missing_ok=True)
                     return {
                         "objectives": [float("inf")]
-                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
-                        "fitness": float("inf"),
-                        "valid": False,
-                        "error": f"Unexpected job status: {job_result.status.value}",
+                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                        "fitness": float("inf")
+                        "valid": False
+                        "error": f"Unexpected job status: {job_result.status.value}"
                     }
 
                 # Clean up temporary file
@@ -731,33 +733,33 @@ class StudyService:
                             objectives.append(float("inf"))
 
                     return {
-                        "objectives": objectives,
-                        "fitness": (objectives[0] if len(objectives) == 1 else sum(objectives)),
-                        "valid": True,
+                        "objectives": objectives
+                        "fitness": (objectives[0] if len(objectives) == 1 else sum(objectives))
+                        "valid": True
                         "simulation_result": {
-                            "status": result.status,
-                            "kpis": result.kpis,
-                            "solver_metrics": result.solver_metrics,
-                        },
+                            "status": result.status
+                            "kpis": result.kpis
+                            "solver_metrics": result.solver_metrics
+                        }
                     }
                 else:
                     # Simulation failed
                     return {
                         "objectives": [float("inf")]
-                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
-                        "fitness": float("inf"),
-                        "valid": False,
-                        "error": result.error or "Simulation failed",
+                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                        "fitness": float("inf")
+                        "valid": False
+                        "error": result.error or "Simulation failed"
                     }
 
             except Exception as e:
                 logger.error(f"Fitness evaluation failed: {e}")
                 return {
                     "objectives": [float("inf")]
-                    * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
-                    "fitness": float("inf"),
-                    "valid": False,
-                    "error": str(e),
+                    * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                    "fitness": float("inf")
+                    "valid": False
+                    "error": str(e)
                 }
 
         return fitness_function
@@ -833,9 +835,9 @@ class StudyService:
                         cfg = future_to_config[future]
                         results.append(
                             SimulationResult(
-                                simulation_id=cfg.simulation_id,
-                                status="error",
-                                error=str(e),
+                                simulation_id=cfg.simulation_id
+                                status="error"
+                                error=str(e)
                             )
                         )
         else:
@@ -850,9 +852,9 @@ class StudyService:
                     logger.error(f"Simulation {cfg.simulation_id} failed: {e}")
                     results.append(
                         SimulationResult(
-                            simulation_id=cfg.simulation_id,
-                            status="error",
-                            error=str(e),
+                            simulation_id=cfg.simulation_id
+                            status="error"
+                            error=str(e)
                         )
                     )
 
@@ -893,8 +895,8 @@ class StudyService:
                 results_with_metrics = [r for r in successful if r.solver_metrics is not None]
                 if results_with_metrics:
                     best_result = min(
-                        results_with_metrics,
-                        key=lambda r: r.solver_metrics.get("objective_value", float("inf")),
+                        results_with_metrics
+                        key=lambda r: r.solver_metrics.get("objective_value", float("inf"))
                     )
                 else:
                     best_result = successful[0]  # Fallback to first result
@@ -937,14 +939,14 @@ class StudyService:
             all_results = [r.model_dump() for r in results]
 
         return StudyResult(
-            study_id=config.study_id,
-            study_type=config.study_type,
-            num_simulations=len(results),
-            successful_simulations=len(successful),
-            failed_simulations=len(failed),
-            best_result=best_result.model_dump() if best_result else None,
-            all_results=all_results,
-            summary_statistics=summary_stats,
+            study_id=config.study_id
+            study_type=config.study_type
+            num_simulations=len(results)
+            successful_simulations=len(successful)
+            failed_simulations=len(failed)
+            best_result=best_result.model_dump() if best_result else None
+            all_results=all_results
+            summary_statistics=summary_stats
             execution_time=0.0,  # Will be set by caller
         )
 
@@ -989,10 +991,10 @@ class StudyService:
         return stats
 
     def run_fidelity_comparison(
-        self,
-        base_config_path: Path,
-        components: Optional[List[str]] = None,
-        mixed_fidelity_configs: Optional[List[Dict[str, str]]] = None,
+        self
+        base_config_path: Path
+        components: Optional[List[str]] = None
+        mixed_fidelity_configs: Optional[List[Dict[str, str]]] = None
     ) -> StudyResult:
         """Convenience method to run a fidelity comparison study.
 
@@ -1010,24 +1012,24 @@ class StudyService:
 
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="fidelity_base",
-            system_config_path=str(base_config_path),
-            solver_type="milp",
-            output_config={"directory": "fidelity_study"},
+            simulation_id="fidelity_base"
+            system_config_path=str(base_config_path)
+            solver_type="milp"
+            output_config={"directory": "fidelity_study"}
         )
 
         # Create study config with mixed-fidelity support
         study_config = StudyConfig(
-            study_id=f"fidelity_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            study_type="fidelity",
-            base_config=base_sim_config,
+            study_id=f"fidelity_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_type="fidelity"
+            base_config=base_sim_config
             fidelity_sweep=FidelitySweepSpec(
-                component_names=components or [],
-                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"],
-                mixed_fidelity_configs=mixed_fidelity_configs,
-            ),
-            parallel_execution=True,
-            save_all_results=True,
+                component_names=components or []
+                fidelity_levels=["SIMPLE", "STANDARD", "DETAILED"]
+                mixed_fidelity_configs=mixed_fidelity_configs
+            )
+            parallel_execution=True
+            save_all_results=True
         )
 
         return self.run_study(study_config)
@@ -1057,10 +1059,10 @@ class StudyService:
         """
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="sensitivity_base",
-            system_config_path=str(base_config_path),
-            solver_type="milp",
-            output_config={"directory": "sensitivity_study"},
+            simulation_id="sensitivity_base"
+            system_config_path=str(base_config_path)
+            solver_type="milp"
+            output_config={"directory": "sensitivity_study"}
         )
 
         # Convert parameter specs
@@ -1070,23 +1072,23 @@ class StudyService:
 
         # Create study config
         study_config = StudyConfig(
-            study_id=f"sensitivity_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            study_type="parametric",
-            base_config=base_sim_config,
-            parameter_sweeps=sweeps,
-            parallel_execution=True,
-            save_all_results=True,
+            study_id=f"sensitivity_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_type="parametric"
+            base_config=base_sim_config
+            parameter_sweeps=sweeps
+            parallel_execution=True
+            save_all_results=True
         )
 
         return self.run_study(study_config)
 
     def run_genetic_algorithm_optimization(
-        self,
-        base_config_path: Path,
-        optimization_variables: List[Dict[str, Any]],
-        objectives: str = "minimize_cost",
-        multi_objective: bool = False,
-        **ga_kwargs,
+        self
+        base_config_path: Path
+        optimization_variables: List[Dict[str, Any]]
+        objectives: str = "minimize_cost"
+        multi_objective: bool = False
+        **ga_kwargs
     ) -> StudyResult:
         """Convenience method to run genetic algorithm optimization.
 
@@ -1102,34 +1104,34 @@ class StudyService:
         """
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="ga_optimization",
-            system_config_path=str(base_config_path),
-            solver_type="milp",
-            output_config={"directory": "ga_optimization"},
+            simulation_id="ga_optimization"
+            system_config_path=str(base_config_path)
+            solver_type="milp"
+            output_config={"directory": "ga_optimization"}
         )
 
         # Create study config
         study_config = StudyConfig(
-            study_id=f"ga_optimization_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            study_type="genetic_algorithm",
-            base_config=base_sim_config,
-            optimization_objective=objectives,
-            optimization_variables=optimization_variables,
-            multi_objective=multi_objective,
-            ga_config=ga_kwargs,
-            parallel_execution=True,
-            save_all_results=True,
+            study_id=f"ga_optimization_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_type="genetic_algorithm"
+            base_config=base_sim_config
+            optimization_objective=objectives
+            optimization_variables=optimization_variables
+            multi_objective=multi_objective
+            ga_config=ga_kwargs
+            parallel_execution=True
+            save_all_results=True
         )
 
         return self.run_study(study_config)
 
     def run_monte_carlo_uncertainty(
-        self,
-        base_config_path: Path,
-        uncertainty_variables: Dict[str, Dict[str, Any]],
-        objectives: str = "total_cost",
-        n_samples: int = 1000,
-        **mc_kwargs,
+        self
+        base_config_path: Path
+        uncertainty_variables: Dict[str, Dict[str, Any]]
+        objectives: str = "total_cost"
+        n_samples: int = 1000
+        **mc_kwargs
     ) -> StudyResult:
         """Convenience method to run Monte Carlo uncertainty analysis.
 
@@ -1145,33 +1147,33 @@ class StudyService:
         """
         # Create base simulation config
         base_sim_config = SimulationConfig(
-            simulation_id="mc_uncertainty",
-            system_config_path=str(base_config_path),
-            solver_type="milp",
-            output_config={"directory": "mc_uncertainty"},
+            simulation_id="mc_uncertainty"
+            system_config_path=str(base_config_path)
+            solver_type="milp"
+            output_config={"directory": "mc_uncertainty"}
         )
 
         # Create study config
         study_config = StudyConfig(
-            study_id=f"mc_uncertainty_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            study_type="monte_carlo",
-            base_config=base_sim_config,
-            optimization_objective=objectives,
-            uncertainty_variables=uncertainty_variables,
-            mc_config={"n_samples": n_samples, **mc_kwargs},
-            parallel_execution=True,
-            save_all_results=True,
+            study_id=f"mc_uncertainty_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            study_type="monte_carlo"
+            base_config=base_sim_config
+            optimization_objective=objectives
+            uncertainty_variables=uncertainty_variables
+            mc_config={"n_samples": n_samples, **mc_kwargs}
+            parallel_execution=True
+            save_all_results=True
         )
 
         return self.run_study(study_config)
 
     def run_design_space_exploration(
-        self,
-        base_config_path: Path,
-        design_variables: List[Dict[str, Any]],
-        objectives: str = "minimize_cost,maximize_renewable",
-        exploration_method: str = "nsga2",
-        **kwargs,
+        self
+        base_config_path: Path
+        design_variables: List[Dict[str, Any]]
+        objectives: str = "minimize_cost,maximize_renewable"
+        exploration_method: str = "nsga2"
+        **kwargs
     ) -> StudyResult:
         """Convenience method for comprehensive design space exploration.
 
@@ -1187,11 +1189,11 @@ class StudyService:
         """
         if exploration_method.lower() == "nsga2":
             return self.run_genetic_algorithm_optimization(
-                base_config_path=base_config_path,
-                optimization_variables=design_variables,
-                objectives=objectives,
-                multi_objective=True,
-                **kwargs,
+                base_config_path=base_config_path
+                optimization_variables=design_variables
+                objectives=objectives
+                multi_objective=True
+                **kwargs
             )
         elif exploration_method.lower() == "monte_carlo":
             # Convert design variables to uncertainty variables
@@ -1200,16 +1202,16 @@ class StudyService:
                 var_name = var["name"]
                 bounds = var.get("bounds", (0, 100))
                 uncertainty_vars[var_name] = {
-                    "distribution": "uniform",
-                    "parameters": {"a": bounds[0], "b": bounds[1]},
-                    "bounds": bounds,
+                    "distribution": "uniform"
+                    "parameters": {"a": bounds[0], "b": bounds[1]}
+                    "bounds": bounds
                 }
 
             return self.run_monte_carlo_uncertainty(
-                base_config_path=base_config_path,
-                uncertainty_variables=uncertainty_vars,
-                objectives=objectives,
-                **kwargs,
+                base_config_path=base_config_path
+                uncertainty_variables=uncertainty_vars
+                objectives=objectives
+                **kwargs
             )
         else:
             raise ValueError(f"Unknown exploration method: {exploration_method}")

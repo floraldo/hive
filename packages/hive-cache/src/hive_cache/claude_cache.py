@@ -2,7 +2,7 @@
 
 import hashlib
 import time
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 from hive_logging import get_logger
 
@@ -15,6 +15,8 @@ logger = get_logger(__name__)
 
 class ClaudeAPICache:
     """
+from __future__ import annotations
+
     Specialized cache for Claude API responses with intelligent TTL and optimization.
 
     Features:
@@ -32,15 +34,15 @@ class ClaudeAPICache:
 
         # Cache statistics specific to Claude API
         self.claude_metrics = {
-            "api_calls_saved": 0,
-            "total_cache_checks": 0,
-            "cache_hit_rate": 0.0,
-            "total_response_size_cached": 0,
-            "largest_response_cached": 0,
+            "api_calls_saved": 0
+            "total_cache_checks": 0
+            "cache_hit_rate": 0.0
+            "total_response_size_cached": 0
+            "largest_response_cached": 0
         }
 
     @classmethod
-    async def create_async(cls, config: Optional[CacheConfig] = None) -> "ClaudeAPICache":
+    async def create_async(cls, config: CacheConfig | None = None) -> "ClaudeAPICache":
         """Create Claude API cache instance.
 
         Args:
@@ -56,13 +58,13 @@ class ClaudeAPICache:
         return cls(cache_client, config)
 
     def _generate_cache_key(
-        self,
-        prompt: str,
-        model: str = "claude-3-opus",
-        max_tokens: Optional[int] = None,
-        temperature: float = 0.0,
-        system: Optional[str] = None,
-        **kwargs,
+        self
+        prompt: str
+        model: str = "claude-3-opus"
+        max_tokens: int | None = None
+        temperature: float = 0.0
+        system: str | None = None
+        **kwargs
     ) -> str:
         """Generate consistent cache key for Claude API parameters.
 
@@ -79,11 +81,11 @@ class ClaudeAPICache:
         """
         # Create a normalized parameter dictionary
         cache_params = {
-            "model": model,
-            "prompt": prompt.strip(),
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "system": system.strip() if system else None,
+            "model": model
+            "prompt": prompt.strip()
+            "max_tokens": max_tokens
+            "temperature": temperature
+            "system": system.strip() if system else None
         }
 
         # Add other significant parameters
@@ -99,7 +101,7 @@ class ClaudeAPICache:
 
         return f"claude_api_{model}_{cache_hash}"
 
-    def _calculate_response_ttl(self, response: Dict[str, Any], base_ttl: Optional[int] = None) -> int:
+    def _calculate_response_ttl(self, response: Dict[str, Any], base_ttl: int | None = None) -> int:
         """Calculate intelligent TTL based on response characteristics.
 
         Args:
@@ -139,7 +141,7 @@ class ClaudeAPICache:
 
         # Clamp to configured limits
         return max(
-            self.config.min_ttl,
+            self.config.min_ttl
             min(calculated_ttl, self.config.max_ttl)
         )
 
@@ -174,13 +176,13 @@ class ClaudeAPICache:
         return True
 
     async def get_cached_response_async(
-        self,
-        prompt: str,
-        model: str = "claude-3-opus",
-        max_tokens: Optional[int] = None,
-        temperature: float = 0.0,
-        system: Optional[str] = None,
-        **kwargs,
+        self
+        prompt: str
+        model: str = "claude-3-opus"
+        max_tokens: int | None = None
+        temperature: float = 0.0
+        system: str | None = None
+        **kwargs
     ) -> Optional[Dict[str, Any]]:
         """Get cached Claude API response if available.
 
@@ -223,15 +225,15 @@ class ClaudeAPICache:
             return None
 
     async def cache_response_async(
-        self,
-        prompt: str,
-        response: Dict[str, Any],
-        model: str = "claude-3-opus",
-        max_tokens: Optional[int] = None,
-        temperature: float = 0.0,
-        system: Optional[str] = None,
-        ttl: Optional[int] = None,
-        **kwargs,
+        self
+        prompt: str
+        response: Dict[str, Any]
+        model: str = "claude-3-opus"
+        max_tokens: int | None = None
+        temperature: float = 0.0
+        system: str | None = None
+        ttl: int | None = None
+        **kwargs
     ) -> bool:
         """Cache Claude API response.
 
@@ -264,12 +266,12 @@ class ClaudeAPICache:
 
             # Add caching metadata
             cached_response = {
-                **response,
+                **response
                 "_cache_metadata": {
-                    "cached_at": time.time(),
-                    "ttl": ttl,
-                    "cache_key": cache_key,
-                },
+                    "cached_at": time.time()
+                    "ttl": ttl
+                    "cache_key": cache_key
+                }
             }
 
             # Cache the response
@@ -281,7 +283,7 @@ class ClaudeAPICache:
                 response_size = len(response_text.encode("utf-8"))
                 self.claude_metrics["total_response_size_cached"] += response_size
                 self.claude_metrics["largest_response_cached"] = max(
-                    self.claude_metrics["largest_response_cached"],
+                    self.claude_metrics["largest_response_cached"]
                     response_size
                 )
 
@@ -294,15 +296,15 @@ class ClaudeAPICache:
             return False
 
     async def get_or_fetch_async(
-        self,
-        prompt: str,
-        fetcher: Callable,
-        model: str = "claude-3-opus",
-        max_tokens: Optional[int] = None,
-        temperature: float = 0.0,
-        system: Optional[str] = None,
-        cache_ttl: Optional[int] = None,
-        **kwargs,
+        self
+        prompt: str
+        fetcher: Callable
+        model: str = "claude-3-opus"
+        max_tokens: int | None = None
+        temperature: float = 0.0
+        system: str | None = None
+        cache_ttl: int | None = None
+        **kwargs
     ) -> Dict[str, Any]:
         """Get cached response or fetch from Claude API if not cached.
 
@@ -402,13 +404,13 @@ class ClaudeAPICache:
 
         # Combine with Claude-specific metrics
         return {
-            **self.claude_metrics,
-            "general_cache_metrics": general_metrics,
-            "namespace": self.namespace,
+            **self.claude_metrics
+            "general_cache_metrics": general_metrics
+            "namespace": self.namespace
             "config": {
-                "default_ttl": self.config.claude_default_ttl,
-                "max_response_size": self.config.claude_max_response_size,
-            },
+                "default_ttl": self.config.claude_default_ttl
+                "max_response_size": self.config.claude_max_response_size
+            }
         }
 
     async def cleanup_expired_async(self) -> int:

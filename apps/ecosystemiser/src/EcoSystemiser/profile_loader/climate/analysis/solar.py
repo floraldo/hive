@@ -1,6 +1,6 @@
 """Solar-specific derived variables for postprocessing - PV and solar energy metrics"""
 
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -11,12 +11,14 @@ logger = get_logger(__name__)
 
 
 def calculate_clearness_index(
-    ghi: xr.DataArray,
-    latitude: float,
-    time: xr.DataArray,
-    longitude: Optional[float] = None,
+    ghi: xr.DataArray
+    latitude: float
+    time: xr.DataArray
+    longitude: float | None = None
 ) -> xr.DataArray:
     """
+from __future__ import annotations
+
     Calculate clearness index (ratio of GHI to extraterrestrial radiation).
     Useful for PV system sizing and solar resource assessment.
 
@@ -75,11 +77,11 @@ def calculate_clearness_index(
         kt = kt.clip(0, 1.2)  # Allow slight over-unity due to cloud enhancement
 
     kt.attrs = {
-        "units": "fraction",
-        "type": "state",
-        "derived": True,
-        "description": "Clearness index for solar resource assessment",
-        "long_name": "Ratio of GHI to extraterrestrial radiation",
+        "units": "fraction"
+        "type": "state"
+        "derived": True
+        "description": "Clearness index for solar resource assessment"
+        "long_name": "Ratio of GHI to extraterrestrial radiation"
     }
 
     return kt
@@ -133,25 +135,25 @@ def calculate_solar_position(
 
     # Create DataArrays
     elevation_da = xr.DataArray(
-        elevation,
-        coords={"time": time},
-        dims=["time"],
+        elevation
+        coords={"time": time}
+        dims=["time"]
         attrs={
-            "units": "degrees",
-            "description": "Solar elevation angle above horizon",
-            "long_name": "Solar elevation",
-        },
+            "units": "degrees"
+            "description": "Solar elevation angle above horizon"
+            "long_name": "Solar elevation"
+        }
     )
 
     azimuth_da = xr.DataArray(
-        azimuth,
-        coords={"time": time},
-        dims=["time"],
+        azimuth
+        coords={"time": time}
+        dims=["time"]
         attrs={
-            "units": "degrees",
-            "description": "Solar azimuth angle from North (clockwise)",
-            "long_name": "Solar azimuth",
-        },
+            "units": "degrees"
+            "description": "Solar azimuth angle from North (clockwise)"
+            "long_name": "Solar azimuth"
+        }
     )
 
     return elevation_da, azimuth_da
@@ -187,14 +189,14 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
         am = am.clip(0, 40)  # Practical limits
 
     ds_solar["air_mass"] = xr.DataArray(
-        am,
-        coords={"time": ds.time},
-        dims=["time"],
+        am
+        coords={"time": ds.time}
+        dims=["time"]
         attrs={
-            "units": "dimensionless",
-            "description": "Relative optical air mass",
-            "long_name": "Air mass",
-        },
+            "units": "dimensionless"
+            "description": "Relative optical air mass"
+            "long_name": "Air mass"
+        }
     )
 
     logger.info("Added solar position angles and air mass")
@@ -244,11 +246,11 @@ def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_eleva
         dni = dni.clip(0, 1500)  # Reasonable physical limits
 
     dni.attrs = {
-        "units": "W/m2",
-        "type": "flux",
-        "derived": True,
-        "description": "Direct normal irradiance calculated from GHI and DHI",
-        "method": "Solar geometry calculation",
+        "units": "W/m2"
+        "type": "flux"
+        "derived": True
+        "description": "Direct normal irradiance calculated from GHI and DHI"
+        "method": "Solar geometry calculation"
     }
 
     return dni

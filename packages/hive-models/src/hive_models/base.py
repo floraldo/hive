@@ -3,9 +3,11 @@ Base models and mixins for Hive platform data structures.
 
 Provides foundational classes and mixins that other models can inherit from.
 """
+from __future__ import annotations
+
 
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from uuid import UUID, uuid4
 
 from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
@@ -20,18 +22,18 @@ class BaseModel(PydanticBaseModel):
 
     model_config = ConfigDict(
         # Use Enum values instead of names
-        use_enum_values=True,
+        use_enum_values=True
         # Validate on assignment
-        validate_assignment=True,
+        validate_assignment=True
         # Allow population by field name
-        populate_by_name=True,
+        populate_by_name=True
         # Include fields with None values in dict()
-        # exclude_none=False,
+        # exclude_none=False
         # Custom JSON encoder for datetime, UUID, etc.
         json_encoders={
-            datetime: lambda v: v.isoformat(),
-            UUID: lambda v: str(v),
-        },
+            datetime: lambda v: v.isoformat()
+            UUID: lambda v: str(v)
+        }
     )
 
     def dict(self, **kwargs) -> Dict[str, Any]:
@@ -52,7 +54,7 @@ class TimestampMixin(BaseModel):
     """Mixin that adds timestamp fields to a model."""
 
     created_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp when the record was created")
-    updated_at: Optional[datetime] = Field(default=None, description="Timestamp when the record was last updated")
+    updated_at: datetime | None = Field(default=None, description="Timestamp when the record was last updated")
 
     def update_timestamp(self) -> None:
         """Update the updated_at timestamp to current time."""
@@ -79,10 +81,10 @@ class StatusMixin(BaseModel):
     """Mixin that adds status tracking to a model."""
 
     status: str = Field(default="pending", description="Current status of the record")
-    status_message: Optional[str] = Field(default=None, description="Additional information about the current status")
-    status_updated_at: Optional[datetime] = Field(default=None, description="Timestamp when status was last changed")
+    status_message: str | None = Field(default=None, description="Additional information about the current status")
+    status_updated_at: datetime | None = Field(default=None, description="Timestamp when status was last changed")
 
-    def update_status(self, status: str, message: Optional[str] = None) -> None:
+    def update_status(self, status: str, message: str | None = None) -> None:
         """
         Update the status with optional message.
 

@@ -2,7 +2,7 @@
 
 import asyncio
 import time
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from hive_logging import get_logger
 
@@ -17,6 +17,8 @@ logger = get_logger(__name__)
 
 class DiscoveryClient:
     """
+from __future__ import annotations
+
     Service discovery client for finding and connecting to services.
 
     Features:
@@ -32,10 +34,10 @@ class DiscoveryClient:
         self.config = config
         self.registry = ServiceRegistry(config)
         self.load_balancer = LoadBalancer(
-            strategy=LoadBalancingStrategy(config.load_balancer.strategy),
-            circuit_breaker_threshold=config.load_balancer.circuit_breaker_threshold,
-            circuit_breaker_timeout=config.load_balancer.circuit_breaker_timeout,
-            enable_sticky_sessions=config.load_balancer.enable_sticky_sessions,
+            strategy=LoadBalancingStrategy(config.load_balancer.strategy)
+            circuit_breaker_threshold=config.load_balancer.circuit_breaker_threshold
+            circuit_breaker_timeout=config.load_balancer.circuit_breaker_timeout
+            enable_sticky_sessions=config.load_balancer.enable_sticky_sessions
         )
         self.health_monitor = HealthMonitor(config)
 
@@ -193,8 +195,8 @@ class DiscoveryClient:
         return [s for s in services if s.healthy]
 
     async def select_service_instance_async(
-        self, service_name: str, session_id: Optional[str] = None
-    ) -> Optional[ServiceInfo]:
+        self, service_name: str, session_id: str | None = None
+    ) -> ServiceInfo | None:
         """Select a service instance using load balancing.
 
         Args:
@@ -217,13 +219,13 @@ class DiscoveryClient:
             raise
 
     async def execute_service_request_async(
-        self,
-        service_name: str,
-        request_func: Callable,
-        max_retries: int = None,
-        session_id: Optional[str] = None,
-        *args,
-        **kwargs,
+        self
+        service_name: str
+        request_func: Callable
+        max_retries: int = None
+        session_id: str | None = None
+        *args
+        **kwargs
     ) -> Any:
         """Execute a request against a service with load balancing and retry.
 
@@ -255,7 +257,7 @@ class DiscoveryClient:
             logger.error(f"Service request failed for {service_name}: {e}")
             raise
 
-    async def get_service_address_async(self, service_name: str) -> Optional[str]:
+    async def get_service_address_async(self, service_name: str) -> str | None:
         """Get address of a service instance.
 
         Args:
@@ -372,16 +374,16 @@ class DiscoveryClient:
         healthy_services = sum(len([s for s in services if s.healthy]) for services in self._service_cache.values())
 
         return {
-            "total_service_names": len(self._service_cache),
-            "total_service_instances": total_services,
-            "healthy_service_instances": healthy_services,
-            "unhealthy_service_instances": total_services - healthy_services,
-            "cache_entries": len(self._cache_timestamps),
-            "load_balancer_stats": self.load_balancer.get_load_balancer_stats(),
-            "health_monitor_stats": self.health_monitor.get_monitor_stats(),
+            "total_service_names": len(self._service_cache)
+            "total_service_instances": total_services
+            "healthy_service_instances": healthy_services
+            "unhealthy_service_instances": total_services - healthy_services
+            "cache_entries": len(self._cache_timestamps)
+            "load_balancer_stats": self.load_balancer.get_load_balancer_stats()
+            "health_monitor_stats": self.health_monitor.get_monitor_stats()
         }
 
-    async def clear_cache_async(self, service_name: Optional[str] = None) -> None:
+    async def clear_cache_async(self, service_name: str | None = None) -> None:
         """Clear service cache.
 
         Args:
@@ -396,7 +398,7 @@ class DiscoveryClient:
 
         logger.info(f"Cleared service cache for: {service_name or 'all services'}")
 
-    async def force_refresh_async(self, service_name: Optional[str] = None) -> None:
+    async def force_refresh_async(self, service_name: str | None = None) -> None:
         """Force refresh of service cache.
 
         Args:

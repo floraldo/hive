@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -11,8 +13,6 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
-
 from hive_cli import add_command, create_cli, run_cli
 from hive_cli.decorators import command, option
 from hive_cli.output import error, info, success, warning
@@ -33,7 +33,7 @@ def cli() -> None:
 @cli.command()
 @option("--config", "-c", type=click.Path(exists=True), help="Path to configuration file")
 @option("--debug", is_flag=True, help="Enable debug logging")
-def start_queen(config: Optional[str], debug: bool) -> None:
+def start_queen(config: str | None, debug: bool) -> None:
     """Start the Queen orchestrator."""
     try:
         args = []
@@ -68,15 +68,15 @@ def start_queen(config: Optional[str], debug: bool) -> None:
 
 @cli.command()
 @option(
-    "--mode",
-    "-m",
-    type=click.Choice(["backend", "frontend", "infra", "general"]),
-    default="general",
-    help="Worker mode",
+    "--mode"
+    "-m"
+    type=click.Choice(["backend", "frontend", "infra", "general"])
+    default="general"
+    help="Worker mode"
 )
 @option("--name", "-n", help="Worker name")
 @option("--debug", is_flag=True, help="Enable debug logging")
-def start_worker(mode: str, name: Optional[str], debug: bool) -> None:
+def start_worker(mode: str, name: str | None, debug: bool) -> None:
     """Start a Worker agent."""
     try:
         args = ["--mode", mode]
@@ -189,8 +189,8 @@ def review_escalated(task_id: str) -> None:
             SELECT id, title, description, status, priority, result_data
             FROM tasks
             WHERE id = ? AND status = ?
-        """,
-            (task_id, TaskStatus.ESCALATED.value),
+        """
+            (task_id, TaskStatus.ESCALATED.value)
         )
 
         task = cursor.fetchone()
@@ -209,9 +209,9 @@ def review_escalated(task_id: str) -> None:
                 f"[bold red]ESCALATED TASK REVIEW[/bold red]\n"
                 f"[yellow]Task ID:[/yellow] {task['id']}\n"
                 f"[yellow]Title:[/yellow] {task['title']}\n"
-                f"[yellow]Priority:[/yellow] {task['priority']}",
-                title="Human Review Required",
-                box=box.DOUBLE,
+                f"[yellow]Priority:[/yellow] {task['priority']}"
+                title="Human Review Required"
+                box=box.DOUBLE
             )
         )
 
@@ -235,8 +235,8 @@ def review_escalated(task_id: str) -> None:
             metrics_table.add_row("Security", f"{metrics.get('security', 0):.0f}")
             metrics_table.add_row("Architecture", f"{metrics.get('architecture', 0):.0f}")
             metrics_table.add_row(
-                "[bold]Overall[/bold]",
-                f"[bold]{review.get('overall_score', 0):.0f}[/bold]",
+                "[bold]Overall[/bold]"
+                f"[bold]{review.get('overall_score', 0):.0f}[/bold]"
             )
 
             console.logger.info(metrics_table)
@@ -275,9 +275,9 @@ def review_escalated(task_id: str) -> None:
 
         # Get human decision
         decision = Prompt.ask(
-            "\nYour decision",
-            choices=["approve", "reject", "rework", "defer", "cancel"],
-            default="defer",
+            "\nYour decision"
+            choices=["approve", "reject", "rework", "defer", "cancel"]
+            default="defer"
         )
 
         if decision == "cancel":
@@ -289,18 +289,18 @@ def review_escalated(task_id: str) -> None:
 
         # Update task status based on decision
         new_status = {
-            "approve": TaskStatus.APPROVED.value,
-            "reject": TaskStatus.REJECTED.value,
-            "rework": TaskStatus.REWORK_NEEDED.value,
-            "defer": TaskStatus.ESCALATED.value,
+            "approve": TaskStatus.APPROVED.value
+            "reject": TaskStatus.REJECTED.value
+            "rework": TaskStatus.REWORK_NEEDED.value
+            "defer": TaskStatus.ESCALATED.value
         }[decision]
 
         # Store human review
         human_review = {
-            "decision": decision,
-            "notes": notes,
-            "timestamp": datetime.now().isoformat(),
-            "reviewer": "human",
+            "decision": decision
+            "notes": notes
+            "timestamp": datetime.now().isoformat()
+            "reviewer": "human"
         }
 
         if not result_data:
@@ -312,8 +312,8 @@ def review_escalated(task_id: str) -> None:
             UPDATE tasks
             SET status = ?, result_data = ?, updated_at = ?
             WHERE id = ?
-        """,
-            (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id),
+        """
+            (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id)
         )
 
         conn.commit()
@@ -355,8 +355,8 @@ def list_escalated() -> None:
             FROM tasks
             WHERE status = ?
             ORDER BY priority DESC, created_at ASC
-        """,
-            (TaskStatus.ESCALATED.value,),
+        """
+            (TaskStatus.ESCALATED.value,)
         )
 
         tasks = cursor.fetchall()
@@ -367,8 +367,8 @@ def list_escalated() -> None:
 
         # Create table
         table = Table(
-            title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]",
-            box=box.ROUNDED,
+            title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]"
+            box=box.ROUNDED
         )
 
         table.add_column("ID", style="cyan", width=12)
@@ -415,12 +415,12 @@ def list_escalated() -> None:
                 age_color = "white"
 
             table.add_row(
-                task["id"][:12],
-                task["title"][:30],
-                str(task["priority"]),
-                f"[{age_color}]{age_str}[/{age_color}]",
-                f"{score:.0f}" if score else "N/A",
-                reason[:30],
+                task["id"][:12]
+                task["title"][:30]
+                str(task["priority"])
+                f"[{age_color}]{age_str}[/{age_color}]"
+                f"{score:.0f}" if score else "N/A"
+                reason[:30]
             )
 
         console.logger.info(table)
@@ -439,7 +439,7 @@ def list_escalated() -> None:
 @click.argument("task_description")
 @option("--role", "-r", help="Target worker role")
 @option("--priority", "-p", type=int, default=1, help="Task priority")
-def queue_task(task_description: str, role: Optional[str], priority: int) -> None:
+def queue_task(task_description: str, role: str | None, priority: int) -> None:
     """Queue a new task for processing."""
     try:
         # Validate inputs
@@ -457,9 +457,9 @@ def queue_task(task_description: str, role: Optional[str], priority: int) -> Non
 
         task_id = create_task(
             title=task_description[:50],  # Truncate title
-            task_type=role or "general",
-            description=task_description,
-            priority=priority,
+            task_type=role or "general"
+            description=task_description
+            priority=priority
         )
 
         info(f"Task queued with ID: {task_id}")

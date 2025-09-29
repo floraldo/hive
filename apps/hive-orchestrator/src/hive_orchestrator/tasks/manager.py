@@ -3,7 +3,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, List, Optional, TypeVar
+from typing import Any, Awaitable, Callable, Dict, ListTypeVar
 
 from hive_logging import get_logger
 
@@ -15,12 +15,14 @@ T = TypeVar("T")
 @dataclass
 class TaskResult:
     """Result of a task execution."""
+from __future__ import annotations
+
 
     task_id: str
     success: bool
     result: Any = None
-    error: Optional[Exception] = None
-    duration: Optional[float] = None
+    error: Exception | None = None
+    duration: float | None = None
 
 
 class TaskManager:
@@ -34,10 +36,10 @@ class TaskManager:
         self._task_counter = 0
 
     async def submit_task_async(
-        self,
-        coro: Awaitable[T],
-        task_id: Optional[str] = None,
-        timeout: Optional[float] = None,
+        self
+        coro: Awaitable[T]
+        task_id: str | None = None
+        timeout: float | None = None
     ) -> str:
         """
         Submit a task for execution.
@@ -128,9 +130,9 @@ class TaskManager:
 
         # Record cancellation
         self.completed_tasks[task_id] = TaskResult(
-            task_id=task_id,
-            success=False,
-            error=asyncio.CancelledError("Task was cancelled"),
+            task_id=task_id
+            success=False
+            error=asyncio.CancelledError("Task was cancelled")
         )
 
         return True
@@ -144,14 +146,14 @@ class TaskManager:
     def get_status(self) -> Dict[str, Any]:
         """Get current status of all tasks."""
         return {
-            "active_count": len(self.active_tasks),
-            "completed_count": len(self.completed_tasks),
-            "max_concurrent": self.max_concurrent,
-            "active_tasks": list(self.active_tasks.keys()),
-            "success_rate": self._calculate_success_rate(),
+            "active_count": len(self.active_tasks)
+            "completed_count": len(self.completed_tasks)
+            "max_concurrent": self.max_concurrent
+            "active_tasks": list(self.active_tasks.keys())
+            "success_rate": self._calculate_success_rate()
         }
 
-    def _calculate_success_rate(self) -> Optional[float]:
+    def _calculate_success_rate(self) -> float | None:
         """Calculate success rate of completed tasks."""
         if not self.completed_tasks:
             return None
@@ -160,7 +162,7 @@ class TaskManager:
         return successful / len(self.completed_tasks)
 
     @asynccontextmanager
-    async def task_group_async(self, max_concurrent: Optional[int] = None) -> None:
+    async def task_group_async(self, max_concurrent: int | None = None) -> None:
         """Context manager for task group execution."""
         if max_concurrent:
             original_limit = self.max_concurrent
@@ -201,10 +203,10 @@ async def gather_with_concurrency_async(
 
 
 async def run_with_timeout_and_retry_async(
-    coro: Awaitable[T],
-    timeout: float,
-    max_retries: int = 3,
-    backoff_factor: float = 1.0,
+    coro: Awaitable[T]
+    timeout: float
+    max_retries: int = 3
+    backoff_factor: float = 1.0
 ) -> T:
     """
     Run a coroutine with timeout and retry logic.

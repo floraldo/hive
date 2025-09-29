@@ -1,6 +1,6 @@
 """Seasonal block bootstrap for synthetic climate generation"""
 
-from typing import Literal, Optional
+from typing import Literal
 
 import numpy as np
 import pandas as pd
@@ -11,14 +11,16 @@ logger = get_logger(__name__)
 
 
 def multivariate_block_bootstrap(
-    ds_hist: xr.Dataset,
-    block: str = "1D",
-    season_bins: int = 12,
-    overlap_hours: int = 3,
-    seed: Optional[int] = None,
-    target_length: Optional[str] = "1Y",
+    ds_hist: xr.Dataset
+    block: str = "1D"
+    season_bins: int = 12
+    overlap_hours: int = 3
+    seed: int | None = None
+    target_length: str | None = "1Y"
 ) -> xr.Dataset:
     """
+from __future__ import annotations
+
     Generate synthetic climate data using seasonal block bootstrap.
 
     Preserves intra-block correlations between variables.

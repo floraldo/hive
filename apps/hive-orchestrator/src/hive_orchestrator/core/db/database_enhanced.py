@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -11,12 +13,12 @@ that bridges the AI Planner's output with the Queen's execution engine.
 """
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from .database import get_connection
 
 
-def get_queued_tasks_with_planning(limit: int = 10, task_type: Optional[str] = None) -> List[Dict[str, Any]]:
+def get_queued_tasks_with_planning(limit: int = 10, task_type: str | None = None) -> List[Dict[str, Any]]:
     """
     Enhanced task selection that includes both regular queued tasks AND
     AI Planner-generated sub-tasks that are ready for execution.
@@ -80,7 +82,7 @@ def get_queued_tasks_with_planning(limit: int = 10, task_type: Optional[str] = N
                 CASE
                     WHEN task_type = 'planned_subtask' THEN priority + 10  -- Boost planner tasks slightly
                     ELSE priority
-                END DESC,
+                END DESC
                 created_at ASC
             LIMIT ?
         """
@@ -89,16 +91,16 @@ def get_queued_tasks_with_planning(limit: int = 10, task_type: Optional[str] = N
     tasks = []
     for row in cursor.fetchall():
         task = {
-            "id": row[0],
-            "title": row[1],
-            "description": row[2],
-            "task_type": row[3],
-            "priority": row[4],
-            "status": row[5],
-            "payload": json.loads(row[8]) if row[8] else {},
-            "created_at": row[9],
-            "updated_at": row[10],
-            "assignee": row[15],
+            "id": row[0]
+            "title": row[1]
+            "description": row[2]
+            "task_type": row[3]
+            "priority": row[4]
+            "status": row[5]
+            "payload": json.loads(row[8]) if row[8] else {}
+            "created_at": row[9]
+            "updated_at": row[10]
+            "assignee": row[15]
         }
 
         # Enhance planner sub-tasks with additional context
@@ -107,11 +109,11 @@ def get_queued_tasks_with_planning(limit: int = 10, task_type: Optional[str] = N
 
             # Add execution hints from the planner
             task["planner_context"] = {
-                "parent_plan_id": payload.get("parent_plan_id"),
-                "workflow_phase": payload.get("workflow_phase"),
-                "estimated_duration": payload.get("estimated_duration"),
-                "required_skills": payload.get("required_skills", []),
-                "deliverables": payload.get("deliverables", []),
+                "parent_plan_id": payload.get("parent_plan_id")
+                "workflow_phase": payload.get("workflow_phase")
+                "estimated_duration": payload.get("estimated_duration")
+                "required_skills": payload.get("required_skills", [])
+                "deliverables": payload.get("deliverables", [])
             }
 
             # Check and include dependency information
@@ -158,8 +160,8 @@ def check_subtask_dependencies(task_id: str) -> bool:
             """
             SELECT status FROM tasks
             WHERE (id = ? OR json_extract(payload, '$.subtask_id') = ?)
-        """,
-            (dep_id, dep_id),
+        """
+            (dep_id, dep_id)
         )
 
         dep_row = cursor.fetchone()
@@ -171,7 +173,7 @@ def check_subtask_dependencies(task_id: str) -> bool:
     return True  # All dependencies satisfied
 
 
-def get_execution_plan_status(plan_id: str) -> Optional[str]:
+def get_execution_plan_status(plan_id: str) -> str | None:
     """
     Get the status of an execution plan.
 
@@ -204,11 +206,11 @@ def mark_plan_execution_started(plan_id: str) -> bool:
         cursor = conn.execute(
             """
             UPDATE execution_plans
-            SET status = 'executing',
+            SET status = 'executing'
                 updated_at = CURRENT_TIMESTAMP
             WHERE id = ? AND status IN ('generated', 'approved')
-        """,
-            (plan_id,),
+        """
+            (plan_id,)
         )
 
         conn.commit()
@@ -238,12 +240,12 @@ def get_next_planned_subtask(plan_id: str) -> Optional[Dict[str, Any]]:
         AND json_extract(payload, '$.parent_plan_id') = ?
         AND status = 'queued'
         ORDER BY
-            json_extract(payload, '$.workflow_phase'),
-            priority DESC,
+            json_extract(payload, '$.workflow_phase')
+            priority DESC
             created_at ASC
         LIMIT 1
-    """,
-        (plan_id,),
+    """
+        (plan_id,)
     )
 
     row = cursor.fetchone()
@@ -252,16 +254,16 @@ def get_next_planned_subtask(plan_id: str) -> Optional[Dict[str, Any]]:
         return None
 
     task = {
-        "id": row[0],
-        "title": row[1],
-        "description": row[2],
-        "task_type": row[3],
-        "priority": row[4],
-        "status": row[5],
-        "payload": json.loads(row[8]) if row[8] else {},
-        "created_at": row[9],
-        "updated_at": row[10],
-        "assignee": row[15],
+        "id": row[0]
+        "title": row[1]
+        "description": row[2]
+        "task_type": row[3]
+        "priority": row[4]
+        "status": row[5]
+        "payload": json.loads(row[8]) if row[8] else {}
+        "created_at": row[9]
+        "updated_at": row[10]
+        "assignee": row[15]
     }
 
     # Check if dependencies are met
@@ -305,8 +307,8 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
             SELECT id FROM tasks
             WHERE task_type = 'planned_subtask'
             AND json_extract(payload, '$.subtask_id') = ?
-        """,
-            (sub_task.get("id", ""),),
+        """
+            (sub_task.get("id", ""),)
         )
 
         if cursor.fetchone():
@@ -316,33 +318,33 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
         task_id = f"subtask_{plan_id}_{sub_task.get('id', '')}"
 
         payload = {
-            "parent_plan_id": plan_id,
-            "subtask_id": sub_task.get("id"),
-            "complexity": sub_task.get("complexity"),
-            "estimated_duration": sub_task.get("estimated_duration"),
-            "workflow_phase": sub_task.get("workflow_phase"),
-            "required_skills": sub_task.get("required_skills", []),
-            "deliverables": sub_task.get("deliverables", []),
-            "dependencies": sub_task.get("dependencies", []),
+            "parent_plan_id": plan_id
+            "subtask_id": sub_task.get("id")
+            "complexity": sub_task.get("complexity")
+            "estimated_duration": sub_task.get("estimated_duration")
+            "workflow_phase": sub_task.get("workflow_phase")
+            "required_skills": sub_task.get("required_skills", [])
+            "deliverables": sub_task.get("deliverables", [])
+            "dependencies": sub_task.get("dependencies", [])
         }
 
         cursor = conn.execute(
             """
             INSERT INTO tasks (
-                id, title, task_type, status, priority,
+                id, title, task_type, status, priority
                 assignee, description, created_at, updated_at, payload
             ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, ?)
-        """,
+        """
             (
-                task_id,
-                sub_task.get("title", "Planned Sub-task"),
-                "planned_subtask",
-                "queued",
+                task_id
+                sub_task.get("title", "Planned Sub-task")
+                "planned_subtask"
+                "queued"
                 50,  # Default priority for sub-tasks
-                sub_task.get("assignee", "worker:backend"),
-                sub_task.get("description", ""),
-                json.dumps(payload),
-            ),
+                sub_task.get("assignee", "worker:backend")
+                sub_task.get("description", "")
+                json.dumps(payload)
+            )
         )
 
         created_count += 1

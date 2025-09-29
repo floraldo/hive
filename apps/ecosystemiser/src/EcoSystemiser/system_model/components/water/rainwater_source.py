@@ -1,20 +1,20 @@
 """Rainwater harvesting source component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    GenerationTechnicalParams,
+    FidelityLevel
+    GenerationTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseGenerationOptimization,
-    BaseGenerationPhysics,
+    BaseGenerationOptimization
+    BaseGenerationPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -29,6 +29,8 @@ logger = get_logger(__name__)
 
 class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
     """Rainwater source-specific technical parameters extending generation archetype.
+from __future__ import annotations
+
 
     This model inherits from GenerationTechnicalParams and adds rainwater harvesting-specific
     parameters for different fidelity levels.
@@ -40,7 +42,7 @@ class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
     collection_system_type: str = Field("gravity_fed", description="Type of collection system")
 
     # STANDARD fidelity additions
-    first_flush_diversion: Optional[float] = Field(None, description="First flush diversion volume [mm]")
+    first_flush_diversion: float | None = Field(None, description="First flush diversion volume [mm]")
     filtration_stages: Optional[Dict[str, float]] = Field(None, description="Multi-stage filtration efficiencies")
 
     # DETAILED fidelity parameters
@@ -67,9 +69,9 @@ class RainwaterSourceParams(ComponentParams):
         default_factory=lambda: RainwaterSourceTechnicalParams(
             capacity_nominal=5.0,  # Default 5 m³/h max collection
             efficiency_nominal=0.90,  # Default 90% collection efficiency
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -380,7 +382,7 @@ class RainwaterSource(Component):
 
         return collection_output
 
-    def add_optimization_vars(self, N: Optional[int] = None) -> None:
+    def add_optimization_vars(self, N: int | None = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N
@@ -389,9 +391,9 @@ class RainwaterSource(Component):
 
         # Add as flow
         self.flows["source"]["Q_out"] = {
-            "type": "water",
-            "value": self.Q_out,
-            "profile": self.profile,
+            "type": "water"
+            "value": self.Q_out
+            "profile": self.profile
         }
 
     def set_constraints(self) -> List:

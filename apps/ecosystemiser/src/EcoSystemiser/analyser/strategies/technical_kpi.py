@@ -1,6 +1,6 @@
 """Technical KPI analysis strategy implementation."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -12,6 +12,8 @@ logger = get_logger(__name__)
 
 class TechnicalKPIAnalysis(BaseAnalysis):
     """Calculate technical key performance indicators from simulation results.
+from __future__ import annotations
+
 
     This strategy computes core technical metrics such as:
     - Grid self-sufficiency
@@ -25,7 +27,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         """Initialize technical KPI analysis."""
         super().__init__(name="TechnicalKPI")
 
-    def run(self, results_data: Dict[str, Any], metadata: Optional[Dict] = None) -> Dict[str, Any]:
+    def run(self, results_data: Dict[str, Any], metadata: Dict | None = None) -> Dict[str, Any]:
         """Calculate technical KPIs from results data.
 
         Args:

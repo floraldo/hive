@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 """
@@ -21,7 +23,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, ListTuple
 
 import numpy as np
 import pandas as pd
@@ -52,22 +54,22 @@ class QCIssue:
     message: str  # Human-readable description
     severity: QCSeverity  # Issue severity level
     affected_variables: List[str]  # Variables affected by this issue
-    affected_time_range: Optional[tuple] = None  # Time range affected (start, end)
-    affected_count: Optional[int] = None  # Number of data points affected
+    affected_time_range: tuple | None = None  # Time range affected (start, end)
+    affected_count: int | None = None  # Number of data points affected
     metadata: Dict[str, Any] = field(default_factory=dict)  # Additional metadata
-    suggested_action: Optional[str] = None  # Suggested corrective action
+    suggested_action: str | None = None  # Suggested corrective action
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
         return {
-            "type": self.type,
-            "message": self.message,
-            "severity": self.severity.value,
-            "affected_variables": self.affected_variables,
-            "affected_time_range": self.affected_time_range,
-            "affected_count": self.affected_count,
-            "metadata": self.metadata,
-            "suggested_action": self.suggested_action,
+            "type": self.type
+            "message": self.message
+            "severity": self.severity.value
+            "affected_variables": self.affected_variables
+            "affected_time_range": self.affected_time_range
+            "affected_count": self.affected_count
+            "metadata": self.metadata
+            "suggested_action": self.suggested_action
         }
 
 
@@ -75,12 +77,12 @@ class QCIssue:
 class QCReport:
     """Comprehensive quality control report"""
 
-    dataset_id: Optional[str] = None  # Identifier for the dataset
-    timestamp: Optional[str] = None  # When QC was performed
+    dataset_id: str | None = None  # Identifier for the dataset
+    timestamp: str | None = None  # When QC was performed
     issues: List[QCIssue] = field(default_factory=list)  # All QC issues found
     summary: Dict[str, Any] = field(default_factory=dict)  # Summary statistics
     passed_checks: List[str] = field(default_factory=list)  # List of passed check names
-    data_quality_score: Optional[float] = None  # Overall quality score (0-100)
+    data_quality_score: float | None = None  # Overall quality score (0-100)
     metadata: Dict[str, Any] = field(default_factory=dict)  # Additional metadata
 
     def add_issue(self, issue: QCIssue) -> None:
@@ -115,10 +117,10 @@ class QCReport:
 
         # Weight issues by severity
         severity_weights = {
-            QCSeverity.LOW: 1,
-            QCSeverity.MEDIUM: 5,
-            QCSeverity.HIGH: 15,
-            QCSeverity.CRITICAL: 50,
+            QCSeverity.LOW: 1
+            QCSeverity.MEDIUM: 5
+            QCSeverity.HIGH: 15
+            QCSeverity.CRITICAL: 50
         }
 
         total_penalty = sum(severity_weights[issue.severity] for issue in self.issues)
@@ -142,12 +144,12 @@ class QCReport:
                 variable_issues[var] += 1
 
         self.summary = {
-            "total_issues": len(self.issues),
-            "severity_counts": severity_counts,
-            "quality_score": self.calculate_quality_score(),
-            "variables_with_issues": len(variable_issues),
-            "variable_issue_counts": variable_issues,
-            "passed_checks": len(self.passed_checks),
+            "total_issues": len(self.issues)
+            "severity_counts": severity_counts
+            "quality_score": self.calculate_quality_score()
+            "variables_with_issues": len(variable_issues)
+            "variable_issue_counts": variable_issues
+            "passed_checks": len(self.passed_checks)
         }
 
         return self.summary
@@ -155,12 +157,12 @@ class QCReport:
     def to_dict(self) -> Dict[str, Any]:
         """Convert report to dictionary for serialization"""
         return {
-            "dataset_id": self.dataset_id,
-            "timestamp": self.timestamp,
-            "issues": [issue.to_dict() for issue in self.issues],
-            "summary": self.generate_summary(),
-            "passed_checks": self.passed_checks,
-            "data_quality_score": self.data_quality_score,
+            "dataset_id": self.dataset_id
+            "timestamp": self.timestamp
+            "issues": [issue.to_dict() for issue in self.issues]
+            "summary": self.generate_summary()
+            "passed_checks": self.passed_checks
+            "data_quality_score": self.data_quality_score
         }
 
     def to_json(self) -> str:
@@ -246,57 +248,57 @@ class QCReport:
 
 # Helper functions for creating QC issues
 def create_consistency_issue(
-    message: str,
-    affected_variables: List[str],
-    severity: QCSeverity = QCSeverity.HIGH,
-    **kwargs,
+    message: str
+    affected_variables: List[str]
+    severity: QCSeverity = QCSeverity.HIGH
+    **kwargs
 ) -> QCIssue:
     """Helper to create consistency QC issues"""
     return QCIssue(
-        type="consistency",
-        message=message,
-        severity=severity,
-        affected_variables=affected_variables,
-        **kwargs,
+        type="consistency"
+        message=message
+        severity=severity
+        affected_variables=affected_variables
+        **kwargs
     )
 
 
 def create_bounds_issue(
-    variable: str,
-    n_violations: int,
-    total_points: int,
-    bounds: tuple,
-    severity: QCSeverity = QCSeverity.MEDIUM,
-    **kwargs,
+    variable: str
+    n_violations: int
+    total_points: int
+    bounds: tuple
+    severity: QCSeverity = QCSeverity.MEDIUM
+    **kwargs
 ) -> QCIssue:
     """Helper to create bounds violation QC issues"""
     percent = (n_violations / total_points) * 100
     return QCIssue(
-        type="bounds",
-        message=f"{n_violations} values ({percent:.1f}%) outside physical bounds {bounds} for {variable}",
-        severity=severity,
-        affected_variables=[variable],
-        affected_count=n_violations,
-        metadata={"bounds": bounds, "percent_affected": percent},
-        **kwargs,
+        type="bounds"
+        message=f"{n_violations} values ({percent:.1f}%) outside physical bounds {bounds} for {variable}"
+        severity=severity
+        affected_variables=[variable]
+        affected_count=n_violations
+        metadata={"bounds": bounds, "percent_affected": percent}
+        **kwargs
     )
 
 
 def create_temporal_issue(
-    message: str,
-    affected_variables: List[str],
-    time_range: tuple = None,
-    severity: QCSeverity = QCSeverity.MEDIUM,
-    **kwargs,
+    message: str
+    affected_variables: List[str]
+    time_range: tuple = None
+    severity: QCSeverity = QCSeverity.MEDIUM
+    **kwargs
 ) -> QCIssue:
     """Helper to create temporal continuity QC issues"""
     return QCIssue(
-        type="temporal",
-        message=message,
-        severity=severity,
-        affected_variables=affected_variables,
-        affected_time_range=time_range,
-        **kwargs,
+        type="temporal"
+        message=message
+        severity=severity
+        affected_variables=affected_variables
+        affected_time_range=time_range
+        **kwargs
     )
 
 
@@ -314,7 +316,7 @@ class QCProfile(ABC):
     known_issues: List[str]
     recommended_variables: List[str]
     temporal_resolution_limits: Dict[str, str]  # variable -> minimum resolution
-    spatial_accuracy: Optional[str] = None  # Description of spatial accuracy
+    spatial_accuracy: str | None = None  # Description of spatial accuracy
 
     @abstractmethod
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
@@ -347,12 +349,12 @@ def get_source_profile(source: str) -> QCProfile:
     """
     # Mapping of source names to their adapter modules
     source_mapping = {
-        "nasa_power": "ecosystemiser.profile_loader.climate.adapters.nasa_power",
-        "meteostat": "ecosystemiser.profile_loader.climate.adapters.meteostat",
-        "era5": "ecosystemiser.profile_loader.climate.adapters.era5",
-        "pvgis": "ecosystemiser.profile_loader.climate.adapters.pvgis",
-        "epw": "ecosystemiser.profile_loader.climate.adapters.file_epw",
-        "file_epw": "ecosystemiser.profile_loader.climate.adapters.file_epw",
+        "nasa_power": "ecosystemiser.profile_loader.climate.adapters.nasa_power"
+        "meteostat": "ecosystemiser.profile_loader.climate.adapters.meteostat"
+        "era5": "ecosystemiser.profile_loader.climate.adapters.era5"
+        "pvgis": "ecosystemiser.profile_loader.climate.adapters.pvgis"
+        "epw": "ecosystemiser.profile_loader.climate.adapters.file_epw"
+        "file_epw": "ecosystemiser.profile_loader.climate.adapters.file_epw"
     }
 
     if source not in source_mapping:
@@ -363,13 +365,13 @@ def get_source_profile(source: str) -> QCProfile:
     try:
         if source == "nasa_power":
             from ecosystemiser.profile_loader.climate.adapters.nasa_power import (
-                NASAPowerQCProfile,
+                NASAPowerQCProfile
             )
 
             return NASAPowerQCProfile()
         elif source == "meteostat":
             from ecosystemiser.profile_loader.climate.adapters.meteostat import (
-                MeteostatQCProfile,
+                MeteostatQCProfile
             )
 
             return MeteostatQCProfile()
@@ -379,13 +381,13 @@ def get_source_profile(source: str) -> QCProfile:
             return ERA5QCProfile()
         elif source in ["pvgis"]:
             from ecosystemiser.profile_loader.climate.adapters.pvgis import (
-                get_qc_profile,
+                get_qc_profile
             )
 
             return get_qc_profile()
         elif source in ["epw", "file_epw"]:
             from ecosystemiser.profile_loader.climate.adapters.file_epw import (
-                get_qc_profile,
+                get_qc_profile
             )
 
             return get_qc_profile()
@@ -463,8 +465,8 @@ class MeteorologicalValidator:
             Comprehensive QC report
         """
         report = QCReport(
-            dataset_id=ds.attrs.get("id", f"dataset_{hash(str(ds.dims))}"),
-            timestamp=datetime.now().isoformat(),
+            dataset_id=ds.attrs.get("id", f"dataset_{hash(str(ds.dims))}")
+            timestamp=datetime.now().isoformat()
         )
 
         logger.info("Starting comprehensive meteorological validation")
@@ -520,12 +522,12 @@ class MeteorologicalValidator:
             if n_violations > 0:
                 severity = self._determine_bounds_severity(n_violations, total_points)
                 issue = create_bounds_issue(
-                    variable=var_name,
-                    n_violations=int(n_violations),
-                    total_points=int(total_points),
-                    bounds=(min_bound, max_bound),
-                    severity=severity,
-                    suggested_action=f"Review {var_name} measurements for sensor issues or extreme weather events",
+                    variable=var_name
+                    n_violations=int(n_violations)
+                    total_points=int(total_points)
+                    bounds=(min_bound, max_bound)
+                    severity=severity
+                    suggested_action=f"Review {var_name} measurements for sensor issues or extreme weather events"
                 )
                 report.add_issue(issue)
             else:
@@ -572,12 +574,12 @@ class MeteorologicalValidator:
             severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM
 
             issue = create_consistency_issue(
-                message=f"Dewpoint exceeds air temperature in {n_violations} points ({percent:.1f}%)",
-                affected_variables=["temp_air", "dewpoint"],
-                severity=severity,
-                affected_count=int(n_violations),
-                metadata={"tolerance_degC": tolerance, "percent_affected": percent},
-                suggested_action="Check sensor calibration and shielding",
+                message=f"Dewpoint exceeds air temperature in {n_violations} points ({percent:.1f}%)"
+                affected_variables=["temp_air", "dewpoint"]
+                severity=severity
+                affected_count=int(n_violations)
+                metadata={"tolerance_degC": tolerance, "percent_affected": percent}
+                suggested_action="Check sensor calibration and shielding"
             )
             report.add_issue(issue)
         else:
@@ -617,12 +619,12 @@ class MeteorologicalValidator:
                 severity = QCSeverity.HIGH if percent > 10 else QCSeverity.MEDIUM
 
                 issue = create_consistency_issue(
-                    message=f"Solar radiation components inconsistent in {n_violations} daylight points ({percent:.1f}%)",
-                    affected_variables=["ghi", "dni", "dhi"],
-                    severity=severity,
-                    affected_count=int(n_violations),
-                    metadata={"tolerance_percent": rel_tolerance * 100},
-                    suggested_action="Check solar sensor calibration and alignment",
+                    message=f"Solar radiation components inconsistent in {n_violations} daylight points ({percent:.1f}%)"
+                    affected_variables=["ghi", "dni", "dhi"]
+                    severity=severity
+                    affected_count=int(n_violations)
+                    metadata={"tolerance_percent": rel_tolerance * 100}
+                    suggested_action="Check solar sensor calibration and alignment"
                 )
                 report.add_issue(issue)
             else:
@@ -649,12 +651,12 @@ class MeteorologicalValidator:
             severity = QCSeverity.LOW
 
             issue = create_consistency_issue(
-                message=f"Wind direction defined during very low wind speeds in {n_violations} points ({percent:.1f}%)",
-                affected_variables=["wind_speed", "wind_dir"],
-                severity=severity,
-                affected_count=int(n_violations),
-                metadata={"threshold_ms": low_wind_threshold},
-                suggested_action="Consider filtering wind direction during calm conditions",
+                message=f"Wind direction defined during very low wind speeds in {n_violations} points ({percent:.1f}%)"
+                affected_variables=["wind_speed", "wind_dir"]
+                severity=severity
+                affected_count=int(n_violations)
+                metadata={"threshold_ms": low_wind_threshold}
+                suggested_action="Consider filtering wind direction during calm conditions"
             )
             report.add_issue(issue)
         else:
@@ -681,11 +683,11 @@ class MeteorologicalValidator:
             severity = QCSeverity.MEDIUM if percent > 50 else QCSeverity.LOW
 
             issue = create_consistency_issue(
-                message=f"Heavy precipitation with low humidity in {n_violations} points ({percent:.1f}% of heavy precip events)",
-                affected_variables=["rel_humidity", "precip"],
-                severity=severity,
-                affected_count=int(n_violations),
-                suggested_action="Verify precipitation and humidity sensor calibration",
+                message=f"Heavy precipitation with low humidity in {n_violations} points ({percent:.1f}% of heavy precip events)"
+                affected_variables=["rel_humidity", "precip"]
+                severity=severity
+                affected_count=int(n_violations)
+                suggested_action="Verify precipitation and humidity sensor calibration"
             )
             report.add_issue(issue)
         else:
@@ -720,11 +722,11 @@ class MeteorologicalValidator:
                 severity = QCSeverity.MEDIUM if percent > 20 else QCSeverity.LOW
 
                 issue = create_consistency_issue(
-                    message=f"High solar radiation despite high cloud cover in {n_violations} daylight points ({percent:.1f}%)",
-                    affected_variables=["cloud_cover", "ghi"],
-                    severity=severity,
-                    affected_count=int(n_violations),
-                    suggested_action="Verify cloud cover measurements and solar sensor obstruction",
+                    message=f"High solar radiation despite high cloud cover in {n_violations} daylight points ({percent:.1f}%)"
+                    affected_variables=["cloud_cover", "ghi"]
+                    severity=severity
+                    affected_count=int(n_violations)
+                    suggested_action="Verify cloud cover measurements and solar sensor obstruction"
                 )
                 report.add_issue(issue)
             else:
@@ -823,17 +825,17 @@ class MeteorologicalValidator:
             severity = QCSeverity.HIGH if (n_gaps + n_missing) > len(time_values) * 0.1 else QCSeverity.MEDIUM
 
             issue = create_temporal_issue(
-                message=f"Time continuity issues: {full_message}",
-                affected_variables=list(ds.data_vars.keys()),
-                severity=severity,
+                message=f"Time continuity issues: {full_message}"
+                affected_variables=list(ds.data_vars.keys())
+                severity=severity
                 metadata={
-                    "n_gaps": int(n_gaps),
-                    "n_missing": int(n_missing),
-                    "max_gap_hours": (max_gap.total_seconds() / 3600 if n_gaps > 0 else 0),
-                    "expected_freq": (str(expected_freq) if expected_freq else str(expected_td)),
-                    "freq_source": freq_source,
-                },
-                suggested_action="Check data collection continuity and fill gaps if possible",
+                    "n_gaps": int(n_gaps)
+                    "n_missing": int(n_missing)
+                    "max_gap_hours": (max_gap.total_seconds() / 3600 if n_gaps > 0 else 0)
+                    "expected_freq": (str(expected_freq) if expected_freq else str(expected_td))
+                    "freq_source": freq_source
+                }
+                suggested_action="Check data collection continuity and fill gaps if possible"
             )
             report.add_issue(issue)
         else:
@@ -872,16 +874,16 @@ class MeteorologicalValidator:
                 severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM
 
                 issue = create_temporal_issue(
-                    message=f"Unrealistic rate of change in {var_name}: {n_violations} violations ({percent:.1f}%), max change: {max_observed_change:.2f}",
-                    affected_variables=[var_name],
-                    severity=severity,
-                    affected_count=int(n_violations),
+                    message=f"Unrealistic rate of change in {var_name}: {n_violations} violations ({percent:.1f}%), max change: {max_observed_change:.2f}"
+                    affected_variables=[var_name]
+                    severity=severity
+                    affected_count=int(n_violations)
                     metadata={
-                        "max_allowed_change": max_change,
-                        "max_observed_change": float(max_observed_change),
-                        "percent_violations": percent,
-                    },
-                    suggested_action=f"Review {var_name} measurements for sensor spikes or extreme weather events",
+                        "max_allowed_change": max_change
+                        "max_observed_change": float(max_observed_change)
+                        "percent_violations": percent
+                    }
+                    suggested_action=f"Review {var_name} measurements for sensor spikes or extreme weather events"
                 )
                 report.add_issue(issue)
             else:
@@ -918,13 +920,13 @@ class MeteorologicalValidator:
                 continue
 
             issue = QCIssue(
-                type="missing_data",
-                message=message,
-                severity=severity,
-                affected_variables=[var_name],
-                affected_count=int(missing_points),
-                metadata={"missing_percent": missing_percent},
-                suggested_action=suggested_action,
+                type="missing_data"
+                message=message
+                severity=severity
+                affected_variables=[var_name]
+                affected_count=int(missing_points)
+                metadata={"missing_percent": missing_percent}
+                suggested_action=suggested_action
             )
             report.add_issue(issue)
 
@@ -956,15 +958,15 @@ class MeteorologicalValidator:
                 severity = QCSeverity.HIGH if std_dev == 0 else QCSeverity.MEDIUM
 
                 issue = QCIssue(
-                    type="constant_values",
-                    message=f"Suspiciously low variation in {var_name}: std={std_dev:.4f} (threshold={min_variation})",
-                    severity=severity,
-                    affected_variables=[var_name],
+                    type="constant_values"
+                    message=f"Suspiciously low variation in {var_name}: std={std_dev:.4f} (threshold={min_variation})"
+                    severity=severity
+                    affected_variables=[var_name]
                     metadata={
-                        "std_deviation": float(std_dev),
-                        "threshold": min_variation,
-                    },
-                    suggested_action=f"Check {var_name} sensor for malfunction or calibration issues",
+                        "std_deviation": float(std_dev)
+                        "threshold": min_variation
+                    }
+                    suggested_action=f"Check {var_name} sensor for malfunction or calibration issues"
                 )
                 report.add_issue(issue)
             else:
@@ -1031,12 +1033,12 @@ class MeteorologicalValidator:
 
                     if outlier_percent > 5:  # More than 5% outliers
                         issue = QCIssue(
-                            type="statistical_outliers",
-                            message=f"High number of statistical outliers in {var_name}: {outlier_percent:.1f}%",
-                            severity=QCSeverity.MEDIUM,
-                            affected_variables=[var_name],
-                            metadata={"outlier_percent": outlier_percent},
-                            suggested_action="Review data for measurement errors or extreme events",
+                            type="statistical_outliers"
+                            message=f"High number of statistical outliers in {var_name}: {outlier_percent:.1f}%"
+                            severity=QCSeverity.MEDIUM
+                            affected_variables=[var_name]
+                            metadata={"outlier_percent": outlier_percent}
+                            suggested_action="Review data for measurement errors or extreme events"
                         )
                         report.add_issue(issue)
 
@@ -1050,11 +1052,11 @@ class MeteorologicalValidator:
 
                 if irregular_steps > len(time_deltas) * 0.1:  # More than 10% irregular
                     issue = QCIssue(
-                        type="temporal",
-                        message=f"Irregular time steps detected: {irregular_steps} out of {len(time_deltas)}",
-                        severity=QCSeverity.LOW,
-                        affected_variables=[],
-                        suggested_action="Consider resampling to regular time intervals",
+                        type="temporal"
+                        message=f"Irregular time steps detected: {irregular_steps} out of {len(time_deltas)}"
+                        severity=QCSeverity.LOW
+                        affected_variables=[]
+                        suggested_action="Consider resampling to regular time intervals"
                     )
                     report.add_issue(issue)
 
@@ -1102,18 +1104,18 @@ class MeteorologicalValidator:
 
         # Add summary to report metadata
         report.metadata["validation_summary"] = {
-            "total_issues": total_issues,
-            "severity_breakdown": severity_counts,
-            "quality_score": quality_score,
-            "recommendations": recommendations,
-            "validation_level": "comprehensive",
-            "checks_performed": len(report.passed_checks),
+            "total_issues": total_issues
+            "severity_breakdown": severity_counts
+            "quality_score": quality_score
+            "recommendations": recommendations
+            "validation_level": "comprehensive"
+            "checks_performed": len(report.passed_checks)
         }
 
     def validate_batch(
-        self,
-        datasets: List[Tuple[xr.Dataset, str, Optional[str]]],
-        validation_level: str = "standard",
+        self
+        datasets: List[Tuple[xr.Dataset, str, str | None]]
+        validation_level: str = "standard"
     ) -> Dict[str, QCReport]:
         """
         Validate multiple datasets in batch.
@@ -1141,11 +1143,11 @@ class MeteorologicalValidator:
                 error_report.metadata = {"error": str(e)}
                 error_report.add_issue(
                     QCIssue(
-                        type="validation_error",
-                        message=f"Validation failed: {str(e)}",
-                        severity=QCSeverity.CRITICAL,
-                        affected_variables=[],
-                        suggested_action="Check dataset format and processing pipeline",
+                        type="validation_error"
+                        message=f"Validation failed: {str(e)}"
+                        severity=QCSeverity.CRITICAL
+                        affected_variables=[]
+                        suggested_action="Check dataset format and processing pipeline"
                     )
                 )
                 reports[identifier] = error_report
@@ -1160,11 +1162,11 @@ class MeteorologicalValidator:
 
 
 def validate_complete(
-    ds: xr.Dataset,
-    source: Optional[str] = None,
-    validation_level: str = "comprehensive",
-    strict_mode: bool = False,
-    enable_profiling: bool = True,
+    ds: xr.Dataset
+    source: str | None = None
+    validation_level: str = "comprehensive"
+    strict_mode: bool = False
+    enable_profiling: bool = True
 ) -> QCReport:
     """
     Perform complete validation of climate dataset.
@@ -1186,18 +1188,18 @@ def validate_complete(
 
     # Initialize comprehensive report
     report = QCReport(
-        dataset_id=f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        timestamp=datetime.now().isoformat(),
+        dataset_id=f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        timestamp=datetime.now().isoformat()
     )
 
     # Add dataset info to metadata
     report.metadata = {
         "dataset_info": {
-            "variables": list(ds.data_vars.keys()),
-            "time_range": (str(ds.time.min().values), str(ds.time.max().values)),
+            "variables": list(ds.data_vars.keys())
+            "time_range": (str(ds.time.min().values), str(ds.time.max().values))
             "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning
-            "attributes": dict(ds.attrs),
-            "source": source,
+            "attributes": dict(ds.attrs)
+            "source": source
         }
     }
 
@@ -1235,11 +1237,11 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
     # Check for required dimensions
     if "time" not in ds.dims:
         issue = QCIssue(
-            type="structural",
-            message="Missing required 'time' dimension",
-            severity=QCSeverity.HIGH,
-            affected_variables=[],
-            suggested_action="Ensure dataset has time coordinate",
+            type="structural"
+            message="Missing required 'time' dimension"
+            severity=QCSeverity.HIGH
+            affected_variables=[]
+            suggested_action="Ensure dataset has time coordinate"
         )
         report.add_issue(issue)
 
@@ -1248,11 +1250,11 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
         data = ds[var_name].values
         if np.all(np.isnan(data)):
             issue = QCIssue(
-                type="data_completeness",
-                message=f"Variable '{var_name}' contains only NaN values",
-                severity=QCSeverity.HIGH,
-                affected_variables=[var_name],
-                suggested_action="Check data source or processing pipeline",
+                type="data_completeness"
+                message=f"Variable '{var_name}' contains only NaN values"
+                severity=QCSeverity.HIGH
+                affected_variables=[var_name]
+                suggested_action="Check data source or processing pipeline"
             )
             report.add_issue(issue)
 
@@ -1261,11 +1263,11 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
         time_diffs = np.diff(ds.time.values)
         if not np.all(time_diffs > np.timedelta64(0)):
             issue = QCIssue(
-                type="temporal",
-                message="Time coordinate is not monotonically increasing",
-                severity=QCSeverity.HIGH,
-                affected_variables=[],
-                suggested_action="Sort dataset by time or check for duplicates",
+                type="temporal"
+                message="Time coordinate is not monotonically increasing"
+                severity=QCSeverity.HIGH
+                affected_variables=[]
+                suggested_action="Sort dataset by time or check for duplicates"
             )
             report.add_issue(issue)
 
@@ -1289,29 +1291,29 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
 
         if missing_recommended:
             issue = QCIssue(
-                type="source_limitation",
-                message=f"Missing recommended variables for {source}: {list(missing_recommended)}",
-                severity=QCSeverity.LOW,
-                affected_variables=list(missing_recommended),
-                suggested_action="Consider requesting additional variables from source",
+                type="source_limitation"
+                message=f"Missing recommended variables for {source}: {list(missing_recommended)}"
+                severity=QCSeverity.LOW
+                affected_variables=list(missing_recommended)
+                suggested_action="Consider requesting additional variables from source"
             )
             report.add_issue(issue)
 
         # Add source-specific information to report
         report.metadata["source_profile"] = {
-            "name": profile.name,
-            "known_issues": profile.known_issues,
-            "spatial_accuracy": profile.spatial_accuracy,
+            "name": profile.name
+            "known_issues": profile.known_issues
+            "spatial_accuracy": profile.spatial_accuracy
         }
 
     except ValueError as e:
         logger.warning(f"Source profile not found for '{source}': {e}")
         issue = QCIssue(
-            type="configuration",
-            message=f"No validation profile available for source '{source}'",
-            severity=QCSeverity.LOW,
-            affected_variables=[],
-            suggested_action="Add validation profile for this data source",
+            type="configuration"
+            message=f"No validation profile available for source '{source}'"
+            severity=QCSeverity.LOW
+            affected_variables=[]
+            suggested_action="Add validation profile for this data source"
         )
         report.add_issue(issue)
 
@@ -1341,12 +1343,12 @@ PHYSICAL_BOUNDS = {
 
 
 def apply_quality_control(
-    ds: xr.Dataset,
-    bounds: Dict[str, Tuple[float, float]] = None,
-    spike_filter: bool = True,
-    gap_fill: bool = True,
-    source: str = None,
-    comprehensive: bool = True,
+    ds: xr.Dataset
+    bounds: Dict[str, Tuple[float, float]] = None
+    spike_filter: bool = True
+    gap_fill: bool = True
+    source: str = None
+    comprehensive: bool = True
 ) -> Tuple[xr.Dataset, QCReport]:
     """
     Apply quality control to climate dataset.
@@ -1368,11 +1370,11 @@ def apply_quality_control(
     # Perform comprehensive validation using module-level function
     validation_level = "comprehensive" if comprehensive else "standard"
     report = validate_complete(
-        ds,
-        source=source,
-        validation_level=validation_level,
-        strict_mode=False,
-        enable_profiling=True,
+        ds
+        source=source
+        validation_level=validation_level
+        strict_mode=False
+        enable_profiling=True
     )
 
     # Apply corrective actions based on validation report
@@ -1382,11 +1384,11 @@ def apply_quality_control(
 
 
 def apply_corrections(
-    ds: xr.Dataset,
-    report: QCReport,
-    bounds: Dict[str, Tuple[float, float]] = None,
-    spike_filter: bool = True,
-    gap_fill: bool = True,
+    ds: xr.Dataset
+    report: QCReport
+    bounds: Dict[str, Tuple[float, float]] = None
+    spike_filter: bool = True
+    gap_fill: bool = True
 ) -> xr.Dataset:
     """
     Apply corrective actions based on validation report.
@@ -1482,8 +1484,8 @@ def clip_physical_bounds(ds: xr.Dataset, bounds: Dict[str, Tuple[float, float]] 
             if n_clipped > 0:
                 ds_clipped[var_name].values = clipped
                 report[var_name] = {
-                    "n_clipped": int(n_clipped),
-                    "percent": float(n_clipped / original.size * 100),
+                    "n_clipped": int(n_clipped)
+                    "percent": float(n_clipped / original.size * 100)
                 }
                 logger.info(
                     f"Clipped {n_clipped} values ({report[var_name]['percent']:.2f}%) "
@@ -1538,9 +1540,9 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> Tuple[xr.Datas
             ds_filtered[var_name].values[spikes] = np.nan
 
             report[var_name] = {
-                "n_spikes": int(n_spikes),
-                "percent": float(n_spikes / data.size * 100),
-                "bounds": (float(lower_bound), float(upper_bound)),
+                "n_spikes": int(n_spikes)
+                "percent": float(n_spikes / data.size * 100)
+                "bounds": (float(lower_bound), float(upper_bound))
             }
 
             logger.info(f"Flagged {n_spikes} spikes ({report[var_name]['percent']:.2f}%) " f"in '{var_name}'")
@@ -1597,9 +1599,9 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> Tuple[xr.Dataset, Dict]
         n_gaps_filled = n_gaps_initial - np.sum(np.isnan(data_interp.values))
         if n_gaps_filled > 0:
             report[var_name] = {
-                "n_gaps_initial": int(n_gaps_initial),
-                "n_gaps_filled": int(n_gaps_filled),
-                "fill_rate": float(n_gaps_filled / n_gaps_initial * 100),
+                "n_gaps_initial": int(n_gaps_initial)
+                "n_gaps_filled": int(n_gaps_filled)
+                "fill_rate": float(n_gaps_filled / n_gaps_initial * 100)
             }
 
             logger.info(
@@ -1611,7 +1613,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> Tuple[xr.Dataset, Dict]
 
 
 # Convenience function for quick validation
-def validate_climate_data(ds: xr.Dataset, source: Optional[str] = None, level: str = "standard") -> QCReport:
+def validate_climate_data(ds: xr.Dataset, source: str | None = None, level: str = "standard") -> QCReport:
     """
     Convenience function for quick climate data validation.
 

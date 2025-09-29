@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, ListTuple
 
 import numpy as np
 from hive_logging import get_logger
@@ -13,6 +13,8 @@ logger = get_logger(__name__)
 
 class OptimizationStatus(Enum):
     """Status of optimization algorithm."""
+from __future__ import annotations
+
 
     NOT_STARTED = "not_started"
     IN_PROGRESS = "in_progress"
@@ -26,8 +28,8 @@ class OptimizationStatus(Enum):
 class OptimizationResult:
     """Result of an optimization run."""
 
-    best_solution: Optional[np.ndarray] = None
-    best_fitness: Optional[float] = None
+    best_solution: np.ndarray | None = None
+    best_fitness: float | None = None
     best_objectives: Optional[List[float]] = None
     pareto_front: Optional[List[np.ndarray]] = None
     pareto_objectives: Optional[List[List[float]]] = None
@@ -56,7 +58,7 @@ class OptimizationConfig:
     # Algorithm parameters
     population_size: int = 50
     max_generations: int = 100
-    max_evaluations: Optional[int] = None
+    max_evaluations: int | None = None
     convergence_tolerance: float = 1e-6
     convergence_patience: int = 10
 
@@ -67,12 +69,12 @@ class OptimizationConfig:
     # Execution parameters
     parallel_evaluation: bool = True
     max_workers: int = 4
-    seed: Optional[int] = None
+    seed: int | None = None
     verbose: bool = True
 
     # Termination criteria
-    target_fitness: Optional[float] = None
-    time_limit: Optional[float] = None  # seconds
+    target_fitness: float | None = None
+    time_limit: float | None = None  # seconds
 
 
 class BaseOptimizationAlgorithm(ABC):
@@ -206,11 +208,11 @@ class BaseOptimizationAlgorithm(ABC):
             self.status = OptimizationStatus.ERROR
 
             return OptimizationResult(
-                status=OptimizationStatus.ERROR,
-                execution_time=time.time() - start_time,
-                iterations=self.current_generation,
-                evaluations=self.current_evaluations,
-                metadata={"error": str(e)},
+                status=OptimizationStatus.ERROR
+                execution_time=time.time() - start_time
+                iterations=self.current_generation
+                evaluations=self.current_evaluations
+                metadata={"error": str(e)}
             )
 
     def _get_best_fitness(self, evaluations: List[Dict[str, Any]]) -> float:
@@ -274,10 +276,10 @@ class BaseOptimizationAlgorithm(ABC):
         return False
 
     def _create_result(
-        self,
-        population: np.ndarray,
-        evaluations: List[Dict[str, Any]],
-        start_time: float,
+        self
+        population: np.ndarray
+        evaluations: List[Dict[str, Any]]
+        start_time: float
     ) -> OptimizationResult:
         """Create optimization result.
 
@@ -291,33 +293,33 @@ class BaseOptimizationAlgorithm(ABC):
         """
         if not evaluations:
             return OptimizationResult(
-                status=self.status,
-                execution_time=time.time() - start_time,
-                iterations=self.current_generation,
-                evaluations=self.current_evaluations,
+                status=self.status
+                execution_time=time.time() - start_time
+                iterations=self.current_generation
+                evaluations=self.current_evaluations
             )
 
         # Find best solution
         if len(self.config.objectives) == 1:
             # Single objective - find minimum
             best_idx = min(
-                range(len(evaluations)),
-                key=lambda i: evaluations[i].get("fitness", float("inf")),
+                range(len(evaluations))
+                key=lambda i: evaluations[i].get("fitness", float("inf"))
             )
 
             return OptimizationResult(
-                best_solution=population[best_idx],
-                best_fitness=evaluations[best_idx].get("fitness"),
-                best_objectives=evaluations[best_idx].get("objectives"),
-                convergence_history=self.convergence_history,
-                status=self.status,
-                iterations=self.current_generation,
-                evaluations=self.current_evaluations,
-                execution_time=time.time() - start_time,
+                best_solution=population[best_idx]
+                best_fitness=evaluations[best_idx].get("fitness")
+                best_objectives=evaluations[best_idx].get("objectives")
+                convergence_history=self.convergence_history
+                status=self.status
+                iterations=self.current_generation
+                evaluations=self.current_evaluations
+                execution_time=time.time() - start_time
                 metadata={
-                    "final_population_size": len(population),
-                    "convergence_generations": len(self.convergence_history),
-                },
+                    "final_population_size": len(population)
+                    "convergence_generations": len(self.convergence_history)
+                }
             )
         else:
             # Multi-objective - return Pareto front
@@ -329,20 +331,20 @@ class BaseOptimizationAlgorithm(ABC):
             best_idx = self._find_best_compromise_solution(evaluations, pareto_indices)
 
             return OptimizationResult(
-                best_solution=population[best_idx] if best_idx is not None else None,
-                best_fitness=(evaluations[best_idx].get("fitness") if best_idx is not None else None),
-                best_objectives=(evaluations[best_idx].get("objectives") if best_idx is not None else None),
-                pareto_front=pareto_solutions,
-                pareto_objectives=pareto_objectives,
-                convergence_history=self.convergence_history,
-                status=self.status,
-                iterations=self.current_generation,
-                evaluations=self.current_evaluations,
-                execution_time=time.time() - start_time,
+                best_solution=population[best_idx] if best_idx is not None else None
+                best_fitness=(evaluations[best_idx].get("fitness") if best_idx is not None else None)
+                best_objectives=(evaluations[best_idx].get("objectives") if best_idx is not None else None)
+                pareto_front=pareto_solutions
+                pareto_objectives=pareto_objectives
+                convergence_history=self.convergence_history
+                status=self.status
+                iterations=self.current_generation
+                evaluations=self.current_evaluations
+                execution_time=time.time() - start_time
                 metadata={
-                    "pareto_front_size": len(pareto_solutions),
-                    "final_population_size": len(population),
-                },
+                    "pareto_front_size": len(pareto_solutions)
+                    "final_population_size": len(population)
+                }
             )
 
     def _find_pareto_front(self, evaluations: List[Dict[str, Any]]) -> List[int]:
@@ -388,7 +390,7 @@ class BaseOptimizationAlgorithm(ABC):
 
     def _find_best_compromise_solution(
         self, evaluations: List[Dict[str, Any]], pareto_indices: List[int]
-    ) -> Optional[int]:
+    ) -> int | None:
         """Find best compromise solution from Pareto front.
 
         Args:

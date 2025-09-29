@@ -3,6 +3,8 @@
 This service acts as an intermediary between high-level services (like StudyService)
 and execution services (like SimulationService), preparing for future event-driven architecture.
 """
+from __future__ import annotations
+
 
 import json
 import uuid
@@ -10,7 +12,7 @@ from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from ecosystemiser.core.bus import get_ecosystemiser_event_bus
 from ecosystemiser.core.events import SimulationEvent, StudyEvent
@@ -46,9 +48,9 @@ class JobRequest(BaseModel):
     job_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     job_type: JobType
     config: Dict[str, Any]
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
     priority: int = 0  # Higher numbers = higher priority
-    timeout_seconds: Optional[int] = None
+    timeout_seconds: int | None = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -59,10 +61,10 @@ class JobResult(BaseModel):
     job_type: JobType
     status: JobStatus
     result: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    execution_time_seconds: Optional[float] = None
+    error: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    execution_time_seconds: float | None = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -90,11 +92,11 @@ class JobFacade:
         logger.info(f"JobFacade initialized with {max_workers} workers")
 
     def submit_simulation_job(
-        self,
-        config: Dict[str, Any],
-        correlation_id: Optional[str] = None,
-        timeout: Optional[int] = None,
-        blocking: bool = True,
+        self
+        config: Dict[str, Any]
+        correlation_id: str | None = None
+        timeout: int | None = None
+        blocking: bool = True
     ) -> JobResult:
         """Submit a simulation job for execution.
 
@@ -117,8 +119,8 @@ class JobFacade:
         # Publish job submitted event
         self.event_bus.publish(
             SimulationEvent(
-                event_type="simulation_requested",
-                data={"job_id": request.job_id, "correlation_id": correlation_id, "config": config},
+                event_type="simulation_requested"
+                data={"job_id": request.job_id, "correlation_id": correlation_id, "config": config}
             )
         )
 
@@ -131,10 +133,10 @@ class JobFacade:
 
             # Return pending status immediately
             result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.SIMULATION,
-                status=JobStatus.PENDING,
-                metadata={"future": future},
+                job_id=request.job_id
+                job_type=JobType.SIMULATION
+                status=JobStatus.PENDING
+                metadata={"future": future}
             )
             self._jobs[request.job_id] = result
             return result
@@ -151,9 +153,9 @@ class JobFacade:
         # Lazy import to avoid circular dependency
         if self._simulation_service is None:
             from ecosystemiser.services.simulation_service import (
-                SimulationConfig,
-                SimulationResult,
-                SimulationService,
+                SimulationConfig
+                SimulationResult
+                SimulationService
             )
 
             self._simulation_service = SimulationService()
@@ -175,62 +177,62 @@ class JobFacade:
 
             # Create success result
             result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.SIMULATION,
-                status=JobStatus.COMPLETED,
-                result=sim_result.dict() if hasattr(sim_result, "dict") else sim_result,
-                started_at=started_at,
-                completed_at=completed_at,
-                execution_time_seconds=execution_time,
+                job_id=request.job_id
+                job_type=JobType.SIMULATION
+                status=JobStatus.COMPLETED
+                result=sim_result.dict() if hasattr(sim_result, "dict") else sim_result
+                started_at=started_at
+                completed_at=completed_at
+                execution_time_seconds=execution_time
             )
 
             # Publish completion event
             self.event_bus.publish(
                 SimulationEvent(
-                    event_type="simulation_completed",
+                    event_type="simulation_completed"
                     data={
-                        "job_id": request.job_id,
-                        "correlation_id": request.correlation_id,
-                        "status": "success",
-                        "execution_time": execution_time,
-                    },
+                        "job_id": request.job_id
+                        "correlation_id": request.correlation_id
+                        "status": "success"
+                        "execution_time": execution_time
+                    }
                 )
             )
 
         except TimeoutError:
             result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.SIMULATION,
-                status=JobStatus.TIMEOUT,
-                error="Job execution timed out",
-                started_at=started_at,
-                completed_at=datetime.now(),
+                job_id=request.job_id
+                job_type=JobType.SIMULATION
+                status=JobStatus.TIMEOUT
+                error="Job execution timed out"
+                started_at=started_at
+                completed_at=datetime.now()
             )
 
             # Publish timeout event
             self.event_bus.publish(
                 SimulationEvent(
-                    event_type="simulation_failed",
-                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": "timeout"},
+                    event_type="simulation_failed"
+                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": "timeout"}
                 )
             )
 
         except Exception as e:
             logger.exception(f"Job {request.job_id} failed with error")
             result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.SIMULATION,
-                status=JobStatus.FAILED,
-                error=str(e),
-                started_at=started_at,
-                completed_at=datetime.now(),
+                job_id=request.job_id
+                job_type=JobType.SIMULATION
+                status=JobStatus.FAILED
+                error=str(e)
+                started_at=started_at
+                completed_at=datetime.now()
             )
 
             # Publish failure event
             self.event_bus.publish(
                 SimulationEvent(
-                    event_type="simulation_failed",
-                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": str(e)},
+                    event_type="simulation_failed"
+                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": str(e)}
                 )
             )
 
@@ -239,11 +241,11 @@ class JobFacade:
         return result
 
     def submit_analysis_job(
-        self,
-        config: Dict[str, Any],
-        correlation_id: Optional[str] = None,
-        timeout: Optional[int] = None,
-        blocking: bool = True,
+        self
+        config: Dict[str, Any]
+        correlation_id: str | None = None
+        timeout: int | None = None
+        blocking: bool = True
     ) -> JobResult:
         """Submit an analysis job for execution.
 
@@ -299,30 +301,30 @@ class JobFacade:
             execution_time = (completed_at - started_at).total_seconds()
 
             result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.ANALYSIS,
-                status=JobStatus.COMPLETED,
-                result=analysis_result,
-                started_at=started_at,
-                completed_at=completed_at,
-                execution_time_seconds=execution_time,
+                job_id=request.job_id
+                job_type=JobType.ANALYSIS
+                status=JobStatus.COMPLETED
+                result=analysis_result
+                started_at=started_at
+                completed_at=completed_at
+                execution_time_seconds=execution_time
             )
 
         except Exception as e:
             logger.exception(f"Analysis job {request.job_id} failed")
             result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.ANALYSIS,
-                status=JobStatus.FAILED,
-                error=str(e),
-                started_at=started_at,
-                completed_at=datetime.now(),
+                job_id=request.job_id
+                job_type=JobType.ANALYSIS
+                status=JobStatus.FAILED
+                error=str(e)
+                started_at=started_at
+                completed_at=datetime.now()
             )
 
         self._jobs[request.job_id] = result
         return result
 
-    def get_job_status(self, job_id: str) -> Optional[JobResult]:
+    def get_job_status(self, job_id: str) -> JobResult | None:
         """Get the status of a submitted job.
 
         Args:
@@ -333,7 +335,7 @@ class JobFacade:
         """
         return self._jobs.get(job_id)
 
-    def wait_for_job(self, job_id: str, timeout: Optional[int] = None) -> JobResult:
+    def wait_for_job(self, job_id: str, timeout: int | None = None) -> JobResult:
         """Wait for a job to complete.
 
         Args:
@@ -411,7 +413,7 @@ class JobFacade:
         else:
             raise ValueError(f"Unsupported job type: {job_type}")
 
-    def get_job_result(self, job_id: str) -> Optional[JobResult]:
+    def get_job_result(self, job_id: str) -> JobResult | None:
         """Get the result of a completed job.
 
         Args:

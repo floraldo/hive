@@ -4,14 +4,14 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pandas as pd
 from ecosystemiser.analyser.strategies import (
-    BaseAnalysis,
-    EconomicAnalysis,
-    SensitivityAnalysis,
-    TechnicalKPIAnalysis,
+    BaseAnalysis
+    EconomicAnalysis
+    SensitivityAnalysis
+    TechnicalKPIAnalysis
 )
 from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 from ecosystemiser.core.events import AnalysisEvent
@@ -22,14 +22,16 @@ logger = get_logger(__name__)
 
 class AnalyserService:
     """Orchestrator for executing analysis strategies on simulation results.
+from __future__ import annotations
 
-    This service coordinates the execution of various analysis strategies,
+
+    This service coordinates the execution of various analysis strategies
     managing the flow of data from raw simulation results to structured
-    analysis outputs. It follows the principle of separation of concerns,
+    analysis outputs. It follows the principle of separation of concerns
     producing only data (JSON) without any visualization or side effects.
     """
 
-    def __init__(self, event_bus: Optional[EcoSystemiserEventBus] = None) -> None:
+    def __init__(self, event_bus: EcoSystemiserEventBus | None = None) -> None:
         """Initialize the AnalyserService with available strategies.
 
         Args:
@@ -59,10 +61,10 @@ class AnalyserService:
         logger.info(f"Registered analysis strategy: {name}")
 
     def analyse(
-        self,
-        results_path: str,
-        strategies: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
+        self
+        results_path: str
+        strategies: Optional[List[str]] = None
+        metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Execute analysis on simulation results.
 
@@ -93,22 +95,22 @@ class AnalyserService:
 
         # Publish analysis started event
         self._publish_analysis_event(
-            event_type=EcoSystemiserEventType.ANALYSIS_STARTED,
-            analysis_id=analysis_id,
-            source_results_path=results_path,
-            strategies_executed=strategies_to_run,
+            event_type=EcoSystemiserEventType.ANALYSIS_STARTED
+            analysis_id=analysis_id
+            source_results_path=results_path
+            strategies_executed=strategies_to_run
         )
 
         try:
             # Execute analysis strategies
             analysis_results = {
                 "metadata": {
-                    "analysis_id": analysis_id,
-                    "results_path": str(results_path),
-                    "strategies_executed": strategies_to_run,
-                    "analysis_timestamp": pd.Timestamp.now().isoformat(),
-                },
-                "analyses": {},
+                    "analysis_id": analysis_id
+                    "results_path": str(results_path)
+                    "strategies_executed": strategies_to_run
+                    "analysis_timestamp": pd.Timestamp.now().isoformat()
+                }
+                "analyses": {}
             }
 
             for strategy_name in strategies_to_run:
@@ -121,8 +123,8 @@ class AnalyserService:
                 except Exception as e:
                     logger.error(f"Error executing strategy {strategy_name}: {e}")
                     analysis_results["analyses"][strategy_name] = {
-                        "error": str(e),
-                        "status": "failed",
+                        "error": str(e)
+                        "status": "failed"
                     }
 
             # Add summary
@@ -134,11 +136,11 @@ class AnalyserService:
 
             # Publish analysis completed event
             self._publish_analysis_event(
-                event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
-                analysis_id=analysis_id,
-                source_results_path=results_path,
-                strategies_executed=strategies_to_run,
-                duration_seconds=execution_time,
+                event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED
+                analysis_id=analysis_id
+                source_results_path=results_path
+                strategies_executed=strategies_to_run
+                duration_seconds=execution_time
             )
 
             return analysis_results
@@ -148,11 +150,11 @@ class AnalyserService:
 
             # Publish analysis failed event
             self._publish_analysis_event(
-                event_type=EcoSystemiserEventType.ANALYSIS_FAILED,
-                analysis_id=analysis_id,
-                source_results_path=results_path,
-                strategies_executed=strategies_to_run,
-                duration_seconds=execution_time,
+                event_type=EcoSystemiserEventType.ANALYSIS_FAILED
+                analysis_id=analysis_id
+                source_results_path=results_path
+                strategies_executed=strategies_to_run
+                duration_seconds=execution_time
             )
 
             logger.error(f"Analysis {analysis_id} failed: {e}")
@@ -253,20 +255,20 @@ class AnalyserService:
                 # Extract key metrics based on strategy type
                 if strategy_name == "technical_kpi":
                     for key in [
-                        "grid_self_sufficiency",
-                        "renewable_fraction",
-                        "system_efficiency",
-                        "battery_cycles",
+                        "grid_self_sufficiency"
+                        "renewable_fraction"
+                        "system_efficiency"
+                        "battery_cycles"
                     ]:
                         if key in results:
                             summary["key_metrics"][key] = results[key]
 
                 elif strategy_name == "economic":
                     for key in [
-                        "lcoe",
-                        "npv",
-                        "payback_period_years",
-                        "total_cost_ownership",
+                        "lcoe"
+                        "npv"
+                        "payback_period_years"
+                        "total_cost_ownership"
                     ]:
                         if key in results:
                             summary["key_metrics"][key] = results[key]
@@ -296,22 +298,22 @@ class AnalyserService:
         metadata = analysis_results.get("metadata", {})
         if "analysis_id" in metadata:
             self._publish_analysis_event(
-                event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
-                analysis_id=metadata["analysis_id"],
-                source_results_path=metadata.get("results_path", ""),
-                strategies_executed=metadata.get("strategies_executed", []),
-                analysis_results_path=output_path,
-                duration_seconds=metadata.get("execution_time_seconds"),
+                event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED
+                analysis_id=metadata["analysis_id"]
+                source_results_path=metadata.get("results_path", "")
+                strategies_executed=metadata.get("strategies_executed", [])
+                analysis_results_path=output_path
+                duration_seconds=metadata.get("execution_time_seconds")
             )
 
     def _publish_analysis_event(
-        self,
-        event_type: str,
-        analysis_id: str,
-        source_results_path: str,
-        strategies_executed: List[str],
-        analysis_results_path: Optional[str] = None,
-        duration_seconds: Optional[float] = None,
+        self
+        event_type: str
+        analysis_id: str
+        source_results_path: str
+        strategies_executed: List[str]
+        analysis_results_path: str | None = None
+        duration_seconds: float | None = None
     ):
         """Helper method to publish analysis events.
 
@@ -327,13 +329,13 @@ class AnalyserService:
 
         try:
             analysis_event = create_analysis_event(
-                event_type=event_type,
-                analysis_id=analysis_id,
-                source_agent="AnalyserService",
-                source_results_path=source_results_path,
-                analysis_results_path=analysis_results_path,
-                strategies_executed=strategies_executed,
-                duration_seconds=duration_seconds,
+                event_type=event_type
+                analysis_id=analysis_id
+                source_agent="AnalyserService"
+                source_results_path=source_results_path
+                analysis_results_path=analysis_results_path
+                strategies_executed=strategies_executed
+                duration_seconds=duration_seconds
             )
 
             # Publish event using sync publisher

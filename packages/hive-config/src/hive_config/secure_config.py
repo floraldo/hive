@@ -5,13 +5,15 @@ Provides encrypted secrets management for production deployments.
 Supports both plain .env files (development) and encrypted .env.prod files (production).
 Enhanced with random salt encryption to prevent rainbow table attacks.
 """
+from __future__ import annotations
+
 
 import base64
 import json
 import os
 import secrets
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -32,7 +34,7 @@ class SecureConfigLoader:
     - Backward compatibility with legacy static salt files
     """
 
-    def __init__(self, master_key: Optional[str] = None) -> None:
+    def __init__(self, master_key: str | None = None) -> None:
         """
         Initialize secure config loader
 
@@ -48,10 +50,10 @@ class SecureConfigLoader:
     def _derive_key(self, salt: bytes) -> bytes:
         """Derive encryption key from master key and salt"""
         kdf = PBKDF2(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
+            algorithm=hashes.SHA256()
+            length=32
+            salt=salt
+            iterations=100000
         )
         return base64.urlsafe_b64encode(kdf.derive(self.master_key.encode()))
 
@@ -70,7 +72,7 @@ class SecureConfigLoader:
             logger.error(f"Failed to initialize cipher: {e}")
             raise ValueError("Invalid master key provided")
 
-    def encrypt_file(self, input_path: Path, output_path: Optional[Path] = None) -> Path:
+    def encrypt_file(self, input_path: Path, output_path: Path | None = None) -> Path:
         """
         Encrypt a configuration file with random salt for enhanced security
 
@@ -246,12 +248,12 @@ class SecureConfigLoader:
         # Define potential config files
         app_dir = project_root / "apps" / app_name
         config_files = [
-            (project_root / ".env.prod.encrypted", True),
-            (project_root / ".env.prod", False),
-            (project_root / ".env", False),
-            (app_dir / ".env.prod.encrypted", True),
-            (app_dir / ".env.prod", False),
-            (app_dir / ".env", False),
+            (project_root / ".env.prod.encrypted", True)
+            (project_root / ".env.prod", False)
+            (project_root / ".env", False)
+            (app_dir / ".env.prod.encrypted", True)
+            (app_dir / ".env.prod", False)
+            (app_dir / ".env", False)
         ]
 
         # Load configs in priority order

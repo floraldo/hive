@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_errors import BaseError
 from hive_logging import get_logger
 
@@ -6,18 +8,18 @@ logger = get_logger(__name__)
 
 """Local error classes for climate adapters to avoid circular imports"""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 
 class AdapterError(Exception):
     """Base error class for adapter-specific errors"""
 
     def __init__(
-        self,
-        message: str,
-        adapter_name: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        self
+        message: str
+        adapter_name: str | None = None
+        details: Optional[Dict[str, Any]] = None
+        **kwargs
     ):
         super().__init__(message)
         self.message = message
@@ -33,12 +35,12 @@ class DataFetchError(BaseError):
     """Error fetching data from a source"""
 
     def __init__(
-        self,
-        adapter_name: str,
-        message: str,
-        details: Optional[Dict[str, Any]] = None,
-        suggested_action: Optional[str] = None,
-        **kwargs,
+        self
+        adapter_name: str
+        message: str
+        details: Optional[Dict[str, Any]] = None
+        suggested_action: str | None = None
+        **kwargs
     ):
         super().__init__(message, adapter_name, details, **kwargs)
         self.suggested_action = suggested_action
@@ -48,12 +50,12 @@ class DataParseError(BaseError):
     """Error parsing response data"""
 
     def __init__(
-        self,
-        adapter_name: str,
-        message: str,
-        field: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        self
+        adapter_name: str
+        message: str
+        field: str | None = None
+        details: Optional[Dict[str, Any]] = None
+        **kwargs
     ):
         super().__init__(message, adapter_name, details, **kwargs)
         self.field = field
@@ -63,12 +65,12 @@ class ValidationError(BaseError):
     """Error validating request parameters or data"""
 
     def __init__(
-        self,
-        message: str,
-        field: Optional[str] = None,
-        value: Optional[Any] = None,
-        recovery_suggestion: Optional[str] = None,
-        **kwargs,
+        self
+        message: str
+        field: str | None = None
+        value: Any | None = None
+        recovery_suggestion: str | None = None
+        **kwargs
     ):
         super().__init__(message, **kwargs)
         self.field = field

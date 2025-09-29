@@ -3,10 +3,12 @@
 SSH utility module for Hive Deployment.
 Adapted from SmartHoodsOptimisationTool Apper project.
 """
+from __future__ import annotations
+
 
 import os
 import time
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Any, DictTuple
 
 import paramiko
 from hive_logging import get_logger
@@ -58,10 +60,10 @@ class SSHClient:
             logging.info(f"Connecting to {self.host}:{self.port} as {self.username}")
 
             connect_kwargs = {
-                "hostname": self.host,
-                "port": self.port,
-                "username": self.username,
-                "timeout": self.connect_timeout,
+                "hostname": self.host
+                "port": self.port
+                "username": self.username
+                "timeout": self.connect_timeout
             }
 
             if self.password:
@@ -150,15 +152,15 @@ class SSHClient:
                 stdin, stdout, stderr = self.client.exec_command(command)
                 exit_code = stdout.channel.recv_exit_status()
                 return (
-                    exit_code,
-                    stdout.read().decode().strip(),
-                    stderr.read().decode().strip(),
+                    exit_code
+                    stdout.read().decode().strip()
+                    stderr.read().decode().strip()
                 )
         except Exception as e:
             logging.error(f"Error executing command: {str(e)}")
             return 1, "", str(e)
 
-    def upload_file(self, content: Union[bytes, str], remote_path: str, sudo: bool = False) -> bool:
+    def upload_file(self, content: bytes | str, remote_path: str, sudo: bool = False) -> bool:
         """
         Upload content to a remote file.
 

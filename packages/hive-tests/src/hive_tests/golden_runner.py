@@ -18,19 +18,19 @@ Usage:
     # Run specific test
     golden-test --test test_dependency_direction
 """
+from __future__ import annotations
+
 
 import argparse
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def run_global_tests(verbose: bool = False, test_name: Optional[str] = None):
+def run_global_tests(verbose: bool = False, test_name: str | None = None):
     """Run the global golden rule tests."""
     test_file = Path(__file__).parent.parent.parent / "tests" / "test_architecture.py"
 
@@ -53,7 +53,7 @@ def run_global_tests(verbose: bool = False, test_name: Optional[str] = None):
     return result.returncode
 
 
-def run_app_tests(app_name: str, verbose: bool = False, test_name: Optional[str] = None):
+def run_app_tests(app_name: str, verbose: bool = False, test_name: str | None = None):
     """Run golden rule tests for a specific app."""
     project_root = Path(__file__).parent.parent.parent.parent.parent
     app_test_file = project_root / "apps" / app_name / "tests" / "test_golden_rules.py"
@@ -95,8 +95,8 @@ def list_apps():
 def main() -> None:
     """Main entry point for the golden test runner."""
     parser = argparse.ArgumentParser(
-        description="Run Hive golden rule architectural tests",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description="Run Hive golden rule architectural tests"
+        formatter_class=argparse.RawDescriptionHelpFormatter
         epilog="""
 Examples:
     golden-test                          # Run all global tests
@@ -104,7 +104,7 @@ Examples:
     golden-test -v                       # Run with verbose output
     golden-test --list-apps              # List available apps
     golden-test --test test_app_contract # Run specific test
-        """,
+        """
     )
 
     parser.add_argument("--app", help="Run tests for a specific app", type=str, metavar="APP_NAME")

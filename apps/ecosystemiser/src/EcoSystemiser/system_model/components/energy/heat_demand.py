@@ -1,21 +1,21 @@
 """Heat demand component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    DemandTechnicalParams,
-    FidelityLevel,
+    DemandTechnicalParams
+    FidelityLevel
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseDemandOptimization,
-    BaseDemandPhysics,
+    BaseDemandOptimization
+    BaseDemandPhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -30,6 +30,8 @@ logger = get_logger(__name__)
 
 class HeatDemandTechnicalParams(DemandTechnicalParams):
     """Heat demand-specific technical parameters extending demand archetype.
+from __future__ import annotations
+
 
     This model inherits from DemandTechnicalParams and adds thermal demand-specific
     parameters for different fidelity levels.
@@ -37,13 +39,13 @@ class HeatDemandTechnicalParams(DemandTechnicalParams):
 
     # Heat-specific parameters
     demand_type: str = Field("space_heating", description="Type of heat demand")
-    temperature_requirement: Optional[float] = Field(None, description="Required supply temperature [°C]")
+    temperature_requirement: float | None = Field(None, description="Required supply temperature [°C]")
 
     # STANDARD fidelity additions
     thermal_comfort_band: Optional[Dict[str, float]] = Field(
         None, description="Acceptable temperature range {min_temp, max_temp}"
     )
-    building_thermal_mass: Optional[float] = Field(None, description="Building thermal inertia factor")
+    building_thermal_mass: float | None = Field(None, description="Building thermal inertia factor")
 
     # DETAILED fidelity parameters
     weather_dependency: Optional[Dict[str, float]] = Field(None, description="Weather correlation parameters")
@@ -70,10 +72,10 @@ class HeatDemandParams(ComponentParams):
         default_factory=lambda: HeatDemandTechnicalParams(
             capacity_nominal=5.0,  # Required by base archetype
             peak_demand=5.0,  # Default 5 kW peak heat demand
-            load_profile_type="variable",
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            load_profile_type="variable"
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 
@@ -340,7 +342,7 @@ class HeatDemand(Component):
 
         return demand_output
 
-    def add_optimization_vars(self, N: Optional[int] = None) -> None:
+    def add_optimization_vars(self, N: int | None = None) -> None:
         """Create CVXPY optimization variables."""
         if N is None:
             N = self.N

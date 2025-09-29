@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -11,7 +13,7 @@ These contain the business logic for agent coordination.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from hive_bus import BaseEvent
 
@@ -45,7 +47,7 @@ class TaskEvent(BaseEvent):
     """
 
     task_id: str = ""
-    worker_id: Optional[str] = None
+    worker_id: str | None = None
     status: TaskStatus = TaskStatus.PENDING
     priority: int = 1
 

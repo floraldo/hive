@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -7,7 +9,7 @@ logger = get_logger(__name__)
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, ListTuple
 
 
 class DataFrequency(Enum):
@@ -35,12 +37,12 @@ class AuthType(Enum):
 class TemporalCoverage:
     """Temporal coverage capabilities"""
 
-    start_date: Optional[date] = None  # None means varies by location
-    end_date: Optional[date] = None  # None means present/real-time
-    historical_years: Optional[int] = None  # Years of historical data
-    forecast_days: Optional[int] = None  # Days of forecast available
+    start_date: date | None = None  # None means varies by location
+    end_date: date | None = None  # None means present/real-time
+    historical_years: int | None = None  # Years of historical data
+    forecast_days: int | None = None  # Days of forecast available
     real_time: bool = False  # Has real-time data
-    delay_hours: Optional[int] = None  # Data delay in hours
+    delay_hours: int | None = None  # Data delay in hours
 
 
 @dataclass
@@ -49,7 +51,7 @@ class SpatialCoverage:
 
     global_coverage: bool = True
     regions: Optional[List[str]] = None  # Specific regions if not global
-    resolution_km: Optional[float] = None  # Spatial resolution
+    resolution_km: float | None = None  # Spatial resolution
     station_based: bool = False  # Uses weather stations
     grid_based: bool = True  # Uses gridded data
     custom_locations: bool = True  # Supports arbitrary coordinates
@@ -59,10 +61,10 @@ class SpatialCoverage:
 class RateLimits:
     """API rate limiting information"""
 
-    requests_per_month: Optional[int] = None
-    requests_per_day: Optional[int] = None
-    requests_per_hour: Optional[int] = None
-    data_points_per_request: Optional[int] = None
+    requests_per_month: int | None = None
+    requests_per_day: int | None = None
+    requests_per_hour: int | None = None
+    data_points_per_request: int | None = None
 
 
 @dataclass
@@ -96,19 +98,19 @@ class AdapterCapabilities:
 
     # Data characteristics
     supported_frequencies: List[DataFrequency] = field(default_factory=list)
-    native_frequency: Optional[DataFrequency] = None
+    native_frequency: DataFrequency | None = None
 
     # Access requirements
     auth_type: AuthType = AuthType.NONE
     requires_subscription: bool = False
-    free_tier_limits: Optional[RateLimits] = None
+    free_tier_limits: RateLimits | None = None
 
     # Quality features
     quality: QualityFeatures = field(default_factory=QualityFeatures)
 
     # Technical constraints
-    max_request_days: Optional[int] = None  # Max days per request
-    max_variables_per_request: Optional[int] = None
+    max_request_days: int | None = None  # Max days per request
+    max_variables_per_request: int | None = None
     batch_requests_supported: bool = False
     async_requests_required: bool = False
 
@@ -117,12 +119,12 @@ class AdapterCapabilities:
     data_products: List[str] = field(default_factory=list)  # TMY, statistics, etc.
 
     def can_fulfill_request(
-        self,
-        variables: List[str],
-        start_date: datetime,
-        end_date: datetime,
-        frequency: str,
-        location: Tuple[float, float],
+        self
+        variables: List[str]
+        start_date: datetime
+        end_date: datetime
+        frequency: str
+        location: Tuple[float, float]
     ) -> Tuple[bool, List[str]]:
         """
         Check if this adapter can fulfill a request.
@@ -146,12 +148,12 @@ class AdapterCapabilities:
 
         # Check frequency support
         freq_map = {
-            "15T": DataFrequency.SUBHOURLY,
-            "1H": DataFrequency.HOURLY,
-            "3H": DataFrequency.THREEHOURLY,
-            "1D": DataFrequency.DAILY,
-            "1M": DataFrequency.MONTHLY,
-            "1Y": DataFrequency.YEARLY,
+            "15T": DataFrequency.SUBHOURLY
+            "1H": DataFrequency.HOURLY
+            "3H": DataFrequency.THREEHOURLY
+            "1D": DataFrequency.DAILY
+            "1M": DataFrequency.MONTHLY
+            "1Y": DataFrequency.YEARLY
         }
 
         if frequency in freq_map:
@@ -169,33 +171,33 @@ class AdapterCapabilities:
     def get_capability_summary(self) -> Dict:
         """Get a summary of capabilities for UI display"""
         return {
-            "name": self.name,
-            "description": self.description,
+            "name": self.name
+            "description": self.description
             "coverage": {
-                "temporal": f"{self.temporal.start_date or 'varies'} to {self.temporal.end_date or 'present'}",
-                "spatial": ("Global" if self.spatial.global_coverage else f"Regional: {self.spatial.regions}"),
-                "resolution": (f"{self.spatial.resolution_km}km" if self.spatial.resolution_km else "varies"),
-            },
+                "temporal": f"{self.temporal.start_date or 'varies'} to {self.temporal.end_date or 'present'}"
+                "spatial": ("Global" if self.spatial.global_coverage else f"Regional: {self.spatial.regions}")
+                "resolution": (f"{self.spatial.resolution_km}km" if self.spatial.resolution_km else "varies")
+            }
             "variables": {
-                "total": len(self.supported_variables),
+                "total": len(self.supported_variables)
                 "primary": self.primary_variables[:5],  # Top 5
-                "categories": self._categorize_variables(),
-            },
-            "frequencies": [f.value for f in self.supported_frequencies],
-            "features": self.special_features,
-            "limitations": self._get_limitations(),
-            "auth_required": self.auth_type != AuthType.NONE,
+                "categories": self._categorize_variables()
+            }
+            "frequencies": [f.value for f in self.supported_frequencies]
+            "features": self.special_features
+            "limitations": self._get_limitations()
+            "auth_required": self.auth_type != AuthType.NONE
         }
 
     def _categorize_variables(self) -> Dict[str, int]:
         """Categorize variables by type"""
         categories = {
-            "temperature": 0,
-            "solar": 0,
-            "wind": 0,
-            "moisture": 0,
-            "pressure": 0,
-            "other": 0,
+            "temperature": 0
+            "solar": 0
+            "wind": 0
+            "moisture": 0
+            "pressure": 0
+            "other": 0
         }
 
         for var in self.supported_variables:
@@ -248,11 +250,11 @@ def compare_capabilities(adapters: List[AdapterCapabilities], variables: List[st
     for adapter in adapters:
         score = 0
         details = {
-            "can_fulfill": False,
-            "coverage_score": 0,
-            "variable_score": 0,
-            "quality_score": 0,
-            "reasons": [],
+            "can_fulfill": False
+            "coverage_score": 0
+            "variable_score": 0
+            "quality_score": 0
+            "reasons": []
         }
 
         # Check variable support

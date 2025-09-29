@@ -322,7 +322,7 @@ if __name__ == '__main__':
             try:
                 proc.terminate()
                 proc.wait(timeout=5)
-            except:
+            except (subprocess.TimeoutExpired, ProcessLookupError, OSError):
                 proc.kill()
 
         print("[OK] Cleanup completed")

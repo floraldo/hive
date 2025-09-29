@@ -4,10 +4,12 @@ Async facade for EcoSystemiser services to enable high-performance I/O operation
 This facade provides async wrappers for existing services while maintaining
 backward compatibility with synchronous interfaces.
 """
+from __future__ import annotations
+
 
 import asyncio
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ecosystemiser.profile_loader import ClimateRequest
 from ecosystemiser.profile_loader.climate import create_climate_service
@@ -127,7 +129,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Sync climate profile retrieval failed: {e}")
             raise
 
-    async def run_simulation_async(self, config: SimulationConfig, timeout: Optional[float] = None):
+    async def run_simulation_async(self, config: SimulationConfig, timeout: float | None = None):
         """Run simulation asynchronously.
 
         Args:
@@ -149,7 +151,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Async simulation failed: {e}")
             raise
 
-    async def run_batch_simulations_async(self, configs: List[SimulationConfig], max_concurrent: Optional[int] = None):
+    async def run_batch_simulations_async(self, configs: List[SimulationConfig], max_concurrent: int | None = None):
         """Run multiple simulations concurrently.
 
         Args:
@@ -172,7 +174,7 @@ class AsyncEcoSystemiserFacade:
             logger.error(f"Batch simulations failed: {e}")
             raise
 
-    def run_simulation_sync(self, config: SimulationConfig, timeout: Optional[float] = None) -> None:
+    def run_simulation_sync(self, config: SimulationConfig, timeout: float | None = None) -> None:
         """Run simulation synchronously using async facade.
 
         Args:
@@ -326,7 +328,7 @@ def get_facade_sync() -> AsyncEcoSystemiserFacade:
 
 
 async def run_simulation_with_async_io_async(
-    config_path: Path, solver_type: str = "milp", timeout: Optional[float] = None
+    config_path: Path, solver_type: str = "milp", timeout: float | None = None
 ) -> Dict[str, Any]:
     """Run a single simulation with async I/O optimizations.
 
@@ -347,11 +349,11 @@ async def run_simulation_with_async_io_async(
     from ecosystemiser.solver.base import SolverConfig
 
     sim_config = SimulationConfig(
-        simulation_id=f"async_sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        system_config_path=str(config_path),
-        solver_type=solver_type,
-        solver_config=SolverConfig(verbose=False, solver_type=solver_type),
-        output_config={"save_results": True},
+        simulation_id=f"async_sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        system_config_path=str(config_path)
+        solver_type=solver_type
+        solver_config=SolverConfig(verbose=False, solver_type=solver_type)
+        output_config={"save_results": True}
     )
 
     result = await facade.run_simulation_async(sim_config, timeout)
@@ -376,19 +378,19 @@ async def fetch_climate_data_async(
 
     # Create climate request
     request = ClimateRequest(
-        location=location,
-        variables=variables,
-        source=source,
-        period={"year": year},
-        mode="observed",
-        resolution="1H",
+        location=location
+        variables=variables
+        source=source
+        period={"year": year}
+        mode="observed"
+        resolution="1H"
     )
 
     ds, response = await facade.get_climate_profile_async(request)
     return {
-        "dataset": ds,
-        "response": response,
-        "manifest": response.manifest,
-        "shape": response.shape,
-        "path": response.path_parquet,
+        "dataset": ds
+        "response": response
+        "manifest": response.manifest
+        "shape": response.shape
+        "path": response.path_parquet
     }

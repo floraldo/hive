@@ -4,24 +4,26 @@ Demand profile service implementing the unified profile interface.
 This service handles loading and processing of energy demand profiles
 (electricity, heating, cooling, etc.) from various sources.
 """
+from __future__ import annotations
+
 
 import asyncio
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, ListTuple
 
 import numpy as np
 import pandas as pd
 import xarray as xr
 from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
 from ecosystemiser.profile_loader.demand.models import (
-    DEMAND_VARIABLES,
-    DemandRequest,
-    DemandResponse,
+    DEMAND_VARIABLES
+    DemandRequest
+    DemandResponse
 )
 from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, ProfileMode
 from ecosystemiser.profile_loader.shared.service import (
-    BaseProfileService,
-    ProfileServiceError,
-    ProfileValidationError,
+    BaseProfileService
+    ProfileServiceError
+    ProfileValidationError
 )
 from hive_logging import get_logger
 
@@ -39,28 +41,28 @@ class DemandService(BaseProfileService):
     def __init__(self) -> None:
         """Initialize demand service with available adapters."""
         self.adapters = {
-            "file": DemandFileAdapter(),
+            "file": DemandFileAdapter()
             # Future adapters can be added here
-            # "database": DemandDatabaseAdapter(),
-            # "standard_profiles": StandardProfileAdapter(),
+            # "database": DemandDatabaseAdapter()
+            # "standard_profiles": StandardProfileAdapter()
         }
         self.service_info = {
-            "service_type": "DemandService",
-            "version": "1.0.0",
+            "service_type": "DemandService"
+            "version": "1.0.0"
             "supported_demand_types": [
-                "electricity",
-                "heating",
-                "cooling",
-                "hot_water",
-                "process_heat",
-            ],
+                "electricity"
+                "heating"
+                "cooling"
+                "hot_water"
+                "process_heat"
+            ]
             "supported_building_types": [
-                "residential_single",
-                "residential_multi",
-                "office",
-                "retail",
-                "industrial",
-            ],
+                "residential_single"
+                "residential_multi"
+                "office"
+                "retail"
+                "industrial"
+            ]
         }
         logger.info("DemandService initialized with unified interface")
 
@@ -151,7 +153,7 @@ class DemandService(BaseProfileService):
         """Get available demand data sources."""
         return list(self.adapters.keys())
 
-    def get_available_variables(self, source: Optional[str] = None) -> Dict[str, Dict[str, str]]:
+    def get_available_variables(self, source: str | None = None) -> Dict[str, Dict[str, str]]:
         """Get available demand variables."""
         return DEMAND_VARIABLES
 
@@ -159,10 +161,10 @@ class DemandService(BaseProfileService):
         """Get coverage information for demand source."""
         if source == "file":
             return {
-                "spatial_coverage": "User-defined",
-                "temporal_coverage": "User-defined",
-                "resolution": "Variable",
-                "data_types": ["electricity", "heating", "cooling", "hot_water"],
+                "spatial_coverage": "User-defined"
+                "temporal_coverage": "User-defined"
+                "resolution": "Variable"
+                "data_types": ["electricity", "heating", "cooling", "hot_water"]
             }
         else:
             return {"coverage": "Unknown"}
@@ -176,10 +178,10 @@ class DemandService(BaseProfileService):
                 # Map source to adapter
                 source_mapping = {
                     "standard_profile": "file",  # For now, map to file adapter
-                    "smart_meter": "file",
-                    "scada": "file",
-                    "simulation": "file",
-                    "benchmark": "file",
+                    "smart_meter": "file"
+                    "scada": "file"
+                    "simulation": "file"
+                    "benchmark": "file"
                 }
                 adapter_name = source_mapping.get(request.source, "file")
                 return self.adapters[adapter_name]
@@ -190,9 +192,9 @@ class DemandService(BaseProfileService):
     def _build_adapter_config(self, request: DemandRequest) -> Dict[str, Any]:
         """Build configuration for selected adapter."""
         config = {
-            "demand_type": request.demand_type,
-            "building_type": request.building_type,
-            "variables": request.variables,
+            "demand_type": request.demand_type
+            "building_type": request.building_type
+            "variables": request.variables
         }
 
         # Add source-specific configuration
@@ -215,9 +217,9 @@ class DemandService(BaseProfileService):
         period = request.period
         if "start" in period and "end" in period:
             time_index = pd.date_range(
-                start=period["start"],
-                end=period["end"],
-                freq=request.resolution or "1H",
+                start=period["start"]
+                end=period["end"]
+                freq=request.resolution or "1H"
             )[
                 :time_steps
             ]  # Truncate to actual data length
@@ -236,22 +238,22 @@ class DemandService(BaseProfileService):
         # Add metadata
         dataset.attrs.update(
             {
-                "source": request.source or "file",
-                "demand_type": request.demand_type,
-                "building_type": request.building_type,
-                "location": str(request.location),
-                "resolution": request.resolution,
-                "variables": list(profiles.keys()),
+                "source": request.source or "file"
+                "demand_type": request.demand_type
+                "building_type": request.building_type
+                "location": str(request.location)
+                "resolution": request.resolution
+                "variables": list(profiles.keys())
             }
         )
 
         return dataset
 
     def _build_response(
-        self,
-        dataset: xr.Dataset,
-        request: DemandRequest,
-        profiles: Dict[str, np.ndarray],
+        self
+        dataset: xr.Dataset
+        request: DemandRequest
+        profiles: Dict[str, np.ndarray]
     ) -> DemandResponse:
         """Build demand response with metrics."""
         # Calculate basic metrics
@@ -270,16 +272,16 @@ class DemandService(BaseProfileService):
 
         # Build response
         response = DemandResponse(
-            shape=(len(dataset.time), len(dataset.data_vars)),
-            start_time=pd.Timestamp(dataset.time.values[0]),
-            end_time=pd.Timestamp(dataset.time.values[-1]),
-            variables=list(dataset.data_vars),
-            source=request.source or "file",
-            peak_demand_kw=peak_demand,
-            total_energy_kwh=total_energy,
-            load_factor=load_factor,
-            processing_steps=["load_profiles", "create_dataset", "calculate_metrics"],
-            quality={"completeness": 100.0, "validation_passed": True},
+            shape=(len(dataset.time), len(dataset.data_vars))
+            start_time=pd.Timestamp(dataset.time.values[0])
+            end_time=pd.Timestamp(dataset.time.values[-1])
+            variables=list(dataset.data_vars)
+            source=request.source or "file"
+            peak_demand_kw=peak_demand
+            total_energy_kwh=total_energy
+            load_factor=load_factor
+            processing_steps=["load_profiles", "create_dataset", "calculate_metrics"]
+            quality={"completeness": 100.0, "validation_passed": True}
         )
 
         return response

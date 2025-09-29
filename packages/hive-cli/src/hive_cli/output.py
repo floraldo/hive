@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -5,7 +7,7 @@ logger = get_logger(__name__)
 """Output formatting utilities for CLI commands."""
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import click
 import yaml
@@ -21,7 +23,7 @@ class HiveOutput:
         self.format_type = format_type
         self.console = Console()
 
-    def output(self, data: Any, title: Optional[str] = None) -> None:
+    def output(self, data: Any, title: str | None = None) -> None:
         """Output data in the specified format."""
         if self.format_type == "json":
             self.output_json(data)
@@ -40,7 +42,7 @@ class HiveOutput:
         """Output data as YAML."""
         click.echo(yaml.dump(data, default_flow_style=False))
 
-    def output_table(self, data: Any, title: Optional[str] = None) -> None:
+    def output_table(self, data: Any, title: str | None = None) -> None:
         """Output data as a formatted table."""
         if isinstance(data, list) and data and isinstance(data[0], dict):
             table = self._create_table_from_dicts(data, title)
@@ -59,7 +61,7 @@ class HiveOutput:
         else:
             click.echo(str(data))
 
-    def _create_table_from_dicts(self, data: List[Dict], title: Optional[str] = None) -> Table:
+    def _create_table_from_dicts(self, data: List[Dict], title: str | None = None) -> Table:
         """Create a Rich table from a list of dictionaries."""
         table = Table(title=title)
 
@@ -73,7 +75,7 @@ class HiveOutput:
 
         return table
 
-    def _create_table_from_dict(self, data: Dict, title: Optional[str] = None) -> Table:
+    def _create_table_from_dict(self, data: Dict, title: str | None = None) -> Table:
         """Create a Rich table from a dictionary."""
         table = Table(title=title)
         table.add_column("Key")
@@ -85,7 +87,7 @@ class HiveOutput:
         return table
 
 
-def format_table(data: Any, title: Optional[str] = None) -> str:
+def format_table(data: Any, title: str | None = None) -> str:
     """Format data as a table (legacy function)."""
     output = HiveOutput("table")
     output.output_table(data, title)

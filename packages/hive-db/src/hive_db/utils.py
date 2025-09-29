@@ -3,12 +3,14 @@ Database utilities and helper functions for Hive applications.
 
 Provides common database operations, migrations, and utility functions.
 """
+from __future__ import annotations
+
 
 import asyncio
 import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, ListTuple
 
 from hive_logging import get_logger
 
@@ -25,6 +27,12 @@ def create_table_if_not_exists(conn: sqlite3.Connection, table_name: str, schema
         schema: SQL schema definition for the table
     """
     try:
+        # Note: Table name cannot be parameterized in SQLite, but we should validate it
+        # to prevent SQL injection. Only allow alphanumeric and underscore characters.
+        if not all(c.isalnum() or c == '_' for c in table_name):
+            raise ValueError(f"Invalid table name: {table_name}")
+
+        # Schema is already parameterized by caller, but we should validate
         conn.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({schema})")
         conn.commit()
         logger.debug(f"Ensured table {table_name} exists")
@@ -47,7 +55,7 @@ def table_exists(conn: sqlite3.Connection, table_name: str) -> bool:
     try:
         cursor = conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table_name,),
+            (table_name,)
         )
         return cursor.fetchone() is not None
     except sqlite3.Error as e:
@@ -67,6 +75,9 @@ def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[Dict[str
         List of column information dictionaries
     """
     try:
+        # Validate table name to prevent SQL injection
+        if not all(c.isalnum() or c == '_' for c in table_name):
+            raise ValueError(f"Invalid table name: {table_name}")
         cursor = conn.execute(f"PRAGMA table_info({table_name})")
         columns = cursor.fetchall()
 
@@ -195,7 +206,7 @@ def get_database_info(conn: sqlite3.Connection) -> Dict[str, Any]:
 
 
 @contextmanager
-def database_transaction(conn: sqlite3.Connection, isolation_level: Optional[str] = None) -> None:
+def database_transaction(conn: sqlite3.Connection, isolation_level: str | None = None) -> None:
     """
     Context manager for database transactions with automatic rollback on error.
 
@@ -208,7 +219,11 @@ def database_transaction(conn: sqlite3.Connection, isolation_level: Optional[str
             cursor.execute("INSERT INTO users (name) VALUES (?)", ("John",))
             cursor.execute("UPDATE users SET age = ? WHERE name = ?", (30, "John"))
     """
+    # Validate isolation level to prevent SQL injection
+    valid_levels = {'DEFERRED', 'IMMEDIATE', 'EXCLUSIVE'}
     if isolation_level:
+        if isolation_level.upper() not in valid_levels:
+            raise ValueError(f"Invalid isolation level: {isolation_level}")
         conn.execute(f"BEGIN {isolation_level}")
     else:
         conn.execute("BEGIN")
@@ -248,6 +263,15 @@ def insert_or_update(
         columns = list(data.keys())
         placeholders = ["?" for _ in columns]
         values = list(data.values())
+
+        # Validate table name to prevent SQL injection
+        if not all(c.isalnum() or c == '_' for c in table):
+            raise ValueError(f"Invalid table name: {table}")
+
+        # Validate column names
+        for col in columns:
+            if not all(c.isalnum() or c == '_' for c in col):
+                raise ValueError(f"Invalid column name: {col}")
 
         # Build the INSERT statement
         insert_sql = f"""
@@ -297,7 +321,17 @@ def batch_insert(
         return
 
     try:
+        # Validate table name to prevent SQL injection
+        if not all(c.isalnum() or c == '_' for c in table):
+            raise ValueError(f"Invalid table name: {table}")
+
         columns = list(data[0].keys())
+
+        # Validate column names
+        for col in columns:
+            if not all(c.isalnum() or c == '_' for c in col):
+                raise ValueError(f"Invalid column name: {col}")
+
         placeholders = ["?" for _ in columns]
         sql = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
 
@@ -317,7 +351,7 @@ def batch_insert(
         raise
 
 
-def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_version: Optional[int] = None) -> None:
+def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_version: int | None = None) -> None:
     """
     Apply database migrations from a directory.
 
@@ -331,7 +365,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
         create_table_if_not_exists(
             conn,
             "migrations",
-            "version INTEGER PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+            "version INTEGER PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
         )
 
         # Get applied migrations
@@ -341,7 +375,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
         # Find migration files
         migration_files = sorted(
             [f for f in migrations_dir.glob("*.sql") if f.stem.isdigit()],
-            key=lambda x: int(x.stem),
+            key=lambda x: int(x.stem)
         )
 
         # Apply migrations
@@ -375,7 +409,7 @@ async def table_exists_async(conn, table_name: str) -> bool:
     try:
         cursor = await conn.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
-            (table_name,),
+            (table_name,)
         )
         result = await cursor.fetchone()
         return result is not None

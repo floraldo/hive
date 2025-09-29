@@ -3,6 +3,8 @@ Claude Service Implementation
 Contains the business logic implementation for Claude API interactions.
 Separated from core interfaces to maintain clean architecture.
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib
@@ -12,7 +14,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List
 
 from hive_config import get_config
 from hive_errors import ErrorReporter
@@ -55,14 +57,14 @@ class ClaudeMetrics:
     def to_dict(self) -> Dict[str, Any]:
         """Convert metrics to dictionary"""
         return {
-            "total_calls": self.total_calls,
-            "successful_calls": self.successful_calls,
-            "failed_calls": self.failed_calls,
-            "cached_responses": self.cached_responses,
-            "total_tokens": self.total_tokens,
-            "average_latency_ms": self.average_latency_ms,
-            "success_rate": self.success_rate,
-            "rate_limited": self.rate_limited,
+            "total_calls": self.total_calls
+            "successful_calls": self.successful_calls
+            "failed_calls": self.failed_calls
+            "cached_responses": self.cached_responses
+            "total_tokens": self.total_tokens
+            "average_latency_ms": self.average_latency_ms
+            "success_rate": self.success_rate
+            "rate_limited": self.rate_limited
         }
 
 
@@ -190,7 +192,7 @@ class ResponseCache:
         cache_str = json.dumps(cache_data, sort_keys=True)
         return hashlib.sha256(cache_str.encode()).hexdigest()
 
-    def get(self, prompt: str, **kwargs) -> Optional[Any]:
+    def get(self, prompt: str, **kwargs) -> Any | None:
         """Get cached response if available and not expired"""
         key = self._generate_key(prompt, **kwargs)
 
@@ -230,15 +232,15 @@ class ResponseCache:
             expired = sum(1 for entry in self.cache.values() if entry.is_expired(self.ttl_seconds))
 
         return {
-            "total_entries": total_entries,
-            "total_hits": total_hits,
-            "expired_entries": expired,
-            "hit_rate": total_hits / max(1, total_entries + total_hits),
+            "total_entries": total_entries
+            "total_hits": total_hits
+            "expired_entries": expired
+            "hit_rate": total_hits / max(1, total_entries + total_hits)
         }
 
 
-# Note: The actual ClaudeService class would be moved here from claude_service.py,
-# but keeping it there for now to avoid breaking imports. In a full refactor,
+# Note: The actual ClaudeService class would be moved here from claude_service.py
+# but keeping it there for now to avoid breaking imports. In a full refactor
 # we would:
 # 1. Move the ClaudeService implementation here
 # 2. Create an abstract ClaudeServiceInterface in core/claude/interfaces.py

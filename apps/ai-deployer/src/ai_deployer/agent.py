@@ -1,6 +1,8 @@
 """
 Autonomous deployment agent that polls the database for deployment_pending tasks
 """
+from __future__ import annotations
+
 
 import argparse
 import asyncio
@@ -9,7 +11,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Import hive logging
 from hive_logging import get_logger
@@ -20,9 +22,9 @@ from hive_orchestrator.core.db import get_database, get_pooled_connection
 # Async database imports
 try:
     from hive_orchestrator.core.db import (
-        get_async_connection,
-        get_tasks_by_status_async,
-        update_task_status_async,
+        get_async_connection
+        get_tasks_by_status_async
+        update_task_status_async
     )
 
     ASYNC_DB_AVAILABLE = True
@@ -67,10 +69,10 @@ class DeploymentAgent:
     """
 
     def __init__(
-        self,
-        orchestrator: Optional[DeploymentOrchestrator] = None,
-        polling_interval: int = 30,
-        test_mode: bool = False,
+        self
+        orchestrator: DeploymentOrchestrator | None = None
+        polling_interval: int = 30
+        test_mode: bool = False
     ):
         """
         Initialize the deployment agent
@@ -86,12 +88,12 @@ class DeploymentAgent:
         self.test_mode = test_mode
         self.running = False
         self.stats = {
-            "tasks_deployed": 0,
-            "successful": 0,
-            "failed": 0,
-            "rolled_back": 0,
-            "errors": 0,
-            "start_time": None,
+            "tasks_deployed": 0
+            "successful": 0
+            "failed": 0
+            "rolled_back": 0
+            "errors": 0
+            "start_time": None
         }
 
         # Initialize event bus for explicit agent communication
@@ -187,9 +189,9 @@ class DeploymentAgent:
                 # Publish success event
                 if self.event_bus and create_task_event:
                     event = create_task_event(
-                        task_id=task_id,
-                        event_type=TaskEventType.DEPLOYED,
-                        payload={"deployment_result": result.to_dict()},
+                        task_id=task_id
+                        event_type=TaskEventType.DEPLOYED
+                        payload={"deployment_result": result.to_dict()}
                     )
                     self.event_bus.publish(event)
             else:
@@ -206,9 +208,9 @@ class DeploymentAgent:
                 # Publish failure event
                 if self.event_bus and create_task_event:
                     event = create_task_event(
-                        task_id=task_id,
-                        event_type=TaskEventType.DEPLOYMENT_FAILED,
-                        payload={"error": result.error},
+                        task_id=task_id
+                        event_type=TaskEventType.DEPLOYMENT_FAILED
+                        payload={"error": result.error}
                     )
                     self.event_bus.publish(event)
 
@@ -267,9 +269,9 @@ class DeploymentAgent:
         status_table.add_row("Mode", "[yellow]TEST[/yellow]" if self.test_mode else "Production")
 
         return Panel(
-            status_table,
-            title="[bold blue]AI Deployment Agent[/bold blue]",
-            border_style="blue",
+            status_table
+            title="[bold blue]AI Deployment Agent[/bold blue]"
+            border_style="blue"
         )
 
     def _handle_shutdown(self, signum: int, frame: Any) -> None:
@@ -298,23 +300,23 @@ def main() -> None:
     """Main entry point for the deployment agent"""
     parser = argparse.ArgumentParser(description="AI Deployment Agent")
     parser.add_argument(
-        "--test-mode",
-        action="store_true",
-        help="Run in test mode with shorter intervals",
+        "--test-mode"
+        action="store_true"
+        help="Run in test mode with shorter intervals"
     )
     parser.add_argument(
-        "--polling-interval",
-        type=int,
-        default=30,
-        help="Polling interval in seconds (default: 30)",
+        "--polling-interval"
+        type=int
+        default=30
+        help="Polling interval in seconds (default: 30)"
     )
 
     args = parser.parse_args()
 
     # Create and run agent
     agent = DeploymentAgent(
-        polling_interval=args.polling_interval,
-        test_mode=args.test_mode,
+        polling_interval=args.polling_interval
+        test_mode=args.test_mode
     )
 
     # Run async event loop

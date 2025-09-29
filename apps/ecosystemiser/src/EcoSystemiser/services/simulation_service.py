@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import yaml
 from ecosystemiser.component_data.repository import ComponentRepository
@@ -20,6 +20,8 @@ logger = get_logger(__name__)
 
 class StageConfig(BaseModel):
     """Configuration for a single stage in staged simulation."""
+from __future__ import annotations
+
 
     stage_name: str
     system_config_path: str
@@ -32,9 +34,9 @@ class SimulationConfig(BaseModel):
     """Complete configuration for a simulation run."""
 
     simulation_id: str
-    system_config_path: Optional[str] = None  # Optional for staged simulations
+    system_config_path: str | None = None  # Optional for staged simulations
     solver_type: str = "rule_based"
-    solver_config: Optional[SolverConfig] = None
+    solver_config: SolverConfig | None = None
     climate_input: Optional[Dict[str, Any]] = None
     demand_input: Optional[Dict[str, Any]] = None
     output_config: Dict[str, Any] = Field(default_factory=dict)
@@ -47,16 +49,16 @@ class SimulationResult(BaseModel):
 
     simulation_id: str
     status: str
-    results_path: Optional[Path] = None
+    results_path: Path | None = None
     kpis: Optional[Dict[str, float]] = None
     solver_metrics: Optional[Dict[str, Any]] = None
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class SimulationService:
     """Main service for orchestrating system simulations."""
 
-    def __init__(self, component_repo: Optional[ComponentRepository] = None) -> None:
+    def __init__(self, component_repo: ComponentRepository | None = None) -> None:
         """Initialize simulation service.
 
         Args:
@@ -100,15 +102,15 @@ class SimulationService:
             kpis = self._calculate_basic_kpis(system)
 
             return SimulationResult(
-                simulation_id=config.simulation_id,
-                status=solver_result.status,
-                results_path=results_path,
-                kpis=kpis,
+                simulation_id=config.simulation_id
+                status=solver_result.status
+                results_path=results_path
+                kpis=kpis
                 solver_metrics={
-                    "solve_time": solver_result.solve_time,
-                    "iterations": solver_result.iterations,
-                    "objective_value": solver_result.objective_value,
-                },
+                    "solve_time": solver_result.solve_time
+                    "iterations": solver_result.iterations
+                    "objective_value": solver_result.objective_value
+                }
             )
 
         except Exception as e:
@@ -162,11 +164,11 @@ class SimulationService:
 
                 # Build and solve this stage's system
                 stage_config = SimulationConfig(
-                    simulation_id=f"{config.simulation_id}_{stage.stage_name}",
-                    system_config_path=stage.system_config_path,
-                    solver_type=stage.solver_type,
+                    simulation_id=f"{config.simulation_id}_{stage.stage_name}"
+                    system_config_path=stage.system_config_path
+                    solver_type=stage.solver_type
                     solver_config=config.solver_config,  # Use global solver config
-                    output_config=config.output_config,
+                    output_config=config.output_config
                 )
 
                 # Build system for this stage
@@ -210,9 +212,9 @@ class SimulationService:
                 # Store stage results
                 stage_results.append(
                     {
-                        "stage_name": stage.stage_name,
-                        "status": stage_solver_result.status,
-                        "solve_time": stage_solver_result.solve_time,
+                        "stage_name": stage.stage_name
+                        "status": stage_solver_result.status
+                        "solve_time": stage_solver_result.solve_time
                     }
                 )
 
@@ -224,15 +226,15 @@ class SimulationService:
             all_success = all(r["status"] == "optimal" for r in stage_results)
 
             return SimulationResult(
-                simulation_id=config.simulation_id,
-                status="optimal" if all_success else "feasible",
-                results_path=Path(config.output_config.get("directory", "outputs")),
-                kpis=aggregated_kpis,
+                simulation_id=config.simulation_id
+                status="optimal" if all_success else "feasible"
+                results_path=Path(config.output_config.get("directory", "outputs"))
+                kpis=aggregated_kpis
                 solver_metrics={
-                    "solve_time": total_solve_time,
-                    "stages": stage_results,
-                    "iterations": len(config.stages),
-                },
+                    "solve_time": total_solve_time
+                    "stages": stage_results
+                    "iterations": len(config.stages)
+                }
             )
 
         except Exception as e:
@@ -264,7 +266,7 @@ class SimulationService:
         if config.demand_input:
             try:
                 from ecosystemiser.profile_loader.demand.file_adapter import (
-                    DemandFileAdapter,
+                    DemandFileAdapter
                 )
 
                 adapter = DemandFileAdapter()
@@ -336,15 +338,15 @@ class SimulationService:
 
         # Save results
         results_path = self.results_io.save_results(
-            system,
-            config.simulation_id,
-            output_dir,
-            output_format,
+            system
+            config.simulation_id
+            output_dir
+            output_format
             metadata={
-                "solver_type": config.solver_type,
-                "solver_status": solver_result.status,
-                "solve_time": solver_result.solve_time,
-            },
+                "solver_type": config.solver_type
+                "solver_status": solver_result.status
+                "solve_time": solver_result.solve_time
+            }
         )
 
         logger.info(f"Results saved to: {results_path}")
@@ -406,12 +408,12 @@ class SimulationService:
         return self.run_simulation(config)
 
     def run_simulation_from_path(
-        self,
-        config_path: Path,
-        solver_type: str = "milp",
-        output_path: Optional[Path] = None,
-        solver_config: Optional[SolverConfig] = None,
-        verbose: bool = False,
+        self
+        config_path: Path
+        solver_type: str = "milp"
+        output_path: Path | None = None
+        solver_config: SolverConfig | None = None
+        verbose: bool = False
     ) -> SimulationResult:
         """Run a simulation directly from a configuration file path.
 
@@ -436,14 +438,14 @@ class SimulationService:
 
         # Create simulation configuration
         sim_config = SimulationConfig(
-            simulation_id=f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            system_config_path=str(config_path),
-            solver_type=solver_type,
-            solver_config=solver_config or SolverConfig(verbose=verbose, solver_type=solver_type),
+            simulation_id=f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            system_config_path=str(config_path)
+            solver_type=solver_type
+            solver_config=solver_config or SolverConfig(verbose=verbose, solver_type=solver_type)
             output_config={
-                "save_results": output_path is not None,
-                "results_path": str(output_path) if output_path else None,
-            },
+                "save_results": output_path is not None
+                "results_path": str(output_path) if output_path else None
+            }
         )
 
         # Run simulation
@@ -470,13 +472,13 @@ class SimulationService:
 
             # Return validation result
             return {
-                "valid": True,
-                "system_id": getattr(system, "system_id", "Unknown"),
-                "num_components": len(system.components),
-                "timesteps": system.N,
+                "valid": True
+                "system_id": getattr(system, "system_id", "Unknown")
+                "num_components": len(system.components)
+                "timesteps": system.N
                 "components": [
                     {"name": comp.name, "type": comp.__class__.__name__} for comp in system.components.values()
-                ],
+                ]
             }
 
         except Exception as e:

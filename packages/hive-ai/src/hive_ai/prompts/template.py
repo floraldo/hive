@@ -1,15 +1,17 @@
 """
 Prompt template management with variable substitution and validation.
 
-Provides type-safe prompt templating with variable validation,
+Provides type-safe prompt templating with variable validation
 formatting, and integration with the AI model system.
 """
+from __future__ import annotations
+
 
 import json
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 from hive_config import BaseConfig
 from hive_logging import get_logger
@@ -41,25 +43,25 @@ class PromptMetadata:
     author: str = ""
     version: str = "1.0.0"
     tags: List[str] = field(default_factory=list)
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 class PromptTemplate(PromptTemplateInterface):
     """
     Type-safe prompt template with variable validation.
 
-    Supports Jinja2-style templating with enhanced validation,
+    Supports Jinja2-style templating with enhanced validation
     type checking, and integration with AI models.
     """
 
     def __init__(
-        self,
-        template: str,
-        variables: Optional[List[PromptVariable]] = None,
-        metadata: Optional[PromptMetadata] = None,
-        variable_prefix: str = "{{",
-        variable_suffix: str = "}}",
+        self
+        template: str
+        variables: Optional[List[PromptVariable]] = None
+        metadata: PromptMetadata | None = None
+        variable_prefix: str = "{{"
+        variable_suffix: str = "}}"
     ):
         self.template = template
         self.variables = {var.name: var for var in (variables or [])}
@@ -97,8 +99,8 @@ class PromptTemplate(PromptTemplateInterface):
 
             if open_count != close_count:
                 raise PromptError(
-                    f"Unbalanced template delimiters: {open_count} opening, {close_count} closing",
-                    template_name=self.metadata.name if self.metadata else "unknown",
+                    f"Unbalanced template delimiters: {open_count} opening, {close_count} closing"
+                    template_name=self.metadata.name if self.metadata else "unknown"
                 )
 
             # Test rendering with dummy values
@@ -109,19 +111,19 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template validation failed: {str(e)}",
-                template_name=self.metadata.name if self.metadata else "unknown",
+                f"Template validation failed: {str(e)}"
+                template_name=self.metadata.name if self.metadata else "unknown"
             ) from e
 
     def _get_dummy_value(self, var_type: str) -> Any:
         """Get dummy value for variable type testing."""
         type_map = {
-            "str": "test_string",
-            "int": 42,
-            "float": 3.14,
-            "bool": True,
-            "list": ["item1", "item2"],
-            "dict": {"key": "value"},
+            "str": "test_string"
+            "int": 42
+            "float": 3.14
+            "bool": True
+            "list": ["item1", "item2"]
+            "dict": {"key": "value"}
         }
         return type_map.get(var_type, "default_value")
 
@@ -142,9 +144,9 @@ class PromptTemplate(PromptTemplateInterface):
         if not self.validate_variables(**kwargs):
             missing = self.get_missing_variables(**kwargs)
             raise PromptError(
-                f"Template rendering failed: missing required variables",
-                template_name=self.metadata.name if self.metadata else "unknown",
-                missing_variables=missing,
+                f"Template rendering failed: missing required variables"
+                template_name=self.metadata.name if self.metadata else "unknown"
+                missing_variables=missing
             )
 
         try:
@@ -210,13 +212,13 @@ class PromptTemplate(PromptTemplateInterface):
     def _validate_type(self, value: Any, expected_type: str) -> bool:
         """Validate value type against expected type."""
         type_validators = {
-            "str": lambda v: isinstance(v, str),
-            "int": lambda v: isinstance(v, int),
-            "float": lambda v: isinstance(v, (int, float)),
-            "bool": lambda v: isinstance(v, bool),
-            "list": lambda v: isinstance(v, list),
-            "dict": lambda v: isinstance(v, dict),
-            "any": lambda v: True,
+            "str": lambda v: isinstance(v, str)
+            "int": lambda v: isinstance(v, int)
+            "float": lambda v: isinstance(v, (int, float))
+            "bool": lambda v: isinstance(v, bool)
+            "list": lambda v: isinstance(v, list)
+            "dict": lambda v: isinstance(v, dict)
+            "any": lambda v: True
         }
 
         validator = type_validators.get(expected_type.lower())
@@ -249,51 +251,51 @@ class PromptTemplate(PromptTemplateInterface):
             return True
         return False
 
-    def clone(self, new_name: Optional[str] = None) -> "PromptTemplate":
+    def clone(self, new_name: str | None = None) -> "PromptTemplate":
         """Create a copy of this template."""
         new_metadata = None
         if self.metadata:
             new_metadata = PromptMetadata(
-                name=new_name or f"{self.metadata.name}_copy",
-                description=self.metadata.description,
-                author=self.metadata.author,
-                version=self.metadata.version,
-                tags=self.metadata.tags.copy(),
+                name=new_name or f"{self.metadata.name}_copy"
+                description=self.metadata.description
+                author=self.metadata.author
+                version=self.metadata.version
+                tags=self.metadata.tags.copy()
             )
 
         return PromptTemplate(
-            template=self.template,
-            variables=list(self.variables.values()),
-            metadata=new_metadata,
-            variable_prefix=self.variable_prefix,
-            variable_suffix=self.variable_suffix,
+            template=self.template
+            variables=list(self.variables.values())
+            metadata=new_metadata
+            variable_prefix=self.variable_prefix
+            variable_suffix=self.variable_suffix
         )
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize template to dictionary."""
         return {
-            "template": self.template,
+            "template": self.template
             "variables": [
                 {
-                    "name": var.name,
-                    "type": var.type,
-                    "required": var.required,
-                    "default": var.default,
-                    "description": var.description,
+                    "name": var.name
+                    "type": var.type
+                    "required": var.required
+                    "default": var.default
+                    "description": var.description
                 }
                 for var in self.variables.values()
-            ],
+            ]
             "metadata": {
-                "name": self.metadata.name,
-                "description": self.metadata.description,
-                "author": self.metadata.author,
-                "version": self.metadata.version,
-                "tags": self.metadata.tags,
+                "name": self.metadata.name
+                "description": self.metadata.description
+                "author": self.metadata.author
+                "version": self.metadata.version
+                "tags": self.metadata.tags
             }
             if self.metadata
-            else None,
-            "variable_prefix": self.variable_prefix,
-            "variable_suffix": self.variable_suffix,
+            else None
+            "variable_prefix": self.variable_prefix
+            "variable_suffix": self.variable_suffix
         }
 
     @classmethod
@@ -301,11 +303,11 @@ class PromptTemplate(PromptTemplateInterface):
         """Create template from dictionary."""
         variables = [
             PromptVariable(
-                name=var_data["name"],
-                type=var_data["type"],
-                required=var_data.get("required", True),
-                default=var_data.get("default"),
-                description=var_data.get("description", ""),
+                name=var_data["name"]
+                type=var_data["type"]
+                required=var_data.get("required", True)
+                default=var_data.get("default")
+                description=var_data.get("description", "")
             )
             for var_data in data.get("variables", [])
         ]
@@ -315,11 +317,11 @@ class PromptTemplate(PromptTemplateInterface):
             metadata = PromptMetadata(**data["metadata"])
 
         return cls(
-            template=data["template"],
-            variables=variables,
-            metadata=metadata,
-            variable_prefix=data.get("variable_prefix", "{{"),
-            variable_suffix=data.get("variable_suffix", "}}"),
+            template=data["template"]
+            variables=variables
+            metadata=metadata
+            variable_prefix=data.get("variable_prefix", "{{")
+            variable_suffix=data.get("variable_suffix", "}}")
         )
 
 

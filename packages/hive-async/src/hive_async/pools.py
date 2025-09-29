@@ -1,5 +1,7 @@
 """Connection pooling and resource management for async operations."""
 
+from __future__ import annotations
+
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
@@ -31,7 +33,7 @@ class ConnectionPool(Generic[T]):
         create_connection: Callable[[], T],
         close_connection: Optional[Callable[[T], None]] = None,
         health_check: Optional[Callable[[T], bool]] = None,
-        config: Optional[PoolConfig] = None,
+        config: PoolConfig | None = None,
     ):
         self.create_connection = create_connection
         self.close_connection = close_connection
@@ -42,7 +44,7 @@ class ConnectionPool(Generic[T]):
         self._connections: Dict[T, float] = {}
         self._lock = asyncio.Lock()
         self._closed = False
-        self._health_check_task: Optional[asyncio.Task] = None
+        self._health_check_task: asyncio.Task | None = None
 
     async def __aenter__(self):
         await self.initialize_async()

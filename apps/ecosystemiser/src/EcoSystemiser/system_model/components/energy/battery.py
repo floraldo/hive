@@ -1,21 +1,21 @@
 """Battery storage component with MILP optimization support."""
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import cvxpy as cp
 import numpy as np
 from ecosystemiser.system_model.components.shared.archetypes import (
-    FidelityLevel,
-    StorageTechnicalParams,
+    FidelityLevel
+    StorageTechnicalParams
 )
 from ecosystemiser.system_model.components.shared.base_classes import (
-    BaseStorageOptimization,
-    BaseStoragePhysics,
+    BaseStorageOptimization
+    BaseStoragePhysics
 )
 from ecosystemiser.system_model.components.shared.component import (
-    Component,
-    ComponentParams,
+    Component
+    ComponentParams
 )
 from ecosystemiser.system_model.components.shared.registry import register_component
 from hive_logging import get_logger
@@ -30,6 +30,8 @@ logger = get_logger(__name__)
 
 class BatteryTechnicalParams(StorageTechnicalParams):
     """Battery-specific technical parameters extending storage archetype."""
+from __future__ import annotations
+
 
     # Core battery power limits (SIMPLE fidelity)
     max_charge_rate: float = Field(..., description="Maximum charging power [kW]")
@@ -39,10 +41,10 @@ class BatteryTechnicalParams(StorageTechnicalParams):
     self_discharge_rate: float = Field(0.0001, description="Self-discharge rate per timestep [fraction/hour]")
 
     # Battery-specific additions (DETAILED fidelity)
-    temperature_coefficient_capacity: Optional[float] = Field(
+    temperature_coefficient_capacity: float | None = Field(
         None, description="Temperature coefficient for capacity (%/°C)"
     )
-    temperature_coefficient_charge: Optional[float] = Field(
+    temperature_coefficient_charge: float | None = Field(
         None, description="Temperature coefficient for charging (%/°C)"
     )
 
@@ -66,11 +68,11 @@ class BatteryParams(ComponentParams):
             capacity_nominal=10.0,  # Default 10 kWh
             max_charge_rate=5.0,  # Default 5 kW charge
             max_discharge_rate=5.0,  # Default 5 kW discharge
-            efficiency_roundtrip=0.95,
-            initial_soc_pct=0.5,
-            fidelity_level=FidelityLevel.STANDARD,
-        ),
-        description="Technical parameters following the hierarchical archetype system",
+            efficiency_roundtrip=0.95
+            initial_soc_pct=0.5
+            fidelity_level=FidelityLevel.STANDARD
+        )
+        description="Technical parameters following the hierarchical archetype system"
     )
 
 

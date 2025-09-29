@@ -1,14 +1,16 @@
 """
 Embedding generation and management with multi-provider support.
 
-Handles text-to-vector conversion with caching, batching,
+Handles text-to-vector conversion with caching, batching
 and integration with the model management system.
 """
+from __future__ import annotations
+
 
 import asyncio
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List
 
 from hive_async import gather_with_concurrency
 from hive_cache import CacheManager
@@ -37,7 +39,7 @@ class EmbeddingManager:
     """
     Manages text embedding generation across providers.
 
-    Provides efficient embedding generation with caching,
+    Provides efficient embedding generation with caching
     batching, and automatic model selection.
     """
 
@@ -49,9 +51,9 @@ class EmbeddingManager:
 
         # Default embedding models by provider
         self._default_models = {
-            "openai": "text-embedding-ada-002",
+            "openai": "text-embedding-ada-002"
             "anthropic": "claude-3-sonnet",  # Fallback, Anthropic doesn't have embedding models
-            "local": "sentence-transformers/all-MiniLM-L6-v2",
+            "local": "sentence-transformers/all-MiniLM-L6-v2"
         }
 
     def _get_cache_key(self, text: str, model: str) -> str:
@@ -60,7 +62,7 @@ class EmbeddingManager:
         content = f"{text}|{model}"
         return hashlib.md5(content.encode("utf-8")).hexdigest()
 
-    def _get_embedding_model(self, model: Optional[str] = None) -> str:
+    def _get_embedding_model(self, model: str | None = None) -> str:
         """Get appropriate embedding model."""
         if model:
             return model
@@ -89,7 +91,7 @@ class EmbeddingManager:
         raise VectorError("No embedding or completion models available", operation="get_embedding_model")
 
     async def generate_embedding_async(
-        self, text: str, model: Optional[str] = None, use_cache: bool = True
+        self, text: str, model: str | None = None, use_cache: bool = True
     ) -> EmbeddingResult:
         """
         Generate embedding for single text.
@@ -117,11 +119,11 @@ class EmbeddingManager:
             if cached_result is not None:
                 logger.debug(f"Cache hit for embedding: {text[:50]}...")
                 return EmbeddingResult(
-                    text=text,
-                    vector=cached_result["vector"],
-                    model=embedding_model,
-                    tokens_used=cached_result["tokens_used"],
-                    cache_hit=True,
+                    text=text
+                    vector=cached_result["vector"]
+                    model=embedding_model
+                    tokens_used=cached_result["tokens_used"]
+                    cache_hit=True
                 )
 
         try:
@@ -199,12 +201,12 @@ class EmbeddingManager:
         return vector[:dimension]
 
     async def generate_batch_embeddings_async(
-        self,
-        texts: List[str],
-        model: Optional[str] = None,
-        batch_size: int = 32,
-        use_cache: bool = True,
-        max_concurrency: int = 5,
+        self
+        texts: List[str]
+        model: str | None = None
+        batch_size: int = 32
+        use_cache: bool = True
+        max_concurrency: int = 5
     ) -> List[EmbeddingResult]:
         """
         Generate embeddings for multiple texts efficiently.
@@ -261,7 +263,7 @@ class EmbeddingManager:
             ) from e
 
     async def search_similar_texts_async(
-        self, query_text: str, candidate_texts: List[str], top_k: int = 5, model: Optional[str] = None
+        self, query_text: str, candidate_texts: List[str], top_k: int = 5, model: str | None = None
     ) -> List[Dict[str, Any]]:
         """
         Find most similar texts using embedding similarity.
@@ -294,10 +296,10 @@ class EmbeddingManager:
                 similarity = self._calculate_cosine_similarity(query_result.vector, candidate_result.vector)
                 similarities.append(
                     {
-                        "index": i,
-                        "text": candidate_result.text,
-                        "similarity": similarity,
-                        "model": candidate_result.model,
+                        "index": i
+                        "text": candidate_result.text
+                        "similarity": similarity
+                        "model": candidate_result.model
                     }
                 )
 
@@ -331,17 +333,17 @@ class EmbeddingManager:
     async def get_embedding_stats_async(self) -> Dict[str, Any]:
         """Get embedding generation statistics."""
         cache_stats = {
-            "cache_size": self.cache.size() if hasattr(self.cache, "size") else 0,
+            "cache_size": self.cache.size() if hasattr(self.cache, "size") else 0
             "cache_hit_rate": "N/A",  # Would need tracking to calculate
         }
 
         available_models = self.registry.get_models_by_type("embedding")
 
         return {
-            "available_embedding_models": available_models,
-            "default_model": self._get_embedding_model(),
-            "cache_stats": cache_stats,
-            "supported_providers": list(self._default_models.keys()),
+            "available_embedding_models": available_models
+            "default_model": self._get_embedding_model()
+            "cache_stats": cache_stats
+            "supported_providers": list(self._default_models.keys())
         }
 
     async def clear_cache_async(self) -> bool:

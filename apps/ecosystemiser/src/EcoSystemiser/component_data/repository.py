@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import yaml
 from ecosystemiser.db import ecosystemiser_transaction, get_ecosystemiser_db_path
@@ -13,8 +13,10 @@ logger = get_logger(__name__)
 
 class ComponentRepository:
     """Repository for component data definitions."""
+from __future__ import annotations
 
-    def __init__(self, data_source: str = "database", base_path: Optional[Path] = None) -> None:
+
+    def __init__(self, data_source: str = "database", base_path: Path | None = None) -> None:
         """Initialize component repository.
 
         Args:
@@ -49,7 +51,7 @@ class ComponentRepository:
         logger.debug(f"Loaded component data: {component_id}")
         return data
 
-    def list_available_components(self, category: Optional[str] = None) -> List[str]:
+    def list_available_components(self, category: str | None = None) -> List[str]:
         """List all available component IDs.
 
         Args:
@@ -72,7 +74,7 @@ class ComponentRepository:
 class FileLoader:
     """Load component data from YAML files."""
 
-    def __init__(self, base_path: Optional[Path] = None) -> None:
+    def __init__(self, base_path: Path | None = None) -> None:
         """Initialize file loader.
 
         Args:
@@ -120,7 +122,7 @@ class FileLoader:
 
         raise FileNotFoundError(f"Component data not found: {component_id}")
 
-    def list_components(self, category: Optional[str] = None) -> List[str]:
+    def list_components(self, category: str | None = None) -> List[str]:
         """List available component YAML files.
 
         Args:
@@ -144,7 +146,7 @@ class FileLoader:
 class SQLiteLoader:
     """Load component data from SQLite database using Hive native connectors."""
 
-    def __init__(self, db_path: Optional[str] = None) -> None:
+    def __init__(self, db_path: str | None = None) -> None:
         """Initialize SQLite loader.
 
         Args:
@@ -164,13 +166,13 @@ class SQLiteLoader:
                 conn.execute(
                     """
                     CREATE TABLE IF NOT EXISTS components (
-                        id TEXT PRIMARY KEY,
-                        category TEXT NOT NULL,
-                        component_class TEXT NOT NULL,
-                        technical_data TEXT NOT NULL,
-                        economic_data TEXT,
-                        metadata TEXT,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        id TEXT PRIMARY KEY
+                        category TEXT NOT NULL
+                        component_class TEXT NOT NULL
+                        technical_data TEXT NOT NULL
+                        economic_data TEXT
+                        metadata TEXT
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """
@@ -209,9 +211,9 @@ class SQLiteLoader:
 
                 # Reconstruct component data structure
                 data = {
-                    "component_class": row["component_class"],
-                    "technical": json.loads(row["technical_data"]),
-                    "category": row["category"],
+                    "component_class": row["component_class"]
+                    "technical": json.loads(row["technical_data"])
+                    "category": row["category"]
                 }
 
                 # Add optional fields if present
@@ -234,7 +236,7 @@ class SQLiteLoader:
             logger.error(f"Failed to load component {component_id} from database: {e}")
             raise
 
-    def list_components(self, category: Optional[str] = None) -> List[str]:
+    def list_components(self, category: str | None = None) -> List[str]:
         """List available components in the database.
 
         Args:
@@ -247,8 +249,8 @@ class SQLiteLoader:
             with ecosystemiser_transaction() as conn:
                 if category:
                     cursor = conn.execute(
-                        "SELECT id FROM components WHERE category = ? ORDER BY id",
-                        (category,),
+                        "SELECT id FROM components WHERE category = ? ORDER BY id"
+                        (category,)
                     )
                 else:
                     cursor = conn.execute("SELECT id FROM components ORDER BY id")
@@ -297,15 +299,15 @@ class SQLiteLoader:
                     INSERT OR REPLACE INTO components
                     (id, category, component_class, technical_data, economic_data, metadata, updated_at)
                     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-                """,
+                """
                     (
-                        component_id,
-                        category,
-                        component_class,
-                        technical_data,
-                        economic_data,
-                        metadata_json,
-                    ),
+                        component_id
+                        category
+                        component_class
+                        technical_data
+                        economic_data
+                        metadata_json
+                    )
                 )
 
                 logger.info(f"Saved component to database: {component_id}")

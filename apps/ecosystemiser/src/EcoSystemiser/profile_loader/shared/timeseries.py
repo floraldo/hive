@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 """Shared time series utilities for both climate and demand profiles"""
 
-from typing import Any, Dict, Literal, Union
+from typing import Any, Dict, Literal
 
 import numpy as np
 import pandas as pd
@@ -30,8 +32,8 @@ def aggregate_policy(var_type: Literal["state", "flux"]) -> str:
 
 
 def resample_timeseries(
-    data: Union[pd.DataFrame, xr.Dataset], target_freq: str, policy_map: Dict[str, str]
-) -> Union[pd.DataFrame, xr.Dataset]:
+    data: pd.DataFrame | xr.Dataset, target_freq: str, policy_map: Dict[str, str]
+) -> pd.DataFrame | xr.Dataset:
     """
     Resample time series data with specified policies.
 
@@ -85,7 +87,7 @@ def resample_timeseries(
         raise TypeError("Data must be pandas DataFrame or xarray Dataset")
 
 
-def qc_bounds(data: Union[pd.Series, np.ndarray], bounds: tuple, clip: bool = True) -> Union[pd.Series, np.ndarray]:
+def qc_bounds(data: pd.Series | np.ndarray, bounds: tuple, clip: bool = True) -> pd.Series | np.ndarray:
     """
     Apply quality control bounds to data.
 
@@ -206,7 +208,7 @@ def calculate_night_mask(times: pd.DatetimeIndex, lat: float) -> np.ndarray:
     return night_mask
 
 
-def calculate_solar_elevation(times: Union[np.ndarray, pd.DatetimeIndex], lat: float) -> np.ndarray:
+def calculate_solar_elevation(times: np.ndarray | pd.DatetimeIndex, lat: float) -> np.ndarray:
     """
     Calculate solar elevation angle using vectorized operations.
 

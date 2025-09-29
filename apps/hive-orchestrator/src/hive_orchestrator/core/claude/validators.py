@@ -1,9 +1,11 @@
 """
 Response validation utilities for Claude outputs
 """
+from __future__ import annotations
+
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Type
+from typing import Any, DictType
 
 from hive_logging import get_logger
 from pydantic import BaseModel, ValidationError
@@ -15,7 +17,7 @@ class BaseResponseValidator(ABC):
     """Base class for response validators"""
 
     @abstractmethod
-    def validate(self, data: Dict[str, Any]) -> Optional[BaseModel]:
+    def validate(self, data: Dict[str, Any]) -> BaseModel | None:
         """Validate response data against a schema"""
         pass
 
@@ -37,7 +39,7 @@ class PydanticValidator(BaseResponseValidator):
         """
         self.model_class = model_class
 
-    def validate(self, data: Dict[str, Any]) -> Optional[BaseModel]:
+    def validate(self, data: Dict[str, Any]) -> BaseModel | None:
         """
         Validate data against the Pydantic model
 
@@ -107,11 +109,11 @@ class ResponseValidator:
         self.validator = validator
 
     def validate_response(
-        self,
-        data: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
-        use_fallback: bool = True,
-    ) -> Optional[BaseModel]:
+        self
+        data: Dict[str, Any]
+        context: Optional[Dict[str, Any]] = None
+        use_fallback: bool = True
+    ) -> BaseModel | None:
         """
         Validate response with optional fallback
 

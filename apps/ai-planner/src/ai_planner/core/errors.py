@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 
 """
@@ -13,7 +15,7 @@ Extends the generic error handling toolkit with AI Planner capabilities:
 import time
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List
 
 from hive_errors import BaseError, BaseErrorReporter, RecoveryStatus, RecoveryStrategy
 from hive_logging import get_logger
@@ -30,16 +32,16 @@ class PlannerError(BaseError):
     """
 
     def __init__(
-        self,
-        message: str,
-        component: str = "ai-planner",
-        operation: Optional[str] = None,
-        task_id: Optional[str] = None,
-        plan_id: Optional[str] = None,
-        planning_phase: Optional[str] = None,
-        details: Optional[Dict[str, Any]] = None,
-        recovery_suggestions: Optional[List[str]] = None,
-        original_error: Optional[Exception] = None,
+        self
+        message: str
+        component: str = "ai-planner"
+        operation: str | None = None
+        task_id: str | None = None
+        plan_id: str | None = None
+        planning_phase: str | None = None
+        details: Optional[Dict[str, Any]] = None
+        recovery_suggestions: Optional[List[str]] = None
+        original_error: Exception | None = None
     ):
         """
         Initialize an AI Planner error with planning context.
@@ -66,12 +68,12 @@ class PlannerError(BaseError):
             planner_details["planning_phase"] = planning_phase
 
         super().__init__(
-            message=message,
-            component=component,
-            operation=operation,
-            details=planner_details,
-            recovery_suggestions=recovery_suggestions,
-            original_error=original_error,
+            message=message
+            component=component
+            operation=operation
+            details=planner_details
+            recovery_suggestions=recovery_suggestions
+            original_error=original_error
         )
 
         # Store AI Planner-specific attributes
@@ -97,9 +99,9 @@ class TaskProcessingError(BaseError):
 
     def __init__(self, message: str, **kwargs) -> None:
         super().__init__(
-            message=message,
-            component=kwargs.get("component", "task_processor"),
-            **kwargs,
+            message=message
+            component=kwargs.get("component", "task_processor")
+            **kwargs
         )
 
 
@@ -107,11 +109,11 @@ class TaskValidationError(BaseError):
     """Error validating task data"""
 
     def __init__(
-        self,
-        message: str,
-        validation_type: Optional[str] = None,
-        failed_fields: Optional[List[str]] = None,
-        **kwargs,
+        self
+        message: str
+        validation_type: str | None = None
+        failed_fields: Optional[List[str]] = None
+        **kwargs
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -121,13 +123,13 @@ class TaskValidationError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions",
+            "recovery_suggestions"
             [
-                "Check task description format",
-                "Verify required fields are present",
-                "Ensure task priority is valid",
-                "Review task dependencies",
-            ],
+                "Check task description format"
+                "Verify required fields are present"
+                "Ensure task priority is valid"
+                "Review task dependencies"
+            ]
         )
 
         super().__init__(message=message, operation="validation", **kwargs)
@@ -137,11 +139,11 @@ class TaskQueueError(BaseError):
     """Error with task queue operations"""
 
     def __init__(
-        self,
-        message: str,
-        queue_operation: Optional[str] = None,
-        queue_size: Optional[int] = None,
-        **kwargs,
+        self
+        message: str
+        queue_operation: str | None = None
+        queue_size: int | None = None
+        **kwargs
     ):
         details = kwargs.get("details", {})
         if queue_operation:
@@ -151,13 +153,13 @@ class TaskQueueError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions",
+            "recovery_suggestions"
             [
-                "Check database connectivity",
-                "Verify queue table exists",
-                "Check for table locks",
-                "Retry queue operation",
-            ],
+                "Check database connectivity"
+                "Verify queue table exists"
+                "Check for table locks"
+                "Retry queue operation"
+            ]
         )
 
         super().__init__(message=message, operation="queue", **kwargs)
@@ -173,9 +175,9 @@ class PlanGenerationError(BaseError):
 
     def __init__(self, message: str, **kwargs) -> None:
         super().__init__(
-            message=message,
-            component=kwargs.get("component", "plan_generator"),
-            **kwargs,
+            message=message
+            component=kwargs.get("component", "plan_generator")
+            **kwargs
         )
 
 
@@ -183,12 +185,12 @@ class ClaudeServiceError(BaseError):
     """Error with Claude AI service"""
 
     def __init__(
-        self,
-        message: str,
-        api_status_code: Optional[int] = None,
-        api_response: Optional[str] = None,
-        rate_limit_info: Optional[Dict[str, Any]] = None,
-        **kwargs,
+        self
+        message: str
+        api_status_code: int | None = None
+        api_response: str | None = None
+        rate_limit_info: Optional[Dict[str, Any]] = None
+        **kwargs
     ):
         details = kwargs.get("details", {})
         if api_status_code:
@@ -203,25 +205,25 @@ class ClaudeServiceError(BaseError):
         # Add status-specific recovery suggestions
         if api_status_code == 429:
             kwargs["recovery_suggestions"] = [
-                "Rate limit exceeded - wait before retrying",
-                "Implement exponential backoff",
-                "Check rate limit configuration",
+                "Rate limit exceeded - wait before retrying"
+                "Implement exponential backoff"
+                "Check rate limit configuration"
             ]
         elif api_status_code == 401:
             kwargs["recovery_suggestions"] = [
-                "Check Claude API credentials",
-                "Verify API key is valid",
-                "Check API key permissions",
+                "Check Claude API credentials"
+                "Verify API key is valid"
+                "Check API key permissions"
             ]
         else:
             kwargs["recovery_suggestions"] = kwargs.get(
-                "recovery_suggestions",
+                "recovery_suggestions"
                 [
-                    "Check Claude API connectivity",
-                    "Verify request format",
-                    "Use fallback planning mechanism",
-                    "Retry with exponential backoff",
-                ],
+                    "Check Claude API connectivity"
+                    "Verify request format"
+                    "Use fallback planning mechanism"
+                    "Retry with exponential backoff"
+                ]
             )
 
         super().__init__(message=message, operation="claude_service", **kwargs)
@@ -231,11 +233,11 @@ class PlanValidationError(BaseError):
     """Error validating generated plan"""
 
     def __init__(
-        self,
-        message: str,
-        plan_structure_issues: Optional[List[str]] = None,
-        missing_fields: Optional[List[str]] = None,
-        **kwargs,
+        self
+        message: str
+        plan_structure_issues: Optional[List[str]] = None
+        missing_fields: Optional[List[str]] = None
+        **kwargs
     ):
         details = kwargs.get("details", {})
         if plan_structure_issues:
@@ -245,13 +247,13 @@ class PlanValidationError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions",
+            "recovery_suggestions"
             [
-                "Check plan JSON structure",
-                "Verify all required fields are present",
-                "Validate subtask dependencies",
-                "Review plan schema requirements",
-            ],
+                "Check plan JSON structure"
+                "Verify all required fields are present"
+                "Validate subtask dependencies"
+                "Review plan schema requirements"
+            ]
         )
 
         super().__init__(message=message, operation="plan_validation", **kwargs)
@@ -266,11 +268,11 @@ class DatabaseConnectionError(BaseError):
     """Error connecting to AI Planner database"""
 
     def __init__(
-        self,
-        message: str,
-        db_path: Optional[str] = None,
-        retry_count: int = 0,
-        **kwargs,
+        self
+        message: str
+        db_path: str | None = None
+        retry_count: int = 0
+        **kwargs
     ):
         details = kwargs.get("details", {})
         if db_path:
@@ -279,14 +281,14 @@ class DatabaseConnectionError(BaseError):
 
         kwargs["details"] = details
         kwargs["recovery_suggestions"] = kwargs.get(
-            "recovery_suggestions",
+            "recovery_suggestions"
             [
-                "Check database file exists",
-                "Verify file permissions",
-                "Ensure database is not locked",
-                "Check disk space availability",
-                "Use connection pooling",
-            ],
+                "Check database file exists"
+                "Verify file permissions"
+                "Ensure database is not locked"
+                "Check disk space availability"
+                "Use connection pooling"
+            ]
         )
 
         super().__init__(message=message, component="database", operation="connection", **kwargs)
@@ -314,10 +316,10 @@ class PlannerErrorReporter(BaseErrorReporter):
         self.claude_errors: List[ClaudeServiceError] = []
 
     def report_error(
-        self,
-        error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None,
+        self
+        error: Exception
+        context: Optional[Dict[str, Any]] = None
+        additional_info: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Report an error with AI Planner-specific handling.
@@ -380,16 +382,16 @@ class PlannerErrorReporter(BaseErrorReporter):
     def get_error_summary(self) -> Dict[str, Any]:
         """Get summary of all reported errors"""
         return {
-            "total_errors": self.error_counts.get("total", 0),
-            "task_errors": len(self.task_errors),
-            "plan_errors": len(self.plan_errors),
-            "claude_errors": len(self.claude_errors),
-            "latest_errors": self.error_history[-10:],
+            "total_errors": self.error_counts.get("total", 0)
+            "task_errors": len(self.task_errors)
+            "plan_errors": len(self.plan_errors)
+            "claude_errors": len(self.claude_errors)
+            "latest_errors": self.error_history[-10:]
         }
 
 
 # Global error reporter instance
-_error_reporter: Optional[PlannerErrorReporter] = None
+_error_reporter: PlannerErrorReporter | None = None
 
 
 def get_error_reporter() -> PlannerErrorReporter:
@@ -455,21 +457,21 @@ def with_recovery(strategy: RecoveryStrategy, operation: Callable[[], Any]) -> A
 # Export main classes and functions
 __all__ = [
     # Base classes
-    "PlannerError",
+    "PlannerError"
     # Task processing errors
-    "TaskProcessingError",
-    "TaskValidationError",
-    "TaskQueueError",
+    "TaskProcessingError"
+    "TaskValidationError"
+    "TaskQueueError"
     # Plan generation errors
-    "PlanGenerationError",
-    "ClaudeServiceError",
-    "PlanValidationError",
+    "PlanGenerationError"
+    "ClaudeServiceError"
+    "PlanValidationError"
     # Database errors
-    "DatabaseConnectionError",
+    "DatabaseConnectionError"
     # Recovery strategies
-    "ExponentialBackoffStrategy",
-    "with_recovery",
+    "ExponentialBackoffStrategy"
+    "with_recovery"
     # Reporter
-    "PlannerErrorReporter",
-    "get_error_reporter",
+    "PlannerErrorReporter"
+    "get_error_reporter"
 ]

@@ -1,7 +1,7 @@
 """Base CLI classes for Hive applications."""
 
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import click
 from hive_errors import BaseError
@@ -10,6 +10,8 @@ from hive_logging import get_logger
 
 class HiveError(BaseError):
     """Base error for Hive CLI operations."""
+from __future__ import annotations
+
 
     pass
 
@@ -60,9 +62,9 @@ class HiveContext:
         self.config: Optional[Dict[str, Any]] = None
         self.debug: bool = False
         self.verbose: bool = False
-        self.config_path: Optional[Path] = None
+        self.config_path: Path | None = None
 
-    def load_config(self, config_path: Optional[Path] = None) -> None:
+    def load_config(self, config_path: Path | None = None) -> None:
         """Load configuration from file."""
         if config_path:
             self.config_path = config_path

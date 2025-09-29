@@ -1,18 +1,20 @@
 """
 Deployment orchestrator that manages deployment strategies and execution
 """
+from __future__ import annotations
+
 
 import asyncio
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from hive_deployment import (
-    connect_to_server,
-    deploy_application,
-    determine_deployment_paths,
-    rollback_deployment,
+    connect_to_server
+    deploy_application
+    determine_deployment_paths
+    rollback_deployment
 )
 from hive_errors import BaseError, RecoveryStrategy
 from hive_logging import get_logger
@@ -35,20 +37,20 @@ class DeploymentResult:
 
     success: bool
     strategy: DeploymentStrategy
-    deployment_id: Optional[str] = None
-    error: Optional[str] = None
+    deployment_id: str | None = None
+    error: str | None = None
     rollback_attempted: bool = False
     metrics: Dict[str, Any] = None
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary"""
         return {
-            "success": self.success,
-            "strategy": self.strategy.value,
-            "deployment_id": self.deployment_id,
-            "error": self.error,
-            "rollback_attempted": self.rollback_attempted,
-            "metrics": self.metrics or {},
+            "success": self.success
+            "strategy": self.strategy.value
+            "deployment_id": self.deployment_id
+            "error": self.error
+            "rollback_attempted": self.rollback_attempted
+            "metrics": self.metrics or {}
         }
 
 
@@ -57,7 +59,7 @@ class HealthStatus:
     """Health check result"""
 
     healthy: bool
-    message: Optional[str] = None
+    message: str | None = None
     checks: Dict[str, bool] = None
 
 
@@ -84,10 +86,10 @@ class DeploymentOrchestrator:
         from .strategies.ssh import SSHDeploymentStrategy
 
         return {
-            DeploymentStrategy.DIRECT: SSHDeploymentStrategy(self.config),
-            DeploymentStrategy.BLUE_GREEN: SSHDeploymentStrategy(self.config),
-            DeploymentStrategy.ROLLING: DockerDeploymentStrategy(self.config),
-            DeploymentStrategy.CANARY: KubernetesDeploymentStrategy(self.config),
+            DeploymentStrategy.DIRECT: SSHDeploymentStrategy(self.config)
+            DeploymentStrategy.BLUE_GREEN: SSHDeploymentStrategy(self.config)
+            DeploymentStrategy.ROLLING: DockerDeploymentStrategy(self.config)
+            DeploymentStrategy.CANARY: KubernetesDeploymentStrategy(self.config)
         }
 
     async def deploy_async(self, task: Dict[str, Any]) -> DeploymentResult:
@@ -131,12 +133,12 @@ class DeploymentOrchestrator:
             rollback_success = await self._attempt_rollback_async(task, deployment_id)
 
             return DeploymentResult(
-                success=False,
-                strategy=strategy,
-                deployment_id=deployment_id,
-                error=str(e),
-                rollback_attempted=True,
-                metrics={"rollback_success": rollback_success},
+                success=False
+                strategy=strategy
+                deployment_id=deployment_id
+                error=str(e)
+                rollback_attempted=True
+                metrics={"rollback_success": rollback_success}
             )
 
     def _select_strategy(self, task: Dict[str, Any]) -> DeploymentStrategy:
@@ -154,10 +156,10 @@ class DeploymentOrchestrator:
 
         # Map to enum
         strategy_map = {
-            "direct": DeploymentStrategy.DIRECT,
-            "blue-green": DeploymentStrategy.BLUE_GREEN,
-            "rolling": DeploymentStrategy.ROLLING,
-            "canary": DeploymentStrategy.CANARY,
+            "direct": DeploymentStrategy.DIRECT
+            "blue-green": DeploymentStrategy.BLUE_GREEN
+            "rolling": DeploymentStrategy.ROLLING
+            "canary": DeploymentStrategy.CANARY
         }
 
         strategy = strategy_map.get(strategy_name, self.default_strategy)
@@ -224,10 +226,10 @@ class DeploymentOrchestrator:
             await strategy_impl.post_deployment_actions(task, deployment_id)
 
         return DeploymentResult(
-            success=deploy_result["success"],
-            strategy=strategy_impl.strategy,
-            deployment_id=deployment_id,
-            metrics=deploy_result.get("metrics", {}),
+            success=deploy_result["success"]
+            strategy=strategy_impl.strategy
+            deployment_id=deployment_id
+            metrics=deploy_result.get("metrics", {})
         )
 
     async def _validate_deployment_async(self, task: Dict[str, Any], deployment_id: str) -> bool:
@@ -328,16 +330,16 @@ class DeploymentOrchestrator:
             overall_healthy = all(health_checks.values())
 
             return HealthStatus(
-                healthy=overall_healthy,
-                message=("All health checks passed" if overall_healthy else "Some health checks failed"),
-                checks=health_checks,
+                healthy=overall_healthy
+                message=("All health checks passed" if overall_healthy else "Some health checks failed")
+                checks=health_checks
             )
 
         except Exception as e:
             logger.error(f"Health check error: {e}", exc_info=True)
             return HealthStatus(
-                healthy=False,
-                message=f"Health check error: {e}",
+                healthy=False
+                message=f"Health check error: {e}"
             )
 
     async def _check_endpoint_async(self, task: Dict[str, Any], endpoint: str) -> bool:
