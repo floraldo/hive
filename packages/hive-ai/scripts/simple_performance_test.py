@@ -12,8 +12,6 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List
 
-# Add hive-ai to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
 def test_security_performance():

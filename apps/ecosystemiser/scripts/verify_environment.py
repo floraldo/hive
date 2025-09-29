@@ -17,7 +17,6 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-
 class EnvironmentVerifier:
     """Verifies EcoSystemiser environment and Hive integration."""
 
@@ -309,7 +308,6 @@ class EnvironmentVerifier:
             logger.error("  Please fix the errors above before proceeding")
             return False
 
-
 def main() -> None:
     """Main execution."""
     verifier = EnvironmentVerifier()
@@ -317,7 +315,6 @@ def main() -> None:
 
     # Exit code indicates success/failure
     sys.exit(0 if success else 1)
-
 
 if __name__ == "__main__":
     main()

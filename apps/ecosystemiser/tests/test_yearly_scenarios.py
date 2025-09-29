@@ -12,9 +12,7 @@ import numpy as np
 import pandas as pd
 import psutil
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
@@ -44,7 +42,6 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-
 def load_yearly_profile(profile_name: str) -> np.ndarray:
     """Load a yearly profile from CSV."""
     profile_path = (
@@ -59,7 +56,6 @@ def load_yearly_profile(profile_name: str) -> np.ndarray:
 
     logger.info(f"Loaded {profile_name}: {len(profile)} timesteps, range [{profile.min():.2f}, {profile.max():.2f}]")
     return profile
-
 
 def create_yearly_system() -> System:
     """Create system for yearly testing using extracted profiles."""
@@ -143,12 +139,10 @@ def create_yearly_system() -> System:
     logger.info(f"Created yearly system: {len(system.components)} components, {len(system.flows)} flows")
     return system
 
-
 def monitor_memory_usage():
     """Get current memory usage in MB."""
     process = psutil.Process(os.getpid())
     return process.memory_info().rss / 1024 / 1024
-
 
 def validate_energy_balance(system: System, tolerance: float = 1e-3) -> Dict[str, float]:
     """Validate energy balance for yearly simulation."""
@@ -188,7 +182,6 @@ def validate_energy_balance(system: System, tolerance: float = 1e-3) -> Dict[str
         "energy_balance_ok": energy_balance_ok,
         "violation_count": sum(1 for imb in total_imbalances if imb > tolerance),
     }
-
 
 def analyze_yearly_performance(system: System) -> Dict[str, Any]:
     """Analyze system performance over the full year."""
@@ -240,7 +233,6 @@ def analyze_yearly_performance(system: System) -> Dict[str, Any]:
     }
 
     return analysis
-
 
 def test_rule_based_yearly():
     """Test rule-based solver on yearly scenario."""
@@ -321,7 +313,6 @@ def test_rule_based_yearly():
     results["total_time"] = results["test_end"] - results["test_start"]
 
     return results
-
 
 def test_milp_yearly():
     """Test MILP solver on yearly scenario (smaller subset due to performance)."""
@@ -455,7 +446,6 @@ def test_milp_yearly():
 
     return results
 
-
 def main():
     """Main execution."""
     logger.info("Starting yearly scenario validation tests")
@@ -508,7 +498,6 @@ def main():
     print("=" * 80)
 
     return rule_passed and milp_passed
-
 
 if __name__ == "__main__":
     success = main()

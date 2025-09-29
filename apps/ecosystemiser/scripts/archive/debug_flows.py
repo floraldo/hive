@@ -9,9 +9,8 @@ from pathlib import Path
 
 import numpy as np
 
-# Add path for imports
+ for imports
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (

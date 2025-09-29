@@ -6,9 +6,7 @@ from pathlib import Path
 
 import cvxpy as cp
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent / "src"
-sys.path.insert(0, str(eco_path))
 
 import numpy as np
 from ecosystemiser.solver.milp_solver import MILPSolver
@@ -20,7 +18,6 @@ from ecosystemiser.system_model.components.energy.grid import (
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
-
 
 def debug_objective() -> None:
     """Debug the objective function construction."""
@@ -92,7 +89,6 @@ def debug_objective() -> None:
         print(f"objective type: {type(objective)}")
     else:
         print("No cost terms found")
-
 
 if __name__ == "__main__":
     debug_objective()

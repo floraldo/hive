@@ -9,9 +9,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (
@@ -39,7 +37,6 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-
 
 def create_golden_system():
     """Create the exact golden system matching the original validation."""
@@ -167,7 +164,6 @@ def create_golden_system():
 
     return system
 
-
 def validate_against_golden_dataset(system):
     """Compare results against the golden dataset."""
     golden_path = Path(__file__).parent.parent / "tests" / "systemiser_minimal_golden.json"
@@ -204,7 +200,6 @@ def validate_against_golden_dataset(system):
         "battery_diff": final_battery_energy - golden_final_energy,
         "flow_diff": solar_to_grid - golden_solar_to_grid,
     }
-
 
 def run_validation():
     """Run the comprehensive validation."""
@@ -307,7 +302,6 @@ def run_validation():
 
     return results
 
-
 def main():
     """Main execution."""
     results = run_validation()
@@ -341,12 +335,10 @@ def main():
 
     return results.get("validation_passed", False)
 
-
 def test_corrected_golden_validation():
     """Test corrected golden validation as pytest test."""
     success = main()
     assert success, "Corrected golden validation failed"
-
 
 def test_golden_system_creation():
     """Test golden system can be created successfully."""
@@ -354,7 +346,6 @@ def test_golden_system_creation():
     assert system is not None
     assert system.N == 24
     assert len(system.components) >= 3  # Should have Grid, Battery, Solar, etc.
-
 
 def test_corrected_validation_logic():
     """Test corrected validation logic."""
@@ -366,7 +357,6 @@ def test_corrected_validation_logic():
     # Basic assertions about solver result
     assert result is not None
     assert hasattr(result, 'status')
-
 
 if __name__ == "__main__":
     success = main()

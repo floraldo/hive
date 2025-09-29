@@ -9,10 +9,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-# Add src to path for imports
+ for imports
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 from ecosystemiser.services.simple_results_io import SimpleResultsIO
 from ecosystemiser.system_model.system import System
@@ -22,7 +21,6 @@ from ecosystemiser.system_model.components.energy.solar_pv import SolarPV
 from ecosystemiser.system_model.components.energy.battery import Battery
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
-
 
 class TestSimpleResultsIO:
     """Integration tests for SimpleResultsIO persistence pattern."""
@@ -346,7 +344,6 @@ class TestSimpleResultsIO:
         system.add_flow("grid_to_battery", "GRID", "BATTERY")
 
         return system
-
 
 if __name__ == "__main__":
     # Run tests

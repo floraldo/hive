@@ -8,9 +8,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 try:
     from datetime import datetime, timedelta
@@ -25,7 +23,6 @@ try:
 except ImportError as e:
     print(f"Climate service not available: {e}")
     CLIMATE_AVAILABLE = False
-
 
 def create_weather_enhanced_profiles() -> None:
     """Create weather-enhanced profiles using Climate API."""
@@ -66,7 +63,6 @@ def create_weather_enhanced_profiles() -> None:
         print(f"Error fetching climate data: {e}")
         print("Falling back to synthetic weather data...")
         return create_synthetic_weather_profiles()
-
 
 def create_synthetic_weather_profiles() -> None:
     """Create synthetic weather profiles when Climate API unavailable."""
@@ -130,13 +126,11 @@ def create_synthetic_weather_profiles() -> None:
 
     return weather_df, variants
 
-
 def process_climate_data(climate_data) -> None:
     """Process real climate data into hourly profiles."""
     # This would process the actual climate service response
     # For now, return synthetic data structure
     return create_synthetic_weather_profiles()
-
 
 def integrate_weather_with_profiles() -> None:
     """Integrate weather data with existing electrical and thermal profiles."""
@@ -181,7 +175,6 @@ def integrate_weather_with_profiles() -> None:
 
     return integrated_profiles, weather_variants
 
-
 def create_weather_variant_profiles(base_integrated, weather_variants) -> None:
     """Create seasonal profiles with weather integration."""
     seasonal_integrated = {}
@@ -216,7 +209,6 @@ def create_weather_variant_profiles(base_integrated, weather_variants) -> None:
         seasonal_integrated[season] = seasonal_profile
 
     return seasonal_integrated
-
 
 def main() -> None:
     """Main weather integration process."""
@@ -291,7 +283,6 @@ def main() -> None:
     print("  - Thermal integrated (24h, 7-day, seasonal)")
     print("  - Weather integrated (24h, 7-day, seasonal)")
     print("=" * 60)
-
 
 if __name__ == "__main__":
     main()

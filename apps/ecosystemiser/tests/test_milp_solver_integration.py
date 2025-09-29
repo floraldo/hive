@@ -7,9 +7,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.services.results_io import ResultsIO
 from ecosystemiser.solver.milp_solver import MILPSolver
@@ -17,7 +15,6 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-
 
 def test_milp_solver_produces_valid_flows():
     """Integration test: MILP solver must produce non-zero energy flows.
@@ -156,7 +153,6 @@ def test_milp_solver_produces_valid_flows():
 
     return True
 
-
 def test_milp_vs_rule_based_comparison():
     """Compare MILP and rule-based solvers on the same system."""
     from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
@@ -232,7 +228,6 @@ def test_milp_vs_rule_based_comparison():
 
     logger.info("SUCCESS: Both solvers produce valid, comparable results")
     return True
-
 
 if __name__ == "__main__":
     # Run the critical test

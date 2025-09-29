@@ -4,9 +4,7 @@
 import sys
 from pathlib import Path
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent / "src"
-sys.path.insert(0, str(eco_path))
 
 import numpy as np
 from ecosystemiser.solver.milp_solver import MILPSolver
@@ -35,7 +33,6 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-
 
 def create_debug_system() -> System:
     """Create a simple system for debugging."""
@@ -72,7 +69,6 @@ def create_debug_system() -> System:
 
     return system
 
-
 def debug_cost_contributions() -> None:
     """Debug the cost contribution calculation."""
     system = create_debug_system()
@@ -106,7 +102,6 @@ def debug_cost_contributions() -> None:
             if variable is not None:
                 print(f"    variable shape: {getattr(variable, 'shape', 'N/A')}")
                 print(f"    variable name: {getattr(variable, 'name', 'N/A')}")
-
 
 if __name__ == "__main__":
     debug_cost_contributions()

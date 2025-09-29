@@ -3,7 +3,6 @@
 
 import json
 
-# Add ecosystemiser to path
 import sys
 import time
 from pathlib import Path
@@ -14,7 +13,6 @@ import pandas as pd
 import pytest
 
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
@@ -22,7 +20,6 @@ from ecosystemiser.utils.system_builder import create_system_from_config
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-
 
 class GoldenMicrogridValidator:
     """Comprehensive validator for golden residential microgrid systems."""
@@ -262,15 +259,12 @@ class GoldenMicrogridValidator:
 
         return validation_results
 
-
 # Test functions using pytest framework
-
 
 @pytest.fixture
 def validator():
     """Create validator instance for tests."""
     return GoldenMicrogridValidator()
-
 
 class TestGoldenMicrogrid:
     """Test class for golden residential microgrid validation."""
@@ -416,7 +410,6 @@ class TestGoldenMicrogrid:
 
         return max(0.0, total_cost)
 
-
 def generate_validation_report(validator):
     """Generate comprehensive validation report."""
     report_path = Path(__file__).parent.parent / "data" / "validation_report.json"
@@ -442,7 +435,6 @@ def generate_validation_report(validator):
 
     logger.info(f"Validation report saved: {report_path}")
     return report
-
 
 if __name__ == "__main__":
     # Run tests manually

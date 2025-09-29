@@ -10,9 +10,7 @@ from typing import Any, Dict
 import numpy as np
 import pandas as pd
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from hive_logging import get_logger
 
@@ -41,7 +39,6 @@ from ecosystemiser.system_model.components.shared.archetypes import FidelityLeve
 from ecosystemiser.system_model.system import System
 
 logger = get_logger(__name__)
-
 
 def create_simple_golden_system(N=24):
     """Create a simplified golden system using direct component construction."""
@@ -146,7 +143,6 @@ def create_simple_golden_system(N=24):
     logger.info(f"Created system with {len(system.components)} components and {len(system.flows)} flows")
     return system
 
-
 def create_synthetic_profiles(N):
     """Create synthetic profiles when real data unavailable."""
     logger.info("Creating synthetic profiles...")
@@ -180,7 +176,6 @@ def create_synthetic_profiles(N):
         demand_profile.extend(daily_demand)
 
     return np.array(solar_profile[:N]), np.array(demand_profile[:N])
-
 
 def validate_energy_balance(system, tolerance=1e-6):
     """Validate perfect energy conservation."""
@@ -218,7 +213,6 @@ def validate_energy_balance(system, tolerance=1e-6):
     logger.info(f"Energy balance validation: max_imbalance={max_imbalance:.2e}, violations={len(violations)}")
     return len(violations) == 0, max_imbalance, violations
 
-
 def validate_physics_constraints(system, tolerance=1e-6):
     """Validate physics constraints."""
     logger.info("Validating physics constraints...")
@@ -243,7 +237,6 @@ def validate_physics_constraints(system, tolerance=1e-6):
 
     logger.info(f"Physics constraints: {len(violations)} violations")
     return len(violations) == 0, violations
-
 
 def validate_system_behavior(system):
     """Validate expected system behavior patterns."""
@@ -278,7 +271,6 @@ def validate_system_behavior(system):
 
     logger.info(f"System behavior checks: {checks}")
     return all(checks.values()), checks
-
 
 def run_solver_validation(N=24):
     """Run comprehensive solver validation."""
@@ -352,7 +344,6 @@ def run_solver_validation(N=24):
 
     return results
 
-
 def main():
     """Main validation execution."""
     print("Starting Golden Microgrid Validation...")
@@ -391,12 +382,10 @@ def main():
 
     return results_24h.get('validation_passed', False)
 
-
 def test_simple_golden_validation():
     """Test simple golden validation as pytest test."""
     success = main()
     assert success, "Simple golden validation failed"
-
 
 def test_24h_solver_validation():
     """Test 24-hour solver validation."""
@@ -405,7 +394,6 @@ def test_24h_solver_validation():
     assert isinstance(results, dict)
     assert "validation_passed" in results
 
-
 def test_solver_validation_components():
     """Test solver validation with all required components."""
     results = run_solver_validation(24)
@@ -413,7 +401,6 @@ def test_solver_validation_components():
         # If validation passed, check that system has expected behavior
         assert results.get("solve_time", 0) > 0
         assert results.get("solver_status") == "optimal"
-
 
 if __name__ == "__main__":
     success = main()

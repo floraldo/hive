@@ -8,9 +8,6 @@ Validates compliance with all 18 Golden Rules for architectural governance.
 import sys
 from pathlib import Path
 
-# Add project root to path for importing validators
-project_root = Path(__file__).resolve().parent.parent.parent.parent
-sys.path.append(str(project_root / "packages" / "hive-tests" / "src"))
 
 from hive_tests.architectural_validators import run_all_golden_rules
 

@@ -14,16 +14,12 @@ from typing import Any, Dict, List, Optional
 import numpy as np
 import pandas as pd
 
-# Add both ecosystemiser and legacy paths
 eco_path = Path(__file__).parent.parent / "src"
 legacy_path = Path("/c/git/SmartHoodsOptimisationTool/Systemiser")
-sys.path.insert(0, str(eco_path))
-sys.path.insert(0, str(legacy_path))
 
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-
 
 def load_legacy_output_data(output_path: Path) -> Optional[Dict[str, Any]]:
     """Load existing legacy output data if available."""
@@ -33,7 +29,6 @@ def load_legacy_output_data(output_path: Path) -> Optional[Dict[str, Any]]:
         with open(hourly_file, "r") as f:
             return json.load(f)
     return None
-
 
 def extract_profiles_from_output(output_data: Dict[str, Any]) -> Dict[str, np.ndarray]:
     """Extract component profiles from legacy output flows."""
@@ -82,7 +77,6 @@ def extract_profiles_from_output(output_data: Dict[str, Any]) -> Dict[str, np.nd
 
     return profiles
 
-
 def create_weather_based_profiles(n_hours: int = 8760) -> Dict[str, np.ndarray]:
     """Create synthetic weather-based profiles for yearly simulation."""
     logger.info(f"Creating weather-based profiles for {n_hours} hours")
@@ -128,7 +122,6 @@ def create_weather_based_profiles(n_hours: int = 8760) -> Dict[str, np.ndarray]:
         logger.info(f"{name}: min={profile.min():.2f}, max={profile.max():.2f}, mean={profile.mean():.2f}")
 
     return profiles
-
 
 def create_yearly_system_config() -> Dict[str, Any]:
     """Create system configuration for yearly simulation based on legacy."""
@@ -248,7 +241,6 @@ def create_yearly_system_config() -> Dict[str, Any]:
 
     return config
 
-
 def save_profiles_and_config() -> None:
     """Extract and save yearly profiles and configuration."""
     logger.info("Starting yearly profile extraction from legacy Systemiser")
@@ -319,7 +311,6 @@ def save_profiles_and_config() -> None:
     logger.info(f"Extraction complete! Summary saved: {summary_path}")
     return summary
 
-
 def main() -> None:
     """Main execution."""
     try:
@@ -338,7 +329,6 @@ def main() -> None:
 
         traceback.print_exc()
         return False
-
 
 if __name__ == "__main__":
     success = main()

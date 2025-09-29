@@ -1,12 +1,8 @@
-from __future__ import annotations
-
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
-
 """
 Structured, configurable logging utilities for Hive applications.
 """
+
+from __future__ import annotations
 
 import logging
 import logging.handlers
@@ -77,7 +73,7 @@ def setup_logging(
 
         # Use a rotating file handler to prevent log files from growing infinitely
         file_handler = logging.handlers.RotatingFileHandler(
-            log_file_path
+            log_file_path,
             maxBytes=(10 * 1024 * 1024),  # 10 MB per file
             backupCount=5,  # Keep 5 backup files
         )

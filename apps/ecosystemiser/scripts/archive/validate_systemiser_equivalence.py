@@ -16,9 +16,8 @@ from pathlib import Path
 import numpy as np
 
 # golden-rule-ignore: no-syspath-hacks - Legacy archive script for validation
-# Add path for imports
+ for imports
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (
@@ -46,13 +45,11 @@ from ecosystemiser.system_model.components.shared.archetypes import FidelityLeve
 # Import EcoSystemiser components
 from ecosystemiser.system_model.system import System
 
-
 def load_golden_dataset():
     """Load the golden dataset from the Systemiser baseline."""
     golden_path = Path(__file__).parent.parent.parent / "tests" / "systemiser_minimal_golden.json"
     with open(golden_path, "r") as f:
         return json.load(f)
-
 
 def create_minimal_ecosystemiser() -> None:
     """Create the minimal 4-component system matching the golden dataset configuration."""
@@ -201,7 +198,6 @@ def create_minimal_ecosystemiser() -> None:
 
     return system
 
-
 def extract_ecosystemiser_results(system) -> None:
     """Extract results from ecosystemiser in the same format as golden dataset."""
 
@@ -246,7 +242,6 @@ def extract_ecosystemiser_results(system) -> None:
         }
 
     return results
-
 
 def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6) -> None:
     """Compare EcoSystemiser results against golden dataset with strict tolerance."""
@@ -294,7 +289,6 @@ def compare_results(golden_data, ecosystemiser_data, tolerance=1e-6) -> None:
         total_comparisons += 1
 
     return failures, total_comparisons
-
 
 def main() -> None:
     """Main validation function."""
@@ -364,7 +358,6 @@ def main() -> None:
         import traceback
 
         traceback.print_exc()
-
 
 if __name__ == "__main__":
     main()

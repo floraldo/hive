@@ -13,9 +13,8 @@ from pathlib import Path
 import numpy as np
 
 # golden-rule-ignore: no-syspath-hacks - Legacy archive script for validation
-# Add path for imports
+ for imports
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (
@@ -43,7 +42,6 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-
 
 def create_system_with_fidelity(fidelity_level: FidelityLevel) -> None:
     """Create a test system with specified fidelity level."""
@@ -134,7 +132,6 @@ def create_system_with_fidelity(fidelity_level: FidelityLevel) -> None:
 
     return system
 
-
 def extract_key_metrics(system) -> None:
     """Extract key metrics for comparison."""
 
@@ -169,7 +166,6 @@ def extract_key_metrics(system) -> None:
 
     return metrics
 
-
 def compare_fidelity_results(simple_metrics, standard_metrics) -> None:
     """Compare metrics between fidelity levels."""
 
@@ -195,7 +191,6 @@ def compare_fidelity_results(simple_metrics, standard_metrics) -> None:
         logger.info("")
 
     return differences
-
 
 def validate_fidelity_realism(differences) -> None:
     """Validate that fidelity differences are realistic."""
@@ -243,7 +238,6 @@ def validate_fidelity_realism(differences) -> None:
 
     logger.info(f"\nValidation Results: {checks_passed}/{total_checks} checks passed")
     return checks_passed == total_checks
-
 
 def main() -> None:
     """Main fidelity validation function."""
@@ -300,7 +294,6 @@ def main() -> None:
         logger.error(f"FIDELITY VALIDATION ERROR: {str(e)}")
         import traceback
         traceback.print_exc()
-
 
 if __name__ == "__main__":
     main()

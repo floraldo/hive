@@ -10,9 +10,7 @@ from pathlib import Path
 import numpy as np
 import psutil
 
-# Add ecosystemiser to path
 eco_path = Path(__file__).parent.parent / "src"
-sys.path.insert(0, str(eco_path))
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import (
@@ -40,7 +38,6 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-
 
 def create_7day_system():
     """Create system for 7-day stress testing."""
@@ -194,13 +191,11 @@ def create_7day_system():
 
     return system
 
-
 def monitor_memory_usage():
     """Get current memory usage."""
     process = psutil.Process(os.getpid())
     memory_mb = process.memory_info().rss / 1024 / 1024
     return memory_mb
-
 
 def validate_long_term_stability(system, tolerance=1e-5):
     """Validate long-term numerical stability."""
@@ -267,7 +262,6 @@ def validate_long_term_stability(system, tolerance=1e-5):
 
     return stability_results
 
-
 def analyze_weekly_patterns(system):
     """Analyze system behavior patterns over the week."""
     analysis = {"daily_summaries": [], "weekly_totals": {}, "cycling_analysis": {}}
@@ -327,7 +321,6 @@ def analyze_weekly_patterns(system):
         }
 
     return analysis
-
 
 def run_7day_stress_test():
     """Run comprehensive 7-day stress test."""
@@ -435,7 +428,6 @@ def run_7day_stress_test():
 
     return results
 
-
 def main():
     """Main execution."""
     results = run_7day_stress_test()
@@ -474,7 +466,6 @@ def main():
 
     return results.get("validation_passed", False)
 
-
 def test_7day_stress_full_integration():
     """Test 7-day stress test as pytest integration test."""
     results = run_7day_stress_test()
@@ -492,7 +483,6 @@ def test_7day_stress_full_integration():
     memory_increase = results.get("memory_increase_mb", float("inf"))
     assert memory_increase < 500.0, f"Memory increase too high: {memory_increase:.1f} MB"
 
-
 def test_7day_system_creation():
     """Test 7-day system can be created successfully."""
     system = create_7day_system()
@@ -506,7 +496,6 @@ def test_7day_system_creation():
     required_components = ["Grid", "Battery", "SolarPV", "PowerDemand"]
     for comp_name in required_components:
         assert comp_name in system.components, f"Missing component: {comp_name}"
-
 
 def test_weekly_pattern_analysis():
     """Test weekly pattern analysis functionality."""
@@ -530,7 +519,6 @@ def test_weekly_pattern_analysis():
         assert weekly["total_solar"] >= 0
         assert weekly["total_demand"] >= 0
 
-
 def test_stability_validation():
     """Test long-term stability validation."""
     system = create_7day_system()
@@ -547,7 +535,6 @@ def test_stability_validation():
 
         # Assert stability passes (this might fail if there are actual issues)
         assert stability["numerical_stability"], f"Stability check failed: {stability}"
-
 
 if __name__ == "__main__":
     success = main()

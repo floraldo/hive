@@ -6,11 +6,11 @@ logger = get_logger(__name__)
 
 """Climate data models and contracts"""
 
-from typing import Any, Dict, List, LiteralTuple
+from typing import Any, Dict, List, Literal, Optional, Tuple
 
 from ecosystemiser.profile_loader.shared.models import (
-    BaseProfileRequest
-    BaseProfileResponse
+    BaseProfileRequest,
+    BaseProfileResponse,
     ProfileMode
 )
 from pydantic import BaseModel, Field
@@ -30,15 +30,15 @@ class ClimateRequest(BaseProfileRequest):
     # Override base defaults with climate-specific values
     variables: List[str] = Field(
         default_factory=lambda: [
-            "temp_air"
-            "ghi"
-            "dni"
-            "dhi"
-            "wind_speed"
-            "rel_humidity"
-            "precip"
+            "temp_air",
+            "ghi",
+            "dni",
+            "dhi",
+            "wind_speed",
+            "rel_humidity",
+            "precip",
             "cloud_cover"
-        ]
+        ],
         description="Climate variables to fetch"
     )
     source: ClimateSource | None = Field(default="nasa_power", description="Climate data source preference")
@@ -46,7 +46,7 @@ class ClimateRequest(BaseProfileRequest):
 
     # Climate-specific extensions
     subset: Optional[Dict[str, str]] = Field(
-        default=None
+        default=None,
         description="Time subset specification: {'month':'07'} or {'start':'07-10','end':'07-24'}"
     )
     synthetic_options: Dict[str, Any] = Field(default_factory=dict, description="Options for synthetic data generation")
@@ -55,7 +55,7 @@ class ClimateRequest(BaseProfileRequest):
         default=None, description="Baseline period for nonstationarity handling"
     )
     p_selection: int | None = Field(
-        default=None
+        default=None,
         description="Percentile selection for representative year (P50, P90, etc.)"
     )
 
@@ -77,9 +77,9 @@ class ClimateRequest(BaseProfileRequest):
     def from_legacy_mode(cls, mode_str: str, **kwargs):
         """Create ClimateRequest from legacy mode string."""
         mode_mapping = {
-            "observed": ProfileMode.OBSERVED
-            "tmy": ProfileMode.TYPICAL
-            "average": ProfileMode.AVERAGE
+            "observed": ProfileMode.OBSERVED,
+            "tmy": ProfileMode.TYPICAL,
+            "average": ProfileMode.AVERAGE,
             "synthetic": ProfileMode.SYNTHETIC
         }
         kwargs["mode"] = mode_mapping.get(mode_str, ProfileMode.OBSERVED)
