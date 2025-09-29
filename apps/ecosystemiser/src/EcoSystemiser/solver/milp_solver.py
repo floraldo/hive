@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 class MILPSolver(BaseSolver):
     """Mixed Integer Linear Programming solver using CVXPY."""
 
-    def __init__(self, system, config=None) -> None:
+    def __init__(self, system, config) -> None:
         super().__init__(system, config)
         self.problem = None
         self.objective_type = config.solver_specific.get("objective", "min_cost") if config else "min_cost"

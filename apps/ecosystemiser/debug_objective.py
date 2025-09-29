@@ -22,7 +22,7 @@ from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
 
 
-def debug_objective():
+def debug_objective() -> None:
     """Debug the objective function construction."""
     N = 3
     system = System(system_id="debug_system", n=N)

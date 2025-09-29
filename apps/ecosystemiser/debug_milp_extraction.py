@@ -14,7 +14,7 @@ from ecosystemiser.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-def test_milp_flow_extraction():
+def test_milp_flow_extraction() -> None:
     """Test MILP solver flow extraction with enhanced logic."""
 
     # Load existing golden system configuration

@@ -310,7 +310,7 @@ class MicrogridDemoRunner:
 
         return study_id, results
 
-    def generate_reports(self, ga_study_id: str, mc_study_id: str):
+    def generate_reports(self, ga_study_id -> None: str, mc_study_id: str):
         """
         Step 5: Generate interactive HTML reports for both studies.
         """
@@ -431,7 +431,7 @@ class MicrogridDemoRunner:
         """
         )
 
-    def run(self):
+    def run(self) -> None:
         """Execute the complete demonstration workflow."""
         logger.info("\n" + "=" * 70)
         logger.info(" " * 20 + "ECOSYSTEMISER v3.0 - FULL DEMONSTRATION")
@@ -478,7 +478,7 @@ class MicrogridDemoRunner:
         return 0
 
 
-def main():
+def main() -> None:
     """Main entry point for the demonstration."""
     demo = MicrogridDemoRunner()
     return demo.run()

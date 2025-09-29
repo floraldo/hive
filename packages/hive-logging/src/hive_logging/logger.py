@@ -24,10 +24,10 @@ except ImportError:
 
 
 def setup_logging(
-    name: str
-    level: str = "INFO"
-    log_to_file: bool = False
-    log_file_path: str | None = None
+    name: str,
+    level: str = "INFO",
+    log_to_file: bool = False,
+    log_file_path: str | None = None,
     json_format: bool = False
 ) -> None:
     """

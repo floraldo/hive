@@ -84,7 +84,7 @@ def extract_minimal_components(original_data) -> None:
     return minimal_data
 
 
-def main():
+def main() -> None:
     """Generate golden dataset from original Systemiser."""
 
     logger.info("Step 1: Running original Systemiser...")

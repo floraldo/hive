@@ -378,6 +378,11 @@ def drop_all_tables(db_path: Path | None = None) -> None:
 
         # Drop each table
         for table in tables:
+            # Validate table name to prevent SQL injection
+            # Table names from sqlite_master are safe, but validate anyway
+            if not all(c.isalnum() or c == '_' for c in table):
+                logger.warning(f"Skipping table with invalid name: {table}")
+                continue
             conn.execute(f"DROP TABLE IF EXISTS {table}")
             logger.info(f"Dropped table: {table}")
 

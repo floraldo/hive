@@ -446,6 +446,10 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
 
         for column, column_type in required_columns.items():
             if column not in existing_columns:
+                # Validate column name to prevent SQL injection
+                if not all(c.isalnum() or c == '_' for c in column):
+                    logger.error(f"Invalid column name: {column}")
+                    continue
                 try:
                     conn.execute(f"ALTER TABLE tasks ADD COLUMN {column} {column_type}")
                     logger.info(f"Added column {column} to tasks table")

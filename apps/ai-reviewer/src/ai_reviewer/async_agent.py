@@ -52,7 +52,7 @@ class AsyncReviewEngine:
     Async version of review engine for non-blocking code analysis
     """
 
-    def __init__(self, config=None) -> None:
+    def __init__(self, config) -> None:
         self.config = config or {}
         self.mock_mode = self.config.get("mock_mode", True)
         self._review_semaphore = asyncio.Semaphore(3)  # Limit concurrent reviews

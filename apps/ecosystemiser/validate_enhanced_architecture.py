@@ -5,7 +5,7 @@ import json
 import tempfile
 from pathlib import Path
 
-def validate_architecture():
+def validate_architecture() -> None:
     """Validate enhanced architecture components."""
 
     print("Enhanced EcoSystemiser Architecture Validation")

@@ -43,7 +43,7 @@ except ImportError:
 # Claude bridge functionality has been moved to individual apps
 # For now, create mock classes until proper implementation
 class ClaudeService:
-    def __init__(self, config=None, rate_config=None) -> None:
+    def __init__(self, config, rate_config=None) -> None:
         self.mock_mode = getattr(config, "mock_mode", True)
 
     def generate_execution_plan(

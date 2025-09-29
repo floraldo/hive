@@ -27,7 +27,7 @@ except ImportError as e:
     CLIMATE_AVAILABLE = False
 
 
-def create_weather_enhanced_profiles():
+def create_weather_enhanced_profiles() -> None:
     """Create weather-enhanced profiles using Climate API."""
     data_dir = Path(__file__).parent.parent / "data" / "profiles"
 
@@ -131,7 +131,7 @@ def create_synthetic_weather_profiles() -> None:
     return weather_df, variants
 
 
-def process_climate_data(climate_data):
+def process_climate_data(climate_data) -> None:
     """Process real climate data into hourly profiles."""
     # This would process the actual climate service response
     # For now, return synthetic data structure

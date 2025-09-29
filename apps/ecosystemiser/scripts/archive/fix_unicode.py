@@ -65,7 +65,7 @@ def fix_unicode_in_file(filepath) -> None:
     return False
 
 
-def main():
+def main() -> None:
     """Fix unicode in all Python files."""
     src_dir = Path(__file__).parent / "src"
 

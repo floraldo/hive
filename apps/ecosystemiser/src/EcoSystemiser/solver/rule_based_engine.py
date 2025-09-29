@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 class RuleBasedEngine(BaseSolver):
     """Simple rule-based control solver - just a traffic cop, NO component logic."""
 
-    def __init__(self, system, config=None) -> None:
+    def __init__(self, system, config) -> None:
         super().__init__(system, config)
 
         # Priority mapping for different flow types

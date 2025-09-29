@@ -249,7 +249,7 @@ def create_yearly_system_config() -> Dict[str, Any]:
     return config
 
 
-def save_profiles_and_config():
+def save_profiles_and_config() -> None:
     """Extract and save yearly profiles and configuration."""
     logger.info("Starting yearly profile extraction from legacy Systemiser")
 
@@ -320,7 +320,7 @@ def save_profiles_and_config():
     return summary
 
 
-def main():
+def main() -> None:
     """Main execution."""
     try:
         summary = save_profiles_and_config()

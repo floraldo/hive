@@ -256,7 +256,7 @@ def run_multi_parameter_sweep():
     return result
 
 
-def main():
+def main() -> None:
     """Run parametric sweep examples."""
     logger.info("EcoSystemiser Parametric Sweep Examples")
     logger.info("========================================")

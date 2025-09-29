@@ -21,11 +21,11 @@ class ResultsIO:
         self.supported_formats = ["json", "parquet", "csv", "pickle"]
 
     def save_results(
-        self
-        system
-        simulation_id: str
-        output_dir: Path
-        format: str = "json"
+        self,
+        system,
+        simulation_id: str,
+        output_dir: Path,
+        format: str = "json",
         metadata: Dict | None = None
     ) -> Path:
         """Save simulation results to file.

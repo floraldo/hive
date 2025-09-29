@@ -64,7 +64,7 @@ class AsyncClaudeService:
     Async version of Claude service for non-blocking plan generation
     """
 
-    def __init__(self, config=None, rate_config=None) -> None:
+    def __init__(self, config, rate_config=None) -> None:
         self.mock_mode = getattr(config, "mock_mode", True)
         self.max_calls_per_minute = getattr(rate_config, "max_calls_per_minute", 20)
         self.max_calls_per_hour = getattr(rate_config, "max_calls_per_hour", 500)
