@@ -202,6 +202,14 @@ Performance:
         help="Quick validation (critical rules only)",
     )
 
+
+    parser.add_argument(
+        "--clear-cache",
+        "-c",
+        action="store_true",
+        help="Clear validation cache before running",
+    )
+
     parser.add_argument(
         "--verbose",
         "-v",
@@ -213,6 +221,13 @@ Performance:
 
     try:
         scope_files = None
+        # Handle cache clearing
+        if args.clear_cache:
+            from validation_cache import ValidationCache
+            cache = ValidationCache()
+            deleted = cache.clear_cache()
+            logger.info(f"Cleared {deleted} cached validation results")
+
 
         # Determine scope
         if args.incremental:
