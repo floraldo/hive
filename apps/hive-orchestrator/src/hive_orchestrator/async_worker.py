@@ -166,8 +166,8 @@ class AsyncWorker:
         candidates = [
             "claude",
             "claude.exe",
-            str(Path.home() / ".local" / "bin" / "claude")
-            str(Path.home() / ".npm-global" / "bin" / "claude")
+            str(Path.home() / ".local" / "bin" / "claude"),
+            str(Path.home() / ".npm-global" / "bin" / "claude"),
         ]
 
         for cmd in candidates:
@@ -230,17 +230,17 @@ class AsyncWorker:
 
             # Parse output
             if process.returncode == 0:
-                return {,
+                return {
                     "status": "success",
                     "output": stdout.decode() if stdout else "",
                     "files_created": self._parse_created_files(stdout.decode() if stdout else ""),
-                    "files_modified": self._parse_modified_files(stdout.decode() if stdout else "")
+                    "files_modified": self._parse_modified_files(stdout.decode() if stdout else ""),
                 }
             else:
-                return {,
+                return {
                     "status": "error",
                     "error": stderr.decode() if stderr else "Unknown error",
-                    "return_code": process.returncode
+                    "return_code": process.returncode,
                 }
 
         except Exception as e:
@@ -445,26 +445,26 @@ class AsyncWorker:
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)  # 1 minute timeout for tests
 
             if process.returncode == 0:
-                return {,
+                return {
                     "passed": True,
-                    "output": stdout.decode() if stdout else ""
+                    "output": stdout.decode() if stdout else "",
                 }
             else:
-                return {,
+                return {
                     "passed": False,
                     "output": stdout.decode() if stdout else "",
-                    "error": stderr.decode() if stderr else ""
+                    "error": stderr.decode() if stderr else "",
                 }
 
         except asyncio.TimeoutError:
-            return {,
+            return {
                 "passed": False,
-                "error": "Test execution timed out after 1 minute"
+                "error": "Test execution timed out after 1 minute",
             }
         except Exception as e:
-            return {,
+            return {
                 "passed": False,
-                "error": str(e)
+                "error": str(e),
             }
 
     async def _save_run_result_async(self, result: Dict[str, Any]) -> None:
@@ -483,9 +483,9 @@ class AsyncWorker:
                 metadata={
                     "execution_time": execution_time,
                     "operations": self.metrics["operations"],
-                    "file_operations": self.metrics["file_operations"]
+                    "file_operations": self.metrics["file_operations"],
                     "subprocess_calls": self.metrics["subprocess_calls"],
-                    "db_operations": self.metrics["db_operations"]
+                    "db_operations": self.metrics["db_operations"],
                 }
             )
 

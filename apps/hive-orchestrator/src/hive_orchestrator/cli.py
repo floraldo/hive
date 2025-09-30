@@ -415,12 +415,12 @@ def list_escalated() -> None:
                 age_color = "white"
 
             table.add_row(
-                task["id"][:12]
-                task["title"][:30]
-                str(task["priority"])
+                task["id"][:12],
+                task["title"][:30],
+                str(task["priority"]),
                 f"[{age_color}]{age_str}[/{age_color}]",
                 f"{score:.0f}" if score else "N/A",
-                reason[:30]
+                reason[:30],
             )
 
         console.logger.info(table)

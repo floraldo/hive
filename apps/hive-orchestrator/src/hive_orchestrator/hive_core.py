@@ -78,17 +78,17 @@ class HiveCore:
 
         # Default configuration
         default_config = {
-            "max_parallel_per_role": {"backend": 2, "frontend": 2, "infra": 1}
+            "max_parallel_per_role": {"backend": 2, "frontend": 2, "infra": 1},
             "worker_timeout_minutes": 30,
             "zombie_detection_minutes": 5,
             "fresh_cleanup_enabled": True,
             "pr_creation_enabled": False,
             "default_max_retries": 2,
-            "orchestration": {,
+            "orchestration": {
                 "task_retry_limit": 2,
                 "status_refresh_seconds": 10,
-                "graceful_shutdown_seconds": 5
-            }
+                "graceful_shutdown_seconds": 5,
+            },
         }
 
         if config_file.exists():
@@ -701,16 +701,16 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
 
     # Prepare review data
     if args.format == "json":
-        review_data = {,
+        review_data = {
             "task_id": task_id,
             "run_id": run_id,
-            "title": task.get("title", "Unknown")
-            "description": task.get("description", "")
-            "current_phase": task.get("current_phase", "unknown")
+            "title": task.get("title", "Unknown"),
+            "description": task.get("description", ""),
+            "current_phase": task.get("current_phase", "unknown"),
             "workflow": task.get("workflow"),
             "inspection_report": inspection_report,
             "transcript_available": bool(transcript),
-            "transcript_length": len(transcript) if transcript else 0
+            "transcript_length": len(transcript) if transcript else 0,
         }
         logger.info(json.dumps(review_data, indent=2))
     else:

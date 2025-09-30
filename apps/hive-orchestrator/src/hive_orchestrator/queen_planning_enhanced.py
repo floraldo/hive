@@ -655,5 +655,5 @@ def main() -> None:
         queen.run_forever_enhanced()
 
 
-if __name__ == "__main__":,
+if __name__ == "__main__":
     main()
