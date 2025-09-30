@@ -2122,7 +2122,7 @@ def run_all_golden_rules(project_root: Path, scope_files: list[Path] | None = No
 
     for rule_name, validator_func in golden_rules:
         try:
-            passed, violations = validator_func(project_root, scope_files)
+            passed, violations = _cached_validator(rule_name, validator_func, project_root, scope_files)
             results[rule_name] = {"passed": passed, "violations": violations}
             if not passed:
                 all_passed = False
