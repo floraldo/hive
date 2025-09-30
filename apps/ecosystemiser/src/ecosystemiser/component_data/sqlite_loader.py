@@ -56,7 +56,7 @@ class SQLiteLoader:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
+            """,
             )
 
             # Create component_specs table
@@ -77,7 +77,7 @@ class SQLiteLoader:
                     FOREIGN KEY (component_type_id) REFERENCES component_types (id)
                     UNIQUE(component_type_id, name, version)
                 ),
-            """
+            """,
             )
 
             # Create indexes for performance
@@ -86,7 +86,7 @@ class SQLiteLoader:
                     """,
                 CREATE INDEX IF NOT EXISTS idx_component_type,
                 ON component_specs (component_type_id)
-            """
+            """,
                 ),
             )
 
@@ -94,7 +94,7 @@ class SQLiteLoader:
                 """,
                 CREATE INDEX IF NOT EXISTS idx_is_default,
                 ON component_specs (is_default)
-            """
+            """,
             )
 
             # Create version history table
@@ -110,7 +110,7 @@ class SQLiteLoader:
                     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (component_spec_id) REFERENCES component_specs (id)
                 ),
-            """
+            """,
                 ),
             )
 
@@ -223,7 +223,7 @@ class SQLiteLoader:
             return spec_id
 
     def get_component_spec(
-        self, component_type: str, name: str | None = None, version: str | None = None
+        self, component_type: str, name: str | None = None, version: str | None = None,
     ) -> dict[str, Any]:
         """
         Get a component specification.
@@ -302,7 +302,7 @@ class SQLiteLoader:
                 LEFT JOIN component_specs cs ON ct.id = cs.component_type_id,
                 GROUP BY ct.id,
                 ORDER BY ct.category, ct.name,
-            """
+            """,
             )
             types = []
             for row in cursor.fetchall():
@@ -312,7 +312,7 @@ class SQLiteLoader:
                         "category": row["category"],
                         "description": row["description"],
                         "spec_count": row["spec_count"],
-                    }
+                    },
                 )
 
             return types
@@ -354,7 +354,7 @@ class SQLiteLoader:
                             "name": row["name"],
                             "version": row["version"],
                             "is_default": bool(row["is_default"]),
-                        }
+                        },
                     ),
                 )
 

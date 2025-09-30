@@ -285,7 +285,7 @@ class UnifiedIntelligenceCore:
                 # Create risk nodes and link to prophecies
                 risk_id = await self._create_risk_node_async(prophecy)
                 await self._create_edge_async(
-                    prophecy_id, risk_id, EdgeType.PREDICTS, confidence=prophecy.get("confidence", 0.8)
+                    prophecy_id, risk_id, EdgeType.PREDICTS, confidence=prophecy.get("confidence", 0.8),
                 )
 
             # Create strategic recommendation nodes
@@ -337,7 +337,7 @@ class UnifiedIntelligenceCore:
                 for package_name in optimization.get("affected_packages", []):
                     package_id = await self._ensure_package_node_async(package_name)
                     await self._create_edge_async(
-                        opt_id, package_id, EdgeType.AFFECTS, confidence=optimization.get("oracle_confidence", 0.8)
+                        opt_id, package_id, EdgeType.AFFECTS, confidence=optimization.get("oracle_confidence", 0.8),
                     )
 
             # Cross-correlate with existing prophecies
@@ -398,7 +398,7 @@ class UnifiedIntelligenceCore:
                 self.query_cache[cache_key] = result
 
             logger.info(
-                f"Unified intelligence query complete: {result.total_nodes} nodes, {result.total_edges} edges, {execution_time:.2f}s"
+                f"Unified intelligence query complete: {result.total_nodes} nodes, {result.total_edges} edges, {execution_time:.2f}s",
             )
             return result
 
@@ -461,7 +461,7 @@ class UnifiedIntelligenceCore:
                     f
                     for f in self.feedback_history
                     if datetime.fromisoformat(f["timestamp"]) > datetime.utcnow() - timedelta(days=7)
-                ]
+                ],
             )
 
             # Cross-correlation metrics,
@@ -500,10 +500,10 @@ class UnifiedIntelligenceCore:
                 "strategic_intelligence": {
                     "prophecy_symbiosis_correlations": len(self.correlation_cache.get("prophecy_symbiosis", [])),
                     "design_pattern_mappings": len(
-                        [n for n in self.nodes.values() if n.node_type == NodeType.SOLUTION_PATTERN]
+                        [n for n in self.nodes.values() if n.node_type == NodeType.SOLUTION_PATTERN],
                     ),
                     "validated_predictions": len(
-                        [n for n in self.nodes.values() if n.node_type == NodeType.PROPHECY and n.validation_count > 0]
+                        [n for n in self.nodes.values() if n.node_type == NodeType.PROPHECY and n.validation_count > 0],
                     ),
                 },
             }

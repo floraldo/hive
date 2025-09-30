@@ -115,13 +115,13 @@ try:
         }
 
         logger.info(
-            f"Optimization completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful evaluations"
+            f"Optimization completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful evaluations",
         )
         logger.info(
-            f"Best solution: Battery={demo_result['best_result']['best_solution'][0]:.1f} kWh, Solar={demo_result['best_result']['best_solution'][1]:.1f} kW"
+            f"Best solution: Battery={demo_result['best_result']['best_solution'][0]:.1f} kWh, Solar={demo_result['best_result']['best_solution'][1]:.1f} kW",
         )
         logger.info(
-            f"Achieved cost: ${demo_result['best_result']['best_objectives'][0]:,.0f}, Renewable fraction: {demo_result['best_result']['best_objectives'][1]:.1%}"
+            f"Achieved cost: ${demo_result['best_result']['best_objectives'][0]:,.0f}, Renewable fraction: {demo_result['best_result']['best_objectives'][1]:.1%}",
         )
 
         return demo_result
@@ -158,7 +158,7 @@ try:
                             "median": 122450.80,
                             "skewness": 0.124,
                             "kurtosis": 2.89,
-                        }
+                        },
                     },
                     "confidence_intervals": {
                         "total_cost": {
@@ -177,7 +177,7 @@ try:
                                 "upper": 132850.70,
                                 "width": 16600.30,
                             },
-                        }
+                        },
                     },
                     "sensitivity": {
                         "total_cost": {
@@ -197,7 +197,7 @@ try:
                                 "sensitivity_index": 0.287,
                                 "pearson_correlation": 0.287,
                             },
-                        }
+                        },
                     },
                     "risk": {
                         "total_cost": {
@@ -208,7 +208,7 @@ try:
                             "prob_exceed_mean": 0.487,
                             "prob_exceed_2std": 0.022,
                             "risk_ratio": 0.148,
-                        }
+                        },
                     },
                     "scenarios": {
                         "total_cost": {
@@ -227,7 +227,7 @@ try:
                                 "sample_count": 99,
                                 "mean_objective": 168420.30,
                             },
-                        }
+                        },
                     },
                 },
             },
@@ -239,13 +239,13 @@ try:
         }
 
         logger.info(
-            f"Monte Carlo analysis completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful samples"
+            f"Monte Carlo analysis completed: {demo_result['successful_simulations']}/{demo_result['num_simulations']} successful samples",
         )
         logger.info(
-            f"Mean cost: ${demo_result['best_result']['uncertainty_analysis']['statistics']['total_cost']['mean']:,.0f}"
+            f"Mean cost: ${demo_result['best_result']['uncertainty_analysis']['statistics']['total_cost']['mean']:,.0f}",
         )
         logger.info(
-            f"95% confidence interval: ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['lower']:,.0f} - ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['upper']:,.0f}"
+            f"95% confidence interval: ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['lower']:,.0f} - ${demo_result['best_result']['uncertainty_analysis']['confidence_intervals']['total_cost']['95%']['upper']:,.0f}",
         )
 
         return demo_result
@@ -266,7 +266,7 @@ try:
                     {"cost": 168500.90, "renewable": 0.923},
                 ],
                 "cost_renewable_correlation": -0.745,
-            }
+            },
         }
         plots["pareto_frontier"] = plot_factory.create_pareto_frontier_plot(pareto_data)
 
@@ -293,7 +293,7 @@ try:
                 125420,
                 125410,
                 125400.50,
-            ]
+            ],
         }
         plots["convergence"] = plot_factory.create_ga_convergence_plot(ga_result)
 
@@ -306,9 +306,9 @@ try:
                         "std": 18420.33,
                         "min": 87420.10,
                         "max": 178650.90,
-                    }
-                }
-            }
+                    },
+                },
+            },
         }
         plots["uncertainty_distribution"] = plot_factory.create_uncertainty_distribution_plot(mc_result)
 

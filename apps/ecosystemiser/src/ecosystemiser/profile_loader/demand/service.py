@@ -34,7 +34,7 @@ class DemandService(BaseProfileService):
     def __init__(self) -> None:
         """Initialize demand service with available adapters."""
         self.adapters = {
-            "file": DemandFileAdapter()
+            "file": DemandFileAdapter(),
             # Future adapters can be added here
             # "database": DemandDatabaseAdapter()
             # "standard_profiles": StandardProfileAdapter()
@@ -233,13 +233,13 @@ class DemandService(BaseProfileService):
                 "location": str(request.location),
                 "resolution": request.resolution,
                 "variables": list(profiles.keys()),
-            }
+            },
         )
 
         return dataset
 
     def _build_response(
-        self, dataset: xr.Dataset, request: DemandRequest, profiles: dict[str, np.ndarray]
+        self, dataset: xr.Dataset, request: DemandRequest, profiles: dict[str, np.ndarray],
     ) -> DemandResponse:
         """Build demand response with metrics."""
         # Calculate basic metrics

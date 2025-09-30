@@ -106,7 +106,7 @@ class AsyncDatabaseOperations:
     # Core Database Operations
 
     async def create_task_async(
-        self, task_type: str, description: str, priority: int = 5, metadata: Optional[dict[str, Any]] = None
+        self, task_type: str, description: str, priority: int = 5, metadata: Optional[dict[str, Any]] = None,
     ) -> str:
         """
         Create a new task asynchronously
@@ -130,7 +130,7 @@ class AsyncDatabaseOperations:
                         priority,
                         metadata_json,
                         datetime.now(UTC).isoformat(),
-                    )
+                    ),
                 )
                 await conn.commit()
 
@@ -261,7 +261,7 @@ class AsyncDatabaseOperations:
                         task.get("priority", 5),
                         metadata_json,
                         datetime.now(UTC).isoformat(),
-                    )
+                    ),
                 )
 
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:

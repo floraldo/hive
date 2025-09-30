@@ -52,7 +52,7 @@ class ValidationCache:
                 timestamp TEXT NOT NULL,
                 PRIMARY KEY (file_path, file_hash, rule_name)
             )
-        """
+        """,
         )
         conn.execute("CREATE INDEX IF NOT EXISTS idx_file_hash ON validation_results(file_hash)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON validation_results(timestamp)")

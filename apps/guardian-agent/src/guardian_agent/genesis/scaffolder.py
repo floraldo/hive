@@ -1163,39 +1163,48 @@ class HiveScaffolder:
     async def _generate_dockerfile(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate Dockerfile for the application."""
 
+        # Prepare Docker content outside f-string to avoid backslash issues
+        expose_line = "EXPOSE 8000" if app_spec.category.value in ["web_application", "api_service"] else "# No port exposure needed"
+        healthcheck_line = (
+            "HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \\\n  CMD curl -f http://localhost:8000/health || exit 1"
+            if app_spec.category.value in ["web_application", "api_service"]
+            else "# No health check for non-web services"
+        )
+        module_name = app_spec.name.replace("-", "_")
+
         dockerfile_content = dedent(
-            f""",
+            f"""
             FROM python:3.11-slim
 
-            # Set working directory,
+            # Set working directory
             WORKDIR /app
 
-            # Install system dependencies,
+            # Install system dependencies
             RUN apt-get update && apt-get install -y \\
                 gcc \\
                 && rm -rf /var/lib/apt/lists/*
 
-            # Copy requirements and install Python dependencies,
+            # Copy requirements and install Python dependencies
             COPY pyproject.toml .
             RUN pip install --no-cache-dir -e .
 
-            # Copy application code,
+            # Copy application code
             COPY src/ src/
             COPY config/ config/
 
-            # Create non-root user,
-            RUN useradd --create-home --shell /bin/bash app,
+            # Create non-root user
+            RUN useradd --create-home --shell /bin/bash app
             USER app
 
             # Expose port (if web application)
-            {"EXPOSE 8000" if app_spec.category.value in ["web_application", "api_service"] else "# No port exposure needed"}
+            {expose_line}
 
-            # Health check,
-            {"HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \\\n  CMD curl -f http://localhost:8000/health || exit 1" if app_spec.category.value in ["web_application", "api_service"] else "# No health check for non-web services"}
+            # Health check
+            {healthcheck_line}
 
-            # Run application,
-            CMD ["python", "-m", "{app_spec.name.replace("-", "_")}.main"]
-        """,
+            # Run application
+            CMD ["python", "-m", "{module_name}.main"]
+        """
         ).strip()
 
         dockerfile_path = (target_path / "Dockerfile",)

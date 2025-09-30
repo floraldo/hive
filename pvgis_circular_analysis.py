@@ -152,7 +152,7 @@ def check_active_processes():
 
     # Check for VS Code processes
     result = subprocess.run(
-        "ps aux | grep -i 'visual studio code' | grep -v grep", shell=True, capture_output=True, text=True
+        "ps aux | grep -i 'visual studio code' | grep -v grep", shell=True, capture_output=True, text=True,
     )
     if result.stdout:
         print("\n💻 Active VS Code processes:")
@@ -162,7 +162,7 @@ def check_active_processes():
 
     # Check for Python processes that might be running formatters
     result = subprocess.run(
-        "ps aux | grep python | grep -E '(format|lint|ruff)' | grep -v grep", shell=True, capture_output=True, text=True
+        "ps aux | grep python | grep -E '(format|lint|ruff)' | grep -v grep", shell=True, capture_output=True, text=True,
     )
     if result.stdout:
         print("\n🐍 Python processes with format/lint/ruff:")

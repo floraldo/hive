@@ -838,7 +838,7 @@ def main() -> None:
     # Review next task command (for AI reviewer)
     review_next_parser = subparsers.add_parser("review-next-task", help="Get the next task awaiting review")
     review_next_parser.add_argument(
-        "--format", choices=["json", "summary"], default="summary", help="Output format for review task"
+        "--format", choices=["json", "summary"], default="summary", help="Output format for review task",
     )
     review_next_parser.set_defaults(func=cmd_review_next_task)
 
@@ -846,7 +846,7 @@ def main() -> None:
     complete_review_parser = subparsers.add_parser("complete-review", help="Complete review of a task")
     complete_review_parser.add_argument("task_id", help="Task ID to complete review for")
     complete_review_parser.add_argument(
-        "--decision", choices=["approve", "reject", "rework"], required=True, help="Review decision"
+        "--decision", choices=["approve", "reject", "rework"], required=True, help="Review decision",
     )
     complete_review_parser.add_argument("--reason", help="Reason for the decision")
     complete_review_parser.add_argument("--next-phase", help="Override next phase (optional)")

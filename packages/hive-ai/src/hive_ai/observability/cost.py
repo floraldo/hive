@@ -126,7 +126,7 @@ class CostManager:
                     period=BudgetPeriod.DAILY,
                     limit=self.config.daily_cost_limit,
                     warning_threshold=0.8,
-                )
+                ),
             )
 
         if hasattr(self.config, "monthly_cost_limit"):
@@ -136,7 +136,7 @@ class CostManager:
                     period=BudgetPeriod.MONTHLY,
                     limit=self.config.monthly_cost_limit,
                     warning_threshold=0.9,
-                )
+                ),
             )
 
     def add_budget(self, budget: CostBudget) -> None:
@@ -241,7 +241,7 @@ class CostManager:
                             "current_spending": status.current_spending,
                             "budget_limit": status.budget_limit,
                             "timestamp": datetime.utcnow().isoformat(),
-                        }
+                        },
                     )
 
                     logger.warning(f"Budget warning: {budget_name} is {status.percentage_used:.1%} used")
@@ -256,7 +256,7 @@ class CostManager:
                             "current_spending": status.current_spending,
                             "budget_limit": status.budget_limit,
                             "timestamp": datetime.utcnow().isoformat(),
-                        }
+                        },
                     )
 
                     logger.error(
@@ -389,7 +389,7 @@ class CostManager:
         return timedelta(0)
 
     async def get_cost_summary_async(
-        self, start_date: datetime | None = None, end_date: datetime | None = None
+        self, start_date: datetime | None = None, end_date: datetime | None = None,
     ) -> CostSummary:
         """
         Get comprehensive cost summary for a period.
@@ -448,7 +448,7 @@ class CostManager:
                 for record in period_records
             ],
             key=lambda x: x["cost"],
-            reverse=True
+            reverse=True,
         )[:10]
 
         return CostSummary(
@@ -539,7 +539,7 @@ class CostManager:
                         f"{most_expensive_model[1] / summary.total_cost:.1%} of costs",
                         "suggestion": "Evaluate if a more cost-effective model could achieve similar results",
                         "potential_savings": most_expensive_model[1] * 0.3,  # Estimated 30% savings
-                    }
+                    },
                 )
 
         # High token usage recommendations
@@ -552,7 +552,7 @@ class CostManager:
                     "description": f"High token usage detected ({summary.total_tokens:,} tokens)",
                     "suggestion": "Review prompts for unnecessary length, use prompt optimization features",
                     "potential_savings": summary.total_cost * 0.2,  # Estimated 20% savings
-                }
+                },
             )
 
         # Provider cost comparison
@@ -572,7 +572,7 @@ class CostManager:
                             "description": f"Provider '{most_expensive[0]}' costs significantly more than '{least_expensive[0]}'",
                             "suggestion": "Evaluate if cheaper providers can handle some workloads",
                             "potential_savings": (most_expensive[1] - least_expensive[1]) * 0.5,
-                        }
+                        },
                     )
 
         return recommendations
@@ -595,7 +595,7 @@ class CostManager:
         self._budget_alerts.clear()
 
     async def export_cost_data_async(
-        self, start_date: datetime | None = None, end_date: datetime | None = None, format: str = "json"
+        self, start_date: datetime | None = None, end_date: datetime | None = None, format: str = "json",
     ) -> dict[str, Any]:
         """Export cost data for external analysis."""
         end_date = end_date or datetime.utcnow()

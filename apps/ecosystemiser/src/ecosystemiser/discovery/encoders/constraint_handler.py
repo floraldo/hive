@@ -48,7 +48,7 @@ class ConstraintHandler:
         logger.debug(f"Added constraint: {constraint.name}")
 
     def add_equality_constraint(
-        self, name: str, function: Callable[[np.ndarray], float], tolerance: float = 1e-6, weight: float = 1.0
+        self, name: str, function: Callable[[np.ndarray], float], tolerance: float = 1e-6, weight: float = 1.0,
     ):
         """Add an equality constraint.
 
@@ -59,12 +59,12 @@ class ConstraintHandler:
             weight: Weight in penalty calculation,
         """
         constraint = Constraint(
-            name=name, constraint_type="equality", function=function, tolerance=tolerance, weight=weight
+            name=name, constraint_type="equality", function=function, tolerance=tolerance, weight=weight,
         )
         self.add_constraint(constraint)
 
     def add_inequality_constraint(
-        self, name: str, function: Callable[[np.ndarray], float], weight: float = 1.0
+        self, name: str, function: Callable[[np.ndarray], float], weight: float = 1.0,
     ) -> None:
         """Add an inequality constraint.
 
@@ -272,7 +272,7 @@ class TechnicalConstraintValidator:
 
     @staticmethod
     def renewable_generation_demand_balance(
-        solution: np.ndarray, encoder, demand_profile: np.ndarray | None = None
+        solution: np.ndarray, encoder, demand_profile: np.ndarray | None = None,
     ) -> float:
         """Constraint: Renewable generation should be sufficient for demand.
 
@@ -371,7 +371,7 @@ class TechnicalConstraintValidator:
         if "max_budget" in config:
             max_budget = config["max_budget"]
             handler.add_inequality_constraint(
-                name="budget_constraint", function=lambda x: cls.budget_constraint(x, encoder, max_budget), weight=5.0
+                name="budget_constraint", function=lambda x: cls.budget_constraint(x, encoder, max_budget), weight=5.0,
             )
 
         # Renewable generation constraint if demand profile available

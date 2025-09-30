@@ -106,14 +106,14 @@ class AIMetricsCollector(MetricsCollectorInterface):
                 unit="requests",
             ),
             MetricDefinition(
-                name="ai.model.tokens", type=MetricType.COUNTER, description="Total tokens processed", unit="tokens"
+                name="ai.model.tokens", type=MetricType.COUNTER, description="Total tokens processed", unit="tokens",
             ),
             MetricDefinition(
-                name="ai.model.latency", type=MetricType.HISTOGRAM, description="AI model response latency", unit="ms"
+                name="ai.model.latency", type=MetricType.HISTOGRAM, description="AI model response latency", unit="ms",
             ),
             MetricDefinition(name="ai.model.cost", type=MetricType.COUNTER, description="Total AI costs", unit="usd"),
             MetricDefinition(
-                name="ai.model.errors", type=MetricType.COUNTER, description="AI model errors", unit="errors"
+                name="ai.model.errors", type=MetricType.COUNTER, description="AI model errors", unit="errors",
             ),
             MetricDefinition(
                 name="ai.vector.operations",
@@ -175,7 +175,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         # Record operation start,
         self.record_metric(
-            "ai.model.requests", 1.0, tags={"model": model, "provider": provider, "operation": operation_type}
+            "ai.model.requests", 1.0, tags={"model": model, "provider": provider, "operation": operation_type},
         )
 
         (logger.debug(f"Started tracking operation: {operation_id}"),)
@@ -248,7 +248,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         return operation
 
     def record_metric(
-        self, metric_name: str, value: float, tags: dict[str, str] | None = None, timestamp: datetime | None = None
+        self, metric_name: str, value: float, tags: dict[str, str] | None = None, timestamp: datetime | None = None,
     ) -> None:
         """
         Record a metric value.
@@ -264,7 +264,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
             return
 
         metric_value = MetricValue(
-            metric_name=metric_name, value=value, timestamp=timestamp or datetime.utcnow(), tags=tags or {}
+            metric_name=metric_name, value=value, timestamp=timestamp or datetime.utcnow(), tags=tags or {},
         )
 
         # Store in memory,
@@ -413,7 +413,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
                 "total_tokens": 0,
                 "total_cost": 0.0,
                 "errors": 0,
-            }
+            },
         )
 
         for op in operations:
@@ -452,7 +452,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         }
 
     async def export_metrics_async(
-        self, format: str = "json", time_range: tuple[datetime, datetime] | None = None
+        self, format: str = "json", time_range: tuple[datetime, datetime] | None = None,
     ) -> dict[str, Any]:
         """Export metrics data for external analysis."""
         if time_range:

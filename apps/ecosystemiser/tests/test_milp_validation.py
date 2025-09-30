@@ -72,7 +72,7 @@ def create_optimization_test_system():
             0.0,
             0.0,
             0.0,  # Evening/night
-        ]
+        ],
     )
 
     # Demand with clear peaks for optimization
@@ -102,7 +102,7 @@ def create_optimization_test_system():
             0.4,
             0.3,
             0.3,  # Night low
-        ]
+        ],
     )
 
     # Create components with parameters that enable meaningful optimization
@@ -112,7 +112,7 @@ def create_optimization_test_system():
             import_tariff=0.30,  # Higher import tariff,
             export_tariff=0.05,  # Lower export tariff to discourage export,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     grid = Grid("Grid", grid_params, N)
 
@@ -124,7 +124,7 @@ def create_optimization_test_system():
             efficiency_roundtrip=0.90,  # Realistic efficiency for optimization,
             initial_soc_pct=0.5,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     battery = Battery("Battery", battery_params, N)
 
@@ -133,7 +133,7 @@ def create_optimization_test_system():
             capacity_nominal=30.0,  # 30 kW solar,
             efficiency_nominal=1.0,
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     solar = SolarPV("SolarPV", solar_params, N)
     solar.profile = solar_profile
@@ -144,7 +144,7 @@ def create_optimization_test_system():
             peak_demand=15.0,
             load_profile_type="variable",
             fidelity_level=FidelityLevel.SIMPLE,
-        )
+        ),
     )
     demand = PowerDemand("PowerDemand", demand_params, N)
     demand.profile = demand_profile
@@ -298,7 +298,7 @@ def run_milp_validation():
                         "optimization_valid": optimization_valid,
                         "milp_status": milp_result.status,
                         "milp_success": True,
-                    }
+                    },
                 )
 
             else:
@@ -308,7 +308,7 @@ def run_milp_validation():
                         "milp_success": False,
                         "milp_status": milp_result.status,
                         "milp_error": "Solver did not reach optimal status",
-                    }
+                    },
                 )
 
         except Exception as milp_e:

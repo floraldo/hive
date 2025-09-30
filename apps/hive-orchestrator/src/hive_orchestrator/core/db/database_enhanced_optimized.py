@@ -26,7 +26,7 @@ from .database import get_connection
 
 
 def get_queued_tasks_with_planning_optimized(
-    limit: int = 10, task_type: str | None = None, use_pool: bool = True
+    limit: int = 10, task_type: str | None = None, use_pool: bool = True,
 ) -> List[dict[str, Any]]:
     """
     Optimized task selection with single query and dependency pre-fetching.
@@ -365,7 +365,7 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
                     sub_task.get("priority", 50),
                     "queued",
                     json.dumps(payload),
-                )
+                ),
             )
 
         # Batch insert

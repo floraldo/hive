@@ -355,7 +355,7 @@ class SystemConfigEncoder(ParameterEncoder):
 
     @classmethod
     def _extract_optimizable_parameters(
-        cls, component_name: str, component_config: dict[str, Any]
+        cls, component_name: str, component_config: dict[str, Any],
     ) -> list[ParameterSpec]:
         """Extract optimizable parameters from component configuration.,
 
@@ -441,7 +441,7 @@ class SystemConfigEncoder(ParameterEncoder):
         return cls(encoding_spec)
 
     def suggest_bounds_from_config(
-        self, config: dict[str, Any], scaling_factor: float = 2.0
+        self, config: dict[str, Any], scaling_factor: float = 2.0,
     ) -> dict[str, tuple[float, float]]:
         """Suggest parameter bounds based on current configuration values.
 

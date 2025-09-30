@@ -130,7 +130,7 @@ class AgentEvent(Event):
 
         # Add agent info to payload
         self.payload.update(
-            {"agent_name": self.agent_name, "agent_type": self.agent_type, "agent_status": self.agent_status}
+            {"agent_name": self.agent_name, "agent_type": self.agent_type, "agent_status": self.agent_status},
         )
 
 
@@ -154,7 +154,7 @@ class WorkflowEvent(Event):
                 "task_id": self.task_id,
                 "phase": self.phase,
                 "dependencies": self.dependencies or [],
-            }
+            },
         )
 
 

@@ -45,7 +45,7 @@ def register_adapter(name: str) -> None:
 
 
 def get_adapter(
-    adapter_name: str, use_cache: bool = True, custom_config: dict[str, Any] | None = None, force_new: bool = False
+    adapter_name: str, use_cache: bool = True, custom_config: dict[str, Any] | None = None, force_new: bool = False,
 ) -> BaseAdapter:
     """
     Create or retrieve an adapter instance using centralized settings.

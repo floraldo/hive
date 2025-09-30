@@ -721,7 +721,7 @@ class TestVectorIntegration:
         search.embedding_manager = Mock()
         search.embedding_manager.generate_embedding_async = AsyncMock(
             return_value=EmbeddingResult(
-                text="query", vector=[0.1] * 128, model="test", tokens_used=5, cache_hit=False
+                text="query", vector=[0.1] * 128, model="test", tokens_used=5, cache_hit=False,
             ),
         )
 

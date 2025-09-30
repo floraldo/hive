@@ -110,7 +110,7 @@ async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> Opti
 
 
 async def get_queued_tasks_async(
-    db_manager: AsyncDatabaseManager, limit: int = 10, task_type: str | None = None
+    db_manager: AsyncDatabaseManager, limit: int = 10, task_type: str | None = None,
 ) -> list[dict[str, Any]]:
     """Get queued tasks asynchronously using dependency injection."""
     async with get_async_connection_async(db_manager) as conn:
@@ -147,7 +147,7 @@ async def get_queued_tasks_async(
 
 
 async def get_tasks_by_status_async(
-    status: str, db_manager: AsyncDatabaseManager, limit: int = 50
+    status: str, db_manager: AsyncDatabaseManager, limit: int = 50,
 ) -> list[dict[str, Any]]:
     """Get tasks by status asynchronously using dependency injection."""
     async with get_async_connection_async(db_manager) as conn:
@@ -208,7 +208,7 @@ async def update_task_status_async(
 
 
 async def create_run_async(
-    task_id: str, worker_id: str, db_manager: AsyncDatabaseManager, run_type: str = "execution"
+    task_id: str, worker_id: str, db_manager: AsyncDatabaseManager, run_type: str = "execution",
 ) -> str:
     """Create a new task run asynchronously using dependency injection."""
     run_id = str(uuid.uuid4())

@@ -114,13 +114,13 @@ async def root_async() -> None:
                 description="Climate and demand profile data loader with multiple adapters",
             ),
             "solver": ModuleInfo(
-                status=ModuleStatus.PLANNED, endpoints=[], description="Optimization solver for energy system analysis"
+                status=ModuleStatus.PLANNED, endpoints=[], description="Optimization solver for energy system analysis",
             ),
             "analyser": ModuleInfo(
-                status=ModuleStatus.PLANNED, endpoints=[], description="Post-processing analytics and visualization"
+                status=ModuleStatus.PLANNED, endpoints=[], description="Post-processing analytics and visualization",
             ),
             "reporting": ModuleInfo(
-                status=ModuleStatus.PLANNED, endpoints=[], description="Automated report generation and export"
+                status=ModuleStatus.PLANNED, endpoints=[], description="Automated report generation and export",
             ),
         },
         uptime=get_uptime(),
@@ -264,7 +264,7 @@ async def climate_error_handler_async(request: Request, exc: ClimateError) -> No
     )
 
     return JSONResponse(
-        status_code=exc.status_code if hasattr(exc, "status_code") else 500, content=error_response.model_dump()
+        status_code=exc.status_code if hasattr(exc, "status_code") else 500, content=error_response.model_dump(),
     )
 
 
@@ -391,7 +391,7 @@ async def get_metrics_async() -> None:
     )
 
     return MonitoringResponse(
-        system_metrics=system_metrics, performance_metrics=performance_metrics, health_checks=health_checks
+        system_metrics=system_metrics, performance_metrics=performance_metrics, health_checks=health_checks,
     )
 
 
@@ -424,5 +424,5 @@ async def get_version_async() -> None:
 if __name__ == "__main__":
     # Run the application
     uvicorn.run(
-        "main:app", host="0.0.0.0", port=8000, reload=settings.debug, log_level=settings.observability.log_level.lower()
+        "main:app", host="0.0.0.0", port=8000, reload=settings.debug, log_level=settings.observability.log_level.lower(),
     )

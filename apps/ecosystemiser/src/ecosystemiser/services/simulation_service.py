@@ -196,7 +196,7 @@ class SimulationService:
                                 profile_data = comp.flows["source"][attribute]["value"]
                             else:
                                 logger.warning(
-                                    f"Could not find attribute '{attribute}' in component '{component_name}'"
+                                    f"Could not find attribute '{attribute}' in component '{component_name}'",
                                 )
                                 continue
 
@@ -214,7 +214,7 @@ class SimulationService:
                         "stage_name": stage.stage_name,
                         "status": stage_solver_result.status,
                         "solve_time": stage_solver_result.solve_time,
-                    }
+                    },
                 )
 
                 # Save stage results

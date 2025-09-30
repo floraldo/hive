@@ -191,11 +191,11 @@ class QueenPlanningEnhanced(QueenLite):
                 for task in planned_subtasks[:3]:  # Log first 3 for visibility
                     plan_ctx = task.get("planner_context", {})
                     logger.info(
-                        f"  📋 {task['id']}: {task['title']} (phase: {plan_ctx.get('workflow_phase', 'unknown')})"
+                        f"  📋 {task['id']}: {task['title']} (phase: {plan_ctx.get('workflow_phase', 'unknown')})",
                     )
 
             logger.info(
-                f"[ENHANCED] Processing {len(all_tasks)} tasks ({len(planned_subtasks)} planned + {len(regular_tasks)} regular)"
+                f"[ENHANCED] Processing {len(all_tasks)} tasks ({len(planned_subtasks)} planned + {len(regular_tasks)} regular)",
             )
 
             # Process tasks with enhanced planning awareness
@@ -450,7 +450,7 @@ class QueenPlanningEnhanced(QueenLite):
                     SELECT id, status FROM execution_plans,
                     WHERE status IN ('executing', 'generated', 'approved')
                     LIMIT 5,
-                """
+                """,
                 )
 
                 active_plans = cursor.fetchall()
@@ -459,7 +459,7 @@ class QueenPlanningEnhanced(QueenLite):
                     for plan_id, status in active_plans:
                         completion = planning_integration.get_plan_completion_status(plan_id)
                         logger.info(
-                            f"  📋 {plan_id}: {status} ({completion.get('completion_percentage', 0):.1f}% complete)"
+                            f"  📋 {plan_id}: {status} ({completion.get('completion_percentage', 0):.1f}% complete)",
                         )
 
         except Exception as e:

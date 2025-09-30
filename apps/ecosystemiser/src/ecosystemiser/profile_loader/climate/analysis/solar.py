@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 
 
 def calculate_clearness_index(
-    ghi: xr.DataArray, latitude: float, time: xr.DataArray, longitude: float | None = None
+    ghi: xr.DataArray, latitude: float, time: xr.DataArray, longitude: float | None = None,
 ) -> xr.DataArray:
     """
     from __future__ import annotations
@@ -85,7 +85,7 @@ def calculate_clearness_index(
 
 
 def calculate_solar_position(
-    time: xr.DataArray, latitude: float, longitude: float
+    time: xr.DataArray, latitude: float, longitude: float,
 ) -> tuple[xr.DataArray, xr.DataArray]:
     """
     Calculate solar elevation and azimuth angles.
@@ -123,7 +123,7 @@ def calculate_solar_position(
 
     # Solar azimuth angle (from North, clockwise)
     cos_az = (np.sin(decl) * np.cos(lat_rad) - np.cos(decl) * np.sin(lat_rad) * np.cos(omega)) / np.cos(
-        np.radians(elevation)
+        np.radians(elevation),
     )
     sin_az = np.cos(decl) * np.sin(omega) / np.cos(np.radians(elevation))
     azimuth = np.degrees(np.arctan2(sin_az, cos_az))

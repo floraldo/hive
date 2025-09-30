@@ -771,7 +771,7 @@ class EnhancedValidator:
                             file_path=package_dir,
                             line_number=1,
                             message=f"Package directory must start with 'hive-': {package_dir.name}",
-                        )
+                        ),
                     )
 
     def _validate_inherit_extend_pattern(self) -> None:
@@ -818,7 +818,7 @@ class EnhancedValidator:
                                             file_path=check_file,
                                             line_number=1,
                                             message=f"App '{app_name}' core/{module_name} doesn't import from {base_package}",
-                                        )
+                                        ),
                                     )
                             except Exception:
                                 continue
@@ -834,7 +834,7 @@ class EnhancedValidator:
                                 file_path=core_dir / incorrect,
                                 line_number=1,
                                 message=f"App '{app_name}' has core/{incorrect}, should be core/{correct}",
-                            )
+                            ),
                         )
 
     def _validate_python_version_consistency(self) -> None:
@@ -863,7 +863,7 @@ class EnhancedValidator:
                             file_path=root_toml,
                             line_number=1,
                             message="Root pyproject.toml missing Python version requirement",
-                        )
+                        ),
                     )
                 elif expected_python_version not in str(root_python_version):
                     self.violations.append(
@@ -873,7 +873,7 @@ class EnhancedValidator:
                             file_path=root_toml,
                             line_number=1,
                             message=f"Root Python version '{root_python_version}' must require {expected_python_version}+",
-                        )
+                        ),
                     )
             except Exception:
                 pass
@@ -902,7 +902,7 @@ class EnhancedValidator:
                             file_path=toml_path,
                             line_number=1,
                             message="Missing Python version requirement",
-                        )
+                        ),
                     )
                 elif expected_python_version not in str(python_version):
                     self.violations.append(
@@ -912,7 +912,7 @@ class EnhancedValidator:
                             file_path=toml_path,
                             line_number=1,
                             message=f"Python '{python_version}' should require {expected_python_version}+ (like root)",
-                        )
+                        ),
                     )
             except Exception:
                 continue
@@ -929,7 +929,7 @@ class EnhancedValidator:
                     file_path=forbidden_config,
                     line_number=1,
                     message="Duplicate configuration source detected. Use hive-config package exclusively.",
-                )
+                ),
             )
 
         # Check for setup.py files
@@ -946,7 +946,7 @@ class EnhancedValidator:
                         file_path=setup_file,
                         line_number=1,
                         message="Found setup.py file. Use pyproject.toml instead.",
-                    )
+                    ),
                 )
 
         # Ensure root pyproject.toml exists
@@ -959,7 +959,7 @@ class EnhancedValidator:
                     file_path=self.project_root,
                     line_number=1,
                     message="Root pyproject.toml missing",
-                )
+                ),
             )
         else:
             try:
@@ -977,7 +977,7 @@ class EnhancedValidator:
                             file_path=root_config,
                             line_number=1,
                             message="Workspace configuration missing from root pyproject.toml",
-                        )
+                        ),
                     )
             except Exception:
                 self.violations.append(
@@ -987,7 +987,7 @@ class EnhancedValidator:
                         file_path=root_config,
                         line_number=1,
                         message="Root pyproject.toml is invalid",
-                    )
+                    ),
                 )
 
     def _validate_service_layer_discipline(self) -> None:
@@ -1034,7 +1034,7 @@ class EnhancedValidator:
                                                 file_path=py_file,
                                                 line_number=1,
                                                 message=f"Service layer contains business logic indicator: {indicator}",
-                                            )
+                                            ),
                                         )
                                         break
 
@@ -1055,7 +1055,7 @@ class EnhancedValidator:
                                                             file_path=py_file,
                                                             line_number=i + 1,
                                                             message=f"Service class '{class_name}' missing docstring",
-                                                        )
+                                                        ),
                                                     )
                             except Exception:
                                 continue
@@ -1082,7 +1082,7 @@ class EnhancedValidator:
                                     file_path=toml_path,
                                     line_number=1,
                                     message=f"Contains [tool.{tool_name}] section. Tool configs must be unified in root pyproject.toml",
-                                )
+                                ),
                             )
             except Exception:
                 continue
@@ -1100,7 +1100,7 @@ class EnhancedValidator:
                             file_path=root_toml,
                             line_number=1,
                             message="Root pyproject.toml missing [tool.ruff] configuration",
-                        )
+                        ),
                     )
             except Exception:
                 pass
@@ -1180,7 +1180,7 @@ class EnhancedValidator:
                                     file_path=pyproject_file,
                                     line_number=1,
                                     message=f"{component_name}: Unused dependency '{unused_dep}' declared but not imported",
-                                )
+                                ),
                             )
                 except Exception:
                     continue
@@ -1219,7 +1219,7 @@ class EnhancedValidator:
                                 file_path=cli_file,
                                 line_number=1,
                                 message="CLI file uses click/typer but doesn't use Rich for output formatting",
-                            )
+                            ),
                         )
             except Exception:
                 continue
@@ -1288,7 +1288,7 @@ class EnhancedValidator:
                                 file_path=py_file,
                                 line_number=1,
                                 message=f"Missing test file for {package_dir.name}:{rel_path} - expected {test_file_name} in tests/unit/ or tests/",
-                            )
+                            ),
                         )
 
         # Check apps for core modules
@@ -1325,5 +1325,5 @@ class EnhancedValidator:
                                     file_path=py_file,
                                     line_number=1,
                                     message=f"Missing test for core module {app_dir.name}:core/{rel_path} - core business logic should have unit tests",
-                                )
+                                ),
                             )

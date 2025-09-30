@@ -128,7 +128,7 @@ class RobustClaudeBridge:
         try:
             # Create comprehensive prompt with JSON contract
             prompt = self._create_json_prompt(
-                task_description, code_files, test_results, objective_analysis, transcript
+                task_description, code_files, test_results, objective_analysis, transcript,
             )
 
             # Execute Claude CLI with --print flag to ensure it exits after responding
@@ -154,7 +154,7 @@ class RobustClaudeBridge:
             else:
                 logger.warning("Failed to extract valid JSON from Claude response")
                 return self._create_escalation_response(
-                    "Invalid response format from Claude", task_description, raw_output=claude_output
+                    "Invalid response format from Claude", task_description, raw_output=claude_output,
                 )
 
         except subprocess.TimeoutExpired:
@@ -330,7 +330,7 @@ Respond with ONLY the JSON object, no other text."""
         )
 
     def _create_escalation_response(
-        self, reason: str, task_description: str, raw_output: str | None = None
+        self, reason: str, task_description: str, raw_output: str | None = None,
     ) -> dict[str, Any]:
         """Create a structured escalation response when review fails"""
 

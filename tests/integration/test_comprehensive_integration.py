@@ -2462,7 +2462,7 @@ class FailureRecoveryTests:
             FROM tasks
             WHERE id IN ({})
         """.format(
-                ",".join("?" * len(task_ids))
+                ",".join("?" * len(task_ids)),
             ),
             task_ids,
         )

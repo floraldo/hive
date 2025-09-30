@@ -234,7 +234,7 @@ class ReportingSettings(BaseSettings):
 
     @field_validator("output_dir")
     @classmethod
-    def ensure_output_dir_exists(cls, v):
+    def ensure_output_dir_exists(cls, v: Any) -> Any:
         v.mkdir(parents=True, exist_ok=True)
         return v
 
@@ -288,7 +288,7 @@ class Settings(BaseSettings):
 
     @field_validator("environment")
     @classmethod
-    def validate_environment(cls, v, info):
+    def validate_environment(cls, v: Any, info: Any) -> Any:
         """Adjust settings based on environment"""
         if v == "production":
             # Enforce production settings

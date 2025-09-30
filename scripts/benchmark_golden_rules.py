@@ -60,7 +60,7 @@ def main():
             "scripts/validate_golden_rules.py",
             "--incremental",
             "--clear-cache",
-        ]
+        ],
     )
     print(f"Time: {elapsed1:.2f}s")
     print()
@@ -73,7 +73,7 @@ def main():
             sys.executable,
             "scripts/validate_golden_rules.py",
             "--incremental",
-        ]
+        ],
     )
     print(f"Time: {elapsed2:.2f}s")
     improvement = ((elapsed1 - elapsed2) / elapsed1) * 100 if elapsed1 > 0 else 0

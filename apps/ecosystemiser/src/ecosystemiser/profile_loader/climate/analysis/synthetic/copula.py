@@ -386,7 +386,7 @@ class CopulaSyntheticGenerator:
                     "generated_on": pd.Timestamp.now().isoformat(),
                     "target_length": target_length,
                     "source": "EcoSystemiser Copula Generator",
-                }
+                },
             ),
         )
 
@@ -394,7 +394,7 @@ class CopulaSyntheticGenerator:
 
 
 def copula_synthetic_generation(
-    ds_hist: xr.Dataset, seed: int | None = None, copula_type: str = "gaussian", target_length: str = "1Y", **kwargs
+    ds_hist: xr.Dataset, seed: int | None = None, copula_type: str = "gaussian", target_length: str = "1Y", **kwargs,
 ) -> xr.Dataset:
     """
     Generate synthetic climate data using copula methods.

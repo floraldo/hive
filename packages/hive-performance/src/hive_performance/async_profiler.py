@@ -196,7 +196,7 @@ class AsyncProfiler:
             task_name=task_name,
             coro_name=coro_name,
             created_at=datetime.utcnow(),
-            state="pending"
+            state="pending",
         )
 
         # Capture stack trace if enabled
@@ -280,7 +280,7 @@ class AsyncProfiler:
         return [profile for profile in self._task_profiles.values()]
 
     def get_completed_tasks(
-        self, limit: int | None = None, time_window: timedelta | None = None
+        self, limit: int | None = None, time_window: timedelta | None = None,
     ) -> list[TaskProfile]:
         """Get completed task profiles."""
         profiles = list(self._completed_profiles)
@@ -367,11 +367,11 @@ class AsyncProfiler:
             recommendations=recommendations,
             profile_start=self._profile_start or datetime.utcnow(),
             profile_end=profile_end,
-            profile_duration=profile_duration
+            profile_duration=profile_duration,
         )
 
     def _analyze_bottlenecks(
-        self, completed_tasks: list[TaskProfile], active_tasks: list[TaskProfile]
+        self, completed_tasks: list[TaskProfile], active_tasks: list[TaskProfile],
     ) -> tuple[list[str], list[str]]:
         """Analyze performance bottlenecks and generate recommendations."""
         bottlenecks = []
@@ -429,14 +429,14 @@ class AsyncProfiler:
                         "active_tasks": report.active_tasks,
                         "throughput": report.throughput,
                         "avg_execution_time": report.avg_execution_time,
-                        "concurrency_level": report.concurrency_level
+                        "concurrency_level": report.concurrency_level,
                     },
                     "bottlenecks": report.bottlenecks,
                     "recommendations": report.recommendations,
                     "task_types": report.task_types,
-                    "profile_duration": report.profile_duration
+                    "profile_duration": report.profile_duration,
                 },
-                indent=2
+                indent=2,
             )
 
         elif format == "text":
@@ -449,14 +449,14 @@ class AsyncProfiler:
                 f"Avg Execution Time: {report.avg_execution_time:.3f}s",
                 f"Concurrency Level: {report.concurrency_level:.1f}",
                 "",
-                "=== Bottlenecks ==="
+                "=== Bottlenecks ===",
             ]
             lines.extend(f"- {bottleneck}" for bottleneck in report.bottlenecks)
             lines.extend(
                 [
                     "",
-                    "=== Recommendations ==="
-                ]
+                    "=== Recommendations ===",
+                ],
             )
             lines.extend(f"- {rec}" for rec in report.recommendations)
 

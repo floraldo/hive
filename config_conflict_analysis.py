@@ -100,7 +100,7 @@ def analyze_pyproject_toml_files():
                                 "baseline": base_config[key],
                                 "conflict_file": file_path,
                                 "conflict_value": value,
-                            }
+                            },
                         )
                         print(f"  ⚠️  CONFLICT: {key}")
                         print(f"    Baseline: {base_config[key]}")
@@ -301,7 +301,7 @@ def check_file_watchers():
     try:
         # Check for file watcher processes
         result = subprocess.run(
-            "ps aux | grep -E '(watch|monitor|inotify)' | grep -v grep", shell=True, capture_output=True, text=True
+            "ps aux | grep -E '(watch|monitor|inotify)' | grep -v grep", shell=True, capture_output=True, text=True,
         )
 
         if result.stdout:

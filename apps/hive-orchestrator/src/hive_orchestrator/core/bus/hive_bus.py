@@ -65,7 +65,7 @@ class HiveEventBus(BaseBus):
                     metadata TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
+            """,
             )
 
             # Hive-specific indexes for orchestration queries
@@ -73,21 +73,21 @@ class HiveEventBus(BaseBus):
                 """,
                 CREATE INDEX IF NOT EXISTS idx_hive_events_workflow,
                 ON hive_events(workflow_id, timestamp)
-            """
+            """,
             )
 
             cursor.execute(
                 """,
                 CREATE INDEX IF NOT EXISTS idx_hive_events_task,
                 ON hive_events(task_id, timestamp)
-            """
+            """,
             )
 
             cursor.execute(
                 """,
                 CREATE INDEX IF NOT EXISTS idx_hive_events_agent,
                 ON hive_events(agent_id, timestamp)
-            """
+            """,
             )
 
             conn.commit()

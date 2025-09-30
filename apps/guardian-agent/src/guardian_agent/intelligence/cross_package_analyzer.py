@@ -731,7 +731,7 @@ response = await pool.generate_async(
                     "score_impact": 1.0,
                     "effort": "15 minutes",
                     "business_value": "Consistent logging format and configuration",
-                }
+                },
             )
 
         # Check for database operations without hive-db
@@ -747,7 +747,7 @@ response = await pool.generate_async(
                     "score_impact": 5.0,
                     "effort": "1-2 hours",
                     "business_value": "Better connection management and transaction support",
-                }
+                },
             )
 
         # Check for AI model calls without optimization
@@ -767,7 +767,7 @@ response = await pool.generate_async(
                     "score_impact": 8.0,
                     "effort": "2-3 hours",
                     "business_value": "Significant cost reduction and performance improvement",
-                }
+                },
             )
 
         return missing

@@ -345,7 +345,7 @@ class ClaudeService:
             self.metrics.failed_calls += 1
 
             error = ClaudeServiceError(
-                message=f"Claude operation {operation} failed", operation=operation, original_error=e
+                message=f"Claude operation {operation} failed", operation=operation, original_error=e,
             )
             self.error_reporter.report_error(error)
 
@@ -441,7 +441,7 @@ class ClaudeService:
         """Async version of generate_execution_plan"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None, self.generate_execution_plan, task_description, context_data, priority, requestor, use_cache
+            None, self.generate_execution_plan, task_description, context_data, priority, requestor, use_cache,
         )
 
     async def review_code_async(
@@ -498,7 +498,7 @@ _service: ClaudeService | None = None
 
 
 def get_claude_service(
-    config: ClaudeBridgeConfig | None = None, rate_config: RateLimitConfig | None = None
+    config: ClaudeBridgeConfig | None = None, rate_config: RateLimitConfig | None = None,
 ) -> ClaudeService:
     """Get or create the global Claude service
 

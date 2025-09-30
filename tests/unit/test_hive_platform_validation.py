@@ -378,7 +378,7 @@ class PlatformValidationTests:
             import hive_orchestrator
 
             assert hasattr(hive_orchestrator, "__version__") or hasattr(
-                hive_orchestrator, "__file__"
+                hive_orchestrator, "__file__",
             ), "Module should be importable"
 
         except ImportError as e:

@@ -322,7 +322,7 @@ class ProphecyEngine:
 
             logger.info(
                 f"🔮 Prophecy analysis complete: {len(prophecies)} prophecies, ",
-                f"risk level: {overall_risk.value}, duration: {analysis_duration:.1f}s"
+                f"risk level: {overall_risk.value}, duration: {analysis_duration:.1f}s",
             )
 
             return report
@@ -332,7 +332,7 @@ class ProphecyEngine:
             # Return minimal report on error
             return ProphecyReport(
                 design_intent=DesignIntent(
-                    project_name="unknown", description="Analysis failed", document_path=design_doc_path
+                    project_name="unknown", description="Analysis failed", document_path=design_doc_path,
                 ),
                 overall_risk_level=ProphecySeverity.MODERATE,
                 total_prophecies=0,
@@ -377,7 +377,7 @@ class ProphecyEngine:
 
             logger.info(
                 f"Extracted design intent for '{design_intent.project_name}' ",
-                f"(confidence: {design_intent.confidence_score:.1%})"
+                f"(confidence: {design_intent.confidence_score:.1%})",
             )
 
             return design_intent
@@ -883,7 +883,7 @@ class ProphecyEngine:
         return severity_map.get(severity, 2)
 
     async def _perform_strategic_analysis_async(
-        self, design_intent: DesignIntent, prophecies: list[ArchitecturalProphecy]
+        self, design_intent: DesignIntent, prophecies: list[ArchitecturalProphecy],
     ) -> dict[str, Any]:
         """Perform strategic analysis and generate architectural recommendations."""
 
@@ -930,7 +930,7 @@ class ProphecyEngine:
             if high_severity_prophecies:
                 guidance_parts.append(
                     f"⚠️ {len(high_severity_prophecies)} critical architectural risks identified. ",
-                    "Immediate attention required to prevent future issues."
+                    "Immediate attention required to prevent future issues.",
                 )
 
             # Add specific guidance based on prophecy types
@@ -939,19 +939,19 @@ class ProphecyEngine:
             if ProphecyType.PERFORMANCE_BOTTLENECK in prophecy_types:
                 guidance_parts.append(
                     "🚀 Performance optimization is critical. Consider event-driven architecture ",
-                    "and caching strategies from the start."
+                    "and caching strategies from the start.",
                 )
 
             if ProphecyType.COST_OVERRUN in prophecy_types:
                 guidance_parts.append(
                     "💰 Cost management is essential. Implement intelligent resource pooling ",
-                    "and usage monitoring early."
+                    "and usage monitoring early.",
                 )
 
             if ProphecyType.COMPLIANCE_VIOLATION in prophecy_types:
                 guidance_parts.append(
                     "📋 Compliance violations detected. Follow Hive Golden Rules strictly ",
-                    "to ensure CI/CD pipeline compatibility."
+                    "to ensure CI/CD pipeline compatibility.",
                 )
 
             strategic_guidance = " ".join(guidance_parts) or "Architecture appears sound with manageable risks."
@@ -1047,7 +1047,7 @@ class ProphecyEngine:
                             "analysis_duration": report.analysis_duration,
                             "recommended_packages": report.optimal_hive_packages,
                         },
-                    )
+                    ),
                 ]
 
                 await self.data_layer.warehouse.store_metrics_async(metrics)

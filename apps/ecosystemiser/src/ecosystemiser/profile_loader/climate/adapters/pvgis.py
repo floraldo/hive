@@ -181,7 +181,7 @@ class PVGISAdapter(BaseAdapter):
     }
 
     async def _fetch_raw_async(
-        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs,
     ) -> Any | None:
         """Fetch raw data from PVGIS API"""
         lat, lon = location
@@ -218,7 +218,7 @@ class PVGISAdapter(BaseAdapter):
             raise ValueError(f"Unsupported resolution for PVGIS: {resolution}")
 
     async def _transform_data_async(
-        self, raw_data: Any, location: tuple[float, float], variables: list[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str],
     ) -> xr.Dataset:
         """Transform raw PVGIS data to xarray Dataset"""
         lat, lon = location
@@ -233,7 +233,7 @@ class PVGISAdapter(BaseAdapter):
                 "adapter_version": self.ADAPTER_VERSION,
                 "latitude": lat,
                 "longitude": lon,
-            }
+            },
         )
 
         return ds
@@ -248,7 +248,7 @@ class PVGISAdapter(BaseAdapter):
             raise ValueError("Variables list cannot be empty")
 
     async def fetch_async(
-        self, *lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H"
+        self, *lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H",
     ) -> xr.Dataset:
         """Fetch solar radiation data from PVGIS API"""
 
@@ -265,7 +265,7 @@ class PVGISAdapter(BaseAdapter):
 
         # Use base class fetch method
         return await super().fetch_async(
-            location=(lat, lon), variables=supported_vars, period=period, resolution=resolution
+            location=(lat, lon), variables=supported_vars, period=period, resolution=resolution,
         )
 
     def _select_database(self, lat: float, lon: float) -> str:
@@ -307,7 +307,7 @@ class PVGISAdapter(BaseAdapter):
         return start_date, end_date
 
     async def _fetch_hourly_series_async(
-        self, lat: float, lon: float, variables: list[str], start_date: datetime, end_date: datetime, database: str
+        self, lat: float, lon: float, variables: list[str], start_date: datetime, end_date: datetime, database: str,
     ) -> xr.Dataset:
         """Fetch hourly time series data from PVGIS"""
 
@@ -356,7 +356,7 @@ class PVGISAdapter(BaseAdapter):
         return ds
 
     async def _fetch_daily_series_async(
-        self, lat: float, lon: float, variables: list[str], start_date: datetime, end_date: datetime, database: str
+        self, lat: float, lon: float, variables: list[str], start_date: datetime, end_date: datetime, database: str,
     ) -> xr.Dataset:
         """Fetch daily aggregated data from PVGIS"""
 
@@ -407,7 +407,7 @@ class PVGISAdapter(BaseAdapter):
         return ds
 
     def _parse_hourly_response(
-        self, data: dict, variables: list[str], lat: float, lon: float, start_date: datetime, end_date: datetime
+        self, data: dict, variables: list[str], lat: float, lon: float, start_date: datetime, end_date: datetime,
     ) -> xr.Dataset:
         """Parse PVGIS hourly response to xarray Dataset"""
 
@@ -479,7 +479,7 @@ class PVGISAdapter(BaseAdapter):
                     dewpoint_data = self._calculate_dewpoint(df["T2m"].values, df["RH"].values)
                     ds[canonical_name] = (
                         xr.DataArray(
-                            dewpoint_data, coords={"time": df.index}, attrs=self._get_variable_attrs(canonical_name)
+                            dewpoint_data, coords={"time": df.index}, attrs=self._get_variable_attrs(canonical_name),
                         ),
                     )
                     added = True
@@ -487,12 +487,12 @@ class PVGISAdapter(BaseAdapter):
 
             if not added:
                 logger.warning(
-                    f"Variable '{canonical_name}' not found in PVGIS response. Available columns: {list(df.columns)}"
+                    f"Variable '{canonical_name}' not found in PVGIS response. Available columns: {list(df.columns)}",
                 )
         return ds
 
     def _parse_daily_response(
-        self, data: dict, variables: list[str], lat: float, lon: float, start_date: datetime, end_date: datetime
+        self, data: dict, variables: list[str], lat: float, lon: float, start_date: datetime, end_date: datetime,
     ) -> xr.Dataset:
         """Parse PVGIS daily response to xarray Dataset"""
 
@@ -520,7 +520,7 @@ class PVGISAdapter(BaseAdapter):
                 if len(values) < num_days:
                     values.extend([np.nan] * (num_days - len(values)))
                 ds[canonical_name] = xr.DataArray(
-                    values, coords={"time": time_index}, attrs=self._get_variable_attrs(canonical_name)
+                    values, coords={"time": time_index}, attrs=self._get_variable_attrs(canonical_name),
                 )
         return ds
 
@@ -599,7 +599,7 @@ class PVGISAdapter(BaseAdapter):
         conversions = {
             # Solar elevation to zenith angle
             "solar_zenith": lambda x: 90
-            - x
+            - x,
         }
 
         if canonical_name in conversions:

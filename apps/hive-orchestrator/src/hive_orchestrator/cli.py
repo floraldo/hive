@@ -213,7 +213,7 @@ def review_escalated(task_id: str) -> None:
                 f"[yellow]Priority:[/yellow] {task['priority']}",
                 title="Human Review Required",
                 box=box.DOUBLE,
-            )
+            ),
         )
 
         # Display task description
@@ -273,7 +273,7 @@ def review_escalated(task_id: str) -> None:
 
         # Get human decision
         decision = Prompt.ask(
-            "\nYour decision", choices=["approve", "reject", "rework", "defer", "cancel"], default="defer"
+            "\nYour decision", choices=["approve", "reject", "rework", "defer", "cancel"], default="defer",
         )
 
         if decision == "cancel":

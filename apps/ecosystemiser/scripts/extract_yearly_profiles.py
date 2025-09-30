@@ -142,7 +142,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                         "import_tariff": 0.25,  # $/kWh,
                         "feed_in_tariff": 0.08,  # $/kWh - lower export price,
                         "fidelity_level": "SIMPLE",
-                    }
+                    },
                 },
             },
             # Battery configuration based on legacy (300 kWh, 150 kW)
@@ -156,7 +156,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                         "efficiency_roundtrip": 0.95,
                         "initial_soc_pct": 0.5,
                         "fidelity_level": "SIMPLE",
-                    }
+                    },
                 },
             },
             # Solar PV configuration based on legacy (40 kW)
@@ -167,7 +167,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                         "capacity_nominal": 40.0,  # kW - from legacy,
                         "efficiency_nominal": 1.0,
                         "fidelity_level": "SIMPLE",
-                    }
+                    },
                 },
                 "profile_file": "solar_pv_yearly.csv",
             },
@@ -180,7 +180,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                         "peak_demand": 15.0,
                         "load_profile_type": "variable",
                         "fidelity_level": "SIMPLE",
-                    }
+                    },
                 },
                 "profile_file": "power_demand_yearly.csv",
             },
@@ -193,7 +193,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                         "cop_nominal": 4.0,  # from legacy,
                         "efficiency_nominal": 0.95,  # from legacy,
                         "fidelity_level": "SIMPLE",
-                    }
+                    },
                 },
             },
             # Heat demand (15 kW peak)
@@ -205,7 +205,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                         "peak_demand": 15.0,
                         "demand_type": "space_heating",
                         "fidelity_level": "SIMPLE",
-                    }
+                    },
                 },
                 "profile_file": "heat_demand_yearly.csv",
             },
@@ -220,7 +220,7 @@ def create_yearly_system_config() -> dict[str, Any]:
                         "efficiency_roundtrip": 0.97,  # from legacy,
                         "initial_soc_pct": 0.5,
                         "fidelity_level": "SIMPLE",
-                    }
+                    },
                 },
             },
         },

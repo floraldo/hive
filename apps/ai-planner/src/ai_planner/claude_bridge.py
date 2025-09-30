@@ -32,7 +32,7 @@ class SubTask(BaseModel):
     complexity: Literal["simple", "medium", "complex"] = Field(description="Task complexity level")
     dependencies: list[str] = Field(default_factory=list, description="List of sub-task IDs this depends on")
     workflow_phase: Literal["analysis", "design", "implementation", "testing", "validation"] = Field(
-        description="Primary workflow phase for this sub-task"
+        description="Primary workflow phase for this sub-task",
     )
     required_skills: list[str] = Field(default_factory=list, description="Required skills/technologies")
     deliverables: list[str] = Field(default_factory=list, description="Expected outputs/deliverables")
@@ -43,10 +43,10 @@ class DependencyMap(BaseModel):
 
     critical_path: list[str] = Field(description="Ordered list of sub-task IDs on critical path")
     parallel_groups: list[list[str]] = Field(
-        default_factory=list, description="Groups of tasks that can run in parallel"
+        default_factory=list, description="Groups of tasks that can run in parallel",
     )
     blocking_dependencies: dict[str, list[str]] = Field(
-        default_factory=dict, description="Map of task_id -> blocking_task_ids"
+        default_factory=dict, description="Map of task_id -> blocking_task_ids",
     )
 
 
@@ -128,7 +128,7 @@ class RobustClaudePlannerBridge:
         return None
 
     def _create_planning_prompt(
-        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str
+        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str,
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
 
@@ -353,7 +353,7 @@ Generate the execution plan now:"""
         return fallback_response.dict()
 
     def generate_execution_plan(
-        self, task_description: str, context_data: dict[str, Any] = None, priority: int = 50, requestor: str = "system"
+        self, task_description: str, context_data: dict[str, Any] = None, priority: int = 50, requestor: str = "system",
     ) -> dict[str, Any]:
         """
         Generate intelligent execution plan using Claude API
@@ -388,7 +388,7 @@ Generate the execution plan now:"""
                         workflow_phase="analysis",
                         required_skills=["testing"],
                         deliverables=["mock_output.txt"],
-                    )
+                    ),
                 ],
                 dependencies=DependencyMap(critical_path=["mock-001"], parallel_groups=[], blocking_dependencies={}),
                 workflow=WorkflowDefinition(

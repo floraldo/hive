@@ -75,7 +75,7 @@ class EventBus:
                     metadata TEXT NOT NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
+            """,
             )
 
             # Event subscriptions table (for persistent subscriptions)
@@ -89,7 +89,7 @@ class EventBus:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     active INTEGER DEFAULT 1
                 )
-            """
+            """,
             )
 
             # Indexes for performance
@@ -97,21 +97,21 @@ class EventBus:
                 """,
                 CREATE INDEX IF NOT EXISTS idx_events_type_timestamp,
                 ON events(event_type, timestamp)
-            """
+            """,
             )
 
             cursor.execute(
                 """,
                 CREATE INDEX IF NOT EXISTS idx_events_correlation,
                 ON events(correlation_id)
-            """
+            """,
             )
 
             cursor.execute(
                 """,
                 CREATE INDEX IF NOT EXISTS idx_events_source_agent,
                 ON events(source_agent)
-            """
+            """,
             )
 
             conn.commit()
@@ -364,7 +364,7 @@ class EventBus:
                 raise EventPublishError(f"Async event publishing failed: {e}") from e
 
         async def get_events_async(
-            self, event_type: str = None, correlation_id: str = None, source_agent: str = None, limit: int = 100
+            self, event_type: str = None, correlation_id: str = None, source_agent: str = None, limit: int = 100,
         ) -> list[Event]:
             """
             Async version of get_events for high-performance event retrieval.

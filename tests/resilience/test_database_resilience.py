@@ -214,7 +214,7 @@ class TestDatabaseResilience:
                     name TEXT NOT NULL,
                     value INTEGER
                 )
-            """
+            """,
             )
             await conn.commit()
 

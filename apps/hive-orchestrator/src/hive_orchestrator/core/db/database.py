@@ -145,7 +145,7 @@ def init_db() -> None:
                 max_retries INTEGER DEFAULT 3,
                 tags TEXT  -- JSON array of tags
             )
-        """
+        """,
         )
 
         # Runs table - Execution attempts (attempts to execute a task)
@@ -168,7 +168,7 @@ def init_db() -> None:
                 FOREIGN KEY (worker_id) REFERENCES workers (id)
                 UNIQUE(task_id, run_number)
             )
-        """
+        """,
         )
 
         # Workers table - Worker registration and heartbeat
@@ -185,7 +185,7 @@ def init_db() -> None:
                 registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (current_task_id) REFERENCES tasks (id)
             )
-        """
+        """,
         )
 
         # AI Planning tables - for intelligent task planning and workflow generation
@@ -206,7 +206,7 @@ def init_db() -> None:
                 completed_at TIMESTAMP NULL,
                 assigned_agent TEXT  -- which ai-planner instance is handling this
             )
-        """
+        """,
         )
 
         # Generated execution plans - AI-generated plans for complex tasks
@@ -225,7 +225,7 @@ def init_db() -> None:
                 status TEXT DEFAULT 'draft',  -- draft|approved|executing|completed|failed,
                 FOREIGN KEY (planning_task_id) REFERENCES planning_queue (id) ON DELETE CASCADE
             )
-        """
+        """,
         )
 
         # Plan execution monitoring - track progress of plan execution
@@ -246,7 +246,7 @@ def init_db() -> None:
                 completed_at TIMESTAMP NULL,
                 FOREIGN KEY (plan_id) REFERENCES execution_plans (id) ON DELETE CASCADE
             )
-        """
+        """,
         )
 
         # Indexes for performance
@@ -261,7 +261,7 @@ def init_db() -> None:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_planning_queue_status ON planning_queue (status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_planning_queue_priority ON planning_queue (priority DESC)")
         conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_execution_plans_planning_task_id ON execution_plans (planning_task_id)"
+            "CREATE INDEX IF NOT EXISTS idx_execution_plans_planning_task_id ON execution_plans (planning_task_id)",
         )
         conn.execute("CREATE INDEX IF NOT EXISTS idx_execution_plans_status ON execution_plans (status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_plan_execution_plan_id ON plan_execution (plan_id)")
@@ -626,7 +626,7 @@ def get_tasks_by_status(status: str) -> List[dict[str, Any]]:
 
 
 def register_worker(
-    worker_id: str, role: str, capabilities: Optional[List[str]] = None, metadata: Optional[dict[str, Any]] = None
+    worker_id: str, role: str, capabilities: Optional[List[str]] = None, metadata: Optional[dict[str, Any]] = None,
 ) -> bool:
     """Register a new worker or update existing worker registration."""
     with transaction() as conn:
@@ -690,7 +690,7 @@ def get_active_workers(role: str | None = None) -> List[dict[str, Any]]:
                 SELECT * FROM workers,
                 WHERE status = 'active',
                 ORDER BY last_heartbeat DESC,
-            """
+            """,
             )
 
         workers = []
@@ -727,7 +727,7 @@ def log_run_result(
     """
     try:
         success = update_run_status(
-            run_id=run_id, status=status, result_data=result_data, error_message=error_message, transcript=transcript
+            run_id=run_id, status=status, result_data=result_data, error_message=error_message, transcript=transcript,
         )
 
         if success:
@@ -845,7 +845,7 @@ if ASYNC_AVAILABLE:
                             "depends_on": depends_on,
                             "metadata": metadata,
                             "requestor": requestor,
-                        }
+                        },
                     ),
                     workspace,
                     task_type,

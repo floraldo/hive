@@ -52,7 +52,7 @@ def extract_profiles_from_golden() -> pd.DataFrame:
             "power_demand_kw": total_demand,
             "solar_normalized": solar_generation / solar_max,
             "demand_normalized": total_demand / demand_max,
-        }
+        },
     )
 
     # Print profile statistics
