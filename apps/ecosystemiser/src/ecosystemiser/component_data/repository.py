@@ -1,5 +1,7 @@
 """Repository for component data definitions."""
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 from typing import Any, Dict, List
@@ -13,8 +15,6 @@ logger = get_logger(__name__)
 
 class ComponentRepository:
     """Repository for component data definitions."""
-from __future__ import annotations
-
 
     def __init__(self, data_source: str = "database", base_path: Path | None = None) -> None:
         """Initialize component repository.

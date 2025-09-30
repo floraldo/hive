@@ -90,7 +90,7 @@ tags_metadata = [
 # Create FastAPI app with enhanced OpenAPI documentation
 app = FastAPI(
     title=settings.api.title,
-    description=settings.api.description,
+    description=settings.api.description
     + "\n\n## Features\n- Climate data loading with multiple adapters\n- Async job processing\n- Streaming responses for large datasets\n- Comprehensive monitoring and health checks\n- Production-grade error handling",
     version=settings.api.version,
     lifespan=lifespan,
@@ -126,17 +126,17 @@ async def root_async() -> None:
                 endpoints=["/api/v3/profile/climate", "/api/v3/profile/demand"],
                 version="2.0.0",
                 description="Climate and demand profile data loader with multiple adapters"
-            )
+            ),
             "solver": ModuleInfo(
                 status=ModuleStatus.PLANNED,
                 endpoints=[],
                 description="Optimization solver for energy system analysis"
-            )
+            ),
             "analyser": ModuleInfo(
                 status=ModuleStatus.PLANNED,
                 endpoints=[],
                 description="Post-processing analytics and visualization"
-            )
+            ),
             "reporting": ModuleInfo(
                 status=ModuleStatus.PLANNED,
                 endpoints=[],

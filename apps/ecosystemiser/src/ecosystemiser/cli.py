@@ -440,7 +440,7 @@ def optimize(
                 json.dump(
                     {
                         "study_result": result.dict(),
-                        "configuration": {,
+                        "configuration": {
                             "objectives": objectives,
                             "multi_objective": multi_objective,
                             "ga_config": ga_config,

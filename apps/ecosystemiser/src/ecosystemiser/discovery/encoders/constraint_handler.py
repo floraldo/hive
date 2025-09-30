@@ -1,5 +1,7 @@
 """Constraint handling for optimization problems."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List
@@ -13,8 +15,6 @@ logger = get_logger(__name__)
 @dataclass
 class Constraint:
     """Definition of an optimization constraint."""
-from __future__ import annotations
-
 
     name: str
     constraint_type: str  # equality, inequality, bounds

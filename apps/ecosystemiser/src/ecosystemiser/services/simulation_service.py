@@ -1,8 +1,10 @@
 """Main simulation service orchestrator."""
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import yaml
 from ecosystemiser.component_data.repository import ComponentRepository
@@ -20,9 +22,6 @@ logger = get_logger(__name__)
 
 class StageConfig(BaseModel):
     """Configuration for a single stage in staged simulation."""
-from __future__ import annotations
-
-
     stage_name: str
     system_config_path: str
     solver_type: str = "milp"

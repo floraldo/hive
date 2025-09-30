@@ -1,5 +1,7 @@
 """CLI commands for reporting module."""
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 import click
@@ -13,8 +15,6 @@ logger = get_logger(__name__)
 @click.group()
 def report() -> None:
     """Report generation and server commands."""
-from __future__ import annotations
-
     pass
 
 

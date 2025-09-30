@@ -73,7 +73,7 @@ def generate_parameter_report(parameter_settings: dict[str, Any], results: dict[
     """
     report = {
         "parameters": parameter_settings,
-        "kpis": results.get("kpis", {})
+        "kpis": results.get("kpis", {}),
         "solver_metrics": results.get("solver_metrics", {}),
         "sensitivity_score": 0.0
     }

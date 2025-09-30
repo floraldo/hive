@@ -202,7 +202,7 @@ class SQLiteLoader:
                     type_id,
                     name,
                     version,
-                    json.dumps(technical_params)
+                    json.dumps(technical_params),
                     json.dumps(economic_params) if economic_params else None,
                     json.dumps(environmental_params) if environmental_params else None,
                     json.dumps(metadata) if metadata else None,
@@ -395,8 +395,8 @@ class SQLiteLoader:
 
             # Ensure component type exists,
             self.add_component_type(
-                spec.get("type")
-                spec.get("category", "energy")
+                spec.get("type"),
+                spec.get("category", "energy"),
                 spec.get("description")
             )
 

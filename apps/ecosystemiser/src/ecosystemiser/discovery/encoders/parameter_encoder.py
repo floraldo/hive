@@ -1,5 +1,7 @@
 """Parameter encoding for system configurations in optimization."""
 
+from __future__ import annotations
+
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,8 +17,6 @@ logger = get_logger(__name__)
 @dataclass
 class ParameterSpec:
     """Specification for an optimizable parameter."""
-from __future__ import annotations
-
 
     name: str
     component: str

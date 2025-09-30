@@ -113,10 +113,8 @@ def validate_platform_compliance(
 
     logger.info("=" * 80)
 
-    # Run all golden rules validation
-    # Note: Current validators don't support file scoping yet
-    # This will be implemented in the validators module
-    all_passed, results = run_all_golden_rules(project_root)
+    # Run all golden rules validation with file-level scoping
+    all_passed, results = run_all_golden_rules(project_root, scope_files)
 
     # Display results
     logger.info("\nGOLDEN RULES VALIDATION RESULTS")

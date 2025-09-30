@@ -68,7 +68,7 @@ class ProcessingStep:
             from ecosystemiser.profile_loader.climate.validation import QCReport
 
             if isinstance(report, QCReport):
-                report_dict = {,
+                report_dict = {
                     "qc_report": report,
                     "quality_score": report.calculate_quality_score(),
                     "issues_count": len(report.issues),
@@ -152,13 +152,13 @@ class ProcessingPipeline:
                 smart_fill_gaps,
                 config={
                     "max_linear_gap": (
-                        profile_config.gap_fill_max_hours // 8,
-                        if profile_config and hasattr(profile_config, "gap_fill_max_hours"),
+                        profile_config.gap_fill_max_hours // 8
+                        if profile_config and hasattr(profile_config, "gap_fill_max_hours")
                         else 3
                     ),
                     "max_pattern_gap": (
-                        profile_config.gap_fill_max_hours,
-                        if profile_config and hasattr(profile_config, "gap_fill_max_hours"),
+                        profile_config.gap_fill_max_hours
+                        if profile_config and hasattr(profile_config, "gap_fill_max_hours")
                         else 24
                     ),
                     "preserve_extremes": True
