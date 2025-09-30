@@ -111,7 +111,8 @@ class GenesisConfig(BaseModel):
 
     # Oracle integration
     enable_oracle_consultation: bool = Field(
-        default=True, description="Use Oracle intelligence for strategic decisions",
+        default=True,
+        description="Use Oracle intelligence for strategic decisions",
     )
     oracle_query_timeout: int = Field(default=30, description="Timeout for Oracle queries in seconds")
 
@@ -211,7 +212,8 @@ class GenesisAgent:
             # Analyze feature performance from existing apps
             feature_keywords = analysis_result.get("features", [])
             feature_performance = self._analyze_feature_performance(
-                feature_keywords, dashboard_data.feature_performance,
+                feature_keywords,
+                dashboard_data.feature_performance,
             )
 
             # Get strategic recommendations based on business intelligence
@@ -377,7 +379,11 @@ class GenesisAgent:
         return min(confidence, 1.0)  # Cap at 100%
 
     async def _create_app_spec_async(
-        self, name: str, description: str, analysis_result: dict[str, Any], oracle_insights: dict[str, Any],
+        self,
+        name: str,
+        description: str,
+        analysis_result: dict[str, Any],
+        oracle_insights: dict[str, Any],
     ) -> AppSpec:
         """Create comprehensive application specification."""
 
@@ -414,7 +420,7 @@ class GenesisAgent:
         """Determine the most appropriate app category based on analysis."""
 
         keywords = analysis_result.get("keywords", [])
-        features = analysis_result.get("features", [])
+        analysis_result.get("features", [])
 
         # Simple keyword-based categorization
         if any(kw in ["api", "service", "endpoint"] for kw in keywords):
@@ -466,7 +472,9 @@ class GenesisAgent:
         return packages
 
     def _generate_feature_stubs(
-        self, analysis_result: dict[str, Any], oracle_insights: dict[str, Any],
+        self,
+        analysis_result: dict[str, Any],
+        oracle_insights: dict[str, Any],
     ) -> list[FeatureStub]:
         """Generate feature stubs with Oracle-prioritized recommendations."""
 
@@ -474,7 +482,7 @@ class GenesisAgent:
         identified_features = analysis_result.get("features", [])
         feature_performance = oracle_insights.get("feature_performance", {})
 
-        for i, feature_name in enumerate(identified_features[: self.config.max_features_per_app]):
+        for _i, feature_name in enumerate(identified_features[: self.config.max_features_per_app]):
             # Get Oracle intelligence for this feature
             perf_data = feature_performance.get(feature_name, {})
 

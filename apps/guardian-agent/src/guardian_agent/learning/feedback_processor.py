@@ -43,7 +43,11 @@ class FeedbackProcessor:
         logger.info("FeedbackProcessor initialized")
 
     async def process_feedback(
-        self, review_id: str, violation_id: str | None, feedback_type: str, feedback_text: str | None,
+        self,
+        review_id: str,
+        violation_id: str | None,
+        feedback_type: str,
+        feedback_text: str | None,
     ) -> dict[str, Any]:
         """
         Process individual feedback item.
@@ -376,7 +380,7 @@ class FeedbackProcessor:
         summary = self._generate_improvement_summary(improvements)
 
         # Create branch name
-        branch_name = f"guardian-improvements-{datetime.now().strftime('%Y%m%d')}"
+        f"guardian-improvements-{datetime.now().strftime('%Y%m%d')}"
 
         # In a real implementation, this would:
         # 1. Create a new git branch

@@ -235,7 +235,7 @@ class TestLogIntelligenceVerification:
     def test_healthy_log_analysis(self, log_generator, temp_log_dir):
         """Test analysis of healthy logs produces expected results"""
         # Generate healthy logs
-        log_file = log_generator.generate_healthy_logs(entry_count=100)
+        log_generator.generate_healthy_logs(entry_count=100)
 
         # Analyze logs
         analyzer = LogIntelligenceAnalyzer([temp_log_dir])
@@ -258,7 +258,7 @@ class TestLogIntelligenceVerification:
     def test_error_spike_detection(self, log_generator, temp_log_dir):
         """Test detection of error rate spikes"""
         # Generate logs with error spike in hour 1
-        log_file = log_generator.generate_error_spike_logs(spike_hour=1)
+        log_generator.generate_error_spike_logs(spike_hour=1)
 
         # Analyze logs
         analyzer = LogIntelligenceAnalyzer([temp_log_dir])
@@ -281,7 +281,7 @@ class TestLogIntelligenceVerification:
     def test_critical_pattern_detection(self, log_generator, temp_log_dir):
         """Test detection of critical error patterns"""
         # Generate logs with critical patterns
-        log_file = log_generator.generate_critical_pattern_logs()
+        log_generator.generate_critical_pattern_logs()
 
         # Analyze logs
         analyzer = LogIntelligenceAnalyzer([temp_log_dir])
@@ -315,7 +315,7 @@ class TestLogIntelligenceVerification:
     def test_performance_issue_detection(self, log_generator, temp_log_dir):
         """Test detection of performance-related issues"""
         # Generate performance issue logs
-        log_file = log_generator.generate_performance_issue_logs()
+        log_generator.generate_performance_issue_logs()
 
         # Analyze logs
         analyzer = LogIntelligenceAnalyzer([temp_log_dir])
@@ -343,7 +343,7 @@ class TestLogIntelligenceVerification:
     def test_security_alert_detection(self, log_generator, temp_log_dir):
         """Test detection of security-related alerts"""
         # Generate security alert logs
-        log_file = log_generator.generate_security_alert_logs()
+        log_generator.generate_security_alert_logs()
 
         # Analyze logs
         analyzer = LogIntelligenceAnalyzer([temp_log_dir])
@@ -371,7 +371,7 @@ class TestLogIntelligenceVerification:
     def test_todo_comment_extraction(self, log_generator, temp_log_dir):
         """Test extraction and attribution of TODO comments"""
         # Generate code file with TODO comments
-        code_file = log_generator.generate_todo_comment_code()
+        log_generator.generate_todo_comment_code()
 
         # Analyze for TODO comments (using the scan_todo_comments functionality)
         analyzer = LogIntelligenceAnalyzer([temp_log_dir])

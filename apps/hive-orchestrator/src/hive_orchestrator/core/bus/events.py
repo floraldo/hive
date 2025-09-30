@@ -13,9 +13,9 @@ by autonomous agents in the Hive system.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict
+from typing import Any
 
 
 class EventType(str, Enum):
@@ -67,13 +67,13 @@ class Event:
 
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: str = field(default="")
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     source_agent: str = field(default="unknown")
     correlation_id: str | None = None
-    payload: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    payload: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary for storage"""
         return {
             "event_id": self.event_id,
@@ -82,11 +82,11 @@ class Event:
             "source_agent": self.source_agent,
             "correlation_id": self.correlation_id,
             "payload": self.payload,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Event":
+    def from_dict(cls, data: dict[str, Any]) -> Event:
         """Create event from dictionary"""
         timestamp = datetime.fromisoformat(data["timestamp"])
         return cls(
@@ -96,7 +96,7 @@ class Event:
             source_agent=data["source_agent"],
             correlation_id=data.get("correlation_id"),
             payload=data.get("payload", {}),
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
         )
 
 
@@ -113,13 +113,7 @@ class TaskEvent(Event):
             self.event_type = TaskEventType.CREATED
 
         # Add task info to payload
-        self.payload.update(
-            {
-                "task_id": self.task_id,
-                "task_status": self.task_status,
-                "assignee": self.assignee
-            }
-        )
+        self.payload.update({"task_id": self.task_id, "task_status": self.task_status, "assignee": self.assignee})
 
 
 @dataclass
@@ -136,11 +130,7 @@ class AgentEvent(Event):
 
         # Add agent info to payload
         self.payload.update(
-            {
-                "agent_name": self.agent_name,
-                "agent_type": self.agent_type,
-                "agent_status": self.agent_status
-            }
+            {"agent_name": self.agent_name, "agent_type": self.agent_type, "agent_status": self.agent_status}
         )
 
 
@@ -163,7 +153,7 @@ class WorkflowEvent(Event):
                 "workflow_id": self.workflow_id,
                 "task_id": self.task_id,
                 "phase": self.phase,
-                "dependencies": self.dependencies or []
+                "dependencies": self.dependencies or [],
             }
         )
 
@@ -175,7 +165,7 @@ def create_task_event(
     task_status: str | None = None,
     assignee: str | None = None,
     correlation_id: str | None = None,
-    **payload_data
+    **payload_data,
 ) -> TaskEvent:
     """Factory function to create task events"""
     return TaskEvent(
@@ -185,7 +175,7 @@ def create_task_event(
         task_status=task_status,
         assignee=assignee,
         correlation_id=correlation_id,
-        payload=payload_data
+        payload=payload_data,
     )
 
 
@@ -195,7 +185,7 @@ def create_agent_event(
     agent_type: str | None = None,
     agent_status: str | None = None,
     correlation_id: str | None = None,
-    **payload_data
+    **payload_data,
 ) -> AgentEvent:
     """Factory function to create agent events"""
     return AgentEvent(
@@ -205,7 +195,7 @@ def create_agent_event(
         agent_type=agent_type,
         agent_status=agent_status,
         correlation_id=correlation_id,
-        payload=payload_data
+        payload=payload_data,
     )
 
 
@@ -217,7 +207,7 @@ def create_workflow_event(
     phase: str | None = None,
     dependencies: list | None = None,
     correlation_id: str | None = None,
-    **payload_data
+    **payload_data,
 ) -> WorkflowEvent:
     """Factory function to create workflow events"""
     return WorkflowEvent(
@@ -228,5 +218,5 @@ def create_workflow_event(
         phase=phase,
         dependencies=dependencies,
         correlation_id=correlation_id,
-        payload=payload_data
+        payload=payload_data,
     )

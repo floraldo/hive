@@ -105,9 +105,8 @@ def test_cli_validation_logic():
             is_valid = bool(test_input.strip()) and len(test_input) <= 5000
 
             if is_valid == expected_valid:
-                result = "PASS"
+                pass
             else:
-                result = "FAIL"
                 logger.info(f"[WARN] Validation test failed for '{test_input[:20]}...'")
 
         logger.info("[OK] CLI validation logic patterns verified")

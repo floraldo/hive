@@ -11,7 +11,10 @@ import plotly.graph_objects as go
 
 
 def create_comparison_plot(
-    df1: pd.DataFrame, df2: pd.DataFrame, variables: list[str], labels: tuple[str, str] = ("Dataset 1", "Dataset 2"),
+    df1: pd.DataFrame,
+    df2: pd.DataFrame,
+    variables: list[str],
+    labels: tuple[str, str] = ("Dataset 1", "Dataset 2"),
 ) -> go.Figure:
     """
     Create a comparison plot between two datasets.
@@ -42,7 +45,7 @@ def create_comparison_plot(
                     mode="lines",
                     name=f"{labels[1]} - {var}",
                     legendgroup=labels[1],
-                    line=dict(dash="dash"),
+                    line={"dash": "dash"},
                 ),
             )
 
@@ -95,7 +98,11 @@ def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D")
     # Create heatmap
     fig = go.Figure(
         data=go.Heatmap(
-            z=pivot.values, x=pivot.columns, y=pivot.index, colorscale="Viridis", colorbar=dict(title=variable),
+            z=pivot.values,
+            x=pivot.columns,
+            y=pivot.index,
+            colorscale="Viridis",
+            colorbar={"title": variable},
         ),
     )
 
@@ -129,12 +136,16 @@ def create_correlation_matrix(df: pd.DataFrame) -> go.Figure:
             text=corr_matrix.round(2).values,
             texttemplate="%{text}",
             textfont={"size": 10},
-            colorbar=dict(title="Correlation"),
+            colorbar={"title": "Correlation"},
         ),
     )
 
     fig.update_layout(
-        title="Variable Correlation Matrix", height=600, width=800, xaxis={"side": "bottom"}, yaxis={"side": "left"},
+        title="Variable Correlation Matrix",
+        height=600,
+        width=800,
+        xaxis={"side": "bottom"},
+        yaxis={"side": "left"},
     )
 
     return fig
@@ -221,7 +232,7 @@ def create_wind_rose(df: pd.DataFrame) -> go.Figure | None:
             )
 
     fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, wind_rose.values.max()])),
+        polar={"radialaxis": {"visible": True, "range": [0, wind_rose.values.max()]}},
         showlegend=True,
         title="Wind Rose",
         height=500,
@@ -265,7 +276,7 @@ def create_daily_profile(df: pd.DataFrame, variables: list[str], aggregation: st
         title=f"Average Daily Profile ({aggregation})",
         xaxis_title="Hour of Day",
         yaxis_title="Value",
-        xaxis=dict(tickmode="linear", dtick=3, range=[0, 23]),
+        xaxis={"tickmode": "linear", "dtick": 3, "range": [0, 23]},
         height=400,
         hovermode="x unified",
     )

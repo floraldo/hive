@@ -8,14 +8,18 @@ logger = get_logger(__name__)
 
 """Local error classes for climate adapters to avoid circular imports"""
 
-from typing import Any, Optional
+from typing import Any
 
 
 class AdapterError(Exception):
     """Base error class for adapter-specific errors"""
 
     def __init__(
-        self, message: str, adapter_name: str | None = None, details: Optional[dict[str, Any]] = None, **kwargs,
+        self,
+        message: str,
+        adapter_name: str | None = None,
+        details: dict[str, Any] | None = None,
+        **kwargs,
     ):
         super().__init__(message)
         self.message = message
@@ -34,7 +38,7 @@ class DataFetchError(BaseError):
         self,
         adapter_name: str,
         message: str,
-        details: Optional[dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
         suggested_action: str | None = None,
         **kwargs,
     ):
@@ -50,7 +54,7 @@ class DataParseError(BaseError):
         adapter_name: str,
         message: str,
         field: str | None = None,
-        details: Optional[dict[str, Any]] = None,
+        details: dict[str, Any] | None = None,
         **kwargs,
     ):
         super().__init__(message, adapter_name, details, **kwargs)

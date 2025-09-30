@@ -4,10 +4,8 @@ This script uses Python's AST to reliably identify and fix missing commas
 in Pydantic model Field definitions.
 """
 
-import ast
 import re
 from pathlib import Path
-from typing import List, Tuple
 
 
 def fix_trailing_commas_simple(content: str) -> str:
@@ -124,7 +122,7 @@ def fix_class_attribute_commas(content: str) -> str:
     in_class = False
     indent_level = 0
 
-    for i, line in enumerate(lines):
+    for _i, line in enumerate(lines):
         # Track class definitions
         if line.strip().startswith("class "):
             in_class = True
@@ -137,7 +135,7 @@ def fix_class_attribute_commas(content: str) -> str:
         # Fix class attributes with trailing commas
         if in_class and ":" in line and line.rstrip().endswith(","):
             # Check if this is a simple attribute (not a function or dict)
-            if not "(" in line and not "{" in line and not "=" in line:
+            if "(" not in line and "{" not in line and "=" not in line:
                 fixed_lines.append(line.rstrip()[:-1])  # Remove trailing comma
                 continue
 
@@ -146,7 +144,7 @@ def fix_class_attribute_commas(content: str) -> str:
     return "\n".join(fixed_lines)
 
 
-def fix_file(file_path: Path) -> Tuple[bool, List[str]]:
+def fix_file(file_path: Path) -> tuple[bool, list[str]]:
     """Fix a single file. Returns (modified, issues_fixed)."""
     try:
         content = file_path.read_text(encoding="utf-8")

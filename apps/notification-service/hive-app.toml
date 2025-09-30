@@ -1,0 +1,35 @@
+[app]
+name = "notification-service"
+version = "1.0.0"
+description = "Real-time notification and alert delivery service"
+type = "service"
+
+[service]
+description = "Notification dispatch and delivery service"
+command = "python -m notification_service.main"
+port = 8003
+restart_on_failure = true
+
+[capabilities]
+notifications = ["email", "slack", "webhook", "in-app"]
+delivery = ["immediate", "scheduled", "batched"]
+channels = ["system-alerts", "user-notifications", "task-updates"]
+autonomous = false
+
+[integration]
+database = "hive-core-db"
+uses_queue = "notification_queue"
+integrates_with = ["hive-orchestrator", "all-apps"]
+status_tracking = true
+
+[delivery_config]
+max_retries = 3
+retry_delay_seconds = 60
+batch_size = 50
+batch_interval_seconds = 300
+
+[monitoring]
+heartbeat_interval = 30
+health_check_endpoint = "/health"
+metrics_enabled = true
+delivery_metrics = ["notifications_sent", "delivery_success_rate", "avg_delivery_time"]

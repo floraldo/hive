@@ -69,7 +69,7 @@ def extract_links_from_markdown(file_path: Path) -> dict[str, list[tuple[str, in
     for line_num, line in enumerate(content.split("\n"), 1):
         matches = re.findall(markdown_link_pattern, line)
 
-        for link_text, link_url in matches:
+        for _link_text, link_url in matches:
             link_url = link_url.strip()
 
             if link_url.startswith(("http://", "https://")):

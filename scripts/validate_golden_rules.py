@@ -56,11 +56,7 @@ def get_changed_files() -> list[Path]:
 
         # Combine and filter for Python files
         all_changed = set(staged + unstaged)
-        python_files = [
-            project_root / f
-            for f in all_changed
-            if f.endswith(".py") and Path(project_root / f).exists()
-        ]
+        python_files = [project_root / f for f in all_changed if f.endswith(".py") and Path(project_root / f).exists()]
 
         return python_files
 
@@ -105,10 +101,10 @@ def validate_platform_compliance(
     """
     if scope_files:
         logger.info(f"VALIDATING {len(scope_files)} files against Golden Rules...")
-        logger.info(f"Scope: Incremental validation")
+        logger.info("Scope: Incremental validation")
     else:
         logger.info("VALIDATING Hive Platform against all Golden Rules...")
-        logger.info(f"Scope: Full platform")
+        logger.info("Scope: Full platform")
 
     if quick:
         logger.info("Mode: Quick (critical rules only)")
@@ -205,7 +201,6 @@ Performance:
         help="Quick validation (critical rules only)",
     )
 
-
     parser.add_argument(
         "--clear-cache",
         "-c",
@@ -236,10 +231,10 @@ Performance:
         # Handle cache clearing
         if args.clear_cache:
             from validation_cache import ValidationCache
+
             cache = ValidationCache()
             deleted = cache.clear_cache()
             logger.info(f"Cleared {deleted} cached validation results")
-
 
         # Determine scope
         if args.incremental:
@@ -269,6 +264,7 @@ Performance:
     except Exception as e:
         logger.error(f"Golden Rules validation failed with error: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

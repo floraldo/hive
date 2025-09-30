@@ -140,8 +140,8 @@ class TestHiveOrchestratorIntegration:
 
         with (
             patch("hive_orchestrator.clean_hive.get_connection", return_value=mock_conn),
-            patch("hive_orchestrator.clean_hive.transaction") as mock_transaction,
-            patch("hive_orchestrator.clean_hive.close_connection") as mock_close,
+            patch("hive_orchestrator.clean_hive.transaction"),
+            patch("hive_orchestrator.clean_hive.close_connection"),
         ):
             # Capture print output
             import contextlib

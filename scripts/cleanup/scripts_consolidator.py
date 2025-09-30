@@ -484,7 +484,7 @@ def main():
     consolidation_plans = consolidator.create_consolidation_plans()
 
     # Phase 2b: Plan directory structure
-    new_structure = consolidator.plan_directory_structure()
+    consolidator.plan_directory_structure()
 
     # Phase 2c: Plan file operations
     consolidator.plan_file_operations()

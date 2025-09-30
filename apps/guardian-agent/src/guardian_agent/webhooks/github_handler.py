@@ -22,7 +22,10 @@ class GitHubWebhookHandler:
     """
 
     def __init__(
-        self, config: GuardianConfig | None = None, github_token: str | None = None, webhook_secret: str | None = None,
+        self,
+        config: GuardianConfig | None = None,
+        github_token: str | None = None,
+        webhook_secret: str | None = None,
     ) -> None:
         """Initialize the webhook handler."""
         self.config = config or GuardianConfig()
@@ -121,7 +124,7 @@ class GitHubWebhookHandler:
         # Check if this is a PR and comment mentions us
         if issue.get("pull_request") and "@guardian-agent review" in comment.get("body", ""):
             # Trigger a review
-            pr_url = issue["pull_request"]["url"]
+            issue["pull_request"]["url"]
             # Would fetch PR details and trigger review
             logger.info("Manual review requested via comment")
 
@@ -174,7 +177,7 @@ class GitHubWebhookHandler:
         filename = file_info["filename"]
 
         # Get file content (would use GitHub API)
-        content = await self._get_file_content(repo, filename)
+        await self._get_file_content(repo, filename)
 
         # Run review
         file_path = Path(filename)
@@ -215,11 +218,15 @@ class GitHubWebhookHandler:
         return comments
 
     async def _post_review_comment(
-        self, repo: str, pr_number: int, commit_sha: str, review_results: list[dict[str, Any]],
+        self,
+        repo: str,
+        pr_number: int,
+        commit_sha: str,
+        review_results: list[dict[str, Any]],
     ) -> None:
         """Post review comment to PR."""
         # Format overall review
-        body = self._format_review_body(review_results)
+        self._format_review_body(review_results)
 
         # Collect all line comments
         comments = []

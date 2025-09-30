@@ -154,7 +154,7 @@ class RateLimiter:
         Returns:
             True if permission granted, False if rate limited
         """
-        limits = self._get_operation_limits(operation)
+        self._get_operation_limits(operation)
         windows = self.windows[operation]
 
         # Check all time windows

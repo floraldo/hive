@@ -34,7 +34,7 @@ class RuleBasedEngine(BaseSolver):
         logger.info("Preparing system for rule-based solving")
 
         # Convert all flow values to numpy arrays
-        for flow_key, flow_data in self.system.flows.items():
+        for _flow_key, flow_data in self.system.flows.items():
             if not isinstance(flow_data["value"], np.ndarray):
                 flow_data["value"] = np.zeros(self.system.N)
             else:
@@ -186,13 +186,13 @@ class RuleBasedEngine(BaseSolver):
             if hasattr(comp, "rule_based_update_state"):
                 # Sum all charging flows (flows TO this component)
                 total_charge = 0.0
-                for flow_key, flow_data in self.system.flows.items():
+                for _flow_key, flow_data in self.system.flows.items():
                     if flow_data["target"] == comp.name:
                         total_charge += flow_data["value"][t]
 
                 # Sum all discharging flows (flows FROM this component)
                 total_discharge = 0.0
-                for flow_key, flow_data in self.system.flows.items():
+                for _flow_key, flow_data in self.system.flows.items():
                     if flow_data["source"] == comp.name:
                         total_discharge += flow_data["value"][t]
 

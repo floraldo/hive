@@ -7,27 +7,30 @@ These tests ensure all modules can be imported without errors.
 
 from __future__ import annotations
 
-import pytest
 
 def test_base_imports():
     """Smoke test: base module imports successfully."""
     from hive_cli.base import HiveError
+
     assert HiveError is not None
 
 
 def test_decorators_imports():
     """Smoke test: decorators module imports successfully."""
     from hive_cli.decorators import config_option
+
     assert config_option is not None
 
 
 def test_output_imports():
     """Smoke test: output module imports successfully."""
     from hive_cli.output import HiveOutput
+
     assert HiveOutput is not None
 
 
 def test_validation_imports():
     """Smoke test: validation module imports successfully."""
     from hive_cli.validation import validate_path
+
     assert validate_path is not None

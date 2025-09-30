@@ -11,45 +11,30 @@ Extends the generic hive_db package with Hive Orchestrator-specific functionalit
 
 Database Location: hive/db/hive-internal.db
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import json
 import sqlite3
 import uuid
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Dict, ListTuple
+from typing import Any
 
-from hive_db import (
-    create_table_if_not_exists,
-    get_sqlite_connection,
-    sqlite_transaction
-)
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 # Use the authoritative path singleton
-from hive_config.paths import DB_PATH, ensure_directory
 
 # Import connection pool for proper connection management
 from .connection_pool import close_pool, get_pooled_connection
 
 # Import async functionality for Phase 4.1
 try:
-    from .async_compat import (
-        async_database_enabled,
-        get_sync_async_connection,
-        sync_wrapper
-    )
-    from .async_connection_pool import (
-        close_async_pool,
-        get_async_connection,
-        get_async_pool_stats
-    )
+    from .async_compat import async_database_enabled, get_sync_async_connection, sync_wrapper
+    from .async_connection_pool import close_async_pool, get_async_connection, get_async_pool_stats
 
     ASYNC_AVAILABLE = True
 except ImportError:
@@ -291,12 +276,12 @@ def create_task(
     title: str,
     task_type: str,
     description: str = "",
-    workflow: Optional[Dict[str, Any]] = None,
-    payload: Optional[Dict[str, Any]] = None,
+    workflow: Optional[dict[str, Any]] = None,
+    payload: Optional[dict[str, Any]] = None,
     priority: int = 1,
     max_retries: int = 3,
     tags: Optional[List[str]] = None,
-    current_phase: str = "start"
+    current_phase: str = "start",
 ) -> str:
     """
     Create a new task with optional workflow definition.
@@ -333,15 +318,15 @@ def create_task(
                 json.dumps(workflow) if workflow else None,
                 json.dumps(payload) if payload else None,
                 max_retries,
-                json.dumps(tags) if tags else None
-            )
+                json.dumps(tags) if tags else None,
+            ),
         )
 
     logger.info(f"Task created: {task_id} - {title}")
     return task_id
 
 
-def get_task(task_id: str) -> Optional[Dict[str, Any]]:
+def get_task(task_id: str) -> Optional[dict[str, Any]]:
     """Get task by ID."""
     with get_connection() as conn:
         cursor = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
@@ -357,7 +342,7 @@ def get_task(task_id: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[Dict[str, Any]]:
+def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[dict[str, Any]]:
     """
     Get queued tasks ordered by priority.
 
@@ -377,7 +362,7 @@ def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[Dict
                 ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
             """,
-                (task_type, limit)
+                (task_type, limit),
             )
         else:
             cursor = conn.execute(
@@ -387,7 +372,7 @@ def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[Dict
                 ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
             """,
-                (limit,)
+                (limit,),
             )
 
         tasks = []
@@ -401,7 +386,7 @@ def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[Dict
         return tasks
 
 
-def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+def update_task_status(task_id: str, status: str, metadata: Optional[dict[str, Any]] = None) -> bool:
     """Update task status and optional metadata fields."""
     with transaction() as conn:
         # Start with base fields
@@ -419,7 +404,7 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
                     "failure_reason",
                     "retry_count",
                     "worktree",
-                    "workspace_type"
+                    "workspace_type",
                 ]:
                     fields.append(f"{key} = ?")
                     values.append(value)
@@ -447,7 +432,7 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
         for column, column_type in required_columns.items():
             if column not in existing_columns:
                 # Validate column name to prevent SQL injection
-                if not all(c.isalnum() or c == '_' for c in column):
+                if not all(c.isalnum() or c == "_" for c in column):
                     logger.error(f"Invalid column name: {column}")
                     continue
                 try:
@@ -460,10 +445,10 @@ def update_task_status(task_id: str, status: str, metadata: Optional[Dict[str, A
         cursor = conn.execute(
             f""",
             UPDATE tasks,
-            SET {', '.join(fields)}
+            SET {", ".join(fields)}
             WHERE id = ?,
         """,
-            values
+            values,
         )
 
         success = cursor.rowcount > 0
@@ -492,10 +477,7 @@ def create_run(task_id: str, worker_id: str, phase: str = "init") -> str:
 
     with transaction() as conn:
         # Get the next run number for this task
-        cursor = conn.execute(
-            "SELECT COALESCE(MAX(run_number), 0) + 1 FROM runs WHERE task_id = ?",
-            (task_id,)
-        )
+        cursor = conn.execute("SELECT COALESCE(MAX(run_number), 0) + 1 FROM runs WHERE task_id = ?", (task_id,))
         run_number = cursor.fetchone()[0]
 
         conn.execute(
@@ -503,7 +485,7 @@ def create_run(task_id: str, worker_id: str, phase: str = "init") -> str:
             INSERT INTO runs (id, task_id, worker_id, run_number, phase, status)
             VALUES (?, ?, ?, ?, ?, 'running')
         """,
-            (run_id, task_id, worker_id, run_number, phase)
+            (run_id, task_id, worker_id, run_number, phase),
         )
 
     logger.info(f"Run created: {run_id} for task {task_id} by worker {worker_id}")
@@ -514,10 +496,10 @@ def update_run_status(
     run_id: str,
     status: str,
     phase: str | None = None,
-    result_data: Optional[Dict[str, Any]] = None,
+    result_data: Optional[dict[str, Any]] = None,
     error_message: str | None = None,
     output_log: str | None = None,
-    transcript: str | None = None
+    transcript: str | None = None,
 ) -> bool:
     """Update run status and execution details."""
     with transaction() as conn:
@@ -552,10 +534,10 @@ def update_run_status(
         cursor = conn.execute(
             f""",
             UPDATE runs,
-            SET {', '.join(fields)}
+            SET {", ".join(fields)}
             WHERE id = ?,
         """,
-            values
+            values,
         )
 
         success = cursor.rowcount > 0
@@ -565,7 +547,7 @@ def update_run_status(
         return success
 
 
-def get_run(run_id: str) -> Optional[Dict[str, Any]]:
+def get_run(run_id: str) -> Optional[dict[str, Any]]:
     """Get run by ID."""
     with get_connection() as conn:
         cursor = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,))
@@ -588,7 +570,7 @@ def get_run(run_id: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def get_task_runs(task_id: str) -> List[Dict[str, Any]]:
+def get_task_runs(task_id: str) -> List[dict[str, Any]]:
     """Get all runs for a task, ordered by run number."""
     with get_connection() as conn:
         cursor = conn.execute(
@@ -597,7 +579,7 @@ def get_task_runs(task_id: str) -> List[Dict[str, Any]]:
             WHERE task_id = ?,
             ORDER BY run_number ASC,
         """,
-            (task_id,)
+            (task_id,),
         )
 
         runs = []
@@ -609,7 +591,7 @@ def get_task_runs(task_id: str) -> List[Dict[str, Any]]:
         return runs
 
 
-def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
+def get_tasks_by_status(status: str) -> List[dict[str, Any]]:
     """
     Get all tasks with a specific status.
 
@@ -626,7 +608,7 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
             WHERE status = ?,
             ORDER BY created_at ASC,
         """,
-            (status,)
+            (status,),
         )
 
         tasks = []
@@ -644,10 +626,7 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
 
 
 def register_worker(
-    worker_id: str,
-    role: str,
-    capabilities: Optional[List[str]] = None,
-    metadata: Optional[Dict[str, Any]] = None
+    worker_id: str, role: str, capabilities: Optional[List[str]] = None, metadata: Optional[dict[str, Any]] = None
 ) -> bool:
     """Register a new worker or update existing worker registration."""
     with transaction() as conn:
@@ -660,8 +639,8 @@ def register_worker(
                 worker_id,
                 role,
                 json.dumps(capabilities) if capabilities else None,
-                json.dumps(metadata) if metadata else None
-            )
+                json.dumps(metadata) if metadata else None,
+            ),
         )
 
     logger.info(f"Worker registered: {worker_id} ({role})")
@@ -678,7 +657,7 @@ def update_worker_heartbeat(worker_id: str, status: str | None = None) -> bool:
                 SET last_heartbeat = CURRENT_TIMESTAMP, status = ?,
                 WHERE id = ?,
             """,
-                (status, worker_id)
+                (status, worker_id),
             )
         else:
             cursor = conn.execute(
@@ -687,13 +666,13 @@ def update_worker_heartbeat(worker_id: str, status: str | None = None) -> bool:
                 SET last_heartbeat = CURRENT_TIMESTAMP,
                 WHERE id = ?,
             """,
-                (worker_id,)
+                (worker_id,),
             )
 
         return cursor.rowcount > 0
 
 
-def get_active_workers(role: str | None = None) -> List[Dict[str, Any]]:
+def get_active_workers(role: str | None = None) -> List[dict[str, Any]]:
     """Get active workers, optionally filtered by role."""
     with get_connection() as conn:
         if role:
@@ -703,7 +682,7 @@ def get_active_workers(role: str | None = None) -> List[Dict[str, Any]]:
                 WHERE role = ? AND status = 'active',
                 ORDER BY last_heartbeat DESC,
             """,
-                (role,)
+                (role,),
             )
         else:
             cursor = conn.execute(
@@ -727,7 +706,7 @@ def get_active_workers(role: str | None = None) -> List[Dict[str, Any]]:
 def log_run_result(
     run_id: str,
     status: str,
-    result_data: Dict[str, Any],
+    result_data: dict[str, Any],
     error_message: str | None = None,
     transcript: str | None = None,
 ) -> bool:
@@ -748,11 +727,7 @@ def log_run_result(
     """
     try:
         success = update_run_status(
-            run_id=run_id,
-            status=status,
-            result_data=result_data,
-            error_message=error_message,
-            transcript=transcript
+            run_id=run_id, status=status, result_data=result_data, error_message=error_message, transcript=transcript
         )
 
         if success:
@@ -767,7 +742,7 @@ def log_run_result(
         return False
 
 
-def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
+def get_tasks_by_status(status: str) -> List[dict[str, Any]]:
     """
     Get all tasks with a specific status.
 
@@ -779,10 +754,7 @@ def get_tasks_by_status(status: str) -> List[Dict[str, Any]]:
     """
     try:
         with get_connection() as conn:
-            cursor = conn.execute(
-                "SELECT * FROM tasks WHERE status = ? ORDER BY created_at ASC",
-                (status,)
-            )
+            cursor = conn.execute("SELECT * FROM tasks WHERE status = ? ORDER BY created_at ASC", (status,))
             rows = cursor.fetchall()
 
             tasks = []
@@ -816,12 +788,12 @@ if ASYNC_AVAILABLE:
         assignee: str = None,
         priority: int = None,
         tags: List[str] = None,
-        context_data: Dict[str, Any] = None,
+        context_data: dict[str, Any] = None,
         depends_on: List[str] = None,
         workspace: str = "repo",
         task_type: str = "user_request",
         requestor: str = "unknown",
-        metadata: Dict[str, Any] = None
+        metadata: dict[str, Any] = None,
     ) -> str:
         """
         Async version of create_task for Phase 4.1 performance improvement.
@@ -842,7 +814,7 @@ if ASYNC_AVAILABLE:
             Task ID of created task
         """
         task_id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
 
         # Set defaults
         priority = priority or 5
@@ -879,14 +851,14 @@ if ASYNC_AVAILABLE:
                     task_type,
                     created_at,
                     created_at,
-                )
+                ),
             )
             await conn.commit()
 
         logger.info(f"Created async task {task_id}: {description[:100]}...")
         return task_id
 
-    async def get_task_async(task_id: str) -> Optional[Dict[str, Any]]:
+    async def get_task_async(task_id: str) -> Optional[dict[str, Any]]:
         """Async version of get_task."""
         async with get_async_connection() as conn:
             cursor = await conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
@@ -907,7 +879,7 @@ if ASYNC_AVAILABLE:
 
             return None
 
-    async def get_queued_tasks_async(limit: int = 10, task_type: str | None = None) -> List[Dict[str, Any]]:
+    async def get_queued_tasks_async(limit: int = 10, task_type: str | None = None) -> List[dict[str, Any]]:
         """
         Async version of get_queued_tasks for high-performance task retrieval.
 
@@ -927,7 +899,7 @@ if ASYNC_AVAILABLE:
                     ORDER BY priority DESC, created_at ASC,
                     LIMIT ?
                 """,
-                    (TaskStatus.QUEUED.value, task_type, limit)
+                    (TaskStatus.QUEUED.value, task_type, limit),
                 )
             else:
                 cursor = await conn.execute(
@@ -937,7 +909,7 @@ if ASYNC_AVAILABLE:
                     ORDER BY priority DESC, created_at ASC,
                     LIMIT ?
                 """,
-                    (TaskStatus.QUEUED.value, limit)
+                    (TaskStatus.QUEUED.value, limit),
                 )
 
             rows = await cursor.fetchall()
@@ -958,7 +930,7 @@ if ASYNC_AVAILABLE:
 
             return tasks
 
-    async def update_task_status_async(task_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
+    async def update_task_status_async(task_id: str, status: str, metadata: Optional[dict[str, Any]] = None) -> bool:
         """
         Async version of update_task_status for non-blocking updates.
 
@@ -971,7 +943,7 @@ if ASYNC_AVAILABLE:
             True if update successful, False otherwise
         """
         try:
-            updated_at = datetime.now(timezone.utc).isoformat()
+            updated_at = datetime.now(UTC).isoformat()
 
             async with get_async_connection() as conn:
                 if metadata:
@@ -992,7 +964,7 @@ if ASYNC_AVAILABLE:
                         SET status = ?, metadata = ?, updated_at = ?,
                         WHERE id = ?,
                     """,
-                        (status, merged_metadata, updated_at, task_id)
+                        (status, merged_metadata, updated_at, task_id),
                     )
                 else:
                     await conn.execute(
@@ -1001,7 +973,7 @@ if ASYNC_AVAILABLE:
                         SET status = ?, updated_at = ?
                         WHERE id = ?,
                     """,
-                        (status, updated_at, task_id)
+                        (status, updated_at, task_id),
                     )
 
                 await conn.commit()
@@ -1013,14 +985,11 @@ if ASYNC_AVAILABLE:
             logger.error(f"Error updating async task {task_id} status: {e}")
             return False
 
-    async def get_tasks_by_status_async(status: str) -> List[Dict[str, Any]]:
+    async def get_tasks_by_status_async(status: str) -> List[dict[str, Any]]:
         """Async version of get_tasks_by_status."""
         try:
             async with get_async_connection() as conn:
-                cursor = await conn.execute(
-                    "SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC",
-                    (status,)
-                )
+                cursor = await conn.execute("SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC", (status,))
                 rows = await cursor.fetchall()
 
                 tasks = []
@@ -1056,7 +1025,7 @@ if ASYNC_AVAILABLE:
             Run ID
         """
         run_id = str(uuid.uuid4())
-        created_at = datetime.now(timezone.utc).isoformat()
+        created_at = datetime.now(UTC).isoformat()
 
         async with get_async_connection() as conn:
             await conn.execute(
@@ -1065,15 +1034,7 @@ if ASYNC_AVAILABLE:
                     id, task_id, worker_id, phase, status, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-                (
-                    run_id,
-                    task_id,
-                    worker_id,
-                    phase,
-                    RunStatus.PENDING.value,
-                    created_at,
-                    created_at
-                )
+                (run_id, task_id, worker_id, phase, RunStatus.PENDING.value, created_at, created_at),
             )
             await conn.commit()
 
@@ -1085,11 +1046,11 @@ if ASYNC_AVAILABLE:
         """Sync wrapper for async create_task."""
         return sync_wrapper(create_task_async)(*args, **kwargs)
 
-    def get_task_sync_wrapper(*args, **kwargs) -> Optional[Dict[str, Any]]:
+    def get_task_sync_wrapper(*args, **kwargs) -> Optional[dict[str, Any]]:
         """Sync wrapper for async get_task."""
         return sync_wrapper(get_task_async)(*args, **kwargs)
 
-    def get_queued_tasks_sync_wrapper(*args, **kwargs) -> List[Dict[str, Any]]:
+    def get_queued_tasks_sync_wrapper(*args, **kwargs) -> List[dict[str, Any]]:
         """Sync wrapper for async get_queued_tasks."""
         return sync_wrapper(get_queued_tasks_async)(*args, **kwargs)
 

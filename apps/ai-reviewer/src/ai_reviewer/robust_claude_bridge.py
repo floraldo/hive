@@ -2,18 +2,19 @@
 Robust Claude CLI bridge with drift-resilient JSON contract
 Production-ready implementation that handles model and prompt drift
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import json
 import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field, ValidationError
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field, ValidationError
 
 logger = get_logger(__name__)
 
@@ -34,8 +35,8 @@ class ClaudeReviewResponse(BaseModel):
 
     decision: Literal["approve", "reject", "rework", "escalate"] = Field(description="Review decision")
     summary: str = Field(max_length=500, description="Brief summary of the review")
-    issues: List[str] = Field(default_factory=list, description="List of issues found")
-    suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
+    issues: list[str] = Field(default_factory=list, description="List of issues found")
+    suggestions: list[str] = Field(default_factory=list, description="Improvement suggestions")
     quality_score: int = Field(ge=0, le=100, description="Overall quality score")
     metrics: ReviewMetrics = Field(description="Detailed quality metrics")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence in the review")
@@ -66,7 +67,7 @@ class RobustClaudeBridge:
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
             Path("claude.cmd"),
-            Path("claude")
+            Path("claude"),
         ]
 
         for path in possible_paths:
@@ -75,16 +76,8 @@ class RobustClaudeBridge:
                 return str(path)
 
         # Try system PATH
-        result = subprocess.run(
-            ["where" if os.name == "nt" else "which", "claude"],
-            capture_output=True,
-            text=True
-        )
-        claude_path = (
-            result.stdout.strip().split("\n")[0]
-            if result.returncode == 0
-            else None
-        )
+        result = subprocess.run(["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True)
+        claude_path = result.stdout.strip().split("\n")[0] if result.returncode == 0 else None
 
         if claude_path:
             logger.info(f"Using Claude from PATH: {claude_path}")
@@ -96,11 +89,11 @@ class RobustClaudeBridge:
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
-        transcript: str | None = None
-    ) -> Dict[str, Any]:
+        code_files: dict[str, str],
+        test_results: Optional[dict[str, Any]] = None,
+        objective_analysis: Optional[dict[str, Any]] = None,
+        transcript: str | None = None,
+    ) -> dict[str, Any]:
         """
         Perform robust code review with drift-resilient JSON contract
 
@@ -124,14 +117,8 @@ class RobustClaudeBridge:
                 issues=([] if "good" in str(code_files).lower() else ["Mock issue found"]),
                 suggestions=["Mock suggestion for improvement"],
                 quality_score=75,
-                metrics=ReviewMetrics(
-                    code_quality=80,
-                    security=85,
-                    testing=70,
-                    architecture=75,
-                    documentation=65
-                ),
-                confidence=0.9
+                metrics=ReviewMetrics(code_quality=80, security=85, testing=70, architecture=75, documentation=65),
+                confidence=0.9,
             )
             return mock_response.dict()
 
@@ -141,11 +128,7 @@ class RobustClaudeBridge:
         try:
             # Create comprehensive prompt with JSON contract
             prompt = self._create_json_prompt(
-                task_description,
-                code_files,
-                test_results,
-                objective_analysis,
-                transcript
+                task_description, code_files, test_results, objective_analysis, transcript
             )
 
             # Execute Claude CLI with --print flag to ensure it exits after responding
@@ -154,7 +137,7 @@ class RobustClaudeBridge:
                 [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt],
                 capture_output=True,
                 text=True,
-                timeout=45
+                timeout=45,
             )
 
             if result.returncode != 0:
@@ -169,11 +152,9 @@ class RobustClaudeBridge:
                 logger.info(f"Successfully validated Claude review for task {task_id}")
                 return validated_response.dict()
             else:
-                logger.warning(f"Failed to extract valid JSON from Claude response")
+                logger.warning("Failed to extract valid JSON from Claude response")
                 return self._create_escalation_response(
-                    "Invalid response format from Claude",
-                    task_description,
-                    raw_output=claude_output
+                    "Invalid response format from Claude", task_description, raw_output=claude_output
                 )
 
         except subprocess.TimeoutExpired:
@@ -186,29 +167,29 @@ class RobustClaudeBridge:
     def _create_json_prompt(
         self,
         task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]],
-        objective_analysis: Optional[Dict[str, Any]],
-        transcript: str | None
+        code_files: dict[str, str],
+        test_results: Optional[dict[str, Any]],
+        objective_analysis: Optional[dict[str, Any]],
+        transcript: str | None,
     ) -> str:
         """Create a comprehensive prompt that enforces JSON contract"""
 
         # Prepare code context,
-        code_context = "",
+        code_context = ("",)
         for filename, content in code_files.items():
             # Limit content to prevent huge prompts,
-            preview = content[:1000] + "..." if len(content) > 1000 else content,
+            preview = (content[:1000] + "..." if len(content) > 1000 else content,)
             code_context += f"\n=== {filename} ===\n{preview}\n"
 
         # Prepare additional context,
-        test_context = "",
+        test_context = ("",)
         if test_results:
             test_context = f"\nTest Results: {json.dumps(test_results, indent=2)[:500]}"
 
-        objective_context = "",
+        objective_context = ("",)
         if objective_analysis and not objective_analysis.get("error"):
             metrics = objective_analysis.get("metrics", {})
-            objective_context = f"\nObjective Metrics: {json.dumps(metrics, indent=2)}",
+            objective_context = (f"\nObjective Metrics: {json.dumps(metrics, indent=2)}",)
 
         prompt = f"""You are an automated code review agent. Your response MUST be valid JSON and nothing else.
 
@@ -265,11 +246,7 @@ Respond with ONLY the JSON object, no other text."""
             logger.debug(f"Pure JSON parse failed: {e}")
 
         # Strategy 2: Extract from markdown code blocks
-        code_block_patterns = [
-            r"```json\s*(.*?)\s*```",
-            r"```\s*(.*?)\s*```",
-            r"`(.*?)`"
-        ]
+        code_block_patterns = [r"```json\s*(.*?)\s*```", r"```\s*(.*?)\s*```", r"`(.*?)`"]
 
         for pattern in code_block_patterns:
             matches = re.findall(pattern, output, re.DOTALL)
@@ -347,14 +324,14 @@ Respond with ONLY the JSON object, no other text."""
                 security=quality_score - 5,
                 testing=quality_score - 10,
                 architecture=quality_score,
-                documentation=quality_score - 15
+                documentation=quality_score - 15,
             ),
             confidence=0.5,  # Lower confidence for parsed responses
         )
 
     def _create_escalation_response(
         self, reason: str, task_description: str, raw_output: str | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Create a structured escalation response when review fails"""
 
         response = ClaudeReviewResponse(
@@ -364,7 +341,7 @@ Respond with ONLY the JSON object, no other text."""
             suggestions=["Manual review required"],
             quality_score=0,
             metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
-            confidence=0.0
+            confidence=0.0,
         )
 
         result = response.dict()

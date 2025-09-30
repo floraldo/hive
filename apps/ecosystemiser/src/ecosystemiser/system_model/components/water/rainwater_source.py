@@ -138,7 +138,7 @@ class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
         if filtration_stages:
             # Apply combined filtration efficiency
             total_filtration_eff = 1.0
-            for stage, efficiency in filtration_stages.items():
+            for _stage, efficiency in filtration_stages.items():
                 total_filtration_eff *= efficiency
             collection_after_simple = collection_after_simple * total_filtration_eff
 
@@ -250,7 +250,7 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
                 filtration_stages = getattr(comp.technical, "filtration_stages", None)
                 if filtration_stages:
                     total_filtration_eff = 1.0
-                    for stage, eff in filtration_stages.items():
+                    for _stage, eff in filtration_stages.items():
                         total_filtration_eff *= eff
                     available_collection = available_collection * total_filtration_eff
 

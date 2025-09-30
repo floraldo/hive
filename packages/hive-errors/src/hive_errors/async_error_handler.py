@@ -161,7 +161,8 @@ class AsyncErrorHandler:
 
         if context.retry_attempt > 0:
             logger.warning(
-                f"Error in {context.operation_name} (attempt {context.retry_attempt}): {error}", extra=log_data,
+                f"Error in {context.operation_name} (attempt {context.retry_attempt}): {error}",
+                extra=log_data,
             )
         else:
             logger.error(f"Error in {context.operation_name}: {error}", extra=log_data)
@@ -287,8 +288,6 @@ def handle_async_errors(
 
     def decorator(func) -> Any:
         async def wrapper(*args, **kwargs):
-            last_error = None
-
             for attempt in range(max_retries + 1):
                 context = ErrorContext(
                     operation_name=operation_name,
@@ -310,8 +309,6 @@ def handle_async_errors(
                         return await func(*args, **kwargs)
 
                 except Exception as e:
-                    last_error = e
-
                     if attempt < max_retries:
                         # Calculate delay with optional exponential backoff,
                         delay = (retry_delay,)

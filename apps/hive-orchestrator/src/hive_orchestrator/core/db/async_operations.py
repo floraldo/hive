@@ -4,17 +4,15 @@ Async database operations for Hive Orchestrator
 High-performance async database operations with connection pooling
 batching, and caching support.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, ListTuple
+from datetime import UTC, datetime
+from typing import Any
 from uuid import uuid4
 
-import aiosqlite
 from hive_config.paths import DB_PATH
 from hive_db.async_pool import AsyncDatabaseManager, create_async_database_manager_async
 from hive_logging import get_logger
@@ -38,7 +36,7 @@ class AsyncDatabaseOperations:
         """Initialize async database operations"""
         self.db_manager = db_manager
         self.db_path = DB_PATH
-        self._prepared_statements: Dict[str, str] = {}
+        self._prepared_statements: dict[str, str] = {}
         self._circuit_breaker_open = False
         self._failure_count = 0
         self._failure_threshold = 5
@@ -72,7 +70,7 @@ class AsyncDatabaseOperations:
                 UPDATE tasks,
                 SET status = ?, updated_at = CURRENT_TIMESTAMP,
                 WHERE task_id IN ({})
-            """
+            """,
         }
 
     async def initialize_async(self) -> None:
@@ -108,11 +106,7 @@ class AsyncDatabaseOperations:
     # Core Database Operations
 
     async def create_task_async(
-        self,
-        task_type: str,
-        description: str,
-        priority: int = 5,
-        metadata: Optional[Dict[str, Any]] = None
+        self, task_type: str, description: str, priority: int = 5, metadata: Optional[dict[str, Any]] = None
     ) -> str:
         """
         Create a new task asynchronously
@@ -128,15 +122,14 @@ class AsyncDatabaseOperations:
 
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
                 await conn.execute(
-                    self._prepared_statements["create_task"]
-                    (
+                    self._prepared_statements["create_task"](
                         task_id,
                         task_type,
                         description,
                         "queued",
                         priority,
                         metadata_json,
-                        datetime.now(timezone.utc).isoformat()
+                        datetime.now(UTC).isoformat(),
                     )
                 )
                 await conn.commit()
@@ -150,7 +143,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to create task: {e}")
             raise
 
-    async def get_task_async(self, task_id: str) -> Optional[Dict[str, Any]]:
+    async def get_task_async(self, task_id: str) -> Optional[dict[str, Any]]:
         """Get task by ID asynchronously"""
         await self._check_circuit_breaker_async()
 
@@ -173,7 +166,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to get task {task_id}: {e}")
             raise
 
-    async def get_queued_tasks_async(self, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_queued_tasks_async(self, limit: int = 10) -> List[dict[str, Any]]:
         """Get queued tasks asynchronously"""
         await self._check_circuit_breaker_async()
 
@@ -202,10 +195,7 @@ class AsyncDatabaseOperations:
 
         try:
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
-                await conn.execute(
-                    self._prepared_statements["update_task_status"]
-                    (status, task_id)
-                )
+                await conn.execute(self._prepared_statements["update_task_status"](status, task_id))
                 await conn.commit()
 
             await self._handle_success_async()
@@ -217,7 +207,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to update task {task_id} status: {e}")
             raise
 
-    async def get_tasks_by_status_async(self, status: str) -> List[Dict[str, Any]]:
+    async def get_tasks_by_status_async(self, status: str) -> List[dict[str, Any]]:
         """Get all tasks with a specific status"""
         await self._check_circuit_breaker_async()
 
@@ -242,7 +232,7 @@ class AsyncDatabaseOperations:
 
     # Batch Operations for Performance
 
-    async def batch_create_tasks_async(self, tasks: List[Dict[str, Any]]) -> List[str]:
+    async def batch_create_tasks_async(self, tasks: List[dict[str, Any]]) -> List[str]:
         """
         Create multiple tasks in a single batch operation
 
@@ -270,7 +260,7 @@ class AsyncDatabaseOperations:
                         "queued",
                         task.get("priority", 5),
                         metadata_json,
-                        datetime.now(timezone.utc).isoformat(),
+                        datetime.now(UTC).isoformat(),
                     )
                 )
 
@@ -325,7 +315,7 @@ class AsyncDatabaseOperations:
 
     # Concurrent Operations
 
-    async def get_tasks_concurrent_async(self, task_ids: List[str]) -> List[Optional[Dict[str, Any]]]:
+    async def get_tasks_concurrent_async(self, task_ids: List[str]) -> List[Optional[dict[str, Any]]]:
         """
         Get multiple tasks concurrently
 
@@ -335,23 +325,20 @@ class AsyncDatabaseOperations:
         Returns:
             List of task dictionaries (None for not found)
         """
-        tasks = await asyncio.gather(
-            *[self.get_task_async(task_id) for task_id in task_ids],
-            return_exceptions=True
-        )
+        tasks = await asyncio.gather(*[self.get_task_async(task_id) for task_id in task_ids], return_exceptions=True)
 
         # Convert exceptions to None
         return [task if not isinstance(task, Exception) else None for task in tasks]
 
     # Performance Statistics
 
-    async def get_performance_stats_async(self) -> Dict[str, Any]:
+    async def get_performance_stats_async(self) -> dict[str, Any]:
         """Get database performance statistics"""
         stats = await self.db_manager.get_all_stats_async()
         stats["circuit_breaker"] = {
             "open": self._circuit_breaker_open,
             "failure_count": self._failure_count,
-            "threshold": self._failure_threshold
+            "threshold": self._failure_threshold,
         }
         return stats
 

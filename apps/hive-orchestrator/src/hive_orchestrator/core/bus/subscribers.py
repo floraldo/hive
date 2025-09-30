@@ -100,14 +100,14 @@ class SubscriberRegistry:
     def remove_subscriber(self, subscription_id: str) -> bool:
         """Remove a subscriber by ID"""
         # Check sync subscribers
-        for pattern, subscribers in self._subscribers.items():
+        for _pattern, subscribers in self._subscribers.items():
             for i, subscriber in enumerate(subscribers):
                 if subscriber.subscription_id == subscription_id:
                     del subscribers[i]
                     return True
 
         # Check async subscribers
-        for pattern, subscribers in self._async_subscribers.items():
+        for _pattern, subscribers in self._async_subscribers.items():
             for i, subscriber in enumerate(subscribers):
                 if subscriber.subscription_id == subscription_id:
                     del subscribers[i]
@@ -151,14 +151,18 @@ class SubscriberRegistry:
 
 
 def create_subscriber(
-    pattern: str, callback: Callable[[Event], None], subscriber_name: str = "anonymous",
+    pattern: str,
+    callback: Callable[[Event], None],
+    subscriber_name: str = "anonymous",
 ) -> EventSubscriber:
     """Create a synchronous event subscriber"""
     return EventSubscriber(pattern=pattern, callback=callback, subscriber_name=subscriber_name)
 
 
 def create_async_subscriber(
-    pattern: str, callback: Callable[[Event], Any], subscriber_name: str = "anonymous",
+    pattern: str,
+    callback: Callable[[Event], Any],
+    subscriber_name: str = "anonymous",
 ) -> AsyncEventSubscriber:
     """Create an asynchronous event subscriber"""
     return AsyncEventSubscriber(pattern=pattern, callback=callback, subscriber_name=subscriber_name)

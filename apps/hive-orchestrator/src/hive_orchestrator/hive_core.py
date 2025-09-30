@@ -3,34 +3,31 @@
 HiveCore - Streamlined Hive Manager
 Unified task management with built-in cleanup and configuration
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
-import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Hive utilities for path management
 from hive_config.paths import HIVE_DIR, LOGS_DIR, PROJECT_ROOT, WORKTREES_DIR
 
 # Hive logging system
-from hive_logging import get_logger, setup_logging
+from hive_logging import get_logger
 
 from .core import db as hive_core_db
 
 # Hive database system - use internal core database layer
-from .core.db import get_connection, get_pooled_connection
 
 
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
 
-    def __init__(self, root_dir: Path | None = None, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, root_dir: Path | None = None, config: Optional[dict[str, Any]] = None) -> None:
         # Use authoritative paths from singleton
         self.root = PROJECT_ROOT
         self.hive_dir = HIVE_DIR
@@ -56,9 +53,9 @@ class HiveCore:
 
     def timestamp(self) -> str:
         """Return ISO timestamp for CLI output"""
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
-    def load_config(self) -> Dict[str, Any]:
+    def load_config(self) -> dict[str, Any]:
         """Load configuration from file or use defaults.
 
         This method provides a fallback configuration pattern:
@@ -93,7 +90,7 @@ class HiveCore:
 
         if config_file.exists():
             try:
-                with open(config_file, "r") as f:
+                with open(config_file) as f:
                     file_config = json.load(f)
                 # Merge with defaults
                 default_config.update(file_config)
@@ -109,11 +106,11 @@ class HiveCore:
             worker_config_file = self.workers_dir / f"{worker_type}.json"
             if worker_config_file.exists():
                 try:
-                    with open(worker_config_file, "r") as f:
+                    with open(worker_config_file) as f:
                         worker_data = json.load(f)
                     if "config" in worker_data and key in worker_data["config"]:
                         return worker_data["config"][key]
-                except (json.JSONDecodeError, KeyError, IOError) as e:
+                except (OSError, json.JSONDecodeError, KeyError) as e:
                     logger.debug(f"Could not load worker config from {worker_config_file}: {e}")
 
         # Return default from main config
@@ -128,7 +125,7 @@ class HiveCore:
             self.bus_dir,
             self.worktrees_dir,
             self.logs_dir,
-            self.workers_dir
+            self.workers_dir,
         ]
         for d in dirs:
             d.mkdir(parents=True, exist_ok=True)
@@ -165,16 +162,11 @@ class HiveCore:
 
     # === Result Management Methods ===
 
-    def save_result(self, task_id: str, run_id: str, result: Dict[str, Any]) -> bool:
+    def save_result(self, task_id: str, run_id: str, result: dict[str, Any]) -> bool:
         """Save task execution result atomically"""
         try:
             result_path = self.get_result_path(task_id, run_id)
-            result_data = {
-                "task_id": task_id,
-                "run_id": run_id,
-                "timestamp": datetime.now(timezone.utc).isoformat()
-                **result
-            }
+            result_data = {"task_id": task_id, "run_id": run_id, "timestamp": datetime.now(UTC).isoformat() ** result}
 
             # Atomic write: write to temp, then move
             temp_path = result_path.with_suffix(".tmp")
@@ -192,7 +184,7 @@ class HiveCore:
             self.log.error(f"Error saving result: {e}")
             return False
 
-    def load_task_queue(self) -> List[str]:
+    def load_task_queue(self) -> list[str]:
         """Load task queue from database"""
 
         try:
@@ -202,12 +194,12 @@ class HiveCore:
             self.log.error(f"Error loading queue from database: {e}")
             return []
 
-    def save_task_queue(self, queue: List[str]) -> None:
+    def save_task_queue(self, queue: list[str]) -> None:
         """Save task queue - No-op since database manages queue through task status"""
         # Database manages queue state through task status - no explicit queue file needed
         pass
 
-    def load_task(self, task_id: str) -> Optional[Dict[str, Any]]:
+    def load_task(self, task_id: str) -> Optional[dict[str, Any]]:
         """Load task data by ID from database"""
         try:
             return hive_core_db.get_task(task_id)
@@ -215,11 +207,11 @@ class HiveCore:
             self.log.error(f"Error loading task {task_id} from database: {e}")
             return None
 
-    def save_task(self, task: Dict[str, Any]) -> None:
+    def save_task(self, task: dict[str, Any]) -> None:
         """Save task data to database"""
         task_id = task.get("id")
         if not task_id:
-            self.log.error(f"Task missing ID")
+            self.log.error("Task missing ID")
             return
 
         try:
@@ -252,7 +244,7 @@ class HiveCore:
                     "max_retries",
                     "tags",
                     "status",
-                    "assignee"
+                    "assignee",
                 }
                 payload = {k: v for k, v in task.items() if k not in payload_keys}
 
@@ -263,7 +255,7 @@ class HiveCore:
                     payload=payload,
                     priority=priority,
                     max_retries=max_retries,
-                    tags=tags
+                    tags=tags,
                 )
 
                 if new_task_id != task_id:
@@ -272,7 +264,7 @@ class HiveCore:
         except Exception as e:
             self.log.error(f"Error saving task {task_id} to database: {e}")
 
-    def get_all_tasks(self) -> List[Dict[str, Any]]:
+    def get_all_tasks(self) -> list[dict[str, Any]]:
         """Get all tasks with their current status from database"""
         try:
             # Get all tasks regardless of status
@@ -302,13 +294,7 @@ class HiveCore:
                 task["current_phase"] = "plan"
 
                 # Remove assignment details - ALWAYS clear worktree in fresh mode
-                for key in [
-                    "assignee",
-                    "assigned_at",
-                    "started_at",
-                    "worktree",
-                    "workspace_type"
-                ]:
+                for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
                     if key in task:
                         del task[key]
 
@@ -320,7 +306,7 @@ class HiveCore:
             try:
                 shutil.rmtree(self.logs_dir)
                 self.logs_dir.mkdir(parents=True, exist_ok=True)
-                self.log.info(f"Cleared all logs")
+                self.log.info("Cleared all logs")
             except Exception as e:
                 self.log.error(f"Error clearing logs: {e}")
 
@@ -337,7 +323,7 @@ class HiveCore:
         if self.worktrees_dir.exists():
             try:
                 shutil.rmtree(self.worktrees_dir)
-                self.log.info(f"Cleared all worktrees")
+                self.log.info("Cleared all worktrees")
             except Exception as e:
                 self.log.error(f"Error clearing worktrees: {e}")
 
@@ -390,13 +376,7 @@ class HiveCore:
         # Reset task status
         task["status"] = "queued"
         task["current_phase"] = "plan"
-        for key in [
-            "assignee",
-            "assigned_at",
-            "started_at",
-            "worktree",
-            "workspace_type"
-        ]:
+        for key in ["assignee", "assigned_at", "started_at", "worktree", "workspace_type"]:
             if key in task:
                 del task[key]
 
@@ -404,16 +384,9 @@ class HiveCore:
         logger.info(f"[{self.timestamp()}] Task {task_id} reset to queued")
         return True
 
-    def get_task_stats(self) -> Dict[str, int]:
+    def get_task_stats(self) -> dict[str, int]:
         """Get current task statistics"""
-        stats = {
-            "queued": 0,
-            "assigned": 0,
-            "in_progress": 0,
-            "completed": 0,
-            "failed": 0,
-            "total": 0
-        }
+        stats = {"queued": 0, "assigned": 0, "in_progress": 0, "completed": 0, "failed": 0, "total": 0}
 
         for task in self.get_all_tasks():
             status = task.get("status", "unknown")
@@ -425,11 +398,7 @@ class HiveCore:
 
     def emit_event(self, event_type: str, **data) -> None:
         """Emit event to bus for tracking"""
-        event = {
-            "type": event_type,
-            "timestamp": datetime.now(timezone.utc).isoformat()
-            **data
-        }
+        event = {"type": event_type, "timestamp": datetime.now(UTC).isoformat() ** data}
 
         # Write to daily events file
         events_file = self.bus_dir / f"events_{datetime.now().strftime('%Y%m%d')}.jsonl"
@@ -450,7 +419,7 @@ class HiveCore:
         task["status"] = "in_progress"
         task["assignee"] = worker
         task["current_phase"] = phase
-        task["started_at"] = datetime.now(timezone.utc).isoformat()
+        task["started_at"] = datetime.now(UTC).isoformat()
         self.save_task(task)
         return True
 
@@ -461,7 +430,7 @@ class HiveCore:
             return False
 
         task["status"] = "completed"
-        task["completed_at"] = datetime.now(timezone.utc).isoformat()
+        task["completed_at"] = datetime.now(UTC).isoformat()
         self.save_task(task)
         return True
 
@@ -472,7 +441,7 @@ class HiveCore:
             return False
 
         task["status"] = "failed"
-        task["failed_at"] = datetime.now(timezone.utc).isoformat()
+        task["failed_at"] = datetime.now(UTC).isoformat()
         if reason:
             task["failure_reason"] = reason
         self.save_task(task)
@@ -516,7 +485,7 @@ def cmd_status(args, core: HiveCore) -> None:
     stats = core.get_task_stats()
     queue = core.load_task_queue()
 
-    logger.info(f"\n=== HIVE STATUS ===")
+    logger.info("\n=== HIVE STATUS ===")
     logger.info(f"Queue Length: {len(queue)}")
     logger.info(f"Total Tasks: {stats['total']}")
     logger.info(f"  Queued: {stats['queued']}")
@@ -526,7 +495,7 @@ def cmd_status(args, core: HiveCore) -> None:
     logger.error(f"  Failed: {stats['failed']}")
 
     if args.verbose:
-        logger.info(f"\n=== TASK DETAILS ===")
+        logger.info("\n=== TASK DETAILS ===")
         for task in core.get_all_tasks():
             status = task.get("status", "unknown")
             assignee = task.get("assignee", "unassigned")
@@ -570,7 +539,7 @@ def cmd_logs(args, core: HiveCore) -> None:
 
     for log_file in log_files:
         logger.info(f"\n=== LOG: {log_file.name} ===")
-        with open(log_file, "r", encoding="utf-8") as f:
+        with open(log_file, encoding="utf-8") as f:
             if args.tail:
                 lines = f.readlines()
                 logger.info("".join(lines[-args.tail :]))
@@ -715,9 +684,9 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
         logger.info(json.dumps(review_data, indent=2))
     else:
         # Summary format
-        logger.info(f"\n{'='*60}")
-        logger.info(f"TASK AWAITING REVIEW")
-        logger.info(f"{'='*60}")
+        logger.info(f"\n{'=' * 60}")
+        logger.info("TASK AWAITING REVIEW")
+        logger.info(f"{'=' * 60}")
         logger.info(f"Task ID: {task_id}")
         logger.info(f"Title: {task.get('title', 'Unknown')}")
         logger.info(f"Description: {task.get('description', '')}")
@@ -726,13 +695,13 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
 
         if inspection_report:
             summary = inspection_report.get("summary", {})
-            logger.info(f"\nInspection Results:")
+            logger.info("\nInspection Results:")
             logger.info(f"  Quality Score: {summary.get('quality_score', 'N/A')}/100")
             logger.info(f"  Recommendation: {summary.get('recommendation', 'unknown').upper()}")
             logger.info(f"  Issues Found: {summary.get('total_issues', 0)}")
 
             if inspection_report.get("issues"):
-                logger.info(f"\nTop Issues:")
+                logger.info("\nTop Issues:")
                 for issue in inspection_report["issues"][:3]:
                     logger.info(f"  - {issue}")
 
@@ -740,10 +709,10 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
             logger.info(f"\nTranscript: {len(transcript)} characters available")
             logger.info("Use 'hive get-transcript' to view full transcript")
 
-        logger.info(f"\n{'='*60}")
+        logger.info(f"\n{'=' * 60}")
         logger.info("To complete review, use:")
         logger.info(f"  hive complete-review {task_id} --decision [approve|reject|rework]")
-        logger.info(f"{'='*60}\n")
+        logger.info(f"{'=' * 60}\n")
 
 
 def cmd_complete_review(args, core: HiveCore) -> None:
@@ -798,13 +767,13 @@ def cmd_complete_review(args, core: HiveCore) -> None:
         "current_phase": new_phase,
         "review_decision": decision,
         "review_reason": reason or "No reason provided",
-        "reviewed_at": datetime.utcnow().isoformat()
+        "reviewed_at": datetime.utcnow().isoformat(),
     }
 
     success = hive_core_db.update_task_status(task_id, new_status, metadata)
 
     if success:
-        logger.info(f"\nReview completed successfully!")
+        logger.info("\nReview completed successfully!")
         logger.info(f"Task ID: {task_id}")
         logger.info(f"Decision: {decision.upper()}")
         logger.info(f"New Phase: {new_phase}")
@@ -869,10 +838,7 @@ def main() -> None:
     # Review next task command (for AI reviewer)
     review_next_parser = subparsers.add_parser("review-next-task", help="Get the next task awaiting review")
     review_next_parser.add_argument(
-        "--format",
-        choices=["json", "summary"],
-        default="summary",
-        help="Output format for review task"
+        "--format", choices=["json", "summary"], default="summary", help="Output format for review task"
     )
     review_next_parser.set_defaults(func=cmd_review_next_task)
 
@@ -880,10 +846,7 @@ def main() -> None:
     complete_review_parser = subparsers.add_parser("complete-review", help="Complete review of a task")
     complete_review_parser.add_argument("task_id", help="Task ID to complete review for")
     complete_review_parser.add_argument(
-        "--decision",
-        choices=["approve", "reject", "rework"],
-        required=True,
-        help="Review decision"
+        "--decision", choices=["approve", "reject", "rework"], required=True, help="Review decision"
     )
     complete_review_parser.add_argument("--reason", help="Reason for the decision")
     complete_review_parser.add_argument("--next-phase", help="Override next phase (optional)")

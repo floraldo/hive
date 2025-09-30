@@ -71,7 +71,7 @@ class TestGraphAlgorithmProperties:
         assert nx_distances[source] == 0
 
         # Property 2: Distance to any reachable node is >= 0
-        for node, distance in nx_distances.items():
+        for _node, distance in nx_distances.items():
             assert distance >= 0
 
         # Property 3: Triangle inequality - for any path source -> intermediate -> target,

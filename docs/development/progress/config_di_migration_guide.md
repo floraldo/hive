@@ -210,26 +210,128 @@ def test_something(mock_config):
 
 ## Files to Migrate
 
+**Total `get_config()` Usages**: 13 across platform
+**Audit Status**: ✅ Complete (see `claudedocs/config_system_audit.md`)
+
+### Gold Standard Reference
+
+**EcoSystemiser** already demonstrates the ideal pattern in `apps/ecosystemiser/src/ecosystemiser/config/bridge.py`:
+
+```python
+class EcoSystemiserConfig:
+    def __init__(self, hive_config: HiveConfig | None = None):
+        # Gold standard: DI with factory fallback
+        self._hive_config = hive_config or create_config_from_sources()
+        self._eco_config = EcoSystemiserSettings()
+```
+
+This is the template all apps should follow!
+
 ### Active Files (Non-Test)
 
-1. **apps/ecosystemiser/src/ecosystemiser/config/bridge.py:31**
-   - Pattern: Constructor with `or get_config()` fallback
-   - Migration: Change to `or create_config_from_sources()`
+1. **apps/guardian-agent/src/guardian_agent/intelligence/cross_package_analyzer.py:332**
+   - **Pattern**: Pattern library example showing `get_config()` usage
+   - **Risk**: Medium (developers copy these examples)
+   - **Migration**: Update integration pattern to show DI instead
+   - **Priority**: HIGH (affects developer adoption)
+   - **File**: Example code in `IntegrationPattern` (lines 332-344)
+   - **Action**: Replace example with DI pattern showing constructor injection
 
-2. **apps/guardian-agent/src/guardian_agent/intelligence/cross_package_analyzer.py:341**
-   - Pattern: Module-level `config = get_config()`
-   - Migration: Pass config to functions or create class
-
-3. **packages/hive-tests/src/hive_tests/architectural_validators.py:1442-1443**
-   - Pattern: Testing for forbidden global calls
-   - Action: Keep as-is (this is validation code)
+2. **packages/hive-tests/src/hive_tests/architectural_validators.py:1442-1443**
+   - **Pattern**: Testing for forbidden global calls
+   - **Risk**: None (validation code)
+   - **Action**: Keep as-is (this validates against anti-patterns)
+   - **Priority**: N/A
 
 ### Test Files (Lower Priority)
 
-4. apps/hive-orchestrator/tests/integration/test_comprehensive.py:219
-5. apps/hive-orchestrator/tests/integration/test_minimal_cert.py:25
-6. apps/hive-orchestrator/tests/integration/test_v3_certification.py:66, 149, 246, 279
-7. apps/hive-orchestrator/tests/unit/test_debug.py:18
+3. **apps/hive-orchestrator/tests/integration/test_comprehensive.py:218**
+   - **Pattern**: `config = get_config()` in test function
+   - **Risk**: Low (test only)
+   - **Migration**: Use pytest fixture with `create_config_from_sources()`
+   - **Priority**: MEDIUM
+
+4. **apps/hive-orchestrator/tests/integration/test_minimal_cert.py:usage detected**
+   - **Pattern**: Global config in test
+   - **Risk**: Low (test only)
+   - **Migration**: Pytest fixture
+   - **Priority**: MEDIUM
+
+5. **apps/hive-orchestrator/tests/integration/test_v3_certification.py:4 usages**
+   - **Pattern**: Multiple `get_config()` calls in test
+   - **Risk**: Low (test only)
+   - **Migration**: Create fixture, reuse across tests
+   - **Priority**: MEDIUM
+
+### Self-References (Documentation Only)
+
+6. **packages/hive-config/src/hive_config/unified_config.py:3 usages**
+   - **Pattern**: Internal references, example code, deprecation warnings
+   - **Risk**: None (self-contained)
+   - **Action**: Update documentation examples to show DI
+   - **Priority**: LOW
+
+## Migration Summary by Category
+
+| Category | Count | Risk | Priority | Status |
+|----------|-------|------|----------|--------|
+| Pattern Library Examples | 1 | Medium | HIGH | Pending |
+| Test Files | 5 | Low | MEDIUM | Pending |
+| Validation Code | 1 | None | N/A | Keep As-Is |
+| Self-References | 3 | None | LOW | Update Docs |
+| **TOTAL** | **13** | **Low** | **Mixed** | **In Progress** |
+
+## Migration Patterns by Usage Type
+
+### Type 1: Pattern Library Example (1 file)
+**Example**: guardian-agent/cross_package_analyzer.py
+
+**Current**:
+```python
+IntegrationPattern(
+    required_import="from hive_config import get_config",
+    replacement_code="""
+from hive_config import get_config
+config = get_config()
+API_KEY = config.api_key
+""",
+)
+```
+
+**Target**:
+```python
+IntegrationPattern(
+    required_import="from hive_config import HiveConfig, create_config_from_sources",
+    replacement_code="""
+class MyService:
+    def __init__(self, config: HiveConfig | None = None):
+        self._config = config or create_config_from_sources()
+        self.api_key = self._config.api_key
+""",
+)
+```
+
+### Type 2: Test Usage (5 files)
+**Example**: hive-orchestrator tests
+
+**Current**:
+```python
+def test_something():
+    from hive_config import get_config
+    config = get_config()
+    assert config.database.path
+```
+
+**Target**:
+```python
+@pytest.fixture
+def hive_config():
+    from hive_config import create_config_from_sources
+    return create_config_from_sources()
+
+def test_something(hive_config):
+    assert hive_config.database.path
+```
 
 ---
 
@@ -267,20 +369,65 @@ def test_something():
 
 ## Migration Status
 
+**Audit Phase**: ✅ COMPLETE (2025-09-30)
+- Total usages identified: 13
+- Risk assessment: LOW
+- Gold standard pattern documented: EcoSystemiser
+- Migration plan created: 5 phases
+
 **Deprecation Warnings Added**: ✅
 - `load_config()` - Added deprecation warning
 - `get_config()` - Added deprecation warning
 
+**Phase 1: Documentation Update** (IN PROGRESS - 2025-09-30)
+- [x] packages/hive-config/README.md - Enhanced with gold standard pattern
+- [x] config_di_migration_guide.md - Updated with audit findings
+- [ ] claudedocs/config_migration_guide_comprehensive.md - Comprehensive developer guide
+- [ ] .claude/CLAUDE.md - AI agent reference updated
+
+**Phase 2: Pattern Library Update** (PENDING)
+- [ ] guardian-agent/cross_package_analyzer.py - Update integration pattern examples
+- Estimated: 1 hour
+- Priority: HIGH (affects developer adoption)
+
+**Phase 3: Test Fixtures** (PENDING)
+- [ ] apps/hive-orchestrator/tests/conftest.py - Create fixtures
+- [ ] test_comprehensive.py - Use fixtures
+- [ ] test_v3_certification.py - Use fixtures
+- Estimated: 1 hour
+- Priority: MEDIUM
+
+**Phase 4: Deprecation Enforcement** (PENDING)
+- [ ] Add golden rule to detect get_config() usage
+- [ ] Increase warning verbosity
+- Estimated: 30 minutes
+- Priority: MEDIUM
+
+**Phase 5: Global State Removal** (FUTURE - Week 8-10)
+- [ ] Remove `_global_config` variable
+- [ ] Remove `get_config()` function
+- [ ] Remove `load_config()` function
+- Priority: LOW (wait for adoption)
+
 **Active Files Migrated**:
-- [x] apps/ecosystemiser/src/ecosystemiser/config/bridge.py
+- [x] apps/ecosystemiser/src/ecosystemiser/config/bridge.py (GOLD STANDARD)
 - [x] apps/hive-orchestrator/src/hive_orchestrator/core/claude/claude_service.py (unused import removed)
 
-**Test Files Migrated**:
-- [ ] apps/hive-orchestrator/tests (7 files)
+**Test Files to Migrate**: 5 files
+- [ ] apps/hive-orchestrator/tests/integration/test_comprehensive.py
+- [ ] apps/hive-orchestrator/tests/integration/test_minimal_cert.py
+- [ ] apps/hive-orchestrator/tests/integration/test_v3_certification.py (4 usages)
 
-**Final Cleanup** (After all migrations):
-- [ ] Remove global state from unified_config.py
-- [ ] Update all imports to use create_config_from_sources
+**Timeline**:
+- Phase 1-3: Week 1 (3.5 hours total)
+- Phase 4: Week 2 (30 minutes)
+- Phase 5: Weeks 8-10 (after adoption period)
+
+**Success Metrics**:
+- `get_config()` usage: 13 → 0 (target)
+- DI pattern adoption: 1 app (EcoSystemiser) → all apps
+- Test isolation: Global state → Independent fixtures
+- Developer satisfaction: TBD (post-migration survey)
 
 ---
 

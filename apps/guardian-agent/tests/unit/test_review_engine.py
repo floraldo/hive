@@ -54,9 +54,9 @@ class TestReviewEngine:
     @pytest.mark.asyncio
     async def test_review_engine_initialization(self, config):
         """Test ReviewEngine initialization with all components."""
-        with patch("guardian_agent.review.engine.ModelClient") as mock_model:
-            with patch("guardian_agent.review.engine.VectorStore") as mock_vector:
-                with patch("guardian_agent.review.engine.CacheClient") as mock_cache:
+        with patch("guardian_agent.review.engine.ModelClient"):
+            with patch("guardian_agent.review.engine.VectorStore"):
+                with patch("guardian_agent.review.engine.CacheClient"):
                     engine = ReviewEngine(config)
 
                     assert engine.config == config
@@ -70,7 +70,10 @@ class TestReviewEngine:
         """Test file review with cache hit."""
         # Setup cache hit
         cached_result = ReviewResult(
-            file_path=Path("test.py"), analysis_results=[], overall_score=95.0, summary="Cached review",
+            file_path=Path("test.py"),
+            analysis_results=[],
+            overall_score=95.0,
+            summary="Cached review",
         )
         mock_cache.get = AsyncMock(return_value=cached_result)
 
@@ -96,7 +99,9 @@ class TestReviewEngine:
                 for analyzer in engine.analyzers:
                     analyzer.analyze = AsyncMock(
                         return_value=AnalysisResult(
-                            analyzer_name=analyzer.__class__.__name__, violations=[], suggestions=[],
+                            analyzer_name=analyzer.__class__.__name__,
+                            violations=[],
+                            suggestions=[],
                         ),
                     )
 
@@ -141,7 +146,7 @@ class TestReviewEngine:
                     },
                 )
 
-                result = await engine.review_file(Path("test.py"))
+                await engine.review_file(Path("test.py"))
 
                 engine._enhance_with_ai.assert_called_once()
                 mock_vector_store.search.assert_called()

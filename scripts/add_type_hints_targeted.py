@@ -15,7 +15,6 @@ def add_missing_return_types(file_path: Path, dry_run: bool = True) -> bool:
     try:
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
-            original = content
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
         return False

@@ -103,7 +103,7 @@ class RunInspector:
                     # Check for common patterns
                     content = "".join(lines)
                     analysis["has_todo"] = "TODO" in content or "FIXME" in content
-                    analysis["has_imports"] = any(["import " in l or "from " in l for l in lines[:20]])
+                    analysis["has_imports"] = any("import " in l or "from " in l for l in lines[:20])
 
                     # Python-specific checks
                     if path.suffix == ".py":
@@ -159,7 +159,10 @@ class RunInspector:
                     # Ruff not available, try basic Python syntax check
                     try:
                         result = subprocess.run(
-                            ["python", "-m", "py_compile", file_path], capture_output=True, text=True, timeout=5,
+                            ["python", "-m", "py_compile", file_path],
+                            capture_output=True,
+                            text=True,
+                            timeout=5,
                         )
                         if result.returncode == 0:
                             linter_results.append({"file": file_path, "status": "syntax_ok"})

@@ -35,7 +35,7 @@ class TestAIWorkflowIntegration:
     async def test_model_vector_integration(self, ai_config, vector_config):
         """Test integration between model client and vector store."""
         # Mock components for integration testing
-        model_client = ModelClient(ai_config)
+        ModelClient(ai_config)
         embedding_manager = EmbeddingManager(ai_config)
 
         # Test data
@@ -75,7 +75,8 @@ class TestAIWorkflowIntegration:
             async def _execute_main_logic_async(self, input_data=None):
                 # Use the prompt template
                 rendered = self.prompt_template.render(
-                    data=input_data.get("data", "test data"), focus=input_data.get("focus", "patterns"),
+                    data=input_data.get("data", "test data"),
+                    focus=input_data.get("focus", "patterns"),
                 )
                 return f"Analysis based on: {rendered}"
 
@@ -95,7 +96,8 @@ class TestAIWorkflowIntegration:
     async def test_workflow_orchestration_integration(self, ai_config):
         """Test integration of workflow orchestration with multiple agents."""
         workflow_config = WorkflowConfig(
-            name="data_processing_workflow", description="Complete data processing workflow",
+            name="data_processing_workflow",
+            description="Complete data processing workflow",
         )
 
         mock_client = Mock()
@@ -202,7 +204,7 @@ class TestAIWorkflowIntegration:
 
         # Simulate multiple concurrent operations
         tasks = []
-        for i in range(5):
+        for _i in range(5):
             # Each task simulates a lightweight operation
             task = asyncio.create_task(asyncio.sleep(0.1))
             tasks.append(task)

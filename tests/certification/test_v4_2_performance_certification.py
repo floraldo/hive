@@ -152,8 +152,10 @@ class V4PerformanceCertification:
             registration_times = []
             for i in range(100):
                 start_time = time.perf_counter()
-                service_id = await registry.register_service(
-                    service_name=f"test-service-{i}", host="localhost", port=8000 + i,
+                await registry.register_service(
+                    service_name=f"test-service-{i}",
+                    host="localhost",
+                    port=8000 + i,
                 )
                 registration_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
                 registration_times.append(registration_time)
@@ -167,7 +169,7 @@ class V4PerformanceCertification:
             lookup_times = []
             for i in range(100):
                 start_time = time.perf_counter()
-                services = await discovery_client.discover_service("test-service-1")
+                await discovery_client.discover_service("test-service-1")
                 lookup_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
                 lookup_times.append(lookup_time)
 
@@ -291,12 +293,12 @@ class V4PerformanceCertification:
 
         # Test monitoring accuracy by generating known metrics
         start_time = time.perf_counter()
-        for i in range(100):
+        for _i in range(100):
             await asyncio.sleep(0.01)  # Simulate work
         actual_duration = time.perf_counter() - start_time
 
         # Get monitoring report
-        report = await self.monitoring_service.generate_report(timedelta(seconds=10))
+        await self.monitoring_service.generate_report(timedelta(seconds=10))
 
         # Record results
         self.results.append(
@@ -343,7 +345,7 @@ class V4PerformanceCertification:
         planner_tasks = []
 
         # Simulate concurrent planning operations
-        for i in range(30):  # Target: 30 plans/minute
+        for _i in range(30):  # Target: 30 plans/minute
             task = asyncio.create_task(mock_ai_planning_operation())
             planner_tasks.append(task)
 
@@ -353,7 +355,7 @@ class V4PerformanceCertification:
 
         # Test AI Reviewer response time
         reviewer_times = []
-        for i in range(20):
+        for _i in range(20):
             start_time = time.perf_counter()
             await mock_ai_review_operation()
             response_time = time.perf_counter() - start_time
@@ -412,7 +414,7 @@ class V4PerformanceCertification:
 
         # Test simulation performance
         simulation_times = []
-        for i in range(10):
+        for _i in range(10):
             start_time = time.perf_counter()
             await mock_simulation_operation()
             simulation_time = time.perf_counter() - start_time
@@ -471,7 +473,7 @@ class V4PerformanceCertification:
                 raise Exception("Simulated failure")
             return "success"
 
-        for i in range(10):
+        for _i in range(10):
             start_time = time.perf_counter()
             try:
                 result = await failing_operation()
@@ -481,7 +483,9 @@ class V4PerformanceCertification:
             except Exception as e:
                 # Record error but continue
                 await error_handler.handle_error(
-                    e, error_handler.create_error_context("test_operation", "test_component"), suppress=True,
+                    e,
+                    error_handler.create_error_context("test_operation", "test_component"),
+                    suppress=True,
                 )
 
         avg_recovery_time = sum(recovery_times) / len(recovery_times) if recovery_times else float("inf")
@@ -528,7 +532,7 @@ class V4PerformanceCertification:
         for i in range(5):
             duration = 0.1 * (i + 1)  # 0.1s, 0.2s, 0.3s, etc.
             try:
-                result = await timeout_manager.execute_with_timeout(
+                await timeout_manager.execute_with_timeout(
                     variable_duration_operation,
                     "test_operation",
                     timeout=None,  # Use adaptive timeout
@@ -710,9 +714,9 @@ async def test_v4_2_certification_suite():
     assert report.overall_passed, f"Certification failed: {report.failed_tests} tests failed"
 
     # Assert minimum performance improvement
-    assert report.performance_improvement >= 3.0, (
-        f"Performance improvement {report.performance_improvement:.1f}x below minimum 3.0x"
-    )
+    assert (
+        report.performance_improvement >= 3.0
+    ), f"Performance improvement {report.performance_improvement:.1f}x below minimum 3.0x"
 
     # Log detailed results
     for result in report.results:

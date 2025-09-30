@@ -12,7 +12,7 @@ import json
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -32,7 +32,7 @@ class PromptVariable:
     required: bool = True
     default: Any = None
     description: str = ""
-    validator: Optional[Callable[[Any], bool]] = None
+    validator: Callable[[Any], bool] | None = None
 
 
 @dataclass
@@ -59,7 +59,7 @@ class PromptTemplate(PromptTemplateInterface):
     def __init__(
         self,
         template: str,
-        variables: Optional[list[PromptVariable]] = None,
+        variables: list[PromptVariable] | None = None,
         metadata: PromptMetadata | None = None,
         variable_prefix: str = "{{",
         variable_suffix: str = "}}",
@@ -91,7 +91,10 @@ class PromptTemplate(PromptTemplateInterface):
         for var_name in set(matches):
             if var_name not in self.variables:
                 self.variables[var_name] = PromptVariable(
-                    name=var_name, type="str", required=True, description=f"Auto-extracted variable: {var_name}",
+                    name=var_name,
+                    type="str",
+                    required=True,
+                    description=f"Auto-extracted variable: {var_name}",
                 )
 
         logger.debug(f"Extracted {len(self.variables)} variables from template")
@@ -184,7 +187,8 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template rendering failed: {str(e)}", template_name=self.metadata.name if self.metadata else "unknown",
+                f"Template rendering failed: {str(e)}",
+                template_name=self.metadata.name if self.metadata else "unknown",
             ) from e
 
     def _render_internal(self, variables: dict[str, Any]) -> str:

@@ -228,7 +228,6 @@ class CIPerfomanceAnalyzer:
         lines = content.split("\n")
 
         # Check for common anti-patterns
-        copy_before_deps = False
         deps_installed = False
 
         for i, line in enumerate(lines, 1):
@@ -236,7 +235,6 @@ class CIPerfomanceAnalyzer:
 
             # Check for COPY . . before dependency installation
             if line.startswith("COPY . .") and not deps_installed:
-                copy_before_deps = True
                 issues.append(
                     {
                         "line": i,
@@ -381,7 +379,9 @@ class CIPerfomanceAnalyzer:
 
             # Top 5 slowest workflows
             slowest = sorted(
-                self.analysis_results["workflow_performance"], key=lambda x: x["avg_duration_minutes"], reverse=True,
+                self.analysis_results["workflow_performance"],
+                key=lambda x: x["avg_duration_minutes"],
+                reverse=True,
             )[:5]
 
             report_lines.extend(["### Slowest Workflows", ""])
@@ -390,9 +390,7 @@ class CIPerfomanceAnalyzer:
                 status_emoji = (
                     "🔴"
                     if workflow["avg_duration_minutes"] > 20
-                    else "🟡"
-                    if workflow["avg_duration_minutes"] > 10
-                    else "🟢"
+                    else "🟡" if workflow["avg_duration_minutes"] > 10 else "🟢"
                 )
                 report_lines.append(
                     f"{status_emoji} **{workflow['name']}**: {workflow['avg_duration_minutes']:.1f}min avg "

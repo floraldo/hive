@@ -200,7 +200,7 @@ class TestSecurityAuditVerification:
     def test_insecure_file_permissions_detection(self, malicious_generator, temp_deployment_dir):
         """Test detection of insecure file permissions"""
         # Create files with bad permissions
-        insecure_files = malicious_generator.create_sensitive_files_with_bad_permissions()
+        malicious_generator.create_sensitive_files_with_bad_permissions()
 
         # Run security audit
         auditor = PostDeploymentSecurityAuditor(temp_deployment_dir, "production")
@@ -229,7 +229,7 @@ class TestSecurityAuditVerification:
     def test_secret_leak_detection_in_logs(self, malicious_generator, temp_deployment_dir):
         """Test detection of leaked secrets in log files"""
         # Create log with leaked secrets
-        log_file = malicious_generator.create_leaked_secrets_log()
+        malicious_generator.create_leaked_secrets_log()
 
         # Run security audit
         auditor = PostDeploymentSecurityAuditor(temp_deployment_dir, "production")
@@ -260,7 +260,7 @@ class TestSecurityAuditVerification:
     def test_insecure_configuration_detection(self, malicious_generator, temp_deployment_dir):
         """Test detection of insecure configuration settings"""
         # Create insecure config files
-        config_files = malicious_generator.create_insecure_config_files()
+        malicious_generator.create_insecure_config_files()
 
         # Run security audit
         auditor = PostDeploymentSecurityAuditor(temp_deployment_dir, "production")
@@ -353,7 +353,7 @@ class TestSecurityAuditVerification:
             results = auditor.audit_results
 
             # Should have results from all audit types
-            check_types = set(r.check_name for r in results)
+            check_types = {r.check_name for r in results}
             expected_checks = {
                 "file_permissions",
                 "environment_variables",
@@ -510,11 +510,11 @@ class TestSecurityAuditIntegration:
         results = auditor.audit_results
 
         # Verify comprehensive detection
-        check_types = set(r.check_name for r in results)
+        check_types = {r.check_name for r in results}
         assert len(check_types) >= 4  # Should run multiple types of checks
 
         # Should detect issues across severity levels
-        severities = set(r.severity for r in results)
+        severities = {r.severity for r in results}
         assert "CRITICAL" in severities or "HIGH" in severities
 
         # Generate comprehensive report

@@ -46,7 +46,8 @@ class E2ETestRunner:
         """Log with timestamp"""
         timestamp = datetime.now().strftime("%H:%M:%S")
         symbol = {"INFO": "[INFO]", "SUCCESS": "[PASS]", "ERROR": "[FAIL]", "WARN": "[WARN]", "TEST": "[TEST]"}.get(
-            level, "[INFO]",
+            level,
+            "[INFO]",
         )
         logger.info(f"[{timestamp}] {symbol} {message}")
 
@@ -90,7 +91,10 @@ class E2ETestRunner:
 
         try:
             result = subprocess.run(
-                [sys.executable, "scripts/seed_test_tasks.py"], cwd=project_root, capture_output=True, text=True,
+                [sys.executable, "scripts/seed_test_tasks.py"],
+                cwd=project_root,
+                capture_output=True,
+                text=True,
             )
 
             if result.returncode != 0:
@@ -374,7 +378,7 @@ class E2ETestRunner:
             return 1
         finally:
             # Cleanup processes
-            for name, proc in self.processes.items():
+            for _name, proc in self.processes.items():
                 if proc and proc.poll() is None:
                     proc.terminate()
             self.log("\nTest runner shutdown complete")

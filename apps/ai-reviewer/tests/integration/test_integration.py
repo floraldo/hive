@@ -250,7 +250,7 @@ class TestRealDatabaseIntegration:
 
             # Perform review
             engine = ReviewEngine()
-            result = engine.review_task(
+            engine.review_task(
                 task_id=task.id,
                 task_description=task.description,
                 code_files=code_files,

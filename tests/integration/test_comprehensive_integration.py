@@ -934,7 +934,7 @@ class CrossAppCommunicationTests:
             task_id = self._create_orchestrator_task()
 
             # 2. Read data from ecosystemiser perspective
-            ecosystemiser_data = self._read_as_ecosystemiser(task_id)
+            self._read_as_ecosystemiser(task_id)
 
             # 3. Update data from ai-planner perspective
             self._update_as_ai_planner(task_id)
@@ -956,7 +956,6 @@ class CrossAppCommunicationTests:
 
         try:
             events_published = []
-            events_consumed = []
 
             # Setup event tracking
             def track_event(event_type: str, payload: dict):
@@ -1752,7 +1751,7 @@ class PerformanceIntegrationTests:
         start_time = time.time()
 
         # Simulate legacy sequential processing
-        for i in range(10):
+        for _i in range(10):
             time.sleep(0.05)  # Simulated slower processing
 
         return time.time() - start_time
@@ -1892,7 +1891,6 @@ class GoldenRulesIntegrationTests:
 
         # Check for required core subdirectories
         required_core_dirs = ["db", "bus", "errors"]
-        optional_core_dirs = ["monitoring", "claude"]
 
         existing_dirs = [d.name for d in core_path.iterdir() if d.is_dir()]
 
@@ -1905,8 +1903,6 @@ class GoldenRulesIntegrationTests:
         """Test that import patterns follow guidelines"""
         # This would analyze actual Python files for import patterns
         # For the test, we'll simulate the check
-
-        violations = []
 
         # Check for circular imports (simulated)
         # Check for absolute vs relative imports
@@ -2465,7 +2461,9 @@ class FailureRecoveryTests:
                 SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
             FROM tasks
             WHERE id IN ({})
-        """.format(",".join("?" * len(task_ids))),
+        """.format(
+                ",".join("?" * len(task_ids))
+            ),
             task_ids,
         )
 

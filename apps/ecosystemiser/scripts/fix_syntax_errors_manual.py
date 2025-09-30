@@ -13,7 +13,6 @@ from pathlib import Path
 
 def fix_content(content: str) -> tuple[str, list[str]]:
     """Fix syntax errors in content. Returns (fixed_content, issues_found)."""
-    original = content
     issues = []
 
     # Pattern 1: class definitions with trailing comma

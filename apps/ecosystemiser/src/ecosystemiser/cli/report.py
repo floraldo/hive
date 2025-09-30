@@ -61,7 +61,7 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
 
             # Load raw results for plot generation
             with open(results_file) as f:
-                raw_results = json.load(f)
+                json.load(f)
 
             # Generate plots (simplified version)
             plots = {}
@@ -136,7 +136,7 @@ def generate(results_file: str, output: str) -> None:
 
         # Load raw results
         with open(results_file) as f:
-            raw_results = json.load(f)
+            json.load(f)
 
         # Generate plots
         from ecosystemiser.datavis.plot_factory import PlotFactory

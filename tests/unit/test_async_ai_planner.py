@@ -103,7 +103,7 @@ class TestAsyncClaudeService:
     async def test_rate_limiting_behavior(self, claude_service):
         """Test rate limiting works correctly."""
         # Record initial timestamp
-        start_time = time.time()
+        time.time()
 
         # Make multiple rapid calls
         tasks = []
@@ -126,7 +126,6 @@ class TestAsyncClaudeService:
         """Test semaphore limits concurrent calls."""
         # Create more tasks than semaphore allows
         num_tasks = 10
-        semaphore_limit = claude_service._semaphore._value
 
         start_time = time.time()
 
@@ -154,7 +153,10 @@ class TestAsyncClaudeService:
 
         # Test complex task
         complex_result = await claude_service.generate_execution_plan_async(
-            "Build a distributed microservices architecture with Docker, Kubernetes, and CI/CD", {}, 90, "test_user",
+            "Build a distributed microservices architecture with Docker, Kubernetes, and CI/CD",
+            {},
+            90,
+            "test_user",
         )
         complex_breakdown = complex_result["complexity_breakdown"]
 

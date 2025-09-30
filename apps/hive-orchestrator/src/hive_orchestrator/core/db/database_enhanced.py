@@ -13,12 +13,12 @@ that bridges the AI Planner's output with the Queen's execution engine.
 """
 
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 from .database import get_connection
 
 
-def get_queued_tasks_with_planning(limit: int = 10, task_type: str | None = None) -> List[Dict[str, Any]]:
+def get_queued_tasks_with_planning(limit: int = 10, task_type: str | None = None) -> list[dict[str, Any]]:
     """
     Enhanced task selection that includes both regular queued tasks AND
     AI Planner-generated sub-tasks that are ready for execution.
@@ -161,7 +161,7 @@ def check_subtask_dependencies(task_id: str) -> bool:
             SELECT status FROM tasks,
             WHERE (id = ? OR json_extract(payload, '$.subtask_id') = ?)
         """,
-            (dep_id, dep_id)
+            (dep_id, dep_id),
         )
 
         dep_row = cursor.fetchone()
@@ -210,17 +210,17 @@ def mark_plan_execution_started(plan_id: str) -> bool:
                 updated_at = CURRENT_TIMESTAMP,
             WHERE id = ? AND status IN ('generated', 'approved')
         """,
-            (plan_id,)
+            (plan_id,),
         )
 
         conn.commit()
         conn.close()
         return cursor.rowcount > 0
-    except Exception as e:
+    except Exception:
         return False
 
 
-def get_next_planned_subtask(plan_id: str) -> Optional[Dict[str, Any]]:
+def get_next_planned_subtask(plan_id: str) -> Optional[dict[str, Any]]:
     """
     Get the next sub-task from a plan that's ready for execution.
 
@@ -245,7 +245,7 @@ def get_next_planned_subtask(plan_id: str) -> Optional[Dict[str, Any]]:
             created_at ASC,
         LIMIT 1,
     """,
-        (plan_id,)
+        (plan_id,),
     )
 
     row = cursor.fetchone()
@@ -308,7 +308,7 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
             WHERE task_type = 'planned_subtask',
             AND json_extract(payload, '$.subtask_id') = ?
         """,
-            (sub_task.get("id", ""),)
+            (sub_task.get("id", ""),),
         )
 
         if cursor.fetchone():
@@ -344,7 +344,7 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
                 sub_task.get("assignee", "worker:backend"),
                 sub_task.get("description", ""),
                 json.dumps(payload),
-            )
+            ),
         )
 
         created_count += 1

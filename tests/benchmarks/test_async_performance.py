@@ -95,7 +95,6 @@ class TestAsyncPerformance:
         async def batch_processing():
             # Process data in batches of 100
             batch_size = 100
-            processed_count = 0
 
             async def process_batch(batch_data: list[dict]):
                 # Simulate processing time

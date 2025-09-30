@@ -10,11 +10,8 @@ Usage:
 """
 
 import json
-import sys
-from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 from hive_logging import get_logger
 
@@ -41,7 +38,7 @@ class AlertValidationTracker:
         """Load validation database from disk."""
         if self.validation_db_path.exists():
             try:
-                with open(self.validation_db_path, "r") as f:
+                with open(self.validation_db_path) as f:
                     return json.load(f)
             except Exception as e:
                 logger.error(f"Failed to load validation database: {e}")
@@ -407,7 +404,10 @@ def main():
     parser.add_argument("--output", type=str, help="Output file for report", default="data/validation_report.json")
     parser.add_argument("--detect-fn", action="store_true", help="Detect false negatives")
     parser.add_argument(
-        "--lookback-hours", type=int, default=24, help="Hours to look back for false negative detection",
+        "--lookback-hours",
+        type=int,
+        default=24,
+        help="Hours to look back for false negative detection",
     )
 
     args = parser.parse_args()
@@ -435,7 +435,7 @@ def main():
         print("PREDICTIVE ALERT VALIDATION REPORT")
         print("=" * 80)
         print(f"\nGenerated: {report['generated_at']}")
-        print(f"\nSummary:")
+        print("\nSummary:")
         print(f"  Total Alerts: {report['summary']['total_alerts']}")
         print(f"  True Positives: {report['summary']['true_positives']}")
         print(f"  False Positives: {report['summary']['false_positives']}")
@@ -443,19 +443,19 @@ def main():
         print(f"  False Positive Rate: {report['summary']['false_positive_rate']:.1f}%")
         print(f"  Pending Validation: {report['summary']['pending_validation']}")
 
-        print(f"\nPerformance Metrics:")
+        print("\nPerformance Metrics:")
         print(f"  Accuracy: {report['metrics']['accuracy']:.2%}")
         print(f"  Precision: {report['metrics']['precision']:.2%}")
         print(f"  Recall: {report['metrics']['recall']:.2%}")
         print(f"  F1 Score: {report['metrics']['f1_score']:.2%}")
 
-        print(f"\nTarget Achievement:")
+        print("\nTarget Achievement:")
         print(f"  FP Rate Target: {report['targets']['target_fp_rate']:.1f}%")
         print(f"  Meets FP Target: {report['targets']['meets_target']}")
         print(f"  Precision Target: {report['targets']['target_precision']:.2%}")
         print(f"  Meets Precision Target: {report['targets']['meets_precision_target']}")
 
-        print(f"\nRecommendations:")
+        print("\nRecommendations:")
         for i, rec in enumerate(report["recommendations"], 1):
             print(f"  {i}. {rec}")
 

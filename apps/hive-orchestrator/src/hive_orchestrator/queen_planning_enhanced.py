@@ -88,7 +88,7 @@ class QueenPlanningEnhanced(QueenLite):
         """Enhanced handler for plan generation events"""
         try:
             payload = event.payload
-            task_id = payload.get("task_id")
+            payload.get("task_id")
             plan_id = payload.get("plan_id")
             plan_name = payload.get("plan_name")
 
@@ -438,7 +438,7 @@ class QueenPlanningEnhanced(QueenLite):
             f"[PLANNING] Plans triggered: {stats['plans_triggered']}, ",
             f"Subtasks completed: {stats['subtasks_completed']}, ",
             f"Plans completed: {stats['plans_completed']}, ",
-            f"Sync errors: {stats['sync_errors']}"
+            f"Sync errors: {stats['sync_errors']}",
         )
 
         # Show active plan progress
@@ -496,7 +496,7 @@ class QueenPlanningEnhanced(QueenLite):
                 review_pending = len(hive_core_db.get_tasks_by_status("review_pending"))
 
                 if (
-len(self.active_workers) == 0
+                    len(self.active_workers) == 0
                     and stats["queued"] == 0
                     and stats["assigned"] == 0
                     and stats["in_progress"] == 0
@@ -552,7 +552,7 @@ len(self.active_workers) == 0
                 review_pending = len(review_pending_tasks) if review_pending_tasks else 0
 
                 if (
-len(self.active_workers) == 0
+                    len(self.active_workers) == 0
                     and stats["queued"] == 0
                     and stats["assigned"] == 0
                     and stats["in_progress"] == 0

@@ -159,7 +159,7 @@ class ModelHealthChecker:
         self._monitoring_active = False
 
         # Cancel all monitoring tasks
-        for provider, task in self._health_check_tasks.items():
+        for _provider, task in self._health_check_tasks.items():
             task.cancel()
             try:
                 await task
@@ -225,7 +225,8 @@ class ModelHealthChecker:
             )
 
             logger.debug(
-                f"Provider health check completed: {provider} = {overall_status.value} ", f"({response_time_ms:.1f}ms)",
+                f"Provider health check completed: {provider} = {overall_status.value} ",
+                f"({response_time_ms:.1f}ms)",
             )
 
             return health
@@ -281,7 +282,10 @@ class ModelHealthChecker:
             )
 
     async def _check_functionality_async(
-        self, provider_name: str, provider_instance: Any, config: dict[str, Any],
+        self,
+        provider_name: str,
+        provider_instance: Any,
+        config: dict[str, Any],
     ) -> HealthCheckResult:
         """Check functional capability of provider."""
         start_time = time.time()
@@ -366,7 +370,9 @@ class ModelHealthChecker:
         return self.registry.config.models[provider_models[0]].name
 
     def _determine_provider_status(
-        self, connectivity: HealthCheckResult, functionality: HealthCheckResult,
+        self,
+        connectivity: HealthCheckResult,
+        functionality: HealthCheckResult,
     ) -> HealthStatus:
         """Determine overall provider status from check results."""
         # If either check is unhealthy, provider is unhealthy,
@@ -385,14 +391,21 @@ class ModelHealthChecker:
         return HealthStatus.HEALTHY
 
     def _update_provider_health(
-        self, provider: str, status: HealthStatus, response_time_ms: float, details: dict[str, Any],
+        self,
+        provider: str,
+        status: HealthStatus,
+        response_time_ms: float,
+        details: dict[str, Any],
     ) -> ProviderHealth:
         """Update provider health state and history."""
         now = datetime.utcnow()
 
         # Create health check result,
         check_result = HealthCheckResult(
-            status=status, response_time_ms=response_time_ms, timestamp=now, details=details,
+            status=status,
+            response_time_ms=response_time_ms,
+            timestamp=now,
+            details=details,
         )
 
         # Update history,

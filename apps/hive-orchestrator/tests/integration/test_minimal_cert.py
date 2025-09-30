@@ -20,10 +20,10 @@ def test_1_configuration():
     """Test configuration system"""
     logger.info("Testing configuration...")
     try:
-        from hive_config import get_config
+        from hive_config import create_config_from_sources
 
-        config = get_config()
-        assert config.env in ["development", "testing", "production"]
+        config = create_config_from_sources()
+        assert config.environment in ["development", "testing", "production"]
         claude_config = config.get_claude_config()
         assert "mock_mode" in claude_config
         logger.info("PASS: Configuration")

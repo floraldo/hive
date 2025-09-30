@@ -69,7 +69,7 @@ def demonstrate_citadel_mission():
         },
     ]
 
-    for i, phase in enumerate(phases, 1):
+    for _i, phase in enumerate(phases, 1):
         status_icon = "[COMPLETE]" if phase["status"] == "COMPLETED" else "[ACTIVE]"
         print(f"\n{status_icon} {phase['phase']}")
         print(f"Status: {phase['status']}")
@@ -136,7 +136,8 @@ def demonstrate_zero_tolerance_system():
     print("VIOLATIONS DETECTED:")
     for i, violation in enumerate(violations, 1):
         severity_symbol = {"BLOCKER": "[BLOCK]", "CRITICAL": "[CRIT]", "MAJOR": "[MAJOR]"}.get(
-            violation["severity"], "[INFO]",
+            violation["severity"],
+            "[INFO]",
         )
         print(f"\n{i}. {severity_symbol} {violation['severity']}: {violation['rule']}")
         print(f"   File: {violation['file']}")
@@ -231,7 +232,8 @@ def demonstrate_cross_package_intelligence():
 
     for i, opp in enumerate(integration_opportunities, 1):
         impact_symbol = {"TRANSFORMATIVE": "[TRANSFORM]", "HIGH": "[HIGH]", "MEDIUM": "[MEDIUM]"}.get(
-            opp["impact"], "[LOW]",
+            opp["impact"],
+            "[LOW]",
         )
 
         print(f"{i}. {impact_symbol} {opp['impact']} IMPACT: {opp['type']}")
@@ -498,5 +500,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

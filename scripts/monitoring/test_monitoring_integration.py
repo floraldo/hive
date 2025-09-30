@@ -134,8 +134,8 @@ async def test_predictive_analysis_runner():
 
         try:
             from hive_errors.alert_manager import PredictiveAlertManager
-            from hive_errors.predictive_alerts import MetricType
             from hive_errors.monitoring_error_reporter import MonitoringErrorReporter
+            from hive_errors.predictive_alerts import MetricType
         except ImportError as e:
             logger.warning(f"Required modules not available: {e}")
             return False

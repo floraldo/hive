@@ -32,7 +32,8 @@ try:
 
         # Test plan generation
         plan = bridge.generate_execution_plan(
-            task_description="Build a simple web API", context_data={"files_affected": 3},
+            task_description="Build a simple web API",
+            context_data={"files_affected": 3},
         )
 
         assert plan is not None
@@ -43,7 +44,7 @@ try:
         # Test AI Planner integration
         agent = AIPlanner(mock_mode=True)
         success = agent.connect_database()
-        assert success == True
+        assert success
         logger.info("SUCCESS: AI Planner database connection")
 
         # Test task processing
@@ -62,7 +63,7 @@ try:
 
         # Test plan saving
         save_result = agent.save_execution_plan(plan)
-        assert save_result == True
+        assert save_result
         logger.info("SUCCESS: Plan saving working")
 
         # Cleanup

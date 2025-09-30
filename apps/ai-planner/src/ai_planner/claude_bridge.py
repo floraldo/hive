@@ -2,8 +2,8 @@
 Robust Claude CLI bridge for AI Planning
 Production-ready implementation for intelligent task decomposition and workflow generation
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import json
 import os
@@ -11,10 +11,11 @@ import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
+
+from pydantic import BaseModel, Field, ValidationError
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field, ValidationError
 
 logger = get_logger(__name__)
 
@@ -25,36 +26,26 @@ class SubTask(BaseModel):
 
     id: str = Field(description="Unique identifier for the sub-task")
     title: str = Field(max_length=100, description="Concise sub-task title")
-    description: str = Field(max_length=500,
-                             description="Detailed sub-task description")
-    assignee: str = Field(
-        description="Target assignee (worker:backend, app:ecosystemiser, etc.)")
-    estimated_duration: int = Field(
-        ge=1, le=480, description="Estimated duration in minutes")
-    complexity: Literal["simple", "medium", "complex"] = Field(
-        description="Task complexity level")
-    dependencies: List[str] = Field(
-        default_factory=list,
-        description="List of sub-task IDs this depends on")
+    description: str = Field(max_length=500, description="Detailed sub-task description")
+    assignee: str = Field(description="Target assignee (worker:backend, app:ecosystemiser, etc.)")
+    estimated_duration: int = Field(ge=1, le=480, description="Estimated duration in minutes")
+    complexity: Literal["simple", "medium", "complex"] = Field(description="Task complexity level")
+    dependencies: list[str] = Field(default_factory=list, description="List of sub-task IDs this depends on")
     workflow_phase: Literal["analysis", "design", "implementation", "testing", "validation"] = Field(
-        description="Primary workflow phase for this sub-task")
-    required_skills: List[str] = Field(
-        default_factory=list,
-        description="Required skills/technologies")
-    deliverables: List[str] = Field(
-        default_factory=list,
-        description="Expected outputs/deliverables")
+        description="Primary workflow phase for this sub-task"
+    )
+    required_skills: list[str] = Field(default_factory=list, description="Required skills/technologies")
+    deliverables: list[str] = Field(default_factory=list, description="Expected outputs/deliverables")
 
 
 class DependencyMap(BaseModel):
     """Dependency relationships between sub-tasks"""
 
-    critical_path: List[str] = Field(
-        description="Ordered list of sub-task IDs on critical path")
-    parallel_groups: List[List[str]] = Field(
+    critical_path: list[str] = Field(description="Ordered list of sub-task IDs on critical path")
+    parallel_groups: list[list[str]] = Field(
         default_factory=list, description="Groups of tasks that can run in parallel"
     )
-    blocking_dependencies: Dict[str, List[str]] = Field(
+    blocking_dependencies: dict[str, list[str]] = Field(
         default_factory=dict, description="Map of task_id -> blocking_task_ids"
     )
 
@@ -62,58 +53,35 @@ class DependencyMap(BaseModel):
 class WorkflowDefinition(BaseModel):
     """Complete workflow definition for the execution plan"""
 
-    lifecycle_phases: List[str] = Field(
-        description="Ordered list of lifecycle phases")
-    phase_transitions: Dict[str, str] = Field(
-        description="Map of phase -> next_phase")
-    validation_gates: Dict[str, List[str]] = Field(
-        description="Map of phase -> validation criteria")
-    rollback_strategy: str = Field(
-        description="Strategy for handling failures and rollbacks")
+    lifecycle_phases: list[str] = Field(description="Ordered list of lifecycle phases")
+    phase_transitions: dict[str, str] = Field(description="Map of phase -> next_phase")
+    validation_gates: dict[str, list[str]] = Field(description="Map of phase -> validation criteria")
+    rollback_strategy: str = Field(description="Strategy for handling failures and rollbacks")
 
 
 class PlanningMetrics(BaseModel):
     """Metrics and estimates for the execution plan"""
 
-    total_estimated_duration: int = Field(
-        ge=1, description="Total estimated duration in minutes")
-    critical_path_duration: int = Field(
-        ge=1, description="Critical path duration in minutes")
-    complexity_breakdown: Dict[str, int] = Field(
-        description="Count of tasks by complexity level")
-    skill_requirements: Dict[str, int] = Field(
-        description="Count of tasks requiring each skill")
-    confidence_score: float = Field(
-        ge=0.0, le=1.0, description="Confidence in the plan accuracy")
-    risk_factors: List[str] = Field(
-        default_factory=list,
-        description="Identified risk factors")
+    total_estimated_duration: int = Field(ge=1, description="Total estimated duration in minutes")
+    critical_path_duration: int = Field(ge=1, description="Critical path duration in minutes")
+    complexity_breakdown: dict[str, int] = Field(description="Count of tasks by complexity level")
+    skill_requirements: dict[str, int] = Field(description="Count of tasks requiring each skill")
+    confidence_score: float = Field(ge=0.0, le=1.0, description="Confidence in the plan accuracy")
+    risk_factors: list[str] = Field(default_factory=list, description="Identified risk factors")
 
 
 class ClaudePlanningResponse(BaseModel):
     """Structured response contract for Claude planning"""
 
-    plan_id: str = Field(
-        description="Unique identifier for the execution plan")
-    plan_name: str = Field(
-        max_length=100,
-        description="Human-readable plan name")
-    plan_summary: str = Field(max_length=500,
-                              description="Executive summary of the plan")
-    sub_tasks: List[SubTask] = Field(
-        description="List of decomposed sub-tasks")
-    dependencies: DependencyMap = Field(
-        description="Dependency relationships between tasks")
-    workflow: WorkflowDefinition = Field(
-        description="Complete workflow definition")
-    metrics: PlanningMetrics = Field(
-        description="Planning metrics and estimates")
-    recommendations: List[str] = Field(
-        default_factory=list,
-        description="Strategic recommendations")
-    considerations: List[str] = Field(
-        default_factory=list,
-        description="Important considerations and constraints")
+    plan_id: str = Field(description="Unique identifier for the execution plan")
+    plan_name: str = Field(max_length=100, description="Human-readable plan name")
+    plan_summary: str = Field(max_length=500, description="Executive summary of the plan")
+    sub_tasks: list[SubTask] = Field(description="List of decomposed sub-tasks")
+    dependencies: DependencyMap = Field(description="Dependency relationships between tasks")
+    workflow: WorkflowDefinition = Field(description="Complete workflow definition")
+    metrics: PlanningMetrics = Field(description="Planning metrics and estimates")
+    recommendations: list[str] = Field(default_factory=list, description="Strategic recommendations")
+    considerations: list[str] = Field(default_factory=list, description="Important considerations and constraints")
 
 
 class RobustClaudePlannerBridge:
@@ -132,8 +100,7 @@ class RobustClaudePlannerBridge:
         else:
             self.claude_cmd = self._find_claude_cmd()
             if not self.claude_cmd:
-                logger.warning(
-                    "Claude CLI not found - planning will use fallback mode")
+                logger.warning("Claude CLI not found - planning will use fallback mode")
 
     def _find_claude_cmd(self) -> str | None:
         """Find Claude CLI command - same implementation as AI reviewer"""
@@ -142,7 +109,7 @@ class RobustClaudePlannerBridge:
             Path.home() / ".npm-global" / "claude.cmd",
             Path.home() / ".npm-global" / "claude",
             Path("claude.cmd"),
-            Path("claude")
+            Path("claude"),
         ]
 
         for path in possible_paths:
@@ -151,16 +118,8 @@ class RobustClaudePlannerBridge:
                 return str(path)
 
         # Try system PATH
-        result = subprocess.run(
-            ["where" if os.name == "nt" else "which", "claude"],
-            capture_output=True,
-            text=True
-        )
-        claude_path = (
-            result.stdout.strip().split("\n")[0]
-            if result.returncode == 0
-            else None
-        )
+        result = subprocess.run(["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True)
+        claude_path = result.stdout.strip().split("\n")[0] if result.returncode == 0 else None
 
         if claude_path:
             logger.info(f"Using Claude from PATH: {claude_path}")
@@ -169,23 +128,19 @@ class RobustClaudePlannerBridge:
         return None
 
     def _create_planning_prompt(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any],
-        priority: int,
-        requestor: str
+        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
 
-        context_info = "",
+        context_info = ("",)
         if context_data:
             context_info = f""",
 ## Context Information:
-- Files affected: {context_data.get('files_affected', 'unknown')}
-- Dependencies: {context_data.get('dependencies', [])}
-- Technology stack: {context_data.get('tech_stack', [])}
-- Constraints: {context_data.get('constraints', [])}
-- Resources: {context_data.get('resources', [])}
+- Files affected: {context_data.get("files_affected", "unknown")}
+- Dependencies: {context_data.get("dependencies", [])}
+- Technology stack: {context_data.get("tech_stack", [])}
+- Constraints: {context_data.get("constraints", [])}
+- Resources: {context_data.get("resources", [])}
 """
 
         prompt = f"""# AI Planning Engine - Senior Software Architect Mode
@@ -287,8 +242,7 @@ Generate the execution plan now:"""
 
         return prompt
 
-    def _extract_json_from_response(
-            self, response_text: str) -> Optional[Dict[str, Any]]:
+    def _extract_json_from_response(self, response_text: str) -> Optional[dict[str, Any]]:
         """Extract JSON from Claude response with robust parsing"""
         try:
             # Try direct JSON parsing first,
@@ -297,10 +251,7 @@ Generate the execution plan now:"""
             pass
 
         # Try to find JSON within markdown code blocks,
-        json_match = re.search(
-            r"```json\s*(\{.*?\})\s*```",
-            response_text,
-            re.DOTALL)
+        json_match = re.search(r"```json\s*(\{.*?\})\s*```", response_text, re.DOTALL)
         if json_match:
             try:
                 return json.loads(json_match.group(1))
@@ -318,8 +269,7 @@ Generate the execution plan now:"""
         logger.error("Failed to extract valid JSON from Claude response")
         return None
 
-    def _create_fallback_response(
-            self, task_description: str, error_message: str) -> Dict[str, Any]:
+    def _create_fallback_response(self, task_description: str, error_message: str) -> dict[str, Any]:
         """Create fallback response when Claude is unavailable"""
 
         logger.warning(f"Creating fallback response due to: {error_message}")
@@ -340,7 +290,7 @@ Generate the execution plan now:"""
                     dependencies=[],
                     workflow_phase="analysis",
                     required_skills=["analysis"],
-                    deliverables=["requirements.md"]
+                    deliverables=["requirements.md"],
                 ),
                 SubTask(
                     id="fallback-002",
@@ -352,7 +302,7 @@ Generate the execution plan now:"""
                     dependencies=["fallback-001"],
                     workflow_phase="implementation",
                     required_skills=["programming"],
-                    deliverables=["implementation.py"]
+                    deliverables=["implementation.py"],
                 ),
                 SubTask(
                     id="fallback-003",
@@ -364,16 +314,13 @@ Generate the execution plan now:"""
                     dependencies=["fallback-002"],
                     workflow_phase="testing",
                     required_skills=["testing"],
-                    deliverables=["test_results.md"]
-                )
+                    deliverables=["test_results.md"],
+                ),
             ],
             dependencies=DependencyMap(
                 critical_path=["fallback-001", "fallback-002", "fallback-003"],
                 parallel_groups=[],
-                blocking_dependencies={
-                    "fallback-002": ["fallback-001"],
-                    "fallback-003": ["fallback-002"]
-                }
+                blocking_dependencies={"fallback-002": ["fallback-001"], "fallback-003": ["fallback-002"]},
             ),
             workflow=WorkflowDefinition(
                 lifecycle_phases=["analysis", "implementation", "testing"],
@@ -384,9 +331,9 @@ Generate the execution plan now:"""
                 validation_gates={
                     "analysis": ["requirements_clear"],
                     "implementation": ["code_complete"],
-                    "testing": ["tests_pass"]
+                    "testing": ["tests_pass"],
                 },
-                rollback_strategy="manual rollback with git revert"
+                rollback_strategy="manual rollback with git revert",
             ),
             metrics=PlanningMetrics(
                 total_estimated_duration=210,
@@ -394,27 +341,20 @@ Generate the execution plan now:"""
                 complexity_breakdown={"simple": 1, "medium": 2, "complex": 0},
                 skill_requirements={"programming": 2, "testing": 1, "analysis": 1},
                 confidence_score=0.6,
-                risk_factors=["claude_unavailable", "simplified_planning"]
+                risk_factors=["claude_unavailable", "simplified_planning"],
             ),
-            recommendations=[
-                "Validate requirements before implementation",
-                "Test thoroughly before deployment"
-            ],
+            recommendations=["Validate requirements before implementation", "Test thoroughly before deployment"],
             considerations=[
                 "This is a fallback plan - consider human review",
-                "Claude integration should be restored for better planning"
-            ]
+                "Claude integration should be restored for better planning",
+            ],
         )
 
         return fallback_response.dict()
 
     def generate_execution_plan(
-        self,
-        task_description: str,
-        context_data: Dict[str, Any] = None,
-        priority: int = 50,
-        requestor: str = "system"
-    ) -> Dict[str, Any]:
+        self, task_description: str, context_data: dict[str, Any] = None, priority: int = 50, requestor: str = "system"
+    ) -> dict[str, Any]:
         """
         Generate intelligent execution plan using Claude API
 
@@ -429,8 +369,7 @@ Generate the execution plan now:"""
         """
         if self.mock_mode:
             # Return a mock response for testing,
-            logger.info(
-                f"Mock mode: generating mock plan for: {task_description}")
+            logger.info(f"Mock mode: generating mock plan for: {task_description}")
             import uuid
 
             mock_response = ClaudePlanningResponse(
@@ -448,19 +387,15 @@ Generate the execution plan now:"""
                         dependencies=[],
                         workflow_phase="analysis",
                         required_skills=["testing"],
-                        deliverables=["mock_output.txt"]
+                        deliverables=["mock_output.txt"],
                     )
                 ],
-                dependencies=DependencyMap(
-                    critical_path=["mock-001"],
-                    parallel_groups=[],
-                    blocking_dependencies={}
-                ),
+                dependencies=DependencyMap(critical_path=["mock-001"], parallel_groups=[], blocking_dependencies={}),
                 workflow=WorkflowDefinition(
                     lifecycle_phases=["analysis"],
                     phase_transitions={},
                     validation_gates={"analysis": ["mock_validation"]},
-                    rollback_strategy="mock rollback"
+                    rollback_strategy="mock rollback",
                 ),
                 metrics=PlanningMetrics(
                     total_estimated_duration=30,
@@ -468,26 +403,23 @@ Generate the execution plan now:"""
                     complexity_breakdown={"simple": 0, "medium": 1, "complex": 0},
                     skill_requirements={"testing": 1},
                     confidence_score=0.9,
-                    risk_factors=["mock_risk"]
+                    risk_factors=["mock_risk"],
                 ),
                 recommendations=["Mock recommendation"],
-                considerations=["Mock consideration"]
+                considerations=["Mock consideration"],
             )
             return mock_response.dict()
 
         if not self.claude_cmd:
-            return self._create_fallback_response(
-                task_description, "Claude CLI not available")
+            return self._create_fallback_response(task_description, "Claude CLI not available")
 
         try:
             # Create comprehensive prompt
-            prompt = self._create_planning_prompt(
-                task_description, context_data or {}, priority, requestor)
+            prompt = self._create_planning_prompt(task_description, context_data or {}, priority, requestor)
 
             # Execute Claude CLI with --print flag to ensure it exits after responding
             # Add --dangerously-skip-permissions for automated environments
-            logger.info(
-                f"Calling Claude for planning: {task_description[:100]}...")
+            logger.info(f"Calling Claude for planning: {task_description[:100]}...")
             result = subprocess.run(
                 [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt],
                 capture_output=True,
@@ -496,34 +428,27 @@ Generate the execution plan now:"""
             )
 
             if result.returncode != 0:
-                logger.error(
-                    f"Claude CLI failed with return code {result.returncode}")
+                logger.error(f"Claude CLI failed with return code {result.returncode}")
                 logger.error(f"Error output: {result.stderr}")
-                return self._create_fallback_response(
-                    task_description, f"Claude CLI error: {result.stderr[:200]}")
+                return self._create_fallback_response(task_description, f"Claude CLI error: {result.stderr[:200]}")
 
             # Extract and validate JSON response
             response_json = self._extract_json_from_response(result.stdout)
             if not response_json:
-                return self._create_fallback_response(
-                    task_description, "Failed to parse Claude response as JSON")
+                return self._create_fallback_response(task_description, "Failed to parse Claude response as JSON")
 
             # Validate response against schema
             try:
                 validated_response = ClaudePlanningResponse(**response_json)
-                logger.info(
-                    f"Claude planning successful: {validated_response.plan_name}")
+                logger.info(f"Claude planning successful: {validated_response.plan_name}")
                 return validated_response.dict()
             except ValidationError as e:
                 logger.error(f"Claude response validation failed: {e}")
-                return self._create_fallback_response(
-                    task_description, f"Response validation error: {str(e)[:200]}")
+                return self._create_fallback_response(task_description, f"Response validation error: {str(e)[:200]}")
 
         except subprocess.TimeoutExpired:
             logger.error("Claude CLI timeout during planning")
-            return self._create_fallback_response(
-                task_description, "Claude CLI timeout")
+            return self._create_fallback_response(task_description, "Claude CLI timeout")
         except Exception as e:
             logger.error(f"Unexpected error during Claude planning: {e}")
-            return self._create_fallback_response(
-                task_description, f"Unexpected error: {str(e)[:200]}")
+            return self._create_fallback_response(task_description, f"Unexpected error: {str(e)[:200]}")

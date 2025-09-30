@@ -686,7 +686,9 @@ class MissionControlDashboard:
         try:
             # Get cost metrics from the last 24 hours and month
             cost_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.AI_COST], start_time=datetime.utcnow() - timedelta(days=30), limit=10000,
+                metric_types=[MetricType.AI_COST],
+                start_time=datetime.utcnow() - timedelta(days=30),
+                limit=10000,
             )
 
             if not cost_metrics:
@@ -701,9 +703,7 @@ class MissionControlDashboard:
                 (
                     float(m.value)
                     if isinstance(m.value, (int, float))
-                    else float(m.value.get("cost_usd", 0))
-                    if isinstance(m.value, dict)
-                    else 0
+                    else float(m.value.get("cost_usd", 0)) if isinstance(m.value, dict) else 0
                 )
                 for m in cost_metrics
                 if m.timestamp >= today_start
@@ -713,9 +713,7 @@ class MissionControlDashboard:
                 (
                     float(m.value)
                     if isinstance(m.value, (int, float))
-                    else float(m.value.get("cost_usd", 0))
-                    if isinstance(m.value, dict)
-                    else 0
+                    else float(m.value.get("cost_usd", 0)) if isinstance(m.value, dict) else 0
                 )
                 for m in cost_metrics
                 if m.timestamp >= month_start
@@ -781,8 +779,10 @@ class MissionControlDashboard:
 
         try:
             # Get CI/CD metrics
-            cicd_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.CI_CD_METRICS], start_time=datetime.utcnow() - timedelta(days=7), limit=1000,
+            await self.warehouse.query_metrics_async(
+                metric_types=[MetricType.CI_CD_METRICS],
+                start_time=datetime.utcnow() - timedelta(days=7),
+                limit=1000,
             )
 
             # Calculate metrics (simplified implementation)
@@ -845,7 +845,9 @@ class MissionControlDashboard:
             )
 
             debt_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.TECHNICAL_DEBT], start_time=datetime.utcnow() - timedelta(hours=24), limit=50,
+                metric_types=[MetricType.TECHNICAL_DEBT],
+                start_time=datetime.utcnow() - timedelta(hours=24),
+                limit=50,
             )
 
             # Calculate overall compliance
@@ -1006,7 +1008,9 @@ class MissionControlDashboard:
 
             # Get retention metrics
             retention_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.USER_RETENTION], start_time=datetime.utcnow() - timedelta(days=7), limit=50,
+                metric_types=[MetricType.USER_RETENTION],
+                start_time=datetime.utcnow() - timedelta(days=7),
+                limit=50,
             )
 
             # Get satisfaction metrics
@@ -1018,7 +1022,9 @@ class MissionControlDashboard:
 
             # Get support metrics
             support_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.SUPPORT_METRICS], start_time=datetime.utcnow() - timedelta(days=7), limit=100,
+                metric_types=[MetricType.SUPPORT_METRICS],
+                start_time=datetime.utcnow() - timedelta(days=7),
+                limit=100,
             )
 
             # Calculate engagement metrics
@@ -1134,7 +1140,9 @@ class MissionControlDashboard:
         try:
             # Get feature adoption metrics
             feature_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.FEATURE_ADOPTION], start_time=datetime.utcnow() - timedelta(days=7), limit=100,
+                metric_types=[MetricType.FEATURE_ADOPTION],
+                start_time=datetime.utcnow() - timedelta(days=7),
+                limit=100,
             )
 
             features = []
@@ -1223,7 +1231,7 @@ class MissionControlDashboard:
             )
 
             # Get cost metrics
-            cost_metrics = await self.warehouse.query_metrics_async(
+            await self.warehouse.query_metrics_async(
                 metric_types=[MetricType.AI_COST, MetricType.SYSTEM_PERFORMANCE],
                 start_time=datetime.utcnow() - timedelta(days=30),
                 limit=100,

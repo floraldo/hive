@@ -226,7 +226,7 @@ class LogOrganizer:
             if len(files) > 1:
                 # Keep the newest file, remove others
                 files.sort(key=lambda f: f.modified, reverse=True)
-                newest = files[0]
+                files[0]
 
                 for old_file in files[1:]:
                     try:

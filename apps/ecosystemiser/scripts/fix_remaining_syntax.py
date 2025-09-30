@@ -1,12 +1,10 @@
 """Fix remaining syntax errors from over-aggressive comma fixing."""
 
-import re
 from pathlib import Path
 
 
 def fix_content(content: str) -> tuple[str, list[str]]:
     """Fix syntax errors in content."""
-    original = content
     issues = []
 
     lines = content.split("\n")

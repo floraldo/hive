@@ -1,7 +1,6 @@
 """Pattern storage and retrieval for semantic code search."""
 
 import json
-import pickle
 from pathlib import Path
 from typing import Any
 
@@ -33,7 +32,7 @@ class PatternStore:
         self.dimension = dimension
         self.patterns_file = self.index_path / "patterns.json"
         self.embeddings_file = self.index_path / "embeddings.npy"
-        self.metadata_file = self.index_path / "metadata.pkl"
+        self.metadata_file = self.index_path / "metadata.json"
 
         # Load existing patterns
         self.patterns = self._load_patterns()
@@ -81,7 +80,8 @@ class PatternStore:
 
         # Add to vector store
         await self.vector_store.add(
-            embedding=embedding, metadata={"pattern_id": pattern_id, "type": pattern_type, **(metadata or {})},
+            embedding=embedding,
+            metadata={"pattern_id": pattern_id, "type": pattern_type, **(metadata or {})},
         )
 
         # Persist to disk
@@ -92,7 +92,11 @@ class PatternStore:
         logger.info("Added pattern %s of type %s", pattern_id, pattern_type)
 
     async def search_similar_patterns(
-        self, query_embedding: np.ndarray, k: int = 5, pattern_type: str | None = None, threshold: float = 0.8,
+        self,
+        query_embedding: np.ndarray,
+        k: int = 5,
+        pattern_type: str | None = None,
+        threshold: float = 0.8,
     ) -> list[dict[str, Any]]:
         """
         Search for similar patterns.
@@ -147,7 +151,10 @@ class PatternStore:
             List of detected anti-patterns
         """
         return await self.search_similar_patterns(
-            query_embedding=code_embedding, k=10, pattern_type="anti_pattern", threshold=threshold,
+            query_embedding=code_embedding,
+            k=10,
+            pattern_type="anti_pattern",
+            threshold=threshold,
         )
 
     async def find_best_practices(self, code_embedding: np.ndarray, context: str | None = None) -> list[dict[str, Any]]:
@@ -162,7 +169,10 @@ class PatternStore:
             List of relevant best practices
         """
         results = await self.search_similar_patterns(
-            query_embedding=code_embedding, k=5, pattern_type="best_practice", threshold=0.7,
+            query_embedding=code_embedding,
+            k=5,
+            pattern_type="best_practice",
+            threshold=0.7,
         )
 
         # Filter by context if provided
@@ -184,7 +194,10 @@ class PatternStore:
         """
         # Search for similar violations with fixes
         results = await self.search_similar_patterns(
-            query_embedding=violation_embedding, k=3, pattern_type="fix", threshold=0.8,
+            query_embedding=violation_embedding,
+            k=3,
+            pattern_type="fix",
+            threshold=0.8,
         )
 
         # Filter by violation type
@@ -194,57 +207,6 @@ class PatternStore:
 
     def initialize_default_patterns(self) -> None:
         """Initialize store with default patterns."""
-        default_patterns = [
-            {
-                "id": "singleton_pattern",
-                "content": """class Singleton:
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super().__new__(cls)
-        return cls._instance""",
-                "type": "design_pattern",
-                "metadata": {
-                    "name": "Singleton Pattern",
-                    "categories": ["design_patterns", "creational"],
-                    "description": "Ensures a class has only one instance",
-                },
-            },
-            {
-                "id": "sql_injection",
-                "content": """# Anti-pattern
-query = f"SELECT * FROM users WHERE id = {user_id}"
-cursor.execute(query)""",
-                "type": "anti_pattern",
-                "metadata": {
-                    "name": "SQL Injection Vulnerability",
-                    "categories": ["security", "database"],
-                    "severity": "critical",
-                    "fix": "Use parameterized queries",
-                },
-            },
-            {
-                "id": "sql_injection_fix",
-                "content": """# Best practice
-query = "SELECT * FROM users WHERE id = ?"
-cursor.execute(query, (user_id,))""",
-                "type": "fix",
-                "metadata": {"fixes_violation": "sql_injection", "categories": ["security", "database"]},
-            },
-            {
-                "id": "context_manager",
-                "content": """with open('file.txt', 'r') as f:
-    content = f.read()
-    # File automatically closed""",
-                "type": "best_practice",
-                "metadata": {
-                    "name": "Context Manager Usage",
-                    "categories": ["resource_management", "pythonic"],
-                    "description": "Ensures proper resource cleanup",
-                },
-            },
-        ]
 
         logger.info("Initializing default patterns...")
         # Note: In a real implementation, would generate embeddings for these
@@ -273,13 +235,13 @@ cursor.execute(query, (user_id,))""",
             np.save(self.embeddings_file, self.embeddings)
 
     def _load_metadata(self) -> dict[str, Any]:
-        """Load metadata from disk."""
+        """Load metadata from disk using JSON (safer than pickle)."""
         if self.metadata_file.exists():
-            with open(self.metadata_file, "rb") as f:
-                return pickle.load(f)
+            with open(self.metadata_file, encoding="utf-8") as f:
+                return json.load(f)
         return {}
 
     def _save_metadata(self) -> None:
-        """Save metadata to disk."""
-        with open(self.metadata_file, "wb") as f:
-            pickle.dump(self.metadata, f)
+        """Save metadata to disk using JSON (safer than pickle)."""
+        with open(self.metadata_file, "w", encoding="utf-8") as f:
+            json.dump(self.metadata, f, indent=2)

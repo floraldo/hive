@@ -683,7 +683,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
     def _update_system_flows(self) -> None:
         """Update system flow variables with component solution values."""
-        for flow_key, flow_data in self.system.flows.items():
+        for _flow_key, flow_data in self.system.flows.items():
             source_comp = self.system.components.get(flow_data["source"])
             target_comp = self.system.components.get(flow_data["target"])
 

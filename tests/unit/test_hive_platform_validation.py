@@ -292,7 +292,7 @@ class PlatformValidationTests:
             """,
                 (None, "Invalid Task"),
             )  # NULL id should fail
-            assert False, "Should have raised an error"
+            raise AssertionError("Should have raised an error")
         except sqlite3.IntegrityError:
             pass  # Expected error
 
@@ -312,7 +312,7 @@ class PlatformValidationTests:
             """,
                 (task_id, "Duplicate Task"),
             )  # Duplicate id should fail
-            assert False, "Should have raised an error"
+            raise AssertionError("Should have raised an error")
         except sqlite3.IntegrityError:
             pass  # Expected error
 
@@ -377,9 +377,9 @@ class PlatformValidationTests:
             # (Note: actual imports would be tested in real environment)
             import hive_orchestrator
 
-            assert hasattr(hive_orchestrator, "__version__") or hasattr(hive_orchestrator, "__file__"), (
-                "Module should be importable"
-            )
+            assert hasattr(hive_orchestrator, "__version__") or hasattr(
+                hive_orchestrator, "__file__"
+            ), "Module should be importable"
 
         except ImportError as e:
             # In test environment, this might fail, but we can still validate structure

@@ -447,7 +447,7 @@ class StudyService:
             fitness_function = self._create_fitness_function(config, encoder)
 
             # Create constraint handler
-            constraint_handler = self._create_constraint_handler(config, encoder)
+            self._create_constraint_handler(config, encoder)
 
             # Configure genetic algorithm
             ga_config_data = config.ga_config or {}
@@ -1015,7 +1015,7 @@ class StudyService:
         # Load base configuration
 
         with open(base_config_path) as f:
-            system_config = yaml.safe_load(f)
+            yaml.safe_load(f)
 
         # Create base simulation config
 

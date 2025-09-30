@@ -5,16 +5,15 @@ Fixes common syntax errors: missing commas in function signatures
 """
 
 import ast
-import re
 from pathlib import Path
-from typing import List, Tuple
 
-def detect_missing_comma_in_signature(file_path: Path) -> List[Tuple[int, str]]:
+
+def detect_missing_comma_in_signature(file_path: Path) -> list[tuple[int, str]]:
     """Detect missing commas in function signatures using AST"""
     fixes = []
 
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
             lines = content.splitlines()
     except:
@@ -43,42 +42,46 @@ def detect_missing_comma_in_signature(file_path: Path) -> List[Tuple[int, str]]:
 
             # Check if current line looks like a parameter without comma
             # and next line looks like another parameter or closing paren
-            if (current and not current.endswith(',') and not current.endswith('(')
-                and (next_line.startswith(')') or
-                     ':' in next_line or
-                     next_line.endswith(','))):
+            if (
+                current
+                and not current.endswith(",")
+                and not current.endswith("(")
+                and (next_line.startswith(")") or ":" in next_line or next_line.endswith(","))
+            ):
                 # Add comma to current line
-                fixed_line = current + ','
+                fixed_line = current + ","
                 fixes.append((line_num, fixed_line))
 
     return fixes
 
-def apply_fixes(file_path: Path, fixes: List[Tuple[int, str]]) -> bool:
+
+def apply_fixes(file_path: Path, fixes: list[tuple[int, str]]) -> bool:
     """Apply fixes to file"""
     if not fixes:
         return False
 
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             lines = f.readlines()
 
         for line_num, fixed_line in fixes:
             # Preserve indentation
             original = lines[line_num]
             indent = len(original) - len(original.lstrip())
-            lines[line_num] = ' ' * indent + fixed_line + '\n'
+            lines[line_num] = " " * indent + fixed_line + "\n"
 
         # Write back
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.writelines(lines)
 
         # Verify fix worked
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             ast.parse(f.read())
 
         return True
     except:
         return False
+
 
 def fix_file(file_path: Path) -> bool:
     """Try to fix syntax errors in file"""
@@ -86,6 +89,7 @@ def fix_file(file_path: Path) -> bool:
     if fixes:
         return apply_fixes(file_path, fixes)
     return False
+
 
 if __name__ == "__main__":
     import sys

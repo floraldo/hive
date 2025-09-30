@@ -172,7 +172,7 @@ class TestMetricsCollector:
     async def test_get_metrics_with_data(self, metrics_collector):
         """Test getting metrics after operations."""
         # Perform some operations
-        for i in range(3):
+        for _i in range(3):
             op_id = metrics_collector.start_operation("test_op")
             await asyncio.sleep(0.001)  # Small delay
             metrics_collector.end_operation(op_id, success=True)
@@ -477,7 +477,13 @@ class TestSystemMonitor:
     @patch("hive_performance.system_monitor.psutil.disk_io_counters")
     @patch("hive_performance.system_monitor.psutil.net_io_counters")
     async def test_collect_system_metrics(
-        self, mock_net, mock_disk_io, mock_disk, mock_memory, mock_cpu, system_monitor,
+        self,
+        mock_net,
+        mock_disk_io,
+        mock_disk,
+        mock_memory,
+        mock_cpu,
+        system_monitor,
     ):
         """Test system metrics collection."""
         # Setup mocks
@@ -491,11 +497,16 @@ class TestSystemMonitor:
         mock_memory.return_value = mock_mem
 
         mock_disk_usage.return_value = MagicMock(
-            total=1024 * 1024 * 1024 * 1024, used=512 * 1024 * 1024 * 1024, free=512 * 1024 * 1024 * 1024,
+            total=1024 * 1024 * 1024 * 1024,
+            used=512 * 1024 * 1024 * 1024,
+            free=512 * 1024 * 1024 * 1024,
         )
 
         mock_disk_io.return_value = MagicMock(
-            read_bytes=1024 * 1024, write_bytes=2 * 1024 * 1024, read_count=100, write_count=200,
+            read_bytes=1024 * 1024,
+            write_bytes=2 * 1024 * 1024,
+            read_count=100,
+            write_count=200,
         )
 
         mock_net.return_value = MagicMock(
@@ -711,7 +722,7 @@ class TestPerformanceIntegration:
 
         # Simulate concurrent operations
         async def worker(worker_id):
-            for i in range(5):
+            for _i in range(5):
                 with operation_tracker(metrics_collector, f"worker_{worker_id}"):
                     await asyncio.sleep(0.001)
 
@@ -760,9 +771,9 @@ class TestPerformanceIntegration:
         # Simulate memory-intensive operation
         big_data = []
 
-        with operation_tracker(metrics_collector, "memory_test") as tracker:
+        with operation_tracker(metrics_collector, "memory_test"):
             # Allocate memory
-            for i in range(1000):
+            for _i in range(1000):
                 big_data.append([0] * 1000)
 
             await asyncio.sleep(0.01)

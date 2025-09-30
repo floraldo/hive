@@ -60,7 +60,9 @@ class EventDashboard:
         try:
             # Subscribe to all events using wildcard pattern
             subscription_id = self.event_bus.subscribe(
-                pattern="*", callback=self._handle_event, subscriber_name="event-dashboard",
+                pattern="*",
+                callback=self._handle_event,
+                subscriber_name="event-dashboard",
             )
             logger.info(f"Subscribed to all events: {subscription_id}")
             return subscription_id
@@ -222,7 +224,11 @@ class EventDashboard:
                 status = "🔴 Stalled"
 
             table.add_row(
-                wf_id[:18] + "..." if len(wf_id) > 20 else wf_id, duration_str, str(event_count), last_activity, status,
+                wf_id[:18] + "..." if len(wf_id) > 20 else wf_id,
+                duration_str,
+                str(event_count),
+                last_activity,
+                status,
             )
 
         return table
@@ -230,7 +236,7 @@ class EventDashboard:
     def _create_system_stats_panel(self) -> Panel:
         """Create system statistics panel"""
         now = datetime.now()
-        uptime = now - self.system_stats["last_update"]
+        now - self.system_stats["last_update"]
 
         # Calculate events per minute
         window_start = now - timedelta(minutes=self.stats_window_minutes)

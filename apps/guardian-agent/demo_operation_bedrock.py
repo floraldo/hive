@@ -72,7 +72,7 @@ def demonstrate_bedrock_mission():
         },
     ]
 
-    for i, phase in enumerate(phases, 1):
+    for _i, phase in enumerate(phases, 1):
         status_icon = "[COMPLETE]" if phase["status"] == "COMPLETED" else "[ACTIVE]"
         print(f"\n{status_icon} {phase['phase']}")
         print(f"Status: {phase['status']}")

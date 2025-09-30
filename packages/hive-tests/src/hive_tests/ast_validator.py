@@ -475,6 +475,7 @@ class EnhancedValidator:
         self._validate_unified_tool_configuration()
         self._validate_pyproject_dependency_usage()
         self._validate_cli_pattern_consistency()
+        self._validate_test_coverage_mapping()
 
         # Group violations by rule,
         violations_by_rule = {}
@@ -824,6 +825,7 @@ class EnhancedValidator:
                     )
             except:
                 continue
+
     def _validate_single_config_source(self) -> None:
         """Golden Rule 4: Single Config Source"""
         # Check for forbidden duplicate configuration files
@@ -841,7 +843,11 @@ class EnhancedValidator:
 
         # Check for setup.py files
         for setup_file in self.project_root.rglob("setup.py"):
-            if ".venv" not in str(setup_file) and ".worktrees" not in str(setup_file) and "site-packages" not in str(setup_file):
+            if (
+                ".venv" not in str(setup_file)
+                and ".worktrees" not in str(setup_file)
+                and "site-packages" not in str(setup_file)
+            ):
                 self.violations.append(
                     Violation(
                         rule_id="rule-4",
@@ -892,6 +898,7 @@ class EnhancedValidator:
                         message="Root pyproject.toml is invalid",
                     )
                 )
+
     def _validate_service_layer_discipline(self) -> None:
         """Golden Rule 7: Service Layer Discipline"""
         apps_dir = self.project_root / "apps"
@@ -947,7 +954,7 @@ class EnhancedValidator:
                                         if line.strip().startswith("class ") and not line.strip().startswith("class _"):
                                             if i + 1 < len(lines):
                                                 next_line = lines[i + 1].strip()
-                                                triple_quote = '"""' if '"""' in next_line[:10] else "\'\'\'"
+                                                triple_quote = '"""' if '"""' in next_line[:10] else "'''"
                                                 if not next_line.startswith(triple_quote):
                                                     class_name = line.strip().split()[1].split("(")[0].rstrip(":")
                                                     self.violations.append(
@@ -961,6 +968,7 @@ class EnhancedValidator:
                                                     )
                             except:
                                 continue
+
     def _validate_unified_tool_configuration(self) -> None:
         """Golden Rule 23: Unified Tool Configuration"""
         forbidden_tools = ["ruff", "black", "mypy", "isort"]
@@ -1005,6 +1013,7 @@ class EnhancedValidator:
                     )
             except:
                 pass
+
     def _validate_pyproject_dependency_usage(self) -> None:
         """Golden Rule 22: Pyproject Dependency Usage"""
         for base_dir_name in ["apps", "packages"]:
@@ -1074,6 +1083,7 @@ class EnhancedValidator:
                         )
                 except:
                     continue
+
     def _validate_cli_pattern_consistency(self) -> None:
         """Golden Rule 16: CLI Pattern Consistency"""
         cli_files = []
@@ -1089,10 +1099,12 @@ class EnhancedValidator:
                     file_content = f.read()
 
                 # Check for CLI framework usage
-                has_cli_framework = ("import click" in file_content or 
-                                    "import typer" in file_content or 
-                                    "from click" in file_content or 
-                                    "from typer" in file_content)
+                has_cli_framework = (
+                    "import click" in file_content
+                    or "import typer" in file_content
+                    or "from click" in file_content
+                    or "from typer" in file_content
+                )
 
                 if has_cli_framework:
                     # Check for Rich for output formatting
@@ -1111,3 +1123,106 @@ class EnhancedValidator:
             except:
                 continue
 
+    def _validate_test_coverage_mapping(self) -> None:
+        """Golden Rule 18: Test-to-Source File Mapping
+
+        Enforces 1:1 mapping between source files and unit test files to ensure
+        comprehensive test coverage and maintainability.
+
+        Rules:
+        1. Every .py file in src/ should have a corresponding test file
+        2. Test files should follow naming convention: test_<module_name>.py
+        3. Test files should be in tests/unit/ or tests/ directory
+        4. Core modules must have unit tests (business logic)
+        """
+        # Check packages directory
+        packages_dir = self.project_root / "packages"
+        if packages_dir.exists():
+            for package_dir in packages_dir.iterdir():
+                if not package_dir.is_dir() or package_dir.name.startswith("."):
+                    continue
+
+                src_dir = package_dir / "src"
+                if not src_dir.exists():
+                    continue
+
+                tests_dir = package_dir / "tests"
+                unit_tests_dir = tests_dir / "unit" if tests_dir.exists() else None
+
+                # Collect source files (excluding __init__.py)
+                for py_file in src_dir.rglob("*.py"):
+                    if py_file.name == "__init__.py" or "__pycache__" in str(py_file):
+                        continue
+
+                    # Get relative path from src directory
+                    rel_path = py_file.relative_to(src_dir)
+
+                    # Convert source path to expected test file name
+                    # e.g., hive_config/loader.py -> test_loader.py
+                    module_parts = rel_path.with_suffix("").parts
+                    if len(module_parts) > 1:
+                        # Multi-level: hive_config/submodule/file.py -> test_submodule_file.py
+                        test_file_name = f"test_{'_'.join(module_parts[1:])}.py"
+                    else:
+                        test_file_name = f"test_{module_parts[0]}.py"
+
+                    # Check for test file in unit_tests_dir or tests_dir
+                    test_file_found = False
+
+                    if unit_tests_dir and unit_tests_dir.exists():
+                        expected_test_path = unit_tests_dir / test_file_name
+                        if expected_test_path.exists():
+                            test_file_found = True
+
+                    if not test_file_found and tests_dir and tests_dir.exists():
+                        fallback_test_path = tests_dir / test_file_name
+                        if fallback_test_path.exists():
+                            test_file_found = True
+
+                    if not test_file_found:
+                        self.violations.append(
+                            Violation(
+                                rule_id="rule-18",
+                                rule_name="Test Coverage Mapping",
+                                file_path=py_file,
+                                line_number=1,
+                                message=f"Missing test file for {package_dir.name}:{rel_path} - expected {test_file_name} in tests/unit/ or tests/",
+                            )
+                        )
+
+        # Check apps for core modules
+        apps_dir = self.project_root / "apps"
+        if apps_dir.exists():
+            for app_dir in apps_dir.iterdir():
+                if not app_dir.is_dir() or app_dir.name.startswith("."):
+                    continue
+
+                # Look for core modules (business logic)
+                core_dir = app_dir / "src" / app_dir.name / "core"
+                if core_dir.exists():
+                    tests_dir = app_dir / "tests"
+
+                    for py_file in core_dir.rglob("*.py"):
+                        if py_file.name == "__init__.py" or "__pycache__" in str(py_file):
+                            continue
+
+                        rel_path = py_file.relative_to(core_dir)
+                        test_file_name = f"test_{rel_path.stem}.py"
+
+                        # Search for test file anywhere in tests directory
+                        test_exists = False
+                        if tests_dir.exists():
+                            for _test_file in tests_dir.rglob(test_file_name):
+                                test_exists = True
+                                break
+
+                        if not test_exists:
+                            self.violations.append(
+                                Violation(
+                                    rule_id="rule-18",
+                                    rule_name="Test Coverage Mapping",
+                                    file_path=py_file,
+                                    line_number=1,
+                                    message=f"Missing test for core module {app_dir.name}:core/{rel_path} - core business logic should have unit tests",
+                                )
+                            )

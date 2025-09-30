@@ -217,7 +217,8 @@ class TestMalformedInput:
         binary_content = b"\x00\x01\x02\x03\xff\xfe"
 
         with patch(
-            "builtins.open", MagicMock(side_effect=UnicodeDecodeError("utf-8", binary_content, 0, 1, "invalid")),
+            "builtins.open",
+            MagicMock(side_effect=UnicodeDecodeError("utf-8", binary_content, 0, 1, "invalid")),
         ):
             result = await engine.review_file(Path("binary.py"))
 
@@ -247,7 +248,7 @@ def func2():
         result = await analyzer.analyze(Path("circular.py"), circular_code)
 
         # Should detect potential circular import
-        circular_violations = [v for v in result.violations if "circular" in v.message.lower()]
+        [v for v in result.violations if "circular" in v.message.lower()]
         # May or may not detect depending on implementation
         assert result is not None
 

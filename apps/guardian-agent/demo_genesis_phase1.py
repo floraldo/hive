@@ -153,7 +153,7 @@ Small business owners and their staff members.
 
     try:
         warehouse = MetricsWarehouse()
-        data_layer = DataUnificationLayer(warehouse)
+        DataUnificationLayer(warehouse)
 
         # Simulate design document processing
         print("Processing design documents...")
@@ -466,5 +466,3 @@ async def simulate_prophecy_analysis():
 
 if __name__ == "__main__":
     asyncio.run(demonstrate_genesis_phase1())
-
-

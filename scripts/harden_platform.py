@@ -90,7 +90,6 @@ class HardenPlatform:
         for file_path in files_to_check:
             try:
                 content = file_path.read_text(encoding="utf-8")
-                original_content = content
                 modified = False
 
                 # Find async functions without _async suffix
@@ -182,7 +181,10 @@ class HardenPlatform:
 
                     # Remove DI fallback blocks
                     content = re.sub(
-                        r"if\s+config\s+is\s+None:\s*\n\s+config\s*=\s*load_config\(\)", "", content, flags=re.MULTILINE,
+                        r"if\s+config\s+is\s+None:\s*\n\s+config\s*=\s*load_config\(\)",
+                        "",
+                        content,
+                        flags=re.MULTILINE,
                     )
 
                     if content != original_content:

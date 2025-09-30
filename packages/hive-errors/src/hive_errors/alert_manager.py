@@ -124,7 +124,10 @@ class PredictiveAlertManager:
         return self.configs.get((service_name, metric_type))
 
     async def analyze_metrics_async(
-        self, service_name: str, metric_type: MetricType, metrics: list[MetricPoint],
+        self,
+        service_name: str,
+        metric_type: MetricType,
+        metrics: list[MetricPoint],
     ) -> DegradationAlert | None:
         """
         Analyze metric trend and generate alert if degradation detected.
@@ -410,7 +413,7 @@ class PredictiveAlertManager:
             logger.warning(f"Alert not found: {alert_id}")
             return False
 
-        alert = self.active_alerts.pop(alert_id)
+        self.active_alerts.pop(alert_id)
 
         logger.info(f"Alert resolved: {alert_id} - {resolution_note}")
 
@@ -419,7 +422,9 @@ class PredictiveAlertManager:
         return True
 
     def get_active_alerts(
-        self, service_name: str | None = None, severity: AlertSeverity | None = None,
+        self,
+        service_name: str | None = None,
+        severity: AlertSeverity | None = None,
     ) -> list[DegradationAlert]:
         """
         Get currently active alerts with optional filtering.

@@ -14,7 +14,7 @@ This module defines the common service interface that all profile loaders
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 import xarray as xr
 
@@ -130,7 +130,7 @@ class BaseProfileService(ABC):
 class ProfileServiceError(Exception):
     """Base exception for profile service errors."""
 
-    def __init__(self, message: str, error_code: str | None = None, details: Optional[dict[str, Any]] = None):
+    def __init__(self, message: str, error_code: str | None = None, details: dict[str, Any] | None = None):
         super().__init__(message)
         self.error_code = error_code
         self.details = details or {}

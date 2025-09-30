@@ -35,7 +35,10 @@ except ImportError:
 
     class CircuitBreaker:
         def __init__(
-            self, failure_threshold: int = 5, recovery_timeout: int = 60, expected_exception: type = Exception,
+            self,
+            failure_threshold: int = 5,
+            recovery_timeout: int = 60,
+            expected_exception: type = Exception,
         ):
             self.failure_threshold = failure_threshold
             self.recovery_timeout = recovery_timeout
@@ -145,7 +148,7 @@ class TestCircuitBreakerResilience:
         protected_service.dependency.failure_rate = 0.0
 
         # Make several successful requests
-        for i in range(5):
+        for _i in range(5):
             response = await protected_service.get_data()
             assert response["status"] == "success"
             assert "data" in response
@@ -164,7 +167,7 @@ class TestCircuitBreakerResilience:
         responses = []
 
         # Make requests until circuit breaker opens
-        for i in range(6):  # More than failure threshold (3)
+        for _i in range(6):  # More than failure threshold (3)
             response = await protected_service.get_data()
             responses.append(response)
 
@@ -183,7 +186,7 @@ class TestCircuitBreakerResilience:
         protected_service.dependency.failure_rate = 1.0
 
         # Trigger failures to open circuit breaker
-        for i in range(4):
+        for _i in range(4):
             await protected_service.get_data()
 
         assert protected_service.circuit_breaker.state == CircuitBreakerState.OPEN
@@ -215,7 +218,7 @@ class TestCircuitBreakerResilience:
 
         # Make many concurrent requests
         tasks = []
-        for i in range(20):
+        for _i in range(20):
             task = asyncio.create_task(protected_service.get_data())
             tasks.append(task)
 
@@ -243,7 +246,7 @@ class TestCircuitBreakerResilience:
         responses = []
 
         # Make many requests to trigger mixed success/failure
-        for i in range(20):
+        for _i in range(20):
             response = await protected_service.get_data()
             responses.append(response)
 
@@ -270,7 +273,7 @@ class TestCircuitBreakerResilience:
         protected_service.dependency.failure_rate = 0.3
 
         # Make requests and collect metrics
-        for i in range(15):
+        for _i in range(15):
             await protected_service.get_data()
             await asyncio.sleep(0.01)
 
@@ -317,7 +320,7 @@ class TestServiceResilienceIntegration:
         service2.failure_rate = 0.0
 
         # Trigger failures in service1
-        for i in range(4):
+        for _i in range(4):
             await protected_service1.get_data()
 
         # Service1 circuit breaker should be open

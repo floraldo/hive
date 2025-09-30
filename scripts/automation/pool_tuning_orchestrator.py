@@ -22,7 +22,7 @@ import json
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -101,7 +101,7 @@ class PoolTuningOrchestrator:
         """Load execution history from disk."""
         if self.execution_history_file.exists():
             try:
-                with open(self.execution_history_file, "r") as f:
+                with open(self.execution_history_file) as f:
                     return json.load(f)
             except Exception as e:
                 logger.error(f"Failed to load execution history: {e}")
@@ -129,7 +129,7 @@ class PoolTuningOrchestrator:
             return []
 
         try:
-            with open(self.recommendations_file, "r") as f:
+            with open(self.recommendations_file) as f:
                 data = json.load(f)
 
             recommendations = []
@@ -391,7 +391,9 @@ class PoolTuningOrchestrator:
             return False
 
     async def execute_tuning_async(
-        self, recommendation: TuningRecommendation, dry_run: bool = False,
+        self,
+        recommendation: TuningRecommendation,
+        dry_run: bool = False,
     ) -> TuningExecution:
         """
         Execute a tuning recommendation.
@@ -437,7 +439,8 @@ class PoolTuningOrchestrator:
             # Step 3: Apply new configuration
             if not dry_run:
                 success = await self.apply_configuration_async(
-                    recommendation.service_name, recommendation.recommended_config,
+                    recommendation.service_name,
+                    recommendation.recommended_config,
                 )
 
                 if not success:
@@ -448,7 +451,8 @@ class PoolTuningOrchestrator:
             # Step 4: Monitor after change
             logger.info(f"Monitoring for {self.monitoring_window_minutes} minutes...")
             execution.metrics_after = await self.monitor_metrics_async(
-                recommendation.service_name, duration_minutes=self.monitoring_window_minutes,
+                recommendation.service_name,
+                duration_minutes=self.monitoring_window_minutes,
             )
 
             # Step 5: Check if rollback needed
@@ -461,7 +465,8 @@ class PoolTuningOrchestrator:
 
                 if not dry_run:
                     rollback_success = await self.rollback_configuration_async(
-                        recommendation.service_name, recommendation.current_config,
+                        recommendation.service_name,
+                        recommendation.current_config,
                     )
 
                     if rollback_success:
@@ -522,7 +527,10 @@ class PoolTuningOrchestrator:
             logger.error(f"Failed to commit to git: {e}")
 
     async def run_orchestration_async(
-        self, service_filter: str | None = None, dry_run: bool = False, skip_maintenance_check: bool = False,
+        self,
+        service_filter: str | None = None,
+        dry_run: bool = False,
+        skip_maintenance_check: bool = False,
     ) -> list[TuningExecution]:
         """
         Run complete orchestration workflow.
@@ -607,7 +615,9 @@ async def main():
     elif args.apply:
         logger.info("Applying tuning recommendations...")
         executions = await orchestrator.run_orchestration_async(
-            service_filter=args.service, dry_run=args.dry_run, skip_maintenance_check=args.skip_maintenance_check,
+            service_filter=args.service,
+            dry_run=args.dry_run,
+            skip_maintenance_check=args.skip_maintenance_check,
         )
 
         print("\n" + "=" * 80)

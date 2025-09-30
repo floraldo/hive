@@ -1,0 +1,34 @@
+[app]
+name = "qr-service"
+version = "1.0.0"
+description = "Quick response service for fast lookups and status checks"
+type = "service"
+
+[service]
+description = "Fast lookup and quick response API service"
+command = "python main.py"
+port = 8004
+restart_on_failure = true
+
+[capabilities]
+queries = ["status-check", "quick-lookup", "health-ping"]
+response_time = "sub-second"
+caching_enabled = true
+autonomous = false
+
+[integration]
+database = "hive-core-db"
+integrates_with = ["hive-orchestrator"]
+cache_backend = "redis"
+status_tracking = true
+
+[performance]
+max_response_time_ms = 500
+connection_pool_size = 20
+cache_ttl_seconds = 300
+
+[monitoring]
+heartbeat_interval = 15
+health_check_endpoint = "/health"
+metrics_enabled = true
+performance_metrics = ["requests_per_second", "avg_response_time", "cache_hit_rate"]

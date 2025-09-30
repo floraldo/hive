@@ -7,9 +7,9 @@ These tests ensure all modules can be imported without errors.
 
 from __future__ import annotations
 
-import pytest
 
 def test_logger_imports():
     """Smoke test: logger module imports successfully."""
     from hive_logging.logger import setup_logging
+
     assert setup_logging is not None

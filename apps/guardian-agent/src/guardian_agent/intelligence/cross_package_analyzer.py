@@ -323,29 +323,43 @@ async with get_async_session() as session:
             ),
             # Configuration Integration Patterns,
             IntegrationPattern(
-                name="Centralized Configuration",
-                description="Replace hardcoded values with hive-config management",
+                name="Centralized Configuration with DI",
+                description="Replace hardcoded values with dependency-injected configuration",
                 source_package="hive-config",
                 target_use_case="Hardcoded configuration values",
                 detection_pattern=r"['\"][a-zA-Z0-9._-]+['\"].*=.*['\"][^'\"]*['\"]",
                 context_indicators=["config", "settings", "env", "parameter"],
-                required_import="from hive_config import get_config",
+                required_import="from hive_config import HiveConfig, create_config_from_sources",
                 replacement_code=""",
 # Before: Hardcoded values,
 API_KEY = "sk-1234567890",
 MAX_RETRIES = 3,
 TIMEOUT = 30
 
-# After: Centralized configuration,
-from hive_config import get_config,
-config = get_config()
-API_KEY = config.api_key,
-MAX_RETRIES = config.max_retries,
-TIMEOUT = config.timeout_seconds,
+# After: Dependency injection pattern (RECOMMENDED),
+from hive_config import HiveConfig, create_config_from_sources
+
+class MyService:
+    def __init__(self, config: HiveConfig | None = None):
+        # Dependency injection with sensible default
+        self._config = config or create_config_from_sources()
+
+        # Extract configuration values
+        self.api_key = self._config.api_key
+        self.max_retries = self._config.max_retries
+        self.timeout = self._config.timeout_seconds
+
+# Usage in production:
+config = create_config_from_sources()
+service = MyService(config=config)
+
+# Usage in tests:
+test_config = HiveConfig(api_key="test-key", max_retries=1)
+service = MyService(config=test_config)
 """,
-                maintainability_improvement="Environment-specific configuration",
-                estimated_effort="30 minutes",
-                success_rate=0.87,
+                maintainability_improvement="Environment-specific configuration with explicit dependencies, testable, thread-safe",
+                estimated_effort="30-45 minutes",
+                success_rate=0.92,
             ),
             # AI Integration Patterns,
             IntegrationPattern(
@@ -386,49 +400,49 @@ response = await pool.generate_async(
         """Map the capabilities provided by each hive package."""
 
         return {
-            "hive-cache": {,
+            "hive-cache": {
                 "primary_functions": ["caching", "performance", "resilience"],
                 "classes": ["ClaudeAPICache", "ModelResponseCache", "HttpCache"],
                 "use_cases": ["api_responses", "model_outputs", "expensive_computations"],
                 "performance_impact": "high",
                 "reliability_impact": "high",
             },
-            "hive-errors": {,
+            "hive-errors": {
                 "primary_functions": ["error_handling", "monitoring", "debugging"],
                 "classes": ["ValidationError", "ConnectionError", "ProcessingError"],
                 "use_cases": ["structured_exceptions", "error_categorization", "monitoring"],
                 "performance_impact": "low",
                 "reliability_impact": "high",
             },
-            "hive-async": {,
+            "hive-async": {
                 "primary_functions": ["concurrency", "resilience", "timeouts"],
                 "classes": ["async_retry", "TimeoutManager", "ExponentialBackoff"],
                 "use_cases": ["retry_logic", "timeout_handling", "concurrent_operations"],
                 "performance_impact": "medium",
                 "reliability_impact": "very_high",
             },
-            "hive-logging": {,
+            "hive-logging": {
                 "primary_functions": ["observability", "debugging", "monitoring"],
                 "classes": ["get_logger", "StructuredLogger"],
                 "use_cases": ["standardized_logging", "structured_output", "correlation_ids"],
                 "performance_impact": "low",
                 "reliability_impact": "medium",
             },
-            "hive-db": {,
+            "hive-db": {
                 "primary_functions": ["data_persistence", "transactions", "connections"],
                 "classes": ["get_async_session", "DatabaseManager"],
                 "use_cases": ["connection_pooling", "transaction_management", "async_queries"],
                 "performance_impact": "high",
                 "reliability_impact": "high",
             },
-            "hive-config": {,
+            "hive-config": {
                 "primary_functions": ["configuration", "environment_management"],
-                "classes": ["get_config", "ConfigManager"],
-                "use_cases": ["environment_variables", "configuration_validation"],
+                "classes": ["create_config_from_sources", "HiveConfig"],
+                "use_cases": ["environment_variables", "configuration_validation", "dependency_injection"],
                 "performance_impact": "low",
                 "reliability_impact": "medium",
             },
-            "hive-ai": {,
+            "hive-ai": {
                 "primary_functions": ["ai_optimization", "model_management", "cost_control"],
                 "classes": ["ModelPool", "CostTracker", "ModelClient"],
                 "use_cases": ["model_routing", "cost_optimization", "fallback_handling"],
@@ -565,7 +579,7 @@ response = await pool.generate_async(
                 if (
                     isinstance(node.func, ast.Attribute)
                     and isinstance(node.func.value, ast.Name)
-and node.func.value.id == "time"
+                    and node.func.value.id == "time"
                     and node.func.attr == "sleep"
                 ):
                     # Look for retry patterns in surrounding context,
@@ -739,7 +753,7 @@ and node.func.value.id == "time"
         # Check for AI model calls without optimization
         if (
             ("openai" in content or "anthropic" in content)
-and "hive_ai" not in current_hive_imports
+            and "hive_ai" not in current_hive_imports
             and "hive_cache" not in current_hive_imports
         ):
             missing.append(
@@ -905,12 +919,12 @@ and "hive_ai" not in current_hive_imports
                     "effort": opp.estimated_effort,
                     "business_value": opp.business_value,
                 }
-                for opp in top_opportunities,
+                for opp in top_opportunities
             ],
             "quick_wins": [
                 {"file": opp.file_path, "suggestion": opp.suggested_pattern, "effort": opp.estimated_effort}
-                for opp in opportunities,
-                if opp.estimated_effort.startswith(("15", "30")) and opp.confidence > 0.9,
+                for opp in opportunities
+                if opp.estimated_effort.startswith(("15", "30")) and opp.confidence > 0.9
             ][:5],
         }
 
@@ -940,6 +954,3 @@ and "hive_ai" not in current_hive_imports
                     total_hours += 0.5
 
         return total_hours
-
-
-

@@ -324,7 +324,7 @@ async def test_main_function_async():
     """Test the main function entry point"""
     with (
         patch("ai_deployer.agent.DeploymentAgent") as mock_agent_class,
-        patch("ai_deployer.agent.asyncio.run") as mock_run,
+        patch("ai_deployer.agent.asyncio.run"),
         patch("sys.argv", ["agent.py", "--test-mode"]),
     ):
         mock_agent = Mock()

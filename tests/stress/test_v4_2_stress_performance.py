@@ -282,11 +282,10 @@ class TestV42StressPerformance:
     @pytest.mark.asyncio
     async def test_memory_stability_stress(self, stress_runner):
         """Test memory stability under prolonged stress."""
-        memory_samples = []
 
         async def memory_intensive_operation(worker_id):
             # Simulate memory-intensive operation
-            data = [i for i in range(1000)]  # Create some data
+            data = list(range(1000))  # Create some data
             processed = [x * 2 for x in data]  # Process it
             result = sum(processed)  # Aggregate
 
@@ -300,7 +299,9 @@ class TestV42StressPerformance:
 
         # Run extended stress test
         results = await stress_runner.run_stress_test(
-            memory_intensive_operation, duration_seconds=60, concurrent_workers=30,
+            memory_intensive_operation,
+            duration_seconds=60,
+            concurrent_workers=30,
         )
 
         # Verify memory stability
@@ -349,7 +350,6 @@ class TestV42StressPerformance:
     @pytest.mark.asyncio
     async def test_burst_traffic_handling(self, stress_runner, mock_ai_planner):
         """Test handling of burst traffic patterns."""
-        burst_results = []
 
         async def burst_operation(worker_id):
             # Simulate burst pattern
@@ -376,7 +376,6 @@ class TestV42StressPerformance:
     @pytest.mark.asyncio
     async def test_sustained_load_endurance(self, stress_runner, mock_cache_client):
         """Test system endurance under sustained load."""
-        throughput_samples = []
 
         async def sustained_operation(worker_id):
             # Continuous operation pattern
@@ -469,7 +468,9 @@ class TestV42RegressionValidation:
                 await mock_ai_planner.generate_plan_async(task_id)
 
             results = await stress_runner.run_stress_test(
-                scalability_operation, duration_seconds=10, concurrent_workers=concurrency,
+                scalability_operation,
+                duration_seconds=10,
+                concurrent_workers=concurrency,
             )
 
             scalability_results[concurrency] = results["throughput"]
@@ -493,7 +494,6 @@ class TestV42RegressionValidation:
 
         async def resource_operation(worker_id):
             # Simulate resource usage patterns
-            start_memory = 0  # Mock memory tracking
             start_cpu = time.process_time()
 
             # Perform work

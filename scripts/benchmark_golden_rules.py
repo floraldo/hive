@@ -54,23 +54,27 @@ def main():
     # Benchmark 1: Incremental validation (first run - no cache)
     print("1. INCREMENTAL VALIDATION (First Run - Building Cache)")
     print("-" * 80)
-    elapsed1, output1 = run_command([
-        sys.executable,
-        "scripts/validate_golden_rules.py",
-        "--incremental",
-        "--clear-cache",
-    ])
+    elapsed1, output1 = run_command(
+        [
+            sys.executable,
+            "scripts/validate_golden_rules.py",
+            "--incremental",
+            "--clear-cache",
+        ]
+    )
     print(f"Time: {elapsed1:.2f}s")
     print()
 
     # Benchmark 2: Incremental validation (second run - with cache)
     print("2. INCREMENTAL VALIDATION (Second Run - With Cache)")
     print("-" * 80)
-    elapsed2, output2 = run_command([
-        sys.executable,
-        "scripts/validate_golden_rules.py",
-        "--incremental",
-    ])
+    elapsed2, output2 = run_command(
+        [
+            sys.executable,
+            "scripts/validate_golden_rules.py",
+            "--incremental",
+        ]
+    )
     print(f"Time: {elapsed2:.2f}s")
     improvement = ((elapsed1 - elapsed2) / elapsed1) * 100 if elapsed1 > 0 else 0
     print(f"Cache improvement: {improvement:.1f}%")
@@ -84,7 +88,7 @@ def main():
     print(f"Second run (cached):   {elapsed2:.2f}s")
     print(f"Cache speedup:         {improvement:.1f}%")
     print()
-    print(f"Target: 0.5-2s incremental, 0.1-0.5s cached")
+    print("Target: 0.5-2s incremental, 0.1-0.5s cached")
     print(f"Status: {'PASS' if elapsed2 < 2.0 else 'NEEDS OPTIMIZATION'}")
 
 

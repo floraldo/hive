@@ -202,7 +202,7 @@ if __name__ == '__main__':
                 print("   [OK] Generated Flask application with certification markers")
 
             # Simulate processing time
-            for j in range(duration):
+            for _j in range(duration):
                 print("   .", end="", flush=True)
                 time.sleep(0.3)
             print(" [OK]")
@@ -225,7 +225,10 @@ if __name__ == '__main__':
 
         # Start the service in background
         proc = subprocess.Popen(
-            ["python", str(hello_service_path)], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            ["python", str(hello_service_path)],
+            cwd=Path.cwd(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
 
         background_processes.append(proc)

@@ -7,15 +7,16 @@ These tests ensure all modules can be imported without errors.
 
 from __future__ import annotations
 
-import pytest
 
 def test_base_imports():
     """Smoke test: base module imports successfully."""
     import hive_models.base
+
     assert hive_models.base is not None
 
 
 def test_common_imports():
     """Smoke test: common module imports successfully."""
     from hive_models.common import Status
+
     assert Status is not None

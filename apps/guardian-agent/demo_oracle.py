@@ -71,8 +71,13 @@ except ImportError:
     console = MockConsole()
     Panel = MockPanel
     Progress = MockProgress
-    SpinnerColumn = lambda: None
-    TextColumn = lambda x: None
+
+    def SpinnerColumn():
+        return None
+
+    def TextColumn(x):
+        return None
+
     Table = MockTable
 
 from guardian_agent.intelligence.data_unification import MetricType, UnifiedMetric
@@ -243,7 +248,7 @@ async def demo_mission_control(oracle: OracleService):
         task = progress.add_task("Loading dashboard data...", total=None)
 
         # Get platform health
-        health = await oracle.get_platform_health_async()
+        await oracle.get_platform_health_async()
         cost_intel = await oracle.get_cost_intelligence_async()
 
         progress.remove_task(task)
@@ -266,7 +271,8 @@ async def demo_mission_control(oracle: OracleService):
 
     for name, score, status in components:
         status_color = {"Excellent": "green", "Good": "blue", "Warning": "yellow", "Critical": "red"}.get(
-            status, "white",
+            status,
+            "white",
         )
 
         health_table.add_row(name, f"{score}%", f"[{status_color}]{status}[/{status_color}]")

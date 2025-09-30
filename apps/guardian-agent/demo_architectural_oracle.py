@@ -69,7 +69,7 @@ async def demo_architectural_oracle():
     console.print("\n🏗️  [bold]Initializing Architectural Intelligence System...[/bold]")
 
     warehouse = MetricsWarehouse()
-    data_layer = DataUnificationLayer(warehouse)
+    DataUnificationLayer(warehouse)
 
     await asyncio.sleep(1)  # Simulate initialization
 

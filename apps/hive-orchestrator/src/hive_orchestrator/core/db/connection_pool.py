@@ -5,13 +5,14 @@ Connection Pool for Hive Database
 Optimized connection pooling to reduce database connection overhead.
 Provides 35-70% performance improvement for database operations.
 """
+
 from __future__ import annotations
 
 import sqlite3
 import threading
 from contextlib import contextmanager
 from queue import Empty, Full, Queue
-from typing import Any, Optional
+from typing import Any
 
 from hive_config.paths import DB_PATH, ensure_directory
 from hive_logging import get_logger
@@ -36,7 +37,7 @@ class ConnectionPool:
         min_connections: int = None,
         max_connections: int = None,
         connection_timeout: float = None,
-        db_config: Optional[dict[str, Any]] = None
+        db_config: dict[str, Any] | None = None,
     ):
         """
         Initialize connection pool.
@@ -182,7 +183,7 @@ class ConnectionPool:
             "pool_size": self._pool.qsize(),
             "connections_created": self._connections_created,
             "max_connections": self.max_connections,
-            "min_connections": self.min_connections
+            "min_connections": self.min_connections,
         }
 
 

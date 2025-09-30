@@ -224,7 +224,7 @@ class HiveStatus:
 
         # Load data
         tasks = self.load_tasks()
-        queue = self.load_queue()
+        self.load_queue()
 
         # Task statistics
         stats = defaultdict(int)

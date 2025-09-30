@@ -199,8 +199,6 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
         log("QR CODE SERVICE CERTIFICATION TEST")
         log("=" * 60)
 
-        success = True
-
         try:
             # Create service
             if not self.create_qr_service():

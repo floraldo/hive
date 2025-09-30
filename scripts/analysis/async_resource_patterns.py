@@ -141,9 +141,9 @@ async def example_proper_resource_management():
         await pool.close()
 
     # 4. Safe gathering
-    results = await safe_gather(operation1(), operation2(), operation3(), return_exceptions=True)
+    await safe_gather(operation1(), operation2(), operation3(), return_exceptions=True)
 
     # 5. Protected state
     state_lock = AsyncStateLock()
     await state_lock.update_state("counter", 1)
-    value = await state_lock.get_state("counter")
+    await state_lock.get_state("counter")

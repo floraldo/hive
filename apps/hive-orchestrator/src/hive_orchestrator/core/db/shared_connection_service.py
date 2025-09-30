@@ -5,15 +5,15 @@ Shared Database Connection Service
 Provides connection pooling for multiple SQLite databases across the Hive platform.
 Consolidates connection management while maintaining database isolation.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import sqlite3
 import threading
 from contextlib import contextmanager
 from pathlib import Path
 from queue import Empty, Full, Queue
-from typing import Any, Dict
+from typing import Any
 
 from hive_config.paths import ensure_directory
 from hive_logging import get_logger
@@ -34,11 +34,7 @@ class DatabaseConnectionPool:
     """
 
     def __init__(
-        self,
-        db_path: Path,
-        min_connections: int = 2,
-        max_connections: int = 10,
-        connection_timeout: float = 30.0
+        self, db_path: Path, min_connections: int = 2, max_connections: int = 10, connection_timeout: float = 30.0
     ):
         """
         Initialize connection pool for a specific database.
@@ -173,7 +169,7 @@ class DatabaseConnectionPool:
 
         logger.info(f"Connection pool closed for {self.db_path.name}")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get pool statistics."""
         return {
             "db_path": str(self.db_path),
@@ -192,13 +188,13 @@ class SharedDatabaseService:
     while maintaining connection pooling and proper resource management.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
         """Initialize the shared database service with DI support.
 
         Args:
             config: Optional configuration dictionary for database settings
         """
-        self._pools: Dict[str, DatabaseConnectionPool] = {}
+        self._pools: dict[str, DatabaseConnectionPool] = {}
         self._lock = threading.RLock()
         self._config = config or {}
 
@@ -223,7 +219,7 @@ class SharedDatabaseService:
                         db_path=db_path,
                         min_connections=2,
                         max_connections=db_config.get("max_connections", 10),
-                        connection_timeout=db_config.get("connection_timeout", 30.0)
+                        connection_timeout=db_config.get("connection_timeout", 30.0),
                     )
                     logger.info(f"Created connection pool for database: {db_name}")
 
@@ -257,12 +253,12 @@ class SharedDatabaseService:
 
             self._pools.clear()
 
-    def get_all_stats(self) -> Dict[str, Dict[str, Any]]:
+    def get_all_stats(self) -> dict[str, dict[str, Any]]:
         """Get statistics for all connection pools."""
         with self._lock:
             return {db_name: pool.get_stats() for db_name, pool in self._pools.items()}
 
-    def health_check(self) -> Dict[str, Any]:
+    def health_check(self) -> dict[str, Any]:
         """Perform health check on all connection pools."""
         results = {}
         with self._lock:
@@ -283,9 +279,7 @@ _shared_service: SharedDatabaseService | None = None
 _service_lock = threading.Lock()
 
 
-def get_shared_database_service(
-    config: Optional[Dict[str, Any]] = None
-) -> SharedDatabaseService:
+def get_shared_database_service(config: Optional[dict[str, Any]] = None) -> SharedDatabaseService:
     """Get or create the global shared database service with DI support.
 
     Args:
@@ -333,13 +327,13 @@ def close_all_database_pools() -> None:
         logger.info("All database connection pools closed")
 
 
-def get_database_stats() -> Dict[str, Dict[str, Any]]:
+def get_database_stats() -> dict[str, dict[str, Any]]:
     """Get statistics for all database connection pools."""
     service = get_shared_database_service()
     return service.get_all_stats()
 
 
-def database_health_check() -> Dict[str, Any]:
+def database_health_check() -> dict[str, Any]:
     """Perform health check on all database connection pools."""
     service = get_shared_database_service()
     return service.health_check()

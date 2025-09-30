@@ -56,7 +56,7 @@ async def test_cache_fix_validation():
 
         # Measure set operation
         latencies = []
-        for i in range(10):
+        for _i in range(10):
             start = time.perf_counter()
             await client.set_async(test_key, test_value, ttl_async=60)
             end = time.perf_counter()
@@ -67,9 +67,9 @@ async def test_cache_fix_validation():
 
         # Measure get operation
         latencies = []
-        for i in range(10):
+        for _i in range(10):
             start = time.perf_counter()
-            result = await client.get_async(test_key)
+            await client.get_async(test_key)
             end = time.perf_counter()
             latencies.append((end - start) * 1000)
 

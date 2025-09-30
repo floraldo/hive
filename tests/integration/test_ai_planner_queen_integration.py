@@ -29,7 +29,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "apps", "ai-pla
 # Import components to test
 from ai_planner.agent import AIPlanner
 from hive_orchestrator.core.db import database_enhanced_optimized as db_enhanced
-from hive_orchestrator.core.db.database import get_connection
 
 
 class TestAIPlannerQueenIntegration:
@@ -47,7 +46,6 @@ class TestAIPlannerQueenIntegration:
         conn.close()
 
         # Mock get_connection to use test DB
-        original_get_connection = get_connection
 
         def mock_get_connection():
             return sqlite3.connect(db_path)
@@ -301,7 +299,8 @@ class TestAIPlannerQueenIntegration:
 
         # Test enhanced task retrieval
         with patch(
-            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db),
+            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection",
+            lambda: sqlite3.connect(temp_db),
         ):
             tasks = db_enhanced.get_queued_tasks_with_planning_optimized(limit=10)
 
@@ -364,17 +363,17 @@ class TestAIPlannerQueenIntegration:
             from hive_orchestrator.core.db.database_enhanced import check_subtask_dependencies
 
             # Task 1 should be ready (no dependencies)
-            assert check_subtask_dependencies(task1_id) == True
+            assert check_subtask_dependencies(task1_id)
 
             # Task 2 should not be ready (depends on task 1)
-            assert check_subtask_dependencies(task2_id) == False
+            assert not check_subtask_dependencies(task2_id)
 
         # Complete task 1
         conn.execute("UPDATE tasks SET status = ? WHERE id = ?", ("completed", task1_id))
         conn.commit()
 
         # Now task 2 should be ready
-        assert check_subtask_dependencies(task2_id) == True
+        assert check_subtask_dependencies(task2_id)
 
         conn.close()
 
@@ -606,7 +605,8 @@ class TestAIPlannerQueenIntegration:
 
         # Test enhanced task pickup with dependencies
         with patch(
-            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection", lambda: sqlite3.connect(temp_db),
+            "hive_orchestrator.core.db.database_enhanced_optimized.get_connection",
+            lambda: sqlite3.connect(temp_db),
         ):
             tasks = db_enhanced.get_queued_tasks_with_planning_optimized(limit=10)
 
@@ -631,7 +631,7 @@ class TestAIPlannerQueenIntegration:
             from hive_orchestrator.core.db.database_enhanced import check_subtask_dependencies
 
             task3_id = f"subtask_{plan_id}_3"
-            assert check_subtask_dependencies(task3_id) == True
+            assert check_subtask_dependencies(task3_id)
 
         conn.close()
 

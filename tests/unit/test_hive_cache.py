@@ -749,7 +749,7 @@ class TestCacheIntegration:
             mock_redis_class.return_value.__aenter__.return_value = mock_redis
 
             # First few operations should fail and increment failure count
-            for i in range(3):
+            for _i in range(3):
                 with pytest.raises(CacheConnectionError):
                     await cache_client.get("test_key")
 

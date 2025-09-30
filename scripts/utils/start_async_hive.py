@@ -77,7 +77,7 @@ async def benchmark_async_performance():
 
     # Fetch 100 tasks concurrently
     task_ids = [f"task-{i}" for i in range(100)]
-    tasks = await db_ops.get_tasks_concurrent_async(task_ids)
+    await db_ops.get_tasks_concurrent_async(task_ids)
 
     concurrent_time = time.time() - start
     log.info(f"Concurrent fetch (100 tasks): {concurrent_time:.3f}s")
@@ -116,7 +116,10 @@ def main():
     """Main entry point with options"""
     parser = argparse.ArgumentParser(description="Async Hive V4.0 Launcher")
     parser.add_argument(
-        "--mode", choices=["orchestrator", "benchmark", "both"], default="orchestrator", help="Execution mode",
+        "--mode",
+        choices=["orchestrator", "benchmark", "both"],
+        default="orchestrator",
+        help="Execution mode",
     )
     parser.add_argument("--live", action="store_true", help="Enable live output")
 

@@ -7,7 +7,6 @@ when it's used but not imported.
 import ast
 import re
 from pathlib import Path
-from typing import Set
 
 
 def has_optional_usage(content: str) -> bool:

@@ -149,7 +149,7 @@ class TMYMetrics:
         return float(fs_statistic)
 
     def calculate_persistence_metrics(
-        self, data: np.ndarray, threshold_percentiles: list[float] = [10, 90]
+        self, data: np.ndarray, threshold_percentiles: list[float] = None
     ) -> dict[str, float]:
         """
         Calculate persistence metrics for extreme conditions.,
@@ -164,6 +164,8 @@ class TMYMetrics:
         Returns:
             Dictionary of persistence metrics,
         """
+        if threshold_percentiles is None:
+            threshold_percentiles = [10, 90]
         valid_data = data[~np.isnan(data)]
 
         if len(valid_data) < 24:

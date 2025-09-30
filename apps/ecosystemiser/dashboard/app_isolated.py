@@ -18,7 +18,10 @@ import streamlit as st
 
 # Page configuration
 st.set_page_config(
-    page_title="EcoSystemiser Climate Dashboard", page_icon="🌍", layout="wide", initial_sidebar_state="expanded",
+    page_title="EcoSystemiser Climate Dashboard",
+    page_icon="🌍",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
 
 # Custom CSS for better styling
@@ -162,7 +165,7 @@ def plot_correlation_matrix(df: pd.DataFrame, variables: list[str]) -> go.Figure
 
         fig = px.imshow(
             corr_matrix,
-            labels=dict(x="Variable", y="Variable", color="Correlation"),
+            labels={"x": "Variable", "y": "Variable", "color": "Correlation"},
             x=numeric_vars,
             y=numeric_vars,
             color_continuous_scale="RdBu_r",
@@ -223,7 +226,9 @@ def main() -> None:
         # Option 2: Upload file
         st.subheader("Or Upload File")
         uploaded_file = st.file_uploader(
-            "Choose a climate data file", type=["json", "csv"], help="Upload JSON or CSV file with climate data",
+            "Choose a climate data file",
+            type=["json", "csv"],
+            help="Upload JSON or CSV file with climate data",
         )
 
         if uploaded_file is not None:
@@ -319,7 +324,7 @@ def main() -> None:
                 n_rows = st.slider("Number of rows to display", 10, min(1000, len(df)), 100)
             with col2:
                 if isinstance(df.index, pd.DatetimeIndex):
-                    date_range = st.date_input(
+                    st.date_input(
                         "Date range",
                         value=(df.index[0].date(), df.index[-1].date()),
                         min_value=df.index[0].date(),

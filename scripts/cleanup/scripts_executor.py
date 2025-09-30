@@ -83,7 +83,7 @@ class ScriptsExecutor:
         op_type = operation["operation"]
         source_path = operation["source_path"]
         target_path = operation["target_path"]
-        reason = operation["reason"]
+        operation["reason"]
 
         try:
             if op_type == "create":

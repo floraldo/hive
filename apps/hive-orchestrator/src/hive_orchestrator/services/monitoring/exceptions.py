@@ -6,8 +6,10 @@ Service-specific exceptions for monitoring operations.
 
 from __future__ import annotations
 
+from hive_errors import BaseError
 
-class MonitoringServiceError(Exception):
+
+class MonitoringServiceError(BaseError):
     """Base exception for monitoring service errors"""
 
 

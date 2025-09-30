@@ -64,14 +64,10 @@ class InputValidator:
 
     # Patterns that might indicate prompt injection
     PROMPT_INJECTION_PATTERNS = [
-        r"ignore\s+previous\s+instructions"
-        r"forget\s+everything"
-        r"act\s+as\s+if",
+        r"ignore\s+previous\s+instructions" r"forget\s+everything" r"act\s+as\s+if",
         r"pretend\s+to\s+be",
         r"system\s*:\s*",
-        r"assistant\s*:\s*"
-        r"human\s*:\s*"
-        r"\\n\\n",  # Multiple newlines
+        r"assistant\s*:\s*" r"human\s*:\s*" r"\\n\\n",  # Multiple newlines
         r"\[INST\]",  # Instruction markers
         r"\[/INST\]" r"</s>",  # Special tokens
         r"<s>",
@@ -121,12 +117,10 @@ class InputValidator:
                 risk_level = "high"
 
         # Check for prompt injection patterns
-        prompt_injection_found = False
         if self.security_level in [SecurityLevel.STANDARD, SecurityLevel.STRICT]:
             for pattern in self.prompt_injection_regex:
                 if pattern.search(prompt):
                     violations.append(f"Potential prompt injection detected: {pattern.pattern}")
-                    prompt_injection_found = True
                     if risk_level != "high":
                         risk_level = "medium"
 
@@ -136,7 +130,10 @@ class InputValidator:
         is_valid = len(violations) == 0 or (self.security_level == SecurityLevel.BASIC and not injection_found)
 
         return ValidationResult(
-            is_valid=is_valid, sanitized_input=sanitized, violations=violations, risk_level=risk_level,
+            is_valid=is_valid,
+            sanitized_input=sanitized,
+            violations=violations,
+            risk_level=risk_level,
         )
 
     def _sanitize_prompt(self, prompt: str) -> str:

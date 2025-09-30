@@ -20,7 +20,6 @@ Usage:
 """
 
 import json
-import subprocess
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -133,7 +132,7 @@ class PoolConfigManager:
             return None
 
         try:
-            with open(config_file, "r") as f:
+            with open(config_file) as f:
                 data = json.load(f)
 
             config = PoolConfig(
@@ -256,7 +255,11 @@ class PoolConfigManager:
             raise
 
     def update_config(
-        self, service_name: str, new_config: dict[str, Any], change_reason: str = "", skip_validation: bool = False,
+        self,
+        service_name: str,
+        new_config: dict[str, Any],
+        change_reason: str = "",
+        skip_validation: bool = False,
     ) -> bool:
         """
         Update configuration with validation and history tracking.
@@ -276,7 +279,7 @@ class PoolConfigManager:
         if not skip_validation:
             is_valid, errors = self.validate_config(new_config)
             if not is_valid:
-                logger.error(f"Configuration validation failed:")
+                logger.error("Configuration validation failed:")
                 for error in errors:
                     logger.error(f"  - {error}")
                 return False
@@ -315,7 +318,10 @@ class PoolConfigManager:
             return False
 
     def diff_configs(
-        self, service_name: str, old_config: dict[str, Any], new_config: dict[str, Any],
+        self,
+        service_name: str,
+        old_config: dict[str, Any],
+        new_config: dict[str, Any],
     ) -> dict[str, tuple[Any, Any]]:
         """
         Generate diff between two configurations.
@@ -374,7 +380,7 @@ class PoolConfigManager:
             # Find specific version
             for history_file in history_files:
                 try:
-                    with open(history_file, "r") as f:
+                    with open(history_file) as f:
                         data = json.load(f)
                     if data["config"].get("version") == version:
                         target_file = history_file
@@ -388,7 +394,7 @@ class PoolConfigManager:
 
         # Load target config
         try:
-            with open(target_file, "r") as f:
+            with open(target_file) as f:
                 history_entry = json.load(f)
 
             target_config = history_entry["config"]
@@ -421,7 +427,7 @@ class PoolConfigManager:
         history = []
         for history_file in history_files:
             try:
-                with open(history_file, "r") as f:
+                with open(history_file) as f:
                     history.append(json.load(f))
             except Exception as e:
                 logger.warning(f"Failed to load history file {history_file}: {e}")
@@ -536,7 +542,7 @@ def main():
 
     elif args.validate:
         try:
-            with open(args.validate, "r") as f:
+            with open(args.validate) as f:
                 config = json.load(f)
             is_valid, errors = manager.validate_config(config)
             if is_valid:

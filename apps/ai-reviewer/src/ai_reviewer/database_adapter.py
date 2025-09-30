@@ -137,7 +137,7 @@ class DatabaseAdapter:
 
                 # Check worker results
                 if "worker_results" in payload:
-                    for worker, results in payload["worker_results"].items():
+                    for _worker, results in payload["worker_results"].items():
                         if isinstance(results, dict) and "test_results" in results:
                             return results["test_results"]
 

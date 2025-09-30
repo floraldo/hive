@@ -48,4 +48,5 @@ class PlotFactory:
 with open("src/ecosystemiser/datavis/plot_factory.py", "w", encoding="utf-8") as f:
     f.write(minimal_content)
 
-print("Created minimal plot_factory.py")
+logger = get_logger(__name__)
+logger.info("Created minimal plot_factory.py")

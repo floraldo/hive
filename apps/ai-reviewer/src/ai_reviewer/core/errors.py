@@ -7,14 +7,14 @@ Extends the generic error handling toolkit with AI Reviewer capabilities:
 - Claude service errors
 - AI Reviewer-specific error reporting
 """
+
 from __future__ import annotations
 
-
 import uuid
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
-from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
+from hive_errors import BaseError, BaseErrorReporter
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -36,9 +36,9 @@ class ReviewerError(BaseError):
         review_id: str | None = None,
         file_path: str | None = None,
         review_phase: str | None = None,
-        details: Optional[Dict[str, Any]] = None,
-        recovery_suggestions: Optional[List[str]] = None,
-        original_error: Exception | None = None
+        details: Optional[dict[str, Any]] = None,
+        recovery_suggestions: Optional[list[str]] = None,
+        original_error: Exception | None = None,
     ):
         """
         Initialize an AI Reviewer error with review context.
@@ -58,9 +58,9 @@ class ReviewerError(BaseError):
         reviewer_details = details or {}
 
         if review_id:
-            reviewer_details["review_id"] = review_id,
+            reviewer_details["review_id"] = (review_id,)
         if file_path:
-            reviewer_details["file_path"] = file_path,
+            reviewer_details["file_path"] = (file_path,)
         if review_phase:
             reviewer_details["review_phase"] = review_phase
 
@@ -70,16 +70,16 @@ class ReviewerError(BaseError):
             operation=operation,
             details=reviewer_details,
             recovery_suggestions=recovery_suggestions,
-            original_error=original_error
+            original_error=original_error,
         )
 
         # Store AI Reviewer-specific attributes,
-        self.review_id = review_id,
-        self.file_path = file_path,
-        self.review_phase = review_phase,
-        self.timestamp = datetime.now(timezone.utc)
+        self.review_id = (review_id,)
+        self.file_path = (file_path,)
+        self.review_phase = (review_phase,)
+        self.timestamp = datetime.now(UTC)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary with AI Reviewer context"""
         data = super().to_dict()
         data["timestamp"] = self.timestamp.isoformat()
@@ -95,11 +95,7 @@ class CodeAnalysisError(BaseError):
     """Base class for code analysis errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(
-            message=message,
-            component=kwargs.get("component", "code_analyzer")
-            **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "code_analyzer") ** kwargs)
 
 
 class FileAccessError(BaseError):
@@ -113,8 +109,8 @@ class FileAccessError(BaseError):
                 "Check file exists and is readable",
                 "Verify file permissions",
                 "Ensure file is not locked",
-                "Check disk space availability"
-            ]
+                "Check disk space availability",
+            ],
         )
 
         super().__init__(message=message, operation="file_access", **kwargs)
@@ -123,7 +119,7 @@ class FileAccessError(BaseError):
 class SyntaxAnalysisError(BaseError):
     """Error parsing or analyzing code syntax"""
 
-    def __init__(self, message: str, syntax_errors: Optional[List[str]] = None, **kwargs) -> None:
+    def __init__(self, message: str, syntax_errors: Optional[list[str]] = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if syntax_errors:
             details["syntax_errors"] = syntax_errors
@@ -135,8 +131,8 @@ class SyntaxAnalysisError(BaseError):
                 "Check code syntax for errors",
                 "Verify file encoding",
                 "Ensure complete code blocks",
-                "Use syntax-specific analysis tools"
-            ]
+                "Use syntax-specific analysis tools",
+            ],
         )
 
         super().__init__(message=message, operation="syntax_analysis", **kwargs)
@@ -151,11 +147,7 @@ class ReviewGenerationError(BaseError):
     """Base class for review generation errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(
-            message=message,
-            component=kwargs.get("component", "review_generator")
-            **kwargs
-        )
+        super().__init__(message=message, component=kwargs.get("component", "review_generator") ** kwargs)
 
 
 class ClaudeServiceError(BaseError):
@@ -166,12 +158,12 @@ class ClaudeServiceError(BaseError):
         message: str,
         api_status_code: int | None = None,
         api_response: str | None = None,
-        rate_limit_info: Optional[Dict[str, Any]] = None,
-        **kwargs
+        rate_limit_info: Optional[dict[str, Any]] = None,
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if api_status_code:
-            details["api_status_code"] = api_status_code,
+            details["api_status_code"] = (api_status_code,)
         if api_response:
             details["api_response"] = api_response[:500]  # Truncate long responses,
         if rate_limit_info:
@@ -184,13 +176,13 @@ class ClaudeServiceError(BaseError):
             kwargs["recovery_suggestions"] = [
                 "Rate limit exceeded - wait before retrying",
                 "Implement exponential backoff",
-                "Check rate limit configuration"
+                "Check rate limit configuration",
             ]
         elif api_status_code == 401:
             kwargs["recovery_suggestions"] = [
                 "Check Claude API credentials",
                 "Verify API key is valid",
-                "Check API key permissions"
+                "Check API key permissions",
             ]
         else:
             kwargs["recovery_suggestions"] = kwargs.get(
@@ -199,8 +191,8 @@ class ClaudeServiceError(BaseError):
                     "Check Claude API connectivity",
                     "Verify request format",
                     "Use fallback review mechanism",
-                    "Retry with exponential backoff"
-                ]
+                    "Retry with exponential backoff",
+                ],
             )
 
         super().__init__(message=message, operation="claude_service", **kwargs)
@@ -212,25 +204,25 @@ class ReviewValidationError(BaseError):
     def __init__(
         self,
         message: str,
-        validation_issues: Optional[List[str]] = None,
-        missing_sections: Optional[List[str]] = None,
-        **kwargs
+        validation_issues: Optional[list[str]] = None,
+        missing_sections: Optional[list[str]] = None,
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if validation_issues:
-            details["validation_issues"] = validation_issues,
+            details["validation_issues"] = (validation_issues,)
         if missing_sections:
             details["missing_sections"] = missing_sections
 
-        kwargs["details"] = details,
+        kwargs["details"] = (details,)
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions",
             [
                 "Check review format structure",
                 "Verify all required sections are present",
                 "Validate review completeness",
-                "Review schema requirements"
-            ]
+                "Review schema requirements",
+            ],
         )
 
         super().__init__(message=message, operation="review_validation", **kwargs)
@@ -244,19 +236,13 @@ class ReviewValidationError(BaseError):
 class DatabaseConnectionError(BaseError):
     """Error connecting to AI Reviewer database"""
 
-    def __init__(
-        self,
-        message: str,
-        db_path: str | None = None,
-        retry_count: int = 0,
-        **kwargs
-    ):
+    def __init__(self, message: str, db_path: str | None = None, retry_count: int = 0, **kwargs):
         details = kwargs.get("details", {})
         if db_path:
-            details["db_path"] = db_path,
+            details["db_path"] = (db_path,)
         details["retry_count"] = retry_count
 
-        kwargs["details"] = details,
+        kwargs["details"] = (details,)
         kwargs["recovery_suggestions"] = kwargs.get(
             "recovery_suggestions",
             [
@@ -264,8 +250,8 @@ class DatabaseConnectionError(BaseError):
                 "Verify file permissions",
                 "Ensure database is not locked",
                 "Check disk space availability",
-                "Use connection pooling"
-            ]
+                "Use connection pooling",
+            ],
         )
 
         super().__init__(message=message, component="database", operation="connection", **kwargs)
@@ -288,15 +274,15 @@ class ReviewerErrorReporter(BaseErrorReporter):
     def __init__(self) -> None:
         """Initialize the AI Reviewer error reporter"""
         super().__init__()
-        self.analysis_errors: List[CodeAnalysisError] = []
-        self.review_errors: List[ReviewGenerationError] = []
-        self.claude_errors: List[ClaudeServiceError] = []
+        self.analysis_errors: list[CodeAnalysisError] = []
+        self.review_errors: list[ReviewGenerationError] = []
+        self.claude_errors: list[ClaudeServiceError] = []
 
     def report_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None
+        context: Optional[dict[str, Any]] = None,
+        additional_info: Optional[dict[str, Any]] = None,
     ) -> str:
         """
         Report an error with AI Reviewer-specific handling.
@@ -356,14 +342,14 @@ class ReviewerErrorReporter(BaseErrorReporter):
         else:
             logger.error(f"Claude service error: {error.message}")
 
-    def get_error_summary(self) -> Dict[str, Any]:
+    def get_error_summary(self) -> dict[str, Any]:
         """Get summary of all reported errors"""
         return {
             "total_errors": self.error_counts.get("total", 0),
             "analysis_errors": len(self.analysis_errors),
             "review_errors": len(self.review_errors),
             "claude_errors": len(self.claude_errors),
-            "latest_errors": self.error_history[-10:]
+            "latest_errors": self.error_history[-10:],
         }
 
 
@@ -398,5 +384,5 @@ __all__ = [
     "DatabaseConnectionError",
     # Reporter,
     "ReviewerErrorReporter",
-    "get_error_reporter"
+    "get_error_reporter",
 ]

@@ -19,7 +19,7 @@ Performance improvements:
 """
 
 import json
-from typing import Any, Dict, ListSet
+from typing import Any
 
 from .connection_pool import get_pooled_connection
 from .database import get_connection
@@ -27,7 +27,7 @@ from .database import get_connection
 
 def get_queued_tasks_with_planning_optimized(
     limit: int = 10, task_type: str | None = None, use_pool: bool = True
-) -> List[Dict[str, Any]]:
+) -> List[dict[str, Any]]:
     """
     Optimized task selection with single query and dependency pre-fetching.
 
@@ -143,7 +143,7 @@ def get_queued_tasks_with_planning_optimized(
     return tasks
 
 
-def _batch_check_dependencies(conn, tasks: List[Dict[str, Any]]) -> None:
+def _batch_check_dependencies(conn, tasks: List[dict[str, Any]]) -> None:
     """
     Batch check dependencies for multiple tasks in a single query.
 
@@ -184,7 +184,7 @@ def _batch_check_dependencies(conn, tasks: List[Dict[str, Any]]) -> None:
             task["dependencies_met"] = True
 
 
-def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
+def check_subtask_dependencies_batch(task_ids: List[str]) -> dict[str, bool]:
     """
     Batch check dependencies for multiple tasks.
 
@@ -208,7 +208,7 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
             FROM tasks,
             WHERE id IN ({placeholders})
         """,
-            task_ids
+            task_ids,
         )
 
         # Collect all dependencies
@@ -234,10 +234,10 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
                 WHERE (id IN ({dep_placeholders})
                 OR json_extract(payload, '$.subtask_id') IN ({dep_placeholders}))
             """,
-                list(all_deps) * 2
+                list(all_deps) * 2,
             )
 
-            dep_status = {dep_id: status for dep_id, status in cursor.fetchall()}
+            dep_status = dict(cursor.fetchall())
         else:
             dep_status = {}
 
@@ -253,7 +253,7 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> Dict[str, bool]:
 
 
 # Cache for execution plan status (TTL: 60 seconds)
-_plan_status_cache: Dict[str, tuple] = {}
+_plan_status_cache: dict[str, tuple] = {}
 _cache_ttl = 60  # seconds
 
 
@@ -331,7 +331,7 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
             SELECT id FROM tasks,
             WHERE id IN ({placeholders})
         """,
-            task_ids
+            task_ids,
         )
 
         existing_ids = {row[0] for row in cursor.fetchall()}
@@ -377,7 +377,7 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
                     priority, status, payload, created_at, updated_at
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             """,
-                insert_data
+                insert_data,
             )
 
             conn.commit()

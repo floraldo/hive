@@ -189,7 +189,7 @@ class ConstraintHandler:
             repaired[i] = np.clip(repaired[i], lower, upper)
 
         # Iterative repair for other constraints
-        for iteration in range(max_iterations):
+        for _iteration in range(max_iterations):
             violations = self.evaluate_constraints(repaired)
 
             # If feasible, we're done

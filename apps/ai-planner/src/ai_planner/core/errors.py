@@ -14,7 +14,7 @@ import asyncio
 import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from hive_errors import BaseError, BaseErrorReporter, RecoveryStatus, RecoveryStrategy
 from hive_logging import get_logger
@@ -38,8 +38,8 @@ class PlannerError(BaseError):
         task_id: str | None = None,
         plan_id: str | None = None,
         planning_phase: str | None = None,
-        details: Optional[dict[str, Any]] = None,
-        recovery_suggestions: Optional[list[str]] = None,
+        details: dict[str, Any] | None = None,
+        recovery_suggestions: list[str] | None = None,
         original_error: Exception | None = None,
     ):
         """
@@ -104,7 +104,11 @@ class TaskValidationError(BaseError):
     """Error validating task data"""
 
     def __init__(
-        self, message: str, validation_type: str | None = None, failed_fields: Optional[list[str]] = None, **kwargs,
+        self,
+        message: str,
+        validation_type: str | None = None,
+        failed_fields: list[str] | None = None,
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -170,7 +174,7 @@ class ClaudeServiceError(BaseError):
         message: str,
         api_status_code: int | None = None,
         api_response: str | None = None,
-        rate_limit_info: Optional[dict[str, Any]] = None,
+        rate_limit_info: dict[str, Any] | None = None,
         **kwargs,
     ):
         details = kwargs.get("details", {})
@@ -216,8 +220,8 @@ class PlanValidationError(BaseError):
     def __init__(
         self,
         message: str,
-        plan_structure_issues: Optional[list[str]] = None,
-        missing_fields: Optional[list[str]] = None,
+        plan_structure_issues: list[str] | None = None,
+        missing_fields: list[str] | None = None,
         **kwargs,
     ):
         details = kwargs.get("details", {})
@@ -293,8 +297,8 @@ class PlannerErrorReporter(BaseErrorReporter):
     def report_error(
         self,
         error: Exception,
-        context: Optional[dict[str, Any]] = None,
-        additional_info: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """
         Report an error with AI Planner-specific handling.
@@ -394,7 +398,9 @@ class ExponentialBackoffStrategy(RecoveryStrategy):
         self.max_delay = max_delay
 
     async def attempt_recovery_async(
-        self, error: Exception, context: Optional[dict[str, Any]] = None,
+        self,
+        error: Exception,
+        context: dict[str, Any] | None = None,
     ) -> RecoveryStatus:
         """Attempt recovery by waiting with exponential backoff"""
         if not self.can_attempt_recovery():

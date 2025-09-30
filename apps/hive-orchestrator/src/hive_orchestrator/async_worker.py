@@ -3,26 +3,24 @@
 AsyncWorker - High-Performance Async Worker for V4.0
 Phase 2 Implementation with non-blocking I/O and concurrent operations
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import argparse
 import asyncio
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Hive utilities
 from hive_config.paths import (
     LOGS_DIR,
     PROJECT_ROOT,
     WORKTREES_DIR,
-    ensure_directory,
-    get_task_log_dir,
-    get_worker_workspace_dir
+    get_worker_workspace_dir,
 )
 from hive_logging import get_logger, setup_logging
 
@@ -54,27 +52,27 @@ class AsyncWorker:
         phase: str = "apply",
         mode: str = "fresh",
         live_output: bool = False,
-        config: Optional[Dict[str, Any]] = None
+        config: Optional[dict[str, Any]] = None,
     ):
         """Initialize AsyncWorker with async-first architecture"""
-        self.worker_id = worker_id,
-        self.task_id = task_id,
-        self.run_id = run_id,
-        self.phase = phase,
-        self.mode = mode,
-        self.live_output = live_output,
+        self.worker_id = (worker_id,)
+        self.task_id = (task_id,)
+        self.run_id = (run_id,)
+        self.phase = (phase,)
+        self.mode = (mode,)
+        self.live_output = (live_output,)
         self.config = config or {}
 
         # Async components,
-        self.db_ops: AsyncDatabaseOperations | None = None,
+        self.db_ops: AsyncDatabaseOperations | None = (None,)
         self.event_bus = None
 
         # Logging,
         self.log = get_logger(__name__)
 
         # Paths,
-        self.project_root = PROJECT_ROOT,
-        self.logs_dir = LOGS_DIR,
+        self.project_root = (PROJECT_ROOT,)
+        self.logs_dir = (LOGS_DIR,)
         self.root = PROJECT_ROOT
 
         # Workspace setup,
@@ -86,7 +84,7 @@ class AsyncWorker:
 
         # Performance metrics,
         self.metrics = {
-            "start_time": datetime.now(timezone.utc),
+            "start_time": datetime.now(UTC),
             "operations": 0,
             "file_operations": 0,
             "subprocess_calls": 0,
@@ -123,17 +121,13 @@ class AsyncWorker:
             await self.db_ops.register_worker_async(
                 worker_id=f"async-{self.worker_id}-{self.run_id}",
                 role=self.worker_id,
-                capabilities=[
-                    "async_execution",
-                    "high_performance",
-                    "non_blocking_io"
-                ],
+                capabilities=["async_execution", "high_performance", "non_blocking_io"],
                 metadata={
                     "version": "4.0.0",
                     "type": "AsyncWorker",
                     "phase": self.phase,
                     "task_id": self.task_id,
-                }
+                },
             )
             self.log.info("Worker registered in database")
         except Exception as e:
@@ -182,7 +176,7 @@ class AsyncWorker:
 
         return shutil.which(cmd) is not None
 
-    async def execute_claude_async(self, prompt: str, context_files: Optional[List[str]] = None) -> Dict[str, Any]:
+    async def execute_claude_async(self, prompt: str, context_files: Optional[list[str]] = None) -> dict[str, Any]:
         """Execute Claude CLI asynchronously with non-blocking I/O"""
         if not self.claude_cmd:
             self.log.info("Claude not available - simulating response")
@@ -191,7 +185,7 @@ class AsyncWorker:
                 "status": "simulated",
                 "output": f"Simulated response for: {prompt[:100]}",
                 "files_created": [],
-                "files_modified": []
+                "files_modified": [],
             }
 
         # Build command
@@ -211,22 +205,16 @@ class AsyncWorker:
         try:
             # Create async subprocess
             process = await asyncio.create_subprocess_exec(
-                *cmd,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                cwd=str(self.workspace)
+                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=str(self.workspace)
             )
 
             # Wait for completion with timeout
             try:
                 stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=300)  # 5 minute timeout
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 process.kill()
                 await process.wait()
-                return {
-                    "status": "timeout",
-                    "error": "Claude execution timed out after 5 minutes"
-                }
+                return {"status": "timeout", "error": "Claude execution timed out after 5 minutes"}
 
             # Parse output
             if process.returncode == 0:
@@ -245,12 +233,9 @@ class AsyncWorker:
 
         except Exception as e:
             self.log.error(f"Failed to execute Claude: {e}")
-            return {
-                "status": "error",
-                "error": str(e)
-            }
+            return {"status": "error", "error": str(e)}
 
-    def _parse_created_files(self, output: str) -> List[str]:
+    def _parse_created_files(self, output: str) -> list[str]:
         """Parse created files from Claude output"""
         # Simple pattern matching for created files
         files = []
@@ -263,7 +248,7 @@ class AsyncWorker:
                         files.append(part.strip())
         return files
 
-    def _parse_modified_files(self, output: str) -> List[str]:
+    def _parse_modified_files(self, output: str) -> list[str]:
         """Parse modified files from Claude output"""
         # Simple pattern matching for modified files
         files = []
@@ -276,10 +261,10 @@ class AsyncWorker:
                         files.append(part.strip())
         return files
 
-    async def execute_phase_async(self) -> Dict[str, Any]:
+    async def execute_phase_async(self) -> dict[str, Any]:
         """Execute task phase asynchronously"""
         self.log.info(f"Executing phase: {self.phase}")
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             # Load task from database
@@ -305,7 +290,7 @@ class AsyncWorker:
                 result = {"status": "error", "error": f"Unknown phase: {self.phase}"}
 
             # Calculate execution time
-            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            execution_time = (datetime.now(UTC) - start_time).total_seconds()
             result["execution_time"] = execution_time
 
             # Save result to database
@@ -318,20 +303,16 @@ class AsyncWorker:
                 task_id=self.task_id,
                 worker_id=self.worker_id,
                 result=result.get("status"),
-                priority=2
+                priority=2,
             )
 
             return result
 
         except Exception as e:
             self.log.error(f"Phase execution failed: {e}")
-            return {
-                "status": "error",
-                "error": str(e),
-                "phase": self.phase
-            }
+            return {"status": "error", "error": str(e), "phase": self.phase}
 
-    async def _execute_apply_phase_async(self, description: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_apply_phase_async(self, description: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Execute APPLY phase asynchronously"""
         self.log.info("Executing APPLY phase")
 
@@ -340,7 +321,7 @@ class AsyncWorker:
         Task: {description}
 
         Requirements:
-        {json.dumps(payload.get('requirements', []), indent=2)}
+        {json.dumps(payload.get("requirements", []), indent=2)}
 
         Please implement the required functionality.
         Create clean, well-tested code following best practices.
@@ -350,7 +331,7 @@ class AsyncWorker:
         result = await self.execute_claude_async(prompt)
 
         if result["status"] == "success":
-            self.log.info(f"# OK APPLY phase completed successfully")
+            self.log.info("# OK APPLY phase completed successfully")
             self.log.info(f"  Files created: {len(result.get('files_created', []))}")
             self.log.info(f"  Files modified: {len(result.get('files_modified', []))}")
         else:
@@ -358,7 +339,7 @@ class AsyncWorker:
 
         return result
 
-    async def _execute_test_phase_async(self, description: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_test_phase_async(self, description: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Execute TEST phase asynchronously"""
         self.log.info("Executing TEST phase")
 
@@ -387,15 +368,15 @@ class AsyncWorker:
             result["test_result"] = test_result
 
             if test_result.get("passed"):
-                self.log.info(f"# OK TEST phase completed, all tests passed")
+                self.log.info("# OK TEST phase completed, all tests passed")
             else:
-                self.log.info(f"# WARN TEST phase completed with failures")
+                self.log.info("# WARN TEST phase completed with failures")
         else:
             self.log.error(f"# FAIL TEST phase failed: {result.get('error')}")
 
         return result
 
-    async def _execute_plan_phase_async(self, description: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def _execute_plan_phase_async(self, description: str, payload: dict[str, Any]) -> dict[str, Any]:
         """Execute PLAN phase asynchronously"""
         self.log.info("Executing PLAN phase")
 
@@ -412,13 +393,13 @@ class AsyncWorker:
         result = await self.execute_claude_async(prompt)
 
         if result["status"] == "success":
-            self.log.info(f"# OK PLAN phase completed successfully")
+            self.log.info("# OK PLAN phase completed successfully")
         else:
             self.log.error(f"# FAIL PLAN phase failed: {result.get('error')}")
 
         return result
 
-    async def _run_tests_async(self) -> Dict[str, Any]:
+    async def _run_tests_async(self) -> dict[str, Any]:
         """Run tests asynchronously"""
         self.log.info("Running tests asynchronously")
 
@@ -439,7 +420,7 @@ class AsyncWorker:
                 "--tb=short",
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
-                cwd=str(self.workspace)
+                cwd=str(self.workspace),
             )
 
             stdout, stderr = await asyncio.wait_for(process.communicate(), timeout=60)  # 1 minute timeout for tests
@@ -456,7 +437,7 @@ class AsyncWorker:
                     "error": stderr.decode() if stderr else "",
                 }
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return {
                 "passed": False,
                 "error": "Test execution timed out after 1 minute",
@@ -467,13 +448,13 @@ class AsyncWorker:
                 "error": str(e),
             }
 
-    async def _save_run_result_async(self, result: Dict[str, Any]) -> None:
+    async def _save_run_result_async(self, result: dict[str, Any]) -> None:
         """Save run result to database asynchronously"""
         try:
             self.metrics["db_operations"] += 1
 
             # Calculate metrics
-            execution_time = (datetime.now(timezone.utc) - self.metrics["start_time"]).total_seconds()
+            execution_time = (datetime.now(UTC) - self.metrics["start_time"]).total_seconds()
 
             # Save result
             await self.db_ops.update_run_async(
@@ -486,7 +467,7 @@ class AsyncWorker:
                     "file_operations": self.metrics["file_operations"],
                     "subprocess_calls": self.metrics["subprocess_calls"],
                     "db_operations": self.metrics["db_operations"],
-                }
+                },
             )
 
             self.log.info(f"Run result saved: {result.get('status')}")
@@ -508,7 +489,7 @@ class AsyncWorker:
                 f"[METRICS] Operations: {self.metrics['operations']} | ",
                 f"Files: {self.metrics['file_operations']} | ",
                 f"Subprocesses: {self.metrics['subprocess_calls']} | ",
-                f"DB: {self.metrics['db_operations']}"
+                f"DB: {self.metrics['db_operations']}",
             )
 
             # Return exit code
@@ -556,7 +537,7 @@ async def main_async() -> None:
         workspace=args.workspace,
         phase=args.phase,
         mode=args.mode,
-        live_output=args.live
+        live_output=args.live,
     )
 
     # Run worker,

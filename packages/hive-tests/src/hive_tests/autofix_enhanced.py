@@ -243,7 +243,11 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
     """
 
     def __init__(
-        self, project_root: Path, dry_run: bool = True, create_backups: bool = True, min_confidence: float = 0.95,
+        self,
+        project_root: Path,
+        dry_run: bool = True,
+        create_backups: bool = True,
+        min_confidence: float = 0.95,
     ) -> None:
         super().__init__(project_root, dry_run, create_backups)
         self.min_confidence = min_confidence
@@ -402,7 +406,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 indented_lines = [" " * (indent + 4) + line if line else "" for line in docstring.split("\n")]
 
                 # Insert docstring
-                for i, doc_line in enumerate(reversed(indented_lines)):
+                for _i, doc_line in enumerate(reversed(indented_lines)):
                     lines.insert(insert_idx, doc_line)
 
                 changes_made.append(f"Generated docstring for {func_node.name} at line {func_node.lineno}")
@@ -599,7 +603,10 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
             )
 
     def fix_all_enhancements(
-        self, enable_type_hints: bool = True, enable_docstrings: bool = True, enable_import_org: bool = True,
+        self,
+        enable_type_hints: bool = True,
+        enable_docstrings: bool = True,
+        enable_import_org: bool = True,
     ) -> list[EnhancedAutofixResult]:
         """
         Apply all enhancement fixes across project.
@@ -674,7 +681,9 @@ def main():
 
     # Create fixer
     fixer = EnhancedGoldenRulesAutoFixer(
-        project_root=args.project_root, dry_run=args.dry_run, create_backups=not args.no_backups,
+        project_root=args.project_root,
+        dry_run=args.dry_run,
+        create_backups=not args.no_backups,
     )
 
     # Determine what to enable
@@ -699,7 +708,9 @@ def main():
 
     # Run enhancements
     results = fixer.fix_all_enhancements(
-        enable_type_hints=enable_hints, enable_docstrings=enable_docs, enable_import_org=enable_imports,
+        enable_type_hints=enable_hints,
+        enable_docstrings=enable_docs,
+        enable_import_org=enable_imports,
     )
 
     # Report results

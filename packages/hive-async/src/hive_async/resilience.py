@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import time
-from collections import deque, defaultdict
+from collections import defaultdict, deque
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from enum import Enum
@@ -249,7 +249,11 @@ class AsyncTimeoutManager:
         self._operation_stats = {}
 
     async def run_with_timeout_async(
-        self, coro, timeout: float | None = None, operation_name: str | None = None, fallback: Any | None = None,
+        self,
+        coro,
+        timeout: float | None = None,
+        operation_name: str | None = None,
+        fallback: Any | None = None,
     ) -> Any:
         """
         Run coroutine with timeout and enhanced error context.
@@ -380,7 +384,9 @@ def async_timeout(seconds: float, operation_name: str | None = None) -> None:
         async def wrapper_async(*args, **kwargs):
             op_name = operation_name or func.__name__
             return await timeout_manager.run_with_timeout_async(
-                func(*args, **kwargs), timeout=seconds, operation_name=op_name,
+                func(*args, **kwargs),
+                timeout=seconds,
+                operation_name=op_name,
             )
 
         return wrapper_async

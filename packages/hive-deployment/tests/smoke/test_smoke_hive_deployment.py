@@ -7,21 +7,23 @@ These tests ensure all modules can be imported without errors.
 
 from __future__ import annotations
 
-import pytest
 
 def test_deployment_imports():
     """Smoke test: deployment module imports successfully."""
     from hive_deployment.deployment import get_deployment_config
+
     assert get_deployment_config is not None
 
 
 def test_remote_utils_imports():
     """Smoke test: remote_utils module imports successfully."""
     from hive_deployment.remote_utils import parse_deployignore
+
     assert parse_deployignore is not None
 
 
 def test_ssh_client_imports():
     """Smoke test: ssh_client module imports successfully."""
     import hive_deployment.ssh_client
+
     assert hive_deployment.ssh_client is not None

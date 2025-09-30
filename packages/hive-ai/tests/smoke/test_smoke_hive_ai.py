@@ -7,135 +7,156 @@ These tests ensure all modules can be imported without errors.
 
 from __future__ import annotations
 
-import pytest
 
 def test_agent_imports():
     """Smoke test: agent module imports successfully."""
     import hive_ai.agents.agent
+
     assert hive_ai.agents.agent is not None
 
 
 def test_task_imports():
     """Smoke test: task module imports successfully."""
     import hive_ai.agents.task
+
     assert hive_ai.agents.task is not None
 
 
 def test_workflow_imports():
     """Smoke test: workflow module imports successfully."""
     import hive_ai.agents.workflow
+
     assert hive_ai.agents.workflow is not None
 
 
 def test_config_imports():
     """Smoke test: config module imports successfully."""
     from hive_ai.core.config import ModelConfig
+
     assert ModelConfig is not None
 
 
 def test_exceptions_imports():
     """Smoke test: exceptions module imports successfully."""
     from hive_ai.core.exceptions import AIError
+
     assert AIError is not None
 
 
 def test_interfaces_imports():
     """Smoke test: interfaces module imports successfully."""
     from hive_ai.core.interfaces import ModelType
+
     assert ModelType is not None
 
 
 def test_security_imports():
     """Smoke test: security module imports successfully."""
     from hive_ai.core.security import SecurityLevel
+
     assert SecurityLevel is not None
 
 
 def test_client_imports():
     """Smoke test: client module imports successfully."""
     from hive_ai.models.client import ModelClient
+
     assert ModelClient is not None
 
 
 def test_metrics_imports():
     """Smoke test: metrics module imports successfully."""
     from hive_ai.models.metrics import ModelUsageRecord
+
     assert ModelUsageRecord is not None
 
 
 def test_pool_imports():
     """Smoke test: pool module imports successfully."""
     import hive_ai.models.pool
+
     assert hive_ai.models.pool is not None
 
 
 def test_registry_imports():
     """Smoke test: registry module imports successfully."""
     from hive_ai.models.registry import ModelRegistry
+
     assert ModelRegistry is not None
 
 
 def test_cost_imports():
     """Smoke test: cost module imports successfully."""
     from hive_ai.observability.cost import BudgetPeriod
+
     assert BudgetPeriod is not None
 
 
 def test_health_imports():
     """Smoke test: health module imports successfully."""
     from hive_ai.observability.health import HealthStatus
+
     assert HealthStatus is not None
 
 
 def test_metrics_imports():
     """Smoke test: metrics module imports successfully."""
     from hive_ai.observability.metrics import MetricType
+
     assert MetricType is not None
 
 
 def test_telemetry_imports():
     """Smoke test: telemetry module imports successfully."""
     from hive_ai.observability.telemetry import TelemetryLevel
+
     assert TelemetryLevel is not None
 
 
 def test_optimizer_imports():
     """Smoke test: optimizer module imports successfully."""
     from hive_ai.prompts.optimizer import OptimizationStrategy
+
     assert OptimizationStrategy is not None
 
 
 def test_registry_imports():
     """Smoke test: registry module imports successfully."""
     import hive_ai.prompts.registry
+
     assert hive_ai.prompts.registry is not None
 
 
 def test_template_imports():
     """Smoke test: template module imports successfully."""
     from hive_ai.prompts.template import PromptVariable
+
     assert PromptVariable is not None
 
 
 def test_embedding_imports():
     """Smoke test: embedding module imports successfully."""
     import hive_ai.vector.embedding
+
     assert hive_ai.vector.embedding is not None
 
 
 def test_metrics_imports():
     """Smoke test: metrics module imports successfully."""
     import hive_ai.vector.metrics
+
     assert hive_ai.vector.metrics is not None
 
 
 def test_search_imports():
     """Smoke test: search module imports successfully."""
     import hive_ai.vector.search
+
     assert hive_ai.vector.search is not None
 
 
 def test_store_imports():
     """Smoke test: store module imports successfully."""
     from hive_ai.vector.store import BaseVectorProvider
+
     assert BaseVectorProvider is not None

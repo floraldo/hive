@@ -6,16 +6,14 @@ This module provides database connectivity for the Hive Orchestrator using
 the consolidated hive-db async connection pools. Eliminates duplicate code
 and provides consistent behavior across the platform.
 """
+
 from __future__ import annotations
 
-
-import asyncio
 import json
 import uuid
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
 from hive_config.paths import DB_PATH
 from hive_db import AsyncDatabaseManager, create_async_database_manager
@@ -72,7 +70,7 @@ async def get_async_connection_async(db_manager: AsyncDatabaseManager | None = N
 # Async database operations using dependency injection
 async def create_task_async(
     task_type: str,
-    task_data: Dict[str, Any],
+    task_data: dict[str, Any],
     db_manager: AsyncDatabaseManager,
     priority: int = 5,
     worker_hint: str | None = None,
@@ -81,7 +79,7 @@ async def create_task_async(
     """Create a new task asynchronously using dependency injection."""
     task_id = str(uuid.uuid4())
     task_data_json = json.dumps(task_data)
-    created_at = datetime.now(timezone.utc).isoformat()
+    created_at = datetime.now(UTC).isoformat()
 
     async with get_async_connection_async(db_manager) as conn:
         await conn.execute(
@@ -90,23 +88,14 @@ async def create_task_async(
                              timeout_seconds, created_at, updated_at)
             VALUES (?, ?, ?, 'queued', ?, ?, ?, ?, ?)
         """,
-            (
-                task_id,
-                task_type,
-                task_data_json,
-                priority,
-                worker_hint,
-                timeout_seconds,
-                created_at,
-                created_at
-            )
+            (task_id, task_type, task_data_json, priority, worker_hint, timeout_seconds, created_at, created_at),
         )
         await conn.commit()
 
     return task_id
 
 
-async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> Optional[Dict[str, Any]]:
+async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> Optional[dict[str, Any]]:
     """Get a task by ID asynchronously using dependency injection."""
     async with get_async_connection_async(db_manager) as conn:
         cursor = await conn.execute("SELECT * FROM tasks WHERE task_id = ?", (task_id,))
@@ -122,7 +111,7 @@ async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> Opti
 
 async def get_queued_tasks_async(
     db_manager: AsyncDatabaseManager, limit: int = 10, task_type: str | None = None
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get queued tasks asynchronously using dependency injection."""
     async with get_async_connection_async(db_manager) as conn:
         if task_type:
@@ -133,7 +122,7 @@ async def get_queued_tasks_async(
                 ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
             """,
-                (task_type, limit)
+                (task_type, limit),
             )
         else:
             cursor = await conn.execute(
@@ -143,7 +132,7 @@ async def get_queued_tasks_async(
                 ORDER BY priority DESC, created_at ASC,
                 LIMIT ?
             """,
-                (limit,)
+                (limit,),
             )
 
         rows = await cursor.fetchall()
@@ -159,7 +148,7 @@ async def get_queued_tasks_async(
 
 async def get_tasks_by_status_async(
     status: str, db_manager: AsyncDatabaseManager, limit: int = 50
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """Get tasks by status asynchronously using dependency injection."""
     async with get_async_connection_async(db_manager) as conn:
         cursor = await conn.execute(
@@ -169,7 +158,7 @@ async def get_tasks_by_status_async(
             ORDER BY updated_at DESC,
             LIMIT ?
         """,
-            (status, limit)
+            (status, limit),
         )
 
         rows = await cursor.fetchall()
@@ -188,10 +177,10 @@ async def update_task_status_async(
     status: str,
     db_manager: AsyncDatabaseManager,
     worker_id: str | None = None,
-    result_data: Optional[Dict[str, Any]] = None
+    result_data: Optional[dict[str, Any]] = None,
 ) -> bool:
     """Update task status asynchronously using dependency injection."""
-    updated_at = datetime.now(timezone.utc).isoformat()
+    updated_at = datetime.now(UTC).isoformat()
     result_json = json.dumps(result_data) if result_data else None
 
     async with get_async_connection_async(db_manager) as conn:
@@ -202,7 +191,7 @@ async def update_task_status_async(
                 SET status = ?, assigned_worker = ?, result_data = ?, updated_at = ?,
                 WHERE task_id = ?,
             """,
-                (status, worker_id, result_json, updated_at, task_id)
+                (status, worker_id, result_json, updated_at, task_id),
             )
         else:
             cursor = await conn.execute(
@@ -211,7 +200,7 @@ async def update_task_status_async(
                 SET status = ?, result_data = ?, updated_at = ?
                 WHERE task_id = ?,
             """,
-                (status, result_json, updated_at, task_id)
+                (status, result_json, updated_at, task_id),
             )
 
         await conn.commit()
@@ -223,7 +212,7 @@ async def create_run_async(
 ) -> str:
     """Create a new task run asynchronously using dependency injection."""
     run_id = str(uuid.uuid4())
-    started_at = datetime.now(timezone.utc).isoformat()
+    started_at = datetime.now(UTC).isoformat()
 
     async with get_async_connection_async(db_manager) as conn:
         await conn.execute(
@@ -231,7 +220,7 @@ async def create_run_async(
             INSERT INTO task_runs (run_id, task_id, worker_id, run_type, status, started_at)
             VALUES (?, ?, ?, ?, 'running', ?)
         """,
-            (run_id, task_id, worker_id, run_type, started_at)
+            (run_id, task_id, worker_id, run_type, started_at),
         )
         await conn.commit()
 

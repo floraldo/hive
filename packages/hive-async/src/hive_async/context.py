@@ -104,7 +104,7 @@ def async_context(context_name: str) -> None:
 
     def decorator(func) -> Any:
         async def wrapper_async(*args, **kwargs):
-            async with AsyncResourceManager() as manager:
+            async with AsyncResourceManager():
                 logger.debug(f"Entering async context: {context_name}")
                 try:
                     result = await func(*args, **kwargs)

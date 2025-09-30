@@ -125,7 +125,7 @@ class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
             # Simplified weather adjustment
             # In real implementation, would use actual ambient temperature
             temp_factor = weather_dependency.get("temperature_factor", 0.05)
-            reference_temp = weather_dependency.get("reference_temp", 18)
+            weather_dependency.get("reference_temp", 18)
             # Assume some temperature deviation for demonstration
             temp_deviation = 5  # Assume 5°C deviation from reference
             weather_multiplier = 1 + temp_factor * temp_deviation

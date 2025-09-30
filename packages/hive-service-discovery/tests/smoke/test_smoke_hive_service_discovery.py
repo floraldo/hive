@@ -7,33 +7,37 @@ These tests ensure all modules can be imported without errors.
 
 from __future__ import annotations
 
-import pytest
 
 def test_config_imports():
     """Smoke test: config module imports successfully."""
     from hive_service_discovery.config import HealthCheckConfig
+
     assert HealthCheckConfig is not None
 
 
 def test_discovery_client_imports():
     """Smoke test: discovery_client module imports successfully."""
     from hive_service_discovery.discovery_client import DiscoveryClient
+
     assert DiscoveryClient is not None
 
 
 def test_exceptions_imports():
     """Smoke test: exceptions module imports successfully."""
     from hive_service_discovery.exceptions import ServiceDiscoveryError
+
     assert ServiceDiscoveryError is not None
 
 
 def test_load_balancer_imports():
     """Smoke test: load_balancer module imports successfully."""
     import hive_service_discovery.load_balancer
+
     assert hive_service_discovery.load_balancer is not None
 
 
 def test_service_registry_imports():
     """Smoke test: service_registry module imports successfully."""
     from hive_service_discovery.service_registry import ServiceInfo
+
     assert ServiceInfo is not None

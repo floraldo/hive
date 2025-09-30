@@ -531,7 +531,7 @@ def main() -> None:
     # Run autofix
     fixer = GoldenRulesAutoFixer(project_root=Path("."), dry_run=dry_run, create_backups=create_backups)
 
-    results = fixer.fix_all_violations(target_rules)
+    fixer.fix_all_violations(target_rules)
 
     # Generate and print report
     report = fixer.generate_report()

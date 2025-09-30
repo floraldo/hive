@@ -229,7 +229,6 @@ class SerializationBenchmark:
         print("-" * 90)
 
         critical_issues = []
-        recommendations = []
 
         for category, results in all_results.items():
             if not results:
@@ -253,11 +252,7 @@ class SerializationBenchmark:
                     status = (
                         "FAST"
                         if result.p95_ms < 0.1
-                        else "OK"
-                        if result.p95_ms < 1.0
-                        else "SLOW"
-                        if result.p95_ms < 5.0
-                        else "CRITICAL"
+                        else "OK" if result.p95_ms < 1.0 else "SLOW" if result.p95_ms < 5.0 else "CRITICAL"
                     )
 
                     if result.p95_ms > 1.0:

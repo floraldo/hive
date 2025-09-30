@@ -34,13 +34,13 @@ class TestClaudeIntegration:
         """Test Claude bridge initialization in both modes"""
         # Test mock mode
         bridge_mock = RobustClaudePlannerBridge(mock_mode=True)
-        assert bridge_mock.mock_mode == True
+        assert bridge_mock.mock_mode
         assert bridge_mock.claude_cmd is None or isinstance(bridge_mock.claude_cmd, str)
         logger.info("SUCCESS: Claude bridge mock mode initialization")
 
         # Test real mode
         bridge_real = RobustClaudePlannerBridge(mock_mode=False)
-        assert bridge_real.mock_mode == False
+        assert not bridge_real.mock_mode
         logger.info("SUCCESS: Claude bridge real mode initialization")
 
     def test_mock_plan_generation(self):
@@ -150,11 +150,11 @@ class TestClaudeIntegration:
 
         # Test agent initialization
         assert agent.claude_bridge is not None
-        assert agent.claude_bridge.mock_mode == True
+        assert agent.claude_bridge.mock_mode
 
         # Test database connection
         success = agent.connect_database()
-        assert success == True
+        assert success
         assert agent.db_connection is not None
 
         # Create test task data
@@ -203,7 +203,7 @@ class TestClaudeIntegration:
 
         # Test plan saving
         save_success = agent.save_execution_plan(plan)
-        assert save_success == True
+        assert save_success
 
         # Verify plan was saved to database
         cursor = agent.db_connection.cursor()
@@ -266,7 +266,7 @@ class TestClaudeIntegration:
 
         # Process task
         success = agent.process_task(task)
-        assert success == True
+        assert success
 
         # Verify results
         cursor.execute("SELECT status FROM planning_queue WHERE id = ?", (test_task_id,))
@@ -275,9 +275,9 @@ class TestClaudeIntegration:
 
         cursor.execute("SELECT plan_data FROM execution_plans WHERE planning_task_id = ?", (test_task_id,))
         plan_result = cursor.fetchone()
-        assert plan_result is not None, (
-            f"No execution plan found for task {test_task_id}. Check if plan was saved properly."
-        )
+        assert (
+            plan_result is not None
+        ), f"No execution plan found for task {test_task_id}. Check if plan was saved properly."
         plan_json = plan_result[0]
         plan_data = json.loads(plan_json)
 
@@ -321,7 +321,7 @@ class TestClaudeIntegration:
         agent.db_connection = None
 
         save_result = agent.save_execution_plan({"plan_id": "test", "task_id": "test", "status": "test"})
-        assert save_result == False  # Should fail gracefully
+        assert not save_result  # Should fail gracefully
 
         logger.info("OK Error handling and resilience")
 

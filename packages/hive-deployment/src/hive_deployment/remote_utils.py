@@ -100,7 +100,7 @@ def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> int
                     logging.debug(f"Could not parse port from matched line: {line}")
                     continue
 
-        logging.debug(f"Currently listening ports found: {sorted(list(listening_ports))}")
+        logging.debug(f"Currently listening ports found: {sorted(listening_ports)}")
 
         for i in range(max_search):
             port = start_port + i
@@ -167,7 +167,11 @@ def run_remote_command(
 
 
 def upload_directory(
-    ssh_client: SSHClient, local_dir: str, remote_dir: str, config: dict[str, Any], sudo_upload: bool = False,
+    ssh_client: SSHClient,
+    local_dir: str,
+    remote_dir: str,
+    config: dict[str, Any],
+    sudo_upload: bool = False,
 ) -> bool:
     """
     Uploads a local directory to a remote server via SFTP.
@@ -199,7 +203,12 @@ def upload_directory(
         (logging.info(f"Creating remote directory (if needed): {remote_dir}"),)
         # Use run_remote_command for directory creation
         exit_code, _, stderr = run_remote_command(
-            ssh_client, f"mkdir -p '{remote_dir}'", config, sudo=sudo_upload, check=False, log_output=False,
+            ssh_client,
+            f"mkdir -p '{remote_dir}'",
+            config,
+            sudo=sudo_upload,
+            check=False,
+            log_output=False,
         )
         if exit_code != 0:
             # Check if error is "File exists" - that's okay
@@ -224,7 +233,12 @@ def upload_directory(
             if relative_path != Path("."):  # Don't try to create the base dir again,
                 (logging.debug(f"Creating remote subdirectory: {remote_root}"),)
                 exit_code, _, stderr = run_remote_command(
-                    ssh_client, f"mkdir -p '{remote_root}'", config, sudo=sudo_upload, check=False, log_output=False,
+                    ssh_client,
+                    f"mkdir -p '{remote_root}'",
+                    config,
+                    sudo=sudo_upload,
+                    check=False,
+                    log_output=False,
                 )
                 # Again, ignore "File exists" type errors
                 if exit_code != 0 and "File exists" not in stderr:
@@ -293,6 +307,6 @@ def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict)
         next_num += 1
 
     next_app_name = f"{prefix}{next_num}"
-    logging.info(f"Found existing app numbers: {sorted(list(existing_nums))}")
+    logging.info(f"Found existing app numbers: {sorted(existing_nums)}")
     logging.info(f"Next available app name will be: {next_app_name}")
     return next_app_name

@@ -62,6 +62,40 @@ data = {
 - **Use hive-* packages**: `from hive_logging import get_logger` not `print()`
 - **Golden Rules validation**: `python scripts/validate_golden_rules.py`
 
+### Configuration Management (CRITICAL)
+**Pattern**: Dependency Injection (DI) - NO global state
+
+**DO: Use DI Pattern** (Gold Standard from EcoSystemiser):
+```python
+from hive_config import HiveConfig, create_config_from_sources
+
+class MyService:
+    def __init__(self, config: HiveConfig | None = None):
+        # Dependency injection with sensible default
+        self._config = config or create_config_from_sources()
+        self.db_path = self._config.database.path
+```
+
+**DON'T: Use Global State** (DEPRECATED):
+```python
+from hive_config import get_config
+
+class MyService:
+    def __init__(self):
+        self.config = get_config()  # DEPRECATED - Hidden dependency!
+```
+
+**Why DI Pattern**:
+- ✅ Explicit dependencies (clear in constructor signature)
+- ✅ Testable (inject mock configs in tests)
+- ✅ Thread-safe (no shared global state)
+- ✅ Parallel-friendly (each instance isolated)
+
+**Resources**:
+- Gold Standard: `apps/ecosystemiser/src/ecosystemiser/config/bridge.py`
+- API Docs: `packages/hive-config/README.md`
+- Migration Guide: `claudedocs/config_migration_guide_comprehensive.md`
+
 ## 🛠️ Standard Tools & Quality Gates
 
 ### Development Tools
@@ -77,12 +111,13 @@ isort = "^5.13.0"           # Import sorting
 1. **Syntax validation**: `python -m py_compile` on all modified files
 2. **Test collection**: `python -m pytest --collect-only` (zero syntax errors)
 3. **Linting**: `python -m ruff check` (zero violations)
-4. **Golden Rules**: `python scripts/validate_golden_rules.py` (15 rules passing)
+4. **Golden Rules**: `python scripts/validate_golden_rules.py` (23 rules passing, 100% coverage)
 5. **Type checking**: `python -m mypy` (on typed modules)
+6. **Configuration Pattern**: Use DI (`create_config_from_sources()`), not global state (`get_config()`)
 
-## 🏆 Golden Rules (15 Architectural Validators)
+## 🏆 Golden Rules (23 Architectural Validators)
 
-Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/architectural_validators.py`:
+Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/ast_validator.py` (AST-based validation, 100% coverage):
 
 ### Import and Dependency Rules
 1. **No sys.path manipulation** - Use proper package imports

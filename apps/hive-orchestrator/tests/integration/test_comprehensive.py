@@ -132,7 +132,12 @@ class HiveTestSuite:
         try:
             # Spawn worker with timeout
             process = subprocess.Popen(
-                cmd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env,
+                cmd,
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                env=env,
             )
 
             # Give it 3 seconds to initialize
@@ -187,8 +192,7 @@ class HiveTestSuite:
             process = subprocess.run(
                 cmd,
                 stdin=subprocess.DEVNULL,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                capture_output=True,
                 text=True,
                 env=env,
                 timeout=10,
@@ -214,16 +218,21 @@ class HiveTestSuite:
         self.log("Testing configuration...")
 
         try:
-            from hive_orchestrator.config import get_config
+            from hive_config import create_config_from_sources
 
-            config = get_config()
+            config = create_config_from_sources()
 
-            # Check essential config values
-            required_keys = ["worker_spawn_timeout", "status_refresh_seconds", "max_parallel_tasks"]
+            # Check essential config attributes
+            required_attrs = [
+                ("worker", "spawn_timeout"),
+                ("orchestration", "status_refresh_seconds"),
+                ("orchestration", "max_parallel_tasks"),
+            ]
 
-            for key in required_keys:
-                if config.get(key) is None:
-                    self.log(f"Missing config key: {key}")
+            for section, attr in required_attrs:
+                section_obj = getattr(config, section, None)
+                if section_obj is None or not hasattr(section_obj, attr):
+                    self.log(f"Missing config attribute: {section}.{attr}")
                     return False
 
             self.log("Configuration loaded successfully")
@@ -246,7 +255,10 @@ class HiveTestSuite:
         try:
             # Test help command
             result = subprocess.run(
-                [sys.executable, str(queen_script), "--help"], capture_output=True, text=True, timeout=5,
+                [sys.executable, str(queen_script), "--help"],
+                capture_output=True,
+                text=True,
+                timeout=5,
             )
 
             if result.returncode == 0 and "QueenLite" in result.stdout:

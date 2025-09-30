@@ -6,12 +6,13 @@ Core review logic for analyzing code quality, tests, and documentation
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from hive_claude_bridge import ClaudeBridgeConfig, RateLimitConfig, get_claude_service
+from pydantic import BaseModel, Field
+
 from hive_errors import ErrorReporter, ReviewError, ReviewValidationError
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 from .inspector_bridge import InspectorBridge
 
@@ -63,7 +64,7 @@ class ReviewResult:
     suggestions: list[str]
     confidence: float
     escalation_reason: str | None = None
-    confusion_points: Optional[list[str]] = None
+    confusion_points: list[str] | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for storage"""
@@ -123,7 +124,7 @@ class ReviewEngine:
         task_id: str,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]] = None,
+        test_results: dict[str, Any] | None = None,
         transcript: str | None = None,
     ) -> ReviewResult:
         """
@@ -177,7 +178,9 @@ class ReviewEngine:
             decision = ReviewDecision(decision_str)
         except ValueError:
             error = ReviewValidationError(
-                message=f"Invalid review decision: {decision_str}", field="decision", value=decision_str,
+                message=f"Invalid review decision: {decision_str}",
+                field="decision",
+                value=decision_str,
             )
             (self.error_reporter.report_error(error, severity="WARNING"),)
             decision = ReviewDecision.ESCALATE

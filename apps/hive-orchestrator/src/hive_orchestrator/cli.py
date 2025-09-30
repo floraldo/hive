@@ -10,12 +10,12 @@ Provides commands to manage the Queen coordinator and Worker agents.
 """
 
 import json
-import os
 from datetime import datetime
 from pathlib import Path
-from hive_cli import add_command, create_cli, run_cli
-from hive_cli.decorators import command, option
-from hive_cli.output import error, info, success, warning
+
+from hive_cli import create_cli
+from hive_cli.decorators import option
+from hive_cli.output import info
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -72,7 +72,7 @@ def start_queen(config: str | None, debug: bool) -> None:
     "-m",
     type=click.Choice(["backend", "frontend", "infra", "general"]),
     default="general",
-    help="Worker mode"
+    help="Worker mode",
 )
 @option("--name", "-n", help="Worker name")
 @option("--debug", is_flag=True, help="Enable debug logging")
@@ -146,14 +146,14 @@ def status() -> None:
         total_runs = result[0] if result else 0
 
         info("=== Hive Orchestrator Status ===")
-        info(f"\nTasks:")
+        info("\nTasks:")
         info(f"  Queued:    {queued}")
         info(f"  Running:   {running}")
         info(f"  Completed: {completed}")
         info(f"  Failed:    {failed}")
-        info(f"\nWorkers:")
+        info("\nWorkers:")
         info(f"  Active:    {active_workers}")
-        info(f"\nRuns:")
+        info("\nRuns:")
         info(f"  Total:     {total_runs}")
 
     except ImportError as e:
@@ -171,13 +171,14 @@ def status() -> None:
 def review_escalated(task_id: str) -> None:
     """Review an escalated task requiring human decision."""
     try:
-        from hive_db import get_connection
-        from hive_orchestrator.core.db import TaskStatus
         from rich import box
         from rich.console import Console
         from rich.panel import Panel
         from rich.prompt import Prompt
         from rich.table import Table
+
+        from hive_db import get_connection
+        from hive_orchestrator.core.db import TaskStatus
 
         console = Console()
         conn = get_connection()
@@ -190,7 +191,7 @@ def review_escalated(task_id: str) -> None:
             FROM tasks,
             WHERE id = ? AND status = ?,
         """,
-            (task_id, TaskStatus.ESCALATED.value)
+            (task_id, TaskStatus.ESCALATED.value),
         )
 
         task = cursor.fetchone()
@@ -206,12 +207,12 @@ def review_escalated(task_id: str) -> None:
         # Display task header
         logger.info(
             Panel.fit(
-                f"[bold red]ESCALATED TASK REVIEW[/bold red]\n",
+                "[bold red]ESCALATED TASK REVIEW[/bold red]\n",
                 f"[yellow]Task ID:[/yellow] {task['id']}\n",
                 f"[yellow]Title:[/yellow] {task['title']}\n",
                 f"[yellow]Priority:[/yellow] {task['priority']}",
                 title="Human Review Required",
-                box=box.DOUBLE
+                box=box.DOUBLE,
             )
         )
 
@@ -234,10 +235,7 @@ def review_escalated(task_id: str) -> None:
             metrics_table.add_row("Documentation", f"{metrics.get('documentation', 0):.0f}")
             metrics_table.add_row("Security", f"{metrics.get('security', 0):.0f}")
             metrics_table.add_row("Architecture", f"{metrics.get('architecture', 0):.0f}")
-            metrics_table.add_row(
-                "[bold]Overall[/bold]",
-                f"[bold]{review.get('overall_score', 0):.0f}[/bold]"
-            )
+            metrics_table.add_row("[bold]Overall[/bold]", f"[bold]{review.get('overall_score', 0):.0f}[/bold]")
 
             console.logger.info(metrics_table)
 
@@ -275,9 +273,7 @@ def review_escalated(task_id: str) -> None:
 
         # Get human decision
         decision = Prompt.ask(
-            "\nYour decision",
-            choices=["approve", "reject", "rework", "defer", "cancel"],
-            default="defer"
+            "\nYour decision", choices=["approve", "reject", "rework", "defer", "cancel"], default="defer"
         )
 
         if decision == "cancel":
@@ -292,7 +288,7 @@ def review_escalated(task_id: str) -> None:
             "approve": TaskStatus.APPROVED.value,
             "reject": TaskStatus.REJECTED.value,
             "rework": TaskStatus.REWORK_NEEDED.value,
-            "defer": TaskStatus.ESCALATED.value
+            "defer": TaskStatus.ESCALATED.value,
         }[decision]
 
         # Store human review
@@ -300,7 +296,7 @@ def review_escalated(task_id: str) -> None:
             "decision": decision,
             "notes": notes,
             "timestamp": datetime.now().isoformat(),
-            "reviewer": "human"
+            "reviewer": "human",
         }
 
         if not result_data:
@@ -313,7 +309,7 @@ def review_escalated(task_id: str) -> None:
             SET status = ?, result_data = ?, updated_at = ?,
             WHERE id = ?,
         """,
-            (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id)
+            (new_status, json.dumps(result_data), datetime.now().isoformat(), task_id),
         )
 
         conn.commit()
@@ -338,11 +334,12 @@ def list_escalated() -> None:
     try:
         import json
 
-        from hive_db import get_connection
-        from hive_orchestrator.core.db import TaskStatus
         from rich import box
         from rich.console import Console
         from rich.table import Table
+
+        from hive_db import get_connection
+        from hive_orchestrator.core.db import TaskStatus
 
         console = Console()
         conn = get_connection()
@@ -356,7 +353,7 @@ def list_escalated() -> None:
             WHERE status = ?,
             ORDER BY priority DESC, created_at ASC,
         """,
-            (TaskStatus.ESCALATED.value,)
+            (TaskStatus.ESCALATED.value,),
         )
 
         tasks = cursor.fetchall()
@@ -366,10 +363,7 @@ def list_escalated() -> None:
             return
 
         # Create table
-        table = Table(
-            title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]",
-            box=box.ROUNDED
-        )
+        table = Table(title=f"[bold red]🚨 {len(tasks)} Tasks Requiring Human Review[/bold red]", box=box.ROUNDED)
 
         table.add_column("ID", style="cyan", width=12)
         table.add_column("Title", width=30)
@@ -383,9 +377,9 @@ def list_escalated() -> None:
             created = datetime.fromisoformat(task["created_at"])
             age = datetime.now() - created
             age_str = (
-                f"{age.days}d {age.seconds//3600}h"
+                f"{age.days}d {age.seconds // 3600}h"
                 if age.days > 0
-                else f"{age.seconds//3600}h {(age.seconds%3600)//60}m"
+                else f"{age.seconds // 3600}h {(age.seconds % 3600) // 60}m"
             )
 
             # Get AI score and reason,
@@ -396,11 +390,11 @@ def list_escalated() -> None:
             # Determine escalation reason,
             if review:
                 if score < 40:
-                    reason = "Very low quality score",
+                    reason = ("Very low quality score",)
                 elif len(review.get("issues", [])) > 5:
-                    reason = f"{len(review['issues'])} issues found",
+                    reason = (f"{len(review['issues'])} issues found",)
                 elif review.get("confidence", 1) < 0.5:
-                    reason = "Low AI confidence",
+                    reason = ("Low AI confidence",)
                 else:
                     reason = result_data.get("escalation_reason", "Complex decision required")
             else:
@@ -408,9 +402,9 @@ def list_escalated() -> None:
 
             # Color code by age,
             if age.days > 2:
-                age_color = "red",
+                age_color = ("red",)
             elif age.days > 0:
-                age_color = "yellow",
+                age_color = ("yellow",)
             else:
                 age_color = "white"
 
@@ -424,7 +418,7 @@ def list_escalated() -> None:
             )
 
         console.logger.info(table)
-        console.logger.info(f"\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
+        console.logger.info("\n[yellow]Use 'hive review-escalated <task_id>' to review a specific task[/yellow]")
 
     except ImportError as e:
         info(f"Required module not available: {e}", err=True)
@@ -459,7 +453,7 @@ def queue_task(task_description: str, role: str | None, priority: int) -> None:
             title=task_description[:50],  # Truncate title,
             task_type=role or "general",
             description=task_description,
-            priority=priority
+            priority=priority,
         )
 
         info(f"Task queued with ID: {task_id}")

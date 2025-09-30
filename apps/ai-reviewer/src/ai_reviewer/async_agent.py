@@ -17,7 +17,7 @@ import uuid
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Set
+from typing import Any
 
 from hive_orchestrator.core.bus import get_async_event_bus
 
@@ -51,7 +51,10 @@ class AsyncReviewEngine:
         self._review_semaphore = asyncio.Semaphore(3)  # Limit concurrent reviews
 
     async def review_task_async(
-        self, task: dict[str, Any], run_data: dict[str, Any], context: dict[str, Any] = None,
+        self,
+        task: dict[str, Any],
+        run_data: dict[str, Any],
+        context: dict[str, Any] = None,
     ) -> dict[str, Any]:
         """
         Perform async code review of a completed task
@@ -151,7 +154,10 @@ class AsyncReviewEngine:
         }
 
     async def _perform_real_review_async(
-        self, task: dict[str, Any], run_data: dict[str, Any], context: dict[str, Any],
+        self,
+        task: dict[str, Any],
+        run_data: dict[str, Any],
+        context: dict[str, Any],
     ) -> dict[str, Any]:
         """Perform real Claude-based review using async subprocess"""
 
@@ -235,8 +241,8 @@ class AsyncReviewEngine:
         task_id: str,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]] = None,
-        objective_analysis: Optional[dict[str, Any]] = None,
+        test_results: dict[str, Any] | None = None,
+        objective_analysis: dict[str, Any] | None = None,
         transcript: str | None = None,
     ) -> dict[str, Any]:
         """Call Claude CLI asynchronously for code review"""
@@ -272,7 +278,7 @@ class AsyncReviewEngine:
             # Parse and validate response
             return self._parse_claude_response(claude_output)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Claude CLI timed out")
             raise RuntimeError("Claude CLI timeout after 45 seconds")
 
@@ -314,8 +320,8 @@ class AsyncReviewEngine:
         self,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]],
-        objective_analysis: Optional[dict[str, Any]],
+        test_results: dict[str, Any] | None,
+        objective_analysis: dict[str, Any] | None,
         transcript: str | None,
     ) -> str:
         """Create comprehensive prompt for Claude review"""
@@ -497,7 +503,7 @@ class AsyncAIReviewer:
         self.max_concurrent_reviews = 2  # Max concurrent review operations
 
         # State tracking
-        self.active_reviews: Set[str] = set()
+        self.active_reviews: set[str] = set()
         self.review_semaphore = asyncio.Semaphore(self.max_concurrent_reviews)
 
         # Performance metrics
@@ -563,7 +569,7 @@ class AsyncAIReviewer:
         logger.info(f"Received signal {signum}, initiating graceful shutdown")
         self.shutdown_event.set()
 
-    async def get_next_review_task_async(self) -> Optional[dict[str, Any]]:
+    async def get_next_review_task_async(self) -> dict[str, Any] | None:
         """Get the next task requiring review"""
         try:
             # Get tasks needing review
@@ -617,7 +623,9 @@ class AsyncAIReviewer:
                 # Perform review with timeout
                 review_result = await asyncio.wait_for(
                     self.review_engine.review_task_async(
-                        task=task, run_data=run_data, context={"reviewer_id": self.agent_id},
+                        task=task,
+                        run_data=run_data,
+                        context={"reviewer_id": self.agent_id},
                     ),
                     timeout=self.max_review_time,
                 )
@@ -681,10 +689,12 @@ class AsyncAIReviewer:
                     "confidence": review_result.get("confidence", 0.8),
                 }
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Review timeout for task {task_id}")
                 await self.db_ops.update_task_status_async(
-                    task_id, "review_failed", {"error": "Review timeout", "reviewer_id": self.agent_id},
+                    task_id,
+                    "review_failed",
+                    {"error": "Review timeout", "reviewer_id": self.agent_id},
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": "timeout"}
@@ -692,7 +702,9 @@ class AsyncAIReviewer:
             except Exception as e:
                 logger.error(f"Review failed for task {task_id}: {e}")
                 await self.db_ops.update_task_status_async(
-                    task_id, "review_failed", {"error": str(e), "reviewer_id": self.agent_id},
+                    task_id,
+                    "review_failed",
+                    {"error": str(e), "reviewer_id": self.agent_id},
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": str(e)}
@@ -701,7 +713,7 @@ class AsyncAIReviewer:
                 # Remove from active reviews
                 self.active_reviews.discard(task_id)
 
-    async def _get_task_run_data_async(self, task_id: str) -> Optional[dict[str, Any]]:
+    async def _get_task_run_data_async(self, task_id: str) -> dict[str, Any] | None:
         """Get the most recent run data for a task"""
         try:
             # Get runs for this task
@@ -778,7 +790,7 @@ class AsyncAIReviewer:
                 try:
                     await asyncio.wait_for(self.shutdown_event.wait(), timeout=self.poll_interval)
                     break  # Shutdown signal received
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass  # Normal timeout, continue loop
 
         except Exception as e:

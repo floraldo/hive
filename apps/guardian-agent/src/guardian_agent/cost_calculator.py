@@ -63,7 +63,7 @@ class GuardianCostCalculator:
             elif total_size > 50:  # > 50KB total
                 complexity_multiplier = 1.2
 
-        total_cost = cost_per_file * num_files * complexity_multiplier
+        cost_per_file * num_files * complexity_multiplier
 
         # Determine resource type based on operation
         if review_type in ["security_scan"]:

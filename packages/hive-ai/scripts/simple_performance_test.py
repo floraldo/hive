@@ -36,7 +36,7 @@ def test_security_performance():
     validation_times = []
     for prompt in test_prompts:
         start = time.perf_counter()
-        result = validator.validate_prompt(prompt)
+        validator.validate_prompt(prompt)
         duration = (time.perf_counter() - start) * 1000
         validation_times.append(duration)
 
@@ -235,7 +235,7 @@ def test_model_system_performance():
         # Model lookup performance
         start = time.perf_counter()
         for _ in range(100):
-            available = registry.list_available_models()
+            registry.list_available_models()
         lookup_duration = (time.perf_counter() - start) * 1000
 
         results["model_lookup"] = {"total_ms": lookup_duration, "avg_ms": lookup_duration / 100, "operations": 100}

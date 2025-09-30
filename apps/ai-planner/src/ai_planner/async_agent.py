@@ -16,7 +16,7 @@ import uuid
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, List, Optional, Set
+from typing import Any
 
 from hive_orchestrator.core.bus import get_async_event_bus
 
@@ -52,7 +52,12 @@ class AsyncClaudeService:
         self._semaphore = asyncio.Semaphore(5)  # Limit concurrent calls
 
     async def generate_execution_plan_async(
-        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True,
+        self,
+        task_description: str,
+        context_data: dict[str, Any],
+        priority: int,
+        requestor: str,
+        use_cache: bool = True,
     ) -> dict[str, Any]:
         """
         Generate an execution plan asynchronously
@@ -145,8 +150,11 @@ class AsyncClaudeService:
             return "medium"
 
     async def _generate_mock_subtasks_async(
-        self, task_description: str, complexity: str, priority: int,
-    ) -> List[dict[str, Any]]:
+        self,
+        task_description: str,
+        complexity: str,
+        priority: int,
+    ) -> list[dict[str, Any]]:
         """Generate realistic mock subtasks"""
         base_tasks = [
             {
@@ -207,7 +215,7 @@ class AsyncClaudeService:
 
         return base_tasks
 
-    def _analyze_complexity(self, sub_tasks: List[dict[str, Any]]) -> dict[str, int]:
+    def _analyze_complexity(self, sub_tasks: list[dict[str, Any]]) -> dict[str, int]:
         """Analyze complexity breakdown of subtasks"""
         breakdown = {"low": 0, "medium": 0, "high": 0}
         for task in sub_tasks:
@@ -216,7 +224,12 @@ class AsyncClaudeService:
         return breakdown
 
     async def _call_claude_for_planning_async(
-        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True,
+        self,
+        task_description: str,
+        context_data: dict[str, Any],
+        priority: int,
+        requestor: str,
+        use_cache: bool = True,
     ) -> dict[str, Any]:
         """Call Claude CLI asynchronously for intelligent planning"""
         from ai_planner.claude_bridge import RobustClaudePlannerBridge
@@ -275,7 +288,7 @@ class AsyncClaudeService:
                 logger.error(f"Claude response validation failed: {e}")
                 return bridge._create_fallback_response(task_description, f"Response validation error: {str(e)}")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error("Claude CLI timed out during planning")
             bridge = RobustClaudePlannerBridge(mock_mode=False)
             return bridge._create_fallback_response(task_description, "Claude CLI timeout")
@@ -319,7 +332,11 @@ class AsyncClaudeService:
         return None
 
     def _create_planning_prompt(
-        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str,
+        self,
+        task_description: str,
+        context_data: dict[str, Any],
+        priority: int,
+        requestor: str,
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
         from ai_planner.claude_bridge import RobustClaudePlannerBridge
@@ -329,7 +346,10 @@ class AsyncClaudeService:
         return bridge._create_planning_prompt(task_description, context_data, priority, requestor)
 
     def _convert_claude_response_to_async_format(
-        self, claude_response: dict[str, Any], requestor: str = "system", priority: int = 50,
+        self,
+        claude_response: dict[str, Any],
+        requestor: str = "system",
+        priority: int = 50,
     ) -> dict[str, Any]:
         """Convert Claude bridge response to async service format"""
         # Extract sub_tasks and convert to async format
@@ -402,7 +422,7 @@ class AsyncAIPlanner:
         self.max_concurrent_plans = 3  # Max concurrent planning operations
 
         # State tracking
-        self.active_plans: Set[str] = set()
+        self.active_plans: set[str] = set()
         self.planning_semaphore = asyncio.Semaphore(self.max_concurrent_plans)
 
         # Performance metrics
@@ -473,7 +493,7 @@ class AsyncAIPlanner:
         logger.info(f"Received signal {signum}, initiating graceful shutdown")
         self.shutdown_event.set()
 
-    async def get_next_planning_task_async(self) -> Optional[dict[str, Any]]:
+    async def get_next_planning_task_async(self) -> dict[str, Any] | None:
         """Get the next task requiring planning"""
         try:
             # Get tasks needing planning
@@ -604,10 +624,12 @@ class AsyncAIPlanner:
                     "planning_time": planning_time,
                 }
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Planning timeout for task {task_id}")
                 await self.db_ops.update_task_status_async(
-                    task_id, "planning_failed", {"error": "Planning timeout", "planner_id": self.agent_id},
+                    task_id,
+                    "planning_failed",
+                    {"error": "Planning timeout", "planner_id": self.agent_id},
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": "timeout"}
@@ -615,7 +637,9 @@ class AsyncAIPlanner:
             except Exception as e:
                 logger.error(f"Planning failed for task {task_id}: {e}")
                 await self.db_ops.update_task_status_async(
-                    task_id, "planning_failed", {"error": str(e), "planner_id": self.agent_id},
+                    task_id,
+                    "planning_failed",
+                    {"error": str(e), "planner_id": self.agent_id},
                 )
                 self.metrics["errors"] += 1
                 return {"success": False, "error": str(e)}
@@ -684,7 +708,7 @@ class AsyncAIPlanner:
                 try:
                     await asyncio.wait_for(self.shutdown_event.wait(), timeout=self.poll_interval)
                     break  # Shutdown signal received
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     pass  # Normal timeout, continue loop
 
         except Exception as e:

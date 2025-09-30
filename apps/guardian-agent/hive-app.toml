@@ -1,0 +1,40 @@
+[app]
+name = "guardian-agent"
+version = "1.0.0"
+description = "Autonomous code quality guardian and architectural oracle"
+type = "daemon"
+
+[daemons.default]
+description = "Main guardian agent with code review and quality enforcement"
+command = "python -m guardian_agent.agent"
+restart_on_failure = true
+restart_delay_seconds = 30
+
+[daemons.oracle]
+description = "Architectural oracle for system design guidance"
+command = "python ascii_oracle_demo.py"
+restart_on_failure = false
+
+[capabilities]
+quality_assurance = ["code-review", "golden-rules-validation", "security-scanning"]
+analysis = ["architectural-analysis", "pattern-detection", "complexity-metrics"]
+autonomous = true
+learning_enabled = true
+
+[integration]
+database = "hive-core-db"
+uses_queue = "review_queue"
+integrates_with = ["hive-orchestrator", "ai-reviewer"]
+updates_status = ["pending", "in_review", "approved", "rejected"]
+
+[ai_config]
+model_provider = "anthropic"
+max_review_time = 600  # 10 minutes max review time
+enable_vector_search = true
+enable_pattern_recognition = true
+
+[monitoring]
+heartbeat_interval = 60
+health_check_endpoint = "/health"
+metrics_enabled = true
+review_metrics = ["reviews_completed", "issues_found", "avg_review_time"]

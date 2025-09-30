@@ -303,7 +303,7 @@ class AsyncPerformanceValidator:
         process = psutil.Process()
 
         # Baseline memory
-        baseline_memory = process.memory_info().rss / 1024 / 1024  # MB
+        process.memory_info().rss / 1024 / 1024  # MB
 
         # Test threading approach (simulated)
         threading_start_memory = process.memory_info().rss / 1024 / 1024

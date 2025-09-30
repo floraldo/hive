@@ -452,7 +452,9 @@ class AIPlannerIntegrationTests:
             conn.close()
 
             self.env.log_event(
-                "plan_generated", {"planning_task_id": planning_task_id, "plan_id": plan_id}, "ai_planner",
+                "plan_generated",
+                {"planning_task_id": planning_task_id, "plan_id": plan_id},
+                "ai_planner",
             )
             return plan_id
 
@@ -700,7 +702,8 @@ class CrossAppCommunicationTests:
                         )
                     elif app_name == "ecosystemiser":
                         conn.execute(
-                            "INSERT INTO event_log (event_type, component) VALUES (?, ?)", (f"eco_event_{i}", app_name),
+                            "INSERT INTO event_log (event_type, component) VALUES (?, ?)",
+                            (f"eco_event_{i}", app_name),
                         )
 
                     conn.commit()
@@ -994,7 +997,8 @@ class DatabaseIntegrationTests:
 
             # 3. Test simulation operations
             simulation_id = self._create_eco_simulation(
-                component_id, {"duration": 24, "timestep": 3600, "weather_data": "test_weather.csv"},
+                component_id,
+                {"duration": 24, "timestep": 3600, "weather_data": "test_weather.csv"},
             )
 
             # 4. Test simulation processing
@@ -1083,10 +1087,12 @@ class DatabaseIntegrationTests:
             conn.execute("BEGIN TRANSACTION")
 
             conn.execute(
-                "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 1", "Successful transaction"),
+                "INSERT INTO tasks (title, description) VALUES (?, ?)",
+                ("Transaction Test 1", "Successful transaction"),
             )
             conn.execute(
-                "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 2", "Successful transaction"),
+                "INSERT INTO tasks (title, description) VALUES (?, ?)",
+                ("Transaction Test 2", "Successful transaction"),
             )
 
             conn.execute("COMMIT")
@@ -1108,10 +1114,12 @@ class DatabaseIntegrationTests:
                 conn.execute("BEGIN TRANSACTION")
 
                 conn.execute(
-                    "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 1", "Should be rolled back"),
+                    "INSERT INTO tasks (title, description) VALUES (?, ?)",
+                    ("Rollback Test 1", "Should be rolled back"),
                 )
                 conn.execute(
-                    "INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 2", "Should be rolled back"),
+                    "INSERT INTO tasks (title, description) VALUES (?, ?)",
+                    ("Rollback Test 2", "Should be rolled back"),
                 )
 
                 # Simulate error condition
@@ -1168,7 +1176,9 @@ class DatabaseIntegrationTests:
         conn.close()
 
         self.env.log_event(
-            "eco_simulation_created", {"simulation_id": simulation_id, "component_id": component_id}, "ecosystemiser",
+            "eco_simulation_created",
+            {"simulation_id": simulation_id, "component_id": component_id},
+            "ecosystemiser",
         )
         return simulation_id
 
@@ -1300,7 +1310,8 @@ class PerformanceIntegrationTests:
                     # Complete task
                     conn = sqlite3.connect(self.env.test_db_path)
                     conn.execute(
-                        "UPDATE tasks SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (task_id,),
+                        "UPDATE tasks SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                        (task_id,),
                     )
                     conn.commit()
                     conn.close()
@@ -1458,7 +1469,7 @@ class PerformanceIntegrationTests:
         """Test sequential operations timing"""
         start_time = time.time()
 
-        for i in range(5):
+        for _i in range(5):
             await asyncio.sleep(0.02)  # Simulate work
 
         return time.time() - start_time
@@ -1532,7 +1543,7 @@ class PerformanceIntegrationTests:
         conn = sqlite3.connect(self.env.test_db_path)
 
         # Perform optimized queries
-        for i in range(10):
+        for _i in range(10):
             cursor = conn.execute("SELECT id, title FROM tasks WHERE status = ? LIMIT 10", ("pending",))
             cursor.fetchall()
 
@@ -1546,7 +1557,7 @@ class PerformanceIntegrationTests:
         start_time = time.time()
 
         # Simulate multiple quick connections (pool should optimize this)
-        for i in range(20):
+        for _i in range(20):
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute("SELECT 1")
             cursor.fetchone()
@@ -1745,7 +1756,7 @@ class ComprehensiveHiveIntegrationTestSuite:
             for sample in self.env.metrics.performance_samples[-5:]:  # Show last 5
                 test_name = sample.get("test", "unknown")
                 value = sample.get("value", 0)
-                component = sample.get("component", "")
+                sample.get("component", "")
 
                 if "improvement" in test_name:
                     print(f"   🚀 {test_name}: {value:.1f}x improvement")

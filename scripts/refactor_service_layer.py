@@ -13,7 +13,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 def extract_business_logic_from_service(service_file: Path) -> tuple[str, str]:
     """Extract business logic from service layer and create implementation file"""
 
-    service_content = service_file.read_text(encoding="utf-8")
+    service_file.read_text(encoding="utf-8")
 
     # Create implementation module content
     impl_content = '''"""Implementation layer for business logic"""

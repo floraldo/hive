@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -126,7 +126,7 @@ class TrendAnalyzer:
 
         return ema
 
-    def detect_degradation(self, metrics: list[MetricPoint], threshold: float) -> Optional[DegradationAlert]:
+    def detect_degradation(self, metrics: list[MetricPoint], threshold: float) -> DegradationAlert | None:
         """
         Detect if metrics show degradation pattern.
 
@@ -165,7 +165,10 @@ class TrendAnalyzer:
         return None
 
     def _create_degradation_alert(
-        self, metrics: list[MetricPoint], ema: list[float], threshold: float,
+        self,
+        metrics: list[MetricPoint],
+        ema: list[float],
+        threshold: float,
     ) -> DegradationAlert:
         """Create degradation alert from analysis results."""
         current_value = metrics[-1].value
@@ -336,7 +339,10 @@ class TrendAnalyzer:
         return AlertSeverity.LOW
 
     def _generate_recommendations(
-        self, metrics: list[MetricPoint], threshold: float, severity: AlertSeverity,
+        self,
+        metrics: list[MetricPoint],
+        threshold: float,
+        severity: AlertSeverity,
     ) -> list[str]:
         """
         Generate recommended actions based on metric type and severity.

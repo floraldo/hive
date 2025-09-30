@@ -507,7 +507,9 @@ class EndToEndIntegrationTest:
         print("\n📋 Step 1: Creating planning task...")
         task_description = "Implement complete authentication system with JWT tokens"
         planning_task_id = self.create_planning_task(
-            task_description, priority=75, context={"complexity": "high", "estimated_hours": 8},
+            task_description,
+            priority=75,
+            context={"complexity": "high", "estimated_hours": 8},
         )
         print(f"✅ Created planning task: {planning_task_id}")
 
@@ -566,12 +568,12 @@ class EndToEndIntegrationTest:
 
         # Assertions
         assert final_completion["complete"], f"Plan should be complete but is {final_completion['progress']:.1f}% done"
-        assert final_completion["failed_tasks"] == 0, (
-            f"No tasks should fail but {final_completion['failed_tasks']} failed"
-        )
-        assert self.test_stats["tasks_completed"] == 3, (
-            f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
-        )
+        assert (
+            final_completion["failed_tasks"] == 0
+        ), f"No tasks should fail but {final_completion['failed_tasks']} failed"
+        assert (
+            self.test_stats["tasks_completed"] == 3
+        ), f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
 
         print("✅ All assertions passed!")
         print("📊 Final Statistics:")
@@ -589,7 +591,7 @@ class EndToEndIntegrationTest:
 
         # Create planning task
         planning_task_id = self.create_planning_task("Test dependency resolution")
-        plan_id = self.simulate_ai_planner_processing(planning_task_id)
+        self.simulate_ai_planner_processing(planning_task_id)
 
         # Initial state: only task with no dependencies should be ready
         ready_subtasks = self.get_ready_subtasks()
@@ -597,14 +599,14 @@ class EndToEndIntegrationTest:
 
         print(f"Initially ready tasks: {ready_titles}")
         assert "Design Authentication Schema" in ready_titles, "Design task should be ready (no dependencies)"
-        assert "Implement Authentication Service" not in ready_titles, (
-            "Implementation should not be ready (has dependencies)"
-        )
+        assert (
+            "Implement Authentication Service" not in ready_titles
+        ), "Implementation should not be ready (has dependencies)"
         assert "Create Login UI" not in ready_titles, "Frontend should not be ready (has dependencies)"
 
         # Complete the design task
         design_task = next(task for task in ready_subtasks if "Design" in task["title"])
-        processed = self.simulate_queen_processing()
+        self.simulate_queen_processing()
         self.simulate_worker_completion(design_task["id"], f"run_{uuid.uuid4()}", success=True)
 
         # Now both dependent tasks should be ready
@@ -630,7 +632,7 @@ class EndToEndIntegrationTest:
         first_task = ready_subtasks[0]
 
         # Process and fail the task
-        processed = self.simulate_queen_processing()
+        self.simulate_queen_processing()
         self.simulate_worker_completion(first_task["id"], f"run_{uuid.uuid4()}", success=False)
 
         # Check that the plan shows failure

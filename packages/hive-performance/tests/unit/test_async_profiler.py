@@ -61,7 +61,7 @@ class TestAsyncProfiler:
         """Test profiler handles concurrent operations."""
         from hive_performance.async_profiler import AsyncProfiler
 
-        profiler = AsyncProfiler()
+        AsyncProfiler()
 
         async def task(n):
             await asyncio.sleep(0.01)

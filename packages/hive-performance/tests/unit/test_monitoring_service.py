@@ -67,7 +67,7 @@ class TestMonitoringService:
         """Test real-time monitoring capabilities."""
         from hive_performance.monitoring_service import MonitoringService
 
-        service = MonitoringService(collection_interval=0.1)
+        MonitoringService(collection_interval=0.1)
 
         # Mock some monitoring activity
         start_time = asyncio.get_event_loop().time()

@@ -61,17 +61,18 @@ class V3CertificationTest:
     def test_1_configuration_centralization(self) -> bool:
         """Test centralized configuration system"""
         try:
-            from hive_config import get_config
+            from hive_config import create_config_from_sources
 
-            config = get_config()
+            config = create_config_from_sources()
 
             # Test basic configuration access
-            assert config.get("log_level") is not None
-            assert config.get_bool("debug_mode") is not None
-            assert config.get_int("db_max_connections") > 0
+            assert config.logging is not None
+            assert config.logging.level is not None
+            assert hasattr(config, "debug_mode")
+            assert config.database.connection_pool_max > 0
 
             # Test environment-specific configuration
-            assert config.env in ["development", "testing", "production"]
+            assert config.environment in ["development", "testing", "production"]
 
             # Test component-specific configuration
             claude_config = config.get_claude_config()
@@ -133,8 +134,6 @@ class V3CertificationTest:
             self.log("Testing Claude service integration...")
             from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
-            from hive_config import get_config
-
             # Reset for clean test
             self.log("Resetting Claude service...")
             reset_claude_service()
@@ -146,7 +145,9 @@ class V3CertificationTest:
 
             # Verify configuration integration
             self.log("Verifying configuration integration...")
-            config = get_config()
+            from hive_config import create_config_from_sources
+
+            config = create_config_from_sources()
             claude_config = config.get_claude_config()
 
             # Service should use centralized config values
@@ -239,14 +240,14 @@ class V3CertificationTest:
             # Test that all components can work together
             from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
 
-            from hive_config import get_config
+            from hive_config import create_config_from_sources
             from hive_db import get_pooled_connection
 
             # Get centralized config
-            config = get_config()
+            config = create_config_from_sources()
 
             # Test database with config
-            db_config = config.get_database_config()
+            config.get_database_config()
             with get_pooled_connection() as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT 1 as test_value")
@@ -274,12 +275,12 @@ class V3CertificationTest:
         try:
             import os
 
-            from hive_config import get_config
+            from hive_config import create_config_from_sources
 
-            config = get_config()
+            config = create_config_from_sources()
 
             # Test environment detection
-            env = config.env
+            env = config.environment
             assert env in ["development", "testing", "production"]
 
             # Test environment-specific defaults

@@ -116,7 +116,7 @@ class GoldenRulesAnalyzer:
         # Suggest running autofix if applicable
         auto_fixable = [v for v in violations if v.fix_suggestion]
         if auto_fixable:
-            rules = set(v.rule for v in auto_fixable)
+            rules = {v.rule for v in auto_fixable}
             suggestions.append(
                 Suggestion(
                     category="automation",

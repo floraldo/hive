@@ -13,7 +13,7 @@ This module provides backward compatibility by importing from the new core modul
 All new code should import directly from ecosystemiser.core.errors.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 # Import everything from the new core module
 from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Profile errors; Solver errors; Component errors; Database errors; Event bus errors; Error reporter
@@ -44,7 +44,9 @@ class ValidationError(ComponentValidationError):
 
 
 def handle_error(
-    error: Exception, context: str | None = None, additional_info: Optional[dict[str, Any]] = None,
+    error: Exception,
+    context: str | None = None,
+    additional_info: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Legacy handle_error function"""
     return get_error_reporter().report_error(error, context, additional_info)

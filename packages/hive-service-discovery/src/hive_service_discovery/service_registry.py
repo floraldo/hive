@@ -494,7 +494,7 @@ class ServiceRegistry:
 
             total_services = len(self._service_cache)
             healthy_services = sum(1 for s in self._service_cache.values() if s.healthy)
-            service_names = len(set(s.service_name for s in self._service_cache.values()))
+            service_names = len({s.service_name for s in self._service_cache.values()})
 
             return {
                 "total_services": total_services,

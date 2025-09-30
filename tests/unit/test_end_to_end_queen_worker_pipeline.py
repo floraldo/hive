@@ -610,7 +610,10 @@ if __name__ == "__main__":
         return str(script_path)
 
     def _create_mock_worker_script(
-        self, worker_id: str, should_fail: bool = False, slow_execution: bool = False,
+        self,
+        worker_id: str,
+        should_fail: bool = False,
+        slow_execution: bool = False,
     ) -> str:
         """Create mock Worker script"""
         script_content = f"""
@@ -723,7 +726,7 @@ if __name__ == "__main__":
                     pass
 
         # Stop Worker processes
-        for worker_id, worker_process in self.worker_processes:
+        for _worker_id, worker_process in self.worker_processes:
             if worker_process.poll() is None:
                 try:
                     worker_process.terminate()
@@ -802,8 +805,7 @@ if __name__ == "__main__":
         print("📊 QUEEN → WORKER PIPELINE TEST REPORT")
         print("=" * 70)
 
-        test_count = 5  # Number of test categories
-        passed_count = sum(
+        sum(
             [
                 1 if all_passed else 0,  # This is simplified; in real implementation would track individual tests
             ],

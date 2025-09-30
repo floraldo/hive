@@ -16,17 +16,14 @@ import sqlite3
 import tempfile
 import time
 from pathlib import Path
-from typing import Dict, List, Optional
-from unittest.mock import AsyncMock, Mock, patch
 
-import aiosqlite
 import pytest
 
 # Import database components (adjust import paths as needed)
 try:
+    from hive_async import AsyncExecutor, get_async_connection
     from hive_db.async_pool import AsyncConnectionPool
     from hive_db.sqlite_connector import SQLiteConnector
-    from hive_async import AsyncExecutor, get_async_connection
 
     async_executor = AsyncExecutor()
 except ImportError:
@@ -114,7 +111,7 @@ class MockDatabaseConnection:
 class MockCursor:
     """Mock database cursor"""
 
-    def __init__(self, rows: List[tuple] = None):
+    def __init__(self, rows: list[tuple] = None):
         self.rows = rows or []
         self.rowcount = len(self.rows)
 
@@ -138,7 +135,7 @@ class ResilientDatabaseService:
         self.circuit_breaker_last_failure = None
         self.circuit_breaker_timeout = 10
 
-    async def execute_with_resilience(self, query: str, params: tuple = ()) -> List[tuple]:
+    async def execute_with_resilience(self, query: str, params: tuple = ()) -> list[tuple]:
         """Execute query with resilience patterns"""
         if self.circuit_breaker_open:
             if (time.time() - self.circuit_breaker_last_failure) < self.circuit_breaker_timeout:
@@ -176,7 +173,7 @@ class ResilientDatabaseService:
 
         raise last_exception
 
-    async def execute_transaction(self, queries: List[tuple]) -> bool:
+    async def execute_transaction(self, queries: list[tuple]) -> bool:
         """Execute multiple queries in a transaction with rollback on failure"""
         conn = await self.pool.get_connection()
 
@@ -210,13 +207,15 @@ class TestDatabaseResilience:
 
         # Create test table
         async with get_async_connection(str(db_path)) as conn:
-            await conn.execute(""",
+            await conn.execute(
+                """,
                 CREATE TABLE test_table (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
                     value INTEGER
                 )
-            """)
+            """
+            )
             await conn.commit()
 
         yield str(db_path)
@@ -240,7 +239,7 @@ class TestDatabaseResilience:
         connections = []
 
         # Get multiple connections
-        for i in range(3):
+        for _i in range(3):
             conn = await connection_pool.get_connection()
             connections.append(conn)
             assert not conn.is_closed
@@ -259,7 +258,7 @@ class TestDatabaseResilience:
         connections = []
 
         # Exhaust the connection pool
-        for i in range(connection_pool.max_connections):
+        for _i in range(connection_pool.max_connections):
             conn = await connection_pool.get_connection()
             connections.append(conn)
 
@@ -283,7 +282,6 @@ class TestDatabaseResilience:
     async def test_database_retry_mechanism(self, resilient_service):
         """Test retry mechanism for transient database failures"""
         # Mock the connection pool to fail first two attempts, succeed on third
-        original_get_connection = resilient_service.pool.get_connection
         call_count = 0
 
         async def failing_get_connection():
@@ -313,7 +311,7 @@ class TestDatabaseResilience:
         resilient_service.pool.get_connection = always_failing_get_connection
 
         # Make requests until circuit breaker opens
-        for i in range(6):  # More than circuit_breaker_threshold (5)
+        for _i in range(6):  # More than circuit_breaker_threshold (5)
             with pytest.raises(Exception):
                 await resilient_service.execute_with_resilience("SELECT 1")
 
@@ -414,7 +412,7 @@ class TestDatabaseResilience:
         resilient_service.pool.get_connection = intermittent_failing_connection
 
         # Trigger circuit breaker to open
-        for i in range(6):
+        for _i in range(6):
             with pytest.raises(Exception):
                 await resilient_service.execute_with_resilience("SELECT 1")
 
@@ -439,7 +437,7 @@ class TestDatabaseResilience:
         connections = []
 
         # Create connections
-        for i in range(3):
+        for _i in range(3):
             conn = await connection_pool.get_connection()
             connections.append(conn)
 

@@ -2,6 +2,10 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 from typing import Any
 
 
@@ -93,7 +97,7 @@ class GuardianConfig:
 
             self.openai_api_key = os.getenv("OPENAI_API_KEY")
             if not self.openai_api_key:
-                print("Warning: OpenAI API key not set - some features may not work")
+                logger.warning("OpenAI API key not set - some features may not work")
 
         # Ensure paths exist
         if self.vector_search.enabled:

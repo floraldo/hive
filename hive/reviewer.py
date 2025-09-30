@@ -36,9 +36,9 @@ class ReviewerCore:
                 "strengths": [list of things done well]
             }
         """
-        task_id = task["id"]
+        task["id"]
         acceptance_criteria = task.get("acceptance", [])
-        instruction = task.get("instruction", "")
+        task.get("instruction", "")
 
         # Initialize review result
         review = {
@@ -122,7 +122,10 @@ class ReviewerCore:
         """Get list of files changed in the worktree"""
         try:
             result = subprocess.run(
-                ["git", "diff", "--name-only", "HEAD"], cwd=str(worktree_path), capture_output=True, text=True,
+                ["git", "diff", "--name-only", "HEAD"],
+                cwd=str(worktree_path),
+                capture_output=True,
+                text=True,
             )
 
             if result.returncode == 0:

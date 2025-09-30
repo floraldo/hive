@@ -70,7 +70,7 @@ class TestReviewAgent:
         assert agent.db == mock_db
         assert agent.review_engine == mock_review_engine
         assert agent.polling_interval == 30
-        assert agent.running == False
+        assert not agent.running
         assert agent.stats["tasks_reviewed"] == 0
 
     def test_test_mode(self, mock_db, mock_review_engine):
@@ -243,7 +243,7 @@ class TestReviewAgent:
         """Test signal handler sets running to False"""
         agent.running = True
         agent._signal_handler(2, None)  # SIGINT
-        assert agent.running == False
+        assert not agent.running
 
 
 class TestDatabaseAdapter:
@@ -290,7 +290,7 @@ class TestDatabaseAdapter:
         review_data = {"score": 85, "decision": "approve"}
         result = adapter.update_task_status("test-123", TaskStatus.APPROVED, review_data)
 
-        assert result == True
+        assert result
         assert mock_task.status == TaskStatus.APPROVED
         assert mock_task.result_data["review"] == review_data
         mock_session.commit.assert_called_once()

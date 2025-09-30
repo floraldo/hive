@@ -152,7 +152,10 @@ class WorkerCore:
         # Does the branch already exist?
         branch_exists = (
             subprocess.run(
-                ["git", "rev-parse", "--verify", "--quiet", branch], cwd=str(self.root), capture_output=True, text=True,
+                ["git", "rev-parse", "--verify", "--quiet", branch],
+                cwd=str(self.root),
+                capture_output=True,
+                text=True,
             ).returncode
             == 0
         )
@@ -220,7 +223,10 @@ class WorkerCore:
         # Try which/where command
         try:
             result = subprocess.run(
-                ["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True, check=True,
+                ["where" if os.name == "nt" else "which", "claude"],
+                capture_output=True,
+                text=True,
+                check=True,
             )
             claude_path = result.stdout.strip().split("\n")[0]
             if claude_path:
@@ -616,7 +622,6 @@ CRITICAL PATH CONSTRAINT:
             output_lines = []
             transcript_lines = []  # Capture full transcript for database storage
             claude_completed = False
-            last_assistant_message = None
 
             # ENHANCED DEBUG LOGGING FOR FINAL BUG HUNT
             self.log.info("=" * 80)
@@ -736,7 +741,7 @@ CRITICAL PATH CONSTRAINT:
                         try:
                             data = json.loads(line)
                             if data.get("type") == "assistant":
-                                last_assistant_message = data
+                                pass
                             elif data.get("type") == "result":
                                 claude_completed = True
                                 if data.get("subtype") == "success":

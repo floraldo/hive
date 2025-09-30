@@ -84,7 +84,6 @@ class LoggingViolationsFixer:
         """Fix logging violations in a single file"""
         try:
             content = file_path.read_text(encoding="utf-8", errors="ignore")
-            original_content = content
             lines = content.split("\n")
 
             # Check if file already has logging import
@@ -99,9 +98,7 @@ class LoggingViolationsFixer:
             new_lines = []
             logger_added = False
 
-            for line_num, line in enumerate(lines):
-                original_line = line
-
+            for _line_num, line in enumerate(lines):
                 # Add logging import after first import if not present
                 if (
                     not has_logging_import
@@ -297,5 +294,3 @@ def main():
 
 if __name__ == "__main__":
     exit(main())
-
-

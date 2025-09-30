@@ -314,7 +314,9 @@ class MetricsWarehouse:
     async def get_latest_metrics_async(self, metric_type: MetricType, source: str | None = None) -> list[UnifiedMetric]:
         """Get the most recent metrics of a specific type."""
         return await self.query_metrics_async(
-            metric_types=[metric_type], sources=[source] if source else None, limit=100,
+            metric_types=[metric_type],
+            sources=[source] if source else None,
+            limit=100,
         )
 
     async def get_time_series_async(self, metric_type: MetricType, source: str, hours: int = 24) -> list[UnifiedMetric]:
@@ -322,7 +324,10 @@ class MetricsWarehouse:
         start_time = datetime.utcnow() - timedelta(hours=hours)
 
         return await self.query_metrics_async(
-            metric_types=[metric_type], sources=[source], start_time=start_time, limit=10000,
+            metric_types=[metric_type],
+            sources=[source],
+            start_time=start_time,
+            limit=10000,
         )
 
 
@@ -1247,7 +1252,9 @@ class DataUnificationLayer:
         return metrics
 
     def transform_architectural_violations(
-        self, metrics: list[UnifiedMetric], source: DataSource,
+        self,
+        metrics: list[UnifiedMetric],
+        source: DataSource,
     ) -> list[UnifiedMetric]:
         """Transform architectural validation data."""
         for metric in metrics:
@@ -1940,7 +1947,7 @@ class DataUnificationLayer:
 
             if metric.metric_type == MetricType.CERTIFICATION_SCORE:
                 score = metric.value
-                component = metric.tags.get("component", "unknown")
+                metric.tags.get("component", "unknown")
 
                 # Add urgency tags based on score
                 if score < 70:
@@ -2372,13 +2379,17 @@ class DataUnificationLayer:
 
                 # Add Oracle recommendations
                 metric.metadata["oracle_recommendation"] = self._generate_prophecy_recommendation(
-                    metric.tags.get("prophecy_type", "unknown"), confidence, severity,
+                    metric.tags.get("prophecy_type", "unknown"),
+                    confidence,
+                    severity,
                 )
 
         return metrics
 
     def transform_prophecy_accuracy_metrics(
-        self, metrics: list[UnifiedMetric], source: DataSource,
+        self,
+        metrics: list[UnifiedMetric],
+        source: DataSource,
     ) -> list[UnifiedMetric]:
         """Transform and enrich prophecy accuracy metrics."""
         for metric in metrics:

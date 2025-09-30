@@ -12,7 +12,7 @@ from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional, Tuple
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -144,7 +144,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         model: str,
         provider: str,
         operation_id: str | None = None,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Start tracking an AI operation.
@@ -188,7 +188,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         tokens_used: TokenUsage | None = None,
         cost: float = 0.0,
         error_type: str | None = None,
-        additional_metadata: Optional[dict[str, Any]] = None,
+        additional_metadata: dict[str, Any] | None = None,
     ) -> AIOperationMetrics:
         """
         End tracking of an AI operation.
@@ -248,7 +248,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         return operation
 
     def record_metric(
-        self, metric_name: str, value: float, tags: Optional[dict[str, str]] = None, timestamp: datetime | None = None
+        self, metric_name: str, value: float, tags: dict[str, str] | None = None, timestamp: datetime | None = None
     ) -> None:
         """
         Record a metric value.
@@ -452,7 +452,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         }
 
     async def export_metrics_async(
-        self, format: str = "json", time_range: Optional[Tuple[datetime, datetime]] = None
+        self, format: str = "json", time_range: tuple[datetime, datetime] | None = None
     ) -> dict[str, Any]:
         """Export metrics data for external analysis."""
         if time_range:
