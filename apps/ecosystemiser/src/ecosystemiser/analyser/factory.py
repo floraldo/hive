@@ -61,7 +61,7 @@ class AnalyserFactory:
             raise ValueError(f"Unknown strategy: {name}. Available strategies: {available}")
         strategy_class = cls._strategies[name]
 
-        # Create instance with configuration if supported,
+        # Create instance with configuration if supported
         if config:
             # Check if the strategy accepts configuration
             try:
@@ -130,7 +130,7 @@ class AnalyserFactory:
             strategies["sensitivity"] = cls.create_strategy("sensitivity")
 
         elif system_type == "water":
-            # For water systems, still use technical KPIs (it handles water metrics),
+            # For water systems, still use technical KPIs (it handles water metrics)
             strategies["technical_kpi"] = cls.create_strategy("technical_kpi")
             strategies["economic"] = cls.create_strategy("economic")
 

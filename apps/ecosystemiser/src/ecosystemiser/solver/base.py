@@ -85,7 +85,7 @@ class BaseSolver(ABC):
         violations = []
 
         for component in self.system.components.values():
-            # Check storage bounds,
+            # Check storage bounds
             if component.type == "storage":
                 if hasattr(component, "E"):
                     E = component.E

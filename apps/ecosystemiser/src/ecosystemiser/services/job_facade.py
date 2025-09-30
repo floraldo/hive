@@ -85,7 +85,7 @@ class JobFacade:
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
         self._jobs: Dict[str, JobResult] = {}
 
-        # Lazy imports to avoid circular dependencies,
+        # Lazy imports to avoid circular dependencies
         self._simulation_service = None
         self._analyser_service = None
 
@@ -109,14 +109,14 @@ class JobFacade:
         Returns:
             JobResult with simulation results or status,
         """
-        # Create job request,
+        # Create job request
         request = JobRequest(
             job_type=JobType.SIMULATION, config=config, correlation_id=correlation_id, timeout_seconds=timeout
         )
 
         logger.info(f"Submitting simulation job {request.job_id}")
 
-        # Publish job submitted event,
+        # Publish job submitted event
         self.event_bus.publish(
             SimulationEvent(
                 event_type="simulation_requested",
@@ -125,13 +125,13 @@ class JobFacade:
         ),
 
         if blocking:
-            # Execute synchronously (current implementation),
+            # Execute synchronously (current implementation)
             return self._execute_simulation_sync(request)
         else:
             # Submit for async execution (future enhancement)
             future = self.executor.submit(self._execute_simulation_sync, request)
 
-            # Return pending status immediately,
+            # Return pending status immediately
             result = JobResult(
                 job_id=request.job_id,
                 job_type=JobType.SIMULATION,
@@ -150,7 +150,7 @@ class JobFacade:
         Returns:
             JobResult with simulation results,
         """
-        # Lazy import to avoid circular dependency,
+        # Lazy import to avoid circular dependency
         if self._simulation_service is None:
             from ecosystemiser.services.simulation_service import (
                 SimulationConfig,
@@ -162,7 +162,7 @@ class JobFacade:
         started_at = datetime.now()
 
         try:
-            # Update job status,
+            # Update job status
             self._jobs[request.job_id] = JobResult(
                 job_id=request.job_id, job_type=JobType.SIMULATION, status=JobStatus.RUNNING, started_at=started_at
             )
@@ -184,7 +184,7 @@ class JobFacade:
                 execution_time_seconds=execution_time
             )
 
-            # Publish completion event,
+            # Publish completion event
             self.event_bus.publish(
                 SimulationEvent(
                     event_type="simulation_completed",
@@ -207,7 +207,7 @@ class JobFacade:
                 completed_at=datetime.now()
             )
 
-            # Publish timeout event,
+            # Publish timeout event
             self.event_bus.publish(
                 SimulationEvent(
                     event_type="simulation_failed",
@@ -226,7 +226,7 @@ class JobFacade:
                 completed_at=datetime.now()
             )
 
-            # Publish failure event,
+            # Publish failure event
             self.event_bus.publish(
                 SimulationEvent(
                     event_type="simulation_failed",
@@ -234,7 +234,7 @@ class JobFacade:
                 )
             )
 
-        # Store result,
+        # Store result
         self._jobs[request.job_id] = result
         return result
 
@@ -256,7 +256,7 @@ class JobFacade:
         Returns:
             JobResult with analysis results or status,
         """
-        # Create job request,
+        # Create job request
         request = JobRequest(
             job_type=JobType.ANALYSIS, config=config, correlation_id=correlation_id, timeout_seconds=timeout
         )
@@ -266,7 +266,7 @@ class JobFacade:
         if blocking:
             return self._execute_analysis_sync(request)
         else:
-            # Future: Submit for async execution,
+            # Future: Submit for async execution
             future = self.executor.submit(self._execute_analysis_sync, request)
             result = JobResult(
                 job_id=request.job_id, job_type=JobType.ANALYSIS, status=JobStatus.PENDING, metadata={"future": future}
@@ -283,7 +283,7 @@ class JobFacade:
         Returns:
             JobResult with analysis results,
         """
-        # Lazy import to avoid circular dependency,
+        # Lazy import to avoid circular dependency
         if self._analyser_service is None:
             from ecosystemiser.analyser import AnalyserService
 
@@ -348,7 +348,7 @@ class JobFacade:
             raise KeyError(f"Job {job_id} not found")
         job = self._jobs[job_id]
 
-        # If job has a future (async execution), wait for it,
+        # If job has a future (async execution), wait for it
         if "future" in job.metadata:
             future = job.metadata["future"]
             try:
@@ -359,7 +359,7 @@ class JobFacade:
                 job.error = "Job execution timed out"
                 raise
 
-        # Otherwise, job is already complete,
+        # Otherwise, job is already complete
         return job
 
     def cancel_job(self, job_id: str) -> bool:
@@ -378,7 +378,7 @@ class JobFacade:
         if job.status in [JobStatus.COMPLETED, JobStatus.FAILED]:
             return False
 
-        # Cancel future if exists,
+        # Cancel future if exists
         if "future" in job.metadata:
             future = job.metadata["future"]
             cancelled = future.cancel()
@@ -429,7 +429,7 @@ class JobFacade:
         Returns:
             SimulationResult
         """
-        # Convert config to dict if needed,
+        # Convert config to dict if needed
         if hasattr(config, "dict"):
             config_dict = config.dict()
         else:
@@ -438,14 +438,14 @@ class JobFacade:
         # Run simulation synchronously
         result = self.submit_simulation_job(config_dict, blocking=True)
 
-        # Extract the actual simulation result,
+        # Extract the actual simulation result
         if result.status == JobStatus.COMPLETED and result.result:
             # If result.result is a dict representation of SimulationResult, return it
-            # For backward compatibility with StudyService,
+            # For backward compatibility with StudyService
             from ecosystemiser.services.simulation_service import SimulationResult
 
             if isinstance(result.result, dict):
-                # The dict should be compatible with SimulationResult,
+                # The dict should be compatible with SimulationResult
                 return SimulationResult(**result.result)
             return result.result
         elif result.status == JobStatus.FAILED:

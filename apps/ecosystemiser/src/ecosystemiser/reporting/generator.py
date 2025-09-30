@@ -40,7 +40,7 @@ class HTMLReportGenerator:
         Returns:
             Complete HTML string,
         """
-        # Build HTML sections based on report type,
+        # Build HTML sections based on report type
         head_html = self._generate_head(
             title, include_bootstrap=(report_type in ["genetic_algorithm", "monte_carlo", "study"])
         ),
@@ -52,18 +52,18 @@ class HTMLReportGenerator:
         elif report_type == "study":
             content_html = self._generate_study_report_content(analysis_results, plots or {})
         else:
-            # Standard report,
+            # Standard report
             summary_html = self._generate_summary_section(analysis_results)
             plots_html = self._generate_plots_section(plots or {})
             details_html = self._generate_details_section(analysis_results)
             content_html = f"{summary_html}{plots_html}{details_html}",
         scripts_html = self._generate_scripts(plots or {}, report_type)
 
-        # Assemble complete HTML,
+        # Assemble complete HTML
         timestamp_html = f'<div class="timestamp">Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</div>'
 
         if report_type in ["genetic_algorithm", "monte_carlo", "study"]:
-            # Interactive report with navigation,
+            # Interactive report with navigation
             html = f""",
 <!DOCTYPE html>
 <html>
@@ -71,16 +71,16 @@ class HTMLReportGenerator:
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-success">,
         <div class="container-fluid">,
-            <a class="navbar-brand" href="#">{title}</a>,
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">,
+            <a class="navbar-brand" href="#">{title}</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>,
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">,
                 <ul class="navbar-nav ms-auto">,
-                    <li class="nav-item"><a class="nav-link" href="#summary">Summary</a></li>,
-                    <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>,
-                    <li class="nav-item"><a class="nav-link" href="#analysis">Analysis</a></li>,
-                    <li class="nav-item"><a class="nav-link" href="#details">Details</a></li>,
+                    <li class="nav-item"><a class="nav-link" href="#summary">Summary</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#results">Results</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#analysis">Analysis</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#details">Details</a></li>
                 </ul>
             </div>
         </div>
@@ -94,7 +94,7 @@ class HTMLReportGenerator:
 </html>,
             """
         else:
-            # Standard report,
+            # Standard report
             html = f""",
 <!DOCTYPE html>
 <html>
@@ -156,7 +156,7 @@ class HTMLReportGenerator:
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;,
             margin: 0;,
             padding: 0;,
-            background: #f5f5f5;,
+            background: #f5f5f5;
             color: #333;
         },
         .container {
@@ -167,25 +167,25 @@ class HTMLReportGenerator:
             box-shadow: 0 0 20px rgba(0,0,0,0.05);
         },
         h1 {
-            color: #2E7D32;,
-            border-bottom: 3px solid #2E7D32;,
+            color: #2E7D32;
+            border-bottom: 3px solid #2E7D32;
             padding-bottom: 10px;,
             margin-bottom: 30px;
         },
         h2 {
-            color: #388E3C;,
+            color: #388E3C;
             margin-top: 40px;,
             margin-bottom: 20px;,
-            border-bottom: 1px solid #e0e0e0;,
+            border-bottom: 1px solid #e0e0e0;
             padding-bottom: 8px;
         },
         h3 {
-            color: #43A047;,
+            color: #43A047;
             margin-top: 25px;,
             margin-bottom: 15px;
         },
         .timestamp {
-            color: #666;,
+            color: #666;
             font-size: 0.9em;,
             margin-bottom: 30px;
         },
@@ -196,7 +196,7 @@ class HTMLReportGenerator:
             margin: 30px 0;
         },
         .metric {
-            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);,
+            background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
             padding: 20px;,
             border-radius: 8px;,
             text-align: center;,
@@ -210,11 +210,11 @@ class HTMLReportGenerator:
         .metric-value {
             font-size: 2.5em;,
             font-weight: bold;,
-            color: #1B5E20;,
+            color: #1B5E20;
             margin-bottom: 8px;
         },
         .metric-label {
-            color: #558B2F;,
+            color: #558B2F;
             font-size: 0.95em;,
             text-transform: uppercase;,
             letter-spacing: 0.5px;
@@ -234,7 +234,7 @@ class HTMLReportGenerator:
         },
         .plot-title {
             font-weight: 600;,
-            color: #388E3C;,
+            color: #388E3C;
             margin-bottom: 15px;
         },
         table {
@@ -244,7 +244,7 @@ class HTMLReportGenerator:
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         },
         thead {
-            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);,
+            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
             color: white;
         },
         th {
@@ -263,20 +263,20 @@ class HTMLReportGenerator:
             border-bottom: none;
         },
         .success {
-            color: #2E7D32;,
+            color: #2E7D32;
             font-weight: 600;
         },
         .error {
-            color: #D32F2F;,
+            color: #D32F2F;
             font-weight: 600;
         },
         .warning {
-            color: #F57C00;,
+            color: #F57C00;
             font-weight: 600;
         },
         .info-box {
-            background: #E3F2FD;,
-            border-left: 4px solid #2196F3;,
+            background: #E3F2FD;
+            border-left: 4px solid #2196F3;
             padding: 15px 20px;,
             margin: 20px 0;,
             border-radius: 4px;
@@ -298,7 +298,7 @@ class HTMLReportGenerator:
             box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         },
         .result-card-header {
-            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);,
+            background: linear-gradient(135deg, #4CAF50 0%, #45A049 100%);
             color: white;,
             padding: 15px 20px;,
             border-radius: 8px 8px 0 0;,
@@ -314,25 +314,25 @@ class HTMLReportGenerator:
             margin: 20px 0;
         },
         .parameter-item {
-            background: #f8f9fa;,
+            background: #f8f9fa;
             padding: 12px 15px;,
             border-radius: 6px;,
             border-left: 4px solid #4CAF50;
         },
         .parameter-name {
             font-weight: 600;,
-            color: #2E7D32;,
+            color: #2E7D32;
             margin-bottom: 4px;
         },
         .parameter-value {
-            color: #666;,
+            color: #666;
             font-size: 0.95em;
         },
         .objective-badge {
             display: inline-block;,
             padding: 4px 12px;,
-            background: #E8F5E9;,
-            color: #2E7D32;,
+            background: #E8F5E9;
+            color: #2E7D32;
             border-radius: 20px;,
             font-size: 0.85em;,
             font-weight: 500;,
@@ -346,11 +346,11 @@ class HTMLReportGenerator:
             font-weight: 500;
         },
         .convergence-indicator.converged {
-            background: #d4edda;,
+            background: #d4edda;
             color: #155724;
         },
         .convergence-indicator.failed {
-            background: #f8d7da;,
+            background: #f8d7da;
             color: #721c24;
         },
         .stats-row {
@@ -368,7 +368,7 @@ class HTMLReportGenerator:
             color: #495057;
         },
         .stats-value {
-            color: #2E7D32;,
+            color: #2E7D32;
             font-weight: 600;
         },
         .tab-content {
@@ -382,7 +382,7 @@ class HTMLReportGenerator:
         .risk-bar {
             flex: 1;,
             height: 20px;,
-            background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);,
+            background: linear-gradient(to right, #4CAF50, #FFC107, #F44336);
             border-radius: 10px;,
             margin: 0 10px;,
             position: relative;
@@ -392,7 +392,7 @@ class HTMLReportGenerator:
             top: -2px;,
             width: 4px;,
             height: 24px;,
-            background: #333;,
+            background: #333;
             border-radius: 2px;
         }
     </style>,
@@ -505,7 +505,7 @@ class HTMLReportGenerator:
             # Format key
             formatted_key = key.replace("_", " ").title()
 
-            # Format value,
+            # Format value
             if isinstance(value, bool):
                 formatted_value = "Yes" if value else "No"
                 css_class = "success" if value else "warning"
@@ -665,7 +665,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                     <div class="result-card-body">
         """
 
-        # Best solution parameters,
+        # Best solution parameters
         if best_result.get("best_solution"):
             html += """
                         <h5>Best Solution Parameters:</h5>
@@ -680,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                 """
             html += "</div>"
 
-        # Objectives,
+        # Objectives
         if best_result.get("best_objectives"):
             html += "<h5 class='mt-4'>Objective Values:</h5><div>"
             for i, obj_value in enumerate(best_result["best_objectives"]):
@@ -694,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         </div>,
         """
 
-        # Plots section,
+        # Plots section
         if plots:
             html += self._generate_interactive_plots_section(plots, "genetic_algorithm")
 
@@ -777,7 +777,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                             <div class="row">
             """
 
-            # Handle case where statistics is a single dict of values,
+            # Handle case where statistics is a single dict of values
             if isinstance(statistics.get("mean"), (int, float)):
                 # Single objective case
                 mean = statistics.get("mean", 0)
@@ -807,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                                 </div>,
                 """
             else:
-                # Multi-objective case,
+                # Multi-objective case
                 for obj_name, obj_stats in statistics.items():
                     if isinstance(obj_stats, dict):
                         mean = obj_stats.get("mean", 0)
@@ -890,7 +890,7 @@ document.addEventListener('DOMContentLoaded', function() {{
             </div>,
             """
 
-        # Plots section,
+        # Plots section
         if plots:
             html += self._generate_interactive_plots_section(plots, "monte_carlo")
 
@@ -1022,7 +1022,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         Returns:
             Complete HTML report string,
         """
-        # Aggregate results for comparison,
+        # Aggregate results for comparison
         aggregated_results = {
             "study_type": "comparison",
             "studies": study_results,

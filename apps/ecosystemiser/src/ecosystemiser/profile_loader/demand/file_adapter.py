@@ -49,7 +49,7 @@ class DemandFileAdapter:
                 else:
                     logger.warning(f"Column '{column_name}' not found in demand file")
 
-            # If no mapping provided, use all columns,
+            # If no mapping provided, use all columns
             if not column_mapping:
                 for col in df.columns:
                     if col not in ["time", "timestamp", "index"]:  # Skip time columns

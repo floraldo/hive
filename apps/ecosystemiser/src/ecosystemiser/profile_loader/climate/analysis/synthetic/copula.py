@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-from hive_logging import get_logger
 from scipy import stats
 from scipy.stats import norm
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -71,7 +71,7 @@ class CopulaSyntheticGenerator:
 
         logger.info(f"Generating synthetic data using {self.config.copula_type.value} copula")
 
-        # Extract and prepare data,
+        # Extract and prepare data
         data_matrix, variables, time_info = self._prepare_data(ds_hist)
 
         # Parse target length with frequency awareness
@@ -80,10 +80,10 @@ class CopulaSyntheticGenerator:
         if data_matrix.shape[1] < 2:
             raise ValueError("Need at least 2 variables for copula modeling")
 
-        # Fit marginal distributions,
+        # Fit marginal distributions
         self._fit_marginals(data_matrix, variables, time_info)
 
-        # Fit copula,
+        # Fit copula
         self._fit_copula(data_matrix)
 
         # Generate synthetic data
@@ -111,8 +111,9 @@ class CopulaSyntheticGenerator:
         elif freq_lower in ["12h", "12hour"]:
             samples_per_day = 2
         else:
-            # Try to extract number from frequency string (e.g., '2H' -> 2 hours),
+            # Try to extract number from frequency string (e.g., '2H' -> 2 hours)
             import re
+
             match = re.match(r"(\d+)([A-Za-z])", freq)
             if match:
                 num, unit = match.groups()
@@ -135,7 +136,7 @@ class CopulaSyntheticGenerator:
         else:
             return int(target_length)  # Assume number of samples
 
-    def _prepare_data(self, ds: xr.Dataset) -> Tuple[np.ndarray, List[str], Dict]:
+    def _prepare_data(self, ds: xr.Dataset) -> tuple[np.ndarray, list[str], dict]:
         """Prepare data matrix for copula fitting"""
 
         # Select numerical variables only
@@ -158,17 +159,19 @@ class CopulaSyntheticGenerator:
         data_matrix = np.column_stack([arr[:min_length] for arr in data_arrays])
 
         # Extract temporal information
-        time_info = {
-            "original_times": pd.to_datetime(ds.time.values),
-            "start_time": pd.to_datetime(ds.time.values[0]),
-            "freq": pd.infer_freq(ds.time.values) or "H"
-        },
+        time_info = (
+            {
+                "original_times": pd.to_datetime(ds.time.values),
+                "start_time": pd.to_datetime(ds.time.values[0]),
+                "freq": pd.infer_freq(ds.time.values) or "H",
+            },
+        )
 
         logger.info(f"Prepared data matrix: {data_matrix.shape} for variables {variables}")
 
         return data_matrix, variables, time_info
 
-    def _fit_marginals(self, data_matrix: np.ndarray, variables: List[str], time_info: Dict) -> None:
+    def _fit_marginals(self, data_matrix: np.ndarray, variables: list[str], time_info: dict) -> None:
         """Fit marginal distributions for each variable"""
 
         logger.info("Fitting marginal distributions")
@@ -199,19 +202,17 @@ class CopulaSyntheticGenerator:
                         best_params = params
                         best_score = score
 
-                except Exception as e:
+                except Exception:
                     continue
 
-            # Fallback to normal distribution,
+            # Fallback to normal distribution
             if best_dist is None:
                 best_dist = stats.norm
                 best_params = stats.norm.fit(data)
 
-            self._marginal_models[var] = {
-                "distribution": best_dist,
-                "parameters": best_params,
-                "data_range": (np.min(data), np.max(data))
-            },
+            self._marginal_models[var] = (
+                {"distribution": best_dist, "parameters": best_params, "data_range": (np.min(data), np.max(data))},
+            )
 
             logger.debug(f"Variable {var}: fitted {best_dist.name} distribution")
 
@@ -220,7 +221,7 @@ class CopulaSyntheticGenerator:
 
         logger.info(f"Fitting {self.config.copula_type.value} copula")
 
-        # Transform to uniform margins using empirical CDF,
+        # Transform to uniform margins using empirical CDF
         n_obs, n_vars = data_matrix.shape
         uniform_data = np.zeros_like(data_matrix)
 
@@ -228,7 +229,7 @@ class CopulaSyntheticGenerator:
             # Empirical CDF transformation
             sorted_data = np.sort(data_matrix[:, i])
             uniform_data[:, i] = np.searchsorted(sorted_data, data_matrix[:, i]) / n_obs
-            # Avoid 0 and 1 values,
+            # Avoid 0 and 1 values
             uniform_data[:, i] = np.clip(uniform_data[:, i], 1 / (2 * n_obs), 1 - 1 / (2 * n_obs))
 
         if self.config.copula_type == CopulaType.GAUSSIAN:
@@ -242,40 +243,32 @@ class CopulaSyntheticGenerator:
             # Ensure positive definite
             correlation_matrix = self._ensure_positive_definite(correlation_matrix)
 
-            self._fitted_copula = {
-                "type": "gaussian",
-                "correlation_matrix": correlation_matrix,
-                "uniform_data": uniform_data,  # Store for empirical margins
-            },
+            self._fitted_copula = (
+                {
+                    "type": "gaussian",
+                    "correlation_matrix": correlation_matrix,
+                    "uniform_data": uniform_data,  # Store for empirical margins
+                },
+            )
 
         elif self.config.copula_type == CopulaType.EMPIRICAL:
-            # Empirical copula - store the transformed data,
-            self._fitted_copula = {
-                "type": "empirical",
-                "uniform_data": uniform_data,
-                "n_samples": n_obs
-            },
+            # Empirical copula - store the transformed data
+            self._fitted_copula = ({"type": "empirical", "uniform_data": uniform_data, "n_samples": n_obs},)
 
         elif self.config.copula_type == CopulaType.T_COPULA:
-            # T-Copula implementation placeholder,
-            logger.warning(f"T-Copula not yet implemented, falling back to Gaussian")
+            # T-Copula implementation placeholder
+            logger.warning("T-Copula not yet implemented, falling back to Gaussian")
             # Fall back to Gaussian for now
             corr_matrix = np.corrcoef(uniform_data, rowvar=False)
             corr_matrix = self._ensure_positive_definite(corr_matrix)
-            self._fitted_copula = {
-                "type": "gaussian",
-                "correlation_matrix": corr_matrix
-            },
+            self._fitted_copula = ({"type": "gaussian", "correlation_matrix": corr_matrix},)
         elif self.config.copula_type == CopulaType.VINE:
-            # Vine Copula implementation placeholder,
-            logger.warning(f"Vine Copula not yet implemented, falling back to Gaussian")
+            # Vine Copula implementation placeholder
+            logger.warning("Vine Copula not yet implemented, falling back to Gaussian")
             # Fall back to Gaussian for now
             corr_matrix = np.corrcoef(uniform_data, rowvar=False)
             corr_matrix = self._ensure_positive_definite(corr_matrix)
-            self._fitted_copula = {
-                "type": "gaussian",
-                "correlation_matrix": corr_matrix
-            }
+            self._fitted_copula = {"type": "gaussian", "correlation_matrix": corr_matrix}
         else:
             raise ValueError(f"Unsupported copula type: {self.config.copula_type.value}")
 
@@ -297,7 +290,7 @@ class CopulaSyntheticGenerator:
 
         return matrix_pd
 
-    def _generate_synthetic(self, n_samples: int, variables: List[str], time_info: Dict) -> np.ndarray:
+    def _generate_synthetic(self, n_samples: int, variables: list[str], time_info: dict) -> np.ndarray:
         """Generate synthetic samples from fitted copula"""
 
         logger.info(f"Generating {n_samples} synthetic samples")
@@ -323,9 +316,9 @@ class CopulaSyntheticGenerator:
             uniform_samples = uniform_data[bootstrap_indices]
 
         else:
-            # For any other types that might have been set (shouldn't happen with current logic),
+            # For any other types that might have been set (shouldn't happen with current logic)
             logger.warning(f"Generation for {self._fitted_copula['type']} not supported, using empirical bootstrap")
-            # Fall back to empirical bootstrap,
+            # Fall back to empirical bootstrap
             if "uniform_data" in self._fitted_copula:
                 uniform_data = self._fitted_copula["uniform_data"]
                 n_obs = uniform_data.shape[0]
@@ -343,10 +336,10 @@ class CopulaSyntheticGenerator:
             dist = marginal_info["distribution"]
             params = marginal_info["parameters"]
 
-            # Transform uniform to original distribution,
+            # Transform uniform to original distribution
             synthetic_data[:, i] = dist.ppf(uniform_samples[:, i], *params)
 
-            # Ensure values are within reasonable bounds,
+            # Ensure values are within reasonable bounds
             data_min, data_max = marginal_info["data_range"]
             buffer = (data_max - data_min) * 0.1  # Allow 10% extension
             synthetic_data[:, i] = np.clip(synthetic_data[:, i], data_min - buffer, data_max + buffer)
@@ -356,59 +349,52 @@ class CopulaSyntheticGenerator:
     def _create_synthetic_dataset(
         self,
         synthetic_data: np.ndarray,
-        variables: List[str],
+        variables: list[str],
         original_ds: xr.Dataset,
         target_length: str,
-        time_info: Dict
+        time_info: dict,
     ) -> xr.Dataset:
         """Create xarray dataset from synthetic data"""
 
-        # Create time index,
+        # Create time index
         n_samples = synthetic_data.shape[0]
 
-        # Start from a reference year,
+        # Start from a reference year
         start_time = pd.Timestamp("2010-01-01")
-        inferred_freq = time_info.get("freq", "h")  # Use inferred frequency,
+        inferred_freq = time_info.get("freq", "h")  # Use inferred frequency
         time_index = pd.date_range(
             start=start_time,
             periods=n_samples,
             freq=inferred_freq,  # Use original data frequency
         )
 
-        # Create dataset,
+        # Create dataset
         data_vars = {}
         for i, var in enumerate(variables):
-            # Get original attributes if available,
+            # Get original attributes if available
             attrs = original_ds[var].attrs.copy() if var in original_ds.data_vars else {}
 
-            data_vars[var] = xr.DataArray(
-                synthetic_data[:, i],
-                dims=["time"],
-                coords={"time": time_index},
-                attrs=attrs
-            )
+            data_vars[var] = xr.DataArray(synthetic_data[:, i], dims=["time"], coords={"time": time_index}, attrs=attrs)
         synthetic_ds = xr.Dataset(data_vars)
 
-        # Add metadata,
-        synthetic_ds.attrs.update(
-            {
-                "title": "Synthetic Climate Data (Copula-based)",
-                "method": f"{self.config.copula_type.value}_copula",
-                "generated_on": pd.Timestamp.now().isoformat(),
-                "target_length": target_length,
-                "source": "EcoSystemiser Copula Generator",
-            }
-        ),
+        # Add metadata
+        (
+            synthetic_ds.attrs.update(
+                {
+                    "title": "Synthetic Climate Data (Copula-based)",
+                    "method": f"{self.config.copula_type.value}_copula",
+                    "generated_on": pd.Timestamp.now().isoformat(),
+                    "target_length": target_length,
+                    "source": "EcoSystemiser Copula Generator",
+                }
+            ),
+        )
 
         return synthetic_ds
 
 
 def copula_synthetic_generation(
-    ds_hist: xr.Dataset,
-    seed: int | None = None,
-    copula_type: str = "gaussian",
-    target_length: str = "1Y",
-    **kwargs
+    ds_hist: xr.Dataset, seed: int | None = None, copula_type: str = "gaussian", target_length: str = "1Y", **kwargs
 ) -> xr.Dataset:
     """
     Generate synthetic climate data using copula methods.
@@ -423,7 +409,7 @@ def copula_synthetic_generation(
     Returns:
         Synthetic dataset preserving correlations and marginal distributions,
     """
-    # Create configuration,
+    # Create configuration
     try:
         copula_enum = CopulaType(copula_type.lower())
     except ValueError:

@@ -52,7 +52,7 @@ class AsyncSimulationService:
         self.results_io = ResultsIO()
         self._system_builder = None
 
-        # Performance tracking,
+        # Performance tracking
         self.active_simulations = {}
         self.simulation_metrics = {
             "total_simulations": 0,
@@ -62,12 +62,12 @@ class AsyncSimulationService:
             "peak_concurrent_simulations": 0
         }
 
-        # Resource management,
+        # Resource management
         self.max_concurrent_simulations = 10,
         self.simulation_semaphore = asyncio.Semaphore(self.max_concurrent_simulations)
         self.default_timeout = 300.0  # 5 minutes default timeout
 
-        # Integration with V4.0 async infrastructure,
+        # Integration with V4.0 async infrastructure
         self.db_ops = None
         self._climate_service = None
 
@@ -78,10 +78,10 @@ class AsyncSimulationService:
             config: Configuration for async services,
         """
         try:
-            # Initialize async database operations,
+            # Initialize async database operations
             self.db_ops = await get_async_db_ops()
 
-            # Initialize climate service with async capabilities,
+            # Initialize climate service with async capabilities
             if config:
                 from ecosystemiser.profile_loader.climate import create_climate_service
 
@@ -149,7 +149,7 @@ class AsyncSimulationService:
                 return SimulationResult(simulation_id=config.simulation_id, status="error", error=str(e))
 
             finally:
-                # Cleanup simulation tracking,
+                # Cleanup simulation tracking
                 self.active_simulations.pop(config.simulation_id, None)
 
     async def _execute_simulation_async(self, config: SimulationConfig) -> SimulationResult:
@@ -161,7 +161,7 @@ class AsyncSimulationService:
         Returns:
             SimulationResult
         """
-        # Check if this is a staged simulation,
+        # Check if this is a staged simulation
         if config.stages:
             return await self._run_staged_simulation_async(config)
 
@@ -217,7 +217,7 @@ class AsyncSimulationService:
             dependency_graph = self._analyze_stage_dependencies(config.stages)
             execution_groups = self._group_stages_for_parallel_execution(dependency_graph)
 
-            # Execute stage groups (parallel within groups, sequential between groups),
+            # Execute stage groups (parallel within groups, sequential between groups)
             for group_idx, stage_group in enumerate(execution_groups):
                 logger.info(
                     f"Executing stage group {group_idx + 1}/{len(execution_groups)} with {len(stage_group)} stages"
@@ -244,7 +244,7 @@ class AsyncSimulationService:
 
                     parallel_results = await asyncio.gather(*stage_tasks, return_exceptions=True)
 
-                    # Process parallel results,
+                    # Process parallel results
                     for stage, result in zip(stage_group, parallel_results, strict=False):
                         if isinstance(result, Exception):
                             logger.error(f"Parallel stage {stage.stage_name} failed: {result}")
@@ -295,7 +295,7 @@ class AsyncSimulationService:
         for stage in stages:
             stage_deps = set()
 
-            # Check inputs_from_stage to find dependencies,
+            # Check inputs_from_stage to find dependencies
             if stage.inputs_from_stage:
                 for input_spec in stage.inputs_from_stage:
                     from_stage = input_spec.get("from_stage")
@@ -327,18 +327,18 @@ class AsyncSimulationService:
             ready_stages = [stage for stage, deps in remaining_deps.items() if not deps]
 
             if not ready_stages:
-                # Circular dependency detected - fall back to sequential,
+                # Circular dependency detected - fall back to sequential
                 logger.warning("Circular dependency detected in stages, falling back to sequential execution")
                 return [[stage] for stage in dependencies.keys()]
 
-            # Add this group to our execution plan,
+            # Add this group to our execution plan
             stage_groups.append(ready_stages)
 
-            # Remove completed stages from dependencies,
+            # Remove completed stages from dependencies
             for completed_stage in ready_stages:
                 remaining_deps.pop(completed_stage)
 
-                # Remove this stage from other stages' dependency lists,
+                # Remove this stage from other stages' dependency lists
                 for stage_deps in remaining_deps.values():
                     stage_deps.discard(completed_stage)
 
@@ -368,7 +368,7 @@ class AsyncSimulationService:
         # Prepare profiles for this stage
         stage_profiles = base_profiles.copy()
 
-        # Add inputs from previous stages,
+        # Add inputs from previous stages
         if stage.inputs_from_stage:
             for input_spec in stage.inputs_from_stage:
                 profile_name = input_spec.get("profile_name")
@@ -388,16 +388,16 @@ class AsyncSimulationService:
             output_config=config.output_config
         )
 
-        # Build system for this stage,
+        # Build system for this stage
         stage_system = await self._build_system_async(stage_config, stage_profiles)
 
-        # Run solver for this stage,
+        # Run solver for this stage
         stage_solver_result = await self._run_solver_async(stage_system, stage_config)
 
-        # Calculate stage KPIs,
+        # Calculate stage KPIs
         stage_kpis = await self._calculate_kpis_async(stage_system)
 
-        # Save stage results,
+        # Save stage results
         await self._save_results_async(stage_system, stage_config, stage_solver_result)
 
         return {
@@ -405,7 +405,7 @@ class AsyncSimulationService:
             "status": stage_solver_result.status,
             "solve_time": stage_solver_result.solve_time,
             "kpis": stage_kpis,
-            "system": stage_system,  # Keep reference for output extraction,
+            "system": stage_system,  # Keep reference for output extraction
         },
 
     async def _extract_stage_outputs_async(self, stage: StageConfig, stage_result: dict[str, Any]) -> dict[str, Any]:
@@ -432,7 +432,7 @@ class AsyncSimulationService:
             if component_name in stage_system.components:
                 comp = stage_system.components[component_name]
 
-                # Try to extract the attribute,
+                # Try to extract the attribute
                 if hasattr(comp, attribute):
                     profile_data = getattr(comp, attribute)
                 elif "flows" in dir(comp) and attribute in comp.flows.get("sink", {}):
@@ -460,19 +460,19 @@ class AsyncSimulationService:
         profiles = {}
         load_tasks = []
 
-        # Prepare climate loading task,
+        # Prepare climate loading task
         if config.climate_input:
             load_tasks.append(self._load_climate_profiles_async(config.climate_input))
 
-        # Prepare demand loading task,
+        # Prepare demand loading task
         if config.demand_input:
             load_tasks.append(self._load_demand_profiles_async(config.demand_input))
 
-        # Execute all loading tasks in parallel,
+        # Execute all loading tasks in parallel
         if load_tasks:
             results = await asyncio.gather(*load_tasks, return_exceptions=True)
 
-            # Merge results,
+            # Merge results
             for result in results:
                 if isinstance(result, Exception):
                     logger.warning(f"Profile loading failed: {result}")
@@ -494,10 +494,10 @@ class AsyncSimulationService:
             climate_request = ClimateRequest(**climate_input)
 
             if self._climate_service:
-                # Use injected climate service,
+                # Use injected climate service
                 _, climate_response = await self._climate_service.process_request_async(climate_request)
             else:
-                # Fallback to default service creation,
+                # Fallback to default service creation
                 from ecosystemiser.settings import get_settings
                 config = get_settings()
                 climate_service = create_climate_service(config)
@@ -641,7 +641,7 @@ class AsyncSimulationService:
         import numpy as np
         kpis = {}
 
-        # Calculate total energy from grid,
+        # Calculate total energy from grid
         for comp in system.components.values():
             if comp.type == "transmission" and comp.medium == "electricity":
                 if "P_draw" in comp.flows.get("source", {}):
@@ -661,7 +661,7 @@ class AsyncSimulationService:
                 total_renewable += np.sum(comp.profile)
         kpis["total_renewable_kwh"] = float(total_renewable)
 
-        # Calculate self-consumption rate,
+        # Calculate self-consumption rate
         if "total_grid_export_kwh" in kpis and total_renewable > 0:
             self_consumed = total_renewable - kpis["total_grid_export_kwh"]
             kpis["self_consumption_rate"] = float(self_consumed / total_renewable)
@@ -752,7 +752,7 @@ class AsyncSimulationService:
         """
         if simulation_id in self.active_simulations:
             # In a more advanced implementation, this would send cancellation signals
-            # to the solver and cleanup resources,
+            # to the solver and cleanup resources
             self.active_simulations[simulation_id]["status"] = "cancelled"
             logger.info(f"Simulation {simulation_id} marked for cancellation")
             return True
@@ -774,13 +774,13 @@ class AsyncSimulationService:
         """Shutdown service and cleanup resources."""
         logger.info("Shutting down AsyncSimulationService")
 
-        # Cancel any running simulations,
+        # Cancel any running simulations
         if self.active_simulations:
             logger.info(f"Cancelling {len(self.active_simulations)} active simulations"),
             for sim_id in list(self.active_simulations.keys()):
                 await self.cancel_simulation_async(sim_id)
 
-        # Cleanup async resources,
+        # Cleanup async resources
         if self.db_ops:
             await self.db_ops.close_async()
 

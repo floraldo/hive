@@ -16,6 +16,10 @@ Built on the Hive platform's unassailable architecture for maximum
 reliability, performance, and maintainability.
 """
 
+# Resilience - use canonical hive-async patterns
+from hive_async.resilience import AsyncCircuitBreaker as AICircuitBreaker
+from hive_async.resilience import AsyncTimeoutManager as AITimeoutManager
+
 from .core.config import AIConfig, ModelConfig, PromptConfig, VectorConfig
 from .core.exceptions import AIError, CostLimitError, ModelError, ModelUnavailableError, PromptError, VectorError
 from .models.client import ModelClient, ModelResponse
@@ -34,11 +38,6 @@ from .prompts.registry import PromptRegistry
 
 # Prompt Engineering
 from .prompts.template import PromptChain, PromptTemplate
-
-# Resilience (extending hive-async patterns)
-from .resilience.circuit_breaker import AICircuitBreaker
-from .resilience.rate_limiter import RateLimiter
-from .resilience.timeout import AITimeoutManager
 from .vector.embedding import EmbeddingManager
 from .vector.metrics import VectorMetrics
 from .vector.search import SemanticSearch
@@ -81,8 +80,7 @@ __all__ = [
     "AIMetricsCollector",
     "ModelHealthChecker",
     "CostManager",
-    # Resilience
+    # Resilience (canonical hive-async patterns)
     "AICircuitBreaker",
-    "RateLimiter",
     "AITimeoutManager",
 ]

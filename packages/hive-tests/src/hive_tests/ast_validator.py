@@ -24,6 +24,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import toml
+
 
 @dataclass
 class Violation:
@@ -140,6 +142,19 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         if self.context.path.name.startswith(("demo_", "run_")):
             return  # Demo and run files can import from their app
 
+        # Golden Rule 5: Package-App Discipline - Packages cannot import from apps
+        if "/packages/" in str(self.context.path) and node.module:
+            if node.module.startswith("apps.") or any(
+                app_name in node.module for app_name in ["ai_", "hive_orchestrator", "ecosystemiser", "qr_service"]
+            ):
+                self.add_violation(
+                    "rule-5",
+                    "Package-App Discipline",
+                    node.lineno,
+                    f"Package cannot import from app: {node.module}. Packages are infrastructure, apps extend packages.",
+                )
+                return
+
         if node.module and self._is_invalid_app_import(node.module):
             self.add_violation(
                 "rule-6",
@@ -247,7 +262,10 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 return
 
             self.add_violation(
-                "rule-9", "Logging Standards", node.lineno, "Use hive_logging instead of print() in production code.",
+                "rule-9",
+                "Logging Standards",
+                node.lineno,
+                "Use hive_logging instead of print() in production code.",
             )
 
     def _validate_interface_contracts(self, node: ast.FunctionDef):
@@ -449,6 +467,9 @@ class EnhancedValidator:
         self._validate_colocated_tests()
         self._validate_documentation_hygiene()
         self._validate_models_purity()
+        self._validate_package_naming_consistency()
+        self._validate_inherit_extend_pattern()
+        self._validate_python_version_consistency()
 
         # Group violations by rule,
         violations_by_rule = {}
@@ -634,5 +655,167 @@ class EnhancedValidator:
                                     message=f"Invalid import in hive-models: {module}. Only data definitions allowed.",
                                 ),
                             )
+            except:
+                continue
+
+    def _validate_package_naming_consistency(self) -> None:
+        """Golden Rule 14: Package Naming Consistency"""
+        packages_dir = self.project_root / "packages"
+        if not packages_dir.exists():
+            return
+
+        for package_dir in packages_dir.iterdir():
+            if package_dir.is_dir() and not package_dir.name.startswith("."):
+                if not package_dir.name.startswith("hive-"):
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-14",
+                            rule_name="Package Naming Consistency",
+                            file_path=package_dir,
+                            line_number=1,
+                            message=f"Package directory must start with 'hive-': {package_dir.name}",
+                        )
+                    )
+
+    def _validate_inherit_extend_pattern(self) -> None:
+        """Golden Rule 13: Inherit-Extend Pattern"""
+        expected_patterns = {
+            "errors": "hive_errors",
+            "bus": "hive_bus",
+            "db": "hive_db",
+        }
+
+        apps_dir = self.project_root / "apps"
+        if not apps_dir.exists():
+            return
+
+        for app_dir in apps_dir.iterdir():
+            if app_dir.is_dir() and not app_dir.name.startswith(".") and app_dir.name != "legacy":
+                app_name = app_dir.name
+                src_dirs = list(app_dir.glob("src/*/core"))
+                if not src_dirs:
+                    continue
+
+                core_dir = src_dirs[0]
+
+                for module_name, base_package in expected_patterns.items():
+                    module_file = core_dir / f"{module_name}.py"
+                    module_dir = core_dir / module_name
+
+                    if module_file.exists() or module_dir.exists():
+                        check_file = module_file if module_file.exists() else (module_dir / "__init__.py")
+
+                        if check_file.exists():
+                            try:
+                                with open(check_file, encoding="utf-8") as f:
+                                    file_content = f.read()
+
+                                if (
+                                    f"from {base_package}" not in file_content
+                                    and f"import {base_package}" not in file_content
+                                ):
+                                    self.violations.append(
+                                        Violation(
+                                            rule_id="rule-13",
+                                            rule_name="Inherit-Extend Pattern",
+                                            file_path=check_file,
+                                            line_number=1,
+                                            message=f"App '{app_name}' core/{module_name} doesn't import from {base_package}",
+                                        )
+                                    )
+                            except:
+                                continue
+
+                # Check for incorrect naming
+                incorrect_names = {"error.py": "errors.py", "messaging.py": "bus.py", "database.py": "db.py"}
+                for incorrect, correct in incorrect_names.items():
+                    if (core_dir / incorrect).exists():
+                        self.violations.append(
+                            Violation(
+                                rule_id="rule-13",
+                                rule_name="Inherit-Extend Pattern",
+                                file_path=core_dir / incorrect,
+                                line_number=1,
+                                message=f"App '{app_name}' has core/{incorrect}, should be core/{correct}",
+                            )
+                        )
+
+    def _validate_python_version_consistency(self) -> None:
+        """Golden Rule 24: Python Version Consistency"""
+        expected_python_version = "3.11"
+        root_toml = self.project_root / "pyproject.toml"
+
+        # Check root pyproject.toml for Python version
+        if root_toml.exists():
+            try:
+                root_config = toml.load(root_toml)
+                root_python_version = None
+
+                if "tool" in root_config and "poetry" in root_config["tool"]:
+                    deps = root_config["tool"]["poetry"].get("dependencies", {})
+                    if "python" in deps:
+                        root_python_version = deps["python"]
+                elif "project" in root_config:
+                    root_python_version = root_config["project"].get("requires-python")
+
+                if not root_python_version:
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-24",
+                            rule_name="Python Version Consistency",
+                            file_path=root_toml,
+                            line_number=1,
+                            message="Root pyproject.toml missing Python version requirement",
+                        )
+                    )
+                elif expected_python_version not in str(root_python_version):
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-24",
+                            rule_name="Python Version Consistency",
+                            file_path=root_toml,
+                            line_number=1,
+                            message=f"Root Python version '{root_python_version}' must require {expected_python_version}+",
+                        )
+                    )
+            except:
+                pass
+
+        # Check all sub-project pyproject.toml files
+        for toml_path in self.project_root.rglob("pyproject.toml"):
+            if toml_path == root_toml or ".venv" in str(toml_path) or "archive" in str(toml_path):
+                continue
+
+            try:
+                config = toml.load(toml_path)
+                python_version = None
+
+                if "tool" in config and "poetry" in config["tool"]:
+                    deps = config["tool"]["poetry"].get("dependencies", {})
+                    if "python" in deps:
+                        python_version = deps["python"]
+                elif "project" in config:
+                    python_version = config["project"].get("requires-python")
+
+                if not python_version:
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-24",
+                            rule_name="Python Version Consistency",
+                            file_path=toml_path,
+                            line_number=1,
+                            message="Missing Python version requirement",
+                        )
+                    )
+                elif expected_python_version not in str(python_version):
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-24",
+                            rule_name="Python Version Consistency",
+                            file_path=toml_path,
+                            line_number=1,
+                            message=f"Python '{python_version}' should require {expected_python_version}+ (like root)",
+                        )
+                    )
             except:
                 continue

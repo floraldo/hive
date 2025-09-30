@@ -51,7 +51,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             (kpis.update(self._calculate_energy_kpis(results_data)),)
             kpis.update(self._calculate_water_kpis(results_data))
 
-        # Calculate common KPIs,
+        # Calculate common KPIs
         (kpis.update(self._calculate_common_kpis(results_data)),)
 
         return kpis
@@ -110,7 +110,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         # Demand
         total_demand = self._get_flow_sum(flows, "demand", direction="input")
 
-        # Calculate KPIs,
+        # Calculate KPIs
         if total_demand > 0:
             kpis["grid_self_sufficiency"] = max(0, 1 - (grid_import / total_demand))
             kpis["renewable_fraction"] = min(1, renewable_gen / total_demand)
@@ -152,7 +152,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         # Water demand
         water_demand = self._get_flow_sum(flows, "water_demand", direction="input")
 
-        # Calculate KPIs,
+        # Calculate KPIs
         if water_demand > 0:
             kpis["rainwater_utilization"] = min(1, rainwater / water_demand)
             kpis["water_self_sufficiency"] = max(0, 1 - (mains_water / water_demand))
@@ -236,7 +236,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         else:
             kpis["battery_cycles"] = 0
 
-        # Round-trip efficiency,
+        # Round-trip efficiency
         if battery_charge > 0:
             kpis["battery_efficiency"] = battery_discharge / battery_charge
         else:
@@ -276,7 +276,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
             else:
                 kpis["peak_to_average_ratio"] = 0
 
-            # Load factor (average / peak),
+            # Load factor (average / peak)
             if kpis["peak_demand"] > 0:
                 kpis["load_factor"] = kpis["average_demand"] / kpis["peak_demand"]
             else:
@@ -298,16 +298,16 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         total = 0
 
         for flow_name, flow_data in flows.items():
-            # Check if flow involves the component,
+            # Check if flow involves the component
             if component.lower() not in flow_name.lower():
                 continue
 
-            # Check direction if specified,
+            # Check direction if specified
             if direction:
                 if direction.lower() not in flow_name.lower():
                     continue
 
-            # Sum the flow values,
+            # Sum the flow values
             if isinstance(flow_data, dict):
                 values = flow_data.get("values", [])
                 if len(values) > 0:

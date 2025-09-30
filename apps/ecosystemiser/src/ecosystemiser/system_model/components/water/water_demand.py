@@ -1,7 +1,7 @@
 """Water demand component with MILP optimization support and hierarchical fidelity."""
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import cvxpy as cp
 import numpy as np
@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 
 # =============================================================================
 # WATER DEMAND-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
-# =============================================================================,
+# =============================================================================
 
 
 class WaterDemandTechnicalParams(DemandTechnicalParams):
@@ -35,15 +35,15 @@ class WaterDemandTechnicalParams(DemandTechnicalParams):
 
     # STANDARD fidelity additions
     seasonal_variation: float | None = Field(None, description="Seasonal variation factor (0-1)")
-    pressure_dependency: Optional[dict[str, float]] = Field(None, description="Pressure-dependent demand response")
+    pressure_dependency: dict[str, float] | None = Field(None, description="Pressure-dependent demand response")
 
     # DETAILED fidelity parameters
-    occupancy_coupling: Optional[dict[str, Any]] = Field(None, description="Occupancy-driven demand variations")
-    conservation_measures: Optional[dict[str, float]] = Field(None, description="Water conservation effectiveness")
+    occupancy_coupling: dict[str, Any] | None = Field(None, description="Occupancy-driven demand variations")
+    conservation_measures: dict[str, float] | None = Field(None, description="Water conservation effectiveness")
 
     # RESEARCH fidelity parameters
-    behavioral_model: Optional[dict[str, Any]] = Field(None, description="Detailed user behavior modeling")
-    stochastic_model: Optional[dict[str, Any]] = Field(None, description="Stochastic demand model parameters")
+    behavioral_model: dict[str, Any] | None = Field(None, description="Detailed user behavior modeling")
+    stochastic_model: dict[str, Any] | None = Field(None, description="Stochastic demand model parameters")
 
 
 class WaterDemandParams(ComponentParams):
@@ -55,8 +55,8 @@ class WaterDemandParams(ComponentParams):
 
     technical: WaterDemandTechnicalParams = Field(
         default_factory=lambda: WaterDemandTechnicalParams(
-            capacity_nominal=3.0,  # Default 3 m³/h peak demand,
-            peak_demand=3.0,  # Default 3 m³/h peak,
+            capacity_nominal=3.0,  # Default 3 m³/h peak demand
+            peak_demand=3.0,  # Default 3 m³/h peak
             load_profile_type="variable",
             fidelity_level=FidelityLevel.STANDARD,
         ),
@@ -66,7 +66,7 @@ class WaterDemandParams(ComponentParams):
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
-# =============================================================================,
+# =============================================================================
 
 
 class WaterDemandPhysicsSimple(BaseDemandPhysics):
@@ -124,7 +124,7 @@ class WaterDemandPhysicsStandard(WaterDemandPhysicsSimple):
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
-# =============================================================================,
+# =============================================================================
 
 
 class WaterDemandOptimizationSimple(BaseDemandOptimization):
@@ -155,7 +155,7 @@ class WaterDemandOptimizationSimple(BaseDemandOptimization):
             # Q_in = profile * Q_max
             demand_exact = comp.profile * comp.Q_max
 
-            # Apply exact demand constraint,
+            # Apply exact demand constraint
             constraints.append(comp.Q_in == demand_exact)
 
         return constraints
@@ -188,10 +188,10 @@ class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
             # Acknowledge seasonal variations (handled in profile generation)
             seasonal_variation = getattr(comp.technical, "seasonal_variation", None)
             if seasonal_variation:
-                # Log awareness but maintain exact demand for now,
+                # Log awareness but maintain exact demand for now
                 logger.debug(f"STANDARD: Seasonal variation acknowledged for {comp.name}")
 
-            # Apply exact demand constraint (same as SIMPLE for now),
+            # Apply exact demand constraint (same as SIMPLE for now)
             constraints.append(comp.Q_in == demand_exact)
 
         return constraints
@@ -225,10 +225,10 @@ class WaterDemand(Component):
         # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters - EXACTLY as original water demand expects (m³/h),
+        # Core parameters - EXACTLY as original water demand expects (m³/h)
         self.Q_max = tech.peak_demand  # m³/h peak water demand
 
-        # Store water demand-specific parameters,
+        # Store water demand-specific parameters
         self.demand_type = tech.demand_type
         self.pressure_requirement = tech.pressure_requirement
         self.seasonal_variation = tech.seasonal_variation
@@ -237,13 +237,13 @@ class WaterDemand(Component):
         self.conservation_measures = tech.conservation_measures
 
         # Profile should be assigned by the system/builder after initialization
-        # Initialize as None, will be set later by profile assignment,
+        # Initialize as None, will be set later by profile assignment
         self.profile = None
 
-        # CVXPY variables (for MILP solver),
+        # CVXPY variables (for MILP solver)
         self.Q_in = None
 
-        # STRATEGY PATTERN: Instantiate the correct strategies,
+        # STRATEGY PATTERN: Instantiate the correct strategies
         self.physics = self._get_physics_strategy()
         self.optimization = self._get_optimization_strategy()
 
@@ -256,10 +256,10 @@ class WaterDemand(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return WaterDemandPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD physics (can be extended later),
+            # For now, DETAILED uses STANDARD physics (can be extended later)
             return WaterDemandPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD physics (can be extended later),
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
             return WaterDemandPhysicsStandard(self.params)
         else:
             raise ValueError(f"Unknown fidelity level for WaterDemand: {fidelity}")
@@ -273,10 +273,10 @@ class WaterDemand(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return WaterDemandOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD optimization (can be extended later),
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
             return WaterDemandOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD optimization (can be extended later),
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return WaterDemandOptimizationStandard(self.params, self)
         else:
             raise ValueError(f"Unknown fidelity level for WaterDemand optimization: {fidelity}")
@@ -288,7 +288,7 @@ class WaterDemand(Component):
         This maintains the same interface as BaseDemandComponent but,
         delegates the actual physics calculation to the strategy object.,
         """
-        # Check bounds,
+        # Check bounds
         if not hasattr(self, "profile") or self.profile is None or t >= len(self.profile):
             return 0.0
 
@@ -298,7 +298,7 @@ class WaterDemand(Component):
         # Delegate to physics strategy
         demand_output = self.physics.rule_based_demand(t, profile_value)
 
-        # Log for debugging if needed,
+        # Log for debugging if needed
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, demand={demand_output:.3f}m³/h")
 
@@ -309,10 +309,10 @@ class WaterDemand(Component):
         if N is None:
             N = self.N
 
-        # For demand, input is fixed by profile (unless flexible),
+        # For demand, input is fixed by profile (unless flexible)
         self.Q_in = cp.Variable(N, name=f"{self.name}_Q_in", nonneg=True)
 
-        # Add as flow,
+        # Add as flow
         self.flows["sink"]["Q_in"] = ({"type": "water", "value": self.Q_in, "profile": self.profile},)
 
     def set_constraints(self) -> list:

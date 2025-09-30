@@ -42,15 +42,15 @@ class SensitivityAnalysis(BaseAnalysis):
         """
         analysis = {}
 
-        # Check if this is a multi-simulation result,
+        # Check if this is a multi-simulation result
         if "all_results" in results_data:
-            # Process parametric study results,
+            # Process parametric study results
             analysis.update(self._analyze_parametric_study(results_data))
         else:
-            # Single simulation - limited sensitivity analysis,
+            # Single simulation - limited sensitivity analysis
             analysis.update(self._analyze_single_simulation(results_data))
 
-        # Add metadata about the analysis,
+        # Add metadata about the analysis
         analysis["num_simulations_analyzed"] = len(results_data.get("all_results", []))
         analysis["analysis_method"] = "parametric" if "all_results" in results_data else "single"
 
@@ -72,10 +72,10 @@ class SensitivityAnalysis(BaseAnalysis):
             logger.warning("No simulation results found for sensitivity analysis")
             return metrics
 
-        # Extract parameter variations and KPIs,
+        # Extract parameter variations and KPIs
         param_data, kpi_data = self._extract_data_arrays(all_results)
 
-        # Calculate sensitivity indices,
+        # Calculate sensitivity indices
         if param_data and kpi_data:
             sensitivity_indices = self._calculate_sensitivity_indices(param_data, kpi_data)
             metrics["parameter_sensitivities"] = sensitivity_indices
@@ -173,17 +173,17 @@ class SensitivityAnalysis(BaseAnalysis):
                 if len(kpi_values) != len(param_values):
                     continue
 
-                # Calculate correlation coefficient,
+                # Calculate correlation coefficient
                 if all(isinstance(v, (int, float)) for v in param_values):
                     param_array = np.array(param_values, dtype=float)
                     kpi_array = np.array(kpi_values, dtype=float)
 
-                    # Pearson correlation,
+                    # Pearson correlation
                     if np.std(param_array) > 0 and np.std(kpi_array) > 0:
                         correlation = np.corrcoef(param_array, kpi_array)[0, 1]
                         indices[param_name][kpi_name] = float(correlation)
 
-                    # Calculate elasticity (% change in KPI / % change in parameter),
+                    # Calculate elasticity (% change in KPI / % change in parameter)
                     if np.mean(param_array) > 0 and np.mean(kpi_array) > 0:
                         param_pct_change = (np.max(param_array) - np.min(param_array)) / np.mean(param_array)
                         kpi_pct_change = (np.max(kpi_array) - np.min(kpi_array)) / np.mean(kpi_array)
@@ -218,12 +218,13 @@ class SensitivityAnalysis(BaseAnalysis):
                         "average_sensitivity": float(avg_sensitivity),
                         "max_sensitivity": float(max_sensitivity),
                         "most_affected_kpi": max(
-                            indices.items(), key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0),
+                            indices.items(),
+                            key=lambda x: (abs(x[1]) if isinstance(x[1], (int, float)) else 0),
                         )[0],
                     },
                 )
 
-        # Sort by average sensitivity,
+        # Sort by average sensitivity
         influential.sort(key=lambda x: x["average_sensitivity"], reverse=True)
 
         return influential[:5]  # Return top 5
@@ -265,13 +266,13 @@ class SensitivityAnalysis(BaseAnalysis):
                 "other_kpis": {k: v for k, v in max_renewable["kpis"].items() if k != "renewable_fraction"},
             }
 
-        # Find best balanced configuration (multi-objective),
+        # Find best balanced configuration (multi-objective)
         if cost_results and renewable_results:
-            # Simple weighted score: minimize cost, maximize renewable,
+            # Simple weighted score: minimize cost, maximize renewable
             def balanced_score(result) -> None:
                 cost = result["kpis"].get("total_cost", float("inf"))
                 renewable = result["kpis"].get("renewable_fraction", 0)
-                # Normalize and combine (equal weights),
+                # Normalize and combine (equal weights)
                 return -cost / 100000 + renewable
 
             balanced_results = (
@@ -313,7 +314,7 @@ class SensitivityAnalysis(BaseAnalysis):
             costs = [d["cost"] for d in cost_renewable]
             renewables = [d["renewable"] for d in cost_renewable]
 
-            # Calculate correlation,
+            # Calculate correlation
             if np.std(costs) > 0 and np.std(renewables) > 0:
                 correlation = np.corrcoef(costs, renewables)[0, 1]
                 trade_offs["cost_renewable_correlation"] = float(correlation)
@@ -324,7 +325,7 @@ class SensitivityAnalysis(BaseAnalysis):
                 is_dominated = False
                 for j, other in enumerate(cost_renewable):
                     if i != j:
-                        # Check if 'other' dominates 'point',
+                        # Check if 'other' dominates 'point'
                         if other["cost"] <= point["cost"] and other["renewable"] >= point["renewable"]:
                             if other["cost"] < point["cost"] or other["renewable"] > point["renewable"]:
                                 is_dominated = True
@@ -420,19 +421,19 @@ class SensitivityAnalysis(BaseAnalysis):
         metrics = {}
         flows = results_data.get("flows", {})
 
-        # Analyze variability in key flows,
+        # Analyze variability in key flows
         for flow_name, flow_data in flows.items():
             if isinstance(flow_data, dict):
                 values = flow_data.get("values", [])
                 if len(values) > 1:
                     values_array = np.array(values, dtype=float)
 
-                    # Calculate temporal variability,
+                    # Calculate temporal variability
                     if np.mean(values_array) > 0:
                         cv = np.std(values_array) / np.mean(values_array)
                         metrics[f"{flow_name}_temporal_variability"] = float(cv)
 
-                    # Calculate peak-to-average ratio,
+                    # Calculate peak-to-average ratio
                     if np.mean(values_array) > 0:
                         peak_ratio = np.max(np.abs(values_array)) / np.mean(np.abs(values_array))
                         metrics[f"{flow_name}_peak_ratio"] = float(peak_ratio)

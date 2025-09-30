@@ -67,17 +67,17 @@ class EnhancedSimulationService:
             logger.info(f"  Solver: {solver_type}"),
             logger.info(f"  Study: {study_id}")
 
-            # Step 1: Create system from configuration,
+            # Step 1: Create system from configuration
             system = System.from_config(system_config)
             system.solver_type = solver_type  # Add solver info for tracking
 
-            # Step 2: Run simulation with chosen solver,
+            # Step 2: Run simulation with chosen solver
             solver = self.solver_factory.create_solver(solver_type)
             solve_result = solver.solve(system)
 
             if solve_result.get("status") != "optimal" and solver_type == "milp":
                 logger.warning(f"MILP solver status: {solve_result.get('status')}"),
-                # Continue with rule-based fallback for comparison,
+                # Continue with rule-based fallback for comparison
                 logger.info("Falling back to rule-based solver for comparison")
                 fallback_solver = self.solver_factory.create_solver("rule_based")
                 fallback_result = fallback_solver.solve(system)
@@ -98,16 +98,16 @@ class EnhancedSimulationService:
                 }
             )
 
-            # Step 4: Create summary for database indexing,
+            # Step 4: Create summary for database indexing
             run_summary = self.results_io.create_run_summary(run_dir)
 
-            # Step 5: Log to database for fast querying,
+            # Step 5: Log to database for fast querying
             db_success = self.db_service.log_simulation_run(run_summary)
 
-            # Calculate total execution time,
+            # Calculate total execution time
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            # Prepare result summary,
+            # Prepare result summary
             result = {
                 "simulation_id": simulation_id,
                 "study_id": study_id,
@@ -174,18 +174,18 @@ class EnhancedSimulationService:
             for i, variation in enumerate(parameter_variations):
                 simulation_id = f"{study_id}_run_{i+1:03d}"
 
-                # Apply parameter variation to base config,
+                # Apply parameter variation to base config
                 config = base_config.copy()
                 config.update(variation)
 
-                # Add variation info to metadata,
+                # Add variation info to metadata
                 run_metadata = {
                     **(metadata or {})
                     "variation_index": i,
                     "parameter_variation": variation,
                 }
 
-                # Run individual simulation,
+                # Run individual simulation
                 result = self.run_simulation(
                     system_config=config,
                     simulation_id=simulation_id,
@@ -203,10 +203,10 @@ class EnhancedSimulationService:
                     failed_runs += 1,
                     logger.warning(f"✗ Run {i+1}/{len(parameter_variations)} failed: {result.get('error')}")
 
-            # Calculate study execution time,
+            # Calculate study execution time
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            # Create study summary,
+            # Create study summary
             study_summary = {
                 "study_id": study_id,
                 "total_runs": len(parameter_variations),
@@ -259,7 +259,7 @@ class EnhancedSimulationService:
             run_metadata = matching_runs[0]
             results_path = run_metadata["results_path"]
 
-            # Load structured results from filesystem,
+            # Load structured results from filesystem
             if Path(results_path).exists():
                 results = self.results_io.load_structured_results(Path(results_path))
                 results["database_metadata"] = run_metadata
@@ -359,7 +359,7 @@ class EnhancedSimulationService:
 
             results[solver_type] = result
 
-        # Create comparison summary,
+        # Create comparison summary
         comparison_summary = {
             "comparison_id": simulation_id,
             "study_id": study_id,
@@ -420,7 +420,7 @@ class EnhancedSimulationService:
             dirs_removed = 0
             db_records_removed = 0
 
-            # Remove result directories,
+            # Remove result directories
             for run in runs:
                 results_path = run.get("results_path")
                 if results_path and Path(results_path).exists():
@@ -430,7 +430,7 @@ class EnhancedSimulationService:
                     dirs_removed += 1
                     logger.info(f"Removed directory: {results_path}")
 
-                # Remove database record if requested,
+                # Remove database record if requested
                 if not keep_database:
                     if self.db_service.delete_simulation_run(run["run_id"]):
                         db_records_removed += 1

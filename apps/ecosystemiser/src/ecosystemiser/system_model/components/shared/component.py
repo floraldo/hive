@@ -36,14 +36,14 @@ class Component:
         self.params = params  # Store full params object
         self.N = n
 
-        # Component type and medium (override in subclasses),
+        # Component type and medium (override in subclasses)
         self.type = "base"
         self.medium = "electricity"
 
-        # Flow dictionaries for system connections,
+        # Flow dictionaries for system connections
         self.flows = {"input": {}, "output": {}, "source": {}, "sink": {}}
 
-        # Constraints list for optimization,
+        # Constraints list for optimization
         self.constraints = []
 
         # DRY PATTERN: Auto-unpack all Pydantic parameters as direct attributes
@@ -53,15 +53,15 @@ class Component:
                 setattr(self, field_name, value)
 
         # Make nested parameters directly accessible (for backwards compatibility)
-        # This allows self.technical.P_max instead of self.params.technical.P_max,
+        # This allows self.technical.P_max instead of self.params.technical.P_max
         self.technical = getattr(params, "technical", None)
         self.economic = getattr(params, "economic", None)
         self.environmental = getattr(params, "environmental", None)
 
-        # Profile placeholder (set by SystemBuilder if needed),
+        # Profile placeholder (set by SystemBuilder if needed)
         self.profile = None
 
-        # Call component-specific initialization,
+        # Call component-specific initialization
         self._post_init()
 
     def _post_init(self) -> None:
@@ -106,7 +106,7 @@ class Component:
         """
         state = {"name": self.name, "type": self.type, "medium": self.medium}
 
-        # Add profile value if available,
+        # Add profile value if available
         if self.profile is not None and t < len(self.profile):
             state["profile_value"] = float(self.profile[t])
 

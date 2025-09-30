@@ -48,7 +48,7 @@ class ReportingService:
 
     def __init__(self) -> None:
         """Initialize the reporting service."""
-        # Lazy imports to avoid circular dependencies,
+        # Lazy imports to avoid circular dependencies
         self._plot_factory = None
         self._html_generator = None
         logger.info("ReportingService initialized")
@@ -68,7 +68,7 @@ class ReportingService:
         config = config or ReportConfig()
         logger.info(f"Generating {config.report_type} report: {config.title}")
 
-        # Initialize lazy imports,
+        # Initialize lazy imports
         if self._plot_factory is None:
             from ecosystemiser.datavis.plot_factory import PlotFactory
 
@@ -94,7 +94,7 @@ class ReportingService:
         if config.output_format in ["json", "both"]:
             json_content = self._prepare_json_content(analysis_results, config)
 
-        # Save report if path provided,
+        # Save report if path provided
         if config.save_path:
             self._save_report(html_content, json_content, config.save_path)
 
@@ -126,7 +126,7 @@ class ReportingService:
         plots = {}
 
         try:
-            # Generate plots based on report type,
+            # Generate plots based on report type
             if config.report_type == "genetic_algorithm":
                 plots = self._generate_ga_plots(analysis_results)
             elif config.report_type == "monte_carlo":
@@ -148,19 +148,19 @@ class ReportingService:
         """Generate plots for standard reports."""
         plots = {}
 
-        # Energy balance plot,
+        # Energy balance plot
         if "energy_balance" in results:
             plots["energy_balance"] = self._plot_factory.create_energy_balance_plot(results["energy_balance"])
 
-        # Cost breakdown plot,
+        # Cost breakdown plot
         if "costs" in results:
             plots["cost_breakdown"] = self._plot_factory.create_cost_breakdown_plot(results["costs"])
 
-        # Time series plots,
+        # Time series plots
         if "time_series" in results:
             plots["time_series"] = self._plot_factory.create_time_series_plot(results["time_series"])
 
-        # KPI summary plot,
+        # KPI summary plot
         if "kpis" in results:
             plots["kpi_summary"] = self._plot_factory.create_kpi_summary_plot(results["kpis"])
 
@@ -170,19 +170,19 @@ class ReportingService:
         """Generate plots for genetic algorithm reports."""
         plots = {}
 
-        # Convergence plot,
+        # Convergence plot
         if "convergence_history" in results:
             plots["convergence"] = self._plot_factory.create_convergence_plot(results["convergence_history"])
 
-        # Pareto front plot (for multi-objective),
+        # Pareto front plot (for multi-objective)
         if "pareto_front" in results:
             plots["pareto_front"] = self._plot_factory.create_pareto_plot(results["pareto_front"])
 
-        # Population diversity plot,
+        # Population diversity plot
         if "population_history" in results:
             plots["diversity"] = self._plot_factory.create_diversity_plot(results["population_history"])
 
-        # Best solution details,
+        # Best solution details
         if "best_solution" in results:
             plots["best_solution"] = self._plot_factory.create_solution_plot(results["best_solution"])
 
@@ -192,19 +192,19 @@ class ReportingService:
         """Generate plots for Monte Carlo reports."""
         plots = {}
 
-        # Uncertainty distribution plots,
+        # Uncertainty distribution plots
         if "distributions" in results:
             plots["distributions"] = self._plot_factory.create_distribution_plots(results["distributions"])
 
-        # Sensitivity analysis plots,
+        # Sensitivity analysis plots
         if "sensitivity" in results:
             plots["sensitivity"] = self._plot_factory.create_sensitivity_plot(results["sensitivity"])
 
-        # Confidence intervals plot,
+        # Confidence intervals plot
         if "confidence_intervals" in results:
             plots["confidence"] = self._plot_factory.create_confidence_plot(results["confidence_intervals"])
 
-        # Risk assessment plot,
+        # Risk assessment plot
         if "risk_metrics" in results:
             plots["risk"] = self._plot_factory.create_risk_plot(results["risk_metrics"])
 
@@ -214,15 +214,15 @@ class ReportingService:
         """Generate plots for study reports."""
         plots = {}
 
-        # Parameter sweep plots,
+        # Parameter sweep plots
         if "parameter_results" in results:
             plots["parameter_sweep"] = self._plot_factory.create_sweep_plot(results["parameter_results"])
 
-        # Fidelity comparison plots,
+        # Fidelity comparison plots
         if "fidelity_results" in results:
             plots["fidelity_comparison"] = self._plot_factory.create_fidelity_plot(results["fidelity_results"])
 
-        # Summary statistics plots,
+        # Summary statistics plots
         if "summary_statistics" in results:
             plots["summary"] = self._plot_factory.create_summary_plot(results["summary_statistics"])
 
@@ -241,7 +241,7 @@ class ReportingService:
         Returns:
             Complete HTML string,
         """
-        # Use the HTMLReportGenerator to create the HTML,
+        # Use the HTMLReportGenerator to create the HTML
         html_content = self._html_generator.generate_standalone_report(
             analysis_results=analysis_results, plots=plots, title=config.title, report_type=config.report_type
         )
@@ -269,7 +269,7 @@ class ReportingService:
             "configuration": config.metadata
         }
 
-        # Add report-specific sections,
+        # Add report-specific sections
         if config.report_type == "genetic_algorithm":
             json_content["optimization_summary"] = self._extract_ga_summary(analysis_results)
         elif config.report_type == "monte_carlo":
@@ -368,14 +368,14 @@ class ReportingService:
         """
         config = config or ReportConfig(report_type="comparison", title="EcoSystemiser Comparison Report")
 
-        # Prepare comparison data,
+        # Prepare comparison data
         comparison_data = {
             "num_results": len(results_list),
             "results": results_list,
             "comparison_metrics": self._calculate_comparison_metrics(results_list),
         }
 
-        # Generate report using the main method,
+        # Generate report using the main method
         return self.generate_report(comparison_data, config)
 
     def _calculate_comparison_metrics(self, results_list: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -389,12 +389,12 @@ class ReportingService:
         """
         metrics = {"best_by_cost": None, "best_by_renewable": None, "best_by_emissions": None, "summary_statistics": {}}
 
-        # Find best results by different criteria,
+        # Find best results by different criteria
         for idx, result in enumerate(results_list):
             if "kpis" in result:
                 kpis = result["kpis"]
 
-                # Check cost,
+                # Check cost
                 if "total_cost" in kpis:
                     if (
                         metrics["best_by_cost"] is None,
@@ -402,7 +402,7 @@ class ReportingService:
                     ):
                         metrics["best_by_cost"] = idx
 
-                # Check renewable fraction,
+                # Check renewable fraction
                 if "renewable_fraction" in kpis:
                     if (
                         metrics["best_by_renewable"] is None,
@@ -411,7 +411,7 @@ class ReportingService:
                     ):
                         metrics["best_by_renewable"] = idx
 
-                # Check emissions,
+                # Check emissions
                 if "total_emissions" in kpis:
                     if (
                         metrics["best_by_emissions"] is None,

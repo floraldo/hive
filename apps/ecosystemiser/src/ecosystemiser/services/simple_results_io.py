@@ -107,12 +107,12 @@ class SimpleResultsIO:
         """
         data = []
 
-        # Extract flows,
+        # Extract flows
         for flow_name, flow_data in system.flows.items():
             if "value" in flow_data:
                 flow_value = flow_data["value"]
 
-                # Handle different value types (numpy, CVXPY, list),
+                # Handle different value types (numpy, CVXPY, list)
                 if hasattr(flow_value, "value"):  # CVXPY variable
                     if flow_value.value is not None:
                         values = flow_value.value
@@ -127,7 +127,7 @@ class SimpleResultsIO:
                 else:
                     values = np.array([flow_value] * system.N)
 
-                # Add to data list,
+                # Add to data list
                 for t, val in enumerate(values):
                     data.append(
                         {
@@ -137,9 +137,9 @@ class SimpleResultsIO:
                         }
                     )
 
-        # Extract component states,
+        # Extract component states
         for comp_name, component in system.components.items():
-            # Storage levels,
+            # Storage levels
             if hasattr(component, "E"):
                 if hasattr(component.E, "value") and component.E.value is not None:
                     energy_values = component.E.value
@@ -161,7 +161,7 @@ class SimpleResultsIO:
                             }
                         )
 
-            # Generation profiles,
+            # Generation profiles
             if hasattr(component, "profile") and component.profile is not None:
                 if isinstance(component.profile, np.ndarray):
                     for t, val in enumerate(component.profile):
@@ -176,7 +176,7 @@ class SimpleResultsIO:
         # Create DataFrame
         df = pd.DataFrame(data)
 
-        # Optimize data types for storage,
+        # Optimize data types for storage
         if not df.empty:
             df["timestep"] = df["timestep"].astype("uint16")
             df["variable"] = df["variable"].astype("category")
@@ -212,7 +212,7 @@ class SimpleResultsIO:
             total_flow = flow_vars.groupby("variable")["value"].sum()
             kpis["total_energy_flow"] = float(flow_vars["value"].sum())
 
-            # Specific flow KPIs,
+            # Specific flow KPIs
             for var_name in total_flow.index:
                 flow_name = var_name.replace("flow.", "")
                 kpis[f"{flow_name}_total"] = float(total_flow[var_name])
@@ -229,7 +229,7 @@ class SimpleResultsIO:
 
         summary["kpis"] = kpis
 
-        # Add basic statistics,
+        # Add basic statistics
         summary["statistics"] = {
             "total_variables": len(timeseries_df["variable"].unique()),
             "total_datapoints": len(timeseries_df),

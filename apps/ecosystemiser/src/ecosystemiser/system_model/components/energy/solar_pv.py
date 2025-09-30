@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 # =============================================================================
 # SOLAR PV-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
-# =============================================================================,
+# =============================================================================
 
 
 class SolarPVTechnicalParams(GenerationTechnicalParams):
@@ -54,8 +54,8 @@ class SolarPVParams(ComponentParams):
 
     technical: SolarPVTechnicalParams = Field(
         default_factory=lambda: SolarPVTechnicalParams(
-            capacity_nominal=10.0,  # Default 10 kW,
-            efficiency_nominal=1.0,  # Solar uses profile * capacity,
+            capacity_nominal=10.0,  # Default 10 kW
+            efficiency_nominal=1.0,  # Solar uses profile * capacity
             fidelity_level=FidelityLevel.STANDARD,
         ),
         description="Technical parameters following the hierarchical archetype system",
@@ -64,7 +64,7 @@ class SolarPVParams(ComponentParams):
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
-# =============================================================================,
+# =============================================================================
 
 
 class SolarPVPhysicsSimple(BaseGenerationPhysics):
@@ -119,7 +119,7 @@ class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
-# =============================================================================,
+# =============================================================================
 
 
 class SolarPVOptimizationSimple(BaseGenerationOptimization):
@@ -149,7 +149,7 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
             # P_out = profile * P_max
             effective_generation = comp.profile * comp.P_max
 
-            # Apply the generation constraint,
+            # Apply the generation constraint
             constraints.append(comp.P_out == effective_generation)
 
         return constraints
@@ -180,7 +180,7 @@ class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
             inverter_efficiency = getattr(comp.technical, "inverter_efficiency", 0.98)
             effective_generation = effective_generation * inverter_efficiency
 
-            # Apply the generation constraint with efficiency losses,
+            # Apply the generation constraint with efficiency losses
             constraints.append(comp.P_out == effective_generation)
 
         return constraints
@@ -214,23 +214,23 @@ class SolarPV(Component):
         # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters - EXACTLY as original solar PV expects,
+        # Core parameters - EXACTLY as original solar PV expects
         self.P_max = tech.capacity_nominal  # kW
 
-        # Store solar-specific parameters,
+        # Store solar-specific parameters
         self.panel_efficiency = tech.panel_efficiency
         self.inverter_efficiency = tech.inverter_efficiency
         self.temperature_coefficient = tech.temperature_coefficient
         self.degradation_rate = tech.degradation_rate_annual
 
         # Profile should be assigned by the system/builder after initialization
-        # Initialize as None, will be set later by profile assignment,
+        # Initialize as None, will be set later by profile assignment
         self.profile = None
 
-        # CVXPY variable (for MILP solver),
+        # CVXPY variable (for MILP solver)
         self.P_out = None
 
-        # STRATEGY PATTERN: Instantiate the correct strategies,
+        # STRATEGY PATTERN: Instantiate the correct strategies
         self.physics = self._get_physics_strategy()
         self.optimization = self._get_optimization_strategy()
 
@@ -243,10 +243,10 @@ class SolarPV(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return SolarPVPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD physics (can be extended later),
+            # For now, DETAILED uses STANDARD physics (can be extended later)
             return SolarPVPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD physics (can be extended later),
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
             return SolarPVPhysicsStandard(self.params)
         else:
             raise ValueError(f"Unknown fidelity level for SolarPV: {fidelity}")
@@ -260,10 +260,10 @@ class SolarPV(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return SolarPVOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD optimization (can be extended later),
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
             return SolarPVOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD optimization (can be extended later),
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return SolarPVOptimizationStandard(self.params, self)
         else:
             raise ValueError(f"Unknown fidelity level for SolarPV optimization: {fidelity}")
@@ -275,7 +275,7 @@ class SolarPV(Component):
         This maintains the same interface as BaseGenerationComponent but,
         delegates the actual physics calculation to the strategy object.,
         """
-        # Check bounds,
+        # Check bounds
         if not hasattr(self, "profile") or self.profile is None or t >= len(self.profile):
             return 0.0
 
@@ -285,7 +285,7 @@ class SolarPV(Component):
         # Delegate to physics strategy
         generation_output = self.physics.rule_based_generate(t, profile_value)
 
-        # Log for debugging if needed,
+        # Log for debugging if needed
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(f"{self.name} at t={t}: profile={profile_value:.3f}, output={generation_output:.3f}kW")
 
@@ -293,10 +293,10 @@ class SolarPV(Component):
 
     def add_optimization_vars(self, N: int) -> None:
         """Create CVXPY optimization variables."""
-        # For solar, output is fixed by profile,
+        # For solar, output is fixed by profile
         self.P_out = cp.Variable(N, name=f"{self.name}_P_out", nonneg=True)
 
-        # Add as flow,
+        # Add as flow
         self.flows["source"]["P_out"] = ({"type": "electricity", "value": self.P_out, "profile": self.profile},)
 
     def set_constraints(self) -> list:

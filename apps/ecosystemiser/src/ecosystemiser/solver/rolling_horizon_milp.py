@@ -60,14 +60,14 @@ class RollingHorizonMILPSolver(BaseSolver):
         (super().__init__(system, config or RollingHorizonConfig()),)
         self.rh_config = config or RollingHorizonConfig()
 
-        # Validate configuration,
+        # Validate configuration
         if self.rh_config.overlap_hours >= self.rh_config.horizon_hours:
             raise ValueError("Overlap hours must be less than horizon hours")
 
         if self.rh_config.prediction_horizon < self.rh_config.horizon_hours:
             logger.warning("Prediction horizon shorter than optimization horizon")
 
-        # Initialize state tracking,
+        # Initialize state tracking
         self.storage_states = {}  # Track storage states between windows
         self.window_results = []
         self.storage_violations = []  # Track storage constraint violations
@@ -89,10 +89,10 @@ class RollingHorizonMILPSolver(BaseSolver):
         windows = self._generate_windows()
         logger.info(f"Generated {len(windows)} optimization windows")
 
-        # Initialize storage states from system,
+        # Initialize storage states from system
         self._initialize_storage_states()
 
-        # Initialize main system component arrays,
+        # Initialize main system component arrays
         for comp in self.system.components.values():
             if hasattr(comp, "E") and comp.E is None:
                 comp.E = np.zeros(self.system.N)
@@ -111,16 +111,16 @@ class RollingHorizonMILPSolver(BaseSolver):
                 # Create window system
                 window_system = self._create_window_system(window)
 
-                # Set initial storage states,
+                # Set initial storage states
                 self._set_initial_storage_states(window_system, window)
 
                 # Solve window
                 window_result = self._solve_window(window_system, window)
 
-                # Store the system in the result for solution extraction,
+                # Store the system in the result for solution extraction
                 window_result.system = window_system
 
-                # Extract and apply solution,
+                # Extract and apply solution
                 self._apply_window_solution(window_result, window, window_idx)
 
                 # Update storage states for next window
@@ -178,7 +178,7 @@ class RollingHorizonMILPSolver(BaseSolver):
             if objectives:
                 total_objective = sum(objectives)
 
-        # Store violations in instance for access by other methods,
+        # Store violations in instance for access by other methods
         self.storage_violations = storage_violations
         result = (
             RollingHorizonResult(
@@ -224,10 +224,10 @@ class RollingHorizonMILPSolver(BaseSolver):
                 },
             )
 
-            # Move to next window,
+            # Move to next window
             current_start += step_size
 
-            # Break if we've covered the full horizon,
+            # Break if we've covered the full horizon
             if current_start >= self.system.N:
                 break
 
@@ -247,26 +247,26 @@ class RollingHorizonMILPSolver(BaseSolver):
         # Create new system with window size
         window_system = System(system_id=f"{self.system.system_id}_window_{window['start']}", n=window_size)
 
-        # Copy components and adjust profiles,
+        # Copy components and adjust profiles
         for comp_name, comp in self.system.components.items():
             # Create component copy
             window_comp = comp.__class__(name=comp_name, params=comp.params)
             # Note: In a full implementation, this would copy all component state
 
-            # Adjust profiles for window,
+            # Adjust profiles for window
             if hasattr(comp, "profile") and comp.profile is not None:
                 start_idx = window["start"]
                 end_idx = window["prediction_end"]
                 if isinstance(comp.profile, np.ndarray) and len(comp.profile) > start_idx:
                     window_comp.profile = comp.profile[start_idx:end_idx]
                 else:
-                    # Handle missing profile data,
+                    # Handle missing profile data
                     window_comp.profile = np.zeros(window_size)
 
-            # Set timesteps,
+            # Set timesteps
             window_comp.N = window_size
 
-            # Add to window system,
+            # Add to window system
             window_system.add_component(window_comp)
 
         return window_system
@@ -306,15 +306,17 @@ class RollingHorizonMILPSolver(BaseSolver):
         """
         # Create standard MILP solver for this window
         milp_config = SolverConfig(
-            solver_type="MOSEK", verbose=self.config.verbose, solver_specific=self.config.solver_specific,
+            solver_type="MOSEK",
+            verbose=self.config.verbose,
+            solver_specific=self.config.solver_specific,
         )
         milp_solver = MILPSolver(window_system, milp_config)
 
-        # Apply warmstart if enabled and available,
+        # Apply warmstart if enabled and available
         if self.rh_config.warmstart and len(self.window_results) > 0:
             self._apply_warmstart(milp_solver, window)
 
-        # Solve window,
+        # Solve window
         return milp_solver.solve()
 
     def _apply_warmstart(self, solver: MILPSolver, window: dict[str, int]) -> None:
@@ -350,7 +352,7 @@ class RollingHorizonMILPSolver(BaseSolver):
             solution_vectors = last_result.get("solution_vectors", {})
             warmstart_count = 0
 
-            # Apply warmstart values to all components,
+            # Apply warmstart values to all components
             for comp_name, comp in solver.system.components.items():
                 if comp_name not in solution_vectors:
                     continue
@@ -359,24 +361,26 @@ class RollingHorizonMILPSolver(BaseSolver):
                 # Enhanced warm-starting: Apply solution vectors as initial values
                 # This provides the solver with a good starting point
 
-                # Warmstart power input variables,
+                # Warmstart power input variables
                 if "P_in" in comp_vectors and hasattr(comp, "P_in_opt"):
                     try:
                         # Shift the solution vector to align with new window
                         shifted_values = comp_vectors["P_in"][overlap_start : overlap_start + overlap_length]
                         if len(shifted_values) > 0:
-                            # CVXPY warm-start: set initial value,
+                            # CVXPY warm-start: set initial value
                             if hasattr(comp.P_in_opt, "value"):
                                 comp.P_in_opt.value = (
                                     np.pad(
-                                        shifted_values, (0, max(0, window["length"] - len(shifted_values))), "constant",
+                                        shifted_values,
+                                        (0, max(0, window["length"] - len(shifted_values))),
+                                        "constant",
                                     ),
                                 )
                                 warmstart_count += (1,)
                     except Exception as e:
                         logger.debug(f"Could not warmstart P_in for {comp_name}: {e}")
 
-                # Warmstart power output variables,
+                # Warmstart power output variables
                 if "P_out" in comp_vectors and hasattr(comp, "P_out_opt"):
                     try:
                         shifted_values = comp_vectors["P_out"][overlap_start : overlap_start + overlap_length]
@@ -388,7 +392,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                     except Exception as e:
                         logger.debug(f"Could not warmstart P_out for {comp_name}: {e}")
 
-                # Warmstart energy/storage variables,
+                # Warmstart energy/storage variables
                 if "E" in comp_vectors and hasattr(comp, "E_opt"):
                     try:
                         shifted_values = comp_vectors["E"][overlap_start : overlap_start + overlap_length]
@@ -406,7 +410,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                     except Exception as e:
                         logger.debug(f"Could not warmstart E for {comp_name}: {e}")
 
-                # Warmstart binary variables (on/off states),
+                # Warmstart binary variables (on/off states)
                 if "on" in comp_vectors and hasattr(comp, "on_opt"):
                     try:
                         shifted_values = comp_vectors["on"][overlap_start : overlap_start + overlap_length]
@@ -456,17 +460,17 @@ class RollingHorizonMILPSolver(BaseSolver):
                 main_comp = self.system.components[comp_name]
                 window_impl_end = min(implement_length, len(getattr(window_comp, "E", [])))
 
-                # Copy storage levels,
+                # Copy storage levels
                 if hasattr(window_comp, "E") and hasattr(main_comp, "E"):
                     if main_comp.E is None:
                         main_comp.E = np.zeros(self.system.N)
 
-                    # Copy only the implemented portion,
+                    # Copy only the implemented portion
                     for t in range(window_impl_end):
                         if system_start_idx + t < len(main_comp.E):
                             main_comp.E[system_start_idx + t] = window_comp.E[t]
 
-                # Copy power flows,
+                # Copy power flows
                 for attr in ["P_charge", "P_discharge", "P_gen", "P_cons"]:
                     if hasattr(window_comp, attr) and hasattr(main_comp, attr):
                         window_values = getattr(window_comp, attr)
@@ -517,7 +521,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 if not main_comp or not hasattr(window_comp, "E"):
                     continue
 
-                # Get energy level at the end of the implemented period,
+                # Get energy level at the end of the implemented period
                 if implement_end_idx > 0 and len(window_comp.E) > implement_end_idx - 1:
                     final_energy = window_comp.E[implement_end_idx - 1]
 
@@ -560,7 +564,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         except Exception as e:
             logger.error(f"Failed to update storage states: {e}")
-            # Add a generic violation for tracking,
+            # Add a generic violation for tracking
             (violations.append({"type": "state_update_error", "error": str(e), "timestep": window["implement_end"]}),)
 
         return violations
@@ -574,22 +578,22 @@ class RollingHorizonMILPSolver(BaseSolver):
         solution = {}
 
         try:
-            # Extract solution arrays from main system components,
+            # Extract solution arrays from main system components
             for comp_name, comp in self.system.components.items():
                 comp_solution = {}
 
-                # Storage levels,
+                # Storage levels
                 if hasattr(comp, "E") and comp.E is not None:
                     comp_solution["energy"] = np.array(comp.E)
 
-                # Power flows,
+                # Power flows
                 for attr in ["P_charge", "P_discharge", "P_gen", "P_cons"]:
                     if hasattr(comp, attr):
                         values = getattr(comp, attr)
                         if values is not None:
                             comp_solution[attr.lower()] = np.array(values)
 
-                # Flows (input/output),
+                # Flows (input/output)
                 if hasattr(comp, "flows"):
                     for flow_type in ["source", "sink"]:
                         if flow_type in comp.flows:
@@ -602,7 +606,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 if comp_solution:  # Only add if we found some data
                     solution[comp_name] = comp_solution
 
-            # Add system-level information,
+            # Add system-level information
             solution["_metadata"] = (
                 {
                     "total_windows": len(self.window_results),
@@ -628,10 +632,10 @@ class RollingHorizonMILPSolver(BaseSolver):
         This method handles initialization specific to rolling horizon,
         including storage state tracking setup.,
         """
-        # Initialize storage states from system components,
+        # Initialize storage states from system components
         self._initialize_storage_states()
 
-        # Initialize main system component arrays,
+        # Initialize main system component arrays
         for comp in self.system.components.values():
             if hasattr(comp, "E") and comp.E is None:
                 comp.E = np.zeros(self.system.N)
@@ -639,7 +643,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 if hasattr(comp, attr) and getattr(comp, attr) is None:
                     setattr(comp, attr, np.zeros(self.system.N))
 
-        # Reset tracking variables,
+        # Reset tracking variables
         self.window_results = []
         self.storage_violations = []
         self.total_solve_time = 0.0
@@ -656,9 +660,9 @@ class RollingHorizonMILPSolver(BaseSolver):
             # The solution has already been applied to system components
             # during _apply_window_solution, so we mainly need to finalize
 
-            # Ensure all component arrays are properly sized,
+            # Ensure all component arrays are properly sized
             for comp in self.system.components.values():
-                # Initialize missing arrays if needed,
+                # Initialize missing arrays if needed
                 if hasattr(comp, "E") and comp.E is None:
                     comp.E = np.zeros(self.system.N)
 
@@ -666,10 +670,10 @@ class RollingHorizonMILPSolver(BaseSolver):
                     if hasattr(comp, attr) and getattr(comp, attr) is None:
                         setattr(comp, attr, np.zeros(self.system.N))
 
-            # Update system flows based on component results,
+            # Update system flows based on component results
             self._update_system_flows()
 
-            # Calculate system totals,
+            # Calculate system totals
             self._calculate_system_totals()
 
             logger.info("Rolling horizon results extraction completed")
@@ -688,7 +692,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 flow_values = np.zeros(self.system.N)
 
                 # This is a simplified flow calculation
-                # In practice, would need more sophisticated flow matching,
+                # In practice, would need more sophisticated flow matching
                 if hasattr(source_comp, "P_gen") and source_comp.P_gen is not None:
                     flow_values = np.array(source_comp.P_gen)
 
@@ -700,12 +704,12 @@ class RollingHorizonMILPSolver(BaseSolver):
         total_cost = 0
 
         for comp in self.system.components.values():
-            # Sum energy flows,
+            # Sum energy flows
             if hasattr(comp, "P_gen") and comp.P_gen is not None:
                 total_energy += np.sum(comp.P_gen)
 
             # Add cost calculations as needed
-            # This would integrate with component cost models,
+            # This would integrate with component cost models
 
         self.system.total_energy = total_energy
         self.system.total_cost = total_cost
@@ -733,12 +737,12 @@ class RollingHorizonMILPSolver(BaseSolver):
                 v for v in storage_violations if v.get("type") in ["storage_overflow", "storage_underflow"]
             ]
 
-            # Count window failures,
+            # Count window failures
             validation["window_failures"] = len(
                 [r for r in self.window_results if r.get("status") in ["error", "infeasible"]],
             )
 
-            # Check for solution gaps (missing timesteps),
+            # Check for solution gaps (missing timesteps)
             for comp_name, comp in self.system.components.items():
                 if hasattr(comp, "E") and comp.E is not None:
                     # Check for any zero or uninitialized values that might indicate gaps
@@ -752,19 +756,21 @@ class RollingHorizonMILPSolver(BaseSolver):
                             },
                         )
 
-            # Calculate success metrics,
+            # Calculate success metrics
             validation["success_rate"] = (validation["total_windows"] - validation["window_failures"]) / max(
-                validation["total_windows"], 1,
+                validation["total_windows"],
+                1,
             )
 
             validation["storage_violation_rate"] = validation["storage_continuity_violations"] / max(
-                len(self.storage_states) * validation["total_windows"], 1,
+                len(self.storage_states) * validation["total_windows"],
+                1,
             )
 
             # Overall health score
             health_score = (validation["success_rate"],)
             if validation["storage_continuity_violations"] > 0:
-                health_score *= 0.8  # Penalize storage violations,
+                health_score *= 0.8  # Penalize storage violations
             if validation["solution_gaps"]:
                 health_score *= 0.9  # Penalize solution gaps
 
@@ -791,11 +797,11 @@ class RollingHorizonMILPSolver(BaseSolver):
         solution_vectors = {}
 
         try:
-            # Extract solution vectors from each component,
+            # Extract solution vectors from each component
             for comp_name, comp in self.system.components.items():
                 comp_vectors = {}
 
-                # Extract energy/power decision variables,
+                # Extract energy/power decision variables
                 if hasattr(comp, "P_in") and hasattr(comp.P_in, "value") and comp.P_in.value is not None:
                     comp_vectors["P_in"] = np.array(comp.P_in.value).copy()
 
@@ -805,7 +811,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 if hasattr(comp, "E") and hasattr(comp.E, "value") and comp.E.value is not None:
                     comp_vectors["E"] = np.array(comp.E.value).copy()
 
-                # Extract binary decision variables,
+                # Extract binary decision variables
                 if hasattr(comp, "on") and hasattr(comp.on, "value") and comp.on.value is not None:
                     comp_vectors["on"] = np.array(comp.on.value).copy()
 

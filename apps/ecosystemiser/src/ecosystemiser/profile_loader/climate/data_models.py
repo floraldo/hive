@@ -43,17 +43,20 @@ class ClimateRequest(BaseProfileRequest):
 
     # Climate-specific extensions
     subset: dict[str, str] | None = Field(
-        default=None, description="Time subset specification: {'month':'07'} or {'start':'07-10','end':'07-24'}",
+        default=None,
+        description="Time subset specification: {'month':'07'} or {'start':'07-10','end':'07-24'}",
     )
     synthetic_options: dict[str, Any] = (
         Field(default_factory=dict, description="Options for synthetic data generation"),
     )
     seed: int | None = (Field(default=None, description="Random seed for reproducible synthetic generation"),)
     baseline_period: tuple[str, str] | None = Field(
-        default=None, description="Baseline period for nonstationarity handling",
+        default=None,
+        description="Baseline period for nonstationarity handling",
     )
     p_selection: int | None = Field(
-        default=None, description="Percentile selection for representative year (P50, P90, etc.)",
+        default=None,
+        description="Percentile selection for representative year (P50, P90, etc.)",
     )
 
     @property
@@ -92,40 +95,40 @@ class ClimateResponse(BaseProfileResponse):
 
 # Canonical variable mappings - Core variables available across most services
 CANONICAL_VARIABLES = {
-    # Temperature variables,
+    # Temperature variables
     "temp_air": {"unit": "degC", "type": "state"},
     "temp_air_max": {"unit": "degC", "type": "state"},
     "temp_air_min": {"unit": "degC", "type": "state"},
     "dewpoint": {"unit": "degC", "type": "state"},
     "surface_temp": {"unit": "degC", "type": "state"},
-    # Humidity variables,
+    # Humidity variables
     "rel_humidity": {"unit": "%", "type": "state"},
     "specific_humidity": {"unit": "g/kg", "type": "state"},
-    # Wind variables,
+    # Wind variables
     "wind_speed": {"unit": "m/s", "type": "state"},
     "wind_speed_max": {"unit": "m/s", "type": "state"},
     "wind_gust": {"unit": "m/s", "type": "state"},
     "wind_dir": {"unit": "deg", "type": "state"},
-    # Solar radiation variables,
-    "ghi": {"unit": "W/m2", "type": "state"},  # Global horizontal irradiance,
-    "dni": {"unit": "W/m2", "type": "state"},  # Direct normal irradiance,
-    "dhi": {"unit": "W/m2", "type": "state"},  # Diffuse horizontal irradiance,
+    # Solar radiation variables
+    "ghi": {"unit": "W/m2", "type": "state"},  # Global horizontal irradiance
+    "dni": {"unit": "W/m2", "type": "state"},  # Direct normal irradiance
+    "dhi": {"unit": "W/m2", "type": "state"},  # Diffuse horizontal irradiance
     "ghi_clearsky": {"unit": "W/m2", "type": "state"},
-    # Longwave radiation variables,
+    # Longwave radiation variables
     "lw_down": {"unit": "W/m2", "type": "state"},
     "lw_net": {"unit": "W/m2", "type": "state"},
-    # Precipitation variables,
+    # Precipitation variables
     "precip": {"unit": "mm/h", "type": "flux"},
-    "snow": {"unit": "mm", "type": "state"},  # Snow depth or water equivalent,
+    "snow": {"unit": "mm", "type": "state"},  # Snow depth or water equivalent
     "snowfall": {"unit": "mm/h", "type": "flux"},
-    # Atmospheric variables,
+    # Atmospheric variables
     "pressure": {"unit": "Pa", "type": "state"},
     "cloud_cover": {"unit": "%", "type": "state"},
     "visibility": {"unit": "km", "type": "state"},
     "sunshine_duration": {"unit": "min", "type": "state"},
-    # Surface and soil variables (basic),
+    # Surface and soil variables (basic)
     "albedo": {"unit": "fraction", "type": "state"},
     "evaporation": {"unit": "mm/h", "type": "flux"},
-    "soil_temp": {"unit": "degC", "type": "state"},  # Top soil layer,
+    "soil_temp": {"unit": "degC", "type": "state"},  # Top soil layer
     "soil_moisture": {"unit": "m3/m3", "type": "state"},  # Top soil layer
 }

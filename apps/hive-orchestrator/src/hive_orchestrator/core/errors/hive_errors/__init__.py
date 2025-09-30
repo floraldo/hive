@@ -7,6 +7,10 @@ Standardized Error Handling for Hive System
 Provides consistent error types, reporting, and recovery strategies
 """
 
+# Use canonical recovery patterns from hive-errors
+from hive_errors import RecoveryStatus as RecoveryAction
+from hive_errors import RecoveryStrategy
+
 from .error_reporter import ErrorContext, ErrorReporter
 from .exceptions import (
     EventBusError,
@@ -23,7 +27,6 @@ from .exceptions import (
     HiveValidationError,
     HiveWorkerError,
 )
-from .recovery import RecoveryAction, RecoveryStrategy
 
 __version__ = "1.0.0"
 

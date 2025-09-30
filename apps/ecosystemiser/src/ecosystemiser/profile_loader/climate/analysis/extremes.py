@@ -12,7 +12,10 @@ logger = get_logger(__name__)
 
 
 def find_extreme_events(
-    ds: xr.Dataset, variable: str = "temp_air", threshold_percentile: float = 95, min_duration_hours: int = 24,
+    ds: xr.Dataset,
+    variable: str = "temp_air",
+    threshold_percentile: float = 95,
+    min_duration_hours: int = 24,
 ) -> list[dict]:
     """
     Find extreme events (hot/cold spells, high wind, etc).
@@ -32,7 +35,7 @@ def find_extreme_events(
 
     data = ds[variable]
 
-    # Calculate threshold,
+    # Calculate threshold
     if threshold_percentile > 50:
         # High extremes (heat waves, high wind)
         threshold = float(data.quantile(threshold_percentile / 100))
@@ -62,7 +65,7 @@ def find_extreme_events(
                 event_start = time
                 event_values = [float(data.values[i])]
             elif is_extreme and in_event:
-                # Continue event,
+                # Continue event
                 (event_values.append(float(data.values[i])),)
             elif not is_extreme and in_event:
                 # End of event
@@ -90,7 +93,10 @@ def find_extreme_events(
 
 
 def identify_heat_waves(
-    ds: xr.Dataset, temp_threshold: float = 32, min_duration_days: int = 3, night_relief_threshold: float = 20,
+    ds: xr.Dataset,
+    temp_threshold: float = 32,
+    min_duration_days: int = 3,
+    night_relief_threshold: float = 20,
 ) -> list[dict]:
     """
     Identify heat wave events using temperature criteria.
@@ -247,7 +253,7 @@ def calculate_percentiles(ds: xr.Dataset, variables: list[str] | None = None, pe
             for p in percentiles:
                 results[var][f"p{int(p):02d}"] = float(np.percentile(valid_data, p))
 
-            # Add IQR and range,
+            # Add IQR and range
             if 25 in percentiles and 75 in percentiles:
                 results[var]["iqr"] = results[var]["p75"] - results[var]["p25"]
             results[var]["range"] = float(valid_data.max() - valid_data.min())
@@ -256,7 +262,10 @@ def calculate_percentiles(ds: xr.Dataset, variables: list[str] | None = None, pe
 
 
 def calculate_return_periods(
-    ds: xr.Dataset, variable: str, return_years: list[int] = None, extreme_type: str = "max",
+    ds: xr.Dataset,
+    variable: str,
+    return_years: list[int] = None,
+    extreme_type: str = "max",
 ) -> dict:
     """
     Estimate return period values using simple statistical methods.
@@ -280,7 +289,7 @@ def calculate_return_periods(
 
     data = ds[variable]
 
-    # Get annual extremes,
+    # Get annual extremes
     if extreme_type == "max":
         annual_extremes = data.resample(time="1Y").max()
     else:
@@ -304,9 +313,9 @@ def calculate_return_periods(
         "return_values": {},
     }
 
-    # Gumbel reduced variate,
+    # Gumbel reduced variate
     for T in return_years:
-        if T <= len(extremes) * 2:  # Only extrapolate to 2x data length,
+        if T <= len(extremes) * 2:  # Only extrapolate to 2x data length
             y_T = -np.log(-np.log(1 - 1 / T))  # Gumbel reduced variate
 
             # Simplified estimation (Gumbel method of moments)
@@ -320,7 +329,7 @@ def calculate_return_periods(
 
             results["return_values"][f"{T}_year"] = float(x_T)
 
-    # Add observed percentiles for reference,
+    # Add observed percentiles for reference
     results["observed_percentiles"] = (
         {
             "p90": float(np.percentile(extremes, 90)),
@@ -344,7 +353,7 @@ def summarize_extremes(ds: xr.Dataset) -> dict:
     """
     summary = {"temperature": {}, "precipitation": {}, "wind": {}, "solar": {}}
 
-    # Temperature extremes,
+    # Temperature extremes
     if "temp_air" in ds:
         heat_waves = identify_heat_waves(ds)
         cold_snaps = identify_cold_snaps(ds)
@@ -357,7 +366,7 @@ def summarize_extremes(ds: xr.Dataset) -> dict:
             "return_periods": calculate_return_periods(ds, "temp_air", extreme_type="max"),
         }
 
-    # Wind extremes,
+    # Wind extremes
     if "wind_speed" in ds:
         wind_extremes = find_extreme_events(ds, "wind_speed", threshold_percentile=99, min_duration_hours=6)
         summary["wind"] = {
@@ -366,7 +375,7 @@ def summarize_extremes(ds: xr.Dataset) -> dict:
             "return_periods": calculate_return_periods(ds, "wind_speed", extreme_type="max"),
         }
 
-    # Precipitation extremes,
+    # Precipitation extremes
     if "precip" in ds:
         heavy_rain = find_extreme_events(ds, "precip", threshold_percentile=95, min_duration_hours=1)
         summary["precipitation"] = (

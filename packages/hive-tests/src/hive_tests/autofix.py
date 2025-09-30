@@ -132,44 +132,41 @@ class GoldenRulesAutoFixer:
         """
         Fix async function naming violations (Rule 14).
 
-        Renames async functions to end with '_async' suffix.
+        Renames async functions to end with '_async' suffix using AST transformation.
         """
         try:
             with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
-            # Parse AST
-            tree = ast.parse(content)
+            # Use enhanced AST transformer
+            from .async_naming_transformer import fix_async_naming_ast
 
+            try:
+                modified_content, fixes = fix_async_naming_ast(content)
+            except (SyntaxError, RuntimeError) as e:
+                # Fall back to original regex-based approach on AST errors
+                self.results.append(
+                    AutofixResult(
+                        file_path=file_path,
+                        rule_id="rule-14",
+                        rule_name="Async Pattern Consistency",
+                        fixes_applied=0,
+                        changes_made=[],
+                        backup_created=False,
+                        success=False,
+                        error_message=f"AST transformation failed: {e}",
+                    ),
+                )
+                return
+
+            # Build changes list
             changes_made = []
-            modified_content = content
-
-            # Find async functions that need renaming
-            for node in ast.walk(tree):
-                if isinstance(node, ast.AsyncFunctionDef):
-                    old_name = node.name
-
-                    # Skip if already has _async suffix or starts with 'a'
-                    if old_name.endswith("_async") or old_name.startswith("a"):
-                        continue
-
-                    # Skip special methods and private functions
-                    if old_name.startswith("__") or old_name in ["run", "main", "start", "stop"]:
-                        continue
-
-                    new_name = f"{old_name}_async"
-
-                    # Replace function definition and all calls
-                    # Use word boundaries to avoid partial matches
-                    pattern = rf"\b{re.escape(old_name)}\b"
-
-                    # Count matches to verify changes
-                    matches = len(re.findall(pattern, modified_content))
-                    if matches > 0:
-                        modified_content = re.sub(pattern, new_name, modified_content)
-                        changes_made.append(
-                            f"Renamed async function '{old_name}' to '{new_name}' ({matches} occurrences)",
-                        )
+            for fix in fixes:
+                total_changes = 1 + fix.occurrences  # Definition + call sites
+                changes_made.append(
+                    f"Renamed async function '{fix.old_name}' to '{fix.new_name}' "
+                    f"at line {fix.line_number} ({total_changes} total occurrences)",
+                )
 
             # Apply changes
             if changes_made and not self.dry_run:
@@ -363,7 +360,8 @@ class GoldenRulesAutoFixer:
                         # Has inheritance but not from valid bases - replace first base
                         old_base = base_names[0]
                         modified_content = modified_content.replace(
-                            f"class {class_name}({old_base}", f"class {class_name}(BaseError",
+                            f"class {class_name}({old_base}",
+                            f"class {class_name}(BaseError",
                         )
                         (changes_made.append(f"Changed {class_name} to inherit from BaseError instead of {old_base}"),)
                         needs_base_error_import = True
@@ -502,7 +500,10 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(description="Automated Golden Rules violation fixer")
     parser.add_argument(
-        "--dry-run", action="store_true", default=True, help="Show what would be fixed without making changes",
+        "--dry-run",
+        action="store_true",
+        default=True,
+        help="Show what would be fixed without making changes",
     )
     parser.add_argument("--execute", action="store_true", help="Actually apply the fixes (overrides --dry-run)")
     parser.add_argument("--rules", nargs="+", help="Specific rules to fix (e.g., rule-14 rule-9)")

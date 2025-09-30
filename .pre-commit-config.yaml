@@ -35,6 +35,15 @@ repos:
         types: [python]
         pass_filenames: false
         verbose: true
-        # Warning only - won't block commits initially
-        # Remove 'stages: [manual]' to enable automatic validation
-        stages: [manual]
+        # ENABLED: Automatic validation on commit
+        # Use SKIP=golden-rules-check git commit to bypass if needed
+
+      # Autofix validation (async naming, code quality)
+      - id: autofix-validation
+        name: Autofix code quality checks
+        entry: python -c "from hive_tests.autofix import AutoFix; import sys; af = AutoFix(); violations = []; [violations.extend(af._check_async_naming(f)) for f in sys.argv[1:] if f.endswith('.py')]; print(f'✅ No violations' if not violations else f'⚠️  {len(violations)} violations (warning only)'); exit(0)"
+        language: system
+        types: [python]
+        pass_filenames: true
+        verbose: true
+        # Warning only initially - change exit(0) to exit(1) to enforce

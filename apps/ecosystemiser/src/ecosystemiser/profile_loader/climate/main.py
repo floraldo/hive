@@ -35,24 +35,26 @@ async def lifespan_async(app: FastAPI) -> None:
 
     Handles startup and shutdown tasks.,
     """
-    # Startup,
+    # Startup
     logger.info(
-        "Starting EcoSystemiser Climate Platform", version=settings.api.version, environment=settings.environment,
+        "Starting EcoSystemiser Climate Platform",
+        version=settings.api.version,
+        environment=settings.environment,
     )
 
-    # Initialize observability,
+    # Initialize observability
     if settings.observability.metrics_enabled or settings.observability.tracing_enabled:
         init_observability()
         logger.info("Observability initialized")
 
-    # Initialize job service,
+    # Initialize job service
     from ecosystemiser.profile_loader.services.job_service import JobService
 
     job_service = JobService()
     await job_service.initialize()
     logger.info("Job service initialized")
 
-    # Store services in app state for access in endpoints,
+    # Store services in app state for access in endpoints
     app.state.job_service = job_service
     app.state.settings = settings
 
@@ -60,14 +62,14 @@ async def lifespan_async(app: FastAPI) -> None:
 
     yield
 
-    # Shutdown,
+    # Shutdown
     logger.info("Shutting down application...")
 
-    # Close job service,
+    # Close job service
     if hasattr(app.state, "job_service"):
         await app.state.job_service.close()
 
-    # Shutdown observability,
+    # Shutdown observability
     shutdown_observability()
 
     logger.info("Application shutdown complete")
@@ -86,12 +88,12 @@ def create_app() -> FastAPI:
         description=settings.api.description,
         version=settings.api.version,
         lifespan=lifespan,
-        docs_url=None,  # Disable default docs,
-        redoc_url=None,  # Disable default redoc,
+        docs_url=None,  # Disable default docs
+        redoc_url=None,  # Disable default redoc
         openapi_url=None,  # Disable default openapi
     )
 
-    # Add middleware,
+    # Add middleware
     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     app.add_middleware(
@@ -112,25 +114,25 @@ def create_app() -> FastAPI:
         # Get or create correlation ID
         correlation_id = CorrelationIDMiddleware.get_or_create_correlation_id(dict(request.headers))
 
-        # Set in logging context,
+        # Set in logging context
         set_correlation_id(correlation_id)
 
         try:
             # Process request
             response = await call_next(request)
 
-            # Add correlation ID to response,
+            # Add correlation ID to response
             response.headers["X-Correlation-ID"] = correlation_id
 
             return response
         finally:
-            # Clear logging context,
+            # Clear logging context
             clear_context()
 
     # Add versioned routers
     # Note: Versioning is handled through API prefix routing
 
-    # Add version-specific documentation,
+    # Add version-specific documentation
     for version in settings.api.supported_versions:
         # Enable docs for each version
         docs_url = f"{settings.api.api_prefix}/{version}/docs"
@@ -138,7 +140,7 @@ def create_app() -> FastAPI:
         openapi_url = f"{settings.api.api_prefix}/{version}/openapi.json"
 
         # This is a simplified approach - in production you'd want
-        # separate FastAPI apps or more sophisticated routing,
+        # separate FastAPI apps or more sophisticated routing
         if version == settings.api.default_version:
             app.docs_url = docs_url
             app.redoc_url = redoc_url

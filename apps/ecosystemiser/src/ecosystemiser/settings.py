@@ -291,7 +291,7 @@ class Settings(BaseSettings):
     def validate_environment(cls, v, info):
         """Adjust settings based on environment"""
         if v == "production":
-            # Enforce production settings,
+            # Enforce production settings
             if "debug" in info.data:
                 info.data["debug"] = False
         return v
@@ -340,11 +340,12 @@ class Settings(BaseSettings):
 
     def get_rate_limit_config(self):
         """Get rate limit configuration for adapters"""
-        # Import here to avoid circular dependency,
+        # Import here to avoid circular dependency
         from ecosystemiser.profile_loader.climate.config_models import RateLimitConfig
 
         return RateLimitConfig(
-            requests_per_minute=self.rate_limit.requests_per_minute, burst_size=self.rate_limit.burst_size,
+            requests_per_minute=self.rate_limit.requests_per_minute,
+            burst_size=self.rate_limit.burst_size,
         )
 
     model_config = ConfigDict(

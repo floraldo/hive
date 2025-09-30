@@ -4,14 +4,16 @@ Processing pipeline manager for climate data.,
 Manages the separation between preprocessing and postprocessing stages
 with configurable steps and proper error handling.
 """
+
 from __future__ import annotations
 
-
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any
 
 import xarray as xr
+
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
 
@@ -34,11 +36,11 @@ class ProcessingStep:
     name: str
     function: Callable
     stage: PipelineStage
-    config: Dict[str, Any] = field(default_factory=dict)
+    config: dict[str, Any] = field(default_factory=dict)
     enabled: bool = True
     required: bool = False
 
-    def execute(self, ds: xr.Dataset) -> Tuple[xr.Dataset, Dict[str, Any]]:
+    def execute(self, ds: xr.Dataset) -> tuple[xr.Dataset, dict[str, Any]]:
         """
         Execute the processing step.
 
@@ -57,14 +59,14 @@ class ProcessingStep:
             # Call function with config
             result = self.function(ds, **self.config)
 
-            # Handle different return types,
+            # Handle different return types
             if isinstance(result, tuple):
                 ds_result, report = result
             else:
                 ds_result = result
                 report = {"success": True}
 
-            # Handle QCReport objects,
+            # Handle QCReport objects
             from ecosystemiser.profile_loader.climate.validation import QCReport
 
             if isinstance(report, QCReport):
@@ -72,7 +74,7 @@ class ProcessingStep:
                     "qc_report": report,
                     "quality_score": report.calculate_quality_score(),
                     "issues_count": len(report.issues),
-                    "success": True
+                    "success": True,
                 }
                 report = report_dict
 
@@ -99,7 +101,7 @@ class ProcessingPipeline:
     postprocessing (analytics/derived metrics) stages.,
     """
 
-    def __init__(self, config: Dict[str, Any]) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         """
         Initialize processing pipeline with centralized configuration.
 
@@ -108,12 +110,12 @@ class ProcessingPipeline:
         """
         self.config = config
 
-        self.preprocessing_steps: List[ProcessingStep] = []
-        self.postprocessing_steps: List[ProcessingStep] = []
+        self.preprocessing_steps: list[ProcessingStep] = []
+        self.postprocessing_steps: list[ProcessingStep] = []
 
-        self.execution_reports: List[Dict[str, Any]] = []
+        self.execution_reports: list[dict[str, Any]] = []
 
-        # Initialize default pipelines,
+        # Initialize default pipelines
         self._setup_default_preprocessing()
         self._setup_default_postprocessing()
 
@@ -122,9 +124,7 @@ class ProcessingPipeline:
         try:
             from ecosystemiser.profile_loader.climate.gap_filling import smart_fill_gaps
             from ecosystemiser.profile_loader.climate.resampling import resample_dataset
-            from ecosystemiser.profile_loader.climate.validation import (
-                apply_quality_control
-            )
+            from ecosystemiser.profile_loader.climate.validation import apply_quality_control
 
             # from .timezone import convert_timezone, attach_units
             # from ..analysis.building_science import derive_basic_variables
@@ -135,13 +135,13 @@ class ProcessingPipeline:
         # Get profile loader config if available
         profile_config = getattr(self.config, "profile_loader", None)
 
-        # 1. Quality control (always enabled),
+        # 1. Quality control (always enabled)
         self.add_preprocessing_step(
             "quality_control",
             apply_quality_control,
             config={"comprehensive": True, "source": None},
             enabled=True,
-            required=True
+            required=True,
         )
 
         # 2. Gap filling
@@ -161,12 +161,12 @@ class ProcessingPipeline:
                         if profile_config and hasattr(profile_config, "gap_fill_max_hours")
                         else 24
                     ),
-                    "preserve_extremes": True
+                    "preserve_extremes": True,
                 },
-                enabled=gap_fill_enabled
+                enabled=gap_fill_enabled,
             )
 
-        # 3. Resampling (disabled by default, enabled on-demand),
+        # 3. Resampling (disabled by default, enabled on-demand)
         self.add_preprocessing_step(
             "resample",
             lambda ds, **kw: resample_dataset(ds, kw.get("resolution", "H")),
@@ -174,10 +174,10 @@ class ProcessingPipeline:
             enabled=False,  # Only enabled when resolution is requested
         )
 
-        # 4. Timezone conversion (disabled by default, enabled on-demand),
+        # 4. Timezone conversion (disabled by default, enabled on-demand)
         self.add_preprocessing_step(
             "timezone_conversion",
-            lambda ds, **kw: ds,  # Placeholder for timezone conversion,
+            lambda ds, **kw: ds,  # Placeholder for timezone conversion
             config={"target_tz": "UTC"},
             enabled=False,  # Only enabled when timezone is requested
         )
@@ -199,22 +199,17 @@ class ProcessingPipeline:
         postprocessing_enabled = profile_config.postprocessing_enabled if profile_config else False
 
         # For now, keep postprocessing disabled by default to avoid import issues
-        # Building-specific variables could be added here when modules are available,
+        # Building-specific variables could be added here when modules are available
         if postprocessing_enabled:
-            # Placeholder for future postprocessing steps,
+            # Placeholder for future postprocessing steps
             self.add_postprocessing_step(
                 "placeholder_postprocessing",
-                lambda ds, **kw: ds,  # No-op for now,
-                enabled=False
+                lambda ds, **kw: ds,  # No-op for now
+                enabled=False,
             )
 
     def add_preprocessing_step(
-        self,
-        name: str,
-        function: Callable,
-        config: Dict | None = None,
-        enabled: bool = True,
-        required: bool = False
+        self, name: str, function: Callable, config: dict | None = None, enabled: bool = True, required: bool = False
     ):
         """Add a preprocessing step to the pipeline"""
         step = ProcessingStep(
@@ -223,17 +218,12 @@ class ProcessingPipeline:
             stage=PipelineStage.PREPROCESSING,
             config=config or {},
             enabled=enabled,
-            required=required
+            required=required,
         )
         self.preprocessing_steps.append(step)
 
     def add_postprocessing_step(
-        self,
-        name: str,
-        function: Callable,
-        config: Dict | None = None,
-        enabled: bool = True,
-        required: bool = False
+        self, name: str, function: Callable, config: dict | None = None, enabled: bool = True, required: bool = False
     ):
         """Add a postprocessing step to the pipeline"""
         step = ProcessingStep(
@@ -242,7 +232,7 @@ class ProcessingPipeline:
             stage=PipelineStage.POSTPROCESSING,
             config=config or {},
             enabled=enabled,
-            required=required
+            required=required,
         )
         self.postprocessing_steps.append(step)
 
@@ -263,7 +253,7 @@ class ProcessingPipeline:
             ds_processed, report = step.execute(ds_processed)
             self.execution_reports.append(report)
 
-        logger.info(f"Preprocessing complete: {len(self.preprocessing_steps)} steps executed"),
+        (logger.info(f"Preprocessing complete: {len(self.preprocessing_steps)} steps executed"),)
         return ds_processed
 
     def execute_postprocessing(self, ds: xr.Dataset) -> xr.Dataset:
@@ -283,14 +273,11 @@ class ProcessingPipeline:
             ds_processed, report = step.execute(ds_processed)
             self.execution_reports.append(report)
 
-        logger.info(f"Postprocessing complete: {len(self.postprocessing_steps)} steps executed"),
+        (logger.info(f"Postprocessing complete: {len(self.postprocessing_steps)} steps executed"),)
         return ds_processed
 
     def execute(
-        self,
-        ds: xr.Dataset,
-        skip_preprocessing: bool = False,
-        skip_postprocessing: bool = False
+        self, ds: xr.Dataset, skip_preprocessing: bool = False, skip_postprocessing: bool = False
     ) -> xr.Dataset:
         """
         Execute full pipeline.
@@ -313,14 +300,16 @@ class ProcessingPipeline:
 
         return ds
 
-    def get_execution_report(self) -> Dict[str, Any]:
+    def get_execution_report(self) -> dict[str, Any]:
         """Get detailed execution report"""
-        return {
-            "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"],
-            "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"],
-            "errors": [r for r in self.execution_reports if "error" in r],
-            "skipped": [r for r in self.execution_reports if r.get("skipped")]
-        },
+        return (
+            {
+                "preprocessing": [r for r in self.execution_reports if r.get("stage") == "preprocessing"],
+                "postprocessing": [r for r in self.execution_reports if r.get("stage") == "postprocessing"],
+                "errors": [r for r in self.execution_reports if "error" in r],
+                "skipped": [r for r in self.execution_reports if r.get("skipped")],
+            },
+        )
 
     def clear_steps(self, stage: PipelineStage | None = None) -> None:
         """Clear processing steps"""
@@ -329,9 +318,9 @@ class ProcessingPipeline:
         if stage == PipelineStage.POSTPROCESSING or stage is None:
             self.postprocessing_steps = []
 
-    def list_steps(self) -> Dict[str, List[str]]:
+    def list_steps(self) -> dict[str, list[str]]:
         """List all configured steps"""
         return {
             "preprocessing": [s.name for s in self.preprocessing_steps if s.enabled],
-            "postprocessing": [s.name for s in self.postprocessing_steps if s.enabled]
+            "postprocessing": [s.name for s in self.postprocessing_steps if s.enabled],
         }

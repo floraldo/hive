@@ -18,7 +18,7 @@ from typing import Any
 try:
     from hive_bus import BaseBus, BaseEvent
 except ImportError:
-    # Fallback implementation if hive_messaging is not available,
+    # Fallback implementation if hive_messaging is not available
     class BaseEvent:
         """Base event class for fallback implementation."""
 
@@ -104,12 +104,12 @@ class EcoSystemiserEventBus(BaseBus):
                 else:
                     logger.debug("ecosystemiser_events table exists with correct schema")
             else:
-                # Table doesn't exist, create it,
+                # Table doesn't exist, create it
                 self._create_events_table(conn)
 
     def _create_events_table(self, conn) -> None:
         """Create the events table with proper schema"""
-        # EcoSystemiser events table with simulation-specific fields,
+        # EcoSystemiser events table with simulation-specific fields
         conn.execute(
             """,
             CREATE TABLE ecosystemiser_events (
@@ -128,7 +128,7 @@ class EcoSystemiserEventBus(BaseBus):
         """,
         )
 
-        # EcoSystemiser-specific indexes for simulation queries,
+        # EcoSystemiser-specific indexes for simulation queries
         (
             conn.execute(
                 """,
@@ -168,11 +168,11 @@ class EcoSystemiserEventBus(BaseBus):
             Event ID of the published event,
         """
         try:
-            # Convert dict to Event if needed,
+            # Convert dict to Event if needed
             if isinstance(event, dict):
                 event = self._create_event_from_dict(event)
 
-            # Set correlation ID if provided,
+            # Set correlation ID if provided
             if correlation_id:
                 event.correlation_id = correlation_id
 
@@ -181,7 +181,7 @@ class EcoSystemiserEventBus(BaseBus):
             analysis_id = getattr(event, "analysis_id", None)
             optimization_id = getattr(event, "optimization_id", None)
 
-            # Store in EcoSystemiser database,
+            # Store in EcoSystemiser database
             with ecosystemiser_transaction() as conn:
                 conn.execute(
                     """,
@@ -208,7 +208,7 @@ class EcoSystemiserEventBus(BaseBus):
                     ),
                 )
 
-            # Notify subscribers (from parent class),
+            # Notify subscribers (from parent class)
             self._notify_subscribers(event)
 
             logger.debug(f"Published EcoSystemiser event {event.event_id}: {event.event_type}")
@@ -233,7 +233,7 @@ class EcoSystemiserEventBus(BaseBus):
         elif event_type.startswith("optimization."):
             return OptimizationEvent.from_dict(data)
         else:
-            # Default to base event,
+            # Default to base event
             if not hasattr(BaseEvent, "from_dict"):
                 # Create BaseEvent manually if from_dict doesn't exist
                 event = BaseEvent(
@@ -312,7 +312,7 @@ class EcoSystemiserEventBus(BaseBus):
                 "metadata": json.loads(row["metadata"]) if row["metadata"] else {},
             }
 
-            # Add EcoSystemiser-specific fields,
+            # Add EcoSystemiser-specific fields
             if row["simulation_id"]:
                 event_data["simulation_id"] = row["simulation_id"]
             if row["analysis_id"]:

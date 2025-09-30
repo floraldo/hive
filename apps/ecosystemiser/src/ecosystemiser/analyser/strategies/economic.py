@@ -42,7 +42,7 @@ class EconomicAnalysis(BaseAnalysis):
         """
         metrics = {}
 
-        # Update parameters from metadata if provided,
+        # Update parameters from metadata if provided
         if metadata:
             self.discount_rate = metadata.get("discount_rate", self.discount_rate)
             self.project_lifetime = metadata.get("project_lifetime", self.project_lifetime)
@@ -68,7 +68,7 @@ class EconomicAnalysis(BaseAnalysis):
         payback = self._calculate_payback_period(capex, opex_annual, energy_metrics)
         metrics["payback_period_years"] = payback
 
-        # Total cost of ownership,
+        # Total cost of ownership
         metrics["total_cost_ownership"] = capex + (opex_annual * self.project_lifetime)
 
         # Cost breakdown by component
@@ -116,7 +116,7 @@ class EconomicAnalysis(BaseAnalysis):
                 capex += capacity * capex_per_m3
 
             else:
-                # Use fixed capex if specified,
+                # Use fixed capex if specified
                 capex += economic.get("capex_fixed", 0)
 
         return capex
@@ -156,7 +156,7 @@ class EconomicAnalysis(BaseAnalysis):
                 opex += capacity * opex_per_kw_year
 
             else:
-                # Use fixed OPEX if specified,
+                # Use fixed OPEX if specified
                 opex += economic.get("opex_annual", 0)
 
         # Add maintenance costs (typically 1-2% of CAPEX annually)
@@ -245,7 +245,7 @@ class EconomicAnalysis(BaseAnalysis):
             discounted_energy = annual_energy / ((1 + self.discount_rate) ** year)
             total_energy += discounted_energy
 
-        # Calculate LCOE,
+        # Calculate LCOE
         if total_energy > 0:
             lcoe = total_cost / total_energy
         else:
@@ -318,7 +318,7 @@ class EconomicAnalysis(BaseAnalysis):
             capacity = technical.get("capacity_nominal", 0)
             comp_type = comp_data.get("type", "")
 
-            # Calculate CAPEX,
+            # Calculate CAPEX
             if comp_type == "battery":
                 costs["capex"] = capacity * economic.get("capex_per_kwh", 500)
                 costs["opex_annual"] = capacity * economic.get("opex_per_kwh_year", 10)

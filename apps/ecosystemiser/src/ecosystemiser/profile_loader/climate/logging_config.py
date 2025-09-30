@@ -45,7 +45,7 @@ class PerformanceProcessor:
 
     def __call__(self, logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
         """Add performance context"""
-        # Add memory usage if it's an error or warning,
+        # Add memory usage if it's an error or warning
         if method_name in ["error", "critical", "warning"]:
             try:
                 import psutil
@@ -53,7 +53,7 @@ class PerformanceProcessor:
                 event_dict["memory_mb"] = process.memory_info().rss / 1024 / 1024
                 event_dict["cpu_percent"] = process.cpu_percent()
             except ImportError:
-                pass  # psutil not installed,
+                pass  # psutil not installed
 
         return event_dict
 
@@ -63,7 +63,7 @@ class ErrorContextProcessor:
 
     def __call__(self, logger: Any, method_name: str, event_dict: EventDict) -> EventDict:
         """Add error context"""
-        # Extract exception info if present,
+        # Extract exception info if present
         if "exc_info" in event_dict and event_dict["exc_info"]:
             exc_info = event_dict["exc_info"]
             if isinstance(exc_info, tuple) and len(exc_info) >= 2:
@@ -71,7 +71,7 @@ class ErrorContextProcessor:
                 event_dict["error_type"] = exc_type.__name__ if exc_type else None
                 event_dict["error_message"] = str(exc_value) if exc_value else None
 
-                # Add custom error attributes if it's a ClimateError,
+                # Add custom error attributes if it's a ClimateError
                 if hasattr(exc_value, "code"):
                     event_dict["error_code"] = str(exc_value.code.value)
                 if hasattr(exc_value, "severity"):
@@ -113,7 +113,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     level = log_level or settings.observability.log_level
     format_type = log_format or settings.observability.log_format
 
-    # Set up stdlib logging,
+    # Set up stdlib logging
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         stream=sys.stdout,
@@ -122,46 +122,46 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
 
     # Configure processors
     processors = [
-        # Add correlation ID,
+        # Add correlation ID
         CorrelationIDProcessor()
-        # Add adapter context,
+        # Add adapter context
         AdapterContextProcessor()
-        # Filter by level,
+        # Filter by level
         structlog.stdlib.filter_by_level,
-        # Add logger name,
+        # Add logger name
         structlog.stdlib.add_logger_name,
-        # Add log level,
+        # Add log level
         structlog.stdlib.add_log_level,
-        # Handle positional arguments,
+        # Handle positional arguments
         structlog.processors.PositionalArgumentsFormatter()
-        # Add timestamp,
+        # Add timestamp
         structlog.processors.TimeStamper(fmt="iso")
-        # Add call site info for errors,
+        # Add call site info for errors
         structlog.processors.CallsiteParameterAdder(
             parameters=[structlog.processors.CallsiteParameter.FILENAME, structlog.processors.CallsiteParameter.LINENO],
             levels=["warning", "error", "critical"]
         )
-        # Add performance metrics,
+        # Add performance metrics
         PerformanceProcessor()
-        # Add enhanced error context,
+        # Add enhanced error context
         ErrorContextProcessor()
-        # Format stack traces,
+        # Format stack traces
         structlog.processors.StackInfoRenderer()
         structlog.processors.format_exc_info,
-        # Decode unicode,
+        # Decode unicode
         structlog.processors.UnicodeDecoder()
     ]
 
-    # Add appropriate renderer based on format,
+    # Add appropriate renderer based on format
     if format_type == "json":
         processors.append(structlog.processors.JSONRenderer())
     else:
-        # Console output with colors,
+        # Console output with colors
         processors.append(
             structlog.dev.ConsoleRenderer(colors=True, pad_event=30, exception_formatter=structlog.dev.plain_traceback)
         )
 
-    # Configure structlog,
+    # Configure structlog
     structlog.configure(
         processors=processors,
         context_class=dict,

@@ -57,22 +57,22 @@ class SystemBuilder:
         Returns:
             Configured System object,
         """
-        # Load system configuration,
+        # Load system configuration
         with open(self.config_path) as f:
             config = yaml.safe_load(f)
 
-        # Validate configuration structure,
+        # Validate configuration structure
         self._validate_config(config)
 
         # Create system
         system = System(config["system_id"], config.get("timesteps", 24))
 
-        # Add components,
+        # Add components
         for comp_config in config["components"]:
             component = self._create_component(comp_config, system.N)
             system.add_component(component)
 
-        # Create connections,
+        # Create connections
         for conn in config["connections"]:
             (system.connect(conn["from"], conn["to"], conn["type"], conn.get("bidirectional", False)),)
 
@@ -113,7 +113,7 @@ class SystemBuilder:
         if not name:
             raise ValueError("Component must have a 'name'")
 
-        # Determine if using component library or inline definition,
+        # Determine if using component library or inline definition
         if "component_id" in comp_config:
             # Load from component library
             comp_data = self.component_repo.get_component_data(comp_config["component_id"])
@@ -141,7 +141,7 @@ class SystemBuilder:
             available = list(COMPONENT_REGISTRY.keys())
             raise ValueError(f"Unknown component class: {comp_class_name}. Available: {available}") from e
 
-        # Get the parameter class from the component,
+        # Get the parameter class from the component
         if hasattr(ComponentClass, "PARAMS_MODEL"):
             ParamsModel = ComponentClass.PARAMS_MODEL
         else:
@@ -159,7 +159,7 @@ class SystemBuilder:
         except Exception as e:
             raise ValueError(f"Invalid parameters for {comp_class_name} component '{name}': {e}")
 
-        # Create component using registry pattern,
+        # Create component using registry pattern
         return ComponentClass(name, params, n)
 
     def assign_profiles(self, system: System, profiles: dict[str, Any]) -> None:
@@ -170,7 +170,7 @@ class SystemBuilder:
             profiles: Dictionary of profile data,
         """
         for comp_name, component in system.components.items():
-            # Check if component needs a profile,
+            # Check if component needs a profile
             if hasattr(component, "technical") and component.technical:
                 profile_name = getattr(component.technical, "profile_name", None)
 
@@ -227,7 +227,7 @@ class SystemBuilder:
         demand = demand_class("PowerDemand", demand_params, N)
         system.add_component(demand)
 
-        # Create connections,
+        # Create connections
         system.connect("Grid", "PowerDemand", "electricity")
         system.connect("Grid", "Battery", "electricity")
         system.connect("SolarPV", "PowerDemand", "electricity")

@@ -343,7 +343,16 @@ _global_config: HiveConfig | None = None
 
 def load_config(config_path: Path | None = None, use_environment: bool = True) -> HiveConfig:
     """
-    Load global Hive configuration
+    Load global Hive configuration.
+
+    DEPRECATED: Global state pattern is deprecated. Use dependency injection instead:
+        # OLD (deprecated)
+        load_config()
+        config = get_config()
+
+        # NEW (dependency injection)
+        config = create_config_from_sources()
+        service = MyService(config=config)
 
     Args:
         config_path: Optional path to configuration file
@@ -352,6 +361,15 @@ def load_config(config_path: Path | None = None, use_environment: bool = True) -
     Returns:
         HiveConfig instance
     """
+    import warnings
+
+    warnings.warn(
+        "load_config() uses global state and is deprecated. "
+        "Use create_config_from_sources() and pass config explicitly via dependency injection.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     global _global_config
     _global_config = create_config_from_sources(config_path, use_environment)
     return _global_config
@@ -359,7 +377,16 @@ def load_config(config_path: Path | None = None, use_environment: bool = True) -
 
 def get_config() -> HiveConfig:
     """
-    Get the current global configuration
+    Get the current global configuration.
+
+    DEPRECATED: Global state pattern is deprecated. Use dependency injection instead:
+        # OLD (deprecated)
+        config = get_config()
+
+        # NEW (dependency injection)
+        from hive_config import create_config_from_sources
+        config = create_config_from_sources()
+        # Pass config to constructors/functions explicitly
 
     Returns:
         HiveConfig instance
@@ -367,6 +394,15 @@ def get_config() -> HiveConfig:
     Raises:
         RuntimeError: If config has not been loaded yet
     """
+    import warnings
+
+    warnings.warn(
+        "get_config() uses global state and is deprecated. "
+        "Use create_config_from_sources() and pass config explicitly via dependency injection.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     global _global_config
     if _global_config is None:
         _global_config = create_config_from_sources()

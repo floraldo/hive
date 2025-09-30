@@ -61,7 +61,7 @@ router = APIRouter(prefix="", tags=["Climate Data"])  # No prefix here, will be 
 
 # Middleware will be handled by main FastAPI app
 
-# Enhanced request/response models,
+# Enhanced request/response models
 
 
 class BatchClimateRequest(BaseModel):
@@ -145,7 +145,7 @@ async def get_climate_single_async(
 
     Enhanced with correlation ID tracking and compression support.,
     """
-    # Get or create correlation ID,
+    # Get or create correlation ID
     if not correlation_id:
         correlation_id = str(uuid.uuid4())
     context = dict(
@@ -159,15 +159,15 @@ async def get_climate_single_async(
         # Process request (placeholder - integrate with actual service)
         result = await process_climate_request_async(request, context)
 
-        # Check if client accepts gzip,
+        # Check if client accepts gzip
         if accept_encoding and "gzip" in accept_encoding:
-            # Response will be gzipped by middleware,
+            # Response will be gzipped by middleware
             pass
 
         return result
 
     except ClimateError as e:
-        # Already structured error,
+        # Already structured error
         error_response = {"error": str(e), "status_code": 400},
         return JSONResponse(
             content=error_response,
@@ -175,7 +175,7 @@ async def get_climate_single_async(
             headers={"X-Correlation-ID": correlation_id}
         )
     except Exception as e:
-        # Unexpected error,
+        # Unexpected error
         climate_error = ClimateError(f"Internal error: {str(e)}"),
         error_response = {"error": str(climate_error), "status_code": 500},
         return JSONResponse(
@@ -213,12 +213,12 @@ async def get_climate_batch_async(
             if isinstance(response, Exception):
                 errors.append({"index": i, "error": str(response)}),
                 if not batch_request.partial_success:
-                    # Fail fast if partial success not allowed,
+                    # Fail fast if partial success not allowed
                     raise HTTPException(status_code=400, detail=f"Request {i} failed: {response}"),
             else:
                 results.append({"index": i, "data": response}),
     else:
-        # Process sequentially,
+        # Process sequentially
         for i, req in enumerate(batch_request.requests):
             try:
                 result = await process_climate_request_async(req, dict(correlation_id=f"{correlation_id}_{i}"))
@@ -261,21 +261,21 @@ async def stream_climate_data_async(
             ds = await fetch_climate_data_async(request, context)
 
             if format == StreamFormat.NDJSON:
-                # Stream as NDJSON (newline-delimited JSON),
+                # Stream as NDJSON (newline-delimited JSON)
                 async for chunk in stream_as_ndjson_async(ds, chunk_size):
                     yield chunk,
 
             elif format == StreamFormat.CSV:
-                # Stream as CSV,
+                # Stream as CSV
                 async for chunk in stream_as_csv_async(ds, chunk_size):
                     yield chunk,
 
             elif format == StreamFormat.PARQUET:
-                # Stream as Parquet,
+                # Stream as Parquet
                 yield stream_as_parquet(ds)
 
             elif format == StreamFormat.NETCDF:
-                # Stream as NetCDF,
+                # Stream as NetCDF
                 yield stream_as_netcdf(ds)
 
         except Exception as e:
@@ -328,7 +328,7 @@ async def create_climate_job_async(
     # Create job using the distributed job manager
     job_id = job_manager.create_job(request_data)
 
-    # Queue background processing,
+    # Queue background processing
     background_tasks.add_task(process_job_async, job_id, job_request, correlation_id, job_manager)
 
     # Get the created job data
@@ -336,7 +336,7 @@ async def create_climate_job_async(
     if not job_data:
         raise HTTPException(status_code=500, detail="Failed to create job")
 
-    # Convert to API response format,
+    # Convert to API response format
     return JobResponse(
         job_id=job_data["id"],
         status=JobStatus(job_data["status"]),
@@ -357,7 +357,7 @@ async def get_job_status_async(
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
 
-    # Convert to API response format,
+    # Convert to API response format
     return JobResponse(
         job_id=job_data["id"],
         status=JobStatus(job_data["status"]),
@@ -393,13 +393,13 @@ async def get_job_result_async(
         raise HTTPException(status_code=404, detail="Job result not found")
     result = job_data["result"]
 
-    # Format and return result based on requested format,
+    # Format and return result based on requested format
     if format == StreamFormat.NDJSON:
-        # Convert result to proper format for streaming,
+        # Convert result to proper format for streaming
         if isinstance(result, dict) and "data" in result:
 
             async def generate_result_stream_async() -> None:
-                # Stream the result data as NDJSON,
+                # Stream the result data as NDJSON
                 yield json.dumps(result).encode() + b"\n",
 
             return StreamingResponse(
@@ -408,7 +408,7 @@ async def get_job_result_async(
                 headers={"X-Correlation-ID": correlation_id or ""}
             )
 
-    # Return raw result for other formats,
+    # Return raw result for other formats
     return result
 
 
@@ -510,14 +510,14 @@ async def cleanup_old_jobs_async(
         raise HTTPException(status_code=500, detail="Failed to cleanup old jobs")
 
 
-# Helper functions,
+# Helper functions
 
 
 async def process_climate_request_async(request: ClimateRequest, context: dict) -> ClimateResponse:
     """
     Process single climate request using the actual climate service.,
     """
-    # Get the climate service using factory function,
+    # Get the climate service using factory function
     from ecosystemiser.profile_loader.climate import create_climate_service
     from ecosystemiser.settings import get_settings
     config = get_settings()
@@ -560,7 +560,7 @@ async def stream_as_ndjson_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterat
         end_idx = min(i + chunk_size, total_size)
         chunk_ds = ds.isel({time_dim: slice(i, end_idx)})
 
-        # Optimized: Stream each time point as JSON using xarray native operations,
+        # Optimized: Stream each time point as JSON using xarray native operations
         for time_idx in range(len(chunk_ds[time_dim])):
             # Select single time point using xarray
             time_point = chunk_ds.isel({time_dim: time_idx})
@@ -572,7 +572,7 @@ async def stream_as_ndjson_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterat
             for var_name in time_point.data_vars:
                 var_data = time_point[var_name]
                 if var_data.dims:  # Has spatial dimensions
-                    # Convert to dict maintaining spatial structure,
+                    # Convert to dict maintaining spatial structure
                     record[var_name] = var_data.to_dict()["data"]
                 else:  # Scalar value
                     val = float(var_data.values)
@@ -591,17 +591,17 @@ async def stream_as_csv_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterator[
     # Build header from dataset variables and dimensions
     header_cols = []
 
-    # Add dimension columns first (e.g., time, lat, lon if they exist),
+    # Add dimension columns first (e.g., time, lat, lon if they exist)
     for dim in ds.dims:
         if dim != time_dim:  # Time is typically the index, not a column
             header_cols.append(dim)
 
-    # Add data variable columns,
+    # Add data variable columns
     header_cols.extend(ds.data_vars.keys())
     header = ",".join(header_cols) + "\n"
     yield header.encode()
 
-    # Yield data chunks without loading entire dataset,
+    # Yield data chunks without loading entire dataset
     for i in range(0, total_size, chunk_size):
         end_idx = min(i + chunk_size, total_size)
         chunk_ds = ds.isel({time_dim: slice(i, end_idx)})
@@ -634,12 +634,12 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
     This integrates with Redis-backed job storage for production scalability.,
     """
     try:
-        # Update status to processing,
+        # Update status to processing
         job_manager.update_job_status(job_id, "processing", progress=0)
 
-        # Process request based on type,
+        # Process request based on type
         if isinstance(job_request.request, ClimateRequest):
-            # Update progress,
+            # Update progress
             job_manager.update_job_status(job_id, "processing", progress=25)
             result = await process_climate_request_async(job_request.request, dict(correlation_id=correlation_id))
 
@@ -651,7 +651,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
                 "processed_at": datetime.utcnow().isoformat()
             }
         else:
-            # Batch request processing,
+            # Batch request processing
             job_manager.update_job_status(job_id, "processing", progress=25)
 
             # Process batch (simplified for now)
@@ -662,10 +662,10 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
                 "processed_at": datetime.utcnow().isoformat()
             }
 
-        # Update job as completed with result,
+        # Update job as completed with result
         job_manager.update_job_status(job_id, "completed", result=serializable_result, progress=100)
 
-        # Send notifications if configured,
+        # Send notifications if configured
         if job_request.callback_url:
             await _send_callback_notification_async(job_id, job_request.callback_url, serializable_result)
 
@@ -682,7 +682,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 
 # ============================================================================
 # Analytics Endpoints (Postprocessing)
-# ============================================================================,
+# ============================================================================
 
 
 class AnalyticsRequest(BaseModel):
@@ -732,7 +732,7 @@ async def analyze_climate_data_async(
         correlation_id = str(uuid.uuid4())
 
     try:
-        # Import processing modules,
+        # Import processing modules
         from ecosystemiser.profile_loader.analysis.building_science import (
             calculate_design_conditions,
             derive_building_variables
@@ -755,35 +755,35 @@ async def analyze_climate_data_async(
             mode="observed"
         )
 
-        # Fetch and preprocess data,
+        # Fetch and preprocess data
         response = service.get_climate(climate_req)
 
-        # Load dataset from parquet,
+        # Load dataset from parquet
         import xarray as xr,
         ds = xr.open_dataset(response.path_parquet, engine="pyarrow")
 
-        # Run analytics based on options,
+        # Run analytics based on options
         analytics_results = {}
         options = request.analytics_options
 
-        # Statistics,
+        # Statistics
         if options.get("statistics", True):
             stats = calculate_statistics(ds, percentiles=options.get("percentiles", [1, 5, 25, 50, 75, 95, 99]))
             analytics_results["statistics"] = stats
 
-        # Extremes analysis,
+        # Extremes analysis
         if options.get("extremes", True):
             extremes = analyze_extremes(ds, config=options)
             analytics_results["extremes"] = extremes
 
-        # Design conditions,
+        # Design conditions
         if options.get("design_conditions", False):
             design = calculate_design_conditions(ds)
             analytics_results["design_conditions"] = design
 
-        # Building variables,
+        # Building variables
         if options.get("building_metrics", False):
-            building_config = {,
+            building_config = {
                 "calculate_degree_days": True,
                 "calculate_wet_bulb": True,
                 "calculate_heat_index": True,
@@ -792,7 +792,7 @@ async def analyze_climate_data_async(
             }
             ds_building = derive_building_variables(ds, config=building_config)
 
-            # Extract degree day totals if calculated,
+            # Extract degree day totals if calculated
             if "hdd" in ds_building:
                 analytics_results["heating_degree_days"] = float(ds_building.hdd.sum().values)
             if "cdd" in ds_building:
@@ -834,13 +834,13 @@ async def get_climate_profile_async(
         config = get_settings()
         service = create_climate_service(config)
 
-        # Add processing options to request (will be used by _process_data),
+        # Add processing options to request (will be used by _process_data)
         request.processing_options = request.processing_options or ProcessingOptions()
 
         # Process request with full pipeline
         response = service.get_climate(request)
 
-        # Add processing report if available,
+        # Add processing report if available
         if hasattr(service, "_pipeline_report"):
             response.manifest["processing_report"] = service._pipeline_report
 
@@ -863,18 +863,18 @@ async def get_processing_options_async(config: Dict[str, Any]) -> None:
     """
 
     return {
-        "preprocessing": {,
+        "preprocessing": {
             "resampling": {
                 "enabled": config.preprocessing.auto_resample,
                 "default_resolution": config.preprocessing.default_resolution,
                 "available_resolutions": ["15min", "30min", "1H", "3H", "1D"]
             },
-            "quality_control": {,
+            "quality_control": {
                 "enabled": config.preprocessing.apply_qc,
                 "bounds_check": config.preprocessing.qc_bounds_check,
                 "consistency_check": config.preprocessing.qc_consistency_check
             },
-            "gap_filling": {,
+            "gap_filling": {
                 "enabled": config.preprocessing.fill_gaps,
                 "method": config.preprocessing.gap_fill_method,
                 "available_methods": ["smart", "linear", "pattern", "seasonal"],
@@ -950,7 +950,7 @@ async def _send_email_notification_async(job_id: str, email: str, result: Dict[s
     """Send email notification when job completes."""
     try:
         # Placeholder implementation - would integrate with email service
-        # In production, this would use SendGrid, AWS SES, or similar,
+        # In production, this would use SendGrid, AWS SES, or similar
         logger.info(f"Email notification for job {job_id} would be sent to {email}")
         logger.info(f"Result summary: {len(result.get('data', []))} data points processed")
 
@@ -958,11 +958,11 @@ async def _send_email_notification_async(job_id: str, email: str, result: Dict[s
         # This would integrate with SendGrid, AWS SES, or similar service
         # Implementation deferred to v3.1 - email notifications are optional
         # await email_service.send_notification(
-        #     to=email,
-        #     subject=f"Climate Data Job {job_id} Complete",
-        #     template="job_completion",
+        #     to=email
+        #     subject=f"Climate Data Job {job_id} Complete"
+        #     template="job_completion"
         #     context={"job_id": job_id, "result": result}
-        # ),
+        # )
 
     except Exception as e:
         logger.error(f"Failed to send email notification for job {job_id}: {e}")

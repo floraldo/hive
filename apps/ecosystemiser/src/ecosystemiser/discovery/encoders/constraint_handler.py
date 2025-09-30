@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 import numpy as np
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -33,7 +34,7 @@ class ConstraintHandler:
 
     def __init__(self) -> None:
         """Initialize constraint handler."""
-        self.constraints: List[Constraint] = []
+        self.constraints: list[Constraint] = []
         self.penalty_method = "static"  # static, adaptive, barrier
         self.penalty_factor = 1000.0
 
@@ -47,11 +48,7 @@ class ConstraintHandler:
         logger.debug(f"Added constraint: {constraint.name}")
 
     def add_equality_constraint(
-        self,
-        name: str,
-        function: Callable[[np.ndarray], float],
-        tolerance: float = 1e-6,
-        weight: float = 1.0
+        self, name: str, function: Callable[[np.ndarray], float], tolerance: float = 1e-6, weight: float = 1.0
     ):
         """Add an equality constraint.
 
@@ -62,11 +59,7 @@ class ConstraintHandler:
             weight: Weight in penalty calculation,
         """
         constraint = Constraint(
-            name=name,
-            constraint_type="equality",
-            function=function,
-            tolerance=tolerance,
-            weight=weight
+            name=name, constraint_type="equality", function=function, tolerance=tolerance, weight=weight
         )
         self.add_constraint(constraint)
 
@@ -83,7 +76,7 @@ class ConstraintHandler:
         constraint = Constraint(name=name, constraint_type="inequality", function=function, weight=weight)
         self.add_constraint(constraint)
 
-    def evaluate_constraints(self, solution: np.ndarray) -> Dict[str, float]:
+    def evaluate_constraints(self, solution: np.ndarray) -> dict[str, float]:
         """Evaluate all constraints for a solution.
 
         Args:
@@ -133,7 +126,7 @@ class ConstraintHandler:
                     penalty = self.penalty_factor * constraint.weight * violation
                 elif self.penalty_method == "adaptive":
                     penalty = self.penalty_factor * constraint.weight * (violation**2)
-                else:  # barrier method,
+                else:  # barrier method
                     if violation < 1e-6:
                         penalty = 0.0
                     else:
@@ -161,7 +154,7 @@ class ConstraintHandler:
 
         return True
 
-    def get_feasible_solutions(self, population: np.ndarray) -> List[int]:
+    def get_feasible_solutions(self, population: np.ndarray) -> list[int]:
         """Get indices of feasible solutions in a population.
 
         Args:
@@ -178,7 +171,7 @@ class ConstraintHandler:
 
         return feasible_indices
 
-    def repair_solution(self, solution: np.ndarray, bounds: List[tuple], max_iterations: int = 100) -> np.ndarray:
+    def repair_solution(self, solution: np.ndarray, bounds: list[tuple], max_iterations: int = 100) -> np.ndarray:
         """Attempt to repair an infeasible solution.
 
         Args:
@@ -191,19 +184,19 @@ class ConstraintHandler:
         """
         repaired = solution.copy()
 
-        # First, ensure bounds constraints,
+        # First, ensure bounds constraints
         for i, (lower, upper) in enumerate(bounds):
             repaired[i] = np.clip(repaired[i], lower, upper)
 
-        # Iterative repair for other constraints,
+        # Iterative repair for other constraints
         for iteration in range(max_iterations):
             violations = self.evaluate_constraints(repaired)
 
-            # If feasible, we're done,
-            if all(v <= c.tolerance for c, v in zip(self.constraints, violations.values())):
+            # If feasible, we're done
+            if all(v <= c.tolerance for c, v in zip(self.constraints, violations.values(), strict=False)):
                 break
 
-            # Apply simple repair heuristics,
+            # Apply simple repair heuristics
             for constraint in self.constraints:
                 violation = violations.get(constraint.name, 0.0)
 
@@ -213,7 +206,7 @@ class ConstraintHandler:
                     perturbation = np.random.normal(0, 0.01, size=len(repaired))
                     candidate = repaired + perturbation
 
-                    # Ensure bounds,
+                    # Ensure bounds
                     for i, (lower, upper) in enumerate(bounds):
                         candidate[i] = np.clip(candidate[i], lower, upper)
 
@@ -292,8 +285,8 @@ class TechnicalConstraintValidator:
             Constraint violation (0 if satisfied)
         """
         try:
-            # Find renewable generation parameters,
-            solar_capacity = 0,
+            # Find renewable generation parameters
+            solar_capacity = (0,)
             wind_capacity = 0
 
             for i, param in enumerate(encoder.spec.parameters):
@@ -303,21 +296,21 @@ class TechnicalConstraintValidator:
                     wind_capacity = solution[i]
             total_renewable = solar_capacity + wind_capacity
 
-            # Simple constraint: total renewable should be at least 50% of peak demand,
+            # Simple constraint: total renewable should be at least 50% of peak demand
             if demand_profile is not None:
                 peak_demand = np.max(demand_profile)
             else:
-                peak_demand = 100  # Default assumption,
-            min_renewable_fraction = 0.5,
+                peak_demand = 100  # Default assumption
+            min_renewable_fraction = (0.5,)
             required_renewable = peak_demand * min_renewable_fraction
 
             return max(0, required_renewable - total_renewable)
 
         except Exception as e:
-            logger.warning(f"Error in renewable-demand balance constraint: {e}"),
+            (logger.warning(f"Error in renewable-demand balance constraint: {e}"),)
             return 0.0
 
-    @staticmethod,
+    @staticmethod
     def budget_constraint(solution: np.ndarray, encoder, max_budget: float) -> float:
         """Constraint: Total system cost should not exceed budget.
 
@@ -333,12 +326,14 @@ class TechnicalConstraintValidator:
             total_cost = 0
 
             # Rough cost estimation
-            cost_factors = {
-                "battery_capacity": 500,  # $/kWh,
-                "solar_capacity": 1200,  # $/kW,
-                "wind_capacity": 1500,  # $/kW,
-                "heat_pump_capacity": 800,  # $/kW
-            },
+            cost_factors = (
+                {
+                    "battery_capacity": 500,  # $/kWh
+                    "solar_capacity": 1200,  # $/kW
+                    "wind_capacity": 1500,  # $/kW
+                    "heat_pump_capacity": 800,  # $/kW
+                },
+            )
 
             for i, param in enumerate(encoder.spec.parameters):
                 if param.name in cost_factors:
@@ -353,7 +348,7 @@ class TechnicalConstraintValidator:
             return 0.0
 
     @classmethod
-    def create_standard_constraints(cls, encoder, config: Dict[str, Any]) -> ConstraintHandler:
+    def create_standard_constraints(cls, encoder, config: dict[str, Any]) -> ConstraintHandler:
         """Create standard technical constraints for energy systems.
 
         Args:
@@ -365,30 +360,28 @@ class TechnicalConstraintValidator:
         """
         handler = ConstraintHandler()
 
-        # Battery power-capacity ratio constraint,
+        # Battery power-capacity ratio constraint
         handler.add_inequality_constraint(
             name="battery_power_capacity_ratio",
-            function=lambda x: cls.battery_power_capacity_ratio(x, encoder)
-            weight=10.0
+            function=lambda x: cls.battery_power_capacity_ratio(x, encoder),
+            weight=10.0,
         )
 
-        # Budget constraint if specified,
+        # Budget constraint if specified
         if "max_budget" in config:
             max_budget = config["max_budget"]
             handler.add_inequality_constraint(
-                name="budget_constraint",
-                function=lambda x: cls.budget_constraint(x, encoder, max_budget)
-                weight=5.0
+                name="budget_constraint", function=lambda x: cls.budget_constraint(x, encoder, max_budget), weight=5.0
             )
 
-        # Renewable generation constraint if demand profile available,
+        # Renewable generation constraint if demand profile available
         if "demand_profile" in config:
             demand_profile = np.array(config["demand_profile"])
             handler.add_inequality_constraint(
                 name="renewable_demand_balance",
-                function=lambda x: cls.renewable_generation_demand_balance(x, encoder, demand_profile)
-                weight=2.0
-            ),
+                function=lambda x: cls.renewable_generation_demand_balance(x, encoder, demand_profile),
+                weight=2.0,
+            )
 
-        logger.info(f"Created {len(handler.constraints)} standard constraints"),
+        (logger.info(f"Created {len(handler.constraints)} standard constraints"),)
         return handler

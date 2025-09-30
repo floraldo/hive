@@ -19,6 +19,6 @@ get_bus = get_ecosystemiser_event_bus
 # Export main components
 __all__ = [
     "EcoSystemiserEventBusget_ecosystemiser_event_bus",
-    "Bus",  # Legacy alias,
+    "Bus",  # Legacy alias
     "get_bus",  # Legacy alias
 ]

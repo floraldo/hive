@@ -1,16 +1,13 @@
 import ast
 from pathlib import Path
-import sys
-
 
 import toml
+
 from hive_logging import get_logger
 
-logger = get_logger(__name__)
+from .validation_cache import ValidationCache
 
-# Import validation cache for performance optimization
-sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "scripts"))
-from validation_cache import ValidationCache
+logger = get_logger(__name__)
 
 # Global cache instance
 _cache = ValidationCache()
@@ -22,6 +19,7 @@ Architectural Validators - Core validation functions for Hive platform standards
 These validators are used by the Golden Tests to enforce architectural
 gravity across the entire platform.
 """
+
 
 def _should_validate_file(file_path: Path, scope_files: list[Path] | None) -> bool:
     """
@@ -47,62 +45,55 @@ def _should_validate_file(file_path: Path, scope_files: list[Path] | None) -> bo
     return False
 
 
-
-
-def _cached_validator(rule_name: str, validator_func, project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def _cached_validator(
+    rule_name: str, validator_func, project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Cache-aware validator wrapper.
-    
+
     For each file in scope, checks cache first. Only validates files with cache misses.
     Aggregates results and updates cache for newly validated files.
-    
+
     Args:
         rule_name: Name of the golden rule
         validator_func: Validator function to call
         project_root: Project root directory
         scope_files: Optional list of files to validate
-        
+
     Returns:
         Tuple of (passed, violations)
     """
-    if scope_files is None or len(scope_files) == 0:
-        # Full validation or empty scope - run validator directly
-        return validator_func(project_root, scope_files)
-    
-    # Check cache for each file
-    cached_results = {}
-    uncached_files = []
-    
-    for file_path in scope_files:
+    # If no scope specified, discover all Python files for caching
+    if scope_files is None:
+        base_dirs = [project_root / "apps", project_root / "packages"]
+        all_files = []
+        for base_dir in base_dirs:
+            if base_dir.exists():
+                all_files.extend(base_dir.rglob("*.py"))
+        scope_files = all_files
+
+    # Empty scope means nothing to validate
+    if len(scope_files) == 0:
+        return True, []
+
+    # Check cache for each file individually
+    # NOTE: Current validator functions return aggregate results, not per-file results.
+    # This limits caching effectiveness. For now, only cache when scope is a single file.
+
+    if len(scope_files) == 1:
+        file_path = scope_files[0]
         cached = _cache.get_cached_result(file_path, rule_name)
         if cached is not None:
-            passed, violations = cached
-            cached_results[file_path] = (passed, violations)
-        else:
-            uncached_files.append(file_path)
-    
-    # If all files are cached, return aggregated results
-    if not uncached_files:
-        all_passed = all(result[0] for result in cached_results.values())
-        all_violations = []
-        for violations_list in (result[1] for result in cached_results.values()):
-            all_violations.extend(violations_list)
-        return all_passed, all_violations
-    
-    # Run validator on uncached files only
-    passed, violations = validator_func(project_root, uncached_files)
-    
-    # Cache results for newly validated files
-    for file_path in uncached_files:
+            return cached
+
+        # Run validator and cache result
+        passed, violations = validator_func(project_root, scope_files)
         _cache.cache_result(file_path, rule_name, passed, violations)
-    
-    # Combine cached and new results
-    all_passed = passed and all(result[0] for result in cached_results.values())
-    all_violations = violations.copy()
-    for violations_list in (result[1] for result in cached_results.values()):
-        all_violations.extend(violations_list)
-    
-    return all_passed, all_violations
+        return passed, violations
+
+    # For multiple files, run validator without caching
+    # TODO: Refactor validators to return per-file results for proper multi-file caching
+    return validator_func(project_root, scope_files)
 
 
 def validate_app_contracts(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
@@ -273,7 +264,9 @@ def validate_single_config_source(project_root: Path, scope_files: list[Path] | 
     return len(violations) == 0, violations
 
 
-def validate_package_app_discipline(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_package_app_discipline(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 5: Package vs App Discipline
 
@@ -499,7 +492,9 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
     return len(violations) == 0, violations
 
 
-def validate_service_layer_discipline(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_service_layer_discipline(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 10: Service Layer Discipline
 
@@ -596,7 +591,9 @@ def validate_service_layer_discipline(project_root: Path, scope_files: list[Path
     return len(violations) == 0, violations
 
 
-def validate_communication_patterns(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_communication_patterns(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 11: Communication Patterns
 
@@ -758,7 +755,9 @@ def validate_interface_contracts(project_root: Path, scope_files: list[Path] | N
     return len(violations) == 0, violations
 
 
-def validate_error_handling_standards(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_error_handling_standards(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 8: Error Handling Standards
 
@@ -816,7 +815,9 @@ def validate_error_handling_standards(project_root: Path, scope_files: list[Path
     return len(violations) == 0, violations
 
 
-def validate_no_hardcoded_env_values(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_no_hardcoded_env_values(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Validate that packages don't contain hardcoded environment-specific values.
 
@@ -1049,7 +1050,9 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
     return len(violations) == 0, violations
 
 
-def validate_inherit_extend_pattern(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_inherit_extend_pattern(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 10: Inherit → Extend Pattern
 
@@ -1122,7 +1125,9 @@ def validate_inherit_extend_pattern(project_root: Path, scope_files: list[Path] 
     return len(violations) == 0, violations
 
 
-def validate_package_naming_consistency(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_package_naming_consistency(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 12: Package Naming Consistency
 
@@ -1171,7 +1176,9 @@ def validate_package_naming_consistency(project_root: Path, scope_files: list[Pa
     return len(violations) == 0, violations
 
 
-def validate_development_tools_consistency(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_development_tools_consistency(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 13: Development Tools Consistency
 
@@ -1221,7 +1228,9 @@ def validate_development_tools_consistency(project_root: Path, scope_files: list
     return len(violations) == 0, violations
 
 
-def validate_async_pattern_consistency(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_async_pattern_consistency(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 14: Async Pattern Consistency
 
@@ -1278,7 +1287,9 @@ def validate_async_pattern_consistency(project_root: Path, scope_files: list[Pat
     return len(violations) == 0, violations
 
 
-def validate_cli_pattern_consistency(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_cli_pattern_consistency(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 15: CLI Pattern Consistency
 
@@ -1331,7 +1342,9 @@ def validate_cli_pattern_consistency(project_root: Path, scope_files: list[Path]
     return len(violations) == 0, violations
 
 
-def validate_no_global_state_access(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_no_global_state_access(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 16: No Global State Access
 
@@ -1828,7 +1841,9 @@ def validate_test_file_quality(project_root: Path, scope_files: list[Path] | Non
     return len(violations) == 0, violations
 
 
-def validate_pyproject_dependency_usage(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_pyproject_dependency_usage(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 19: PyProject Dependency Usage Validation
 
@@ -1943,7 +1958,9 @@ def validate_pyproject_dependency_usage(project_root: Path, scope_files: list[Pa
     return len(violations) == 0, violations
 
 
-def validate_unified_tool_configuration(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_unified_tool_configuration(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 21: Unified Tool Configuration
 
@@ -2000,7 +2017,9 @@ def validate_unified_tool_configuration(project_root: Path, scope_files: list[Pa
     return len(violations) == 0, violations
 
 
-def validate_python_version_consistency(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+def validate_python_version_consistency(
+    project_root: Path, scope_files: list[Path] | None = None
+) -> tuple[bool, list[str]]:
     """
     Golden Rule 22: Python Version Consistency
 

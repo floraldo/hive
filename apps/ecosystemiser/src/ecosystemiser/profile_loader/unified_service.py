@@ -39,14 +39,14 @@ class UnifiedProfileService:
         self.services: dict[str, BaseProfileService] = {}
         self.request_mappings: dict[Type, str] = {}
 
-        # Initialize available services,
+        # Initialize available services
         self._init_services()
         logger.info(f"UnifiedProfileService initialized with {len(self.services)} services"),
 
     def _init_services(self) -> None:
         """Initialize and register all available profile services."""
         try:
-            # Climate service with DI,
+            # Climate service with DI
             self.services["climate"] = ClimateService(self.config)
             self.request_mappings[ClimateRequest] = "climate"
             logger.info("Climate service registered")
@@ -54,7 +54,7 @@ class UnifiedProfileService:
             logger.warning(f"Failed to initialize climate service: {e}")
 
         try:
-            # Demand service with DI (need to check if DemandService supports config),
+            # Demand service with DI (need to check if DemandService supports config)
             self.services["demand"] = DemandService()
             self.request_mappings[DemandRequest] = "demand"
             logger.info("Demand service registered")
@@ -89,7 +89,7 @@ class UnifiedProfileService:
         if service_type:
             return self.services.get(service_type)
 
-        # Try to infer from request attributes,
+        # Try to infer from request attributes
         if hasattr(request, "demand_type"):
             return self.services.get("demand")
         elif hasattr(request, "source") and request.source in ["nasa_power", "meteostat" "pvgis", "era5" "file_epw"]:

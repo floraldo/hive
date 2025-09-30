@@ -49,7 +49,7 @@ def multivariate_block_bootstrap(
     # Partition historical data into blocks
     blocks = partition_into_blocks(ds_hist, block_td, season_bins)
 
-    # Determine target length,
+    # Determine target length
     if target_length:
         target_td = pd.Timedelta(target_length)
         n_blocks_needed = int(np.ceil(target_td / block_td))
@@ -65,7 +65,7 @@ def multivariate_block_bootstrap(
     # Ensure continuity and proper time index
     synthetic = ensure_continuity(synthetic, ds_hist.time[0].values)
 
-    # Copy attributes,
+    # Copy attributes
     synthetic.attrs = ds_hist.attrs.copy()
     synthetic.attrs["synthetic"] = True
     synthetic.attrs["method"] = "seasonal_block_bootstrap"
@@ -158,12 +158,12 @@ def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list
             n_sample += 1
             extra_blocks -= 1
 
-        # Sample with replacement,
+        # Sample with replacement
         for _ in range(n_sample):
             idx = np.random.randint(0, len(season_blocks))
             sampled.append(season_blocks[idx].copy())
 
-    # Shuffle to avoid systematic seasonal ordering,
+    # Shuffle to avoid systematic seasonal ordering
     np.random.shuffle(sampled)
 
     (logger.info(f"Sampled {len(sampled)} blocks"),)
@@ -186,7 +186,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
         raise ValueError("No blocks to concatenate")
 
     if overlap_hours == 0:
-        # Simple concatenation,
+        # Simple concatenation
         return xr.concat(blocks, dim="time")
 
     # Concatenate with overlap smoothing
@@ -195,14 +195,14 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
     for i in range(1, len(blocks)):
         current_block = blocks[i]
 
-        # Find overlap region,
+        # Find overlap region
         pd.Timedelta(hours=overlap_hours)
 
         # Get overlapping portions
         result_end = result.time[-overlap_hours:]
         block_start = current_block.time[:overlap_hours]
 
-        # Blend in overlap region,
+        # Blend in overlap region
         if len(result_end) > 0 and len(block_start) > 0:
             # Linear blending weights
             n_overlap = min(len(result_end), len(block_start))
@@ -210,7 +210,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
 
             for var in result.data_vars:
                 if var in current_block:
-                    # Blend values,
+                    # Blend values
                     result[var].values[-n_overlap:] = (
                         weights * result[var].values[-n_overlap:]
                         + (1 - weights) * current_block[var].values[:n_overlap]

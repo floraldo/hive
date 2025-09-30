@@ -14,7 +14,9 @@ logger = get_logger(__name__)
 
 
 def split_date_range(
-    start_date: datetime, end_date: datetime, chunk_days: int = 365,
+    start_date: datetime,
+    end_date: datetime,
+    chunk_days: int = 365,
 ) -> list[tuple[datetime, datetime]]:
     """
     Split a date range into chunks to prevent memory issues.
@@ -50,11 +52,11 @@ def process_in_chunks(ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: in
     Returns:
         Chunked dataset ready for lazy processing,
     """
-    # Rechunk the dataset for memory efficiency,
+    # Rechunk the dataset for memory efficiency
     if "time" in ds.dims:
         chunks = {"time": min(time_chunks, len(ds.time))}
 
-        # Add chunking for other dimensions if large,
+        # Add chunking for other dimensions if large
         for dim in ds.dims:
             if dim != "time" and len(ds[dim]) > 1000:
                 chunks[dim] = 1000
@@ -114,7 +116,7 @@ def estimate_memory_usage(ds: xr.Dataset) -> float:
         var_size = var_data.nbytes if hasattr(var_data, "nbytes") else 0
         total_size += var_size
 
-    # Convert to MB,
+    # Convert to MB
     return total_size / (1024 * 1024)
 
 

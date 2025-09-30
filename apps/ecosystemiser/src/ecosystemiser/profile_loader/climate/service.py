@@ -61,9 +61,9 @@ class LocationResolver:
     def __init__(self) -> None:
         self.location_cache = {}  # Cache for geocoded locations
 
-        # Well-known locations for fast lookup,
+        # Well-known locations for fast lookup
         self.known_locations = {
-            # Major cities,
+            # Major cities
             "london": (51.5074, -0.1278),
             "london, uk": (51.5074, -0.1278),
             "paris": (48.8566, 2.3522),
@@ -117,13 +117,13 @@ class LocationResolver:
             LocationError: If location cannot be resolved,
         """
         try:
-            # Handle coordinate tuples,
+            # Handle coordinate tuples
             if isinstance(location, tuple) and len(location) == 2:
                 lat, lon = location
                 self._validate_coordinates(lat, lon)
                 return lat, lon
 
-            # Handle coordinate dictionaries,
+            # Handle coordinate dictionaries
             elif isinstance(location, dict):
                 lat = location.get("lat") or location.get("latitude")
                 lon = location.get("lon") or location.get("longitude")
@@ -173,7 +173,7 @@ class LocationResolver:
             logger.debug(f"Found cached coordinates for {location_str}")
             return self.location_cache[cache_key]
 
-        # Check known locations,
+        # Check known locations
         if cache_key in self.known_locations:
             coords = self.known_locations[cache_key]
             self.location_cache[cache_key] = coords
@@ -194,7 +194,7 @@ class LocationResolver:
             logger.info(f"Geocoded {location_str} to {coords}")
             return coords
 
-        # If all methods fail,
+        # If all methods fail
         raise LocationError(
             f"Could not geocode location: {location_str}",
             recovery_suggestion="Provide coordinates as (lat, lon) tuple or use a known city name",
@@ -223,7 +223,7 @@ class LocationResolver:
             # Note: In production, you'd want to use a proper service like
             # Nominatim (OpenStreetMap), Google Geocoding API, etc.
 
-            # For now, implement a basic mock that could be extended,
+            # For now, implement a basic mock that could be extended
             logger.warning(f"Online geocoding not implemented for {location_str}")
             logger.info("To enable online geocoding, configure a geocoding service")
 
@@ -249,11 +249,11 @@ class LocationResolver:
         # Adapter coverage regions (can be configured or loaded from adapter metadata)
         coverage_regions = (
             {
-                "nasa_power": {"global": True, "score": 0.8},  # Good global coverage,
-                "era5": {"global": True, "score": 0.9},  # Excellent global coverage,
+                "nasa_power": {"global": True, "score": 0.8},  # Good global coverage
+                "era5": {"global": True, "score": 0.9},  # Excellent global coverage
                 "meteostat": {
                     "regions": [
-                        {"bounds": (30, -130, 70, 30), "score": 0.9},  # North America/Europe,
+                        {"bounds": (30, -130, 70, 30), "score": 0.9},  # North America/Europe
                         {"bounds": (-60, -180, 60, 180), "score": 0.7},  # Global with lower quality
                     ],
                 },
@@ -269,11 +269,11 @@ class LocationResolver:
         if adapter_name not in coverage_regions:
             return 0.5  # Default score for unknown adapters
         coverage = coverage_regions[adapter_name]
-        # Global coverage,
+        # Global coverage
         if coverage.get("global"):
             return coverage.get("score", 0.8)
 
-        # Regional coverage,
+        # Regional coverage
         if "regions" in coverage:
             best_score = 0
             for region in coverage["regions"]:
@@ -309,7 +309,7 @@ class ClimateService(BaseProfileService):
         self.processing_pipeline = ProcessingPipeline(config)
         self.location_resolver = LocationResolver()  # Centralized geocoding service
 
-        # Track request statistics,
+        # Track request statistics
         self.total_requests = 0
         self.successful_requests = 0
         self.failed_requests = 0
@@ -333,10 +333,10 @@ class ClimateService(BaseProfileService):
         logger.info(f"Processing climate request: source={req.source}, mode={req.mode}")
 
         try:
-            # Validate request,
+            # Validate request
             self._validate_request(req)
 
-            # Resolve location,
+            # Resolve location
             lat, lon = self._resolve_location(req.location)
 
             # Check cache first
@@ -350,7 +350,7 @@ class ClimateService(BaseProfileService):
             # Fetch data with fallback
             ds = await self._fetch_data_with_fallback_async(lat, lon, req, preferred_adapters)
 
-            # Process data,
+            # Process data
             ds, processing_report = await self._process_data_async(ds, req)
 
             # Apply mode and subset
@@ -386,19 +386,19 @@ class ClimateService(BaseProfileService):
             asyncio.set_event_loop(loop)
 
         if loop.is_running():
-            # If we're already in an event loop, create a task,
+            # If we're already in an event loop, create a task
             import concurrent.futures
 
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(lambda: asyncio.run(self.process_request_async(req)))
                 return future.result()
         else:
-            # Run in the current loop,
+            # Run in the current loop
             return loop.run_until_complete(self.process_request_async(req))
 
     def _validate_request(self, req: ClimateRequest) -> None:
         """Validate request parameters"""
-        # Validate variables,
+        # Validate variables
         if req.variables:
             unknown_vars = set(req.variables) - set(CANONICAL_VARIABLES.keys())
             if unknown_vars:
@@ -409,10 +409,11 @@ class ClimateService(BaseProfileService):
                     recovery_suggestion=f"Available variables: {list(CANONICAL_VARIABLES.keys())}",
                 )
 
-        # Validate period,
+        # Validate period
         if not req.period:
             raise TemporalError(
-                "Period must be specified", recovery_suggestion="Provide either 'year' or 'start'/'end' dates",
+                "Period must be specified",
+                recovery_suggestion="Provide either 'year' or 'start'/'end' dates",
             )
 
         # Validate source if specified
@@ -466,7 +467,7 @@ class ClimateService(BaseProfileService):
                 logger.warning(f"Could not score adapter {adapter_name}: {e}")
                 adapter_scores.append((adapter_name, 0.1))  # Low fallback score
 
-        # Sort by score (highest first),
+        # Sort by score (highest first)
         adapter_scores.sort(key=lambda x: x[1], reverse=True)
 
         if not adapter_scores:
@@ -478,7 +479,7 @@ class ClimateService(BaseProfileService):
             f"with coverage score {best_score:.2f}",
         )
 
-        # Log alternatives for debugging,
+        # Log alternatives for debugging
         if len(adapter_scores) > 1:
             alternatives = ([f"{name}({score:.2f})" for name, score in adapter_scores[1:3]],)
             logger.debug(f"Alternative adapters: {', '.join(alternatives)}")
@@ -520,7 +521,11 @@ class ClimateService(BaseProfileService):
             return None
 
     async def _fetch_data_with_fallback_async(
-        self, lat: float, lon: float, req: ClimateRequest, preferred_adapters: list[str],
+        self,
+        lat: float,
+        lon: float,
+        req: ClimateRequest,
+        preferred_adapters: list[str],
     ) -> xr.Dataset:
         """
         Fetch data with intelligent fallback using simple adapter factory.
@@ -565,7 +570,7 @@ class ClimateService(BaseProfileService):
                     logger.debug(f"Full traceback:\n{traceback.format_exc()}")
                     continue
 
-        # Try other available adapters,
+        # Try other available adapters
         for adapter_name in available_adapters:
             if adapter_name not in preferred_adapters:
                 try:
@@ -581,7 +586,7 @@ class ClimateService(BaseProfileService):
                     logger.debug(f"Full traceback:\n{traceback.format_exc()}")
                     continue
 
-        # If we get here, all adapters have failed,
+        # If we get here, all adapters have failed
         raise AdapterError(
             "All available adapters failed to fetch data",
             adapter_name="factory",
@@ -590,7 +595,11 @@ class ClimateService(BaseProfileService):
         )
 
     async def _fetch_from_adapter_async(
-        self, adapter_name: str, lat: float, lon: float, req: ClimateRequest,
+        self,
+        adapter_name: str,
+        lat: float,
+        lon: float,
+        req: ClimateRequest,
     ) -> xr.Dataset:
         """
         Fetch data from specific adapter using adapter factory.
@@ -610,11 +619,17 @@ class ClimateService(BaseProfileService):
         # Call fetch method directly (all adapters have async fetch)
         if hasattr(adapter, "fetch"):
             ds = await adapter.fetch(
-                lat=lat, lon=lon, variables=req.variables, period=req.period, resolution=req.resolution,
+                lat=lat,
+                lon=lon,
+                variables=req.variables,
+                period=req.period,
+                resolution=req.resolution,
             )
         else:
             raise AdapterError(
-                adapter_name, "Adapter does not have fetch method", recovery_suggestion="Check adapter implementation",
+                adapter_name,
+                "Adapter does not have fetch method",
+                recovery_suggestion="Check adapter implementation",
             )
 
         if ds is None or len(ds.data_vars) == 0:
@@ -644,7 +659,7 @@ class ClimateService(BaseProfileService):
                         step.enabled = True
                         step.config["resolution"] = req.resolution
 
-            # Handle timezone configuration,
+            # Handle timezone configuration
             if hasattr(req, "timezone") and req.timezone and req.timezone != "UTC":
                 for step in pipeline.preprocessing_steps:
                     if step.name == "timezone_conversion":
@@ -672,7 +687,7 @@ class ClimateService(BaseProfileService):
                 ds = self._compute_tmy_mode(ds, req)
             elif req.mode == "synthetic":
                 ds = self._compute_synthetic_mode(ds, req)
-            # "observed" mode returns data as-is,
+            # "observed" mode returns data as-is
 
             return ds
 
@@ -685,7 +700,9 @@ class ClimateService(BaseProfileService):
         ds_avg = ds.groupby("time.dayofyear").mean()
         year = pd.Timestamp.now().year
         time_index = pd.date_range(
-            start=f"{year}-01-01", end=f"{year}-12-31 23:00:00", freq=pd.infer_freq(ds.time.values) or "1H",
+            start=f"{year}-01-01",
+            end=f"{year}-12-31 23:00:00",
+            freq=pd.infer_freq(ds.time.values) or "1H",
         )
         doy_values = time_index.dayofyear
         ds_reconstructed = ds_avg.sel(dayofyear=doy_values)
@@ -711,7 +728,10 @@ class ClimateService(BaseProfileService):
         custom_weights = (tmy_options.get("weights", None),)
 
         tmy_dataset, selection_metadata = generator.generate(
-            historical_data=ds, target_year=target_year, weights=custom_weights, min_data_years=min_years,
+            historical_data=ds,
+            target_year=target_year,
+            weights=custom_weights,
+            min_data_years=min_years,
         )
 
         tmy_dataset.attrs["tmy_selection"] = (selection_metadata,)
@@ -755,7 +775,10 @@ class ClimateService(BaseProfileService):
         return ds
 
     def _cache_and_respond(
-        self, ds: xr.Dataset, req: ClimateRequest, processing_report: dict[str, Any],
+        self,
+        ds: xr.Dataset,
+        req: ClimateRequest,
+        processing_report: dict[str, Any],
     ) -> ClimateResponse:
         """Cache data and build response"""
         try:
@@ -869,7 +892,7 @@ class ClimateService(BaseProfileService):
         Returns:
             Tuple of (xarray Dataset, ClimateResponse),
         """
-        # Convert to ClimateRequest if needed,
+        # Convert to ClimateRequest if needed
         if not isinstance(request, ClimateRequest):
             climate_request = ClimateRequest(**request.dict())
         else:
@@ -889,7 +912,7 @@ class ClimateService(BaseProfileService):
     def validate_request(self, request: BaseProfileRequest) -> list[str]:
         """Validate climate profile request (unified interface)."""
         errors = []
-        # Convert to ClimateRequest for validation,
+        # Convert to ClimateRequest for validation
         if not isinstance(request, ClimateRequest):
             try:
                 climate_request = ClimateRequest(**request.dict())
@@ -933,7 +956,7 @@ class ClimateService(BaseProfileService):
     async def shutdown_async(self) -> None:
         """Shutdown service and cleanup resources"""
         logger.info("Shutting down Enhanced ClimateService")
-        # Cleanup adapter factory resources,
+        # Cleanup adapter factory resources
         from ecosystemiser.profile_loader.climate.adapters.factory import cleanup
 
         cleanup()

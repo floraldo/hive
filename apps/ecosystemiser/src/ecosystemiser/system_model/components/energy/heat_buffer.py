@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 
 # =============================================================================
 # HEAT BUFFER-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
-# =============================================================================,
+# =============================================================================
 
 
 class HeatBufferTechnicalParams(StorageTechnicalParams):
@@ -38,7 +38,8 @@ class HeatBufferTechnicalParams(StorageTechnicalParams):
     # STANDARD fidelity parameters
     heat_loss_coefficient: float = Field(0.001, description="Heat loss coefficient per timestep [fraction/hour]")
     temperature_range: dict[str, float] | None = Field(
-        None, description="Operating temperature range {min_temp, max_temp} [°C]",
+        None,
+        description="Operating temperature range {min_temp, max_temp} [°C]",
     )
 
     # DETAILED fidelity parameters
@@ -58,9 +59,9 @@ class HeatBufferParams(ComponentParams):
 
     technical: HeatBufferTechnicalParams = Field(
         default_factory=lambda: HeatBufferTechnicalParams(
-            capacity_nominal=20.0,  # Default 20 kWh thermal storage,
-            max_charge_rate=5.0,  # Default 5 kW charge rate,
-            max_discharge_rate=5.0,  # Default 5 kW discharge rate,
+            capacity_nominal=20.0,  # Default 20 kWh thermal storage
+            max_charge_rate=5.0,  # Default 5 kW charge rate
+            max_discharge_rate=5.0,  # Default 5 kW discharge rate
             efficiency_roundtrip=0.90,
             fidelity_level=FidelityLevel.STANDARD,
         ),
@@ -70,7 +71,7 @@ class HeatBufferParams(ComponentParams):
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
-# =============================================================================,
+# =============================================================================
 
 
 class HeatBufferPhysicsSimple(BaseStoragePhysics):
@@ -104,7 +105,7 @@ class HeatBufferPhysicsSimple(BaseStoragePhysics):
         # Update state
         next_state = E_old + net_change
 
-        # Enforce physical bounds,
+        # Enforce physical bounds
         return self.apply_bounds(next_state)
 
     def apply_bounds(self, energy_level: float) -> float:
@@ -145,13 +146,13 @@ class HeatBufferPhysicsStandard(HeatBufferPhysicsSimple):
         # 3. Apply thermal losses to the result
         final_energy = energy_after_simple - thermal_loss
 
-        # 4. Enforce bounds again after thermal losses,
+        # 4. Enforce bounds again after thermal losses
         return self.apply_bounds(final_energy)
 
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
-# =============================================================================,
+# =============================================================================
 
 
 class HeatBufferOptimizationSimple(BaseStorageOptimization):
@@ -182,20 +183,20 @@ class HeatBufferOptimizationSimple(BaseStorageOptimization):
         N = comp.E_opt.shape[0] if comp.E_opt is not None else 0
 
         if comp.E_opt is not None:
-            # Initial state constraint,
+            # Initial state constraint
             constraints.append(comp.E_opt[0] == comp.E_init)
 
-            # Energy bounds constraints,
+            # Energy bounds constraints
             constraints.append(comp.E_opt >= 0)
             constraints.append(comp.E_opt <= comp.E_max)
 
-            # Power limits constraints with separate charge/discharge rates,
+            # Power limits constraints with separate charge/discharge rates
             if comp.P_cha is not None:
                 constraints.append(comp.P_cha <= comp.P_max_charge)
             if comp.P_dis is not None:
                 constraints.append(comp.P_dis <= comp.P_max_discharge)
 
-            # Energy balance constraints - SIMPLE thermal physics only,
+            # Energy balance constraints - SIMPLE thermal physics only
             for t in range(1, N):
                 # Base thermal energy balance with efficiency
                 energy_balance = comp.E_opt[t - 1] + comp.eta * (comp.P_cha[t] - comp.P_dis[t])
@@ -226,20 +227,20 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
         N = comp.E_opt.shape[0] if comp.E_opt is not None else 0
 
         if comp.E_opt is not None:
-            # Initial state constraint,
+            # Initial state constraint
             constraints.append(comp.E_opt[0] == comp.E_init)
 
-            # Energy bounds constraints,
+            # Energy bounds constraints
             constraints.append(comp.E_opt >= 0)
             constraints.append(comp.E_opt <= comp.E_max)
 
-            # Power limits constraints with separate charge/discharge rates,
+            # Power limits constraints with separate charge/discharge rates
             if comp.P_cha is not None:
                 constraints.append(comp.P_cha <= comp.P_max_charge)
             if comp.P_dis is not None:
                 constraints.append(comp.P_dis <= comp.P_max_discharge)
 
-            # Energy balance constraints with STANDARD thermal losses,
+            # Energy balance constraints with STANDARD thermal losses
             for t in range(1, N):
                 # Base thermal energy balance with efficiency
                 energy_balance = comp.E_opt[t - 1] + comp.eta * (comp.P_cha[t] - comp.P_dis[t])
@@ -282,7 +283,7 @@ class HeatBuffer(Component):
         # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters - EXACTLY as original thermal storage expects,
+        # Core parameters - EXACTLY as original thermal storage expects
         self.E_max = tech.capacity_nominal  # kWh
         self.P_max = max(tech.max_charge_rate, tech.max_discharge_rate)  # kW
         self.P_max_charge = tech.max_charge_rate
@@ -292,25 +293,25 @@ class HeatBuffer(Component):
             tech.initial_soc_pct * tech.capacity_nominal if tech.initial_soc_pct else tech.capacity_nominal * 0.5
         )
 
-        # Store thermal-specific parameters,
+        # Store thermal-specific parameters
         self.thermal_medium = (tech.thermal_medium,)
         self.temperature_range = (tech.temperature_range,)
         self.heat_loss_coefficient = (tech.heat_loss_coefficient,)
         self.stratification_model = (tech.stratification_model,)
         self.ambient_coupling = tech.ambient_coupling
 
-        # Set capacity alias for compatibility,
+        # Set capacity alias for compatibility
         self.capacity = self.E_max
 
-        # Storage array for rule-based solver,
+        # Storage array for rule-based solver
         self.E = None  # Will be initialized by solver
 
-        # CVXPY variables (for MILP solver),
+        # CVXPY variables (for MILP solver)
         self.E_opt = (None,)
         self.P_cha = (None,)
         self.P_dis = None
 
-        # STRATEGY PATTERN: Instantiate the correct strategies,
+        # STRATEGY PATTERN: Instantiate the correct strategies
         self.physics = self._get_physics_strategy()
         self.optimization = self._get_optimization_strategy()
 
@@ -323,10 +324,10 @@ class HeatBuffer(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return HeatBufferPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD physics (can be extended later),
+            # For now, DETAILED uses STANDARD physics (can be extended later)
             return HeatBufferPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD physics (can be extended later),
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
             return HeatBufferPhysicsStandard(self.params)
         else:
             raise ValueError(f"Unknown fidelity level for HeatBuffer: {fidelity}")
@@ -340,10 +341,10 @@ class HeatBuffer(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return HeatBufferOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD optimization (can be extended later),
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
             return HeatBufferOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD optimization (can be extended later),
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return HeatBufferOptimizationStandard(self.params, self)
         else:
             raise ValueError(f"Unknown fidelity level for HeatBuffer optimization: {fidelity}")
@@ -367,10 +368,10 @@ class HeatBuffer(Component):
         # Delegate to physics strategy
         new_energy = self.physics.rule_based_update_state(t, initial_level, charge_power, discharge_power)
 
-        # Update the storage array,
+        # Update the storage array
         self.E[t] = new_energy
 
-        # Log for debugging if needed,
+        # Log for debugging if needed
         if t == 0 and logger.isEnabledFor(logging.DEBUG):
             logger.debug(
                 f"{self.name} at t={t}: charge={charge_power:.3f}kW, ",
@@ -387,10 +388,10 @@ class HeatBuffer(Component):
         self.P_cha = cp.Variable(N, name=f"{self.name}_P_cha", nonneg=True)
         self.P_dis = cp.Variable(N, name=f"{self.name}_P_dis", nonneg=True)
 
-        # Store as E for compatibility,
+        # Store as E for compatibility
         self.E = self.E_opt
 
-        # Add charge/discharge as flows,
+        # Add charge/discharge as flows
         self.flows["sink"]["P_cha"] = {"type": "heat", "value": self.P_cha}
         self.flows["source"]["P_dis"] = {"type": "heat", "value": self.P_dis}
 
@@ -398,21 +399,21 @@ class HeatBuffer(Component):
         """Delegate constraint creation to optimization strategy."""
         return self.optimization.set_constraints()
 
-    # Provide storage capability methods for compatibility,
+    # Provide storage capability methods for compatibility
     def get_available_discharge(self, t: int) -> float:
         """Calculate available discharge power considering state and efficiency."""
-        # Get state at START of timestep,
+        # Get state at START of timestep
         if t == 0:
             current_level = self.E_init
         else:
             current_level = self.E[t - 1] if hasattr(self, "E") and t > 0 else 0.0
 
-        # Available power is limited by both P_max and current energy level,
+        # Available power is limited by both P_max and current energy level
         return min(self.P_max_discharge, current_level)
 
     def get_available_charge(self, t: int) -> float:
         """Calculate available charge power considering state and capacity."""
-        # Get state at START of timestep,
+        # Get state at START of timestep
         if t == 0:
             current_level = self.E_init
         else:

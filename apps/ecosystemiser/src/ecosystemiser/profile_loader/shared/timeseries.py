@@ -32,7 +32,9 @@ def aggregate_policy(var_type: Literal["state", "flux"]) -> str:
 
 
 def resample_timeseries(
-    data: pd.DataFrame | xr.Dataset, target_freq: str, policy_map: dict[str, str],
+    data: pd.DataFrame | xr.Dataset,
+    target_freq: str,
+    policy_map: dict[str, str],
 ) -> pd.DataFrame | xr.Dataset:
     """
     Resample time series data with specified policies.
@@ -175,7 +177,7 @@ def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
     times = pd.DatetimeIndex(ds.time.values)
     night_mask = calculate_night_mask(times, lat)
 
-    # Set night values to zero,
+    # Set night values to zero
     ds_copy[var_name].values[night_mask] = 0
 
     return ds_copy
@@ -219,7 +221,7 @@ def calculate_solar_elevation(times: np.ndarray | pd.DatetimeIndex, lat: float) 
     Returns:
         Array of solar elevation angles in degrees,
     """
-    # Convert numpy datetime64 to pandas for easier manipulation,
+    # Convert numpy datetime64 to pandas for easier manipulation
     if isinstance(times, np.ndarray):
         dt_index = pd.DatetimeIndex(times)
     else:

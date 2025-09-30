@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities,
@@ -17,14 +18,13 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     SpatialCoverage,
     TemporalCoverage,
 )
-
 from hive_logging import get_logger
 
 # Import QC classes
 try:
     from ecosystemiser.profile_loader.climate.processing.validation import QCIssue, QCProfile, QCReport, QCSeverity
 except ImportError:
-    # Fallback: Define minimal QC classes for testing,
+    # Fallback: Define minimal QC classes for testing
     from abc import ABC, abstractmethod
     from enum import Enum
 
@@ -83,32 +83,32 @@ class PVGISAdapter(BaseAdapter):
     # Mapping from canonical names to PVGIS parameter codes
     # Based on PVGIS 5.3 API documentation and research findings
     VARIABLE_MAPPING = {
-        # Solar radiation parameters (W/m2),
-        "ghi": "G(h)",  # Global horizontal irradiance,
-        "dni": "Gb(n)",  # Direct normal irradiance (beam),
-        "dhi": "Gd(h)",  # Diffuse horizontal irradiance,
-        "poa_global": "G(i)",  # Global irradiance on inclined plane,
-        "poa_direct": "Gb(i)",  # Beam irradiance on inclined plane,
-        "poa_sky_diffuse": "Gd(i)",  # Diffuse irradiance on inclined plane,
-        "poa_ground_diffuse": "Gr(i)",  # Reflected irradiance on inclined plane,
-        # Meteorological parameters,
-        "temp_air": "T2m",  # Air temperature at 2 meters (degC),
-        "wind_speed": "WS10m",  # Wind speed at 10 meters (m/s),
-        "wind_dir": "WD10m",  # Wind direction at 10 meters (degrees),
-        "rel_humidity": "RH",  # Relative humidity (%),
+        # Solar radiation parameters (W/m2)
+        "ghi": "G(h)",  # Global horizontal irradiance
+        "dni": "Gb(n)",  # Direct normal irradiance (beam)
+        "dhi": "Gd(h)",  # Diffuse horizontal irradiance
+        "poa_global": "G(i)",  # Global irradiance on inclined plane
+        "poa_direct": "Gb(i)",  # Beam irradiance on inclined plane
+        "poa_sky_diffuse": "Gd(i)",  # Diffuse irradiance on inclined plane
+        "poa_ground_diffuse": "Gr(i)",  # Reflected irradiance on inclined plane
+        # Meteorological parameters
+        "temp_air": "T2m",  # Air temperature at 2 meters (degC)
+        "wind_speed": "WS10m",  # Wind speed at 10 meters (m/s)
+        "wind_dir": "WD10m",  # Wind direction at 10 meters (degrees)
+        "rel_humidity": "RH",  # Relative humidity (%)
         "pressure": "SP",  # Surface pressure (Pa)
-        # Solar position parameters,
-        "solar_elevation": "H_sun",  # Solar elevation angle (degrees),
+        # Solar position parameters
+        "solar_elevation": "H_sun",  # Solar elevation angle (degrees)
         "solar_azimuth": "A_sun",  # Solar azimuth angle (degrees)
-        # Clear sky parameters,
-        "ghi_clearsky": "Gc(h)",  # Clear sky global horizontal irradiance,
-        "dni_clearsky": "Gbc(n)",  # Clear sky direct normal irradiance,
+        # Clear sky parameters
+        "ghi_clearsky": "Gc(h)",  # Clear sky global horizontal irradiance
+        "dni_clearsky": "Gbc(n)",  # Clear sky direct normal irradiance
         "dhi_clearsky": "Gdc(h)",  # Clear sky diffuse horizontal irradiance
     }
 
     # Variables available in different PVGIS endpoints
     SERIESCALC_VARIABLES = {
-        # Variables available in seriescalc endpoint (hourly time series),
+        # Variables available in seriescalc endpoint (hourly time series)
         "G(h)",
         "T2m",
         "WS10m",
@@ -116,7 +116,7 @@ class PVGISAdapter(BaseAdapter):
     }
 
     HOURLY_VARIABLES = {
-        # Variables available in hourly radiation endpoint,
+        # Variables available in hourly radiation endpoint
         "G(h)",
         "Gb(n)",
         "Gd(h)",
@@ -129,7 +129,7 @@ class PVGISAdapter(BaseAdapter):
     }
 
     TMY_VARIABLES = {
-        # Variables available in TMY (Typical Meteorological Year) endpoint,
+        # Variables available in TMY (Typical Meteorological Year) endpoint
         "G(h)",
         "Gb(n)",
         "Gd(h)",
@@ -163,15 +163,15 @@ class PVGISAdapter(BaseAdapter):
 
         # Configure caching (solar data is static)
         cache_config = CacheConfig(
-            memory_ttl=3600,  # 1 hour,
+            memory_ttl=3600,  # 1 hour
             disk_ttl=86400,  # 24 hours
         )
 
         super().__init__(name=self.ADAPTER_NAME, rate_limit_config=rate_config, cache_config=cache_config)
 
-    # Variables not supported by PVGIS seriescalc endpoint,
+    # Variables not supported by PVGIS seriescalc endpoint
     UNSUPPORTED_VARIABLES = {
-        # PVGIS focuses on solar radiation, many met variables not available,
+        # PVGIS focuses on solar radiation, many met variables not available
         "precip",
         "snow",
         "cloud_cover",
@@ -186,7 +186,7 @@ class PVGISAdapter(BaseAdapter):
         """Fetch raw data from PVGIS API"""
         lat, lon = location
 
-        # Filter out unsupported variables and warn,
+        # Filter out unsupported variables and warn
         supported_vars = []
         for var in variables:
             if var in self.UNSUPPORTED_VARIABLES:
@@ -197,17 +197,17 @@ class PVGISAdapter(BaseAdapter):
         if not supported_vars:
             raise ValueError(f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}")
 
-        # Validate request,
+        # Validate request
         self._validate_request(lat, lon, supported_vars, period)
 
-        # Select appropriate database,
+        # Select appropriate database
         database = self._select_database(lat, lon)
 
-        # Parse period,
+        # Parse period
         start_date, end_date = self._parse_period(period)
         resolution = kwargs.get("resolution", "1H")
 
-        # PVGIS has different endpoints for different data types,
+        # PVGIS has different endpoints for different data types
         if resolution == "1H":
             return await self._fetch_hourly_series_async(lat, lon, supported_vars, start_date, end_date, database)
         elif resolution == "1D":
@@ -223,10 +223,10 @@ class PVGISAdapter(BaseAdapter):
         """Transform raw PVGIS data to xarray Dataset"""
         lat, lon = location
 
-        # Raw data is already the processed dataset from _fetch_raw,
+        # Raw data is already the processed dataset from _fetch_raw
         ds = raw_data
 
-        # Add metadata,
+        # Add metadata
         ds.attrs.update(
             {
                 "source": "PVGIS",
@@ -263,7 +263,7 @@ class PVGISAdapter(BaseAdapter):
         if not supported_vars:
             raise ValueError(f"No supported variables requested. PVGIS supports: {list(self.VARIABLE_MAPPING.keys())}")
 
-        # Use base class fetch method,
+        # Use base class fetch method
         return await super().fetch_async(
             location=(lat, lon), variables=supported_vars, period=period, resolution=resolution
         )
@@ -271,7 +271,7 @@ class PVGISAdapter(BaseAdapter):
     def _select_database(self, lat: float, lon: float) -> str:
         """Select the best PVGIS database based on location"""
 
-        # Simple region detection,
+        # Simple region detection
         if -35 <= lat <= 75 and -25 <= lon <= 65:  # Europe/Africa
             return "PVGIS-SARAH2"
         elif -60 <= lat <= 75 and -180 <= lon <= -30:  # Americas
@@ -285,7 +285,7 @@ class PVGISAdapter(BaseAdapter):
         if "year" in period:
             year = period["year"]
 
-            # PVGIS has limited year ranges,
+            # PVGIS has limited year ranges
             if year < 2005:
                 raise ValueError("PVGIS data only available from 2005 onwards")
             if year > 2020:
@@ -314,7 +314,7 @@ class PVGISAdapter(BaseAdapter):
         # Build API URL for series data
         url = f"{self.BASE_URL}/seriescalc"
 
-        # Validate year constraints for different databases,
+        # Validate year constraints for different databases
         if database == "PVGIS-NSRDB" and (start_date.year < 2005 or start_date.year > 2015):
             raise ValueError(f"PVGIS-NSRDB only supports years 2005-2015, requested: {start_date.year}")
         elif database in ["PVGIS-SARAH2", "PVGIS-ERA5"] and start_date.year < 2005:
@@ -326,14 +326,14 @@ class PVGISAdapter(BaseAdapter):
             "lon": lon,
             "startyear": start_date.year,
             "endyear": end_date.year,
-            "pvcalculation": 0,  # We want meteo data, not PV calculation,
-            "peakpower": 1,  # Required even if pvcalculation=0,
+            "pvcalculation": 0,  # We want meteo data, not PV calculation
+            "peakpower": 1,  # Required even if pvcalculation=0
             "loss": 0,
             "outputformat": "json",
             "browser": 0,
         }
 
-        # Add database selection,
+        # Add database selection
         if database == "PVGIS-SARAH2":
             params["raddatabase"] = ("PVGIS-SARAH2",)
         elif database == "PVGIS-NSRDB":
@@ -365,7 +365,7 @@ class PVGISAdapter(BaseAdapter):
         params = {
             "lat": lat,
             "lon": lon,
-            "month": (start_date.month if start_date.month == end_date.month else 0),  # 0 for full year,
+            "month": (start_date.month if start_date.month == end_date.month else 0),  # 0 for full year
             "year": start_date.year,
             "raddatabase": database,
             "outputformat": "json",
@@ -411,38 +411,38 @@ class PVGISAdapter(BaseAdapter):
     ) -> xr.Dataset:
         """Parse PVGIS hourly response to xarray Dataset"""
 
-        # Extract hourly data,
+        # Extract hourly data
         if "outputs" not in data or "hourly" not in data["outputs"]:
             raise ValueError("Invalid PVGIS response structure")
         hourly_data = data["outputs"]["hourly"]
 
-        # Convert to DataFrame,
+        # Convert to DataFrame
         df = pd.DataFrame(hourly_data)
 
-        # Parse time column,
+        # Parse time column
         df["time"] = pd.to_datetime(df["time"], format="%Y%m%d:%H%M")
         df.set_index("time", inplace=True)
 
-        # Filter to requested period,
+        # Filter to requested period
         mask = (df.index >= start_date) & (df.index <= end_date)
         df = df.loc[mask]
 
-        # Create Dataset,
+        # Create Dataset
         ds = xr.Dataset(coords={"time": df.index})
         ds.attrs["latitude"] = (lat,)
         ds.attrs["longitude"] = (lon,)
         ds.attrs["source"] = "PVGIS"
 
-        # Map variables with improved fallback logic,
+        # Map variables with improved fallback logic
         for canonical_name in variables:
             added = False
 
-            # Try primary mapping first,
+            # Try primary mapping first
             if canonical_name in self.VARIABLE_MAPPING:
                 pvgis_name = self.VARIABLE_MAPPING[canonical_name]
 
                 if pvgis_name in df.columns:
-                    # Handle unit conversions if needed,
+                    # Handle unit conversions if needed
                     data = self._convert_units(df[pvgis_name].values, canonical_name)
 
                     ds[canonical_name] = (
@@ -450,11 +450,11 @@ class PVGISAdapter(BaseAdapter):
                     )
                     added = True
 
-            # If not added, try fallback mappings for solar variables,
+            # If not added, try fallback mappings for solar variables
             if not added and canonical_name in ["ghi", "dni", "dhi"]:
-                # Check available solar-related columns in actual response,
+                # Check available solar-related columns in actual response
                 fallback_mappings = {
-                    "ghi": ["G(i)", "G(h)", "GHI"],  # Try inclined, then horizontal,
+                    "ghi": ["G(i)", "G(h)", "GHI"],  # Try inclined, then horizontal
                     "dni": ["DNI", "Gb(n)", "BNI"],
                     "dhi": ["DHI", "Gd(h)", "DIF"],
                 }
@@ -472,10 +472,10 @@ class PVGISAdapter(BaseAdapter):
                             added = True
                             break
 
-            # Try to derive variables if not directly available,
+            # Try to derive variables if not directly available
             if not added and canonical_name in self.DERIVED_VARIABLES:
                 if canonical_name == "dewpoint" and all(v in df.columns for v in ["T2m", "RH"]):
-                    # Calculate dewpoint from temperature and humidity,
+                    # Calculate dewpoint from temperature and humidity
                     dewpoint_data = self._calculate_dewpoint(df["T2m"].values, df["RH"].values)
                     ds[canonical_name] = (
                         xr.DataArray(
@@ -500,23 +500,23 @@ class PVGISAdapter(BaseAdapter):
             raise ValueError("Invalid PVGIS daily response")
         daily_data = data["outputs"]["daily_profile"]
 
-        # Create time index,
+        # Create time index
         num_days = ((end_date - start_date).days + 1,)
         time_index = pd.date_range(start_date, periods=num_days, freq="D")
 
-        # Create Dataset,
+        # Create Dataset
         ds = xr.Dataset(coords={"time": time_index})
         ds.attrs["latitude"] = (lat,)
         ds.attrs["longitude"] = (lon,)
         ds.attrs["source"] = "PVGIS"
 
-        # Parse available variables,
+        # Parse available variables
         for canonical_name in variables:
             if canonical_name == "ghi" and len(daily_data) > 0:
-                # Extract daily GHI values (limit to available data),
+                # Extract daily GHI values (limit to available data)
                 available_days = (min(len(daily_data), num_days),)
                 values = ([d.get("G(d)", np.nan) for d in daily_data[:available_days]],)
-                # Pad with NaN if needed,
+                # Pad with NaN if needed
                 if len(values) < num_days:
                     values.extend([np.nan] * (num_days - len(values)))
                 ds[canonical_name] = xr.DataArray(
@@ -547,7 +547,7 @@ class PVGISAdapter(BaseAdapter):
         ds.attrs["source"] = "PVGIS-TMY"
         ds.attrs["tmy"] = True
 
-        # Map variables,
+        # Map variables
         for canonical_name in variables:
             pvgis_cols = {
                 "ghi": "G(h)",
@@ -597,7 +597,7 @@ class PVGISAdapter(BaseAdapter):
 
         # PVGIS generally uses standard units, minimal conversion needed
         conversions = {
-            # Solar elevation to zenith angle,
+            # Solar elevation to zenith angle
             "solar_zenith": lambda x: 90
             - x
         }
@@ -642,33 +642,33 @@ class PVGISAdapter(BaseAdapter):
                 delay_hours=None,  # Historical data only
             ),
             spatial=SpatialCoverage(
-                global_coverage=True,  # Through ERA5 database,
+                global_coverage=True,  # Through ERA5 database
                 regions=["Europe", "Africa", "Asia", "Americas"],
-                resolution_km=5,  # SARAH2: 5km, ERA5: 30km,
+                resolution_km=5,  # SARAH2: 5km, ERA5: 30km
                 station_based=False,
                 grid_based=True,
                 custom_locations=True,
             ),
             supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
-                "ghi",  # Primary strength: solar irradiance (on inclined plane),
-                "temp_air",  # Temperature,
+                "ghi",  # Primary strength: solar irradiance (on inclined plane)
+                "temp_air",  # Temperature
                 "solar_elevation",  # Solar position
             ],
-            derived_variables=["pv_power"],  # Can calculate PV output,
+            derived_variables=["pv_power"],  # Can calculate PV output
             supported_frequencies=[DataFrequency.HOURLY, DataFrequency.DAILY, DataFrequency.MONTHLY, DataFrequency.TMY],
             native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.NONE,
             requires_subscription=False,
-            free_tier_limits=None,  # No limits,
+            free_tier_limits=None,  # No limits
             quality=QualityFeatures(
                 gap_filling=True,
                 quality_flags=True,
-                uncertainty_estimates=True,  # Provides uncertainty for PV calculations,
+                uncertainty_estimates=True,  # Provides uncertainty for PV calculations
                 ensemble_members=False,
                 bias_correction=True,
             ),
-            max_request_days=366,  # 1 year at a time,
+            max_request_days=366,  # 1 year at a time
             max_variables_per_request=None,
             batch_requests_supported=False,
             async_requests_required=False,
@@ -710,12 +710,12 @@ class PVGISQCProfile(QCProfile):
         present_solar = [var for var in solar_vars if var in ds]
 
         if present_solar:
-            # PVGIS should have high-quality solar data,
+            # PVGIS should have high-quality solar data
             for var in present_solar:
                 data = (ds[var].values,)
                 missing_percent = (np.sum(np.isnan(data)) / len(data)) * 100
 
-                if missing_percent > 5:  # PVGIS should have minimal gaps,
+                if missing_percent > 5:  # PVGIS should have minimal gaps
                     issue = QCIssue(
                         type="data_completeness",
                         message=f"Unexpected missing data in PVGIS {var}: {missing_percent:.1f}%",

@@ -13,12 +13,12 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 try:
     from hive_errors import BaseError, BaseErrorReporter, RecoveryStrategy
 except ImportError:
-    # Fallback implementation if hive_error_handling is not available,
+    # Fallback implementation if hive_error_handling is not available
     class BaseError(Exception):
         """Base error class for fallback implementation."""
 
@@ -65,8 +65,8 @@ class EcoSystemiserError(BaseError):
         analysis_id: str | None = None,
         optimization_id: str | None = None,
         timestep: int | None = None,
-        details: Optional[dict[str, Any]] = None,
-        recovery_suggestions: Optional[list[str]] = None,
+        details: dict[str, Any] | None = None,
+        recovery_suggestions: list[str] | None = None,
         original_error: Exception | None = None,
     ):
         """
@@ -105,7 +105,7 @@ class EcoSystemiserError(BaseError):
             original_error=original_error,
         )
 
-        # Store EcoSystemiser-specific attributes,
+        # Store EcoSystemiser-specific attributes
         self.simulation_id = simulation_id
         self.analysis_id = analysis_id
         self.optimization_id = optimization_id
@@ -121,7 +121,7 @@ class EcoSystemiserError(BaseError):
 
 # ===============================================================================
 # SIMULATION-SPECIFIC ERRORS
-# ===============================================================================,
+# ===============================================================================
 
 
 class SimulationError(EcoSystemiserError):
@@ -173,7 +173,7 @@ class SimulationExecutionError(BaseError):
 
 # ===============================================================================
 # PROFILE LOADING ERRORS
-# ===============================================================================,
+# ===============================================================================
 
 
 class ProfileError(BaseError):
@@ -211,7 +211,11 @@ class ProfileValidationError(BaseError):
     """Error validating profile data"""
 
     def __init__(
-        self, message: str, validation_type: str | None = None, failed_checks: Optional[list[str]] = None, **kwargs,
+        self,
+        message: str,
+        validation_type: str | None = None,
+        failed_checks: list[str] | None = None,
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if validation_type:
@@ -235,7 +239,7 @@ class ProfileValidationError(BaseError):
 
 # ===============================================================================
 # SOLVER AND OPTIMIZATION ERRORS
-# ===============================================================================,
+# ===============================================================================
 
 
 class SolverError(BaseError):
@@ -249,7 +253,11 @@ class OptimizationInfeasibleError(BaseError):
     """Error when optimization problem is infeasible"""
 
     def __init__(
-        self, message: str, solver_type: str | None = None, constraints_violated: Optional[list[str]] = None, **kwargs,
+        self,
+        message: str,
+        solver_type: str | None = None,
+        constraints_violated: list[str] | None = None,
+        **kwargs,
     ):
         details = kwargs.get("details", {})
         if solver_type:
@@ -299,14 +307,18 @@ class SolverConvergenceError(BaseError):
 
 # ===============================================================================
 # COMPONENT ERRORS
-# ===============================================================================,
+# ===============================================================================
 
 
 class ComponentError(BaseError):
     """Base class for component-related errors"""
 
     def __init__(
-        self, message: str, component_name: str | None = None, component_type: str | None = None, **kwargs,
+        self,
+        message: str,
+        component_name: str | None = None,
+        component_type: str | None = None,
+        **kwargs,
     ) -> None:
         details = kwargs.get("details", {})
         if component_name:
@@ -386,7 +398,7 @@ class ComponentValidationError(BaseError):
 
 # ===============================================================================
 # DATABASE ERRORS
-# ===============================================================================,
+# ===============================================================================
 
 
 class DatabaseError(BaseError):
@@ -442,7 +454,7 @@ class DatabaseTransactionError(BaseError):
 
 # ===============================================================================
 # EVENT BUS ERRORS
-# ===============================================================================,
+# ===============================================================================
 
 
 class EventBusError(BaseError):
@@ -478,7 +490,7 @@ class EventPublishError(BaseError):
 
 # ===============================================================================
 # ERROR REPORTER
-# ===============================================================================,
+# ===============================================================================
 
 
 class EcoSystemiserErrorReporter(BaseErrorReporter):
@@ -501,8 +513,8 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
     def report_error(
         self,
         error: Exception,
-        context: Optional[dict[str, Any]] = None,
-        additional_info: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """
         Report an error with EcoSystemiser-specific handling.
@@ -522,17 +534,17 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         error_record = self._build_error_record(error, context, additional_info)
         error_record["error_id"] = error_id
 
-        # Update metrics,
+        # Update metrics
         self._update_metrics(error_record)
 
-        # Add to history,
+        # Add to history
         self.error_history.append(error_record)
 
         # Log the error (avoid 'message' key conflict with logging)
         log_record = {k: v for k, v in error_record.items() if k != "message"}
         logger.error(f"EcoSystemiser Error: {error}", extra=log_record)
 
-        # EcoSystemiser-specific categorization and handling,
+        # EcoSystemiser-specific categorization and handling
         if isinstance(error, SimulationError):
             self.simulation_errors.append(error)
             self._handle_simulation_error(error)
@@ -551,14 +563,14 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
     def _update_metrics(self, error_record: dict[str, Any]) -> None:
         """Update error metrics and statistics."""
         # Implementation for tracking error metrics
-        # Could integrate with monitoring systems,
+        # Could integrate with monitoring systems
         pass
 
     def _build_error_record(
         self,
         error: Exception,
-        context: Optional[dict[str, Any]] = None,
-        additional_info: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Build a comprehensive error record."""
         record = {
@@ -582,23 +594,23 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         """Handle simulation-specific error reporting"""
         if error.simulation_id:
             logger.error(f"Simulation {error.simulation_id} failed: {error.message}")
-            # Could trigger simulation recovery or notification,
+            # Could trigger simulation recovery or notification
 
     def _handle_profile_error(self, error: ProfileError) -> None:
         """Handle profile-specific error reporting"""
         logger.warning(f"Profile loading issue: {error.message}")
-        # Could trigger fallback to default profiles,
+        # Could trigger fallback to default profiles
 
     def _handle_solver_error(self, error: SolverError) -> None:
         """Handle solver-specific error reporting"""
         if isinstance(error, OptimizationInfeasibleError):
             logger.critical(f"Optimization infeasible: {error.message}")
-            # Could trigger constraint relaxation,
+            # Could trigger constraint relaxation
 
     def _handle_component_error(self, error: ComponentError) -> None:
         """Handle component-specific error reporting"""
         logger.error(f"Component error: {error.message}")
-        # Could trigger component reconfiguration,
+        # Could trigger component reconfiguration
 
     def get_error_summary(self) -> dict[str, Any]:
         """Get summary of all reported errors"""
@@ -629,37 +641,29 @@ def get_error_reporter() -> EcoSystemiserErrorReporter:
 
 # Export main classes and functions
 __all__ = [
-    # Base classes,
+    # Base classes
     "EcoSystemiserError"
-    # Simulation errors,
-    "SimulationError"
-    "SimulationConfigError",
+    # Simulation errors
+    "SimulationError" "SimulationConfigError",
     "SimulationExecutionError"
-    # Profile errors,
-    "ProfileError"
-    "ProfileLoadError",
+    # Profile errors
+    "ProfileError" "ProfileLoadError",
     "ProfileValidationError"
-    # Solver errors,
-    "SolverError"
-    "OptimizationInfeasibleError",
+    # Solver errors
+    "SolverError" "OptimizationInfeasibleError",
     "SolverConvergenceError"
-    # Component errors,
-    "ComponentError"
-    "ComponentConnectionError",
+    # Component errors
+    "ComponentError" "ComponentConnectionError",
     "ComponentValidationError"
-    # Database errors,
-    "DatabaseError"
-    "DatabaseConnectionError",
+    # Database errors
+    "DatabaseError" "DatabaseConnectionError",
     "DatabaseTransactionError"
-    # Event bus errors,
-    "EventBusError"
-    "EventPublishError"
-    # Reporter,
-    "EcoSystemiserErrorReporter"
-    "get_error_reporter"
-    # Legacy aliases for backward compatibility,
-    "AdapterError"
-    "ValidationError",
+    # Event bus errors
+    "EventBusError" "EventPublishError"
+    # Reporter
+    "EcoSystemiserErrorReporter" "get_error_reporter"
+    # Legacy aliases for backward compatibility
+    "AdapterError" "ValidationError",
 ]
 
 

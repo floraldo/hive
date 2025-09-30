@@ -9,6 +9,7 @@ from typing import Any
 
 import numpy as np
 import yaml
+from pydantic import BaseModel, Field
 
 # EcoSystemiser Event Bus integration
 from ecosystemiser.core.bus import get_ecosystemiser_event_bus
@@ -25,8 +26,6 @@ from ecosystemiser.services.job_facade import JobFacade
 
 # Import only types from simulation_service to avoid direct coupling
 from ecosystemiser.services.simulation_service import SimulationConfig, SimulationResult
-from pydantic import BaseModel, Field
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -45,10 +44,12 @@ class FidelitySweepSpec(BaseModel):
 
     component_names: list[str] = Field(default_factory=list, description="Components to sweep, empty means all")
     fidelity_levels: list[str] = Field(
-        default_factory=lambda: ["SIMPLE", "STANDARD"], description="Fidelity levels to test",
+        default_factory=lambda: ["SIMPLE", "STANDARD"],
+        description="Fidelity levels to test",
     )
     mixed_fidelity_configs: list[dict[str, str]] | None = Field(
-        default=None, description="Pre-defined mixed fidelity configurations as {component: fidelity_level}",
+        default=None,
+        description="Pre-defined mixed fidelity configurations as {component: fidelity_level}",
     )
 
 
@@ -351,7 +352,7 @@ class StudyService:
                         sim_config.output_config["component_fidelity_overrides"] = component_fidelity_overrides
                         configs.append(sim_config)
 
-                    # 3. Mixed configurations - one component at high fidelity, others at low,
+                    # 3. Mixed configurations - one component at high fidelity, others at low
                     if len(fidelity_levels) > 1 and len(target_components) > 1:
                         for focus_component in target_components:
                             sim_config = config.base_config.model_copy(deep=True)
@@ -414,7 +415,7 @@ class StudyService:
             StudyResult with optimization results,
         """
         # This would implement optimization algorithms
-        # For now, return empty result,
+        # For now, return empty result
         logger.warning("Optimization studies not yet fully implemented")
 
         return StudyResult(
@@ -483,7 +484,7 @@ class StudyService:
                 study_id=config.study_id,
                 study_type="genetic_algorithm",
                 num_simulations=result.evaluations,
-                successful_simulations=result.evaluations,  # Assuming all evaluations are valid,
+                successful_simulations=result.evaluations,  # Assuming all evaluations are valid
                 failed_simulations=0,
                 best_result={
                     "best_solution": (result.best_solution.tolist() if result.best_solution is not None else None),
@@ -578,7 +579,7 @@ class StudyService:
                 study_id=config.study_id,
                 study_type="monte_carlo",
                 num_simulations=mc_config.max_evaluations,
-                successful_simulations=mc_config.max_evaluations,  # Assuming all evaluations are valid,
+                successful_simulations=mc_config.max_evaluations,  # Assuming all evaluations are valid
                 failed_simulations=0,
                 best_result={
                     "best_solution": (
@@ -788,7 +789,7 @@ class StudyService:
                 constraint_name = constraint_def.get("name", "custom_constraint")
 
                 # This would need to be expanded based on constraint definitions
-                # For now, create simple parameter bounds constraints,
+                # For now, create simple parameter bounds constraints
                 if constraint_type == "bounds":
                     param_name = constraint_def.get("parameter")
                     min_val = constraint_def.get("min", 0)
@@ -892,13 +893,14 @@ class StudyService:
                 results_with_metrics = [r for r in successful if r.solver_metrics is not None]
                 if results_with_metrics:
                     best_result = min(
-                        results_with_metrics, key=lambda r: r.solver_metrics.get("objective_value", float("inf")),
+                        results_with_metrics,
+                        key=lambda r: r.solver_metrics.get("objective_value", float("inf")),
                     )
                 else:
                     best_result = successful[0]  # Fallback to first result
 
             elif config.study_type == "fidelity":
-                # For mixed-fidelity studies, find the configuration with the best trade-off,
+                # For mixed-fidelity studies, find the configuration with the best trade-off
                 # between accuracy and computational cost
 
                 if successful:

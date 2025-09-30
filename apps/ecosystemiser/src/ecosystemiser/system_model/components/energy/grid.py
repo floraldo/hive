@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 # =============================================================================
 # GRID-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
-# =============================================================================,
+# =============================================================================
 
 
 class GridTechnicalParams(TransmissionTechnicalParams):
@@ -42,7 +42,7 @@ class GridTechnicalParams(TransmissionTechnicalParams):
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
-# =============================================================================,
+# =============================================================================
 
 
 class GridPhysicsSimple:
@@ -69,7 +69,7 @@ class GridPhysicsSimple:
         Returns:
             Actual power imported [kW],
         """
-        # Simple clipping to max import,
+        # Simple clipping to max import
         return min(power_requested, max_import)
 
     def rule_based_export(self, power_available: float, max_export: float) -> float:
@@ -83,7 +83,7 @@ class GridPhysicsSimple:
         Returns:
             Actual power exported [kW],
         """
-        # Simple clipping to max export,
+        # Simple clipping to max export
         return min(power_available, max_export)
 
 
@@ -116,7 +116,7 @@ class GridPhysicsStandard(GridPhysicsSimple):
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
-# =============================================================================,
+# =============================================================================
 
 
 class GridOptimizationSimple:
@@ -141,7 +141,7 @@ class GridOptimizationSimple:
         constraints = []
         comp = self.component
 
-        # SIMPLE MODEL: Basic capacity constraints only,
+        # SIMPLE MODEL: Basic capacity constraints only
         if comp.P_draw is not None:
             constraints.append(comp.P_draw <= comp.P_max_import)
         if comp.P_feed is not None:
@@ -183,9 +183,9 @@ class GridParams(ComponentParams):
 
     technical: GridTechnicalParams = Field(
         default_factory=lambda: GridTechnicalParams(
-            capacity_nominal=100.0,  # Default 100 kW capacity,
-            max_import=100.0,  # Default 100 kW import,
-            max_export=100.0,  # Default 100 kW export,
+            capacity_nominal=100.0,  # Default 100 kW capacity
+            max_import=100.0,  # Default 100 kW import
+            max_export=100.0,  # Default 100 kW export
             import_tariff=0.25,
             feed_in_tariff=0.08,
             fidelity_level=FidelityLevel.STANDARD,
@@ -222,26 +222,26 @@ class Grid(Component):
         # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters - EXACTLY as original Grid expects,
+        # Core parameters - EXACTLY as original Grid expects
         self.P_max_import = tech.max_import  # kW
         self.P_max_export = tech.max_export  # kW
-        # For backward compatibility, use the max of import/export as P_max,
+        # For backward compatibility, use the max of import/export as P_max
         self.P_max = max(tech.max_import, tech.max_export)
 
-        # Economic parameters,
+        # Economic parameters
         self.import_tariff = tech.import_tariff
         self.feed_in_tariff = tech.feed_in_tariff
 
-        # Store advanced parameters for strategy access,
+        # Store advanced parameters for strategy access
         self.grid_losses = tech.grid_losses
         self.voltage_limits = tech.voltage_limits
         self.power_factor_limits = tech.power_factor_limits
 
-        # CVXPY variables (created later by add_optimization_vars),
+        # CVXPY variables (created later by add_optimization_vars)
         self.P_draw = None  # Import from grid
         self.P_feed = None  # Export to grid
 
-        # STRATEGY PATTERN: Instantiate the correct strategies,
+        # STRATEGY PATTERN: Instantiate the correct strategies
         self.physics = self._get_physics_strategy()
         self.optimization = self._get_optimization_strategy()
 
@@ -254,10 +254,10 @@ class Grid(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return GridPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD physics (can be extended later),
+            # For now, DETAILED uses STANDARD physics (can be extended later)
             return GridPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD physics (can be extended later),
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
             return GridPhysicsStandard(self.params)
         else:
             raise ValueError(f"Unknown fidelity level for Grid: {fidelity}")
@@ -271,10 +271,10 @@ class Grid(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return GridOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD optimization (can be extended later),
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
             return GridOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD optimization (can be extended later),
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return GridOptimizationStandard(self.params, self)
         else:
             raise ValueError(f"Unknown fidelity level for Grid optimization: {fidelity}")
@@ -284,7 +284,7 @@ class Grid(Component):
         self.P_draw = cp.Variable(N, name=f"{self.name}_P_draw", nonneg=True)
         self.P_feed = cp.Variable(N, name=f"{self.name}_P_feed", nonneg=True)
 
-        # Add as flows,
+        # Add as flows
         self.flows["source"]["P_draw"] = {"type": "electricity", "value": self.P_draw}
         self.flows["sink"]["P_feed"] = {"type": "electricity", "value": self.P_feed}
 

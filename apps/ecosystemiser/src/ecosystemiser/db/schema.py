@@ -37,7 +37,7 @@ def ensure_database_schema(db_path: Path | None = None) -> None:
 def _create_simulation_tables(conn: sqlite3.Connection) -> None:
     """Create tables for simulation data."""
 
-    # Main simulations table,
+    # Main simulations table
     conn.execute(
         """,
         CREATE TABLE IF NOT EXISTS simulations (
@@ -55,7 +55,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Simulation metrics table,
+    # Simulation metrics table
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS simulation_metrics (
@@ -70,7 +70,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Create indexes,
+    # Create indexes
     (
         conn.execute(
             """,
@@ -93,7 +93,7 @@ def _create_simulation_tables(conn: sqlite3.Connection) -> None:
 def _create_study_tables(conn: sqlite3.Connection) -> None:
     """Create tables for multi-simulation studies."""
 
-    # Studies table,
+    # Studies table
     conn.execute(
         """,
         CREATE TABLE IF NOT EXISTS studies (
@@ -112,7 +112,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Study simulations mapping,
+    # Study simulations mapping
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS study_simulations (
@@ -127,7 +127,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Create indexes,
+    # Create indexes
     (
         conn.execute(
             """,
@@ -150,7 +150,7 @@ def _create_study_tables(conn: sqlite3.Connection) -> None:
 def _create_analysis_tables(conn: sqlite3.Connection) -> None:
     """Create tables for analysis results."""
 
-    # Analysis runs table,
+    # Analysis runs table
     conn.execute(
         """,
         CREATE TABLE IF NOT EXISTS analysis_runs (
@@ -169,7 +169,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Analysis results table,
+    # Analysis results table
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS analysis_results (
@@ -184,7 +184,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Create indexes,
+    # Create indexes
     (
         conn.execute(
             """,
@@ -207,7 +207,7 @@ def _create_analysis_tables(conn: sqlite3.Connection) -> None:
 def _create_optimization_tables(conn: sqlite3.Connection) -> None:
     """Create tables for optimization runs."""
 
-    # Optimization runs table,
+    # Optimization runs table
     conn.execute(
         """,
         CREATE TABLE IF NOT EXISTS optimization_runs (
@@ -227,7 +227,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Optimization iterations table,
+    # Optimization iterations table
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS optimization_iterations (
@@ -243,7 +243,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Create indexes,
+    # Create indexes
     (
         conn.execute(
             """,
@@ -266,7 +266,7 @@ def _create_optimization_tables(conn: sqlite3.Connection) -> None:
 def _create_component_tables(conn: sqlite3.Connection) -> None:
     """Create tables for component specifications."""
 
-    # Component types table,
+    # Component types table
     conn.execute(
         """,
         CREATE TABLE IF NOT EXISTS component_types (
@@ -280,7 +280,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Component specifications table,
+    # Component specifications table
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS component_specs (
@@ -301,7 +301,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Create indexes,
+    # Create indexes
     (
         conn.execute(
             """,
@@ -324,7 +324,7 @@ def _create_component_tables(conn: sqlite3.Connection) -> None:
 def _create_event_tables(conn: sqlite3.Connection) -> None:
     """Create tables for EcoSystemiser events."""
 
-    # Events table,
+    # Events table
     conn.execute(
         """,
         CREATE TABLE IF NOT EXISTS ecosystemiser_events (
@@ -340,7 +340,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Event subscriptions table,
+    # Event subscriptions table
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS event_subscriptions (
@@ -354,7 +354,7 @@ def _create_event_tables(conn: sqlite3.Connection) -> None:
     """,
     )
 
-    # Create indexes,
+    # Create indexes
     (
         conn.execute(
             """,
@@ -403,10 +403,10 @@ def drop_all_tables(db_path: Path | None = None) -> None:
         )
         tables = [row[0] for row in cursor.fetchall()]
 
-        # Drop each table,
+        # Drop each table
         for table in tables:
             # Validate table name to prevent SQL injection
-            # Table names from sqlite_master are safe, but validate anyway,
+            # Table names from sqlite_master are safe, but validate anyway
             if not all(c.isalnum() or c == "_" for c in table):
                 logger.warning(f"Skipping table with invalid name: {table}")
                 continue

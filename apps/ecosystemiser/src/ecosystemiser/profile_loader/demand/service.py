@@ -13,11 +13,11 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
 from ecosystemiser.profile_loader.demand.models import DEMAND_VARIABLES, DemandRequest, DemandResponse
 from ecosystemiser.profile_loader.shared.models import BaseProfileRequest
 from ecosystemiser.profile_loader.shared.service import BaseProfileService, ProfileServiceError, ProfileValidationError
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -35,7 +35,7 @@ class DemandService(BaseProfileService):
         """Initialize demand service with available adapters."""
         self.adapters = {
             "file": DemandFileAdapter()
-            # Future adapters can be added here,
+            # Future adapters can be added here
             # "database": DemandDatabaseAdapter()
             # "standard_profiles": StandardProfileAdapter()
         }
@@ -75,7 +75,7 @@ class DemandService(BaseProfileService):
         Returns:
             Tuple of (xarray Dataset, DemandResponse)
         """
-        # Convert to DemandRequest if needed,
+        # Convert to DemandRequest if needed
         if not isinstance(request, DemandRequest):
             demand_request = DemandRequest(**request.dict())
         else:
@@ -116,7 +116,7 @@ class DemandService(BaseProfileService):
         """Validate demand profile request."""
         errors = []
 
-        # Convert to DemandRequest for validation,
+        # Convert to DemandRequest for validation
         if not isinstance(request, DemandRequest):
             try:
                 demand_request = DemandRequest(**request.dict())
@@ -126,7 +126,7 @@ class DemandService(BaseProfileService):
         else:
             demand_request = request
 
-        # Validate source,
+        # Validate source
         if demand_request.source and demand_request.source not in self.get_available_sources():
             errors.append(f"Unknown demand source: {demand_request.source}")
 
@@ -136,7 +136,7 @@ class DemandService(BaseProfileService):
             if var not in available_vars:
                 errors.append(f"Unknown demand variable: {var}")
 
-        # Validate location for file source,
+        # Validate location for file source
         if demand_request.source == "file" and not isinstance(demand_request.location, str):
             errors.append("File source requires location to be a file path string")
 
@@ -170,7 +170,7 @@ class DemandService(BaseProfileService):
             else:
                 # Map source to adapter
                 source_mapping = {
-                    "standard_profile": "file",  # For now, map to file adapter,
+                    "standard_profile": "file",  # For now, map to file adapter
                     "smart_meter": "file",
                     "scada": "file",
                     "simulation": "file",
@@ -179,7 +179,7 @@ class DemandService(BaseProfileService):
                 adapter_name = source_mapping.get(request.source, "file")
                 return self.adapters[adapter_name]
         else:
-            # Default to file adapter,
+            # Default to file adapter
             return self.adapters["file"]
 
     def _build_adapter_config(self, request: DemandRequest) -> dict[str, Any]:
@@ -190,10 +190,10 @@ class DemandService(BaseProfileService):
             "variables": request.variables,
         }
 
-        # Add source-specific configuration,
+        # Add source-specific configuration
         if request.source == "file" or isinstance(request.location, str):
             config["file_path"] = request.location
-            # Create column mapping based on variables,
+            # Create column mapping based on variables
             config["column_mapping"] = {var: var for var in request.variables}
 
         return config

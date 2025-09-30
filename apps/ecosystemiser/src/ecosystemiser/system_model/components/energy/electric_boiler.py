@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 # =============================================================================
 # ELECTRIC BOILER-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
-# =============================================================================,
+# =============================================================================
 
 
 class ElectricBoilerTechnicalParams(GenerationTechnicalParams):
@@ -32,7 +32,8 @@ class ElectricBoilerTechnicalParams(GenerationTechnicalParams):
     # STANDARD fidelity additions
     thermal_inertia: float | None = Field(None, description="Thermal mass and inertia factor")
     modulation_range: dict[str, float] | None = Field(
-        None, description="Power modulation capability {min_power, max_power}",
+        None,
+        description="Power modulation capability {min_power, max_power}",
     )
 
     # DETAILED fidelity parameters
@@ -53,8 +54,8 @@ class ElectricBoilerParams(ComponentParams):
 
     technical: ElectricBoilerTechnicalParams = Field(
         default_factory=lambda: ElectricBoilerTechnicalParams(
-            capacity_nominal=10.0,  # Default 10 kW heat output,
-            efficiency_nominal=0.95,  # Default 95% efficiency,
+            capacity_nominal=10.0,  # Default 10 kW heat output
+            efficiency_nominal=0.95,  # Default 95% efficiency
             fidelity_level=FidelityLevel.STANDARD,
         ),
         description="Technical parameters following the hierarchical archetype system",
@@ -63,7 +64,7 @@ class ElectricBoilerParams(ComponentParams):
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
-# =============================================================================,
+# =============================================================================
 
 
 class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
@@ -89,8 +90,8 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
 
         return (
             {
-                "max_input": P_max_elec,  # Maximum electrical input (kW),
-                "max_output": P_max_heat,  # Maximum heat output (kW),
+                "max_input": P_max_elec,  # Maximum electrical input (kW)
+                "max_output": P_max_heat,  # Maximum heat output (kW)
                 "efficiency": efficiency,  # Electrical to thermal efficiency
             },
         )
@@ -113,13 +114,13 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
         # Limit output to maximum capacity
         actual_output = min(requested_output, capacity["max_output"])
 
-        # Calculate required electrical input based on efficiency,
+        # Calculate required electrical input based on efficiency
         if capacity["efficiency"] > 0:
             required_input = actual_output / capacity["efficiency"]
         else:
             required_input = 0.0
 
-        # Ensure input doesn't exceed capacity,
+        # Ensure input doesn't exceed capacity
         if required_input > capacity["max_input"]:
             # Scale back both input and output proportionally
             scale_factor = capacity["max_input"] / required_input
@@ -149,10 +150,10 @@ class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
         # 2. Add STANDARD-specific physics: heat exchanger effectiveness
         effectiveness = getattr(self.params.technical, "heat_exchanger_effectiveness", None)
         if effectiveness:
-            # Reduce overall efficiency by heat exchanger effectiveness,
+            # Reduce overall efficiency by heat exchanger effectiveness
             capacity["efficiency"] = capacity["efficiency"] * effectiveness
 
-        # 3. Recalculate max_input with adjusted efficiency,
+        # 3. Recalculate max_input with adjusted efficiency
         if capacity["efficiency"] > 0:
             capacity["max_input"] = capacity["max_output"] / capacity["efficiency"]
         else:
@@ -163,7 +164,7 @@ class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
-# =============================================================================,
+# =============================================================================
 
 
 class ElectricBoilerOptimizationSimple(BaseConversionOptimization):
@@ -200,7 +201,7 @@ class ElectricBoilerOptimizationSimple(BaseConversionOptimization):
             for t in range(N):
                 constraints.append(comp.P_heat[t] == efficiency * comp.P_elec[t])
 
-            # Capacity constraints,
+            # Capacity constraints
             constraints.append(comp.P_heat <= comp.P_max)
             constraints.append(comp.P_elec <= comp.P_max_elec)
 
@@ -234,11 +235,11 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
             if effectiveness:
                 efficiency = efficiency * effectiveness
 
-            # Energy balance with adjusted efficiency,
+            # Energy balance with adjusted efficiency
             for t in range(N):
                 constraints.append(comp.P_heat[t] == efficiency * comp.P_elec[t])
 
-            # Capacity constraints,
+            # Capacity constraints
             constraints.append(comp.P_heat <= comp.P_max)
             constraints.append(comp.P_elec <= comp.P_max_elec)
 
@@ -248,11 +249,11 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
                 min_power = modulation_range.get("min_power", 0) * comp.P_max
                 max_power = modulation_range.get("max_power", 1) * comp.P_max
 
-                # Binary variable for on/off state,
+                # Binary variable for on/off state
                 if not hasattr(comp, "_boiler_state"):
                     comp._boiler_state = cp.Variable(N, boolean=True, name=f"{comp.name}_state")
 
-                # Modulation constraints,
+                # Modulation constraints
                 constraints.append(comp.P_heat >= min_power * comp._boiler_state)
                 constraints.append(comp.P_heat <= max_power * comp._boiler_state)
 
@@ -287,14 +288,14 @@ class ElectricBoiler(Component):
         # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters - EXACTLY as original electric boiler expects,
+        # Core parameters - EXACTLY as original electric boiler expects
         self.P_max = tech.capacity_nominal  # kW heat output capacity
         self.eta = tech.efficiency_nominal  # Electrical to thermal conversion efficiency
 
-        # Maximum electrical input (derived from heat capacity and efficiency),
+        # Maximum electrical input (derived from heat capacity and efficiency)
         self.P_max_elec = self.P_max / self.eta if self.eta > 0 else 0
 
-        # Store electric boiler-specific parameters,
+        # Store electric boiler-specific parameters
         self.heating_element_type = tech.heating_element_type
         self.temperature_setpoint = tech.temperature_setpoint
         self.thermal_inertia = tech.thermal_inertia
@@ -302,11 +303,11 @@ class ElectricBoiler(Component):
         self.heat_exchanger_effectiveness = tech.heat_exchanger_effectiveness
         self.control_algorithm = tech.control_algorithm
 
-        # CVXPY variables (for MILP solver),
+        # CVXPY variables (for MILP solver)
         self.P_heat = None
         self.P_elec = None
 
-        # STRATEGY PATTERN: Instantiate the correct strategies,
+        # STRATEGY PATTERN: Instantiate the correct strategies
         self.physics = self._get_physics_strategy()
         self.optimization = self._get_optimization_strategy()
 
@@ -319,10 +320,10 @@ class ElectricBoiler(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return ElectricBoilerPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD physics (can be extended later),
+            # For now, DETAILED uses STANDARD physics (can be extended later)
             return ElectricBoilerPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD physics (can be extended later),
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
             return ElectricBoilerPhysicsStandard(self.params)
         else:
             raise ValueError(f"Unknown fidelity level for ElectricBoiler: {fidelity}")
@@ -336,10 +337,10 @@ class ElectricBoiler(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return ElectricBoilerOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD optimization (can be extended later),
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
             return ElectricBoilerOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD optimization (can be extended later),
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return ElectricBoilerOptimizationStandard(self.params, self)
         else:
             raise ValueError(f"Unknown fidelity level for ElectricBoiler optimization: {fidelity}")
@@ -370,7 +371,7 @@ class ElectricBoiler(Component):
         self.P_heat = cp.Variable(N, name=f"{self.name}_P_heat", nonneg=True)
         self.P_elec = cp.Variable(N, name=f"{self.name}_P_elec", nonneg=True)
 
-        # Add flows,
+        # Add flows
         self.flows["source"]["P_heat"] = {"type": "heat", "value": self.P_heat}
         self.flows["sink"]["P_elec"] = {"type": "electricity", "value": self.P_elec}
 
@@ -392,13 +393,13 @@ class ElectricBoiler(Component):
         heat_output = dispatch["output_delivered"]
         elec_required = dispatch["input_required"]
 
-        # Apply modulation constraints in rule-based mode,
+        # Apply modulation constraints in rule-based mode
         if self.modulation_range:
             min_power = self.modulation_range.get("min_power", 0) * self.P_max
             if heat_output > 0 and heat_output < min_power:
                 # Either off or at minimum power
                 heat_output = min_power if heat_demand >= min_power else 0.0
-                # Recalculate electricity requirement,
+                # Recalculate electricity requirement
                 if heat_output > 0:
                     capacity = self.rule_based_conversion_capacity(t, "electricity", "heat")
                     elec_required = heat_output / capacity["efficiency"] if capacity["efficiency"] > 0 else 0.0

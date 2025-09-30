@@ -26,10 +26,10 @@ def apply_parameter_to_config(
     Returns:
         Modified configuration dictionary,
     """
-    # Deep copy to avoid modifying original,
+    # Deep copy to avoid modifying original
     config = copy.deepcopy(config_dict)
 
-    # Find the component in the configuration,
+    # Find the component in the configuration
     components = config.get("components", [])
     component_found = False
 
@@ -37,17 +37,17 @@ def apply_parameter_to_config(
         if component.get("name") == component_name:
             component_found = True
 
-            # Navigate the parameter path,
+            # Navigate the parameter path
             path_parts = parameter_path.split(".")
             current = component
 
-            # Navigate to the parent of the final key,
+            # Navigate to the parent of the final key
             for part in path_parts[:-1]:
                 if part not in current:
                     current[part] = {}
                 current = current[part]
 
-            # Set the final value,
+            # Set the final value
             final_key = path_parts[-1]
             old_value = current.get(final_key, "NOT_SET")
             current[final_key] = value
@@ -78,7 +78,7 @@ def generate_parameter_report(parameter_settings: dict[str, Any], results: dict[
         "sensitivity_score": 0.0
     }
 
-    # Calculate sensitivity score based on KPI variance,
+    # Calculate sensitivity score based on KPI variance
     if "kpis" in results:
         # Simple sensitivity metric: sum of normalized KPI values
         kpi_values = [v for v in results["kpis"].values() if isinstance(v, (int, float))]
@@ -124,7 +124,7 @@ class ParametricSweepEnhancement:
         """
         import numpy as np
 
-        # Solar typically sweeps from 0 to 2x base capacity,
+        # Solar typically sweeps from 0 to 2x base capacity
         return list(np.linspace(0, base_capacity * 2, num_points))
 
     @staticmethod
@@ -181,7 +181,7 @@ class ParametricSweepEnhancement:
                         kpi_values[kpi_name] = []
                     kpi_values[kpi_name].append(kpi_value)
 
-        # Calculate sensitivities,
+        # Calculate sensitivities
         import numpy as np
 
         for param_name, values in param_values.items():
@@ -190,7 +190,7 @@ class ParametricSweepEnhancement:
 
                 for kpi_name, kpi_vals in kpi_values.items():
                     if len(kpi_vals) == len(values):
-                        # Calculate correlation coefficient,
+                        # Calculate correlation coefficient
                         if all(isinstance(v, (int, float)) for v in values):
                             correlation = np.corrcoef(values, kpi_vals)[0, 1]
                             param_sensitivity[kpi_name] = float(correlation)
@@ -210,7 +210,7 @@ class ParametricSweepEnhancement:
 
         analysis["optimal_configuration"] = best_config
 
-        # Generate recommendations,
+        # Generate recommendations
         if analysis["parameter_sensitivities"]:
             # Find most influential parameters
             max_sensitivity = 0

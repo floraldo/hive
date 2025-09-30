@@ -7,6 +7,7 @@ Preserves diurnal and seasonal patterns for building energy modeling.
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -15,12 +16,7 @@ logger = get_logger(__name__)
 class GapFiller:
     """Smart gap filling with pattern preservation."""
 
-    def __init__(
-        self,
-        max_linear_gap: int = 3,
-        max_pattern_gap: int = 24,
-        preserve_extremes: bool = True
-    ):
+    def __init__(self, max_linear_gap: int = 3, max_pattern_gap: int = 24, preserve_extremes: bool = True):
         """
         Initialize gap filler.
 
@@ -29,9 +25,9 @@ class GapFiller:
             max_pattern_gap: Maximum hours for pattern-based filling,
             preserve_extremes: Whether to preserve daily min/max patterns,
         """
-        self.max_linear_gap = max_linear_gap,
-        self.max_pattern_gap = max_pattern_gap,
-        self.preserve_extremes = preserve_extremes,
+        self.max_linear_gap = (max_linear_gap,)
+        self.max_pattern_gap = (max_pattern_gap,)
+        self.preserve_extremes = (preserve_extremes,)
         self.fill_report = {}
 
     def fill_dataset(self, ds: xr.Dataset) -> tuple[xr.Dataset, dict]:
@@ -61,7 +57,7 @@ class GapFiller:
         self.fill_report["summary"]["total_points"] = int(total_points)
         self.fill_report["summary"]["initial_completeness"] = float((total_points - total_gaps) / total_points * 100)
 
-        # Fill each variable with appropriate method,
+        # Fill each variable with appropriate method
         for var_name in ds.data_vars:
             if var_name == "qc_flag":
                 continue
@@ -77,14 +73,16 @@ class GapFiller:
                 total_filled += gaps_filled
 
         self.fill_report["summary"]["gaps_filled"] = int(total_filled)
-        self.fill_report["summary"]["final_completeness"] = float(
-            (total_points - (total_gaps - total_filled)) / total_points * 100
-        ),
+        self.fill_report["summary"]["final_completeness"] = (
+            float((total_points - (total_gaps - total_filled)) / total_points * 100),
+        )
 
-        logger.info(
-            f"Gap filling complete: {total_filled}/{total_gaps} gaps filled ",
-            f"({self.fill_report['summary']['final_completeness']:.1f}% complete)"
-        ),
+        (
+            logger.info(
+                f"Gap filling complete: {total_filled}/{total_gaps} gaps filled ",
+                f"({self.fill_report['summary']['final_completeness']:.1f}% complete)",
+            ),
+        )
 
         return ds_filled, self.fill_report
 
@@ -98,23 +96,23 @@ class GapFiller:
         Returns:
             Fill method identifier,
         """
-        # Temperature variables - use diurnal pattern,
+        # Temperature variables - use diurnal pattern
         if "temp" in var_name or "dewpoint" in var_name:
             return "diurnal"
 
-        # Solar radiation - use clear sky or diurnal,
+        # Solar radiation - use clear sky or diurnal
         elif var_name in ["ghi", "dni", "dhi"]:
             return "solar"
 
-        # Wind - use seasonal statistics,
+        # Wind - use seasonal statistics
         elif "wind" in var_name:
             return "seasonal"
 
-        # Humidity - use diurnal with constraints,
+        # Humidity - use diurnal with constraints
         elif "humid" in var_name:
             return "humidity"
 
-        # Pressure - use linear (changes slowly),
+        # Pressure - use linear (changes slowly)
         elif "pressure" in var_name:
             return "linear"
 
@@ -139,7 +137,7 @@ class GapFiller:
         if initial_gaps == 0:
             return data
 
-        # Apply method-specific filling,
+        # Apply method-specific filling
         if method == "diurnal":
             filled = self._fill_diurnal_pattern(data)
         elif method == "solar":
@@ -158,13 +156,15 @@ class GapFiller:
         gaps_filled = initial_gaps - final_gaps
 
         if gaps_filled > 0:
-            self.fill_report["details"][var_name] = {,
-                "method": method,
-                "initial_gaps": int(initial_gaps),
-                "gaps_filled": int(gaps_filled),
-                "gaps_remaining": int(final_gaps),
-                "fill_rate": (float(gaps_filled / initial_gaps * 100) if initial_gaps > 0 else 0)
-            },
+            self.fill_report["details"][var_name] = (
+                {
+                    "method": method,
+                    "initial_gaps": int(initial_gaps),
+                    "gaps_filled": int(gaps_filled),
+                    "gaps_remaining": int(final_gaps),
+                    "fill_rate": (float(gaps_filled / initial_gaps * 100) if initial_gaps > 0 else 0),
+                },
+            )
 
             logger.debug(f"{var_name}: Filled {gaps_filled}/{initial_gaps} gaps using {method}")
 
@@ -181,14 +181,14 @@ class GapFiller:
         # First pass: short gaps with linear interpolation
         filled = filled.interpolate_na(dim="time", method="linear", limit=self.max_linear_gap)
 
-        # Second pass: use same hour from nearby days,
+        # Second pass: use same hour from nearby days
         if "time" in data.dims:
             time_index = pd.DatetimeIndex(data.time.values)
             values = filled.values.copy()
 
             for i, t in enumerate(time_index):
                 if np.isnan(values[i]):
-                    # Try previous and next days at same hour,
+                    # Try previous and next days at same hour
                     for day_offset in [1, -1, 2, -2, 7, -7]:
                         try:
                             ref_time = t + pd.Timedelta(days=day_offset)
@@ -214,7 +214,7 @@ class GapFiller:
         """
         filled = data.copy()
 
-        # Ensure night values are zero,
+        # Ensure night values are zero
         if "time" in data.dims:
             time_index = pd.DatetimeIndex(data.time.values)
             hours = time_index.hour
@@ -242,7 +242,7 @@ class GapFiller:
         # Linear interpolation for short gaps
         filled = filled.interpolate_na(dim="time", method="linear", limit=self.max_linear_gap)
 
-        # Seasonal median for longer gaps,
+        # Seasonal median for longer gaps
         if "time" in data.dims and np.isnan(filled.values).any():
             time_index = pd.DatetimeIndex(data.time.values)
 
@@ -281,7 +281,7 @@ class GapFiller:
 
         Good for slowly changing variables like pressure.,
         """
-        # Use longer gap limit for pressure,
+        # Use longer gap limit for pressure
         return data.interpolate_na(dim="time", method="linear", limit=self.max_pattern_gap)
 
     def _fill_smart_interpolation(self, data: xr.DataArray) -> xr.DataArray:
@@ -293,11 +293,11 @@ class GapFiller:
         # Try linear for short gaps
         filled = filled.interpolate_na(dim="time", method="linear", limit=self.max_linear_gap)
 
-        # Try cubic for medium gaps,
+        # Try cubic for medium gaps
         if np.isnan(filled.values).any():
             filled = filled.interpolate_na(dim="time", method="cubic", limit=self.max_linear_gap * 2)
 
-        # Use nearest for remaining,
+        # Use nearest for remaining
         if np.isnan(filled.values).any():
             filled = filled.fillna(method="nearest")
 
@@ -356,7 +356,7 @@ class GapFiller:
         if len(complete_days) == 0:
             return filled
 
-        # Fill gaps by finding similar complete days,
+        # Fill gaps by finding similar complete days
         for i, t in enumerate(time_index):
             if np.isnan(values[i]):
                 # Find similar days (same day of week, similar season)
@@ -365,7 +365,7 @@ class GapFiller:
                     day_date = pd.Timestamp(day)
                     if (
                         abs((day_date - t).days) < 30 and day_date.dayofweek == t.dayofweek  # Within month
-                    ):  # Same day of week,
+                    ):  # Same day of week
                         similar_days.append(day_date)
 
                 if similar_days:

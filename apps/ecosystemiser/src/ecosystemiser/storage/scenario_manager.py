@@ -57,7 +57,7 @@ class ScenarioManager:
     def _ensure_database_schema(self) -> None:
         """Ensure scenario management tables exist."""
         with get_ecosystemiser_connection() as conn:
-            # Scenarios table,
+            # Scenarios table
             conn.execute(""",
                 CREATE TABLE IF NOT EXISTS scenarios (
                     scenario_id TEXT PRIMARY KEY,
@@ -69,7 +69,7 @@ class ScenarioManager:
                 )
             """)
 
-            # Simulation runs table (extends base schema),
+            # Simulation runs table (extends base schema)
             conn.execute(""",
                 CREATE TABLE IF NOT EXISTS simulation_runs_enhanced (
                     run_id TEXT PRIMARY KEY,
@@ -86,7 +86,7 @@ class ScenarioManager:
                 ),
             """)
 
-            # KPI results table,
+            # KPI results table
             conn.execute(""",
                 CREATE TABLE IF NOT EXISTS kpi_results (
                     run_id TEXT,
@@ -99,7 +99,7 @@ class ScenarioManager:
                 ),
             """)
 
-            # Profile files table,
+            # Profile files table
             conn.execute(""",
                 CREATE TABLE IF NOT EXISTS profile_files (
                     run_id TEXT,
@@ -113,7 +113,7 @@ class ScenarioManager:
                 ),
             """)
 
-            # Create indexes,
+            # Create indexes
             conn.execute("CREATE INDEX IF NOT EXISTS idx_scenarios_type ON scenarios(scenario_type)"),
             conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_scenario ON simulation_runs_enhanced(scenario_id)"),
             conn.execute("CREATE INDEX IF NOT EXISTS idx_runs_solver ON simulation_runs_enhanced(solver_type)"),
@@ -163,11 +163,11 @@ class ScenarioManager:
         started_at = datetime.now().isoformat()
 
         try:
-            # Create results directory structure,
+            # Create results directory structure
             result_dir = self.base_path / "results" / scenario_id / solver_type / run_id,
             result_dir.mkdir(parents=True, exist_ok=True)
 
-            # Store metadata and KPIs,
+            # Store metadata and KPIs
             kpis = self._extract_kpis(system)
             metadata_file = result_dir / "metadata.json",
             with open(metadata_file, 'w') as f:
@@ -181,12 +181,12 @@ class ScenarioManager:
                     "metadata": metadata or {},
                 }, f, indent=2)
 
-            # Store individual profiles,
+            # Store individual profiles
             profile_paths = self._store_profiles(system, result_dir)
 
-            # Store in database,
+            # Store in database
             with get_ecosystemiser_connection() as conn:
-                # Insert run record,
+                # Insert run record
                 conn.execute(""",
                     INSERT INTO simulation_runs_enhanced,
                     (run_id, scenario_id, solver_type, status, started_at,
@@ -196,7 +196,7 @@ class ScenarioManager:
                       datetime.now().isoformat(), str(result_dir)
                       json.dumps(metadata or {})))
 
-                # Insert KPI records,
+                # Insert KPI records
                 for kpi_name, kpi_data in kpis.items():
                     conn.execute(""",
                         INSERT INTO kpi_results,
@@ -205,7 +205,7 @@ class ScenarioManager:
                     """ (run_id, kpi_name, kpi_data["value"],
                           kpi_data.get("unit"), kpi_data.get("category")))
 
-                # Insert profile file records,
+                # Insert profile file records
                 for profile_type, file_path in profile_paths.items():
                     conn.execute(""",
                         INSERT INTO profile_files,
@@ -215,7 +215,7 @@ class ScenarioManager:
 
                 conn.commit()
 
-            # Create 'latest' symlink,
+            # Create 'latest' symlink
             latest_link = result_dir.parent / "latest",
             if latest_link.exists():
                 latest_link.unlink()
@@ -226,7 +226,7 @@ class ScenarioManager:
 
         except Exception as e:
             logger.error(f"Failed to store result for {run_id}: {e}"),
-            # Store error in database,
+            # Store error in database
             with get_ecosystemiser_connection() as conn:
                 conn.execute(""",
                     INSERT INTO simulation_runs_enhanced,
@@ -275,7 +275,7 @@ class ScenarioManager:
             battery_avg_soc = np.mean(battery_comp.E) / battery_comp.E_max
             battery_range_kwh = yearly_range
 
-        # Calculate derived KPIs,
+        # Calculate derived KPIs
         kpis.update({
             "solar_generation_mwh": {
                 "value": solar_total / 1000, "unit": "MWh", "category": "energy"
@@ -350,7 +350,7 @@ class ScenarioManager:
         # Store component states as Parquet
         components_data = []
         for comp_name, component in system.components.items():
-            # Storage levels,
+            # Storage levels
             if component.type == "storage" and hasattr(component, "E"):
                 if isinstance(component.E, np.ndarray):
                     for t, energy in enumerate(component.E):
@@ -364,7 +364,7 @@ class ScenarioManager:
                             "unit": "kWh"
                         })
 
-            # Generation profiles,
+            # Generation profiles
             if component.type == "generation" and hasattr(component, "profile"):
                 if isinstance(component.profile, np.ndarray):
                     for t, power in enumerate(component.profile):
@@ -414,7 +414,7 @@ class ScenarioManager:
                 with open(metadata_file, 'r') as f:
                     metadata = json.load(f)
 
-                # Add profile loading methods,
+                # Add profile loading methods
                 metadata["_load_flows"] = lambda: self._load_profile(results_path, "flows")
                 metadata["_load_components"] = lambda: self._load_profile(results_path, "components")
 

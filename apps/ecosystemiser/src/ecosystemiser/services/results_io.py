@@ -44,11 +44,11 @@ class ResultsIO:
         # Extract results from system
         results = self._extract_system_results(system)
 
-        # Add metadata,
+        # Add metadata
         if metadata:
             results["metadata"] = metadata
 
-        # Save based on format,
+        # Save based on format
         if format == "json":
             self._save_json(results, output_path)
         elif format == "parquet":
@@ -106,11 +106,11 @@ class ResultsIO:
             "timestamp": datetime.now().isoformat()
         }
 
-        # Extract component states,
+        # Extract component states
         for comp_name, component in system.components.items():
             comp_data = {"type": component.type, "medium": component.medium}
 
-            # Extract storage levels - Enhanced CVXPY handling,
+            # Extract storage levels - Enhanced CVXPY handling
             if component.type == "storage" and hasattr(component, "E"):
                 if isinstance(component.E, np.ndarray):
                     comp_data["E"] = component.E.tolist()
@@ -131,12 +131,12 @@ class ResultsIO:
 
                 comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
 
-            # Extract generation profiles,
+            # Extract generation profiles
             if component.type == "generation" and hasattr(component, "profile"):
                 if isinstance(component.profile, np.ndarray):
                     comp_data["profile"] = component.profile.tolist()
 
-            # Extract economic parameters if available,
+            # Extract economic parameters if available
             if hasattr(component, "economic") and component.economic:
                 comp_data["economic"] = {
                     "capex": component.economic.capex,
@@ -146,7 +146,7 @@ class ResultsIO:
 
             results["components"][comp_name] = comp_data
 
-        # Extract flows,
+        # Extract flows
         for flow_name, flow_data in system.flows.items():
             flow_result = {
                 "source": flow_data["source"],
@@ -154,12 +154,12 @@ class ResultsIO:
                 "type": flow_data["type"]
             }
 
-            # Convert flow values - Enhanced CVXPY handling,
+            # Convert flow values - Enhanced CVXPY handling
             if "value" in flow_data:
                 flow_value = flow_data["value"]
 
                 if isinstance(flow_value, np.ndarray):
-                    # Direct numpy array,
+                    # Direct numpy array
                     flow_result["value"] = flow_value.tolist()
                 elif hasattr(flow_value, "value"):  # CVXPY variable
                     if flow_value.value is not None:
@@ -168,17 +168,17 @@ class ResultsIO:
                         if isinstance(cvxpy_value, np.ndarray):
                             flow_result["value"] = cvxpy_value.tolist()
                         else:
-                            # Scalar CVXPY variable - broadcast to timestep array,
+                            # Scalar CVXPY variable - broadcast to timestep array
                             flow_result["value"] = [float(cvxpy_value)] * system.N
                     else:
-                        # CVXPY variable with None value - populate with zeros,
+                        # CVXPY variable with None value - populate with zeros
                         logger.warning(f"CVXPY variable {flow_name} has None value, using zeros")
                         flow_result["value"] = [0.0] * system.N
                 elif hasattr(flow_value, "__iter__") and not isinstance(flow_value, str):
-                    # Generic iterable (list, tuple, etc.),
+                    # Generic iterable (list, tuple, etc.)
                     flow_result["value"] = list(flow_value)
                 else:
-                    # Scalar value - broadcast to timestep array,
+                    # Scalar value - broadcast to timestep array
                     flow_result["value"] = [float(flow_value)] * system.N
 
             results["flows"][flow_name] = flow_result
@@ -195,7 +195,7 @@ class ResultsIO:
         # Convert to DataFrame format
         flows_df = self._flows_to_dataframe(results["flows"])
 
-        # Save using pandas/pyarrow,
+        # Save using pandas/pyarrow
         flows_df.to_parquet(path, engine="pyarrow", compression="snappy")
 
         # Save metadata separately
@@ -318,7 +318,7 @@ class ResultsIO:
         """
         summary_data = []
 
-        # Summarize flows,
+        # Summarize flows
         if "flows" in results:
             for flow_name, flow_info in results["flows"].items():
                 if "value" in flow_info and isinstance(flow_info["value"], list):
@@ -335,7 +335,7 @@ class ResultsIO:
                         }
                     )
 
-        # Summarize components,
+        # Summarize components
         if "components" in results:
             for comp_name, comp_data in results["components"].items():
                 if "E" in comp_data:

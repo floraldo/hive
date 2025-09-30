@@ -6,13 +6,8 @@ Run with: arq ecosystemiser.worker.WorkerSettings
 
 from arq import cron
 from arq.connections import RedisSettings
-from ecosystemiser.services.job_service import (
-    cleanup_old_jobs,
-    collect_metrics,
-    process_climate_job,
-    shutdown,
-    startup
-)
+
+from ecosystemiser.services.job_service import cleanup_old_jobs, collect_metrics, process_climate_job, shutdown, startup
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
 
@@ -29,7 +24,7 @@ class WorkerSettings:
     redis_settings = RedisSettings(
         host=settings.queue.redis_url.split("://")[1].split(":")[0],
         port=int(settings.queue.redis_url.split(":")[-1].split("/")[0]),
-        database=0
+        database=0,
     )
 
     # Queue configuration
@@ -44,13 +39,11 @@ class WorkerSettings:
     health_check_interval = settings.queue.worker_heartbeat
 
     # Functions to run
-    functions = [
-        process_climate_job
-    ]
+    functions = [process_climate_job]
 
     # Cron jobs
     cron_jobs = [
-        cron(cleanup_old_jobs, hour=3, minute=0),  # Clean up at 3 AM daily,
+        cron(cleanup_old_jobs, hour=3, minute=0),  # Clean up at 3 AM daily
         cron(collect_metrics, minute={0, 15, 30, 45}),  # Collect metrics every 15 min
     ]
 

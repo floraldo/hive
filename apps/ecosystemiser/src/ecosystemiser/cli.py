@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import yaml
+
 from ecosystemiser.profile_loader.climate import ClimateRequest, get_profile_sync
 from ecosystemiser.reporting.generator import create_standalone_html_report
 from hive_cli import create_cli
@@ -47,7 +48,7 @@ def simulate() -> None:
     "--source",
     "-s",
     default="nasa_power",
-    type=click.Choice(["nasa_power", "meteostat", "pvgis", "era5", "file_epw", "epw"])
+    type=click.Choice(["nasa_power", "meteostat", "pvgis", "era5", "file_epw", "epw"]),
 )
 @option("--mode", "-m", default="observed", type=click.Choice(["observed", "tmy", "average", "synthetic"]))
 @option("--resolution", "-r", default="1H", type=click.Choice(["15min", "30min", "1H", "3H", "1D"]))
@@ -74,7 +75,7 @@ def get(
     subset_month: int,
     subset_season: str,
     seed: int,
-    stats: bool
+    stats: bool,
 ) -> None:
     """
     Get climate profile for a location.
@@ -85,20 +86,20 @@ def get(
         ecosys climate get --file weather.epw --source epw --vars temp_air,ghi,
     """
     try:
-        # Validate input based on source,
+        # Validate input based on source
         is_file_source = source in ["file_epw", "epw"]
 
         if is_file_source:
             if not file:
-                info("Error: --file is required for file-based sources", err=True),
+                (info("Error: --file is required for file-based sources", err=True),)
                 sys.exit(1)
-            # Use file path as location for file sources,
+            # Use file path as location for file sources
             location = str(Path(file).resolve())
         else:
             if not loc:
-                info("Error: --loc is required for API-based sources", err=True),
+                (info("Error: --loc is required for API-based sources", err=True),)
                 sys.exit(1)
-            # Parse location,
+            # Parse location
             if "," in loc and any(c.isdigit() for c in loc):
                 # Coordinate format
                 parts = loc.split(",")
@@ -107,13 +108,13 @@ def get(
                 # String location
                 location = loc
 
-        # Build period,
+        # Build period
         if year:
-            period = {"year": year},
+            period = ({"year": year},)
         elif start and end:
-            period = {"start": start, "end": end},
+            period = ({"start": start, "end": end},)
         else:
-            info("Error: Must specify either --year or both --start and --end", err=True),
+            (info("Error: Must specify either --year or both --start and --end", err=True),)
             sys.exit(1)
 
         # Parse variables
@@ -122,7 +123,7 @@ def get(
         # Build subset if specified
         subset = None
         if subset_month:
-            subset = {"month": f"{subset_month:02d}"},
+            subset = ({"month": f"{subset_month:02d}"},)
         elif subset_season:
             subset = {"season": subset_season}
 
@@ -136,18 +137,18 @@ def get(
             resolution=resolution,
             timezone=timezone,
             subset=subset,
-            seed=seed
+            seed=seed,
         )
 
-        # Get profile using synchronous wrapper,
-        info(f"Fetching climate data from {source}..."),
+        # Get profile using synchronous wrapper
+        (info(f"Fetching climate data from {source}..."),)
         ds, response = get_profile_sync(request)
 
-        # Output results,
+        # Output results
         info(f"[SUCCESS] Retrieved climate data: shape={response.shape}")
 
         if out:
-            # Save to custom path,
+            # Save to custom path
             out_path = Path(out)
             out_path.parent.mkdir(parents=True, exist_ok=True)
             df = ds.to_dataframe()
@@ -164,19 +165,19 @@ def get(
                 json.dump(response.manifest, f, indent=2, default=str)
             info(f"[SUCCESS] Saved manifest to {json_path}")
 
-        # Show statistics if requested,
+        # Show statistics if requested
         if stats and response.stats:
-            info("\n[STATS] Statistics:"),
+            (info("\n[STATS] Statistics:"),)
             for var, var_stats in response.stats.items():
                 if var != "correlations":
-                    info(f"\n  {var}:"),
-                    info(f"    Mean: {var_stats.get('mean', 'N/A'):.2f}"),
-                    info(f"    Std:  {var_stats.get('std', 'N/A'):.2f}"),
-                    info(f"    Min:  {var_stats.get('min', 'N/A'):.2f}"),
-                    info(f"    Max:  {var_stats.get('max', 'N/A'):.2f}"),
+                    (info(f"\n  {var}:"),)
+                    (info(f"    Mean: {var_stats.get('mean', 'N/A'):.2f}"),)
+                    (info(f"    Std:  {var_stats.get('std', 'N/A'):.2f}"),)
+                    (info(f"    Min:  {var_stats.get('min', 'N/A'):.2f}"),)
+                    (info(f"    Max:  {var_stats.get('max', 'N/A'):.2f}"),)
 
     except Exception as e:
-        info(f"Error: {e}", err=True),
+        (info(f"Error: {e}", err=True),)
         logger.exception("Failed to get climate profile")
         sys.exit(1)
 
@@ -235,13 +236,13 @@ def run(config, output, solver, verbose) -> None:
         # Create simulation service (it handles repository creation internally)
         service = SimulationService()
 
-        # Run simulation using the new service method,
+        # Run simulation using the new service method
         info(f"[INFO] Running simulation with {solver} solver...")
         result = service.run_simulation_from_path(
             config_path=Path(config), solver_type=solver, output_path=Path(output) if output else None, verbose=verbose
         )
 
-        # Display summary,
+        # Display summary
         info("\n[SUCCESS] Simulation completed!")
         info(f"  Status: {result.status}")
         if result.kpis:
@@ -290,13 +291,13 @@ def validate(config) -> None:
         validation_result = service.validate_system_config(Path(config))
 
         if validation_result["valid"]:
-            # Display validation results,
+            # Display validation results
             info("\n[SUCCESS] Configuration is valid!")
             info(f"  System ID: {validation_result['system_id']}")
             info(f"  Components: {validation_result['num_components']}")
             info(f"  Timesteps: {validation_result['timesteps']}")
 
-            # List components,
+            # List components
             info("\n  Component List:")
             for comp in validation_result["components"]:
                 info(f"    - {comp['name']} ({comp['type']})")
@@ -333,7 +334,7 @@ def discover() -> None:
     "--objectives",
     "-obj",
     default="minimize_cost",
-    help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")'
+    help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")',
 )
 @option("--population", "-p", default=50, type=int, help="Population size for genetic algorithm")
 @option("--generations", "-g", default=100, type=int, help="Maximum number of generations")
@@ -357,7 +358,7 @@ def optimize(
     output,
     workers,
     report,
-    verbose
+    verbose,
 ):
     """
     Run genetic algorithm optimization to find optimal system configurations.,
@@ -366,16 +367,16 @@ def optimize(
     to explore the design space and find optimal component sizing and configurations.
 
     Examples:
-        # Single-objective cost minimization,
+        # Single-objective cost minimization
         ecosys discover optimize config.yaml
 
-        # Multi-objective optimization,
+        # Multi-objective optimization
         ecosys discover optimize config.yaml --objectives "minimize_cost,maximize_renewable" --multi-objective
 
-        # Custom GA parameters,
+        # Custom GA parameters
         ecosys discover optimize config.yaml --population 100 --generations 200 --mutation-rate 0.15
 
-        # With custom variables definition,
+        # With custom variables definition
         ecosys discover optimize config.yaml --variables variables.json --output results/,
     """
     import json
@@ -384,19 +385,19 @@ def optimize(
 
     try:
         info("[INFO] Starting genetic algorithm optimization")
-        info(f"  Configuration: {config}"),
-        info(f"  Objectives: {objectives}"),
-        info(f"  Algorithm: {'NSGA-II' if multi_objective else 'Single-objective GA'}"),
+        (info(f"  Configuration: {config}"),)
+        (info(f"  Objectives: {objectives}"),)
+        (info(f"  Algorithm: {'NSGA-II' if multi_objective else 'Single-objective GA'}"),)
         info(f"  Population: {population}, Generations: {generations}")
 
-        # Load optimization variables if provided,
-        optimization_variables = None,
+        # Load optimization variables if provided
+        optimization_variables = (None,)
         if variables:
             with open(variables) as f:
                 optimization_variables = json.load(f)
             info(f"  Variables: Loaded {len(optimization_variables)} custom variables")
 
-        # Create study service,
+        # Create study service
         study_service = StudyService()
 
         # Configure GA parameters
@@ -413,13 +414,13 @@ def optimize(
             optimization_variables=optimization_variables or [],
             objectives=objectives,
             multi_objective=multi_objective,
-            **ga_config
+            **ga_config,
         )
 
-        # Display results,
+        # Display results
         info("\n[SUCCESS] Optimization completed!")
-        info(f"  Status: {result.summary_statistics.get('convergence_status', 'unknown')}"),
-        info(f"  Total evaluations: {result.num_simulations}"),
+        (info(f"  Status: {result.summary_statistics.get('convergence_status', 'unknown')}"),)
+        (info(f"  Total evaluations: {result.num_simulations}"),)
         info(f"  Execution time: {result.execution_time:.2f}s")
 
         if result.best_result:
@@ -431,35 +432,34 @@ def optimize(
                 pareto_size = len(best["pareto_front"])
                 info(f"  Pareto front size: {pareto_size} solutions")
 
-        # Save results,
+        # Save results
         if output:
             output_dir = Path(output)
             output_dir.mkdir(parents=True, exist_ok=True)
             results_file = output_dir / f"ga_optimization_{result.study_id}.json"
             with open(results_file, "w") as f:
-                json.dump(
-                    {
-                        "study_result": result.dict(),
-                        "configuration": {
-                            "objectives": objectives,
-                            "multi_objective": multi_objective,
-                            "ga_config": ga_config,
-                        }
-                    },
-                    f,
-                    indent=2,
-                    default=str
-                ),
+                (
+                    json.dump(
+                        {
+                            "study_result": result.dict(),
+                            "configuration": {
+                                "objectives": objectives,
+                                "multi_objective": multi_objective,
+                                "ga_config": ga_config,
+                            },
+                        },
+                        f,
+                        indent=2,
+                        default=str,
+                    ),
+                )
 
             info(f"  Results saved to: {results_file}")
 
-            # Generate report if requested,
+            # Generate report if requested
             if report:
                 info("\n[INFO] Generating HTML report...")
-                from ecosystemiser.services.reporting_service import (
-                    ReportConfig,
-                    ReportingService
-                )
+                from ecosystemiser.services.reporting_service import ReportConfig, ReportingService
 
                 # Create reporting service
                 reporting_service = ReportingService()
@@ -470,37 +470,37 @@ def optimize(
                     title="Genetic Algorithm Optimization Report",
                     include_plots=True,
                     output_format="html",
-                    save_path=output_dir / f"ga_report_{result.study_id}"
+                    save_path=output_dir / f"ga_report_{result.study_id}",
                 )
 
-                # Generate report using the centralized service,
+                # Generate report using the centralized service
                 reporting_service.generate_report(analysis_results=result.dict(), config=report_config)
-                report_file = output_dir / f"ga_report_{result.study_id}.html",
-                info(f"  HTML report saved to: {report_file}"),
+                report_file = (output_dir / f"ga_report_{result.study_id}.html",)
+                (info(f"  HTML report saved to: {report_file}"),)
         else:
             info(f"  Study ID: {result.study_id}")
 
-        # Show recommendations,
+        # Show recommendations
         if result.best_result and result.best_result.get("best_solution"):
-            info("\n[RECOMMENDATIONS] Best solution found:"),
+            (info("\n[RECOMMENDATIONS] Best solution found:"),)
             best_solution = result.best_result["best_solution"]
             if optimization_variables:
                 for i, var in enumerate(optimization_variables):
                     if i < len(best_solution):
-                        info(f"  {var.get('name', f'param_{i}')}: {best_solution[i]:.3f}"),
+                        (info(f"  {var.get('name', f'param_{i}')}: {best_solution[i]:.3f}"),)
             else:
-                info(f"  Solution vector: {[f'{x:.3f}' for x in best_solution[:5]]}"),
+                (info(f"  Solution vector: {[f'{x:.3f}' for x in best_solution[:5]]}"),)
                 if len(best_solution) > 5:
-                    info(f"  ... and {len(best_solution) - 5} more parameters"),
+                    (info(f"  ... and {len(best_solution) - 5} more parameters"),)
 
     except FileNotFoundError as e:
-        info(f"Error: File not found: {e}", err=True),
+        (info(f"Error: File not found: {e}", err=True),)
         sys.exit(1)
     except json.JSONDecodeError as e:
-        info(f"Error parsing variables JSON: {e}", err=True),
+        (info(f"Error parsing variables JSON: {e}", err=True),)
         sys.exit(1)
     except Exception as e:
-        info(f"Error running optimization: {e}", err=True),
+        (info(f"Error running optimization: {e}", err=True),)
         if verbose:
             logger.exception("Failed to run genetic algorithm optimization")
         sys.exit(1)
@@ -512,7 +512,7 @@ def optimize(
     "--objectives",
     "-obj",
     default="total_cost",
-    help='Comma-separated objectives to analyze (e.g., "total_cost,renewable_fraction")'
+    help='Comma-separated objectives to analyze (e.g., "total_cost,renewable_fraction")',
 )
 @option("--samples", "-n", default=1000, type=int, help="Number of Monte Carlo samples")
 @option(
@@ -539,16 +539,16 @@ def uncertainty(
     the system model and analyze the resulting distribution of key outputs.
 
     Examples:
-        # Basic uncertainty analysis,
+        # Basic uncertainty analysis
         ecosys discover uncertainty config.yaml --uncertainties uncertain_params.json
 
-        # Custom sampling configuration,
+        # Custom sampling configuration
         ecosys discover uncertainty config.yaml -u params.json --samples 5000 --sampling sobol
 
-        # Focus on specific outputs,
+        # Focus on specific outputs
         ecosys discover uncertainty config.yaml -u params.json --objectives "lcoe,emissions"
 
-        # Comprehensive analysis with risk metrics,
+        # Comprehensive analysis with risk metrics
         ecosys discover uncertainty config.yaml -u params.json --sensitivity --risk --output results/,
     """
     import json
@@ -557,24 +557,24 @@ def uncertainty(
 
     try:
         info("[INFO] Starting Monte Carlo uncertainty analysis")
-        info(f"  Configuration: {config}"),
-        info(f"  Objectives: {objectives}"),
-        info(f"  Samples: {samples}"),
+        (info(f"  Configuration: {config}"),)
+        (info(f"  Objectives: {objectives}"),)
+        (info(f"  Samples: {samples}"),)
         info(f"  Sampling method: {sampling}")
 
-        # Load uncertainty definitions (required),
+        # Load uncertainty definitions (required)
         if not uncertainties:
-            info("Error: Uncertainty definitions file is required (--uncertainties)", err=True),
+            (info("Error: Uncertainty definitions file is required (--uncertainties)", err=True),)
             sys.exit(1)
 
         with open(uncertainties) as f:
             uncertainty_variables = json.load(f)
         info(f"  Uncertainties: Loaded {len(uncertainty_variables)} uncertain parameters")
 
-        # Parse confidence levels,
+        # Parse confidence levels
         confidence_levels = [float(x.strip()) for x in confidence.split(",")]
 
-        # Create study service,
+        # Create study service
         study_service = StudyService()
 
         # Configure MC parameters
@@ -591,110 +591,117 @@ def uncertainty(
             base_config_path=Path(config),
             uncertainty_variables=uncertainty_variables,
             objectives=objectives,
-            **mc_config
+            **mc_config,
         )
 
-        # Display results,
+        # Display results
         info("\n[SUCCESS] Uncertainty analysis completed!")
-        info(f"  Total samples: {result.num_simulations}"),
+        (info(f"  Total samples: {result.num_simulations}"),)
         info(f"  Execution time: {result.execution_time:.2f}s")
 
-        # Show statistical summary,
+        # Show statistical summary
         if result.summary_statistics:
             stats = result.summary_statistics
 
             if "statistics" in stats:
-                info("\n[STATISTICS] Output distributions:"),
+                (info("\n[STATISTICS] Output distributions:"),)
                 for obj_name, obj_stats in stats["statistics"].items():
-                    info(f"  {obj_name}:"),
-                    info(f"    Mean: {obj_stats.get('mean', 0):.4f}"),
-                    info(f"    Std:  {obj_stats.get('std', 0):.4f}"),
-                    info(f"    Range: [{obj_stats.get('min', 0):.4f}, {obj_stats.get('max', 0):.4f}]"),
+                    (info(f"  {obj_name}:"),)
+                    (info(f"    Mean: {obj_stats.get('mean', 0):.4f}"),)
+                    (info(f"    Std:  {obj_stats.get('std', 0):.4f}"),)
+                    (info(f"    Range: [{obj_stats.get('min', 0):.4f}, {obj_stats.get('max', 0):.4f}]"),)
 
             if "confidence_intervals" in stats:
-                info("\n[CONFIDENCE] Confidence intervals:"),
+                (info("\n[CONFIDENCE] Confidence intervals:"),)
                 conf_data = stats["confidence_intervals"]
                 for obj_name, intervals in conf_data.items():
-                    info(f"  {obj_name}:"),
+                    (info(f"  {obj_name}:"),)
                     for level, bounds in intervals.items():
-                        info(f"    {level}: [{bounds.get('lower', 0):.4f}, {bounds.get('upper', 0):.4f}]"),
+                        (info(f"    {level}: [{bounds.get('lower', 0):.4f}, {bounds.get('upper', 0):.4f}]"),)
 
             if sensitivity and "sensitivity_indices" in stats:
-                info("\n[SENSITIVITY] Most influential parameters:"),
+                (info("\n[SENSITIVITY] Most influential parameters:"),)
                 sens_data = stats["sensitivity_indices"]
                 for obj_name, param_sens in sens_data.items():
                     if param_sens:
                         # Sort by sensitivity index
-                        sorted_params = sorted(
-                            param_sens.items(), key=lambda x: abs(x[1].get("sensitivity_index", 0)), reverse=True
-                        ),
-                        info(f"  {obj_name}:"),
-                        for param_name, sens_info in sorted_params[:5]:  # Top 5,
+                        sorted_params = (
+                            sorted(
+                                param_sens.items(), key=lambda x: abs(x[1].get("sensitivity_index", 0)), reverse=True
+                            ),
+                        )
+                        (info(f"  {obj_name}:"),)
+                        for param_name, sens_info in sorted_params[:5]:  # Top 5
                             sens_idx = sens_info.get("sensitivity_index", 0)
                             info(f"    {param_name}: {sens_idx:.3f}")
 
             if risk and "risk_metrics" in stats:
-                info("\n[RISK] Risk metrics:"),
+                (info("\n[RISK] Risk metrics:"),)
                 risk_data = stats["risk_metrics"]
                 for obj_name, risk_info in risk_data.items():
-                    info(f"  {obj_name}:"),
-                    info(f"    VaR 95%: {risk_info.get('var_95', 0):.4f}"),
-                    info(f"    CVaR 95%: {risk_info.get('cvar_95', 0):.4f}"),
+                    (info(f"  {obj_name}:"),)
+                    (info(f"    VaR 95%: {risk_info.get('var_95', 0):.4f}"),)
+                    (info(f"    CVaR 95%: {risk_info.get('cvar_95', 0):.4f}"),)
                     info(f"    Risk ratio: {risk_info.get('risk_ratio', 0):.3f}")
 
-        # Save results,
+        # Save results
         if output:
             output_dir = Path(output)
             output_dir.mkdir(parents=True, exist_ok=True)
             results_file = output_dir / f"mc_uncertainty_{result.study_id}.json"
             with open(results_file, "w") as f:
-                json.dump(
-                    {
-                        "study_result": result.dict(),
-                        "configuration": {,
-                            "objectives": objectives,
-                            "uncertainty_variables": uncertainty_variables,
-                            "mc_config": mc_config,
-                        }
-                    },
-                    f,
-                    indent=2,
-                    default=str
-                ),
+                (
+                    json.dump(
+                        {
+                            "study_result": result.dict(),
+                            "configuration": {
+                                "objectives": objectives,
+                                "uncertainty_variables": uncertainty_variables,
+                                "mc_config": mc_config,
+                            },
+                        },
+                        f,
+                        indent=2,
+                        default=str,
+                    ),
+                )
 
             info(f"\n  Results saved to: {results_file}")
 
-            # Also save summary CSV,
+            # Also save summary CSV
             if result.summary_statistics and "statistics" in result.summary_statistics:
                 import pandas as pd
+
                 stats_data = []
                 for obj_name, obj_stats in result.summary_statistics["statistics"].items():
-                    stats_data.append(
-                        {
-                            "objective": obj_name,
-                            "mean": obj_stats.get("mean", 0),
-                            "std": obj_stats.get("std", 0),
-                            "min": obj_stats.get("min", 0),
-                            "max": obj_stats.get("max", 0),
-                        }
-                    ),
+                    (
+                        stats_data.append(
+                            {
+                                "objective": obj_name,
+                                "mean": obj_stats.get("mean", 0),
+                                "std": obj_stats.get("std", 0),
+                                "min": obj_stats.get("min", 0),
+                                "max": obj_stats.get("max", 0),
+                            }
+                        ),
+                    )
 
                 if stats_data:
                     df = pd.DataFrame(stats_data)
                     csv_file = output_dir / f"mc_summary_{result.study_id}.csv"
                     df.to_csv(csv_file, index=False)
-                    info(f"  Summary saved to: {csv_file}"),
+                    (info(f"  Summary saved to: {csv_file}"),)
         else:
             info(f"  Study ID: {result.study_id}")
 
     except FileNotFoundError as e:
-        info(f"Error: File not found: {e}", err=True),
+        (info(f"Error: File not found: {e}", err=True),)
         sys.exit(1)
     except json.JSONDecodeError as e:
-        info(f"Error parsing JSON file: {e}", err=True),
+        (info(f"Error parsing JSON file: {e}", err=True),)
         sys.exit(1)
     except Exception as e:
-        info(f"Error running uncertainty analysis: {e}", err=True),
+        (info(f"Error running uncertainty analysis: {e}", err=True),)
         if verbose:
             logger.exception("Failed to run Monte Carlo uncertainty analysis")
         sys.exit(1)
@@ -707,13 +714,13 @@ def uncertainty(
     "-v",
     type=click.Path(exists=True),
     required=True,
-    help="JSON file defining design variables (required)"
+    help="JSON file defining design variables (required)",
 )
 @option(
     "--objectives",
     "-obj",
     default="minimize_cost,maximize_renewable",
-    help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")'
+    help='Comma-separated objectives (e.g., "minimize_cost,maximize_renewable")',
 )
 @option("--method", "-m", default="nsga2", type=click.Choice(["nsga2", "monte_carlo"]), help="Exploration method")
 @option("--samples", "-n", default=100, type=int, help="Number of samples/population size")
@@ -729,13 +736,13 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
     configures the chosen method for multi-objective design space exploration.
 
     Examples:
-        # NSGA-II design space exploration,
+        # NSGA-II design space exploration
         ecosys discover explore config.yaml --variables design_vars.json
 
-        # Monte Carlo design space exploration,
+        # Monte Carlo design space exploration
         ecosys discover explore config.yaml -v vars.json --method monte_carlo --samples 5000
 
-        # Custom objectives and output,
+        # Custom objectives and output
         ecosys discover explore config.yaml -v vars.json --objectives "cost,emissions,efficiency" -o results/,
     """
     import json
@@ -749,7 +756,7 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
         info(f"  Method: {method}")
         info(f"  Samples/Population: {samples}")
 
-        # Load design variables,
+        # Load design variables
         with open(variables) as f:
             design_variables = json.load(f)
         info(f"  Variables: Loaded {len(design_variables)} design variables")
@@ -766,10 +773,10 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
             population_size=samples if method == "nsga2" else None,
             max_generations=100 if method == "nsga2" else None,
             n_samples=samples if method == "monte_carlo" else None,
-            sampling_method="lhs" if method == "monte_carlo" else None
+            sampling_method="lhs" if method == "monte_carlo" else None,
         )
 
-        # Display results,
+        # Display results
         info("\n[SUCCESS] Design space exploration completed!")
         info(f"  Method: {method}")
         info(f"  Total evaluations: {result.num_simulations}")
@@ -790,26 +797,28 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
                     bounds = var.get("bounds", (0, 1))
                     info(f"  {var_name}: [{bounds[0]:.3f}, {bounds[1]:.3f}]")
 
-        # Save results,
+        # Save results
         if output:
             output_dir = Path(output)
             output_dir.mkdir(parents=True, exist_ok=True)
             results_file = output_dir / f"exploration_{method}_{result.study_id}.json"
             with open(results_file, "w") as f:
-                json.dump(
-                    {
-                        "study_result": result.dict(),
-                        "configuration": {,
-                            "method": method,
-                            "objectives": objectives,
-                            "design_variables": design_variables,
-                            "samples": samples
-                        }
-                    },
-                    f,
-                    indent=2,
-                    default=str
-                ),
+                (
+                    json.dump(
+                        {
+                            "study_result": result.dict(),
+                            "configuration": {
+                                "method": method,
+                                "objectives": objectives,
+                                "design_variables": design_variables,
+                                "samples": samples,
+                            },
+                        },
+                        f,
+                        indent=2,
+                        default=str,
+                    ),
+                )
 
             info(f"\n  Results saved to: {results_file}")
 
@@ -822,7 +831,7 @@ def explore(config, variables, objectives, method, samples, output, workers, ver
         else:
             info(f"  Study ID: {result.study_id}")
 
-        # Provide next steps guidance,
+        # Provide next steps guidance
         info("\n[NEXT STEPS] To visualize results:")
         if method == "nsga2":
             info("  - Use Pareto front visualization for trade-off analysis")
@@ -871,13 +880,13 @@ def show(results_file, format) -> None:
         info(f"\n[RESULTS] Simulation: {results_file}")
         info("=" * 50)
 
-        # Display based on format,
+        # Display based on format
         if format == "summary" or format == "kpi":
             if "summary" in results:
                 summary = results["summary"]
-                info(f"  Status: {summary.get('status', 'unknown')}"),
-                info(f"  Objective: {summary.get('objective_value', 0):.2f}"),
-                info(f"  Solve Time: {summary.get('solve_time', 0):.3f}s"),
+                (info(f"  Status: {summary.get('status', 'unknown')}"),)
+                (info(f"  Objective: {summary.get('objective_value', 0):.2f}"),)
+                (info(f"  Solve Time: {summary.get('solve_time', 0):.3f}s"),)
 
             if "kpis" in results and format == "kpi":
                 info("\n  Key Performance Indicators:")
@@ -888,14 +897,14 @@ def show(results_file, format) -> None:
                         info(f"    {kpi}: {value}")
 
         elif format == "detailed":
-            # Show component results,
+            # Show component results
             if "components" in results:
                 info("\n  Component Results:")
                 for comp_name, comp_data in results["components"].items():
                     info(f"\n    {comp_name}:")
                     for key, value in comp_data.items():
                         if isinstance(value, list) and len(value) > 0:
-                            info(f"      {key}: {len(value)} timesteps"),
+                            (info(f"      {key}: {len(value)} timesteps"),)
                         elif isinstance(value, (int, float)):
                             info(f"      {key}: {value:.2f}")
 
@@ -927,7 +936,7 @@ def analyze(results_file, output, strategies, output_format) -> None:
         strategies_list = list(strategies) if strategies else None
         analysis_results = analyser.analyse(results_file, strategies_list)
 
-        # Determine output path,
+        # Determine output path
         if output:
             output_dir = Path(output)
         else:
@@ -938,7 +947,7 @@ def analyze(results_file, output, strategies, output_format) -> None:
         if output_format == "json":
             # Save JSON results
             output_file = output_dir / "analysis_results.json"
-            analyser.save_analysis(analysis_results, str(output_file)),
+            (analyser.save_analysis(analysis_results, str(output_file)),)
             info(f"Analysis saved to: {output_file}")
         else:
             info("HTML format requires Flask server. Use 'report server' command.")
@@ -946,8 +955,8 @@ def analyze(results_file, output, strategies, output_format) -> None:
         # Print summary
         summary = analysis_results.get("summary", {})
         info("\nAnalysis Summary:")
-        info(f"  Successful analyses: {summary.get('successful_analyses', 0)}"),
-        info(f"  Failed analyses: {summary.get('failed_analyses', 0)}"),
+        (info(f"  Successful analyses: {summary.get('successful_analyses', 0)}"),)
+        (info(f"  Failed analyses: {summary.get('failed_analyses', 0)}"),)
 
     except Exception as e:
         logger.error(f"Analysis failed: {e}")
@@ -986,7 +995,7 @@ def server(host, port, debug) -> None:
     "study_type",
     type=click.Choice(["auto", "ga", "mc", "standard"]),
     default="auto",
-    help="Type of study (auto-detect by default)"
+    help="Type of study (auto-detect by default)",
 )
 def generate(study_file, output, study_type) -> None:
     """Generate a standalone HTML report from study results.
@@ -1000,11 +1009,11 @@ def generate(study_file, output, study_type) -> None:
     from ecosystemiser.services.reporting_service import ReportConfig, ReportingService
 
     try:
-        # Load study results,
+        # Load study results
         with open(study_file) as f:
             study_data = json.load(f)
 
-        # Auto-detect study type if needed,
+        # Auto-detect study type if needed
         if study_type == "auto":
             if "pareto_front" in study_data.get("best_result", {}):
                 study_type = "genetic_algorithm"
@@ -1030,18 +1039,18 @@ def generate(study_file, output, study_type) -> None:
             title=f"EcoSystemiser {study_type.replace('_', ' ').title()} Report",
             include_plots=True,
             output_format="html",
-            save_path=Path(output)
+            save_path=Path(output),
         )
 
-        # Generate report using the centralized service,
+        # Generate report using the centralized service
         reporting_service.generate_report(analysis_results=study_data, config=report_config)
 
         info(f"HTML report saved to: {output}")
 
-        # Open in browser if available,
+        # Open in browser if available
         import webbrowser
 
-        webbrowser.open(f"file://{Path(output).absolute()}"),
+        (webbrowser.open(f"file://{Path(output).absolute()}"),)
 
     except FileNotFoundError:
         info(f"Error: Study file not found: {study_file}", err=True)
@@ -1060,7 +1069,7 @@ def generate(study_file, output, study_type) -> None:
         plots = {}
         analyses = analysis_results.get("analyses", {})
 
-        # Generate relevant plots,
+        # Generate relevant plots
         if "technical_kpi" in analyses:
             plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(analyses["technical_kpi"])
 
@@ -1081,7 +1090,7 @@ def generate(study_file, output, study_type) -> None:
 
         # Print summary
         summary = analysis_results.get("summary", {})
-        info(f"Report includes {summary.get('successful_analyses', 0)} successful analyses"),
+        (info(f"Report includes {summary.get('successful_analyses', 0)} successful analyses"),)
 
     except Exception as e:
         logger.error(f"Report generation failed: {e}")

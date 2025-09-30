@@ -1,6 +1,24 @@
-"""Enhanced connection_async pool configuration"""
+"""
+Enhanced connection_async pool configuration.
 
+DEPRECATED: This module is deprecated and incomplete.
+Use hive-async.pools.ConnectionPool for generic async pooling
+or hive-db.sqlite_factory for SQLite-specific pooling.
+
+New code should use:
+    from hive_async.pools import ConnectionPool, PoolConfig
+    from hive_db import SQLiteConnectionFactory
+"""
+
+import warnings
 from dataclasses import dataclass
+
+warnings.warn(
+    "hive_performance.pool is deprecated and incomplete. "
+    "Use hive_async.pools.ConnectionPool or hive_db.SQLiteConnectionFactory instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 @dataclass

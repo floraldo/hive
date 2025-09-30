@@ -61,7 +61,7 @@ class FidelityLevel(str, Enum):
 
 # =============================================================================
 # BASE TECHNICAL PARAMETERS
-# =============================================================================,
+# =============================================================================
 
 
 class BaseTechnicalParams(BaseModel):
@@ -77,7 +77,8 @@ class BaseTechnicalParams(BaseModel):
 
     # Explicit fidelity control (required for all components)
     fidelity_level: FidelityLevel = Field(
-        default=FidelityLevel.STANDARD, description="Explicit simulation fidelity level controlling model complexity",
+        default=FidelityLevel.STANDARD,
+        description="Explicit simulation fidelity level controlling model complexity",
     )
 
     class Config:
@@ -86,7 +87,7 @@ class BaseTechnicalParams(BaseModel):
 
 # =============================================================================
 # STORAGE CATEGORY PARAMETERS
-# =============================================================================,
+# =============================================================================
 
 
 class StorageTechnicalParams(BaseTechnicalParams):
@@ -112,7 +113,7 @@ class StorageTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # GENERATION CATEGORY PARAMETERS
-# =============================================================================,
+# =============================================================================
 
 
 class GenerationTechnicalParams(BaseTechnicalParams):
@@ -135,7 +136,7 @@ class GenerationTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # CONVERSION CATEGORY PARAMETERS
-# =============================================================================,
+# =============================================================================
 
 
 class ConversionTechnicalParams(BaseTechnicalParams):
@@ -159,7 +160,7 @@ class ConversionTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # TRANSMISSION CATEGORY PARAMETERS
-# =============================================================================,
+# =============================================================================
 
 
 class TransmissionTechnicalParams(BaseTechnicalParams):
@@ -174,7 +175,7 @@ class TransmissionTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # DEMAND CATEGORY PARAMETERS
-# =============================================================================,
+# =============================================================================
 
 
 class DemandTechnicalParams(BaseTechnicalParams):
@@ -202,7 +203,7 @@ class DemandTechnicalParams(BaseTechnicalParams):
 
 # =============================================================================
 # VALIDATION HELPERS
-# =============================================================================,
+# =============================================================================
 
 
 def validate_fidelity_consistency(components: list[BaseTechnicalParams]) -> bool:
@@ -224,5 +225,5 @@ def validate_fidelity_consistency(components: list[BaseTechnicalParams]) -> bool
     if not fidelity_levels:
         return True
 
-    # Check if all components have the same fidelity level,
+    # Check if all components have the same fidelity level
     return len(set(fidelity_levels)) == 1

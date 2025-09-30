@@ -13,9 +13,9 @@ Purpose: Establish baseline metrics for:
 - RollingHorizonMILPSolver performance with/without warm-starting
 
 Usage:
-    python scripts/run_benchmarks.py                    # Run all benchmarks,
-    python scripts/run_benchmarks.py --simulation-only  # Just simulation benchmarks,
-    python scripts/run_benchmarks.py --milp-only        # Just MILP benchmarks,
+    python scripts/run_benchmarks.py                    # Run all benchmarks
+    python scripts/run_benchmarks.py --simulation-only  # Just simulation benchmarks
+    python scripts/run_benchmarks.py --milp-only        # Just MILP benchmarks
     python scripts/run_benchmarks.py --profile          # Include memory profiling
 """
 
@@ -90,7 +90,7 @@ class PerformanceBenchmark:
 
         simulation_results = {}
 
-        # Benchmark each fidelity level,
+        # Benchmark each fidelity level
         for fidelity in [
             FidelityLevel.FAST,
             FidelityLevel.BALANCED,
@@ -99,7 +99,7 @@ class PerformanceBenchmark:
             logger.info(f"Benchmarking fidelity level: {fidelity.value}")
 
             try:
-                # Memory tracking,
+                # Memory tracking
                 tracemalloc.start()
                 start_memory = psutil.Process().memory_info().rss / (1024**2)  # MB
 
@@ -156,7 +156,7 @@ class PerformanceBenchmark:
         scenario_config = {
             "horizon_days": 3,
             "timestep_hours": 1,
-            "total_days": 7,  # Multiple windows for warm-start testing,
+            "total_days": 7,  # Multiple windows for warm-start testing
             "system": {
                 "solar_pv": {"capacity_kw": 15.0},
                 "battery": {"capacity_kwh": 30.0, "power_kw": 10.0},
@@ -168,7 +168,7 @@ class PerformanceBenchmark:
 
         milp_results = {}
 
-        # Test both cold start and warm start scenarios,
+        # Test both cold start and warm start scenarios
         for warm_start_enabled in [False, True]:
             scenario_name = "with_warm_start" if warm_start_enabled else "cold_start"
             logger.info(f"Benchmarking MILP solver: {scenario_name}")
@@ -184,14 +184,14 @@ class PerformanceBenchmark:
                     warm_start_enabled=warm_start_enabled
                 )
 
-                # Simulate multiple rolling windows,
+                # Simulate multiple rolling windows
                 total_solve_time = 0,
                 window_count = 0
 
                 for window_start in range(0, scenario_config["total_days"], scenario_config["horizon_days"]):
                     window_solve_start = time.perf_counter()
 
-                    # Run optimization window,
+                    # Run optimization window
                     solver.optimize_window(
                         start_hour=window_start * 24,
                         system_config=scenario_config["system"]
@@ -201,10 +201,10 @@ class PerformanceBenchmark:
                     window_count += 1
 
                     if not warm_start_enabled:
-                        # Clear solution for cold start,
+                        # Clear solution for cold start
                         solver.previous_solution = None,
                 end_time = time.perf_counter()
-                peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)  # MB,
+                peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)  # MB
                 tracemalloc.stop()
                 total_time = end_time - start_time,
                 avg_window_time = total_solve_time / window_count if window_count > 0 else 0
@@ -232,7 +232,7 @@ class PerformanceBenchmark:
                     "error": str(e)
                 }
 
-        # Calculate warm-start performance improvement,
+        # Calculate warm-start performance improvement
         if milp_results.get("cold_start", {}).get("success") and milp_results.get("with_warm_start", {}).get("success"):
             cold_time = milp_results["cold_start"]["total_solve_time_seconds"]
             warm_time = milp_results["with_warm_start"]["total_solve_time_seconds"]
@@ -341,7 +341,7 @@ class PerformanceBenchmark:
 
             logger.info(f"Benchmark results saved to: {results_file}")
 
-            # Print summary,
+            # Print summary
             self._print_summary()
 
         except Exception as e:
@@ -359,7 +359,7 @@ class PerformanceBenchmark:
         logger.info(f"System: {sys_info['cpu_count']} cores, {sys_info['memory_total_gb']}GB RAM")
         logger.info(f"Timestamp: {self.results['timestamp']}")
 
-        # Simulation benchmarks,
+        # Simulation benchmarks
         if self.results.get("simulation_benchmarks"):
             logger.info("\nSIMULATION SERVICE BENCHMARKS:")
             for fidelity, result in self.results["simulation_benchmarks"].items():
@@ -370,7 +370,7 @@ class PerformanceBenchmark:
                 else:
                     logger.error(f"  {fidelity:12}: FAILED")
 
-        # MILP benchmarks,
+        # MILP benchmarks
         if self.results.get("milp_benchmarks"):
             logger.info("\nMILP SOLVER BENCHMARKS:")
             for scenario, result in self.results["milp_benchmarks"].items():
@@ -383,12 +383,12 @@ class PerformanceBenchmark:
                 else:
                     logger.error(f"  {scenario:15}: FAILED")
 
-            # Warm start improvement,
+            # Warm start improvement
             if "warm_start_improvement" in self.results["milp_benchmarks"]:
                 improvement = self.results["milp_benchmarks"]["warm_start_improvement"]
                 logger.info(f"\nWarm-start improvement: {improvement['solve_time_improvement_percent']:.1f}% faster")
 
-        # Memory benchmarks,
+        # Memory benchmarks
         if self.results.get("memory_benchmarks"):
             logger.info("\nMEMORY USAGE BENCHMARKS:")
             for scenario, result in self.results["memory_benchmarks"].items():
@@ -418,7 +418,7 @@ def main() -> None:
     # Create benchmark runner
     benchmark = PerformanceBenchmark(output_dir=args.output_dir)
 
-    # Run benchmarks,
+    # Run benchmarks
     benchmark.run_all_benchmarks(
         simulation_only=args.simulation_only,
         milp_only=args.milp_only,

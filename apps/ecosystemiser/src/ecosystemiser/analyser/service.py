@@ -4,9 +4,10 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
+
 from ecosystemiser.analyser.strategies import BaseAnalysis, EconomicAnalysis, SensitivityAnalysis, TechnicalKPIAnalysis
 from ecosystemiser.core.bus import EcoSystemiserEventBus, get_ecosystemiser_event_bus
 from hive_logging import get_logger
@@ -55,7 +56,10 @@ class AnalyserService:
         logger.info(f"Registered analysis strategy: {name}")
 
     def analyse(
-        self, results_path: str, strategies: Optional[list[str]] = None, metadata: Optional[dict[str, Any]] = None,
+        self,
+        results_path: str,
+        strategies: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Execute analysis on simulation results.,
 
@@ -74,17 +78,17 @@ class AnalyserService:
             FileNotFoundError: If results file doesn't exist,
             ValueError: If requested strategy doesn't exist,
         """
-        # Generate analysis ID and start time,
+        # Generate analysis ID and start time
         analysis_id = (f"analysis_{uuid.uuid4().hex[:8]}",)
         start_time = datetime.now()
 
-        # Load simulation results,
+        # Load simulation results
         results_data = self._load_results(results_path)
 
-        # Determine which strategies to run,
+        # Determine which strategies to run
         strategies_to_run = self._get_strategies_to_run(strategies)
 
-        # Publish analysis started event,
+        # Publish analysis started event
         self._publish_analysis_event(
             event_type=EcoSystemiserEventType.ANALYSIS_STARTED,
             analysis_id=analysis_id,
@@ -93,7 +97,7 @@ class AnalyserService:
         )
 
         try:
-            # Execute analysis strategies,
+            # Execute analysis strategies
             analysis_results = (
                 {
                     "metadata": {
@@ -117,14 +121,14 @@ class AnalyserService:
                     (logger.error(f"Error executing strategy {strategy_name}: {e}"),)
                     analysis_results["analyses"][strategy_name] = {"error": str(e), "status": "failed"}
 
-            # Add summary,
+            # Add summary
             analysis_results["summary"] = self._create_summary(analysis_results["analyses"])
 
-            # Calculate execution time,
+            # Calculate execution time
             execution_time = (datetime.now() - start_time).total_seconds()
             analysis_results["metadata"]["execution_time_seconds"] = execution_time
 
-            # Publish analysis completed event,
+            # Publish analysis completed event
             self._publish_analysis_event(
                 event_type=EcoSystemiserEventType.ANALYSIS_COMPLETED,
                 analysis_id=analysis_id,
@@ -138,7 +142,7 @@ class AnalyserService:
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
 
-            # Publish analysis failed event,
+            # Publish analysis failed event
             self._publish_analysis_event(
                 event_type=EcoSystemiserEventType.ANALYSIS_FAILED,
                 analysis_id=analysis_id,
@@ -151,7 +155,9 @@ class AnalyserService:
             raise
 
     def analyse_parametric_study(
-        self, study_results_path: str, metadata: Optional[dict[str, Any]] = None,
+        self,
+        study_results_path: str,
+        metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Analyze results from a parametric study.,
 
@@ -166,14 +172,14 @@ class AnalyserService:
         Returns:
             Dictionary containing parametric study analysis,
         """
-        # Load parametric study results,
+        # Load parametric study results
         study_data = self._load_results(study_results_path)
 
-        # Ensure this is a parametric study result,
+        # Ensure this is a parametric study result
         if "all_results" not in study_data:
             raise ValueError("File does not contain parametric study results")
 
-        # Run appropriate strategies for parametric studies,
+        # Run appropriate strategies for parametric studies
         strategies_for_parametric = ["sensitivity", "economic", "technical_kpi"]
 
         return self.analyse(study_results_path, strategies_for_parametric, metadata)
@@ -202,7 +208,7 @@ class AnalyserService:
         logger.info(f"Loaded results from {results_path}")
         return data
 
-    def _get_strategies_to_run(self, requested: Optional[list[str]] = None) -> list[str]:
+    def _get_strategies_to_run(self, requested: list[str] | None = None) -> list[str]:
         """Determine which strategies to execute.
 
         Args:
@@ -217,7 +223,7 @@ class AnalyserService:
         if requested is None:
             return list(self.strategies.keys())
 
-        # Validate requested strategies,
+        # Validate requested strategies
         for strategy_name in requested:
             if strategy_name not in self.strategies:
                 available = ", ".join(self.strategies.keys())
@@ -242,7 +248,7 @@ class AnalyserService:
             else:
                 summary["successful_analyses"] += 1
 
-                # Extract key metrics based on strategy type,
+                # Extract key metrics based on strategy type
                 if strategy_name == "technical_kpi":
                     for key in ["grid_self_sufficiencyrenewable_fractionsystem_efficiencybattery_cycles"]:
                         if key in results:
@@ -317,7 +323,7 @@ class AnalyserService:
                 duration_seconds=duration_seconds,
             )
 
-            # Publish event using sync publisher,
+            # Publish event using sync publisher
             success = sync_event_publisher.try_publish_analysis_event(analysis_event)
             if not success:
                 logger.debug(f"Could not publish {event_type} event from sync context")

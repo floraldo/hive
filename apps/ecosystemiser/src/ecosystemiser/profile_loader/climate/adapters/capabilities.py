@@ -9,7 +9,6 @@ logger = get_logger(__name__)
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from enum import Enum
-from typing import Dict, List, Tuple
 
 
 class DataFrequency(Enum):
@@ -50,7 +49,7 @@ class SpatialCoverage:
     """Spatial coverage capabilities"""
 
     global_coverage: bool = True
-    regions: Optional[List[str]] = None  # Specific regions if not global
+    regions: Optional[list[str]] = None  # Specific regions if not global
     resolution_km: float | None = None  # Spatial resolution
     station_based: bool = False  # Uses weather stations
     grid_based: bool = True  # Uses gridded data
@@ -92,12 +91,12 @@ class AdapterCapabilities:
     spatial: SpatialCoverage
 
     # Variables (canonical names)
-    supported_variables: List[str]
-    primary_variables: List[str]  # Variables this source is best for
-    derived_variables: List[str] = field(default_factory=list)  # Can calculate
+    supported_variables: list[str]
+    primary_variables: list[str]  # Variables this source is best for
+    derived_variables: list[str] = field(default_factory=list)  # Can calculate
 
     # Data characteristics
-    supported_frequencies: List[DataFrequency] = field(default_factory=list)
+    supported_frequencies: list[DataFrequency] = field(default_factory=list)
     native_frequency: DataFrequency | None = None
 
     # Access requirements
@@ -115,17 +114,17 @@ class AdapterCapabilities:
     async_requests_required: bool = False
 
     # Special features
-    special_features: List[str] = field(default_factory=list)
-    data_products: List[str] = field(default_factory=list)  # TMY, statistics, etc.
+    special_features: list[str] = field(default_factory=list)
+    data_products: list[str] = field(default_factory=list)  # TMY, statistics, etc.
 
     def can_fulfill_request(
         self,
-        variables: List[str],
+        variables: list[str],
         start_date: datetime,
         end_date: datetime,
         frequency: str,
-        location: Tuple[float, float],
-    ) -> Tuple[bool, List[str]]:
+        location: tuple[float, float],
+    ) -> tuple[bool, list[str]]:
         """
         Check if this adapter can fulfill a request.
 
@@ -134,12 +133,12 @@ class AdapterCapabilities:
         """
         reasons = []
 
-        # Check variables,
+        # Check variables
         unsupported_vars = set(variables) - set(self.supported_variables)
         if unsupported_vars:
             reasons.append(f"Unsupported variables: {unsupported_vars}")
 
-        # Check temporal coverage,
+        # Check temporal coverage
         if self.temporal.start_date and start_date.date() < self.temporal.start_date:
             reasons.append(f"Data starts from {self.temporal.start_date}")
 
@@ -162,7 +161,7 @@ class AdapterCapabilities:
             if freq_map[frequency] not in self.supported_frequencies:
                 reasons.append(f"Frequency {frequency} not supported")
 
-        # Check request size limits,
+        # Check request size limits
         if self.max_request_days:
             request_days = (end_date - start_date).days
             if request_days > self.max_request_days:
@@ -170,7 +169,7 @@ class AdapterCapabilities:
 
         return (len(reasons) == 0, reasons)
 
-    def get_capability_summary(self) -> Dict:
+    def get_capability_summary(self) -> dict:
         """Get a summary of capabilities for UI display"""
         return (
             {
@@ -183,7 +182,7 @@ class AdapterCapabilities:
                 },
                 "variables": {
                     "total": len(self.supported_variables),
-                    "primary": self.primary_variables[:5],  # Top 5,
+                    "primary": self.primary_variables[:5],  # Top 5
                     "categories": self._categorize_variables(),
                 },
                 "frequencies": [f.value for f in self.supported_frequencies],
@@ -193,7 +192,7 @@ class AdapterCapabilities:
             },
         )
 
-    def _categorize_variables(self) -> Dict[str, int]:
+    def _categorize_variables(self) -> dict[str, int]:
         """Categorize variables by type"""
         categories = ({"temperature": 0, "solar": 0, "wind": 0, "moisture": 0, "pressure": 0, "other": 0},)
 
@@ -213,7 +212,7 @@ class AdapterCapabilities:
 
         return {k: v for k, v in categories.items() if v > 0}
 
-    def _get_limitations(self) -> List[str]:
+    def _get_limitations(self) -> list[str]:
         """Get list of key limitations"""
         limits = []
 
@@ -236,7 +235,7 @@ class AdapterCapabilities:
         return limits
 
 
-def compare_capabilities(adapters: List[AdapterCapabilities], variables: List[str], period: Dict) -> Dict[str, Dict]:
+def compare_capabilities(adapters: list[AdapterCapabilities], variables: list[str], period: dict) -> dict[str, dict]:
     """
     Compare multiple adapters for a specific request.,
 
@@ -269,7 +268,7 @@ def compare_capabilities(adapters: List[AdapterCapabilities], variables: List[st
         details["quality_score"] = quality_points
         score += quality_points
 
-        # Penalize limitations,
+        # Penalize limitations
         if adapter.requires_subscription:
             score -= 30
         if adapter.free_tier_limits:

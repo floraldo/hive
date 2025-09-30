@@ -13,7 +13,7 @@ by specific profile types (climate, demand, etc.).
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 from pydantic import BaseModel, Field, validator
@@ -88,11 +88,11 @@ class BaseProfileRequest(BaseModel):
         if not isinstance(v, dict):
             raise ValueError("Period must be a dictionary")
 
-        # Import here to avoid circular imports,
+        # Import here to avoid circular imports
         from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
         try:
-            # Validate by attempting to normalize,
+            # Validate by attempting to normalize
             DateTimeProcessor.normalize_period(v)
             return v  # Return original for now, normalization happens at processing time
         except Exception as e:
@@ -104,7 +104,7 @@ class BaseProfileRequest(BaseModel):
         if v is None:
             return v
 
-        # Import here to avoid circular imports,
+        # Import here to avoid circular imports
         from ecosystemiser.profile_loader.shared.datetime_utils import DateTimeProcessor
 
         try:
@@ -180,7 +180,7 @@ class BaseProfileResponse(BaseModel):
 
     # Metadata and manifest
     metadata: dict[str, Any] = Field(default_factory=dict)
-    manifest: Optional[dict[str, Any]] = None
+    manifest: dict[str, Any] | None = None
 
     # Timing information
     processing_time_ms: int | None = None

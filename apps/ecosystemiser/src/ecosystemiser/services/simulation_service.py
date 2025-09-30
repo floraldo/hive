@@ -80,7 +80,7 @@ class SimulationService:
         """
         logger.info(f"Starting simulation: {config.simulation_id}")
 
-        # Check if this is a staged simulation,
+        # Check if this is a staged simulation
         if config.stages:
             return self._run_staged_simulation(config)
 
@@ -137,14 +137,14 @@ class SimulationService:
             # Load base profiles once
             base_profiles = self._load_profiles(config)
 
-            # Execute each stage sequentially,
+            # Execute each stage sequentially
             for stage_idx, stage in enumerate(config.stages):
                 logger.info(f"Executing stage {stage_idx + 1}/{len(config.stages)}: {stage.stage_name}")
 
                 # Prepare profiles for this stage
                 stage_profiles = base_profiles.copy()
 
-                # Add inputs from previous stages,
+                # Add inputs from previous stages
                 if stage.inputs_from_stage:
                     for input_spec in stage.inputs_from_stage:
                         from_stage = input_spec.get("from_stage")
@@ -165,28 +165,28 @@ class SimulationService:
                     simulation_id=f"{config.simulation_id}_{stage.stage_name}",
                     system_config_path=stage.system_config_path,
                     solver_type=stage.solver_type,
-                    solver_config=config.solver_config,  # Use global solver config,
+                    solver_config=config.solver_config,  # Use global solver config
                     output_config=config.output_config
                 )
 
-                # Build system for this stage,
+                # Build system for this stage
                 stage_system = self._build_system(stage_config, stage_profiles)
 
-                # Run solver for this stage,
+                # Run solver for this stage
                 stage_solver_result = self._run_solver(stage_system, stage_config)
 
-                # Extract outputs to pass to next stage,
+                # Extract outputs to pass to next stage
                 if stage.outputs_to_pass:
                     for output_spec in stage.outputs_to_pass:
                         component_name = output_spec.get("component")
                         attribute = output_spec.get("attribute")
                         as_profile_name = output_spec.get("as_profile_name")
 
-                        # Extract the specified output from the component,
+                        # Extract the specified output from the component
                         if component_name in stage_system.components:
                             comp = stage_system.components[component_name]
 
-                            # Try to extract the attribute,
+                            # Try to extract the attribute
                             if hasattr(comp, attribute):
                                 profile_data = getattr(comp, attribute)
                             elif "flows" in dir(comp) and attribute in comp.flows.get("sink", {}):
@@ -207,7 +207,7 @@ class SimulationService:
                 for key, value in stage_kpis.items():
                     aggregated_kpis[f"{stage.stage_name}_{key}"] = value
 
-                # Store stage results,
+                # Store stage results
                 stage_results.append(
                     {
                         "stage_name": stage.stage_name,
@@ -216,7 +216,7 @@ class SimulationService:
                     }
                 )
 
-                # Save stage results,
+                # Save stage results
                 self._save_results(stage_system, stage_config, stage_solver_result)
 
             # Aggregate final results
@@ -250,7 +250,7 @@ class SimulationService:
         """
         profiles = {}
 
-        # Load climate profiles if configured,
+        # Load climate profiles if configured
         if config.climate_input:
             try:
                 climate_request = ClimateRequest(**config.climate_input)
@@ -260,7 +260,7 @@ class SimulationService:
             except Exception as e:
                 logger.warning(f"Could not load climate profiles: {e}")
 
-        # Load demand profiles if configured,
+        # Load demand profiles if configured
         if config.demand_input:
             try:
                 from ecosystemiser.profile_loader.demand.file_adapter import (
@@ -291,7 +291,7 @@ class SimulationService:
         # Build system
         system = builder.build()
 
-        # Assign profiles to components,
+        # Assign profiles to components
         builder.assign_profiles(system, profiles)
 
         logger.info(f"Built system with {len(system.components)} components"),
@@ -310,7 +310,7 @@ class SimulationService:
         # Get solver from factory
         solver = SolverFactory.get_solver(config.solver_type, system, config.solver_config)
 
-        # Run solver,
+        # Run solver
         logger.info(f"Running {config.solver_type} solver")
         result = solver.solve()
 
@@ -361,7 +361,7 @@ class SimulationService:
         import numpy as np
         kpis = {}
 
-        # Calculate total energy from grid,
+        # Calculate total energy from grid
         for comp in system.components.values():
             if comp.type == "transmission" and comp.medium == "electricity":
                 if "P_draw" in comp.flows.get("source", {}):
@@ -381,7 +381,7 @@ class SimulationService:
                 total_renewable += np.sum(comp.profile)
         kpis["total_renewable_kwh"] = float(total_renewable)
 
-        # Calculate self-consumption rate,
+        # Calculate self-consumption rate
         if "total_grid_export_kwh" in kpis and total_renewable > 0:
             self_consumed = total_renewable - kpis["total_grid_export_kwh"]
             kpis["self_consumption_rate"] = float(self_consumed / total_renewable)
@@ -427,11 +427,11 @@ class SimulationService:
         """
         from datetime import datetime
 
-        # Load configuration,
+        # Load configuration
         with open(config_path, "r") as f:
             config_data = yaml.safe_load(f)
 
-        # Create simulation configuration,
+        # Create simulation configuration
         sim_config = SimulationConfig(
             simulation_id=f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             system_config_path=str(config_path)
@@ -443,7 +443,7 @@ class SimulationService:
             }
         )
 
-        # Run simulation,
+        # Run simulation
         return self.run_simulation(sim_config)
 
     def validate_system_config(self, config_path: Path) -> Dict[str, Any]:
@@ -465,7 +465,7 @@ class SimulationService:
             builder = SystemBuilder(config_path, self.component_repo)
             system = builder.build()
 
-            # Return validation result,
+            # Return validation result
             return {
                 "valid": True,
                 "system_id": getattr(system, "system_id", "Unknown")

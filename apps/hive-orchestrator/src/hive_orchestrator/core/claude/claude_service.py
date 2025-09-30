@@ -2,24 +2,24 @@
 Centralized Claude Service
 Manages all Claude API interactions with rate limiting, caching, and monitoring
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import asyncio
 import hashlib
 import json
 import time
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime
 from threading import Lock
-from typing import Any, Callable, Dict, List
+from typing import Any
 
-from hive_config import get_config
 from hive_errors import ErrorReporter
 from hive_logging import get_logger
 
-from .bridge import BaseClaludeBridge, ClaudeBridgeConfig
+from .bridge import ClaudeBridgeConfig
 from .exceptions import ClaudeRateLimitError, ClaudeServiceError
 from .planner_bridge import ClaudePlannerBridge
 from .reviewer_bridge import ClaudeReviewerBridge
@@ -53,7 +53,7 @@ class ClaudeMetrics:
             return 0.0
         return (self.successful_calls / self.total_calls) * 100
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert metrics to dictionary"""
         return {
             "total_calls": self.total_calls,
@@ -63,7 +63,7 @@ class ClaudeMetrics:
             "total_tokens": self.total_tokens,
             "average_latency_ms": self.average_latency_ms,
             "success_rate": self.success_rate,
-            "rate_limited": self.rate_limited
+            "rate_limited": self.rate_limited,
         }
 
 
@@ -171,7 +171,7 @@ class ClaudeService:
         config: ClaudeBridgeConfig | None = None,
         rate_config: RateLimitConfig | None = None,
         cache_ttl: int | None = None,
-        claude_config: Optional[Dict[str, Any]] = None
+        claude_config: Optional[dict[str, Any]] = None,
     ):
         """Initialize Claude service
 
@@ -181,9 +181,9 @@ class ClaudeService:
             cache_ttl: Cache TTL in seconds,
             claude_config: Full Claude configuration dictionary,
         """
-        # Use provided claude_config if available, otherwise use defaults,
+        # Use provided claude_config if available, otherwise use defaults
         if claude_config is None:
-            claude_config = {,
+            claude_config = {
                 "mock_mode": False,
                 "timeout": 30,
                 "max_retries": 3,
@@ -198,19 +198,19 @@ class ClaudeService:
             config = ClaudeBridgeConfig(
                 mock_mode=claude_config.get("mock_mode", False),
                 timeout=claude_config.get("timeout", 30),
-                max_retries=claude_config.get("max_retries", 3)
+                max_retries=claude_config.get("max_retries", 3),
             )
 
         if rate_config is None:
             rate_config = RateLimitConfig(
                 max_calls_per_minute=claude_config.get("rate_limit_per_minute", 10),
                 max_calls_per_hour=claude_config.get("rate_limit_per_hour", 100),
-                burst_size=claude_config.get("burst_size", 5)
+                burst_size=claude_config.get("burst_size", 5),
             )
 
-        self.config = config,
+        self.config = (config,)
         self.rate_limiter = RateLimiter(rate_config)
-        self.cache: Dict[str, CacheEntry] = {}
+        self.cache: dict[str, CacheEntry] = {}
         self.cache_ttl = cache_ttl if cache_ttl is not None else claude_config.get("cache_ttl", 300)
         self.metrics = ClaudeMetrics()
         self.error_reporter = ErrorReporter()
@@ -220,8 +220,8 @@ class ClaudeService:
         self.reviewer_bridge = ClaudeReviewerBridge(config=self.config)
 
         # Callback hooks for monitoring,
-        self.pre_call_hooks: List[Callable] = []
-        self.post_call_hooks: List[Callable] = []
+        self.pre_call_hooks: list[Callable] = []
+        self.post_call_hooks: list[Callable] = []
 
         logger.info("Claude Service initialized with rate limiting and caching")
 
@@ -277,7 +277,7 @@ class ClaudeService:
 
             if wait_time > 0:
                 logger.info(f"Rate limited, waiting {wait_time:.1f} seconds")
-                await asyncio.sleep(min(wait_time, 1.0))
+                time.sleep(min(wait_time, 1.0))
                 self.metrics.rate_limited += 1
 
         return True
@@ -345,9 +345,7 @@ class ClaudeService:
             self.metrics.failed_calls += 1
 
             error = ClaudeServiceError(
-                message=f"Claude operation {operation} failed",
-                operation=operation,
-                original_error=e
+                message=f"Claude operation {operation} failed", operation=operation, original_error=e
             )
             self.error_reporter.report_error(error)
 
@@ -365,11 +363,11 @@ class ClaudeService:
     def generate_execution_plan(
         self,
         task_description: str,
-        context_data: Optional[Dict[str, Any]] = None,
+        context_data: Optional[dict[str, Any]] = None,
         priority: int = 1,
         requestor: str | None = None,
-        use_cache: bool = True
-    ) -> Dict[str, Any]:
+        use_cache: bool = True,
+    ) -> dict[str, Any]:
         """Generate execution plan for a task
 
         Args:
@@ -389,7 +387,7 @@ class ClaudeService:
             task_description=task_description,
             context_data=context_data or {},
             priority=priority,
-            requestor=requestor
+            requestor=requestor,
         )
 
     # Review Operations
@@ -398,12 +396,12 @@ class ClaudeService:
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str]
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
+        code_files: dict[str, str],
+        test_results: Optional[dict[str, Any]] = None,
+        objective_analysis: Optional[dict[str, Any]] = None,
         transcript: str | None = None,
         use_cache: bool = False,  # Don't cache reviews by default
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Review code implementation
 
         Args:
@@ -427,7 +425,7 @@ class ClaudeService:
             code_files=code_files,
             test_results=test_results,
             objective_analysis=objective_analysis,
-            transcript=transcript
+            transcript=transcript,
         )
 
     # Async Support
@@ -435,33 +433,27 @@ class ClaudeService:
     async def generate_execution_plan_async(
         self,
         task_description: str,
-        context_data: Optional[Dict[str, Any]] = None,
+        context_data: Optional[dict[str, Any]] = None,
         priority: int = 1,
         requestor: str | None = None,
-        use_cache: bool = True
-    ) -> Dict[str, Any]:
+        use_cache: bool = True,
+    ) -> dict[str, Any]:
         """Async version of generate_execution_plan"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
-            None,
-            self.generate_execution_plan,
-            task_description,
-            context_data,
-            priority,
-            requestor,
-            use_cache
+            None, self.generate_execution_plan, task_description, context_data, priority, requestor, use_cache
         )
 
     async def review_code_async(
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str]
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
+        code_files: dict[str, str],
+        test_results: Optional[dict[str, Any]] = None,
+        objective_analysis: Optional[dict[str, Any]] = None,
         transcript: str | None = None,
-        use_cache: bool = False
-    ) -> Dict[str, Any]:
+        use_cache: bool = False,
+    ) -> dict[str, Any]:
         """Async version of review_code"""
         loop = asyncio.get_event_loop()
         return await loop.run_in_executor(
@@ -473,12 +465,12 @@ class ClaudeService:
             test_results,
             objective_analysis,
             transcript,
-            use_cache
+            use_cache,
         )
 
     # Monitoring and Management
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get service metrics"""
         return self.metrics.to_dict()
 
@@ -506,8 +498,7 @@ _service: ClaudeService | None = None
 
 
 def get_claude_service(
-    config: ClaudeBridgeConfig | None = None,
-    rate_config: RateLimitConfig | None = None
+    config: ClaudeBridgeConfig | None = None, rate_config: RateLimitConfig | None = None
 ) -> ClaudeService:
     """Get or create the global Claude service
 
@@ -516,9 +507,9 @@ def get_claude_service(
         rate_config: Rate limiting configuration
 
     Returns:
-        ClaudeService singleton instance,
+        ClaudeService singleton instance
     """
-    global _service,
+    global _service
     if _service is None:
         _service = ClaudeService(config=config, rate_config=rate_config)
     return _service

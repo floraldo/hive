@@ -9,6 +9,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities,
@@ -19,7 +20,6 @@ from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     TemporalCoverage,
 )
 from ecosystemiser.profile_loader.climate.adapters.errors import DataParseError
-
 from hive_logging import get_logger
 
 # Import QC classes
@@ -90,102 +90,102 @@ class FileEPWAdapter(BaseAdapter):
         "Hour",
         "Minute",
         "Data Source and Uncertainty Flags",
-        "Dry Bulb Temperature",  # C,
-        "Dew Point Temperature",  # C,
-        "Relative Humidity",  # %,
-        "Atmospheric Station Pressure",  # Pa,
-        "Extraterrestrial Horizontal Radiation",  # Wh/m2,
-        "Extraterrestrial Direct Normal Radiation",  # Wh/m2,
-        "Horizontal Infrared Radiation Intensity",  # Wh/m2,
-        "Global Horizontal Radiation",  # Wh/m2,
-        "Direct Normal Radiation",  # Wh/m2,
-        "Diffuse Horizontal Radiation",  # Wh/m2,
-        "Global Horizontal Illuminance",  # lux,
-        "Direct Normal Illuminance",  # lux,
-        "Diffuse Horizontal Illuminance",  # lux,
-        "Zenith Luminance",  # Cd/m2,
-        "Wind Direction",  # degrees,
-        "Wind Speed",  # m/s,
-        "Total Sky Cover",  # tenths,
-        "Opaque Sky Cover",  # tenths,
-        "Visibility",  # km,
-        "Ceiling Height",  # m,
+        "Dry Bulb Temperature",  # C
+        "Dew Point Temperature",  # C
+        "Relative Humidity",  # %
+        "Atmospheric Station Pressure",  # Pa
+        "Extraterrestrial Horizontal Radiation",  # Wh/m2
+        "Extraterrestrial Direct Normal Radiation",  # Wh/m2
+        "Horizontal Infrared Radiation Intensity",  # Wh/m2
+        "Global Horizontal Radiation",  # Wh/m2
+        "Direct Normal Radiation",  # Wh/m2
+        "Diffuse Horizontal Radiation",  # Wh/m2
+        "Global Horizontal Illuminance",  # lux
+        "Direct Normal Illuminance",  # lux
+        "Diffuse Horizontal Illuminance",  # lux
+        "Zenith Luminance",  # Cd/m2
+        "Wind Direction",  # degrees
+        "Wind Speed",  # m/s
+        "Total Sky Cover",  # tenths
+        "Opaque Sky Cover",  # tenths
+        "Visibility",  # km
+        "Ceiling Height",  # m
         "Present Weather Observation",
         "Present Weather Codes",
-        "Precipitable Water",  # mm,
-        "Aerosol Optical Depth",  # thousandths,
-        "Snow Depth",  # cm,
-        "Days Since Last Snowfall",  # days,
-        "Albedo",  # hundredths,
-        "Liquid Precipitation Depth",  # mm,
+        "Precipitable Water",  # mm
+        "Aerosol Optical Depth",  # thousandths
+        "Snow Depth",  # cm
+        "Days Since Last Snowfall",  # days
+        "Albedo",  # hundredths
+        "Liquid Precipitation Depth",  # mm
         "Liquid Precipitation Quantity",  # hr
     ]
 
     # Comprehensive mapping from canonical names to EPW column indices
     # Based on EPW Data Dictionary and EnergyPlus documentation
     VARIABLE_MAPPING = {
-        # Temperature parameters (degC),
-        "temp_air": 6,  # Dry Bulb Temperature (degC),
+        # Temperature parameters (degC)
+        "temp_air": 6,  # Dry Bulb Temperature (degC)
         "dewpoint": 7,  # Dew Point Temperature (degC)
-        # Humidity parameters,
-        "rel_humidity": 8,  # Relative Humidity (%),
+        # Humidity parameters
+        "rel_humidity": 8,  # Relative Humidity (%)
         "precipitable_water": 28,  # Precipitable Water (mm)
-        # Pressure parameters,
+        # Pressure parameters
         "pressure": 9,  # Atmospheric Station Pressure (Pa)
-        # Solar radiation parameters (Wh/m2),
-        "extraterrestrial_horizontal": 10,  # Extraterrestrial Horizontal Radiation,
-        "extraterrestrial_normal": 11,  # Extraterrestrial Direct Normal Radiation,
-        "ghi": 13,  # Global Horizontal Radiation,
-        "dni": 14,  # Direct Normal Radiation,
-        "dhi": 15,  # Diffuse Horizontal Radiation,
-        # Longwave radiation parameters,
+        # Solar radiation parameters (Wh/m2)
+        "extraterrestrial_horizontal": 10,  # Extraterrestrial Horizontal Radiation
+        "extraterrestrial_normal": 11,  # Extraterrestrial Direct Normal Radiation
+        "ghi": 13,  # Global Horizontal Radiation
+        "dni": 14,  # Direct Normal Radiation
+        "dhi": 15,  # Diffuse Horizontal Radiation
+        # Longwave radiation parameters
         "horizontal_infrared": 12,  # Horizontal Infrared Radiation Intensity (Wh/m2)
-        # Illuminance parameters (lux and Cd/m2),
-        "global_illuminance": 16,  # Global Horizontal Illuminance (lux),
-        "direct_illuminance": 17,  # Direct Normal Illuminance (lux),
-        "diffuse_illuminance": 18,  # Diffuse Horizontal Illuminance (lux),
+        # Illuminance parameters (lux and Cd/m2)
+        "global_illuminance": 16,  # Global Horizontal Illuminance (lux)
+        "direct_illuminance": 17,  # Direct Normal Illuminance (lux)
+        "diffuse_illuminance": 18,  # Diffuse Horizontal Illuminance (lux)
         "zenith_luminance": 19,  # Zenith Luminance (Cd/m2)
-        # Wind parameters,
-        "wind_dir": 20,  # Wind Direction (degrees),
+        # Wind parameters
+        "wind_dir": 20,  # Wind Direction (degrees)
         "wind_speed": 21,  # Wind Speed (m/s)
-        # Cloud and sky parameters,
-        "cloud_cover": 22,  # Total Sky Cover (tenths),
+        # Cloud and sky parameters
+        "cloud_cover": 22,  # Total Sky Cover (tenths)
         "opaque_sky_cover": 23,  # Opaque Sky Cover (tenths)
-        # Visibility and atmospheric parameters,
-        "visibility": 24,  # Visibility (km),
-        "ceiling_height": 25,  # Ceiling Height (m),
+        # Visibility and atmospheric parameters
+        "visibility": 24,  # Visibility (km)
+        "ceiling_height": 25,  # Ceiling Height (m)
         "aerosol_optical_depth": 29,  # Aerosol Optical Depth (thousandths)
-        # Weather condition parameters,
-        "present_weather_obs": 26,  # Present Weather Observation (code),
+        # Weather condition parameters
+        "present_weather_obs": 26,  # Present Weather Observation (code)
         "present_weather_codes": 27,  # Present Weather Codes (codes)
-        # Precipitation and snow parameters,
-        "precip": 33,  # Liquid Precipitation Depth (mm),
-        "precip_quantity": 34,  # Liquid Precipitation Quantity (hr),
-        "snow_depth": 30,  # Snow Depth (cm),
+        # Precipitation and snow parameters
+        "precip": 33,  # Liquid Precipitation Depth (mm)
+        "precip_quantity": 34,  # Liquid Precipitation Quantity (hr)
+        "snow_depth": 30,  # Snow Depth (cm)
         "days_since_snow": 31,  # Days Since Last Snowfall (days)
-        # Surface parameters,
+        # Surface parameters
         "albedo": 32,  # Albedo (hundredths)
-        # Time parameters (for reference),
-        "year": 0,  # Year,
-        "month": 1,  # Month (1-12),
-        "day": 2,  # Day (1-31),
-        "hour": 3,  # Hour (1-24),
+        # Time parameters (for reference)
+        "year": 0,  # Year
+        "month": 1,  # Month (1-12)
+        "day": 2,  # Day (1-31)
+        "hour": 3,  # Hour (1-24)
         "minute": 4,  # Minute (0-59)
     }
 
     # EPW data quality and range validation
     EPW_DATA_RANGES = {
-        "temp_air": (-70, 70, 99.9),  # (min, max, missing_value),
-        "dewpoint": (-70, 70, 99.9),  # (min, max, missing_value),
-        "rel_humidity": (0, 110, 999),  # (min, max, missing_value),
-        "pressure": (31000, 120000, 999999),  # (min, max, missing_value),
-        "ghi": (0, 9999, 9999),  # (min, max, missing_value),
-        "dni": (0, 9999, 9999),  # (min, max, missing_value),
-        "dhi": (0, 9999, 9999),  # (min, max, missing_value),
-        "wind_speed": (0, 40, 999),  # (min, max, missing_value),
-        "wind_dir": (0, 360, 999),  # (min, max, missing_value),
-        "cloud_cover": (0, 10, 99),  # (min, max, missing_value),
-        "visibility": (0, 9999, 9999),  # (min, max, missing_value),
+        "temp_air": (-70, 70, 99.9),  # (min, max, missing_value)
+        "dewpoint": (-70, 70, 99.9),  # (min, max, missing_value)
+        "rel_humidity": (0, 110, 999),  # (min, max, missing_value)
+        "pressure": (31000, 120000, 999999),  # (min, max, missing_value)
+        "ghi": (0, 9999, 9999),  # (min, max, missing_value)
+        "dni": (0, 9999, 9999),  # (min, max, missing_value)
+        "dhi": (0, 9999, 9999),  # (min, max, missing_value)
+        "wind_speed": (0, 40, 999),  # (min, max, missing_value)
+        "wind_dir": (0, 360, 999),  # (min, max, missing_value)
+        "cloud_cover": (0, 10, 99),  # (min, max, missing_value)
+        "visibility": (0, 9999, 9999),  # (min, max, missing_value)
         "snow_depth": (0, 150, 999),  # (min, max, missing_value)
     }
 
@@ -232,19 +232,23 @@ class FileEPWAdapter(BaseAdapter):
 
         # Configure caching (files don't change)
         cache_config = CacheConfig(
-            memory_ttl=3600,  # 1 hour,
-            disk_ttl=86400,  # 24 hours,
+            memory_ttl=3600,  # 1 hour
+            disk_ttl=86400,  # 24 hours
         )
 
         super().__init__(name=self.ADAPTER_NAME, rate_limit_config=rate_config, cache_config=cache_config)
 
     async def _fetch_raw_async(
-        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs,
+        self,
+        location: tuple[float, float],
+        variables: list[str],
+        period: dict,
+        **kwargs,
     ) -> Any | None:
         """Fetch raw data from EPW file"""
         lat, lon = location
 
-        # Get file path from period or kwargs,
+        # Get file path from period or kwargs
         if "file" in period:
             file_path = (period["file"],)
             epw_data = self._read_epw_file(file_path)
@@ -254,26 +258,29 @@ class FileEPWAdapter(BaseAdapter):
         else:
             raise ValueError("EPW adapter requires 'file' or 'url' in period dict")
 
-        # Parse EPW data to DataFrame,
+        # Parse EPW data to DataFrame
         df = self._parse_epw_data(epw_data)
 
-        # Filter by date range if specified,
+        # Filter by date range if specified
         if "year" in period:
             df = self._filter_by_period(df, period)
 
         return df
 
     async def _transform_data_async(
-        self, raw_data: Any, location: tuple[float, float], variables: list[str],
+        self,
+        raw_data: Any,
+        location: tuple[float, float],
+        variables: list[str],
     ) -> xr.Dataset:
         """Transform EPW DataFrame to xarray Dataset"""
         lat, lon = (location,)
         df = raw_data
 
-        # Convert to xarray Dataset,
+        # Convert to xarray Dataset
         ds = self._dataframe_to_xarray(df, variables, lat, lon)
 
-        # Add metadata,
+        # Add metadata
         ds.attrs.update({"source": "EPW", "adapter_version": self.ADAPTER_VERSION, "latitude": lat, "longitude": lon})
 
         return ds
@@ -291,14 +298,14 @@ class FileEPWAdapter(BaseAdapter):
         """
         Import climate data from EPW file.
 
-        Note: The file_path should be provided in the period dict as:,
+        Note: The file_path should be provided in the period dict as:
         period = {"file": "/path/to/file.epw"} or {"url": "http://..."},
         """
 
-        # Use base class fetch method,
+        # Use base class fetch method
         ds = await super().fetch_async(location=(lat, lon), variables=variables, period=period, resolution=resolution)
 
-        # Resample if needed,
+        # Resample if needed
         if resolution != "1H":
             ds = self._resample_data(ds, resolution)
 
@@ -331,7 +338,7 @@ class FileEPWAdapter(BaseAdapter):
         try:
             lines = epw_content.strip().split("\n")
 
-            # Validate minimum file length,
+            # Validate minimum file length
             if len(lines) < 9:  # At least 8 header lines + 1 data line
                 raise DataParseError(
                     "EPW file too short - missing header or data rows",
@@ -413,7 +420,7 @@ class FileEPWAdapter(BaseAdapter):
                 month = (df_time.loc[idx, "Month"],)
                 day = df_time.loc[idx, "Day"]
 
-                # Handle leap year for February,
+                # Handle leap year for February
                 if month == 2 and year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
                     max_days = 29
                 else:
@@ -437,7 +444,7 @@ class FileEPWAdapter(BaseAdapter):
                     details={"error": str(e), "sample_dates": df_time.head().to_dict()},
                 )
 
-            # Handle minute field (usually 0 or 60),
+            # Handle minute field (usually 0 or 60)
             df["datetime"] += pd.to_timedelta(df["Minute"] - 60, unit="m")
 
             df.set_index("datetime", inplace=True)
@@ -459,7 +466,7 @@ class FileEPWAdapter(BaseAdapter):
             # Re-raise our custom errors
             raise
         except Exception as e:
-            # Catch any other unexpected errors,
+            # Catch any other unexpected errors
             raise DataParseError(
                 f"Failed to parse EPW file: {str(e)}",
                 field="file_parsing",
@@ -473,8 +480,8 @@ class FileEPWAdapter(BaseAdapter):
             year = period["year"]
 
             # EPW files often contain typical year data
-            # Update year to requested year if it's a TMY file,
-            if df.index.year.unique()[0] < 2000:  # Likely TMY data,
+            # Update year to requested year if it's a TMY file
+            if df.index.year.unique()[0] < 2000:  # Likely TMY data
                 df.index = df.index.map(lambda x: x.replace(year=year))
 
             # Filter by year
@@ -495,7 +502,7 @@ class FileEPWAdapter(BaseAdapter):
         ds.attrs["longitude"] = lon
         ds.attrs["source"] = "EPW"
 
-        # Map variables,
+        # Map variables
         for canonical_name in variables:
             if canonical_name in self.VARIABLE_MAPPING:
                 col_idx = self.VARIABLE_MAPPING[canonical_name]
@@ -511,9 +518,11 @@ class FileEPWAdapter(BaseAdapter):
                     # Unit conversions
                     data = self._convert_units(data, canonical_name)
 
-                    # Create DataArray,
+                    # Create DataArray
                     ds[canonical_name] = xr.DataArray(
-                        data, coords={"time": df.index}, attrs=self._get_variable_attrs(canonical_name),
+                        data,
+                        coords={"time": df.index},
+                        attrs=self._get_variable_attrs(canonical_name),
                     )
                 else:
                     logger.warning(f"Variable {canonical_name} not found in EPW file")
@@ -551,8 +560,8 @@ class FileEPWAdapter(BaseAdapter):
 
         conversions = (
             {
-                "cloud_cover": lambda x: x * 10,  # tenths to percentage,
-                "albedo": lambda x: x / 100,  # hundredths to fraction,
+                "cloud_cover": lambda x: x * 10,  # tenths to percentage
+                "albedo": lambda x: x / 100,  # hundredths to fraction
                 "snow": lambda x: x * 10,  # cm to mm
             },
         )
@@ -574,10 +583,10 @@ class FileEPWAdapter(BaseAdapter):
             resampled = {}
             for var in ds.data_vars:
                 if var in ["ghi", "dni", "dhi", "precip"]:
-                    # Sum for radiation and precipitation,
+                    # Sum for radiation and precipitation
                     resampled[var] = ds[var].resample(time=freq).sum()
                 else:
-                    # Mean for other variables,
+                    # Mean for other variables
                     resampled[var] = ds[var].resample(time=freq).mean()
 
             # Create new dataset
@@ -594,13 +603,13 @@ class FileEPWAdapter(BaseAdapter):
                 "dewpoint": "degC",
                 "rel_humidity": "%",
                 "pressure": "Pa",
-                "ghi": "W/m2",  # EPW hourly energy represents average power,
+                "ghi": "W/m2",  # EPW hourly energy represents average power
                 "dni": "W/m2",
                 "dhi": "W/m2",
                 "wind_dir": "degrees",
                 "wind_speed": "m/s",
                 "cloud_cover": "%",
-                "precip": "mm/h",  # EPW: accumulated liquid precip depth over preceding hour,
+                "precip": "mm/h",  # EPW: accumulated liquid precip depth over preceding hour
                 "snow": "mm",
                 "visibility": "km",
                 "albedo": "fraction",
@@ -618,20 +627,20 @@ class FileEPWAdapter(BaseAdapter):
             version=self.ADAPTER_VERSION,
             description="EnergyPlus Weather file format for building energy simulation",
             temporal=TemporalCoverage(
-                start_date=None,  # Depends on file,
-                end_date=None,  # Depends on file,
-                historical_years=None,  # File-specific,
+                start_date=None,  # Depends on file
+                end_date=None,  # Depends on file
+                historical_years=None,  # File-specific
                 forecast_days=0,
                 real_time=False,
                 delay_hours=None,
             ),
             spatial=SpatialCoverage(
-                global_coverage=False,  # Only specific locations,
-                regions=None,  # File-specific,
-                resolution_km=None,  # Point data,
+                global_coverage=False,  # Only specific locations
+                regions=None,  # File-specific
+                resolution_km=None,  # Point data
                 station_based=True,
                 grid_based=False,
-                custom_locations=False,  # Fixed to file location,
+                custom_locations=False,  # Fixed to file location
             ),
             supported_variables=list(self.VARIABLE_MAPPING.keys()),
             primary_variables=[
@@ -645,24 +654,24 @@ class FileEPWAdapter(BaseAdapter):
             ],
             derived_variables=[],
             supported_frequencies=[
-                DataFrequency.HOURLY,  # Native,
+                DataFrequency.HOURLY,  # Native
                 DataFrequency.THREEHOURLY,
                 DataFrequency.DAILY,
                 DataFrequency.MONTHLY,
             ],
             native_frequency=DataFrequency.HOURLY,
-            auth_type=AuthType.FILE,  # Local file or URL,
+            auth_type=AuthType.FILE,  # Local file or URL
             requires_subscription=False,
             free_tier_limits=None,
             quality=QualityFeatures(
-                gap_filling=False,  # Depends on file source,
-                quality_flags=True,  # Data source flags included,
+                gap_filling=False,  # Depends on file source
+                quality_flags=True,  # Data source flags included
                 uncertainty_estimates=False,
                 ensemble_members=False,
                 bias_correction=False,
             ),
-            max_request_days=None,  # Depends on file,
-            max_variables_per_request=35,  # All EPW variables,
+            max_request_days=None,  # Depends on file
+            max_variables_per_request=35,  # All EPW variables
             batch_requests_supported=False,
             async_requests_required=False,
             special_features=[
@@ -716,11 +725,11 @@ class EPWQCProfile:
     def validate_source_specific(self, ds: xr.Dataset, report) -> None:
         """EPW specific validation"""
 
-        # Check for TMY-style processing artifacts,
+        # Check for TMY-style processing artifacts
         if "temp_air" in ds:
             temp_data = ds["temp_air"].values
 
-            # EPW files often show suspiciously smooth temperature profiles,
+            # EPW files often show suspiciously smooth temperature profiles
             if len(temp_data) > 100:
                 # Check for unrealistic smoothness
                 temp_gradient = np.abs(np.diff(temp_data))
@@ -731,8 +740,8 @@ class EPWQCProfile:
                         f"Temperature profile appears over-processed (small_changes={small_changes:.2f}) - typical of some EPW files",
                     )
 
-        # Check for temporal coverage (EPW should be full year),
-        if len(ds.time) < 8000:  # Less than ~11 months of hourly data,
+        # Check for temporal coverage (EPW should be full year)
+        if len(ds.time) < 8000:  # Less than ~11 months of hourly data
             (
                 report.warnings.append(
                     f"EPW file appears incomplete: {len(ds.time)} hours (expected ~8760 for full year)",
@@ -778,11 +787,11 @@ class EPWQCProfile(QCProfile):
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """EPW specific validation"""
 
-        # Check for TMY-style processing artifacts,
+        # Check for TMY-style processing artifacts
         if "temp_air" in ds:
             temp_data = ds["temp_air"].values
 
-            # EPW files often show suspiciously smooth temperature profiles,
+            # EPW files often show suspiciously smooth temperature profiles
             if len(temp_data) > 100:
                 # Check for unrealistic smoothness
                 temp_gradient = np.abs(np.diff(temp_data))

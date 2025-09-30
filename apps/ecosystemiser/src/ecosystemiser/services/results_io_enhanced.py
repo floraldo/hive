@@ -32,9 +32,9 @@ class EnhancedResultsIO:
         Creates directory structure:
         output_dir/
         ├── simulation_runs/{study_id}/{run_id}/
-        │   ├── flows.parquet              # High-res time-series flows,
-        │   ├── components.parquet         # Component states,
-        │   ├── simulation_config.json     # Full simulation configuration,
+        │   ├── flows.parquet              # High-res time-series flows
+        │   ├── components.parquet         # Component states
+        │   ├── simulation_config.json     # Full simulation configuration
         │   └── kpis.json                  # Calculated KPIs and summary
 
         Args:
@@ -78,7 +78,7 @@ class EnhancedResultsIO:
             "timestamp": datetime.now().isoformat(),
             "solver_type": getattr(system, "solver_type", "unknown"),
             "metadata": metadata or {},
-            # Add system configuration if available,
+            # Add system configuration if available
             "system_config": getattr(system, "config", {}),
         }
 
@@ -143,11 +143,11 @@ class EnhancedResultsIO:
             "timestamp": datetime.now().isoformat()
         }
 
-        # Extract component states with enhanced CVXPY handling,
+        # Extract component states with enhanced CVXPY handling
         for comp_name, component in system.components.items():
             comp_data = {"type": component.type, "medium": component.medium}
 
-            # Extract storage levels,
+            # Extract storage levels
             if component.type == "storage" and hasattr(component, "E"):
                 if isinstance(component.E, np.ndarray):
                     comp_data["E"] = component.E.tolist()
@@ -162,7 +162,7 @@ class EnhancedResultsIO:
 
                 comp_data["E_max"] = float(component.E_max) if hasattr(component, "E_max") else None
 
-            # Extract generation profiles,
+            # Extract generation profiles
             if component.type == "generation" and hasattr(component, "profile"):
                 if isinstance(component.profile, np.ndarray):
                     comp_data["profile"] = component.profile.tolist()
@@ -177,7 +177,7 @@ class EnhancedResultsIO:
 
             results["components"][comp_name] = comp_data
 
-        # Extract flows with enhanced CVXPY handling,
+        # Extract flows with enhanced CVXPY handling
         for flow_name, flow_data in system.flows.items():
             flow_result = {
                 "source": flow_data["source"],
@@ -185,7 +185,7 @@ class EnhancedResultsIO:
                 "type": flow_data["type"]
             }
 
-            # Enhanced flow value extraction,
+            # Enhanced flow value extraction
             if "value" in flow_data:
                 flow_value = flow_data["value"]
 
@@ -229,7 +229,7 @@ class EnhancedResultsIO:
                     )
         df = pd.DataFrame(data)
 
-        # Optimize data types for storage efficiency,
+        # Optimize data types for storage efficiency
         if not df.empty:
             df["timestep"] = df["timestep"].astype("uint16")  # Max 65535 timesteps
             df["value"] = df["value"].astype("float32")  # Sufficient precision for energy flows
@@ -245,7 +245,7 @@ class EnhancedResultsIO:
         data = []
 
         for comp_name, comp_data in components.items():
-            # Storage levels,
+            # Storage levels
             if "E" in comp_data and comp_data["E"]:
                 for t, energy in enumerate(comp_data["E"]):
                     data.append(
@@ -260,7 +260,7 @@ class EnhancedResultsIO:
                         }
                     )
 
-            # Generation profiles,
+            # Generation profiles
             if "profile" in comp_data and comp_data["profile"]:
                 for t, generation in enumerate(comp_data["profile"]):
                     data.append(
@@ -276,7 +276,7 @@ class EnhancedResultsIO:
                     )
         df = pd.DataFrame(data)
 
-        # Optimize data types for storage efficiency,
+        # Optimize data types for storage efficiency
         if not df.empty:
             df["timestep"] = df["timestep"].astype("uint16")
             df["value"] = df["value"].astype("float32")
@@ -409,7 +409,7 @@ class EnhancedResultsIO:
                     kpi_data = json.load(f)
                     kpis = kpi_data.get("kpis", {})
 
-                    # Extract key metrics for database indexing,
+                    # Extract key metrics for database indexing
                     summary.update(
                         {
                             "total_cost": kpis.get("total_cost"),
@@ -424,7 +424,7 @@ class EnhancedResultsIO:
                         }
                     )
 
-            # Add file paths for reference,
+            # Add file paths for reference
             summary["results_path"] = str(run_dir)
             summary["flows_path"] = str(run_dir / "flows.parquet")
             summary["components_path"] = str(run_dir / "components.parquet")

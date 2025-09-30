@@ -7,16 +7,15 @@ Provides comprehensive monitoring and tracing capabilities:
 - Custom metrics for climate data operations
 - Performance tracking
 """
+
 from __future__ import annotations
 
-
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
-from typing import Any, Callable, Dict
+from typing import Any
 
-from ecosystemiser.settings import get_settings
-from hive_logging import get_logger
 from opentelemetry import metrics, trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
 from opentelemetry.exporter.prometheus import PrometheusMetricReader
@@ -29,14 +28,16 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
 from prometheus_client import (
-    CONTENT_TYPE_LATEST,
     CollectorRegistry,
     Counter,
     Gauge,
     Histogram,
-    Summary,
-    generate_latest
+    generate_latest,
 )
+
+from ecosystemiser.settings import get_settings
+from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 # Global registry for Prometheus metrics
@@ -48,108 +49,73 @@ registry = CollectorRegistry()
 
 # Request metrics
 http_requests_total = Counter(
-    "climate_http_requests_total",
-    "Total HTTP requests",
-    ["method", "endpoint", "status"],
-    registry=registry
+    "climate_http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"], registry=registry
 )
 http_request_duration_seconds = Histogram(
     "climate_http_request_duration_seconds",
     "HTTP request duration in seconds",
     ["method", "endpoint"],
-    registry=registry
+    registry=registry,
 )
 
-# Adapter metrics,
+# Adapter metrics
 adapter_requests_total = Counter(
-    "climate_adapter_requests_total",
-    "Total adapter requests",
-    ["adapter", "status"],
-    registry=registry
+    "climate_adapter_requests_total", "Total adapter requests", ["adapter", "status"], registry=registry
 )
 adapter_latency_seconds = Histogram(
-    "climate_adapter_latency_seconds",
-    "Adapter request latency in seconds",
-    ["adapter", "operation"],
-    registry=registry
+    "climate_adapter_latency_seconds", "Adapter request latency in seconds", ["adapter", "operation"], registry=registry
 )
 adapter_data_points_total = Counter(
-    "climate_adapter_data_points_total",
-    "Total data points fetched",
-    ["adapter", "variable"],
-    registry=registry
+    "climate_adapter_data_points_total", "Total data points fetched", ["adapter", "variable"], registry=registry
 )
 
-# Cache metrics,
+# Cache metrics
 cache_hits_total = Counter(
     "climate_cache_hits_total",
     "Total cache hits",
-    ["level"],  # memory, disk, redis,
-    registry=registry
+    ["level"],  # memory, disk, redis
+    registry=registry,
 )
 cache_misses_total = Counter("climate_cache_misses_total", "Total cache misses", ["level"], registry=registry)
 cache_hit_ratio = Gauge("climate_cache_hit_ratio", "Cache hit ratio", ["level"], registry=registry)
 
 # Rate limiting metrics
 rate_limit_throttles_total = Counter(
-    "climate_rate_limit_throttles_total",
-    "Total rate limit throttles",
-    ["adapter"],
-    registry=registry
+    "climate_rate_limit_throttles_total", "Total rate limit throttles", ["adapter"], registry=registry
 )
 rate_limit_tokens_remaining = Gauge(
-    "climate_rate_limit_tokens_remaining",
-    "Remaining rate limit tokens",
-    ["adapter"],
-    registry=registry
+    "climate_rate_limit_tokens_remaining", "Remaining rate limit tokens", ["adapter"], registry=registry
 )
 
-# Job queue metrics,
-job_queue_depth = Gauge(
-    "climate_job_queue_depth",
-    "Current job queue depth",
-    ["queue", "status"],
-    registry=registry
-)
+# Job queue metrics
+job_queue_depth = Gauge("climate_job_queue_depth", "Current job queue depth", ["queue", "status"], registry=registry)
 job_processing_duration_seconds = Histogram(
-    "climate_job_processing_duration_seconds",
-    "Job processing duration in seconds",
-    ["job_type"],
-    registry=registry
+    "climate_job_processing_duration_seconds", "Job processing duration in seconds", ["job_type"], registry=registry
 )
 job_errors_total = Counter(
-    "climate_job_errors_total",
-    "Total job processing errors",
-    ["job_type", "error_code"],
-    registry=registry
+    "climate_job_errors_total", "Total job processing errors", ["job_type", "error_code"], registry=registry
 )
 
-# Data quality metrics,
+# Data quality metrics
 data_quality_score = Histogram(
-    "climate_data_quality_score",
-    "Data quality score (0-100)",
-    ["adapter", "variable"],
-    registry=registry
+    "climate_data_quality_score", "Data quality score (0-100)", ["adapter", "variable"], registry=registry
 )
 data_gaps_total = Counter(
-    "climate_data_gaps_total",
-    "Total data gaps detected",
-    ["adapter", "variable"],
-    registry=registry
+    "climate_data_gaps_total", "Total data gaps detected", ["adapter", "variable"], registry=registry
 )
 
-# System metrics,
+# System metrics
 memory_usage_bytes = Gauge("climate_memory_usage_bytes", "Memory usage in bytes", registry=registry)
 active_connections = Gauge(
     "climate_active_connections",
     "Active connections",
-    ["type"],  # http, redis, database,
-    registry=registry
+    ["type"],  # http, redis, database
+    registry=registry,
 )
 
-# =============================================================================,
-# OpenTelemetry Setup,
-# =============================================================================,
+# =============================================================================
+# OpenTelemetry Setup
+# =============================================================================
 
 
 class ObservabilityManager:
@@ -184,13 +150,13 @@ class ObservabilityManager:
             {
                 "service.name": self.settings.observability.tracing_service_name,
                 "service.version": self.settings.api.version,
-                "deployment.environment": self.settings.environment
+                "deployment.environment": self.settings.environment,
             }
         )
 
         self.tracer_provider = TracerProvider(resource=resource)
 
-        # Configure exporter if endpoint is set,
+        # Configure exporter if endpoint is set
         if self.settings.observability.tracing_endpoint:
             otlp_exporter = OTLPSpanExporter(
                 endpoint=self.settings.observability.tracing_endpoint,
@@ -199,10 +165,10 @@ class ObservabilityManager:
             span_processor = BatchSpanProcessor(otlp_exporter)
             self.tracer_provider.add_span_processor(span_processor)
 
-        # Set global tracer provider,
+        # Set global tracer provider
         trace.set_tracer_provider(self.tracer_provider)
 
-        # Get tracer,
+        # Get tracer
         self.tracer = trace.get_tracer(__name__)
 
         logger.info("OpenTelemetry tracing configured")
@@ -212,13 +178,13 @@ class ObservabilityManager:
         # Create Prometheus metric reader
         prometheus_reader = PrometheusMetricReader()
 
-        # Create meter provider,
+        # Create meter provider
         self.meter_provider = MeterProvider(metric_readers=[prometheus_reader])
 
-        # Set global meter provider,
+        # Set global meter provider
         metrics.set_meter_provider(self.meter_provider)
 
-        # Get meter,
+        # Get meter
         self.meter = metrics.get_meter(__name__)
 
         logger.info("OpenTelemetry metrics configured with Prometheus exporter")
@@ -226,13 +192,13 @@ class ObservabilityManager:
     def _instrument_libraries(self) -> None:
         """Auto-instrument libraries"""
         try:
-            # Instrument FastAPI,
+            # Instrument FastAPI
             FastAPIInstrumentor.instrument(tracer_provider=self.tracer_provider, excluded_urls="/metrics,/health")
 
-            # Instrument HTTPX,
+            # Instrument HTTPX
             HTTPXClientInstrumentor.instrument(tracer_provider=self.tracer_provider)
 
-            # Instrument Redis,
+            # Instrument Redis
             RedisInstrumentor.instrument(tracer_provider=self.tracer_provider)
 
             logger.info("Auto-instrumentation completed")
@@ -263,10 +229,10 @@ def shutdown_observability() -> None:
 
 # =============================================================================
 # Decorators and Context Managers
-# =============================================================================,
+# =============================================================================
 
 
-def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None) -> None:
+def track_time(metric: Histogram, labels: Optional[dict[str, str]] = None) -> None:
     """
     Decorator to track execution time with Prometheus histogram.
 
@@ -302,7 +268,7 @@ def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None) -> No
                 else:
                     metric.observe(duration)
 
-        # Return appropriate wrapper based on function type,
+        # Return appropriate wrapper based on function type
         import asyncio
 
         if asyncio.iscoroutinefunction(func):
@@ -312,7 +278,7 @@ def track_time(metric: Histogram, labels: Optional[Dict[str, str]] = None) -> No
     return decorator
 
 
-def count_calls(metric: Counter, labels: Optional[Dict[str, str]] = None) -> None:
+def count_calls(metric: Counter, labels: Optional[dict[str, str]] = None) -> None:
     """
     Decorator to count function calls.
 
@@ -348,11 +314,7 @@ def count_calls(metric: Counter, labels: Optional[Dict[str, str]] = None) -> Non
 
 
 @contextmanager
-def trace_span(
-    name: str,
-    attributes: Optional[Dict[str, Any]] = None,
-    record_exception: bool = True
-):
+def trace_span(name: str, attributes: Optional[dict[str, Any]] = None, record_exception: bool = True):
     """
     Context manager for creating OpenTelemetry spans.
 
@@ -361,9 +323,9 @@ def trace_span(
         attributes: Span attributes,
         record_exception: Whether to record exceptions,
     """
-    tracer = _observability_manager.tracer,
+    tracer = (_observability_manager.tracer,)
     if not tracer:
-        yield None,
+        yield (None,)
         return
 
     with tracer.start_as_current_span(name) as span:
@@ -371,11 +333,11 @@ def trace_span(
             span.set_attributes(attributes)
 
         try:
-            yield span,
+            yield (span,)
         except Exception as e:
             if record_exception:
                 span.record_exception(e)
-                span.set_status(Status(StatusCode.ERROR, str(e))),
+                (span.set_status(Status(StatusCode.ERROR, str(e))),)
             raise
 
 
@@ -396,17 +358,17 @@ def track_adapter_request(adapter_name: str) -> None:
                 try:
                     result = await func(*args, **kwargs)
 
-                    # Track success,
+                    # Track success
                     adapter_requests_total.labels(adapter=adapter_name, status="success").inc()
 
                     return result
 
                 except Exception as e:
-                    # Track failure,
+                    # Track failure
                     adapter_requests_total.labels(adapter=adapter_name, status="failure").inc()
 
                     if span:
-                        span.set_status(Status(StatusCode.ERROR, str(e))),
+                        (span.set_status(Status(StatusCode.ERROR, str(e))),)
 
                     raise
 
@@ -433,7 +395,7 @@ def track_cache_operation(cache_level: str) -> None:
         async def wrapper_async(*args, **kwargs) -> None:
             result = await func(*args, **kwargs)
 
-            # Track hit/miss based on result,
+            # Track hit/miss based on result
             if result is not None:
                 cache_hits_total.labels(level=cache_level).inc()
             else:
@@ -457,7 +419,7 @@ def track_cache_operation(cache_level: str) -> None:
 
 # =============================================================================
 # Metrics Endpoint
-# =============================================================================,
+# =============================================================================
 
 
 def get_metrics() -> bytes:
@@ -470,8 +432,9 @@ def get_metrics() -> bytes:
     # Update system metrics
     try:
         import psutil
+
         process = psutil.Process()
-        memory_usage_bytes.set(process.memory_info().rss),
+        (memory_usage_bytes.set(process.memory_info().rss),)
     except ImportError:
         pass
 
@@ -480,7 +443,7 @@ def get_metrics() -> bytes:
 
 # =============================================================================
 # Custom Metrics Collectors
-# =============================================================================,
+# =============================================================================
 
 
 class ClimateMetricsCollector:
@@ -530,5 +493,5 @@ __all__ = [
     "cache_hits_total",
     "cache_misses_total",
     "job_queue_depth",
-    "job_processing_duration_seconds"
+    "job_processing_duration_seconds",
 ]

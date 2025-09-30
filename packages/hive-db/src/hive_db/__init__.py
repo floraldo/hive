@@ -14,6 +14,7 @@ from .async_pool import create_async_database_manager_async as create_async_data
 from .pool import ConnectionPool, DatabaseManager, create_database_manager
 from .postgres_connector import create_connection_pool, get_postgres_connection, get_postgres_info, postgres_transaction
 from .sqlite_connector import get_sqlite_connection, sqlite_transaction
+from .sqlite_factory import SQLiteConnectionFactory, SQLiteConnectionManager, create_sqlite_manager
 from .utils import (
     async_get_database_info,
     async_table_exists,
@@ -45,7 +46,7 @@ __all__ = [
     "create_connection_pool",
     "get_postgres_info",
     "connect_postgres",
-    # Connection pooling
+    # Connection pooling (legacy - prefer SQLiteConnectionFactory)
     "ConnectionPool",
     "DatabaseManager",
     "create_database_manager",
@@ -53,6 +54,10 @@ __all__ = [
     "AsyncDatabaseManager",
     "create_async_database_manager",
     "create_async_sqlite_pool",
+    # Modern SQLite pooling (canonical hive-async based)
+    "SQLiteConnectionFactory",
+    "SQLiteConnectionManager",
+    "create_sqlite_manager",
     # Database utilities
     "table_exists",
     "create_table_if_not_exists",

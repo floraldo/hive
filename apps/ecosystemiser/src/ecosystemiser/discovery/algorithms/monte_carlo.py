@@ -7,7 +7,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from scipy import stats
@@ -56,7 +56,7 @@ class UncertaintyVariable:
     name: str
     distribution: str  # normal, uniform, triangular, lognormal, beta
     parameters: dict[str, float]  # distribution parameters
-    bounds: Optional[tuple[float, float]] = None
+    bounds: tuple[float, float] | None = None
     description: str | None = None
 
 
@@ -79,7 +79,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         self.samples = None
         self.sample_results = None
 
-        # Validate configuration,
+        # Validate configuration
         if not hasattr(config, "max_evaluations") or config.max_evaluations is None:
             config.max_evaluations = config.population_size
 
@@ -110,7 +110,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         else:
             samples = self._random_sampling()
 
-        # Apply uncertainty distributions,
+        # Apply uncertainty distributions
         if self.uncertainty_vars:
             samples = self._apply_uncertainty_distributions(samples)
 
@@ -133,12 +133,12 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         for dim in range(n_dims):
             # Divide [0,1] into n_samples bins
             bins = np.linspace(0, 1, n_samples + 1)
-            # Random sample within each bin,
+            # Random sample within each bin
             samples[:, dim] = np.random.uniform(bins[:-1], bins[1:])
-            # Random permutation,
+            # Random permutation
             samples[:, dim] = samples[np.random.permutation(n_samples), dim]
 
-        # Scale to parameter bounds,
+        # Scale to parameter bounds
         for i, (lower, upper) in enumerate(self.config.bounds):
             samples[:, i] = lower + samples[:, i] * (upper - lower)
 
@@ -156,7 +156,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
             sampler = qmc.Sobol(d=n_dims, scramble=True)
             samples = sampler.random(n_samples)
 
-            # Scale to parameter bounds,
+            # Scale to parameter bounds
             for i, (lower, upper) in enumerate(self.config.bounds):
                 samples[:, i] = lower + samples[:, i] * (upper - lower)
 
@@ -178,7 +178,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
             sampler = qmc.Halton(d=n_dims, scramble=True)
             samples = sampler.random(n_samples)
 
-            # Scale to parameter bounds,
+            # Scale to parameter bounds
             for i, (lower, upper) in enumerate(self.config.bounds):
                 samples[:, i] = lower + samples[:, i] * (upper - lower)
 
@@ -193,7 +193,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         n_samples = self.config.max_evaluations or self.config.population_size
         samples = np.random.random((n_samples, self.config.dimensions))
 
-        # Scale to parameter bounds,
+        # Scale to parameter bounds
         for i, (lower, upper) in enumerate(self.config.bounds):
             samples[:, i] = lower + samples[:, i] * (upper - lower)
 
@@ -212,7 +212,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 self.config.bounds[i][1] - self.config.bounds[i][0]
             )
 
-            # Transform based on distribution,
+            # Transform based on distribution
             if uncertainty_var.distribution == "normal":
                 mean = uncertainty_var.parameters.get("mean", 0)
                 std = uncertainty_var.parameters.get("std", 1)
@@ -236,7 +236,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 b = uncertainty_var.parameters.get("b", 1)
                 modified_samples[:, i] = stats.beta.ppf(uniform_samples, alpha, beta, loc=a, scale=b - a)
 
-            # Apply bounds if specified,
+            # Apply bounds if specified
             if uncertainty_var.bounds:
                 lower, upper = uncertainty_var.bounds
                 modified_samples[:, i] = np.clip(modified_samples[:, i], lower, upper)
@@ -287,7 +287,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         self.sample_results = evaluations
 
-        # Save samples if requested,
+        # Save samples if requested
         if self.mc_config.save_all_samples and self.mc_config.sample_storage_path:
             self._save_samples_and_results(population, evaluations)
 
@@ -298,10 +298,10 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         storage_path = Path(self.mc_config.sample_storage_path)
         storage_path.mkdir(parents=True, exist_ok=True)
 
-        # Save samples,
+        # Save samples
         np.save(storage_path / "samples.npy", samples)
 
-        # Save results as JSON,
+        # Save results as JSON
         with open(storage_path / "results.json", "w") as f:
             json.dump(results, f, indent=2, default=lambda x: float(x) if isinstance(x, np.number) else str(x))
 
@@ -362,21 +362,21 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         """Perform comprehensive uncertainty analysis."""
         analysis = {}
 
-        # Basic statistics,
+        # Basic statistics
         analysis["statistics"] = self._calculate_statistics(evaluations)
 
-        # Confidence intervals,
+        # Confidence intervals
         analysis["confidence_intervals"] = self._calculate_confidence_intervals(evaluations)
 
-        # Sensitivity analysis,
+        # Sensitivity analysis
         if self.mc_config.sensitivity_analysis:
             analysis["sensitivity"] = self._calculate_sensitivity_indices(samples, evaluations)
 
-        # Risk analysis,
+        # Risk analysis
         if self.mc_config.risk_analysis:
             analysis["risk"] = self._calculate_risk_metrics(evaluations)
 
-        # Scenario analysis,
+        # Scenario analysis
         if self.mc_config.scenario_analysis:
             analysis["scenarios"] = self._perform_scenario_analysis(samples, evaluations)
 
@@ -471,10 +471,10 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 for param_idx in range(valid_samples.shape[1]):
                     param_values = valid_samples[:, param_idx]
 
-                    # Pearson correlation,
+                    # Pearson correlation
                     correlation, p_value = stats.pearsonr(param_values, obj_values)
 
-                    # Spearman rank correlation,
+                    # Spearman rank correlation
                     rank_correlation, rank_p_value = stats.spearmanr(param_values, obj_values)
 
                     param_sensitivity[f"param_{param_idx}"] = (
@@ -661,7 +661,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
             return min(avg_objectives) if avg_objectives else float("inf")
 
-    def _get_best_objectives(self, evaluations: list[dict[str, Any]]) -> Optional[list[float]]:
+    def _get_best_objectives(self, evaluations: list[dict[str, Any]]) -> list[float] | None:
         """Get best objective values."""
         if not evaluations:
             return None
@@ -708,7 +708,9 @@ class UncertaintyAnalyzer:
         self.engine = MonteCarloEngine(config)
 
     def run_uncertainty_analysis(
-        self, fitness_function: Callable, parameter_uncertainties: dict[str, dict[str, Any]],
+        self,
+        fitness_function: Callable,
+        parameter_uncertainties: dict[str, dict[str, Any]],
     ) -> dict[str, Any]:
         """Run complete uncertainty analysis.
 
@@ -719,10 +721,10 @@ class UncertaintyAnalyzer:
         Returns:
             Comprehensive uncertainty analysis results,
         """
-        # Update configuration with uncertainties,
+        # Update configuration with uncertainties
         self.config.uncertainty_variables = parameter_uncertainties
 
-        # Re-initialize engine,
+        # Re-initialize engine
         self.engine = MonteCarloEngine(self.config)
 
         # Run analysis
@@ -737,7 +739,10 @@ class UncertaintyAnalyzer:
         )
 
     def run_sensitivity_study(
-        self, fitness_function: Callable, parameter_ranges: dict[str, tuple[float, float]], n_samples: int = 1000,
+        self,
+        fitness_function: Callable,
+        parameter_ranges: dict[str, tuple[float, float]],
+        n_samples: int = 1000,
     ) -> dict[str, Any]:
         """Run sensitivity analysis study.
 
@@ -754,7 +759,7 @@ class UncertaintyAnalyzer:
         for param_name, (min_val, max_val) in parameter_ranges.items():
             uncertainties[param_name] = {"distribution": "uniform", "parameters": {"a": min_val, "b": max_val}}
 
-        # Update configuration,
+        # Update configuration
         self.config.uncertainty_variables = uncertainties
         self.config.max_evaluations = n_samples
         self.config.sensitivity_analysis = True
@@ -793,7 +798,7 @@ class UncertaintyAnalyzer:
                             },
                         )
 
-                # Sort by sensitivity index (descending),
+                # Sort by sensitivity index (descending)
                 param_rankings.sort(key=lambda x: x["sensitivity_index"], reverse=True)
                 rankings[obj_name] = param_rankings
 
@@ -813,15 +818,15 @@ class UncertaintyAnalyzer:
         )
 
         if result.metadata:
-            # Add statistical summary,
+            # Add statistical summary
             if "statistics" in result.metadata:
                 summary["statistical_summary"] = result.metadata["statistics"]
 
-            # Add risk summary,
+            # Add risk summary
             if "risk" in result.metadata:
                 summary["risk_summary"] = result.metadata["risk"]
 
-            # Add confidence intervals summary,
+            # Add confidence intervals summary
             if "confidence_intervals" in result.metadata:
                 summary["confidence_summary"] = result.metadata["confidence_intervals"]
 

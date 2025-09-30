@@ -10,19 +10,19 @@ This module combines functionality from:
 - Statistical metrics and analysis
 - Advanced month selection with quality assessment
 """
+
 from __future__ import annotations
 
-
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-from hive_logging import get_logger
 from scipy import stats
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -43,13 +43,13 @@ class MonthQuality:
     representativeness: float  # How well it represents long-term (0-1)
     extremes_score: float  # Score for extreme events handling
     continuity_score: float  # Month boundary continuity
-    overall_score: float  # Combined quality score,
+    overall_score: float  # Combined quality score
 
 
 class TMYMetrics:
     """Statistical metrics for TMY generation"""
 
-    def calculate_monthly_statistics(self, data: xr.Dataset, month: int) -> Dict[str, Dict[str, float]]:
+    def calculate_monthly_statistics(self, data: xr.Dataset, month: int) -> dict[str, dict[str, float]]:
         """
         Calculate long-term monthly statistics for TMY selection.
 
@@ -79,7 +79,7 @@ class TMYMetrics:
                 logger.warning(f"Insufficient data for {var_name} in month {month}")
                 continue
 
-            # Calculate comprehensive statistics,
+            # Calculate comprehensive statistics
             stats_dict[var_name] = {
                 "mean": float(np.mean(valid_data)),
                 "std": float(np.std(valid_data)),
@@ -92,15 +92,15 @@ class TMYMetrics:
                 "p95": float(np.percentile(valid_data, 95)),
                 "skewness": float(stats.skew(valid_data)),
                 "kurtosis": float(stats.kurtosis(valid_data)),
-                "count": len(valid_data)
+                "count": len(valid_data),
             }
 
-            # Add percentile array for CDF comparison,
+            # Add percentile array for CDF comparison
             stats_dict[var_name]["percentiles"] = np.percentile(valid_data, np.linspace(0, 100, 101))
 
         return stats_dict
 
-    def calculate_fs_statistic(self, candidate_data: np.ndarray, long_term_stats: Dict[str, float]) -> float:
+    def calculate_fs_statistic(self, candidate_data: np.ndarray, long_term_stats: dict[str, float]) -> float:
         """
         Calculate Finkelstein-Schafer (FS) statistic for TMY selection.,
 
@@ -120,7 +120,7 @@ class TMYMetrics:
         if len(valid_data) < 5:
             return 999.0  # Very poor score for insufficient data
 
-        # Get long-term percentiles,
+        # Get long-term percentiles
         if "percentiles" not in long_term_stats:
             # Fallback: create approximate percentiles from basic stats
             lt_mean = long_term_stats["mean"]
@@ -142,15 +142,15 @@ class TMYMetrics:
         # Calculate FS statistic as mean absolute difference
         fs_statistic = np.mean(np.abs(candidate_percentiles - long_term_percentiles))
 
-        # Normalize by standard deviation to make comparable across variables,
+        # Normalize by standard deviation to make comparable across variables
         if long_term_stats["std"] > 0:
             fs_statistic = fs_statistic / long_term_stats["std"]
 
         return float(fs_statistic)
 
     def calculate_persistence_metrics(
-        self, data: np.ndarray, threshold_percentiles: List[float] = [10, 90]
-    ) -> Dict[str, float]:
+        self, data: np.ndarray, threshold_percentiles: list[float] = [10, 90]
+    ) -> dict[str, float]:
         """
         Calculate persistence metrics for extreme conditions.,
 
@@ -169,26 +169,28 @@ class TMYMetrics:
         if len(valid_data) < 24:
             return {"max_hot_hours": 0, "max_cold_hours": 0}
 
-        # Calculate thresholds,
+        # Calculate thresholds
         thresholds = np.percentile(valid_data, threshold_percentiles)
         low_threshold, high_threshold = thresholds[0], thresholds[1]
 
-        # Find extreme periods,
-        cold_mask = valid_data <= low_threshold,
+        # Find extreme periods
+        cold_mask = (valid_data <= low_threshold,)
         hot_mask = valid_data >= high_threshold
 
-        # Calculate maximum consecutive periods,
+        # Calculate maximum consecutive periods
         max_cold_hours = self._max_consecutive(cold_mask)
         max_hot_hours = self._max_consecutive(hot_mask)
 
-        return {
-            "max_cold_hours": max_cold_hours,
-            "max_hot_hours": max_hot_hours,
-            "cold_threshold": float(low_threshold),
-            "hot_threshold": float(high_threshold),
-            "cold_frequency": float(np.sum(cold_mask) / len(valid_data)),
-            "hot_frequency": float(np.sum(hot_mask) / len(valid_data)),
-        },
+        return (
+            {
+                "max_cold_hours": max_cold_hours,
+                "max_hot_hours": max_hot_hours,
+                "cold_threshold": float(low_threshold),
+                "hot_threshold": float(high_threshold),
+                "cold_frequency": float(np.sum(cold_mask) / len(valid_data)),
+                "hot_frequency": float(np.sum(hot_mask) / len(valid_data)),
+            },
+        )
 
     def _max_consecutive(self, boolean_array: np.ndarray) -> int:
         """Find maximum consecutive True values in boolean array"""
@@ -206,7 +208,7 @@ class TMYMetrics:
 
         return max_consecutive
 
-    def calculate_diurnal_patterns(self, data: xr.Dataset, variable: str) -> Dict[str, np.ndarray]:
+    def calculate_diurnal_patterns(self, data: xr.Dataset, variable: str) -> dict[str, np.ndarray]:
         """
         Calculate average diurnal patterns for a variable.,
 
@@ -247,15 +249,11 @@ class TMYMetrics:
                 hourly_mins[hour] = np.min(values)
                 hourly_maxs[hour] = np.max(values)
 
-        return {
-            "mean": hourly_means,
-            "std": hourly_stds,
-            "min": hourly_mins,
-            "max": hourly_maxs,
-            "hours": np.arange(24)
-        },
+        return (
+            {"mean": hourly_means, "std": hourly_stds, "min": hourly_mins, "max": hourly_maxs, "hours": np.arange(24)},
+        )
 
-    def calculate_variable_correlations(self, data: xr.Dataset, variables: Optional[List[str]] = None) -> np.ndarray:
+    def calculate_variable_correlations(self, data: xr.Dataset, variables: Optional[list[str]] = None) -> np.ndarray:
         """
         Calculate correlation matrix between variables.,
 
@@ -300,19 +298,14 @@ class TMYSelector:
 
     def __init__(self) -> None:
         """Initialize TMY selector"""
-        self.quality_weights = {
-            "completeness": 0.3,
-            "representativeness": 0.4,
-            "extremes": 0.2,
-            "continuity": 0.1
-        },
+        self.quality_weights = ({"completeness": 0.3, "representativeness": 0.4, "extremes": 0.2, "continuity": 0.1},)
 
     def select_optimal_months(
         self,
         data: xr.Dataset,
-        selection_criteria: Dict,
-        building_type: Optional[Literal["residential", "commercial", "industrial"]] = None
-    ) -> Dict[int, Tuple[int, MonthQuality]]:
+        selection_criteria: dict,
+        building_type: Optional[Literal[residential, commercial, industrial]] = None,
+    ) -> dict[int, tuple[int, MonthQuality]]:
         """
         Select optimal months for TMY with quality assessment.
 
@@ -333,19 +326,19 @@ class TMYSelector:
 
             logger.debug(f"Month {month}: Year {year}, Quality {quality.overall_score:.3f}")
 
-        # Post-process for continuity optimization,
+        # Post-process for continuity optimization
         selected_months = self._optimize_continuity(data, selected_months)
 
         return selected_months
 
     def _select_month_with_quality(
-        self, data: xr.Dataset, month: int, criteria: Dict, building_type: str | None
-    ) -> Tuple[int, MonthQuality]:
+        self, data: xr.Dataset, month: int, criteria: dict, building_type: str | None
+    ) -> tuple[int, MonthQuality]:
         """Select month with comprehensive quality assessment"""
 
-        # Get candidate years for this month,
+        # Get candidate years for this month
         time_values = pd.to_datetime(data.time.values)
-        month_mask = time_values.month == month,
+        month_mask = (time_values.month == month,)
         month_data = data.isel(time=month_mask)
         years = pd.to_datetime(month_data.time.values).year.unique()
 
@@ -353,65 +346,65 @@ class TMYSelector:
             raise ValueError(f"No data found for month {month}")
 
         if len(years) == 1:
-            # Only one year available,
+            # Only one year available
             quality = self._assess_month_quality(month_data, data, month, criteria)
             return years[0], quality
 
-        # Evaluate each candidate year,
-        best_year = None,
-        best_quality = None,
+        # Evaluate each candidate year
+        best_year = (None,)
+        best_quality = (None,)
         best_score = -1
 
         for year in years:
-            year_mask = pd.to_datetime(month_data.time.values).year == year,
+            year_mask = (pd.to_datetime(month_data.time.values).year == year,)
             year_data = month_data.isel(time=year_mask)
 
-            if len(year_data.time) < 24 * 28:  # Less than 28 days,
+            if len(year_data.time) < 24 * 28:  # Less than 28 days
                 continue
 
-            # Assess quality,
+            # Assess quality
             quality = self._assess_month_quality(year_data, data, month, criteria)
 
-            # Apply building-type specific weighting,
+            # Apply building-type specific weighting
             adjusted_score = self._apply_building_weights(quality, building_type)
 
             if adjusted_score > best_score:
-                best_year = year,
-                best_quality = quality,
+                best_year = (year,)
+                best_quality = (quality,)
                 best_score = adjusted_score
 
         if best_year is None:
-            # Fallback to first available year,
+            # Fallback to first available year
             best_year = years[0]
-            year_mask = pd.to_datetime(month_data.time.values).year == best_year,
+            year_mask = (pd.to_datetime(month_data.time.values).year == best_year,)
             year_data = month_data.isel(time=year_mask)
             best_quality = self._assess_month_quality(year_data, data, month, criteria)
 
         return best_year, best_quality
 
     def _assess_month_quality(
-        self, month_data: xr.Dataset, full_data: xr.Dataset, month: int, criteria: Dict
+        self, month_data: xr.Dataset, full_data: xr.Dataset, month: int, criteria: dict
     ) -> MonthQuality:
         """Comprehensive quality assessment for a month's data"""
 
-        # 1. Data completeness,
+        # 1. Data completeness
         completeness = self._calculate_completeness(month_data)
 
         # 2. Representativeness (how well it matches long-term patterns)
         representativeness = self._calculate_representativeness(month_data, full_data, month)
 
-        # 3. Extreme events handling,
+        # 3. Extreme events handling
         extremes_score = self._calculate_extremes_score(month_data, full_data, month)
 
         # 4. Boundary continuity (for smooth transitions)
         continuity_score = self._calculate_continuity_score(month_data)
 
-        # Calculate overall quality score,
+        # Calculate overall quality score
         overall_score = (
             self.quality_weights["completeness"] * completeness,
-            + self.quality_weights["representativeness"] * representativeness,
-            + self.quality_weights["extremes"] * extremes_score,
-            + self.quality_weights["continuity"] * continuity_score
+            +self.quality_weights["representativeness"] * representativeness,
+            +self.quality_weights["extremes"] * extremes_score,
+            +self.quality_weights["continuity"] * continuity_score,
         )
 
         return MonthQuality(
@@ -419,7 +412,7 @@ class TMYSelector:
             representativeness=representativeness,
             extremes_score=extremes_score,
             continuity_score=continuity_score,
-            overall_score=overall_score
+            overall_score=overall_score,
         )
 
     def _calculate_completeness(self, data: xr.Dataset) -> float:
@@ -479,7 +472,7 @@ class TMYSelector:
     def _calculate_extremes_score(self, month_data: xr.Dataset, full_data: xr.Dataset, month: int) -> float:
         """Score based on appropriate handling of extreme events"""
 
-        # Focus on temperature extremes as most critical for buildings,
+        # Focus on temperature extremes as most critical for buildings
         if "temp_air" not in month_data.data_vars:
             return 0.5  # Neutral score
         month_temps = month_data["temp_air"].values.flatten()
@@ -548,52 +541,37 @@ class TMYSelector:
         if building_type is None:
             return quality.overall_score
 
-        # Building-specific quality weights,
+        # Building-specific quality weights
         if building_type == "residential":
             # Residential buildings care more about extremes
-            weights = {
-                "completeness": 0.2,
-                "representativeness": 0.3,
-                "extremes": 0.4,
-                "continuity": 0.1
-            },
+            weights = ({"completeness": 0.2, "representativeness": 0.3, "extremes": 0.4, "continuity": 0.1},)
         elif building_type == "commercial":
             # Commercial buildings need consistent patterns
-            weights = {
-                "completeness": 0.3,
-                "representativeness": 0.5,
-                "extremes": 0.1,
-                "continuity": 0.1
-            },
+            weights = ({"completeness": 0.3, "representativeness": 0.5, "extremes": 0.1, "continuity": 0.1},)
         elif building_type == "industrial":
             # Industrial needs complete, reliable data
-            weights = {
-                "completeness": 0.5,
-                "representativeness": 0.3,
-                "extremes": 0.1,
-                "continuity": 0.1
-            }
+            weights = {"completeness": 0.5, "representativeness": 0.3, "extremes": 0.1, "continuity": 0.1}
         else:
             weights = self.quality_weights
 
         # Recalculate score with building-specific weights
         adjusted_score = (
             weights["completeness"] * quality.completeness,
-            + weights["representativeness"] * quality.representativeness,
-            + weights["extremes"] * quality.extremes_score,
-            + weights["continuity"] * quality.continuity_score
+            +weights["representativeness"] * quality.representativeness,
+            +weights["extremes"] * quality.extremes_score,
+            +weights["continuity"] * quality.continuity_score,
         )
 
         return adjusted_score
 
     def _optimize_continuity(
-        self, data: xr.Dataset, selected_months: Dict[int, Tuple[int, MonthQuality]]
-    ) -> Dict[int, Tuple[int, MonthQuality]]:
+        self, data: xr.Dataset, selected_months: dict[int, tuple[int, MonthQuality]]
+    ) -> dict[int, tuple[int, MonthQuality]]:
         """Optimize month selections for better year-to-year continuity"""
 
-        # For now, return as-is,
-        # Future enhancement: consider temperature/weather pattern continuity,
-        # between adjacent months from different years,
+        # For now, return as-is
+        # Future enhancement: consider temperature/weather pattern continuity
+        # between adjacent months from different years
 
         logger.debug("Continuity optimization not yet implemented")
         return selected_months
@@ -623,24 +601,26 @@ class TMYGenerator:
         self.metrics = TMYMetrics()
         self.selector = TMYSelector()
 
-        # Standard TMY3 variable weights (NREL methodology),
+        # Standard TMY3 variable weights (NREL methodology)
         self.tmy3_weights = {
-            "temp_air": 2.0,  # Primary variable,
+            "temp_air": 2.0,  # Primary variable
             "dewpoint": 1.0,
             "wind_speed": 1.0,
-            "ghi": 2.0,  # Primary solar variable,
+            "ghi": 2.0,  # Primary solar variable
             "dni": 1.0,
             "rel_humidity": 0.5,
             "pressure": 0.5,
-            "precip": 0.5
+            "precip": 0.5,
         }
 
-        # Critical months for building energy analysis,
-        self.critical_months = {
-            "heating": [1, 2, 12],  # Winter months,
-            "cooling": [6, 7, 8],  # Summer months,
-            "shoulder": [3, 4, 5, 9, 10, 11],  # Spring/fall months
-        },
+        # Critical months for building energy analysis
+        self.critical_months = (
+            {
+                "heating": [1, 2, 12],  # Winter months
+                "cooling": [6, 7, 8],  # Summer months
+                "shoulder": [3, 4, 5, 9, 10, 11],  # Spring/fall months
+            },
+        )
 
     def generate(
         self,
@@ -648,11 +628,11 @@ class TMYGenerator:
         start_year: int | None = None,
         end_year: int | None = None,
         target_year: int = 2010,
-        weights: Optional[Dict[str, float]] = None,
+        weights: Optional[dict[str, float]] = None,
         min_data_years: int = 10,
-        building_type: Optional[Literal["residential", "commercial", "industrial"]] = None,
-        use_advanced_selection: bool = False
-    ) -> Tuple[xr.Dataset, Dict]:
+        building_type: Optional[Literal[residential, commercial, industrial]] = None,
+        use_advanced_selection: bool = False,
+    ) -> tuple[xr.Dataset, dict]:
         """
         Generate TMY dataset from historical weather data.
 
@@ -674,99 +654,107 @@ class TMYGenerator:
         """
         logger.info(f"Generating TMY using {self.method.value} methodology")
 
-        # Validate input data,
+        # Validate input data
         self._validate_input(historical_data, min_data_years)
 
-        # Set analysis period,
+        # Set analysis period
         if start_year is None:
-            start_year = pd.to_datetime(historical_data.time.values[0]).year,
+            start_year = (pd.to_datetime(historical_data.time.values[0]).year,)
         if end_year is None:
             end_year = pd.to_datetime(historical_data.time.values[-1]).year
 
         logger.info(f"Analysis period: {start_year}-{end_year}")
 
-        # Filter to analysis period,
+        # Filter to analysis period
         time_mask = (pd.to_datetime(historical_data.time.values).year >= start_year) & (
             pd.to_datetime(historical_data.time.values).year <= end_year
         )
         analysis_data = historical_data.isel(time=time_mask)
 
-        # Use provided weights or defaults based on method,
+        # Use provided weights or defaults based on method
         if weights is None:
             weights = self._get_default_weights()
 
-        # Generate TMY by month,
+        # Generate TMY by month
         tmy_months = {}
-        selection_metadata = {
-            "method": self.method.value,
-            "analysis_period": (start_year, end_year),
-            "target_year": target_year,
-            "weights": weights,
-            "building_type": building_type,
-            "use_advanced_selection": use_advanced_selection,
-            "selected_months": {},
-        },
+        selection_metadata = (
+            {
+                "method": self.method.value,
+                "analysis_period": (start_year, end_year),
+                "target_year": target_year,
+                "weights": weights,
+                "building_type": building_type,
+                "use_advanced_selection": use_advanced_selection,
+                "selected_months": {},
+            },
+        )
 
         if use_advanced_selection:
-            # Use advanced selection with quality assessment,
-            selection_criteria = {"weights": weights},
+            # Use advanced selection with quality assessment
+            selection_criteria = ({"weights": weights},)
             selected_months = self.selector.select_optimal_months(analysis_data, selection_criteria, building_type)
 
             for month in range(1, 13):
                 selected_year, quality = selected_months[month]
 
-                # Extract month data,
+                # Extract month data
                 month_data = self._extract_month_data(analysis_data, selected_year, month, target_year)
 
                 tmy_months[month] = month_data
-                selection_metadata["selected_months"][month] = {
-                    "selected_year": selected_year,
-                    "quality": {
-                        "completeness": quality.completeness,
-                        "representativeness": quality.representativeness,
-                        "extremes_score": quality.extremes_score,
-                        "continuity_score": quality.continuity_score,
-                        "overall_score": quality.overall_score,
+                selection_metadata["selected_months"][month] = (
+                    {
+                        "selected_year": selected_year,
+                        "quality": {
+                            "completeness": quality.completeness,
+                            "representativeness": quality.representativeness,
+                            "extremes_score": quality.extremes_score,
+                            "continuity_score": quality.continuity_score,
+                            "overall_score": quality.overall_score,
+                        },
+                        "data_points": len(month_data.time),
                     },
-                    "data_points": len(month_data.time),
-                },
+                )
 
                 logger.info(f"Month {month}: Selected year {selected_year} (quality: {quality.overall_score:.3f})")
         else:
-            # Use standard TMY3 methodology,
+            # Use standard TMY3 methodology
             for month in range(1, 13):
                 logger.info(f"Selecting representative data for month {month}")
 
-                # Select best month,
+                # Select best month
                 selected_year, scores = self._select_month(analysis_data, month, weights)
 
-                # Extract month data,
+                # Extract month data
                 month_data = self._extract_month_data(analysis_data, selected_year, month, target_year)
 
-                tmy_months[month] = month_data,
-                selection_metadata["selected_months"][month] = {
-                    "selected_year": selected_year,
-                    "scores": scores,
-                    "data_points": len(month_data.time),
-                },
+                tmy_months[month] = (month_data,)
+                selection_metadata["selected_months"][month] = (
+                    {
+                        "selected_year": selected_year,
+                        "scores": scores,
+                        "data_points": len(month_data.time),
+                    },
+                )
 
                 logger.info(f"Month {month}: Selected year {selected_year} (score: {scores.get('total', 0):.3f})")
 
-        # Combine months into full TMY,
+        # Combine months into full TMY
         tmy_dataset = self._combine_months(tmy_months, target_year)
 
-        # Add TMY metadata,
-        tmy_dataset.attrs.update(
-            {
-                "title": f"Typical Meteorological Year {target_year}",
-                "method": self.method.value,
-                "analysis_period": f"{start_year}-{end_year}",
-                "generated_on": datetime.now().isoformat(),
-                "source": "EcoSystemiser TMY Generator",
-                "building_type": building_type or "general",
-                "advanced_selection": use_advanced_selection,
-            }
-        ),
+        # Add TMY metadata
+        (
+            tmy_dataset.attrs.update(
+                {
+                    "title": f"Typical Meteorological Year {target_year}",
+                    "method": self.method.value,
+                    "analysis_period": f"{start_year}-{end_year}",
+                    "generated_on": datetime.now().isoformat(),
+                    "source": "EcoSystemiser TMY Generator",
+                    "building_type": building_type or "general",
+                    "advanced_selection": use_advanced_selection,
+                }
+            ),
+        )
 
         logger.info(f"TMY generation complete: {len(tmy_dataset.time)} time steps")
 
@@ -793,7 +781,7 @@ class TMYGenerator:
         if missing_vars:
             raise ValueError(f"Dataset missing required variables: {missing_vars}")
 
-    def _get_default_weights(self) -> Dict[str, float]:
+    def _get_default_weights(self) -> dict[str, float]:
         """Get default variable weights based on method"""
         if self.method == TMYMethod.TMY3:
             return self.tmy3_weights.copy()
@@ -802,7 +790,7 @@ class TMYGenerator:
         else:
             return {"temp_air": 1.0}  # Default fallback
 
-    def _select_month(self, data: xr.Dataset, month: int, weights: Dict[str, float]) -> Tuple[int, Dict[str, float]]:
+    def _select_month(self, data: xr.Dataset, month: int, weights: dict[str, float]) -> tuple[int, dict[str, float]]:
         """
         Select the most representative year for a given month.,
 
@@ -850,15 +838,15 @@ class TMYGenerator:
         return best_year, year_scores[best_year]
 
     def _calculate_year_score(
-        self, year_data: xr.Dataset, long_term_stats: Dict, weights: Dict[str, float]
-    ) -> Dict[str, float]:
+        self, year_data: xr.Dataset, long_term_stats: dict, weights: dict[str, float]
+    ) -> dict[str, float]:
         """Calculate composite score for a year's data,
 
         Fixed to penalize years with missing variables rather than,
         giving them an unfair advantage.,
         """
         scores = {}
-        weighted_sum = 0,
+        weighted_sum = (0,)
         missing_penalty = 10.0  # High penalty score for missing variables
 
         # Use full weight sum for normalization (not just available variables)
@@ -866,14 +854,14 @@ class TMYGenerator:
 
         for var_name, weight in weights.items():
             if var_name not in year_data.data_vars:
-                # Penalize missing variables instead of skipping,
+                # Penalize missing variables instead of skipping
                 scores[var_name] = missing_penalty
                 weighted_sum += missing_penalty * weight
                 logger.debug(f"Variable {var_name} missing in year data - applying penalty")
                 continue
 
             if var_name not in long_term_stats:
-                # Also penalize if no long-term stats available,
+                # Also penalize if no long-term stats available
                 scores[var_name] = missing_penalty
                 weighted_sum += missing_penalty * weight
                 logger.debug(f"Variable {var_name} missing in long-term stats - applying penalty")
@@ -885,7 +873,7 @@ class TMYGenerator:
             scores[var_name] = score
             weighted_sum += score * weight
 
-        # Calculate composite score (now properly normalized),
+        # Calculate composite score (now properly normalized)
         scores["total"] = weighted_sum / total_weight if total_weight > 0 else missing_penalty
 
         return scores
@@ -908,7 +896,7 @@ class TMYGenerator:
             try:
                 new_time = orig_time.replace(year=target_year)
             except ValueError:
-                # Handle leap year issues (Feb 29),
+                # Handle leap year issues (Feb 29)
                 if orig_time.month == 2 and orig_time.day == 29:
                     # Use Feb 28 in non-leap years
                     new_time = orig_time.replace(year=target_year, day=28)
@@ -921,7 +909,7 @@ class TMYGenerator:
 
         return month_data
 
-    def _combine_months(self, month_datasets: Dict[int, xr.Dataset], target_year: int) -> xr.Dataset:
+    def _combine_months(self, month_datasets: dict[int, xr.Dataset], target_year: int) -> xr.Dataset:
         """Combine monthly datasets into complete TMY"""
         # Sort months and concatenate
         sorted_months = [month_datasets[i] for i in range(1, 13)]
@@ -944,17 +932,17 @@ class TMYGenerator:
 
         if len(time_values) != len(set(time_values)):
             logger.warning("Duplicate timestamps detected, removing duplicates")
-            # Keep first occurrence of each timestamp,
+            # Keep first occurrence of each timestamp
             _, unique_indices = np.unique(time_values, return_index=True)
             dataset = dataset.isel(time=sorted(unique_indices))
 
         return dataset
 
 
-# Convenience functions for backward compatibility and ease of use,
+# Convenience functions for backward compatibility and ease of use
 
 
-def generate_tmy(historical_data: xr.Dataset, method: str = "tmy3", **kwargs) -> Tuple[xr.Dataset, Dict]:
+def generate_tmy(historical_data: xr.Dataset, method: str = "tmy3", **kwargs) -> tuple[xr.Dataset, dict]:
     """
     Convenience function for generating TMY datasets.
 
@@ -971,7 +959,7 @@ def generate_tmy(historical_data: xr.Dataset, method: str = "tmy3", **kwargs) ->
     return generator.generate(historical_data, **kwargs)
 
 
-def calculate_tmy_metrics(data: xr.Dataset, variables: Optional[List[str]] = None) -> Dict:
+def calculate_tmy_metrics(data: xr.Dataset, variables: Optional[list[str]] = None) -> dict:
     """
     Convenience function for calculating TMY quality metrics.
 
@@ -989,10 +977,10 @@ def calculate_tmy_metrics(data: xr.Dataset, variables: Optional[List[str]] = Non
     results = {
         "monthly_statistics": {},
         "diurnal_patterns": {},
-        "correlations": metrics.calculate_variable_correlations(data, variables)
+        "correlations": metrics.calculate_variable_correlations(data, variables),
     }
 
-    # Calculate monthly statistics for each month,
+    # Calculate monthly statistics for each month
     for month in range(1, 13):
         try:
             results["monthly_statistics"][month] = metrics.calculate_monthly_statistics(data, month)

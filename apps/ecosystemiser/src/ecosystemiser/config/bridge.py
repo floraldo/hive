@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from ecosystemiser.settings import Settings as EcoSystemiserSettings
 from hive_config import DatabaseConfig as HiveDatabaseConfig
-from hive_config import HiveConfig, get_config
+from hive_config import HiveConfig, create_config_from_sources
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -28,7 +28,8 @@ class EcoSystemiserConfig:
 
     def __init__(self, hive_config: HiveConfig | None = None):
         # Inherit platform configuration (with dependency injection)
-        self._hive_config = hive_config or get_config()
+        # Use create_config_from_sources() instead of deprecated get_config()
+        self._hive_config = hive_config or create_config_from_sources()
 
         # Extend with domain-specific configuration
         self._eco_config = EcoSystemiserSettings()

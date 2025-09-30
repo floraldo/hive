@@ -62,7 +62,7 @@ async def process_climate_job_async(ctx: dict[str, Any], job_data: dict[str, Any
         # Create climate request from job data
         request = ClimateRequest(**job_data["request"])
 
-        # Get climate service using factory function,
+        # Get climate service using factory function
         from ecosystemiser.settings import get_settings
 
         config = get_settings()
@@ -90,7 +90,7 @@ async def cleanup_old_jobs_async(ctx: dict[str, Any]) -> None:
     try:
         logger.info("Starting cleanup of old jobs")
 
-        # Cleanup old job results and cache files,
+        # Cleanup old job results and cache files
         await _cleanup_job_results_async(max_age_days=7)
         await _cleanup_cache_files_async(max_age_days=30)
         await _cleanup_temp_files_async(max_age_hours=24)
@@ -130,7 +130,7 @@ async def startup_async(ctx: dict[str, Any]) -> None:
     """
     logger.info("Climate worker starting...")
 
-    # Initialize any shared resources,
+    # Initialize any shared resources
     from ecosystemiser.settings import get_settings
 
     ctx["settings"] = get_settings()
@@ -147,13 +147,13 @@ async def shutdown_async(ctx: dict[str, Any]) -> None:
     """
     logger.info("Climate worker shutting down...")
 
-    # Clean up any shared resources,
+    # Clean up any shared resources
     await _cleanup_shared_resources_async(ctx)
 
     logger.info("Climate worker shut down successfully")
 
 
-# Helper functions for cleanup and metrics,
+# Helper functions for cleanup and metrics
 
 
 async def _cleanup_job_results_async(max_age_days: int = 7) -> None:
@@ -267,7 +267,7 @@ async def _record_metrics_async(metrics: dict[str, Any]) -> None:
 async def _cleanup_shared_resources_async(ctx: dict[str, Any]) -> None:
     """Clean up shared resources during worker shutdown."""
     try:
-        # Close any open connections, clear caches, etc.,
+        # Close any open connections, clear caches, etc.
         logger.info("Cleaning up shared resources")
 
     except Exception as e:

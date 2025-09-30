@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from hive_config import load_config_for_app
 from hive_logging import get_logger
@@ -66,7 +66,7 @@ class JobManager:
 
         try:
             self.redis = Redis.from_url(redis_url, decode_responses=True)
-            # Test connection,
+            # Test connection
             self.redis.ping()
             logger.info(f"Connected to Redis at {redis_url}")
         except Exception as e:
@@ -106,13 +106,13 @@ class JobManager:
             # Add to job list for tracking
             (self.redis.zadd("job_ids", {job_id: datetime.utcnow().timestamp()}, nx=True))
         else:
-            # Fallback to memory (development only),
+            # Fallback to memory (development only)
             self._memory_store[job_id] = job_data
 
         logger.info(f"Created job {job_id}")
         return job_id
 
-    def get_job(self, job_id: str) -> Optional[dict[str, Any]]:
+    def get_job(self, job_id: str) -> dict[str, Any] | None:
         """
         Retrieve job data by ID.
 
@@ -136,7 +136,7 @@ class JobManager:
         self,
         job_id: str,
         status: str,
-        result: Optional[dict[str, Any]] = None,
+        result: dict[str, Any] | None = None,
         error: str | None = None,
         progress: int | None = None,
     ) -> bool:
@@ -158,7 +158,7 @@ class JobManager:
             logger.warning(f"Job {job_id} not found for update")
             return False
 
-        # Update fields,
+        # Update fields
         job_data["status"] = status
         job_data["updated_at"] = datetime.utcnow().isoformat()
 
@@ -218,7 +218,7 @@ class JobManager:
         else:
             # Fallback to memory
             all_jobs = list(self._memory_store.values())
-            # Sort by created_at descending,
+            # Sort by created_at descending
             all_jobs.sort(key=lambda j: j["created_at"], reverse=True)
 
             for job in all_jobs[offset : offset + limit]:
@@ -298,7 +298,7 @@ class JobManagerFactory:
     """
 
     def __init__(self):
-        self._instance: Optional[JobManager] = None
+        self._instance: JobManager | None = None
 
     def get_manager(self) -> JobManager:
         """Get or create a job manager instance.

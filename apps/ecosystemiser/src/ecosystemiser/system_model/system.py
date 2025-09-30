@@ -25,26 +25,26 @@ class System:
         self.system_id = system_id
         self.N = n
 
-        # Component and flow dictionaries,
+        # Component and flow dictionaries
         self.components = {}
         self.flows = {}
 
-        # Constraints for optimization,
+        # Constraints for optimization
         self.constraints = []
         self.system_constraints = []  # System-level constraints
 
-        # Optimization problem (for MILP solver),
+        # Optimization problem (for MILP solver)
         self.objective = None
         self.problem = None
 
-        # Flow type definitions,
+        # Flow type definitions
         self.flow_types = {
-            "electricity": {"unit": "kWh", "color": "#FFA500"},  # Orange,
-            "heat": {"unit": "kWh", "color": "#FF0000"},  # Red,
+            "electricity": {"unit": "kWh", "color": "#FFA500"},  # Orange
+            "heat": {"unit": "kWh", "color": "#FF0000"},  # Red
             "water": {"unit": "m³", "color": "#0000FF"},  # Blue
         }
 
-        # Tracking totals (for objective functions),
+        # Tracking totals (for objective functions)
         self.total_energy = 0
         self.total_co2 = 0
         self.total_cost = 0
@@ -108,21 +108,21 @@ class System:
             "value": np.zeros(self.N),  # Initialize as numpy array
         }
 
-        # Add to system flows,
+        # Add to system flows
         self.flows[flow_key] = flow
 
         # Add references to component flow dictionaries
-        # Source component outputs to target,
+        # Source component outputs to target
         if "output" not in component1.flows:
             component1.flows["output"] = {}
         component1.flows["output"][f"{var_prefix}_{component2_name}"] = flow
 
-        # Target component receives input from source,
+        # Target component receives input from source
         if "input" not in component2.flows:
             component2.flows["input"] = {}
         component2.flows["input"][f"{var_prefix}_{component1_name}"] = flow
 
-        # Handle special component types,
+        # Handle special component types
         if component1.type == "transmission":
             if "source" not in component1.flows:
                 component1.flows["source"] = {}
@@ -135,7 +135,7 @@ class System:
 
         logger.debug(f"Connected {component1_name} -> {component2_name} ({flow_type})")
 
-        # Handle bidirectional connection,
+        # Handle bidirectional connection
         if bidirectional:
             self.connect(component2_name, component1_name, flow_type, bidirectional=False)
 
@@ -170,13 +170,13 @@ class System:
         issues = []
 
         for comp_name, component in self.components.items():
-            # Check that generation components have outputs,
+            # Check that generation components have outputs
             if component.type == "generation":
                 has_output = any(f["source"] == comp_name for f in self.flows.values())
                 if not has_output:
                     issues.append(f"Generation component {comp_name} has no output connections")
 
-            # Check that consumption components have inputs,
+            # Check that consumption components have inputs
             elif component.type == "consumption":
                 has_input = any(f["target"] == comp_name for f in self.flows.values())
                 if not has_input:
@@ -199,12 +199,12 @@ class System:
             "flow_types": {},
         }
 
-        # Count components by type,
+        # Count components by type
         for component in self.components.values():
             comp_type = component.type
             info["component_types"][comp_type] = info["component_types"].get(comp_type, 0) + 1
 
-        # Count flows by type,
+        # Count flows by type
         for flow in self.flows.values():
             flow_type = flow["type"]
             info["flow_types"][flow_type] = info["flow_types"].get(flow_type, 0) + 1
@@ -217,12 +217,12 @@ class System:
         This method initializes CVXPY variables for flows and calls,
         add_optimization_vars on all components.,
         """
-        # Convert flow values to CVXPY variables,
+        # Convert flow values to CVXPY variables
         for flow_key, flow_data in self.flows.items():
             if not isinstance(flow_data["value"], cp.Variable):
                 flow_data["value"] = cp.Variable(self.N, nonneg=True, name=flow_key)
 
-        # Initialize component optimization variables,
+        # Initialize component optimization variables
         for component in self.components.values():
             component.add_optimization_vars()
 
@@ -236,12 +236,12 @@ class System:
         """
         constraints = []
 
-        # Get constraints from all components,
+        # Get constraints from all components
         for component in self.components.values():
             comp_constraints = component.set_constraints()
             constraints.extend(comp_constraints)
 
-        # Add system-level constraints,
+        # Add system-level constraints
         constraints.extend(self.system_constraints)
 
         self.constraints = constraints
@@ -286,7 +286,7 @@ class System:
         for comp_name, component in self.components.items():
             comp_costs = {}
 
-            # Transmission costs (Grid) - always included,
+            # Transmission costs (Grid) - always included
             if component.type == "transmission":
                 if hasattr(component, "import_tariff"):
                     comp_costs["import_cost"] = {
@@ -295,27 +295,27 @@ class System:
                     }
                 if hasattr(component, "feed_in_tariff"):
                     comp_costs["export_revenue"] = {
-                        "rate": -component.feed_in_tariff,  # Negative cost (revenue),
+                        "rate": -component.feed_in_tariff,  # Negative cost (revenue)
                         "variable": getattr(component, "P_feed", None),  # Grid export variable
                     }
 
-            # Other operational costs (for components with economic params),
+            # Other operational costs (for components with economic params)
             elif hasattr(component, "economic") and component.economic:
-                # Generation costs,
+                # Generation costs
                 if component.type == "generation" and hasattr(component, "operating_cost"):
                     comp_costs["generation_cost"] = {
                         "rate": component.operating_cost,
                         "variable": getattr(component, "P_gen", None),
                     }
 
-                # Storage degradation costs,
+                # Storage degradation costs
                 if component.type == "storage" and hasattr(component, "degradation_cost"):
                     comp_costs["degradation_cost"] = {
                         "rate": component.degradation_cost,
                         "variable": getattr(component, "P_cha", None),  # Cost per charge cycle
                     }
 
-                # Variable operational costs for all flows,
+                # Variable operational costs for all flows
                 if hasattr(component.economic, "opex_var") and component.economic.opex_var > 0:
                     for flow_dict in component.flows.values():
                         for flow_name, flow in flow_dict.items():
@@ -345,21 +345,21 @@ class System:
             comp_emissions = {}
 
             if hasattr(component, "environmental") and component.environmental:
-                # Grid import emissions,
+                # Grid import emissions
                 if component.type == "transmission" and hasattr(component, "grid_emission_factor"):
                     comp_emissions["grid_emissions"] = {
-                        "factor": component.grid_emission_factor,  # kg CO2/kWh,
+                        "factor": component.grid_emission_factor,  # kg CO2/kWh
                         "variable": getattr(component, "P_import", None),
                     }
 
-                # Generation emissions,
+                # Generation emissions
                 if component.type == "generation" and hasattr(component, "emission_factor"):
                     comp_emissions["generation_emissions"] = {
                         "factor": component.emission_factor,
                         "variable": getattr(component, "P_gen", None),
                     }
 
-                # Operational emissions for all flows,
+                # Operational emissions for all flows
                 if hasattr(component.environmental, "co2_operational") and component.environmental.co2_operational > 0:
                     for flow_dict in component.flows.values():
                         for flow_name, flow in flow_dict.items():
@@ -391,7 +391,7 @@ class System:
                 if hasattr(component, "P_export"):
                     comp_usage["export"] = getattr(component, "P_export", None)
 
-                # Include all electricity flows for grid components,
+                # Include all electricity flows for grid components
                 for flow_dict in component.flows.values():
                     for flow_name, flow in flow_dict.items():
                         if "value" in flow and flow["value"] is not None:
@@ -417,7 +417,7 @@ class System:
         if not contributions:
             warnings.append(f"No components contribute to {objective_type} objective")
 
-        # Check for missing data,
+        # Check for missing data
         for comp_name, comp_data in contributions.items():
             for contrib_type, contrib_data in comp_data.items():
                 if contrib_data.get("variable") is None:

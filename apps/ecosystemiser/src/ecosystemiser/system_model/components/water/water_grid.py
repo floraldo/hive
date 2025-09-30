@@ -1,6 +1,6 @@
 """Water grid component with MILP optimization support and hierarchical fidelity."""
 
-from typing import Any, Optional
+from typing import Any
 
 import cvxpy as cp
 import numpy as np
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 # =============================================================================
 # WATER GRID-SPECIFIC TECHNICAL PARAMETERS (Co-located with component)
-# =============================================================================,
+# =============================================================================
 
 
 class WaterGridTechnicalParams(TransmissionTechnicalParams):
@@ -37,21 +37,21 @@ class WaterGridTechnicalParams(TransmissionTechnicalParams):
     supply_reliability: float = Field(0.99, description="Grid supply reliability factor (0-1)")
 
     # STANDARD fidelity additions
-    pressure_losses: Optional[dict[str, float]] = Field(None, description="Pressure loss factors in distribution")
+    pressure_losses: dict[str, float] | None = Field(None, description="Pressure loss factors in distribution")
     water_quality_degradation: float | None = Field(None, description="Water quality degradation factor")
 
     # DETAILED fidelity parameters
-    network_topology: Optional[dict[str, Any]] = Field(None, description="Detailed network topology model")
-    peak_demand_surcharge: Optional[dict[str, float]] = Field(None, description="Peak demand pricing structure")
+    network_topology: dict[str, Any] | None = Field(None, description="Detailed network topology model")
+    peak_demand_surcharge: dict[str, float] | None = Field(None, description="Peak demand pricing structure")
 
     # RESEARCH fidelity parameters
-    hydraulic_model: Optional[dict[str, Any]] = Field(None, description="Detailed hydraulic network model")
-    contamination_tracking: Optional[dict[str, Any]] = Field(None, description="Water contamination tracking model")
+    hydraulic_model: dict[str, Any] | None = Field(None, description="Detailed hydraulic network model")
+    contamination_tracking: dict[str, Any] | None = Field(None, description="Water contamination tracking model")
 
 
 # =============================================================================
 # PHYSICS STRATEGIES (Rule-Based & Fidelity)
-# =============================================================================,
+# =============================================================================
 
 
 class WaterGridPhysicsSimple:
@@ -78,7 +78,7 @@ class WaterGridPhysicsSimple:
         Returns:
             Actual water imported [m³/h],
         """
-        # Simple clipping to max supply,
+        # Simple clipping to max supply
         return min(water_demand, max_supply)
 
     def rule_based_export(self, wastewater: float, max_discharge: float) -> float:
@@ -92,7 +92,7 @@ class WaterGridPhysicsSimple:
         Returns:
             Actual wastewater exported [m³/h],
         """
-        # Simple clipping to max discharge,
+        # Simple clipping to max discharge
         return min(wastewater, max_discharge)
 
 
@@ -125,7 +125,7 @@ class WaterGridPhysicsStandard(WaterGridPhysicsSimple):
 
 # =============================================================================
 # OPTIMIZATION STRATEGY (MILP)
-# =============================================================================,
+# =============================================================================
 
 
 class WaterGridOptimizationSimple:
@@ -150,13 +150,13 @@ class WaterGridOptimizationSimple:
         constraints = []
         comp = self.component
 
-        # SIMPLE MODEL: Basic capacity constraints only,
+        # SIMPLE MODEL: Basic capacity constraints only
         if comp.Q_import is not None:
-            # Import capacity constraints,
+            # Import capacity constraints
             constraints.append(comp.Q_import <= comp.max_supply_m3h)
 
         if comp.Q_export is not None:
-            # Export capacity constraints,
+            # Export capacity constraints
             constraints.append(comp.Q_export <= comp.max_discharge_m3h)
 
         return constraints
@@ -180,7 +180,7 @@ class WaterGridOptimizationStandard(WaterGridOptimizationSimple):
         constraints = super().set_constraints()
         comp = self.component
 
-        # STANDARD: Add reliability constraints,
+        # STANDARD: Add reliability constraints
         if comp.Q_import is not None and comp.supply_reliability < 1.0:
             # Reduce effective capacity by reliability factor
             effective_supply = comp.max_supply_m3h * comp.supply_reliability
@@ -194,9 +194,9 @@ class WaterGridParams(ComponentParams):
 
     technical: WaterGridTechnicalParams = Field(
         default_factory=lambda: WaterGridTechnicalParams(
-            capacity_nominal=10.0,  # Default 10 m³/h capacity,
-            max_import=10.0,  # Default 10 m³/h import,
-            max_export=5.0,  # Default 5 m³/h discharge,
+            capacity_nominal=10.0,  # Default 10 m³/h capacity
+            max_import=10.0,  # Default 10 m³/h import
+            max_export=5.0,  # Default 5 m³/h discharge
             water_tariff=1.5,
             wastewater_tariff=2.0,
             fidelity_level=FidelityLevel.STANDARD,
@@ -233,24 +233,24 @@ class WaterGrid(Component):
         # Extract parameters from technical block
         tech = self.technical
 
-        # Core parameters - EXACTLY as original WaterGrid expects (m³/h),
+        # Core parameters - EXACTLY as original WaterGrid expects (m³/h)
         self.max_supply_m3h = tech.max_import  # Maximum supply rate
         self.max_discharge_m3h = tech.max_export  # Maximum discharge rate
         self.water_price_per_m3 = tech.water_tariff
         self.wastewater_price_per_m3 = tech.wastewater_tariff
 
-        # Store water grid-specific parameters,
+        # Store water grid-specific parameters
         self.supply_pressure_bar = tech.supply_pressure_bar
         self.min_pressure_bar = tech.min_pressure_bar
         self.supply_reliability = tech.supply_reliability
         self.pressure_losses = tech.pressure_losses
         self.water_quality_degradation = tech.water_quality_degradation
 
-        # CVXPY variables (for MILP solver),
+        # CVXPY variables (for MILP solver)
         self.Q_import = None  # Water imported from grid
         self.Q_export = None  # Water exported to grid (wastewater)
 
-        # STRATEGY PATTERN: Instantiate the correct strategies,
+        # STRATEGY PATTERN: Instantiate the correct strategies
         self.physics = self._get_physics_strategy()
         self.optimization = self._get_optimization_strategy()
 
@@ -263,10 +263,10 @@ class WaterGrid(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return WaterGridPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD physics (can be extended later),
+            # For now, DETAILED uses STANDARD physics (can be extended later)
             return WaterGridPhysicsStandard(self.params)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD physics (can be extended later),
+            # For now, RESEARCH uses STANDARD physics (can be extended later)
             return WaterGridPhysicsStandard(self.params)
         else:
             raise ValueError(f"Unknown fidelity level for WaterGrid: {fidelity}")
@@ -280,10 +280,10 @@ class WaterGrid(Component):
         elif fidelity == FidelityLevel.STANDARD:
             return WaterGridOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.DETAILED:
-            # For now, DETAILED uses STANDARD optimization (can be extended later),
+            # For now, DETAILED uses STANDARD optimization (can be extended later)
             return WaterGridOptimizationStandard(self.params, self)
         elif fidelity == FidelityLevel.RESEARCH:
-            # For now, RESEARCH uses STANDARD optimization (can be extended later),
+            # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return WaterGridOptimizationStandard(self.params, self)
         else:
             raise ValueError(f"Unknown fidelity level for WaterGrid optimization: {fidelity}")
@@ -296,7 +296,7 @@ class WaterGrid(Component):
         self.Q_import = cp.Variable(N, name=f"{self.name}_import", nonneg=True)
         self.Q_export = cp.Variable(N, name=f"{self.name}_export", nonneg=True)
 
-        # Add flows,
+        # Add flows
         self.flows["source"]["Q_import"] = {"type": "water", "value": self.Q_import}
         self.flows["sink"]["Q_export"] = {"type": "water", "value": self.Q_export}
 

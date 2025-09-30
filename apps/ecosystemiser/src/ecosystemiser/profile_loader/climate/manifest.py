@@ -14,7 +14,12 @@ import xarray as xr
 
 
 def build_manifest(
-    *adapter_name: str, adapter_version: str, req: dict, qc_report: dict, source_meta: dict, ds: xr.Dataset = None,
+    *adapter_name: str,
+    adapter_version: str,
+    req: dict,
+    qc_report: dict,
+    source_meta: dict,
+    ds: xr.Dataset = None,
 ) -> dict[str, Any]:
     """
     Build manifest for climate data provenance.
@@ -41,7 +46,7 @@ def build_manifest(
         "statistics": {},
     }
 
-    # Add variable metadata if dataset provided,
+    # Add variable metadata if dataset provided
     if ds is not None:
         for var in ds.data_vars:
             manifest["variables"][var] = {
@@ -51,10 +56,10 @@ def build_manifest(
                 "dtype": str(ds[var].dtype),
             }
 
-        # Add data hash,
+        # Add data hash
         manifest["data_hash"] = hash_dataset(ds)
 
-        # Add basic statistics,
+        # Add basic statistics
         manifest["statistics"] = (
             {
                 "time_range": {
@@ -80,13 +85,13 @@ def hash_dataset(ds: xr.Dataset) -> str:
     """
     hasher = hashlib.sha256()
 
-    # Hash coordinates,
+    # Hash coordinates
     for coord_name in sorted(ds.coords):
         coord = ds.coords[coord_name]
         (hasher.update(coord_name.encode()),)
         hasher.update(np.array(coord.values).tobytes())
 
-    # Hash data variables,
+    # Hash data variables
     for var_name in sorted(ds.data_vars):
         var = ds[var_name]
         hasher.update(var_name.encode())

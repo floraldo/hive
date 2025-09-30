@@ -96,7 +96,7 @@ class FileLoader:
             FileNotFoundError: If YAML file not found
             ValueError: If YAML file is malformed,
         """
-        # Search in energy and water subdirectories,
+        # Search in energy and water subdirectories
         for category in ["energy", "water"]:
             file_path = self.base_path / category / f"{component_id}.yml"
             if file_path.exists():
@@ -104,7 +104,7 @@ class FileLoader:
                     with open(file_path, "r") as f:
                         data = yaml.safe_load(f)
 
-                    # Validate basic structure,
+                    # Validate basic structure
                     if not data:
                         raise ValueError(f"Empty YAML file: {file_path}")
 
@@ -161,7 +161,7 @@ class SQLiteLoader:
         try:
             with ecosystemiser_transaction() as conn:
                 # Create components table
-                # Create components table,
+                # Create components table
                 conn.execute(
                     """,
                     CREATE TABLE IF NOT EXISTS components (
@@ -177,7 +177,7 @@ class SQLiteLoader:
                 """
                 )
 
-                # Create indexes for performance,
+                # Create indexes for performance
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_components_category ON components(category)"),
                 conn.execute("CREATE INDEX IF NOT EXISTS idx_components_class ON components(component_class)"),
 
@@ -215,13 +215,13 @@ class SQLiteLoader:
                     "category": row["category"]
                 }
 
-                # Add optional fields if present,
+                # Add optional fields if present
                 if row["economic_data"]:
                     data["economic"] = json.loads(row["economic_data"])
 
                 if row["metadata"]:
                     metadata = json.loads(row["metadata"])
-                    # Merge metadata fields into data,
+                    # Merge metadata fields into data
                     for key, value in metadata.items():
                         if key not in data:
                             data[key] = value
@@ -272,7 +272,7 @@ class SQLiteLoader:
             ValueError: If component data is invalid,
         """
         try:
-            # Validate required fields,
+            # Validate required fields
             if "component_class" not in data:
                 raise ValueError(f"Missing 'component_class' in component data")
             if "technical" not in data:
@@ -291,7 +291,7 @@ class SQLiteLoader:
             metadata_json = json.dumps(metadata) if metadata else None
 
             with ecosystemiser_transaction() as conn:
-                # Insert or update component,
+                # Insert or update component
                 conn.execute(
                     """,
                     INSERT OR REPLACE INTO components,
@@ -334,7 +334,7 @@ class SQLiteLoader:
                 try:
                     # Load from file
                     data = file_loader.load(component_id)
-                    # Save to database,
+                    # Save to database
                     self.save_component(component_id, data)
                     migrated_count += 1
                 except Exception as e:

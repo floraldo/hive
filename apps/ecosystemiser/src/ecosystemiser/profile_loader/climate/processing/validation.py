@@ -26,15 +26,15 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import xarray as xr
-from ecosystemiser.profile_loader.shared.timeseries import zero_night_irradiance
 
+from ecosystemiser.profile_loader.shared.timeseries import zero_night_irradiance
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 # ============================================================================
 # QUALITY CONTROL SEVERITY AND REPORTING
-# ============================================================================,
+# ============================================================================
 
 
 class QCSeverity(Enum):
@@ -233,12 +233,12 @@ class QCReport:
         # Merge issues
         self.issues.extend(other.issues)
 
-        # Merge passed checks,
+        # Merge passed checks
         for check in other.passed_checks:
             if check not in self.passed_checks:
                 self.passed_checks.append(check)
 
-        # Merge metadata if it exists,
+        # Merge metadata if it exists
         if hasattr(other, "metadata") and other.metadata:
             if not hasattr(self, "metadata"):
                 self.metadata = {}
@@ -247,11 +247,18 @@ class QCReport:
 
 # Helper functions for creating QC issues
 def create_consistency_issue(
-    message: str, affected_variables: list[str], severity: QCSeverity = QCSeverity.HIGH, **kwargs,
+    message: str,
+    affected_variables: list[str],
+    severity: QCSeverity = QCSeverity.HIGH,
+    **kwargs,
 ) -> QCIssue:
     """Helper to create consistency QC issues"""
     return QCIssue(
-        type="consistency", message=message, severity=severity, affected_variables=affected_variables, **kwargs,
+        type="consistency",
+        message=message,
+        severity=severity,
+        affected_variables=affected_variables,
+        **kwargs,
     )
 
 
@@ -294,8 +301,8 @@ def create_temporal_issue(
     )
 
 
-# ============================================================================,
-# SOURCE-SPECIFIC QC PROFILES,
+# ============================================================================
+# SOURCE-SPECIFIC QC PROFILES
 # ============================================================================
 
 
@@ -317,12 +324,12 @@ class QCProfile(ABC):
 
     def get_adjusted_bounds(self, base_bounds: dict[str, tuple[float, float]]) -> dict[str, tuple[float, float]]:
         """Get source-specific adjusted bounds"""
-        # Default: return base bounds unchanged,
+        # Default: return base bounds unchanged
         return base_bounds
 
 
 # Note: All QCProfile classes have been moved to their respective adapter files
-# for better co-location of adapter-specific QC logic (following co-location principle),
+# for better co-location of adapter-specific QC logic (following co-location principle)
 
 
 def get_source_profile(source: str) -> QCProfile:
@@ -384,7 +391,7 @@ def get_source_profile(source: str) -> QCProfile:
 
 # ============================================================================
 # METEOROLOGICAL VALIDATION
-# ============================================================================,
+# ============================================================================
 
 
 class ValidationProcessor:
@@ -418,16 +425,16 @@ class MeteorologicalValidator:
     # Enhanced physical bounds with seasonal/location adjustments
     BASE_PHYSICAL_BOUNDS = (
         {
-            "temp_air": (-70, 70),  # degC - Extended for extreme climates,
-            "dewpoint": (-70, 50),  # degC - Can exceed air temp briefly in measurements,
-            "rel_humidity": (0, 105),  # % - Allow slight over 100% for measurement errors,
-            "wind_speed": (0, 60),  # m/s - Extended for extreme weather,
-            "wind_dir": (0, 360),  # degrees,
-            "ghi": (0, 1500),  # W/m2 - Extended for high altitude/low latitude,
-            "dni": (0, 1200),  # W/m2,
-            "dhi": (0, 700),  # W/m2,
-            "precip": (0, 300),  # mm/h - Extended for extreme precipitation,
-            "pressure": (700, 1100),  # hPa - Extended for high altitude,
+            "temp_air": (-70, 70),  # degC - Extended for extreme climates
+            "dewpoint": (-70, 50),  # degC - Can exceed air temp briefly in measurements
+            "rel_humidity": (0, 105),  # % - Allow slight over 100% for measurement errors
+            "wind_speed": (0, 60),  # m/s - Extended for extreme weather
+            "wind_dir": (0, 360),  # degrees
+            "ghi": (0, 1500),  # W/m2 - Extended for high altitude/low latitude
+            "dni": (0, 1200),  # W/m2
+            "dhi": (0, 700),  # W/m2
+            "precip": (0, 300),  # mm/h - Extended for extreme precipitation
+            "pressure": (700, 1100),  # hPa - Extended for high altitude
             "cloud_cover": (0, 100),  # %
         },
     )
@@ -454,29 +461,30 @@ class MeteorologicalValidator:
         """
         report = (
             QCReport(
-                dataset_id=ds.attrs.get("id", f"dataset_{hash(str(ds.dims))}"), timestamp=datetime.now().isoformat(),
+                dataset_id=ds.attrs.get("id", f"dataset_{hash(str(ds.dims))}"),
+                timestamp=datetime.now().isoformat(),
             ),
         )
 
         logger.info("Starting comprehensive meteorological validation")
 
-        # 1. Physical bounds validation (enhanced),
+        # 1. Physical bounds validation (enhanced)
         self._validate_physical_bounds(ds, report)
 
-        # 2. Cross-variable consistency checks,
+        # 2. Cross-variable consistency checks
         self._validate_cross_variable_consistency(ds, report)
 
-        # 3. Temporal continuity validation,
+        # 3. Temporal continuity validation
         self._validate_temporal_continuity(ds, report)
 
-        # 4. Statistical pattern validation,
+        # 4. Statistical pattern validation
         self._validate_statistical_patterns(ds, report)
 
-        # 5. Source-specific validation (if source provided),
+        # 5. Source-specific validation (if source provided)
         if source:
             self._validate_source_specific(ds, report, source)
 
-        # Generate final summary,
+        # Generate final summary
         report.generate_summary()
         report.log_summary()
         score = report.data_quality_score or report.calculate_quality_score()
@@ -525,23 +533,23 @@ class MeteorologicalValidator:
         """Validate consistency between related meteorological variables"""
         logger.debug("Validating cross-variable consistency")
 
-        # Temperature-dewpoint relationship,
+        # Temperature-dewpoint relationship
         if "temp_air" in ds and "dewpoint" in ds:
             self._check_temp_dewpoint_consistency(ds, report)
 
-        # Solar radiation components consistency,
+        # Solar radiation components consistency
         if "ghi" in ds and "dni" in ds and "dhi" in ds:
             self._check_solar_radiation_consistency(ds, report)
 
-        # Wind speed-direction consistency,
+        # Wind speed-direction consistency
         if "wind_speed" in ds and "wind_dir" in ds:
             self._check_wind_consistency(ds, report)
 
-        # Humidity-precipitation relationship,
+        # Humidity-precipitation relationship
         if "rel_humidity" in ds and "precip" in ds:
             self._check_humidity_precipitation_consistency(ds, report)
 
-        # Cloud cover-solar radiation relationship,
+        # Cloud cover-solar radiation relationship
         if "cloud_cover" in ds and "ghi" in ds:
             self._check_cloud_solar_consistency(ds, report)
 
@@ -713,10 +721,10 @@ class MeteorologicalValidator:
         """Validate temporal continuity and detect unrealistic changes"""
         logger.debug("Validating temporal continuity")
 
-        # Check for time gaps,
+        # Check for time gaps
         self._check_time_gaps(ds, report)
 
-        # Check for unrealistic rate of change,
+        # Check for unrealistic rate of change
         self._check_rate_of_change(ds, report)
 
     def _check_time_gaps(self, ds: xr.Dataset, report: QCReport, expected_freq: str = None) -> None:
@@ -737,7 +745,7 @@ class MeteorologicalValidator:
         # Calculate time differences
         time_diffs = time_values[1:] - time_values[:-1]
 
-        # Determine expected frequency,
+        # Determine expected frequency
         if expected_freq:
             # Use explicitly provided frequency
             try:
@@ -772,7 +780,7 @@ class MeteorologicalValidator:
         large_gaps = time_diffs > (2 * expected_td)
         n_gaps = np.sum(large_gaps)
 
-        # Also check for missing timestamps,
+        # Also check for missing timestamps
         if expected_freq and freq_source == "explicit":
             # Create complete time range and find missing timestamps
             expected_range = pd.date_range(start=time_values[0], end=time_values[-1], freq=expected_freq)
@@ -864,10 +872,10 @@ class MeteorologicalValidator:
         """Validate statistical patterns in the data"""
         logger.debug("Validating statistical patterns")
 
-        # Check for excessive missing data,
+        # Check for excessive missing data
         self._check_missing_data_patterns(ds, report)
 
-        # Check for constant values (sensor stuck),
+        # Check for constant values (sensor stuck)
         self._check_constant_values(ds, report)
 
     def _check_missing_data_patterns(self, ds: xr.Dataset, report: QCReport) -> None:
@@ -945,14 +953,14 @@ class MeteorologicalValidator:
             profile = get_source_profile(source)
             profile.validate_source_specific(ds, report)
         except ValueError:
-            # Source profile not found, just add a passed check,
+            # Source profile not found, just add a passed check
             report.passed_checks.append(f"source_specific_{source}")
 
     def _adjust_bounds_for_location(self, lat: float, lon: float) -> dict[str, tuple[float, float]]:
         """Adjust physical bounds based on location"""
         bounds = self.BASE_PHYSICAL_BOUNDS.copy()
 
-        # Adjust temperature bounds based on latitude,
+        # Adjust temperature bounds based on latitude
         if abs(lat) > 60:  # Polar regions
             bounds["temp_air"] = (-70, 40)
             bounds["dewpoint"] = (-70, 30)
@@ -961,7 +969,7 @@ class MeteorologicalValidator:
             bounds["dewpoint"] = (-10, 40)
 
         # Adjust pressure bounds based on elevation (rough estimate from latitude)
-        # This is very simplified - in practice would use actual elevation,
+        # This is very simplified - in practice would use actual elevation
         if abs(lat) > 45:  # High latitude, possibly high elevation
             bounds["pressure"] = (600, 1100)  # Lower minimum for mountain regions
 
@@ -983,7 +991,7 @@ class MeteorologicalValidator:
     def _validate_statistical(self, ds: xr.Dataset, report: QCReport) -> None:
         """Perform advanced statistical validation."""
 
-        # Statistical outlier detection,
+        # Statistical outlier detection
         for var_name in ds.data_vars:
             data = ds[var_name].values
             if np.issubdtype(data.dtype, np.number):
@@ -1006,15 +1014,15 @@ class MeteorologicalValidator:
                         )
                         report.add_issue(issue)
 
-        # Temporal consistency checks,
+        # Temporal consistency checks
         if "time" in ds.dims and len(ds.time) > 1:
             time_deltas = pd.Series(ds.time.values).diff().dropna()
             if len(time_deltas) > 0:
-                # Check for irregular time steps,
+                # Check for irregular time steps
                 most_common_delta = time_deltas.mode().iloc[0]
                 irregular_steps = np.sum(time_deltas != most_common_delta)
 
-                if irregular_steps > len(time_deltas) * 0.1:  # More than 10% irregular,
+                if irregular_steps > len(time_deltas) * 0.1:  # More than 10% irregular
                     issue = QCIssue(
                         type="temporal",
                         message=f"Irregular time steps detected: {irregular_steps} out of {len(time_deltas)}",
@@ -1066,7 +1074,7 @@ class MeteorologicalValidator:
         else:
             recommendations.append("Dataset has quality concerns - extensive review recommended")
 
-        # Add summary to report metadata,
+        # Add summary to report metadata
         report.metadata["validation_summary"] = (
             {
                 "total_issues": total_issues,
@@ -1079,7 +1087,9 @@ class MeteorologicalValidator:
         )
 
     def validate_batch(
-        self, datasets: list[tuple[xr.Dataset, str, str | None]], validation_level: str = "standard",
+        self,
+        datasets: list[tuple[xr.Dataset, str, str | None]],
+        validation_level: str = "standard",
     ) -> dict[str, QCReport]:
         """
         Validate multiple datasets in batch.
@@ -1101,7 +1111,7 @@ class MeteorologicalValidator:
                 reports[identifier] = (report,)
             except Exception as e:
                 (logger.error(f"Validation failed for {identifier}: {e}"),)
-                # Create error report,
+                # Create error report
                 error_report = QCReport(dataset_id=identifier, timestamp=datetime.now().isoformat())
                 error_report.metadata = ({"error": str(e)},)
                 error_report.add_issue(
@@ -1121,7 +1131,7 @@ class MeteorologicalValidator:
 
 # ============================================================================
 # VALIDATION ORCHESTRATOR
-# ============================================================================,
+# ============================================================================
 
 
 def validate_complete(
@@ -1146,46 +1156,47 @@ def validate_complete(
     """
     logger.info(f"Starting {validation_level} validation for dataset with {len(ds.data_vars)} variables")
 
-    # Create meteorological validator instance,
+    # Create meteorological validator instance
     meteorological_validator = MeteorologicalValidator(strict_mode=strict_mode)
 
     # Initialize comprehensive report
     report = QCReport(
-        dataset_id=f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}", timestamp=datetime.now().isoformat(),
+        dataset_id=f"validation_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+        timestamp=datetime.now().isoformat(),
     )
 
-    # Add dataset info to metadata,
+    # Add dataset info to metadata
     report.metadata = {
         "dataset_info": {
             "variables": list(ds.data_vars.keys()),
             "time_range": (str(ds.time.min().values), str(ds.time.max().values)),
-            "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning,
+            "shape": dict(ds.sizes),  # Use sizes instead of dims to avoid deprecation warning
             "attributes": dict(ds.attrs),
             "source": source,
         },
     }
 
-    # Phase 1: Basic structural validation,
+    # Phase 1: Basic structural validation
     (logger.info("Phase 1: Basic structural validation"),)
     _validate_structure(ds, report)
 
-    # Phase 2: Meteorological validation,
+    # Phase 2: Meteorological validation
     if validation_level in ["standard", "comprehensive"]:
         (logger.info("Phase 2: Meteorological consistency validation"),)
         meteo_report = meteorological_validator.validate_dataset(ds, source)
         report.merge(meteo_report)
 
-    # Phase 3: Source-specific validation,
+    # Phase 3: Source-specific validation
     if validation_level == "comprehensive" and source and enable_profiling:
         (logger.info(f"Phase 3: Source-specific validation ({source})"),)
         _validate_source_specific(ds, source, report)
 
-    # Phase 4: Advanced statistical validation,
+    # Phase 4: Advanced statistical validation
     if validation_level == "comprehensive":
         (logger.info("Phase 4: Advanced statistical validation"),)
         meteorological_validator._validate_statistical(ds, report)
 
-    # Phase 5: Integration and summary,
+    # Phase 5: Integration and summary
     (logger.info("Phase 5: Generating validation summary"),)
     meteorological_validator._generate_summary(report)
 
@@ -1196,7 +1207,7 @@ def validate_complete(
 def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
     """Validate basic dataset structure and metadata."""
 
-    # Check for required dimensions,
+    # Check for required dimensions
     if "time" not in ds.dims:
         issue = QCIssue(
             type="structural",
@@ -1207,7 +1218,7 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
         )
         report.add_issue(issue)
 
-    # Check for empty variables,
+    # Check for empty variables
     for var_name in ds.data_vars:
         data = (ds[var_name].values,)
         if np.all(np.isnan(data)):
@@ -1220,7 +1231,7 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
             )
             report.add_issue(issue)
 
-    # Check time coordinate consistency,
+    # Check time coordinate consistency
     if "time" in ds.dims and len(ds.time) > 1:
         time_diffs = np.diff(ds.time.values)
         if not np.all(time_diffs > np.timedelta64(0)):
@@ -1243,7 +1254,7 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
         profile = get_source_profile(source)
         logger.info(f"Applying {profile.name} validation profile")
 
-        # Apply source-specific validation,
+        # Apply source-specific validation
         profile.validate_source_specific(ds, report)
 
         # Check for recommended variables
@@ -1261,7 +1272,7 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
             )
             report.add_issue(issue)
 
-        # Add source-specific information to report,
+        # Add source-specific information to report
         report.metadata["source_profile"] = (
             {"name": profile.name, "known_issues": profile.known_issues, "spatial_accuracy": profile.spatial_accuracy},
         )
@@ -1282,24 +1293,24 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
 
 # Note: _generate_summary function was removed as it's duplicate of MeteorologicalValidator._generate_summary
 
-# ============================================================================,
-# MAIN VALIDATION INTERFACE,
+# ============================================================================
+# MAIN VALIDATION INTERFACE
 # ============================================================================
 
-# Physical bounds for common variables,
+# Physical bounds for common variables
 PHYSICAL_BOUNDS = (
     {
-        "temp_air": (-60, 60),  # degC,
-        "dewpoint": (-60, 40),  # degC,
-        "rel_humidity": (0, 100),  # %,
-        "wind_speed": (0, 50),  # m/s,
-        "wind_dir": (0, 360),  # degrees,
-        "ghi": (0, 1400),  # W/m2,
-        "dni": (0, 1100),  # W/m2,
-        "dhi": (0, 600),  # W/m2,
-        "precip": (0, 200),  # mm/h,
-        "pressure": (800, 1100),  # hPa,
-        "cloud_cover": (0, 100),  # %,
+        "temp_air": (-60, 60),  # degC
+        "dewpoint": (-60, 40),  # degC
+        "rel_humidity": (0, 100),  # %
+        "wind_speed": (0, 50),  # m/s
+        "wind_dir": (0, 360),  # degrees
+        "ghi": (0, 1400),  # W/m2
+        "dni": (0, 1100),  # W/m2
+        "dhi": (0, 600),  # W/m2
+        "precip": (0, 200),  # mm/h
+        "pressure": (800, 1100),  # hPa
+        "cloud_cover": (0, 100),  # %
     },
 )
 
@@ -1329,13 +1340,17 @@ def apply_quality_control(
     Returns:
         Tuple of (cleaned dataset, comprehensive QC report)
     """
-    # Perform comprehensive validation using module-level function,
+    # Perform comprehensive validation using module-level function
     validation_level = ("comprehensive" if comprehensive else "standard",)
     report = validate_complete(
-        ds, source=source, validation_level=validation_level, strict_mode=False, enable_profiling=True,
+        ds,
+        source=source,
+        validation_level=validation_level,
+        strict_mode=False,
+        enable_profiling=True,
     )
 
-    # Apply corrective actions based on validation report,
+    # Apply corrective actions based on validation report
     ds_qc = apply_corrections(ds, report, bounds=bounds, spike_filter=spike_filter, gap_fill=gap_fill)
 
     return ds_qc, report
@@ -1364,7 +1379,7 @@ def apply_corrections(
     logger.info("Applying quality control corrections")
     ds_corrected = ds.copy()
 
-    # Apply bounds clipping for critical bounds violations,
+    # Apply bounds clipping for critical bounds violations
     critical_bounds_issues = [issue for issue in report.get_critical_issues() if issue.type == "bounds"]
 
     for issue in critical_bounds_issues:
@@ -1374,18 +1389,18 @@ def apply_corrections(
                 logger.warning(f"Clipping critical bounds violations in {var_name}")
                 ds_corrected[var_name].values = np.clip(ds_corrected[var_name].values, min_bound, max_bound)
 
-    # Zero night-time solar radiation,
+    # Zero night-time solar radiation
     for var in ["ghi", "dni", "dhi"]:
         if var in ds_corrected:
             ds_corrected = zero_night_irradiance(ds_corrected, var)
 
-    # Apply spike filtering if requested and spikes detected,
+    # Apply spike filtering if requested and spikes detected
     if spike_filter:
         spike_issues = [issue for issue in report.issues if "spike" in issue.type.lower()]
         if spike_issues:
             ds_corrected, _ = filter_spikes(ds_corrected)
 
-    # Fill gaps if requested and gaps detected,
+    # Fill gaps if requested and gaps detected
     if gap_fill:
         gap_issues = (
             [issue for issue in report.issues if "gap" in issue.type.lower() or "missing" in issue.type.lower()],
@@ -1488,7 +1503,7 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> tuple[xr.Datas
         n_spikes = np.sum(spikes)
 
         if n_spikes > 0:
-            # Replace spikes with NaN (to be filled later),
+            # Replace spikes with NaN (to be filled later)
             ds_filtered[var_name].values[spikes] = np.nan
 
             report[var_name] = (
@@ -1533,20 +1548,20 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> tuple[xr.Dataset, dict]
         # Count remaining gaps
         n_gaps_remaining = np.sum(np.isnan(data_interp.values))
 
-        # Second pass: seasonal median for larger gaps,
+        # Second pass: seasonal median for larger gaps
         if n_gaps_remaining > 0:
             # Calculate seasonal median (by month and hour)
             time_index = pd.DatetimeIndex(data.time.values)
             seasonal_median = data.groupby([time_index.month, time_index.hour]).median()
 
-            # Fill remaining gaps,
+            # Fill remaining gaps
             for i, t in enumerate(time_index):
                 if np.isnan(data_interp.values[i]):
                     month_hour = (t.month, t.hour)
                     if month_hour in seasonal_median:
                         data_interp.values[i] = seasonal_median[month_hour]
 
-        # Update dataset,
+        # Update dataset
         ds_filled[var_name] = data_interp
 
         # Report

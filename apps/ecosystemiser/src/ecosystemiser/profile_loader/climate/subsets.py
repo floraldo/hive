@@ -29,7 +29,7 @@ def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
         return ds
     ds_subset = ds.copy()
 
-    # Month subset,
+    # Month subset
     if "month" in subset:
         month = int(subset["month"])
         time_index = pd.DatetimeIndex(ds_subset.time.values)
@@ -37,19 +37,19 @@ def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
         ds_subset = ds_subset.isel(time=mask)
         logger.info(f"Applied month subset: {month}")
 
-    # Day subset,
+    # Day subset
     if "day" in subset:
         day = pd.Timestamp(subset["day"])
         ds_subset = ds_subset.sel(time=slice(day, day + pd.Timedelta(days=1)))
         logger.info(f"Applied day subset: {day}")
 
-    # Date range subset,
+    # Date range subset
     if "start" in subset and "end" in subset:
         # Handle different date formats
         start_str = subset["start"]
         end_str = subset["end"]
 
-        # Check if it's month-day format (e.g., "07-10"),
+        # Check if it's month-day format (e.g., "07-10")
         if "-" in start_str and len(start_str.split("-")) == 2:
             # Assume current year from dataset
             year = pd.DatetimeIndex(ds_subset.time.values)[0].year
@@ -61,7 +61,7 @@ def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
         ds_subset = ds_subset.sel(time=slice(start, end))
         logger.info(f"Applied date range subset: {start} to {end}")
 
-    # Hour subset,
+    # Hour subset
     if "hour" in subset:
         hour = int(subset["hour"])
         time_index = pd.DatetimeIndex(ds_subset.time.values)
@@ -69,13 +69,13 @@ def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
         ds_subset = ds_subset.isel(time=mask)
         logger.info(f"Applied hour subset: {hour}")
 
-    # Season subset,
+    # Season subset
     if "season" in subset:
         season = subset["season"].lower()
         ds_subset = extract_season(ds_subset, season)
         logger.info(f"Applied season subset: {season}")
 
-    # Week subset,
+    # Week subset
     if "week" in subset:
         week = int(subset["week"])
         time_index = pd.DatetimeIndex(ds_subset.time.values)
@@ -102,7 +102,7 @@ def extract_season(ds: xr.Dataset, season: str) -> xr.Dataset:
             "spring": [3, 4, 5],
             "summer": [6, 7, 8],
             "fall": [9, 10, 11],
-            "autumn": [9, 10, 11],  # Alias,
+            "autumn": [9, 10, 11],  # Alias
             "winter": [12, 1, 2],
         },
     )
@@ -147,7 +147,7 @@ def extract_typical_periods(ds: xr.Dataset, period_type: str = "typical_week") -
                         dist += float((week_mean[var] - annual_mean[var]) ** 2)
                 distances[week_start] = dist
 
-        # Select week with minimum distance,
+        # Select week with minimum distance
         if distances:
             typical_week_start = min(distances, key=distances.get)
             typical_week = ds.sel(time=slice(typical_week_start, typical_week_start + pd.Timedelta(days=7)))

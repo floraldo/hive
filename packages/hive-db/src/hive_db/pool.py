@@ -1,6 +1,12 @@
 """
 Database connection pooling utilities for Hive applications.
 
+DEPRECATED: This module is deprecated in favor of sqlite_factory.py
+which uses the canonical hive-async connection pool.
+
+New code should use:
+    from hive_db import SQLiteConnectionFactory, create_sqlite_manager
+
 Provides both sync and async connection pooling with automatic
 resource management and health monitoring.
 """
@@ -9,6 +15,7 @@ from __future__ import annotations
 
 import sqlite3
 import threading
+import warnings
 from contextlib import contextmanager
 from pathlib import Path
 from queue import Empty, Full, Queue
@@ -17,6 +24,14 @@ from typing import Any
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
+# Deprecation warning
+warnings.warn(
+    "hive_db.pool is deprecated. Use hive_db.sqlite_factory.SQLiteConnectionFactory instead, "
+    "which uses the canonical hive-async connection pool.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 class ConnectionPool:
@@ -32,7 +47,11 @@ class ConnectionPool:
     """
 
     def __init__(
-        self, db_path: Path, min_connections: int = 2, max_connections: int = 10, connection_timeout: float = 30.0,
+        self,
+        db_path: Path,
+        min_connections: int = 2,
+        max_connections: int = 10,
+        connection_timeout: float = 30.0,
     ):
         """
         Initialize connection pool for a specific database.

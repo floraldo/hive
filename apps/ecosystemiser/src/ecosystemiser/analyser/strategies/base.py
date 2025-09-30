@@ -120,11 +120,11 @@ class BaseAnalysis(ABC):
         """
         logger.info(f"Executing {self.name} analysis")
 
-        # Store for potential use by subclasses,
+        # Store for potential use by subclasses
         self.results_data = results_data
         self.metadata = metadata or {}
 
-        # Validate input,
+        # Validate input
         self.validate_input(results_data)
 
         # Preprocess
@@ -136,7 +136,7 @@ class BaseAnalysis(ABC):
         # Postprocess
         final_results = self.postprocess_results(raw_results)
 
-        # Add metadata,
+        # Add metadata
         final_results["analysis_type"] = self.name
         final_results["analysis_version"] = "1.0.0"
 

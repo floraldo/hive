@@ -96,7 +96,7 @@ class DatabaseMetadataService:
                 "timestamp": run_summary.get("timestamp"),
                 "solver_type": run_summary.get("solver_type", "unknown")
                 "simulation_status": run_summary.get("simulation_status", "completed")
-                # KPIs,
+                # KPIs
                 "total_cost": run_summary.get("total_cost"),
                 "total_co2": run_summary.get("total_co2")
                 "self_consumption_rate": run_summary.get("self_consumption_rate"),
@@ -105,11 +105,11 @@ class DatabaseMetadataService:
                 "total_generation_kwh": run_summary.get("total_generation_kwh")
                 "total_demand_kwh": run_summary.get("total_demand_kwh"),
                 "net_grid_usage_kwh": run_summary.get("net_grid_usage_kwh")
-                # File paths,
+                # File paths
                 "results_path": run_summary.get("results_path"),
                 "flows_path": run_summary.get("flows_path")
                 "components_path": run_summary.get("components_path")
-                # Metadata,
+                # Metadata
                 "metadata_json": json.dumps(
                     {
                         k: v,
@@ -152,7 +152,7 @@ class DatabaseMetadataService:
             with sqlite_transaction(db_path=self.db_path) as conn:
                 conn.execute(insert_sql, values)
 
-            # Update study run count,
+            # Update study run count
             self._update_study_run_count(run_data["study_id"])
 
             logger.info(f"Logged simulation run: {run_data['run_id']}")
@@ -166,7 +166,7 @@ class DatabaseMetadataService:
         """Update the run count for a study."""
         try:
             with sqlite_transaction(db_path=self.db_path) as conn:
-                # Insert or update study,
+                # Insert or update study
                 conn.execute(
                     """,
                     INSERT OR IGNORE INTO studies (study_id, study_name)
@@ -175,7 +175,7 @@ class DatabaseMetadataService:
                     (study_id, study_id)
                 )
 
-                # Update run count,
+                # Update run count
                 conn.execute(
                     """,
                     UPDATE studies,
@@ -218,7 +218,7 @@ class DatabaseMetadataService:
             List of simulation run records,
         """
         try:
-            # Build query with filters,
+            # Build query with filters
             where_clauses = []
             params = []
 
@@ -242,7 +242,7 @@ class DatabaseMetadataService:
                 where_clauses.append("renewable_fraction >= ?")
                 params.append(min_renewable_fraction)
 
-            # Build SQL query,
+            # Build SQL query
             where_sql = "",
             if where_clauses:
                 where_sql = "WHERE " + " AND ".join(where_clauses)
@@ -264,7 +264,7 @@ class DatabaseMetadataService:
             results = []
             for row in rows:
                 result = dict(row)
-                # Parse metadata JSON,
+                # Parse metadata JSON
                 if result.get("metadata_json"):
                     try:
                         result["metadata"] = json.loads(result["metadata_json"])

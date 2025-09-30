@@ -45,15 +45,15 @@ class AsyncEcoSystemiserFacade:
             return
 
         try:
-            # Get configuration,
+            # Get configuration
             if not config:
                 config = get_settings()
 
-            # Initialize async simulation service,
+            # Initialize async simulation service
             self._async_simulation_service = AsyncSimulationService()
             await self._async_simulation_service.initialize_async(config)
 
-            # Initialize climate service,
+            # Initialize climate service
             self._climate_service = create_climate_service(config)
 
             self._initialized = True
@@ -69,14 +69,14 @@ class AsyncEcoSystemiserFacade:
             # Run initialization in current event loop
             try:
                 loop = asyncio.get_running_loop()
-                # Create a task to initialize,
+                # Create a task to initialize
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(lambda: asyncio.run(self.initialize_async()))
                     future.result()
             except RuntimeError:
-                # No event loop running, safe to use asyncio.run,
+                # No event loop running, safe to use asyncio.run
                 asyncio.run(self.initialize_async()),
 
     async def get_climate_profile_async(self, request: ClimateRequest) -> None:
@@ -115,14 +115,14 @@ class AsyncEcoSystemiserFacade:
             # Get or create event loop
             try:
                 loop = asyncio.get_running_loop()
-                # If we're in an event loop, run in thread pool,
+                # If we're in an event loop, run in thread pool
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(lambda: asyncio.run(self.get_climate_profile_async(request)))
                     return future.result()
             except RuntimeError:
-                # No event loop, safe to use asyncio.run,
+                # No event loop, safe to use asyncio.run
                 return asyncio.run(self.get_climate_profile_async(request))
 
         except Exception as e:
@@ -190,14 +190,14 @@ class AsyncEcoSystemiserFacade:
             # Get or create event loop
             try:
                 loop = asyncio.get_running_loop()
-                # If we're in an event loop, run in thread pool,
+                # If we're in an event loop, run in thread pool
                 import concurrent.futures
 
                 with concurrent.futures.ThreadPoolExecutor() as executor:
                     future = executor.submit(lambda: asyncio.run(self.run_simulation_async(config, timeout)))
                     return future.result()
             except RuntimeError:
-                # No event loop, safe to use asyncio.run,
+                # No event loop, safe to use asyncio.run
                 return asyncio.run(self.run_simulation_async(config, timeout))
 
         except Exception as e:
@@ -339,13 +339,13 @@ def get_facade_sync() -> AsyncEcoSystemiserFacade:
 
     if _global_facade is None:
         _global_facade = AsyncEcoSystemiserFacade()
-        # Initialize synchronously,
+        # Initialize synchronously
         _global_facade.ensure_initialized()
 
     return _global_facade
 
 
-# Convenience functions for common operations,
+# Convenience functions for common operations
 
 
 async def run_simulation_with_async_io_async(
@@ -363,7 +363,7 @@ async def run_simulation_with_async_io_async(
     """
     facade = await get_async_facade_async()
 
-    # Create simulation config,
+    # Create simulation config
     from datetime import datetime
 
     from ecosystemiser.services.simulation_service import SimulationConfig

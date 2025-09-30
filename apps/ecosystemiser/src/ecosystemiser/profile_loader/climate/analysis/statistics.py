@@ -22,7 +22,7 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
     """
     stats_dict = {}
 
-    # Calculate per-variable statistics,
+    # Calculate per-variable statistics
     for var_name in ds.data_vars:
         data = ds[var_name].values
 
@@ -40,7 +40,7 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
                 "missing_pct": float(np.sum(np.isnan(data)) / len(data) * 100),
             }
 
-            # Add percentiles,
+            # Add percentiles
             for p in percentiles:
                 var_stats[f"p{int(p):02d}"] = float(np.percentile(valid_data, p))
 
@@ -139,7 +139,7 @@ def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> di
                     comparison[var][f"{stat}_rel_diff"] = rel_diff
                     comparison[var][f"{stat}_within_tolerance"] = rel_diff <= tolerance
 
-    # Compare correlations,
+    # Compare correlations
     if "correlations" in stats1 and "correlations" in stats2:
         corr1 = stats1["correlations"]
         corr2 = stats2["correlations"]
