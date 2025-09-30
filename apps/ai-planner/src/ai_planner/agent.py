@@ -418,7 +418,7 @@ class AIPlanner:
                 "task_id": task["id"],
                 "created_at": datetime.now(UTC).isoformat(),
                 "status": "generated",
-                "metadata": {,
+                "metadata": {
                     "generator": "ai-planner-v2-claude",
                     "agent_id": self.agent_id,
                     "generation_method": "claude-powered",

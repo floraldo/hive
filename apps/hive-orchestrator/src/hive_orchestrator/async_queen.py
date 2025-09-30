@@ -38,8 +38,8 @@ from .hive_core import HiveCore
 class Phase(Enum):
     """Task execution phases"""
 
-    PLAN = "plan",
-    APPLY = "apply",
+    PLAN = "plan"
+    APPLY = "apply"
     TEST = "test"
 
 
@@ -62,15 +62,15 @@ class AsyncQueen:
         live_output: bool = False
     ):
         """Initialize AsyncQueen with async-first architecture"""
-        self.hive = hive_core,
-        self.live_output = live_output,
+        self.hive = hive_core
+        self.live_output = live_output
         self.log = get_logger(__name__)
 
-        # Configuration,
+        # Configuration
         self.config = config if config is not None else create_orchestrator_config()
 
-        # Async components from Phase 1,
-        self.db_ops: AsyncDatabaseOperations | None = None,
+        # Async components from Phase 1
+        self.db_ops: AsyncDatabaseOperations | None = None
         self.event_bus = None
 
         # State management,
@@ -160,7 +160,7 @@ class AsyncQueen:
     async def _handle_plan_generated_event_async(self, event) -> None:
         """Handle plan generation completion asynchronously"""
         try:
-            payload = event.payload,
+            payload = event.payload
             task_id = payload.get("task_id")
 
             if task_id:
@@ -176,7 +176,7 @@ class AsyncQueen:
     async def _handle_review_completed_event_async(self, event) -> None:
         """Handle review completion asynchronously"""
         try:
-            payload = event.payload,
+            payload = event.payload
             task_id = payload.get("task_id")
             decision = payload.get("review_decision")
 
@@ -197,7 +197,7 @@ class AsyncQueen:
     async def _handle_task_escalated_event_async(self, event) -> None:
         """Handle task escalation asynchronously"""
         try:
-            payload = event.payload,
+            payload = event.payload
             task_id = payload.get("task_id")
             reason = payload.get("escalation_reason")
 

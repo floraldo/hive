@@ -48,7 +48,7 @@ def get_queued_tasks_with_planning_optimized(
     if use_pool:
         from contextlib import contextmanager
 
-        @contextmanager,
+        @contextmanager
         def get_conn() -> None:
             with get_pooled_connection() as conn:
                 yield conn
@@ -105,17 +105,17 @@ def get_queued_tasks_with_planning_optimized(
 
         # Process results
         for row in cursor.fetchall():
-            task = {,
+            task = {
                 "id": row[0],
                 "title": row[1],
                 "description": row[2],
                 "task_type": row[3],
                 "priority": row[4],
                 "status": row[5],
-                "payload": json.loads(row[8]) if row[8] else {}
+                "payload": json.loads(row[8]) if row[8] else {},
                 "created_at": row[9],
                 "updated_at": row[10],
-                "assignee": row[15] if len(row) > 15 else None
+                "assignee": row[15] if len(row) > 15 else None,
             }
 
             # Enhance planner sub-tasks
@@ -125,8 +125,8 @@ def get_queued_tasks_with_planning_optimized(
                     "parent_plan_id": payload.get("parent_plan_id"),
                     "workflow_phase": payload.get("workflow_phase"),
                     "estimated_duration": payload.get("estimated_duration"),
-                    "required_skills": payload.get("required_skills", [])
-                    "deliverables": payload.get("deliverables", [])
+                    "required_skills": payload.get("required_skills", []),
+                    "deliverables": payload.get("deliverables", []),
                 }
 
                 dependencies = payload.get("dependencies", [])
@@ -350,21 +350,21 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
                 "complexity": sub_task.get("complexity"),
                 "estimated_duration": sub_task.get("estimated_duration"),
                 "workflow_phase": sub_task.get("workflow_phase"),
-                "required_skills": sub_task.get("required_skills", [])
-                "deliverables": sub_task.get("deliverables", [])
-                "dependencies": sub_task.get("dependencies", [])
-                "assignee": sub_task.get("assignee", "worker:backend")
+                "required_skills": sub_task.get("required_skills", []),
+                "deliverables": sub_task.get("deliverables", []),
+                "dependencies": sub_task.get("dependencies", []),
+                "assignee": sub_task.get("assignee", "worker:backend"),
             }
 
             insert_data.append(
                 (
                     task_id,
-                    sub_task.get("title", "Planned Sub-task")
-                    sub_task.get("description", "")
+                    sub_task.get("title", "Planned Sub-task"),
+                    sub_task.get("description", ""),
                     "planned_subtask",
-                    sub_task.get("priority", 50)
+                    sub_task.get("priority", 50),
                     "queued",
-                    json.dumps(payload)
+                    json.dumps(payload),
                 )
             )
 

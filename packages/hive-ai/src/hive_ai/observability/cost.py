@@ -4,18 +4,16 @@ AI cost management and budget control.
 Provides comprehensive cost tracking, budget enforcement
 and optimization recommendations for AI operations.
 """
+
 from __future__ import annotations
 
-
-import asyncio
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Dict, List, Tuple, Optional
+from typing import Any
 
 from hive_cache import CacheManager
-from hive_db import AsyncSession, get_async_session
 from hive_logging import get_logger
 
 from ..core.exceptions import AIError, CostLimitError
@@ -44,8 +42,8 @@ class CostBudget:
     limit: float  # USD
     warning_threshold: float = 0.8  # 80% of limit
     enabled: bool = True
-    categories: List[str] = field(default_factory=list)  # model, provider, operation
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    categories: list[str] = field(default_factory=list)  # model, provider, operation
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -59,7 +57,7 @@ class CostRecord:
     tokens_used: int
     cost_usd: float
     request_id: str | None = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -70,10 +68,10 @@ class CostSummary:
     total_cost: float
     total_tokens: int
     total_requests: int
-    breakdown_by_model: Dict[str, float]
-    breakdown_by_provider: Dict[str, float]
-    breakdown_by_operation: Dict[str, float]
-    top_expensive_operations: List[Dict[str, Any]]
+    breakdown_by_model: dict[str, float]
+    breakdown_by_provider: dict[str, float]
+    breakdown_by_operation: dict[str, float]
+    top_expensive_operations: list[dict[str, Any]]
 
 
 @dataclass
@@ -104,16 +102,16 @@ class CostManager:
         self.cache = CacheManager("cost_manager")
 
         # Cost tracking
-        self._cost_records: List[CostRecord] = []
-        self._budgets: Dict[str, CostBudget] = {}
+        self._cost_records: list[CostRecord] = []
+        self._budgets: dict[str, CostBudget] = {}
 
         # Cost aggregations
-        self._hourly_costs: Dict[str, float] = defaultdict(float)
-        self._daily_costs: Dict[str, float] = defaultdict(float)
-        self._monthly_costs: Dict[str, float] = defaultdict(float)
+        self._hourly_costs: dict[str, float] = defaultdict(float)
+        self._daily_costs: dict[str, float] = defaultdict(float)
+        self._monthly_costs: dict[str, float] = defaultdict(float)
 
         # Budget alerts
-        self._budget_alerts: List[Dict[str, Any]] = []
+        self._budget_alerts: list[dict[str, Any]] = []
 
         # Load default budgets if config provided
         if config:
@@ -127,7 +125,7 @@ class CostManager:
                     name="daily_limit",
                     period=BudgetPeriod.DAILY,
                     limit=self.config.daily_cost_limit,
-                    warning_threshold=0.8
+                    warning_threshold=0.8,
                 )
             )
 
@@ -137,7 +135,7 @@ class CostManager:
                     name="monthly_limit",
                     period=BudgetPeriod.MONTHLY,
                     limit=self.config.monthly_cost_limit,
-                    warning_threshold=0.9
+                    warning_threshold=0.9,
                 )
             )
 
@@ -162,7 +160,7 @@ class CostManager:
         tokens_used: TokenUsage,
         cost_usd: float,
         request_id: str | None = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Record a cost event.
@@ -190,7 +188,7 @@ class CostManager:
             tokens_used=tokens_used.total_tokens,
             cost_usd=cost_usd,
             request_id=request_id,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         # Store record,
@@ -208,7 +206,7 @@ class CostManager:
         except Exception as e:
             logger.warning(f"Failed to persist cost record: {e}")
 
-        logger.debug(f"Recorded cost: {model} ${cost_usd:.4f} " f"({tokens_used.total_tokens} tokens)")
+        logger.debug(f"Recorded cost: {model} ${cost_usd:.4f} ({tokens_used.total_tokens} tokens)")
 
     def _update_cost_aggregations(self, record: CostRecord) -> None:
         """Update cost aggregation buckets."""
@@ -242,7 +240,7 @@ class CostManager:
                             "message": f"Budget {budget_name} is {status.percentage_used:.1%} used",
                             "current_spending": status.current_spending,
                             "budget_limit": status.budget_limit,
-                            "timestamp": datetime.utcnow().isoformat()
+                            "timestamp": datetime.utcnow().isoformat(),
                         }
                     )
 
@@ -257,13 +255,13 @@ class CostManager:
                             "message": f"Budget {budget_name} limit exceeded",
                             "current_spending": status.current_spending,
                             "budget_limit": status.budget_limit,
-                            "timestamp": datetime.utcnow().isoformat()
+                            "timestamp": datetime.utcnow().isoformat(),
                         }
                     )
 
                     logger.error(
                         f"Budget limit exceeded: {budget_name} ",
-                        f"(${status.current_spending:.2f} / ${status.budget_limit:.2f})"
+                        f"(${status.current_spending:.2f} / ${status.budget_limit:.2f})",
                     )
 
                     # Raise exception to halt operation
@@ -271,7 +269,7 @@ class CostManager:
                         f"Budget '{budget_name}' limit exceeded",
                         current_cost=status.current_spending,
                         limit=status.budget_limit,
-                        period=budget.period.value
+                        period=budget.period.value,
                     )
 
             except CostLimitError:
@@ -315,7 +313,7 @@ class CostManager:
             remaining_budget=remaining_budget,
             warning_triggered=warning_triggered,
             limit_exceeded=limit_exceeded,
-            time_remaining=time_remaining
+            time_remaining=time_remaining,
         )
 
     async def _calculate_period_cost_async(self, period: BudgetPeriod) -> float:
@@ -397,7 +395,7 @@ class CostManager:
         Get comprehensive cost summary for a period.
 
         Args:
-            start_date: Start of period (default: 30 days ago),
+            start_date: Start of period (default: 30 days ago)
             end_date: End of period (default: now)
 
         Returns:
@@ -418,7 +416,7 @@ class CostManager:
                 breakdown_by_model={},
                 breakdown_by_provider={},
                 breakdown_by_operation={},
-                top_expensive_operations=[]
+                top_expensive_operations=[],
             )
 
         # Calculate totals
@@ -461,10 +459,10 @@ class CostManager:
             breakdown_by_model=dict(model_costs),
             breakdown_by_provider=dict(provider_costs),
             breakdown_by_operation=dict(operation_costs),
-            top_expensive_operations=expensive_ops
+            top_expensive_operations=expensive_ops,
         )
 
-    async def get_cost_trends_async(self, days: int = 30) -> Dict[str, Any]:
+    async def get_cost_trends_async(self, days: int = 30) -> dict[str, Any]:
         """Get cost trends and projections."""
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=days)
@@ -490,19 +488,19 @@ class CostManager:
                 slope = sum((x[i] - sum(x) / len(x)) * (y[i] - sum(y) / len(y)) for i in range(len(x))) / sum(
                     (x[i] - sum(x) / len(x)) ** 2 for i in range(len(x))
                 )
-                trend_direction = "increasing" if slope > 0 else "decreasing" if slope < 0 else "stable",
+                trend_direction = "increasing" if slope > 0 else "decreasing" if slope < 0 else "stable"
             else:
                 trend_direction = "stable"
 
-            # Project next 7 days,
-            projected_weekly_cost = avg_daily_cost * 7,
-            projected_monthly_cost = avg_daily_cost * 30,
+            # Project next 7 days
+            projected_weekly_cost = avg_daily_cost * 7
+            projected_monthly_cost = avg_daily_cost * 30
         else:
-            avg_daily_cost = 0,
-            min_daily_cost = 0,
-            max_daily_cost = 0,
-            trend_direction = "stable",
-            projected_weekly_cost = 0,
+            avg_daily_cost = 0
+            min_daily_cost = 0
+            max_daily_cost = 0
+            trend_direction = "stable"
+            projected_weekly_cost = 0
             projected_monthly_cost = 0
 
         return {
@@ -517,10 +515,10 @@ class CostManager:
             "projections": {
                 "projected_weekly_cost": projected_weekly_cost,
                 "projected_monthly_cost": projected_monthly_cost,
-            }
+            },
         }
 
-    async def get_optimization_recommendations_async(self) -> List[Dict[str, Any]]:
+    async def get_optimization_recommendations_async(self) -> list[dict[str, Any]]:
         """Get cost optimization recommendations."""
         recommendations = []
 
@@ -537,8 +535,8 @@ class CostManager:
                         "type": "model_optimization",
                         "priority": "high",
                         "title": "Consider alternative model",
-                        "description": f"Model '{most_expensive_model[0]}' accounts for ",
-                        f"{most_expensive_model[1]/summary.total_cost:.1%} of costs",
+                        "description": f"Model '{most_expensive_model[0]}' accounts for "
+                        f"{most_expensive_model[1] / summary.total_cost:.1%} of costs",
                         "suggestion": "Evaluate if a more cost-effective model could achieve similar results",
                         "potential_savings": most_expensive_model[1] * 0.3,  # Estimated 30% savings
                     }
@@ -573,7 +571,7 @@ class CostManager:
                             "title": "Review provider selection",
                             "description": f"Provider '{most_expensive[0]}' costs significantly more than '{least_expensive[0]}'",
                             "suggestion": "Evaluate if cheaper providers can handle some workloads",
-                            "potential_savings": (most_expensive[1] - least_expensive[1]) * 0.5
+                            "potential_savings": (most_expensive[1] - least_expensive[1]) * 0.5,
                         }
                     )
 
@@ -585,7 +583,7 @@ class CostManager:
         # This is a placeholder for actual database persistence
         pass
 
-    def get_budget_alerts(self) -> List[Dict[str, Any]]:
+    def get_budget_alerts(self) -> list[dict[str, Any]]:
         """Get recent budget alerts."""
         # Return recent alerts (last 24 hours)
         cutoff = datetime.utcnow() - timedelta(hours=24)
@@ -598,7 +596,7 @@ class CostManager:
 
     async def export_cost_data_async(
         self, start_date: datetime | None = None, end_date: datetime | None = None, format: str = "json"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Export cost data for external analysis."""
         end_date = end_date or datetime.utcnow()
         start_date = start_date or (end_date - timedelta(days=30))

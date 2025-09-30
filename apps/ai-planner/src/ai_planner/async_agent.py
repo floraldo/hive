@@ -89,14 +89,14 @@ class AsyncClaudeService:
                     "plan_id": plan_id,
                     "plan_name": f"Async Generated Plan: {task_description[:50]}",
                     "sub_tasks": sub_tasks,
-                    "metrics": {,
+                    "metrics": {
                         "total_estimated_duration": sum(task.get("estimated_duration", 30) for task in sub_tasks),
                         "complexity_breakdown": self._analyze_complexity(sub_tasks),
                         "confidence_score": 0.85 + (priority / 200),
                         "generation_time": 0.5 + (priority / 100),
                         "async_generated": True,
                     },
-                    "context": {,
+                    "context": {
                         "requestor": requestor,
                         "priority": priority,
                         "cache_used": use_cache,
@@ -358,17 +358,17 @@ class AsyncClaudeService:
             "plan_id": claude_response.get("plan_id"),
             "plan_name": claude_response.get("plan_name"),
             "sub_tasks": sub_tasks,
-            "metrics": {,
+            "metrics": {
                 "total_estimated_duration": metrics.get("total_estimated_duration", 0),
                 "complexity_breakdown": metrics.get("complexity_breakdown", {}),
                 "confidence_score": metrics.get("confidence_score", 0.8),
                 "generation_time": 2.0,  # Estimated time for real Claude call
                 "async_generated": True,
             },
-            "context": {,
+            "context": {
                 "requestor": requestor,
                 "priority": priority,
-                "cache_used": False,  # Real calls don't use cache yet,
+                "cache_used": False,  # Real calls don't use cache yet
                 "generation_timestamp": datetime.now(UTC).isoformat(),
             },
         }

@@ -26,3 +26,15 @@ repos:
         language: system
         types: [python]
         pass_filenames: true
+
+      # Golden Rules architectural validation
+      - id: golden-rules-check
+        name: Validate Golden Rules compliance
+        entry: python scripts/validate_golden_rules.py --incremental
+        language: system
+        types: [python]
+        pass_filenames: false
+        verbose: true
+        # Warning only - won't block commits initially
+        # Remove 'stages: [manual]' to enable automatic validation
+        stages: [manual]

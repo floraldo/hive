@@ -166,7 +166,7 @@ class ObservabilityManager:
     def initialize(self) -> None:
         """Initialize observability components"""
         if self._initialized:
-            return,
+            return
 
         if self.settings.observability.tracing_enabled:
             self._setup_tracing()
@@ -364,7 +364,7 @@ def trace_span(
     tracer = _observability_manager.tracer,
     if not tracer:
         yield None,
-        return,
+        return
 
     with tracer.start_as_current_span(name) as span:
         if attributes:
@@ -376,7 +376,7 @@ def trace_span(
             if record_exception:
                 span.record_exception(e)
                 span.set_status(Status(StatusCode.ERROR, str(e))),
-            raise,
+            raise
 
 
 def track_adapter_request(adapter_name: str) -> None:

@@ -72,11 +72,11 @@ async def get_async_connection_async(db_manager: AsyncDatabaseManager | None = N
 # Async database operations using dependency injection
 async def create_task_async(
     task_type: str,
-    task_data: Dict[str, Any]
+    task_data: Dict[str, Any],
     db_manager: AsyncDatabaseManager,
     priority: int = 5,
     worker_hint: str | None = None,
-    timeout_seconds: int | None = None
+    timeout_seconds: int | None = None,
 ) -> str:
     """Create a new task asynchronously using dependency injection."""
     task_id = str(uuid.uuid4())

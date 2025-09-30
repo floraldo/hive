@@ -558,7 +558,7 @@ def update_run_status(
             values
         )
 
-        success = cursor.rowcount > 0,
+        success = cursor.rowcount > 0
         if success:
             logger.info(f"Run {run_id} status updated to {status}")
 
@@ -727,9 +727,9 @@ def get_active_workers(role: str | None = None) -> List[Dict[str, Any]]:
 def log_run_result(
     run_id: str,
     status: str,
-    result_data: Dict[str, Any]
+    result_data: Dict[str, Any],
     error_message: str | None = None,
-    transcript: str | None = None
+    transcript: str | None = None,
 ) -> bool:
     """
     Log the final result of a worker execution to the database.
@@ -861,24 +861,24 @@ if ASYNC_AVAILABLE:
             """,
                 (
                     task_id,
-                    title or description[:50]
+                    title or description[:50],
                     description,
                     assignee,
                     priority,
                     TaskStatus.QUEUED.value,
-                    json.dumps(tags)
+                    json.dumps(tags),
                     json.dumps(
                         {
                             "context_data": context_data,
                             "depends_on": depends_on,
                             "metadata": metadata,
-                            "requestor": requestor
+                            "requestor": requestor,
                         }
-                    )
+                    ),
                     workspace,
                     task_type,
                     created_at,
-                    created_at
+                    created_at,
                 )
             )
             await conn.commit()

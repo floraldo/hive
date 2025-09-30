@@ -2,16 +2,17 @@
 Error Reporting and Tracking
 Centralized error logging and metrics collection
 """
+
 from __future__ import annotations
 
-
 import json
+import logging
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -28,7 +29,7 @@ class ErrorContext:
     session_id: str | None = None
     request_id: str | None = None
     environment: str = "production"
-    additional_data: Optional[Dict[str, Any]] = None
+    additional_data: dict[str, Any] | None = None
 
 
 class ErrorReporter:
@@ -47,7 +48,7 @@ class ErrorReporter:
         log_to_file: bool = True,
         log_to_db: bool = True,
         error_log_path: Path | None = None,
-        error_db_path: Path | None = None
+        error_db_path: Path | None = None,
     ):
         """
         Initialize error reporter
@@ -58,7 +59,7 @@ class ErrorReporter:
             error_log_path: Path to error log file,
             error_db_path: Path to error database,
         """
-        self.log_to_file = log_to_file,
+        self.log_to_file = (log_to_file,)
         self.log_to_db = log_to_db
 
         # Setup file logging,
@@ -75,8 +76,8 @@ class ErrorReporter:
 
         # Error metrics,
         self.error_counts = defaultdict(int)
-        self.error_history: List[Dict[str, Any]] = []
-        self.recovery_success_rate: Dict[str, float] = {}
+        self.error_history: list[dict[str, Any]] = []
+        self.recovery_success_rate: dict[str, float] = {}
 
     def _setup_file_logger(self) -> None:
         """Setup file-based error logging"""
@@ -135,10 +136,7 @@ class ErrorReporter:
         conn.close()
 
     def report_error(
-        self,
-        error: Exception,
-        context: ErrorContext | None = None,
-        additional_info: Optional[Dict[str, Any]] = None
+        self, error: Exception, context: ErrorContext | None = None, additional_info: dict[str, Any] | None = None
     ) -> str:
         """
         Report an error with context
@@ -176,16 +174,13 @@ class ErrorReporter:
         return error_id
 
     def _build_error_record(
-        self,
-        error: Exception,
-        context: ErrorContext | None,
-        additional_info: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, error: Exception, context: ErrorContext | None, additional_info: dict[str, Any] | None
+    ) -> dict[str, Any]:
         """Build structured error record"""
         record = {
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
             "error_type": error.__class__.__name__,
-            "message": str(error)
+            "message": str(error),
         }
 
         # Add Hive-specific error details,
@@ -203,8 +198,8 @@ class ErrorReporter:
                 {
                     "component": "unknown",
                     "operation": "unknown",
-                    "details": {}
-                    "recovery_suggestions": []
+                    "details": {},
+                    "recovery_suggestions": [],
                 }
             )
 
@@ -224,7 +219,7 @@ class ErrorReporter:
 
         return record
 
-    def _update_metrics(self, error_record: Dict[str, Any]) -> None:
+    def _update_metrics(self, error_record: dict[str, Any]) -> None:
         """Update error metrics"""
         error_type = error_record["error_type"]
         component = error_record.get("component", "unknown")
@@ -238,7 +233,7 @@ class ErrorReporter:
         # Count total
         self.error_counts["total"] += 1
 
-    def _log_to_file(self, error_record: Dict[str, Any]) -> None:
+    def _log_to_file(self, error_record: dict[str, Any]) -> None:
         """Log error to file"""
         try:
             with open(self.error_log_path, "a") as f:
@@ -246,7 +241,7 @@ class ErrorReporter:
         except Exception as e:
             logger.warning(f"Failed to write error to file: {e}")
 
-    def _log_to_database(self, error_record: Dict[str, Any]) -> None:
+    def _log_to_database(self, error_record: dict[str, Any]) -> None:
         """Log error to database"""
         try:
             conn = sqlite3.connect(str(self.error_db_path))
@@ -260,15 +255,15 @@ class ErrorReporter:
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
-                    error_record["timestamp"]
-                    error_record["error_type"]
-                    error_record.get("component", "unknown")
-                    error_record.get("operation")
-                    error_record["message"]
-                    json.dumps(error_record.get("details", {}))
-                    json.dumps(error_record.get("context", {}))
-                    json.dumps(error_record.get("recovery_suggestions", []))
-                )
+                    error_record["timestamp"],
+                    error_record["error_type"],
+                    error_record.get("component", "unknown"),
+                    error_record.get("operation"),
+                    error_record["message"],
+                    json.dumps(error_record.get("details", {})),
+                    json.dumps(error_record.get("context", {})),
+                    json.dumps(error_record.get("recovery_suggestions", [])),
+                ),
             )
 
             conn.commit()
@@ -299,10 +294,10 @@ class ErrorReporter:
                 )
             """,
                 (
-                    datetime.now().isoformat()
+                    datetime.now().isoformat(),
                     resolution_notes,
-                    f"%{error_id.split('_')[1]}%"
-                )
+                    f"%{error_id.split('_')[1]}%",
+                ),
             )
 
             conn.commit()
@@ -310,7 +305,7 @@ class ErrorReporter:
         except Exception as e:
             logger.warning(f"Failed to mark error as resolved: {e}")
 
-    def get_error_statistics(self, time_window: timedelta | None = None) -> Dict[str, Any]:
+    def get_error_statistics(self, time_window: timedelta | None = None) -> dict[str, Any]:
         """
         Get error statistics
 
@@ -321,11 +316,11 @@ class ErrorReporter:
             Dictionary of error statistics
         """
         stats = {
-            "total_errors": self.error_counts["total"]
-            "errors_by_type": {}
-            "errors_by_component": {}
-            "recent_errors": []
-            "top_errors": []
+            "total_errors": self.error_counts["total"],
+            "errors_by_type": {},
+            "errors_by_component": {},
+            "recent_errors": [],
+            "top_errors": [],
         }
 
         # Filter by time window if specified
@@ -354,7 +349,7 @@ class ErrorReporter:
 
         return stats
 
-    def get_recovery_suggestions(self, error_type: str) -> List[str]:
+    def get_recovery_suggestions(self, error_type: str) -> list[str]:
         """
         Get recovery suggestions for an error type
 

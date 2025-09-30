@@ -51,7 +51,7 @@ class AsyncCLIWrapper:
 
         except Exception as e:
             logger.error(f"Failed to initialize async CLI wrapper: {e}")
-            raise,
+            raise
 
     async def run_simulation_async_cli_async(
         self,

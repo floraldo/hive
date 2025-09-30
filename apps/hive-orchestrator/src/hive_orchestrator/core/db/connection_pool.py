@@ -7,14 +7,11 @@ Provides 35-70% performance improvement for database operations.
 """
 from __future__ import annotations
 
-
 import sqlite3
 import threading
-import time
 from contextlib import contextmanager
-from pathlib import Path
 from queue import Empty, Full, Queue
-from typing import Any, Dict
+from typing import Any, Optional
 
 from hive_config.paths import DB_PATH, ensure_directory
 from hive_logging import get_logger
@@ -39,7 +36,7 @@ class ConnectionPool:
         min_connections: int = None,
         max_connections: int = None,
         connection_timeout: float = None,
-        db_config: Optional[Dict[str, Any]] = None
+        db_config: Optional[dict[str, Any]] = None
     ):
         """
         Initialize connection pool.
@@ -54,14 +51,14 @@ class ConnectionPool:
         if db_config is None:
             db_config = {"max_connections": 10, "connection_timeout": 30.0}
 
-        self.min_connections = min_connections if min_connections is not None else 2,
+        self.min_connections = min_connections if min_connections is not None else 2
         self.max_connections = max_connections if max_connections is not None else db_config.get("max_connections", 10)
         self.connection_timeout = (
             connection_timeout if connection_timeout is not None else db_config.get("connection_timeout", 30.0)
         )
 
         self._pool = Queue(maxsize=self.max_connections)
-        self._connections_created = 0,
+        self._connections_created = 0
         self._lock = threading.RLock()
 
         # Initialize minimum connections,
@@ -179,7 +176,7 @@ class ConnectionPool:
 
         logger.info("Connection pool closed")
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get pool statistics."""
         return {
             "pool_size": self._pool.qsize(),

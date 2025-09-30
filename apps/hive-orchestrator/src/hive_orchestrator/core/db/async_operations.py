@@ -265,19 +265,19 @@ class AsyncDatabaseOperations:
                 batch_data.append(
                     (
                         task_id,
-                        task["type"]
-                        task["description"]
+                        task["type"],
+                        task["description"],
                         "queued",
-                        task.get("priority", 5)
+                        task.get("priority", 5),
                         metadata_json,
-                        datetime.now(timezone.utc).isoformat()
+                        datetime.now(timezone.utc).isoformat(),
                     )
                 )
 
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
                 await conn.executemany(
-                    self._prepared_statements["create_task"]
-                    batch_data
+                    self._prepared_statements["create_task"],
+                    batch_data,
                 )
                 await conn.commit()
 
