@@ -459,7 +459,7 @@ class UnifiedIntelligenceCore:
             recent_feedback = len(
                 [
                     f
-                    for f in self.feedback_history,
+                    for f in self.feedback_history
                     if datetime.fromisoformat(f["timestamp"]) > datetime.utcnow() - timedelta(days=7)
                 ]
             )
@@ -468,7 +468,7 @@ class UnifiedIntelligenceCore:
             total_correlations = sum(len(corrs) for corrs in self.correlation_cache.values())
 
             status = {
-                "unified_intelligence_core": {,
+                "unified_intelligence_core": {
                     "enabled": True,
                     "total_nodes": total_nodes,
                     "total_edges": total_edges,
@@ -476,28 +476,28 @@ class UnifiedIntelligenceCore:
                     "semantic_search_enabled": self.config.enable_semantic_search,
                     "continuous_learning_enabled": self.config.enable_continuous_learning,
                 },
-                "knowledge_graph": {,
+                "knowledge_graph": {
                     "node_counts": node_counts,
                     "edge_counts": edge_counts,
                     "max_capacity": {"nodes": self.config.max_nodes, "edges": self.config.max_edges},
-                    "utilization": {,
+                    "utilization": {
                         "nodes": f"{(total_nodes / self.config.max_nodes) * 100:.1f}%",
                         "edges": f"{(total_edges / self.config.max_edges) * 100:.1f}%",
                     },
                 },
-                "learning_system": {,
+                "learning_system": {
                     "total_feedback_entries": total_feedback,
                     "recent_feedback_7_days": recent_feedback,
                     "total_correlations_discovered": total_correlations,
                     "confidence_decay_rate": self.config.confidence_decay_rate,
                 },
-                "query_performance": {,
+                "query_performance": {
                     "cached_queries": len(self.query_cache),
                     "cache_enabled": self.config.enable_query_caching,
                     "max_query_depth": self.config.max_query_depth,
                     "semantic_threshold": self.config.semantic_similarity_threshold,
                 },
-                "strategic_intelligence": {,
+                "strategic_intelligence": {
                     "prophecy_symbiosis_correlations": len(self.correlation_cache.get("prophecy_symbiosis", [])),
                     "design_pattern_mappings": len(
                         [n for n in self.nodes.values() if n.node_type == NodeType.SOLUTION_PATTERN]

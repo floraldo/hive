@@ -618,7 +618,7 @@ class ProphecyEngine:
             # Filter by confidence threshold
             filtered_prophecies = [
                 p
-                for p in prophecies,
+                for p in prophecies
                 if self._get_confidence_score(p.confidence) >= self.config.min_confidence_threshold
             ]
 
