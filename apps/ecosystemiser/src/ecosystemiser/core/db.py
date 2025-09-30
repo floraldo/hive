@@ -1,5 +1,5 @@
 """
-EcoSystemiser Core Database Service,
+EcoSystemiser Core Database Service.
 
 This module extends the generic hive-db package with EcoSystemiser-specific
 database functionality, following the inherit→extend pattern.
@@ -8,10 +8,11 @@ database functionality, following the inherit→extend pattern.
 from __future__ import annotations
 
 import os
-import sqlite3
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Generator
 
+from hive_db import get_sqlite_connection, sqlite_transaction
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -22,7 +23,7 @@ def get_ecosystemiser_db_path() -> Path:
     Get the path to the EcoSystemiser database.
 
     Returns:
-        Path to ecosystemiser.db in the EcoSystemiser data directory,
+        Path to ecosystemiser.db in the EcoSystemiser data directory.
     """
     # Check for environment variable override
     db_path_env = os.environ.get("ECOSYSTEMISER_DB_PATH")
@@ -38,50 +39,52 @@ def get_ecosystemiser_db_path() -> Path:
 
 
 @contextmanager
-def get_ecosystemiser_connection() -> None:
+def get_ecosystemiser_connection():
     """
-    Get a context-managed connection to the EcoSystemiser database.,
+    Get a context-managed connection to the EcoSystemiser database.
 
-    This is the core database service for EcoSystemiser, providing,
-    proper connection management with automated cleanup.
+    This extends hive_db's get_sqlite_connection with EcoSystemiser-specific
+    configuration and path management.
 
     Yields:
-        sqlite3.Connection: Database connection with row factory enabled,
+        sqlite3.Connection: Database connection with row factory enabled.
     """
     db_path = get_ecosystemiser_db_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-
-    try:
+    
+    # Use hive_db's connection manager with EcoSystemiser's path
+    with get_sqlite_connection(str(db_path)) as conn:
+        # Enable foreign keys for data integrity
+        conn.execute("PRAGMA foreign_keys = ON")
         yield conn
-    finally:
-        conn.close()
 
 
 @contextmanager
-def ecosystemiser_transaction() -> None:
+def ecosystemiser_transaction():
     """
-    Context manager for EcoSystemiser database transactions.,
+    Context manager for EcoSystemiser database transactions.
 
-    This provides transactional database operations with automatic,
-    commit/rollback handling for EcoSystemiser's dedicated database.
+    This extends hive_db's sqlite_transaction with EcoSystemiser-specific
+    database path and configuration.
 
     Yields:
-        sqlite3.Connection: Connection with transaction support,
+        sqlite3.Connection: Connection with transaction support.
     """
-    with get_ecosystemiser_connection() as conn:
+    db_path = get_ecosystemiser_db_path()
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Use hive_db's transaction manager
+    with sqlite_transaction(str(db_path)) as conn:
+        # Enable foreign keys
+        conn.execute("PRAGMA foreign_keys = ON")
         try:
             yield conn
-            conn.commit()
         except Exception as e:
-            conn.rollback()
             logger.error(f"EcoSystemiser transaction failed: {e}")
             raise
 
 
-def get_db_connection(db_path: Path | None = None) -> sqlite3.Connection:
+def get_db_connection(db_path: Path | None = None):
     """
     Legacy direct connection function.
 
@@ -92,13 +95,17 @@ def get_db_connection(db_path: Path | None = None) -> sqlite3.Connection:
         Direct SQLite connection
 
     Note:
-        This function is provided for backward compatibility.,
-        Use get_ecosystemiser_connection() context manager for new code.,
+        This function is provided for backward compatibility.
+        Use get_ecosystemiser_connection() context manager for new code.
     """
     logger.warning("Direct connection requested - consider using context managers")
-    db_path = get_ecosystemiser_db_path()
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
+    actual_db_path = get_ecosystemiser_db_path()
+    actual_db_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    # Use hive_db's connection, but return it directly (not context-managed)
+    # This maintains backward compatibility while using hive_db under the hood
+    import sqlite3
+    conn = sqlite3.connect(str(actual_db_path))
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
@@ -109,7 +116,7 @@ def validate_ecosystemiser_database() -> bool:
     Validate that the EcoSystemiser database is accessible and working.
 
     Returns:
-        True if database is accessible, False otherwise,
+        True if database is accessible, False otherwise.
     """
     try:
         with get_ecosystemiser_connection() as conn:

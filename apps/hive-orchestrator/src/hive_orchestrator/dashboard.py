@@ -455,7 +455,7 @@ class HiveDashboard:
 
         return layout
 
-    def run(self) -> None:
+    async def run(self) -> None:
         """Run the dashboard with live updates."""
         try:
             with Live(self.create_dashboard(), refresh_per_second=0.5, console=self.console) as live:
@@ -473,7 +473,7 @@ class HiveDashboard:
 def main() -> None:
     """Entry point for the dashboard."""
     dashboard = HiveDashboard()
-    dashboard.run()
+    asyncio.run(dashboard.run())
 
 
 if __name__ == "__main__":

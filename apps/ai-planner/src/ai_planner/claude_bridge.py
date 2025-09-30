@@ -171,7 +171,7 @@ class RobustClaudePlannerBridge:
     def _create_planning_prompt(
         self,
         task_description: str,
-        context_data: Dict[str, Any]
+        context_data: Dict[str, Any],
         priority: int,
         requestor: str
     ) -> str:

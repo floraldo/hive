@@ -38,6 +38,7 @@ hive-config = {path = "../../packages/hive-config", develop = true}
 hive-errors = {path = "../../packages/hive-errors", develop = true}
 hive-bus = {path = "../../packages/hive-bus", develop = true}
 hive-db = {path = "../../packages/hive-db", develop = true}
+hive-cli = {path = "../../packages/hive-cli", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

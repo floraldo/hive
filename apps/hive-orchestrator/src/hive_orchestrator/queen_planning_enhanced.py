@@ -506,7 +506,7 @@ len(self.active_workers) == 0
                         self.log.info("All tasks completed. Exiting enhanced mode...")
                         break
 
-                await asyncio.sleep(self.hive.config["orchestration"]["status_refresh_seconds"])
+                time.sleep(self.hive.config["orchestration"]["status_refresh_seconds"])
 
         except KeyboardInterrupt:
             self.log.info("\nQueen Planning Enhanced shutting down...")

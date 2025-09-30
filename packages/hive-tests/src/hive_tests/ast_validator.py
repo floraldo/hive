@@ -436,7 +436,7 @@ class EnhancedValidator:
     """
 
     def __init__(self, project_root: Path) -> None:
-        self.project_root = (project_root,)
+        self.project_root = project_root
         self.violations: list[Violation] = []
 
     def validate_all(self) -> tuple[bool, dict[str, list[str]]]:
@@ -470,6 +470,10 @@ class EnhancedValidator:
         self._validate_package_naming_consistency()
         self._validate_inherit_extend_pattern()
         self._validate_python_version_consistency()
+        self._validate_single_config_source()
+        self._validate_service_layer_discipline()
+        self._validate_unified_tool_configuration()
+        self._validate_pyproject_dependency_usage()
 
         # Group violations by rule,
         violations_by_rule = {}
@@ -819,3 +823,254 @@ class EnhancedValidator:
                     )
             except:
                 continue
+    def _validate_single_config_source(self) -> None:
+        """Golden Rule 4: Single Config Source"""
+        # Check for forbidden duplicate configuration files
+        forbidden_config = self.project_root / "packages" / "hive-db" / "src" / "hive_db" / "config.py"
+        if forbidden_config.exists():
+            self.violations.append(
+                Violation(
+                    rule_id="rule-4",
+                    rule_name="Single Config Source",
+                    file_path=forbidden_config,
+                    line_number=1,
+                    message="Duplicate configuration source detected. Use hive-config package exclusively.",
+                )
+            )
+
+        # Check for setup.py files
+        for setup_file in self.project_root.rglob("setup.py"):
+            if ".venv" not in str(setup_file) and ".worktrees" not in str(setup_file) and "site-packages" not in str(setup_file):
+                self.violations.append(
+                    Violation(
+                        rule_id="rule-4",
+                        rule_name="Single Config Source",
+                        file_path=setup_file,
+                        line_number=1,
+                        message="Found setup.py file. Use pyproject.toml instead.",
+                    )
+                )
+
+        # Ensure root pyproject.toml exists
+        root_config = self.project_root / "pyproject.toml"
+        if not root_config.exists():
+            self.violations.append(
+                Violation(
+                    rule_id="rule-4",
+                    rule_name="Single Config Source",
+                    file_path=self.project_root,
+                    line_number=1,
+                    message="Root pyproject.toml missing",
+                )
+            )
+        else:
+            try:
+                config = toml.load(root_config)
+                has_workspace = False
+                if "tool" in config and "poetry" in config["tool"] and "group" in config["tool"]["poetry"]:
+                    if "workspace" in config["tool"]["poetry"]["group"]:
+                        has_workspace = True
+
+                if not has_workspace:
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-4",
+                            rule_name="Single Config Source",
+                            file_path=root_config,
+                            line_number=1,
+                            message="Workspace configuration missing from root pyproject.toml",
+                        )
+                    )
+            except:
+                self.violations.append(
+                    Violation(
+                        rule_id="rule-4",
+                        rule_name="Single Config Source",
+                        file_path=root_config,
+                        line_number=1,
+                        message="Root pyproject.toml is invalid",
+                    )
+                )
+    def _validate_service_layer_discipline(self) -> None:
+        """Golden Rule 7: Service Layer Discipline"""
+        apps_dir = self.project_root / "apps"
+        if not apps_dir.exists():
+            return
+
+        for app_dir in apps_dir.iterdir():
+            if app_dir.is_dir() and not app_dir.name.startswith("."):
+                app_name = app_dir.name
+                core_patterns = [
+                    app_dir / "src" / app_name.replace("-", "_") / "core",
+                    app_dir / "src" / app_name / "core",
+                ]
+
+                for core_dir in core_patterns:
+                    if core_dir.exists() and core_dir.is_dir():
+                        for py_file in core_dir.rglob("*.py"):
+                            if "__pycache__" in str(py_file):
+                                continue
+
+                            try:
+                                with open(py_file, encoding="utf-8") as f:
+                                    file_content = f.read()
+
+                                # Check for business logic indicators
+                                business_logic_indicators = [
+                                    "def process_",
+                                    "def calculate_",
+                                    "def analyze_",
+                                    "def generate_",
+                                    "def orchestrate_",
+                                    "def execute_workflow",
+                                    "def run_algorithm",
+                                ]
+
+                                for indicator in business_logic_indicators:
+                                    if indicator in file_content:
+                                        self.violations.append(
+                                            Violation(
+                                                rule_id="rule-7",
+                                                rule_name="Service Layer Discipline",
+                                                file_path=py_file,
+                                                line_number=1,
+                                                message=f"Service layer contains business logic indicator: {indicator}",
+                                            )
+                                        )
+                                        break
+
+                                # Check for missing docstrings on public classes
+                                if "class " in file_content:
+                                    lines = file_content.split("\n")
+                                    for i, line in enumerate(lines):
+                                        if line.strip().startswith("class ") and not line.strip().startswith("class _"):
+                                            if i + 1 < len(lines):
+                                                next_line = lines[i + 1].strip()
+                                                triple_quote = '"""' if '"""' in next_line[:10] else "\'\'\'"
+                                                if not next_line.startswith(triple_quote):
+                                                    class_name = line.strip().split()[1].split("(")[0].rstrip(":")
+                                                    self.violations.append(
+                                                        Violation(
+                                                            rule_id="rule-7",
+                                                            rule_name="Service Layer Discipline",
+                                                            file_path=py_file,
+                                                            line_number=i + 1,
+                                                            message=f"Service class '{class_name}' missing docstring",
+                                                        )
+                                                    )
+                            except:
+                                continue
+    def _validate_unified_tool_configuration(self) -> None:
+        """Golden Rule 23: Unified Tool Configuration"""
+        forbidden_tools = ["ruff", "black", "mypy", "isort"]
+
+        for toml_path in self.project_root.rglob("pyproject.toml"):
+            if toml_path == self.project_root / "pyproject.toml":
+                continue
+            if ".venv" in str(toml_path) or "archive" in str(toml_path):
+                continue
+
+            try:
+                config = toml.load(toml_path)
+                if "tool" in config:
+                    for tool_name in forbidden_tools:
+                        if tool_name in config["tool"]:
+                            self.violations.append(
+                                Violation(
+                                    rule_id="rule-23",
+                                    rule_name="Unified Tool Configuration",
+                                    file_path=toml_path,
+                                    line_number=1,
+                                    message=f"Contains [tool.{tool_name}] section. Tool configs must be unified in root pyproject.toml",
+                                )
+                            )
+            except:
+                continue
+
+        # Verify root pyproject.toml has required sections
+        root_toml = self.project_root / "pyproject.toml"
+        if root_toml.exists():
+            try:
+                root_config = toml.load(root_toml)
+                if "tool" not in root_config or "ruff" not in root_config["tool"]:
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-23",
+                            rule_name="Unified Tool Configuration",
+                            file_path=root_toml,
+                            line_number=1,
+                            message="Root pyproject.toml missing [tool.ruff] configuration",
+                        )
+                    )
+            except:
+                pass
+    def _validate_pyproject_dependency_usage(self) -> None:
+        """Golden Rule 22: Pyproject Dependency Usage"""
+        for base_dir_name in ["apps", "packages"]:
+            base_dir = self.project_root / base_dir_name
+            if not base_dir.exists():
+                continue
+
+            for component_dir in base_dir.iterdir():
+                if not component_dir.is_dir() or component_dir.name.startswith("."):
+                    continue
+
+                pyproject_file = component_dir / "pyproject.toml"
+                if not pyproject_file.exists():
+                    continue
+
+                try:
+                    config = toml.load(pyproject_file)
+                    dependencies = set()
+
+                    if "tool" in config and "poetry" in config["tool"]:
+                        if "dependencies" in config["tool"]["poetry"]:
+                            for dep_name in config["tool"]["poetry"]["dependencies"].keys():
+                                if dep_name != "python":
+                                    dependencies.add(dep_name.replace("-", "_"))
+
+                    # Find all Python source files
+                    src_dir = component_dir / "src"
+                    python_files = list(src_dir.rglob("*.py")) if src_dir.exists() else []
+
+                    # Extract all imports
+                    imported_packages = set()
+                    for py_file in python_files:
+                        try:
+                            with open(py_file, encoding="utf-8", errors="ignore") as f:
+                                file_content = f.read()
+
+                            tree = ast.parse(file_content, filename=str(py_file))
+                            for node in ast.walk(tree):
+                                if isinstance(node, ast.Import):
+                                    for alias in node.names:
+                                        package_name = alias.name.split(".")[0]
+                                        imported_packages.add(package_name)
+                                elif isinstance(node, ast.ImportFrom):
+                                    if node.module:
+                                        package_name = node.module.split(".")[0]
+                                        imported_packages.add(package_name)
+                        except:
+                            continue
+
+                    # Check for unused dependencies
+                    unused_deps = dependencies - imported_packages
+
+                    # Filter common exceptions
+                    exceptions = {"click", "uvicorn", "pytest", "black", "mypy", "ruff", "isort"}
+                    unused_deps = unused_deps - exceptions
+
+                    component_name = f"{base_dir_name}/{component_dir.name}"
+                    for unused_dep in unused_deps:
+                        self.violations.append(
+                            Violation(
+                                rule_id="rule-22",
+                                rule_name="Pyproject Dependency Usage",
+                                file_path=pyproject_file,
+                                line_number=1,
+                                message=f"{component_name}: Unused dependency '{unused_dep}' declared but not imported",
+                            )
+                        )
+                except:
+                    continue
+

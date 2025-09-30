@@ -77,7 +77,7 @@ tags_metadata = [
 app = FastAPI(
     title=settings.api.title,
     description=settings.api.description
-    + "\n\n## Features\n- Climate data loading with multiple adapters\n- Async job processing\n- Streaming responses for large datasets\n- Comprehensive monitoring and health checks\n- Production-grade error handling",
+    + "\n\n## Features\n- Climate data loading with multiple adapters\n- Async job processing\n- Streaming responses for large datasets\n- Comprehensive monitoring and health checks\n- Production-grade error handling"
     version=settings.api.version,
     lifespan=lifespan,
     openapi_tags=tags_metadata,

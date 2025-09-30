@@ -1,5 +1,7 @@
 """Async operation profiler with detailed task analysis."""
 
+from __future__ import annotations
+
 import asyncio
 import time
 import traceback
@@ -7,7 +9,7 @@ import weakref
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, ListSet, Tuple
+from typing import Any, Callable, Dict, List, Set, Tuple
 
 from hive_logging import get_logger
 
@@ -17,8 +19,6 @@ logger = get_logger(__name__)
 @dataclass
 class TaskProfile:
     """Profile data for an individual async task."""
-from __future__ import annotations
-
 
     task_id: str
     task_name: str
@@ -196,7 +196,7 @@ class AsyncProfiler:
             task_id=str(task_id),
             task_name=task_name,
             coro_name=coro_name,
-            created_at=datetime.utcnow()
+            created_at=datetime.utcnow(),
             state="pending"
         )
 

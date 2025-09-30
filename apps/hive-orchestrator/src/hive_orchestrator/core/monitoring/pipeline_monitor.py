@@ -550,14 +550,14 @@ class PipelineMonitor:
                     report = self.generate_report(metrics, health, alerts)
                     logger.info(f"Pipeline Status Report:\n{report}")
 
-                await asyncio.sleep(interval_seconds)
+                time.sleep(interval_seconds)
 
             except KeyboardInterrupt:
                 logger.info("Pipeline monitor stopped by user")
                 break
             except Exception as e:
                 logger.error(f"Error in monitor loop: {e}")
-                await asyncio.sleep(interval_seconds)
+                time.sleep(interval_seconds)
 
     async def monitor_loop_async(self, interval_seconds: int = 60) -> None:
         """Async version of monitoring loop for non-blocking operation"""

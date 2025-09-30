@@ -13,12 +13,12 @@ logger = get_logger(__name__)
 def test_config():
     """Test configuration system"""
     try:
-        from hive_config import get_config
+        from hive_config import create_config_from_sources
 
-        config = get_config()
-        logger.info(f"Environment: {config.env}")
-        logger.info(f"Debug mode: {config.get_bool('debug_mode')}")
-        logger.info(f"Max connections: {config.get_int('db_max_connections')}")
+        config = create_config_from_sources()
+        logger.info(f"Environment: {config.environment}")
+        logger.info(f"Debug mode: {config.debug_mode}")
+        logger.info(f"Database config: {config.database}")
         logger.info("Configuration test: PASSED")
         return True
     except Exception as e:

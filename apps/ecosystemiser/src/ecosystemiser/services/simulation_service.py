@@ -297,7 +297,7 @@ class SimulationService:
         logger.info(f"Built system with {len(system.components)} components"),
         return system
 
-    def _run_solver(self, system: System, config: SimulationConfig) -> None:
+    def _run_solver(self, system: System, config: SimulationConfig) -> Any:
         """Run the configured solver on the system.
 
         Args:
@@ -317,7 +317,7 @@ class SimulationService:
         logger.info(f"Solver completed with status: {result.status}")
         return result
 
-    def _save_results(self, system: System, config: SimulationConfig, solver_result) -> Path:
+    def _save_results(self, system: System, config: SimulationConfig, solver_result: Any) -> Path:
         """Save simulation results.
 
         Args:
@@ -434,7 +434,7 @@ class SimulationService:
         # Create simulation configuration
         sim_config = SimulationConfig(
             simulation_id=f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            system_config_path=str(config_path)
+            system_config_path=str(config_path), 
             solver_type=solver_type,
             solver_config=solver_config or SolverConfig(verbose=verbose, solver_type=solver_type),
             output_config={
@@ -468,7 +468,7 @@ class SimulationService:
             # Return validation result
             return {
                 "valid": True,
-                "system_id": getattr(system, "system_id", "Unknown")
+                "system_id": getattr(system, "system_id", "Unknown"), 
                 "num_components": len(system.components),
                 "timesteps": system.N,
                 "components": [
