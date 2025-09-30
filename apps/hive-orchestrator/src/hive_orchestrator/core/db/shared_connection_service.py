@@ -50,12 +50,12 @@ class DatabaseConnectionPool:
             connection_timeout: Timeout for acquiring connections,
         """
         self.db_path = Path(db_path)
-        self.min_connections = min_connections,
-        self.max_connections = max_connections,
+        self.min_connections = min_connections
+        self.max_connections = max_connections
         self.connection_timeout = connection_timeout
 
         self._pool = Queue(maxsize=self.max_connections)
-        self._connections_created = 0,
+        self._connections_created = 0
         self._lock = threading.RLock()
 
         # Initialize minimum connections,
@@ -177,10 +177,10 @@ class DatabaseConnectionPool:
         """Get pool statistics."""
         return {
             "db_path": str(self.db_path),
-            "pool_size": self._pool.qsize()
+            "pool_size": self._pool.qsize(),
             "connections_created": self._connections_created,
             "max_connections": self.max_connections,
-            "min_connections": self.min_connections
+            "min_connections": self.min_connections,
         }
 
 
