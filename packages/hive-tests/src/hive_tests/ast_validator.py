@@ -471,9 +471,8 @@ class GoldenRuleVisitor(ast.NodeVisitor):
 
     def _in_async_function(self) -> bool:
         """Check if current context is inside an async function"""
-        # This would require maintaining a stack of function contexts
-        # For now, check if file has async functions
-        return "async def" in self.context.content
+        # Check if any function in the stack is async
+        return any(is_async for _, is_async in self.function_stack)
 
     def _has_async_context_manager(self) -> bool:
         """Check if using async context manager"""
