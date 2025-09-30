@@ -1,9 +1,3 @@
-from __future__ import annotations
-
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
-
 """
 Single-Pass AST-Based Validator System
 
@@ -19,12 +13,18 @@ Key Benefits:
 - Suppression support (controlled rule exceptions)
 """
 
+from __future__ import annotations
+
 import ast
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import toml
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -427,11 +427,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         if isinstance(node.func, ast.Name) and node.func.id == "get_config":
             # Allow in config module itself and architectural validators
             path_str = str(self.context.path).replace("\\", "/")
-            if (
-                "unified_config.py" in path_str
-                or "architectural_validators.py" in path_str
-                or "/archive/" in path_str
-            ):
+            if "unified_config.py" in path_str or "architectural_validators.py" in path_str or "/archive/" in path_str:
                 return
 
             self.add_violation(
@@ -486,6 +482,43 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         """Check if in CLI utility function"""
         cli_functions = ["encrypt_production_config", "generate_master_key", "main"]
         return any(f"def {func}(" in self.context.content for func in cli_functions)
+
+    def _detect_optional_imports(self, tree: ast.AST) -> set[str]:
+        """Detect optional imports in try/except blocks"""
+        optional_imports = set()
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Try):
+                # Check if imports in try block
+                for try_node in node.body:
+                    if isinstance(try_node, ast.Import):
+                        # Check if except catches ImportError
+                        for handler in node.handlers:
+                            if self._catches_import_error(handler):
+                                for alias in try_node.names:
+                                    package_name = alias.name.split(".")[0]
+                                    optional_imports.add(package_name)
+                    elif isinstance(try_node, ast.ImportFrom):
+                        # Check if except catches ImportError
+                        for handler in node.handlers:
+                            if self._catches_import_error(handler):
+                                if try_node.module:
+                                    package_name = try_node.module.split(".")[0]
+                                    optional_imports.add(package_name)
+
+        return optional_imports
+
+    def _catches_import_error(self, handler: ast.ExceptHandler) -> bool:
+        """Check if except handler catches ImportError"""
+        if handler.type is None:
+            return True  # bare except catches everything
+        if isinstance(handler.type, ast.Name):
+            return handler.type.id == "ImportError"
+        if isinstance(handler.type, ast.Tuple):
+            for exc_type in handler.type.elts:
+                if isinstance(exc_type, ast.Name) and exc_type.id == "ImportError":
+                    return True
+        return False
 
 
 class EnhancedValidator:
@@ -1101,14 +1134,20 @@ class EnhancedValidator:
                     src_dir = component_dir / "src"
                     python_files = list(src_dir.rglob("*.py")) if src_dir.exists() else []
 
-                    # Extract all imports
+                    # Extract all imports (both static and dynamic)
                     imported_packages = set()
+                    optional_packages = set()
                     for py_file in python_files:
                         try:
                             with open(py_file, encoding="utf-8", errors="ignore") as f:
                                 file_content = f.read()
 
                             tree = ast.parse(file_content, filename=str(py_file))
+
+                            # Detect optional imports (try/except ImportError)
+                            optional_packages.update(self._detect_optional_imports(tree))
+
+                            # Detect static imports
                             for node in ast.walk(tree):
                                 if isinstance(node, ast.Import):
                                     for alias in node.names:
@@ -1122,23 +1161,27 @@ class EnhancedValidator:
                             continue
 
                     # Check for unused dependencies
-                    unused_deps = dependencies - imported_packages
+                    # Consider both static imports and optional imports as "used"
+                    all_used_packages = imported_packages | optional_packages
+                    unused_deps = dependencies - all_used_packages
 
-                    # Filter common exceptions
+                    # Filter common exceptions (tools, test frameworks, etc.)
                     exceptions = {"click", "uvicorn", "pytest", "black", "mypy", "ruff", "isort"}
                     unused_deps = unused_deps - exceptions
 
                     component_name = f"{base_dir_name}/{component_dir.name}"
                     for unused_dep in unused_deps:
-                        self.violations.append(
-                            Violation(
-                                rule_id="rule-22",
-                                rule_name="Pyproject Dependency Usage",
-                                file_path=pyproject_file,
-                                line_number=1,
-                                message=f"{component_name}: Unused dependency '{unused_dep}' declared but not imported",
+                        # Don't report optional dependencies as unused
+                        if unused_dep not in optional_packages:
+                            self.violations.append(
+                                Violation(
+                                    rule_id="rule-22",
+                                    rule_name="Pyproject Dependency Usage",
+                                    file_path=pyproject_file,
+                                    line_number=1,
+                                    message=f"{component_name}: Unused dependency '{unused_dep}' declared but not imported",
+                                )
                             )
-                        )
                 except:
                     continue
 
