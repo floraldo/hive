@@ -172,25 +172,21 @@ class RollingHorizonMILPSolver(BaseSolver):
         # Calculate total objective (if all windows optimal)
         total_objective = None
         if overall_status in ["optimal", "feasible"]:
-            objectives = (
-                [r.get("objective_value", 0) for r in all_window_results if r.get("objective_value") is not None],
-            )
+            objectives = [r.get("objective_value", 0) for r in all_window_results if r.get("objective_value") is not None]
             if objectives:
                 total_objective = sum(objectives)
 
         # Store violations in instance for access by other methods
         self.storage_violations = storage_violations
-        result = (
-            RollingHorizonResult(
-                status=overall_status,
-                solve_time=total_time,
-                solver_time=self.total_solve_time,
-                objective_value=total_objective,
-                iterations=len(windows),
-                num_windows=len(windows),
-                window_results=all_window_results,
-                storage_violations=storage_violations,
-            ),
+        result = RollingHorizonResult(
+            status=overall_status,
+            solve_time=total_time,
+            solver_time=self.total_solve_time,
+            objective_value=total_objective,
+            iterations=len(windows),
+            num_windows=len(windows),
+            window_results=all_window_results,
+            storage_violations=storage_violations,
         )
 
         logger.info(f"Rolling horizon completed: {overall_status} in {total_time:.2f}s")
@@ -306,7 +302,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         """
         # Create standard MILP solver for this window
         milp_config = SolverConfig(
-            solver_type="MOSEK",
+            solver_type=self.config.solver_type or "MOSEK",  # Use configured solver or default to MOSEK
             verbose=self.config.verbose,
             solver_specific=self.config.solver_specific,
         )
@@ -349,6 +345,10 @@ class RollingHorizonMILPSolver(BaseSolver):
             if overlap_length <= 0:
                 logger.debug("No overlap region for warmstart")
                 return
+
+            # Calculate window size for padding
+            window_size = window["end"] - window["start"]
+
             solution_vectors = last_result.get("solution_vectors", {})
             warmstart_count = 0
 
@@ -369,14 +369,12 @@ class RollingHorizonMILPSolver(BaseSolver):
                         if len(shifted_values) > 0:
                             # CVXPY warm-start: set initial value
                             if hasattr(comp.P_in_opt, "value"):
-                                comp.P_in_opt.value = (
-                                    np.pad(
-                                        shifted_values,
-                                        (0, max(0, window["length"] - len(shifted_values))),
-                                        "constant",
-                                    ),
+                                comp.P_in_opt.value = np.pad(
+                                    shifted_values,
+                                    (0, max(0, window_size - len(shifted_values))),
+                                    "constant",
                                 )
-                                warmstart_count += (1,)
+                                warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart P_in for {comp_name}: {e}")
 
@@ -385,10 +383,12 @@ class RollingHorizonMILPSolver(BaseSolver):
                     try:
                         shifted_values = comp_vectors["P_out"][overlap_start : overlap_start + overlap_length]
                         if len(shifted_values) > 0 and hasattr(comp.P_out_opt, "value"):
-                            comp.P_out_opt.value = (
-                                np.pad(shifted_values, (0, max(0, window["length"] - len(shifted_values))), "constant"),
+                            comp.P_out_opt.value = np.pad(
+                                shifted_values,
+                                (0, max(0, window_size - len(shifted_values))),
+                                "constant",
                             )
-                            warmstart_count += (1,)
+                            warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart P_out for {comp_name}: {e}")
 
@@ -399,14 +399,13 @@ class RollingHorizonMILPSolver(BaseSolver):
                         if len(shifted_values) > 0 and hasattr(comp.E_opt, "value"):
                             # For storage, also use the final value to extend
                             final_value = comp_vectors["E"][-1] if len(comp_vectors["E"]) > 0 else 0
-                            comp.E_opt.value = (
-                                np.pad(
-                                    shifted_values(0, max(0, window["length"] - len(shifted_values))),
-                                    "constant",
-                                    constant_values=final_value,
-                                ),
+                            comp.E_opt.value = np.pad(
+                                shifted_values,
+                                (0, max(0, window_size - len(shifted_values))),
+                                "constant",
+                                constant_values=final_value,
                             )
-                            warmstart_count += (1,)
+                            warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart E for {comp_name}: {e}")
 
@@ -415,10 +414,12 @@ class RollingHorizonMILPSolver(BaseSolver):
                     try:
                         shifted_values = comp_vectors["on"][overlap_start : overlap_start + overlap_length]
                         if len(shifted_values) > 0 and hasattr(comp.on_opt, "value"):
-                            comp.on_opt.value = (
-                                np.pad(shifted_values, (0, max(0, window["length"] - len(shifted_values))), "constant"),
+                            comp.on_opt.value = np.pad(
+                                shifted_values,
+                                (0, max(0, window_size - len(shifted_values))),
+                                "constant",
                             )
-                            warmstart_count += (1,)
+                            warmstart_count += 1
                     except Exception as e:
                         logger.debug(f"Could not warmstart on for {comp_name}: {e}")
 
@@ -565,7 +566,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         except Exception as e:
             logger.error(f"Failed to update storage states: {e}")
             # Add a generic violation for tracking
-            (violations.append({"type": "state_update_error", "error": str(e), "timestep": window["implement_end"]}),)
+            violations.append({"type": "state_update_error", "error": str(e), "timestep": window["implement_end"]})
 
         return violations
 
@@ -607,18 +608,16 @@ class RollingHorizonMILPSolver(BaseSolver):
                     solution[comp_name] = comp_solution
 
             # Add system-level information
-            solution["_metadata"] = (
-                {
-                    "total_windows": len(self.window_results),
-                    "horizon_hours": self.rh_config.horizon_hours,
-                    "overlap_hours": self.rh_config.overlap_hours,
-                    "timesteps": self.system.N,
-                    "solve_time": self.total_solve_time,
-                    "storage_violations": getattr(self, "storage_violations", []),
-                },
-            )
+            solution["_metadata"] = {
+                "total_windows": len(self.window_results),
+                "horizon_hours": self.rh_config.horizon_hours,
+                "overlap_hours": self.rh_config.overlap_hours,
+                "timesteps": self.system.N,
+                "solve_time": self.total_solve_time,
+                "storage_violations": getattr(self, "storage_violations", []),
+            }
 
-            (logger.info(f"Reconstructed solution for {len(solution) - 1} components"),)
+            logger.info(f"Reconstructed solution for {len(solution) - 1} components")
 
         except Exception as e:
             logger.error(f"Failed to reconstruct full solution: {e}")
@@ -768,13 +767,13 @@ class RollingHorizonMILPSolver(BaseSolver):
             )
 
             # Overall health score
-            health_score = (validation["success_rate"],)
+            health_score = validation["success_rate"]
             if validation["storage_continuity_violations"] > 0:
                 health_score *= 0.8  # Penalize storage violations
             if validation["solution_gaps"]:
                 health_score *= 0.9  # Penalize solution gaps
 
-            validation["health_score"] = (health_score,)
+            validation["health_score"] = health_score
             validation["status"] = "good" if health_score > 0.9 else "warning" if health_score > 0.7 else "poor"
 
         except Exception as e:
