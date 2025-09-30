@@ -90,6 +90,7 @@ def get_app_files(app_name: str) -> list[Path]:
 def validate_platform_compliance(
     scope_files: list[Path] | None = None,
     quick: bool = False,
+    engine: str = "ast",
 ) -> bool:
     """
     Run Golden Rules validation across Hive platform.
@@ -97,6 +98,7 @@ def validate_platform_compliance(
     Args:
         scope_files: Optional list of specific files to validate
         quick: If True, only validate critical rules
+        engine: Validation engine ('ast', 'legacy', 'both')
 
     Returns:
         bool: True if all rules pass, False otherwise
@@ -111,10 +113,11 @@ def validate_platform_compliance(
     if quick:
         logger.info("Mode: Quick (critical rules only)")
 
+    logger.info(f"Engine: {engine.upper()} validator")
     logger.info("=" * 80)
 
     # Run all golden rules validation with file-level scoping
-    all_passed, results = run_all_golden_rules(project_root, scope_files)
+    all_passed, results = run_all_golden_rules(project_root, scope_files, engine=engine)
 
     # Display results
     logger.info("\nGOLDEN RULES VALIDATION RESULTS")
@@ -217,6 +220,15 @@ Performance:
         help="Show all violations (not just first 5)",
     )
 
+    parser.add_argument(
+        "--engine",
+        "-e",
+        type=str,
+        choices=["ast", "legacy", "both"],
+        default="ast",
+        help="Validation engine: ast (default, recommended), legacy (deprecated), both (comparison)",
+    )
+
     args = parser.parse_args()
 
     try:
@@ -249,6 +261,7 @@ Performance:
         success = validate_platform_compliance(
             scope_files=scope_files,
             quick=args.quick,
+            engine=args.engine,
         )
 
         sys.exit(0 if success else 1)

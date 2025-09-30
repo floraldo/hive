@@ -474,11 +474,12 @@ class EnhancedValidator:
         self._validate_service_layer_discipline()
         self._validate_unified_tool_configuration()
         self._validate_pyproject_dependency_usage()
+        self._validate_cli_pattern_consistency()
 
         # Group violations by rule,
         violations_by_rule = {}
         for violation in self.violations:
-            rule_name = (violation.rule_name,)
+            rule_name = violation.rule_name
             if rule_name not in violations_by_rule:
                 violations_by_rule[rule_name] = []
             violations_by_rule[rule_name].append(
@@ -488,7 +489,7 @@ class EnhancedValidator:
         return len(self.violations) == 0, violations_by_rule
 
     def _get_python_files(self) -> list[Path]:
-        ("""Get all Python files to validate""",)
+        """Get all Python files to validate"""
         files = []
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if base_dir.exists():
@@ -504,7 +505,7 @@ class EnhancedValidator:
         return filtered_files
 
     def _create_file_context(self, file_path: Path) -> FileContext:
-        ("""Create context for a single file""",)
+        """Create context for a single file"""
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
@@ -520,8 +521,8 @@ class EnhancedValidator:
                     suppressions[i] = set()
                 suppressions[i].add(rule_id)
 
-        # Parse AST,
-        ast_tree = (None,)
+        # Parse AST
+        ast_tree = None
         try:
             ast_tree = ast.parse(content)
         except SyntaxError:
@@ -529,14 +530,14 @@ class EnhancedValidator:
 
         # Determine file characteristics,
         is_test_file = "test" in str(file_path).lower()
-        is_cli_file = ("cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content,)
+        is_cli_file = "cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content
         is_init_file = file_path.name == "__init__.py"
 
         # Determine package/app context,
-        package_name = (None,)
+        package_name = None
         app_name = None
 
-        parts = (file_path.parts,)
+        parts = file_path.parts
         if "packages" in parts:
             pkg_idx = parts.index("packages")
             if pkg_idx + 1 < len(parts):
@@ -560,14 +561,14 @@ class EnhancedValidator:
         )
 
     def _validate_app_contracts(self) -> None:
-        ("""Golden Rule 1: App Contract Compliance""",)
-        apps_dir = (self.project_root / "apps",)
+        """Golden Rule 1: App Contract Compliance"""
+        apps_dir = self.project_root / "apps"
         if not apps_dir.exists():
             return
 
         for app_dir in apps_dir.iterdir():
             if app_dir.is_dir() and not app_dir.name.startswith("."):
-                contract_file = (app_dir / "hive-app.toml",)
+                contract_file = app_dir / "hive-app.toml"
                 if not contract_file.exists():
                     self.violations.append(
                         Violation(
@@ -580,14 +581,14 @@ class EnhancedValidator:
                     )
 
     def _validate_colocated_tests(self) -> None:
-        ("""Golden Rule 2: Co-located Tests Pattern""",)
+        """Golden Rule 2: Co-located Tests Pattern"""
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
                 continue
 
             for component_dir in base_dir.iterdir():
                 if component_dir.is_dir() and not component_dir.name.startswith("."):
-                    tests_dir = (component_dir / "tests",)
+                    tests_dir = component_dir / "tests"
                     if not tests_dir.exists():
                         self.violations.append(
                             Violation(
@@ -600,14 +601,14 @@ class EnhancedValidator:
                         )
 
     def _validate_documentation_hygiene(self) -> None:
-        ("""Golden Rule 22: Documentation Hygiene""",)
+        """Golden Rule 22: Documentation Hygiene"""
         for base_dir in [self.project_root / "apps", self.project_root / "packages"]:
             if not base_dir.exists():
                 continue
 
             for component_dir in base_dir.iterdir():
                 if component_dir.is_dir() and not component_dir.name.startswith("."):
-                    readme_file = (component_dir / "README.md",)
+                    readme_file = component_dir / "README.md"
                     if not readme_file.exists() or readme_file.stat().st_size == 0:
                         self.violations.append(
                             Violation(
@@ -620,8 +621,8 @@ class EnhancedValidator:
                         )
 
     def _validate_models_purity(self) -> None:
-        ("""Golden Rule 21: hive-models Purity""",)
-        models_dir = (self.project_root / "packages" / "hive-models",)
+        """Golden Rule 21: hive-models Purity"""
+        models_dir = self.project_root / "packages" / "hive-models"
         if not models_dir.exists():
             return
 
@@ -1073,4 +1074,40 @@ class EnhancedValidator:
                         )
                 except:
                     continue
+    def _validate_cli_pattern_consistency(self) -> None:
+        """Golden Rule 16: CLI Pattern Consistency"""
+        cli_files = []
+        for py_file in self.project_root.rglob("*.py"):
+            if ".venv" in str(py_file) or "/.git/" in str(py_file):
+                continue
+            if "cli" in py_file.name or py_file.name == "__main__.py":
+                cli_files.append(py_file)
+
+        for cli_file in cli_files:
+            try:
+                with open(cli_file, encoding="utf-8") as f:
+                    file_content = f.read()
+
+                # Check for CLI framework usage
+                has_cli_framework = ("import click" in file_content or 
+                                    "import typer" in file_content or 
+                                    "from click" in file_content or 
+                                    "from typer" in file_content)
+
+                if has_cli_framework:
+                    # Check for Rich for output formatting
+                    has_rich = "from rich" in file_content or "import rich" in file_content
+
+                    if not has_rich:
+                        self.violations.append(
+                            Violation(
+                                rule_id="rule-16",
+                                rule_name="CLI Pattern Consistency",
+                                file_path=cli_file,
+                                line_number=1,
+                                message="CLI file uses click/typer but doesn't use Rich for output formatting",
+                            )
+                        )
+            except:
+                continue
 

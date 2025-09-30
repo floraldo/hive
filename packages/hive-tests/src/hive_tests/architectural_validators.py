@@ -183,10 +183,6 @@ def validate_no_syspath_hacks(project_root: Path, scope_files: list[Path] | None
 
         for py_file in base_dir.rglob("*.py"):
             # Skip verification scripts and virtual environments
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             if (
                 "verify_environment.py" in str(py_file)
                 or "architectural_validators.py" in str(py_file)
@@ -324,10 +320,6 @@ def validate_package_app_discipline(
 
                 # Check for business logic in package names or files
                 for py_file in package_dir.rglob("*.py"):
-                    # File-level scoping optimization
-                    if not _should_validate_file(py_file, scope_files):
-                        continue
-
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -379,10 +371,6 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                 package_name = package_dir.name
 
                 for py_file in package_dir.rglob("*.py"):
-                    # File-level scoping optimization
-                    if not _should_validate_file(py_file, scope_files):
-                        continue
-
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -423,10 +411,6 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                 app_name = app_dir.name
 
                 for py_file in app_dir.rglob("*.py"):
-                    # File-level scoping optimization
-                    if not _should_validate_file(py_file, scope_files):
-                        continue
-
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -538,10 +522,6 @@ def validate_service_layer_discipline(
                     if core_dir.exists() and core_dir.is_dir():
                         # Check files in core/ for business logic indicators
                         for py_file in core_dir.rglob("*.py"):
-                            # File-level scoping optimization
-                            if not _should_validate_file(py_file, scope_files):
-                                continue
-
                             if "__pycache__" in str(py_file):
                                 continue
 
@@ -648,10 +628,6 @@ def validate_communication_patterns(
 
                 # Check for forbidden communication patterns
                 for py_file in app_dir.rglob("*.py"):
-                    # File-level scoping optimization
-                    if not _should_validate_file(py_file, scope_files):
-                        continue
-
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -699,10 +675,6 @@ def validate_interface_contracts(project_root: Path, scope_files: list[Path] | N
             continue
 
         for py_file in base_dir.rglob("*.py"):
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             if (
                 ".venv" in str(py_file)
                 or "__pycache__" in str(py_file)
@@ -776,10 +748,6 @@ def validate_error_handling_standards(
             continue
 
         for py_file in base_dir.rglob("*.py"):
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             if ".venv" in str(py_file) or "__pycache__" in str(py_file) or "test" in str(py_file):
                 continue
 
@@ -862,10 +830,6 @@ def validate_no_hardcoded_env_values(
 
         for py_file in package_dir.rglob("*.py"):
             # Skip test files, __pycache__, and virtual environments
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             if any(skip in str(py_file) for skip in ["test", "__pycache__", ".venv", ".pytest_cache"]):
                 continue
 
@@ -925,10 +889,6 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
             continue
 
         for py_file in base_dir.rglob("*.py"):
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             if (
                 ".venv" in str(py_file)
                 or "__pycache__" in str(py_file)
@@ -1247,10 +1207,6 @@ def validate_async_pattern_consistency(
     # Find Python files that use async
     for py_file in project_root.rglob("*.py"):
         # Skip virtual environment and hidden directories
-        # File-level scoping optimization
-        if not _should_validate_file(py_file, scope_files):
-            continue
-
         if ".venv" in str(py_file) or "/.git/" in str(py_file):
             continue
 
@@ -1307,10 +1263,6 @@ def validate_cli_pattern_consistency(
     cli_files = []
     for py_file in project_root.rglob("*.py"):
         # Skip virtual environment and hidden directories
-        # File-level scoping optimization
-        if not _should_validate_file(py_file, scope_files):
-            continue
-
         if ".venv" in str(py_file) or "/.git/" in str(py_file):
             continue
 
@@ -1375,10 +1327,6 @@ def validate_no_global_state_access(
 
         for py_file in base_dir.rglob("*.py"):
             # Skip test files, __pycache__, virtual environments, and config modules
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             if any(
                 skip in str(py_file)
                 for skip in [
@@ -1572,16 +1520,12 @@ def _uses_comprehensive_testing(package_dir: Path) -> bool:
 
     # Check for Hypothesis usage (property-based testing)
     for py_file in tests_dir.rglob("*.py"):
-        # File-level scoping optimization
-        if not _should_validate_file(py_file, scope_files):
-            continue
-
         try:
             with open(py_file, encoding="utf-8") as f:
                 content = f.read()
                 if "hypothesis" in content.lower() or "@given" in content:
                     return True
-        except:
+        except Exception:
             continue
 
     # Check for comprehensive testing directories
@@ -1614,10 +1558,6 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
         property_dir = tests_dir / "property_based"
         has_hypothesis = False
         for py_file in property_dir.rglob("*.py"):
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             try:
                 with open(py_file, encoding="utf-8") as f:
                     content = f.read()
@@ -1692,10 +1632,6 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
         source_files = []
         for py_file in src_dir.rglob("*.py"):
             # Skip __init__.py files and __pycache__
-            # File-level scoping optimization
-            if not _should_validate_file(py_file, scope_files):
-                continue
-
             if py_file.name == "__init__.py" or "__pycache__" in str(py_file):
                 continue
 
@@ -1749,10 +1685,6 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
                 tests_dir = app_dir / "tests"
 
                 for py_file in core_dir.rglob("*.py"):
-                    # File-level scoping optimization
-                    if not _should_validate_file(py_file, scope_files):
-                        continue
-
                     if py_file.name == "__init__.py" or "__pycache__" in str(py_file):
                         continue
 
@@ -1762,7 +1694,7 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
 
                     test_exists = False
                     if tests_dir.exists():
-                        for test_file in tests_dir.rglob(test_file_name):
+                        for _test_file in tests_dir.rglob(test_file_name):
                             test_exists = True
                             break
 
@@ -1976,7 +1908,6 @@ def validate_unified_tool_configuration(
     violations = []
 
     # Check for forbidden tool sections in sub-package pyproject.toml files
-    forbidden_sections = ["tool.ruff", "tool.black", "tool.mypy", "tool.isort"]
 
     for toml_path in project_root.rglob("pyproject.toml"):
         # Skip root pyproject.toml
@@ -2103,17 +2034,58 @@ def validate_python_version_consistency(
     return len(violations) == 0, violations
 
 
-def run_all_golden_rules(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, dict]:
+def _run_ast_validator(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, dict]:
     """
-    Run all Golden Rules validation.
+    Run AST-based validation (default, recommended).
 
     Args:
         project_root: Root directory of the project
-        scope_files: Optional list of specific files to validate (for incremental mode)
+        scope_files: Optional list of specific files to validate
 
     Returns:
         Tuple of (all_passed, results_dict)
     """
+    from .ast_validator import EnhancedValidator
+
+    validator = EnhancedValidator(project_root)
+    passed, violations_by_rule = validator.validate_all()
+
+    # Convert to format expected by entry point
+    results = {}
+    for rule_name, violations in violations_by_rule.items():
+        # Extract rule name from tuple (legacy format compatibility)
+        if isinstance(rule_name, tuple):
+            rule_name = rule_name[0]
+
+        results[f"Golden Rule: {rule_name}"] = {
+            "passed": len(violations) == 0,
+            "violations": [str(v) for v in violations],
+        }
+
+    return passed, results
+
+
+def _run_legacy_validators(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, dict]:
+    """
+    Run string-based validators (backward compatibility only).
+
+    DEPRECATED: Use AST validator instead (engine='ast').
+
+    Args:
+        project_root: Root directory of the project
+        scope_files: Optional list of specific files to validate
+
+    Returns:
+        Tuple of (all_passed, results_dict)
+    """
+    import warnings
+
+    warnings.warn(
+        "Legacy string-based validators are deprecated. Use AST validator (engine='ast', default) instead.",
+        DeprecationWarning,
+        stacklevel=3,
+    )
+
     results = {}
     all_passed = True
 
@@ -2150,3 +2122,95 @@ def run_all_golden_rules(project_root: Path, scope_files: list[Path] | None = No
             all_passed = False
 
     return all_passed, results
+
+
+def _run_both_validators(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, dict]:
+    """
+    Run both validators and compare results (verification mode).
+
+    Useful for migration validation and testing.
+
+    Args:
+        project_root: Root directory of the project
+        scope_files: Optional list of specific files to validate
+
+    Returns:
+        Tuple of (all_passed, results_dict) - Returns AST results as primary
+    """
+    logger.info("Running both AST and legacy validators for comparison...")
+
+    # Run AST validator
+    logger.info("Running AST validator...")
+    ast_passed, ast_results = _run_ast_validator(project_root, scope_files)
+
+    # Run legacy validators (suppress deprecation warning in comparison mode)
+    logger.info("Running legacy validator...")
+    import warnings
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", DeprecationWarning)
+        legacy_passed, legacy_results = _run_legacy_validators(project_root, scope_files)
+
+    # Compare results
+    logger.info("\n" + "=" * 80)
+    logger.info("VALIDATOR COMPARISON")
+    logger.info("=" * 80)
+
+    ast_violations = sum(len(r["violations"]) for r in ast_results.values())
+    legacy_violations = sum(len(r["violations"]) for r in legacy_results.values())
+
+    logger.info(f"AST Validator:    {ast_violations} total violations")
+    logger.info(f"Legacy Validator: {legacy_violations} total violations")
+    logger.info(f"Difference:       {abs(ast_violations - legacy_violations)} violations")
+
+    if ast_violations == legacy_violations:
+        logger.info("Result: IDENTICAL violation counts")
+    elif ast_violations > legacy_violations:
+        logger.info("Result: AST found MORE violations (more comprehensive)")
+    else:
+        logger.info("Result: AST found FEWER violations (more accurate, fewer false positives)")
+
+    logger.info("=" * 80 + "\n")
+
+    # Return AST results as primary
+    return ast_passed, ast_results
+
+
+def run_all_golden_rules(
+    project_root: Path, scope_files: list[Path] | None = None, engine: str = "ast"
+) -> tuple[bool, dict]:
+    """
+    Run all Golden Rules validation with configurable engine.
+
+    Args:
+        project_root: Root directory of the project
+        scope_files: Optional list of specific files to validate (for incremental mode)
+        engine: Validation engine to use:
+            - 'ast' (default): AST-based semantic validation (recommended)
+            - 'legacy': String-based validation (deprecated, backward compatibility)
+            - 'both': Run both validators and compare (verification mode)
+
+    Returns:
+        Tuple of (all_passed, results_dict)
+
+    Raises:
+        ValueError: If unknown engine specified
+
+    Examples:
+        # Default AST validation
+        passed, results = run_all_golden_rules(project_root)
+
+        # Legacy compatibility
+        passed, results = run_all_golden_rules(project_root, engine='legacy')
+
+        # Verification mode
+        passed, results = run_all_golden_rules(project_root, engine='both')
+    """
+    if engine == "ast":
+        return _run_ast_validator(project_root, scope_files)
+    elif engine == "legacy":
+        return _run_legacy_validators(project_root, scope_files)
+    elif engine == "both":
+        return _run_both_validators(project_root, scope_files)
+    else:
+        raise ValueError(f"Unknown validation engine: {engine}. Valid options: 'ast' (default), 'legacy', 'both'")
