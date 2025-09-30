@@ -11,7 +11,7 @@ import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field, ValidationError
 

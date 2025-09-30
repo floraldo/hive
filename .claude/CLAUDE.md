@@ -111,11 +111,11 @@ isort = "^5.13.0"           # Import sorting
 1. **Syntax validation**: `python -m py_compile` on all modified files
 2. **Test collection**: `python -m pytest --collect-only` (zero syntax errors)
 3. **Linting**: `python -m ruff check` (zero violations)
-4. **Golden Rules**: `python scripts/validate_golden_rules.py` (23 rules passing, 100% coverage)
+4. **Golden Rules**: `python scripts/validate_golden_rules.py` (24 rules passing, 100% coverage)
 5. **Type checking**: `python -m mypy` (on typed modules)
 6. **Configuration Pattern**: Use DI (`create_config_from_sources()`), not global state (`get_config()`)
 
-## 🏆 Golden Rules (23 Architectural Validators)
+## 🏆 Golden Rules (24 Architectural Validators)
 
 Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/ast_validator.py` (AST-based validation, 100% coverage):
 
@@ -141,6 +141,12 @@ Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/as
 13. **Cache utilization** - Use `hive_cache` for expensive operations
 14. **Performance monitoring** - Use `hive_performance` for metrics
 15. **Resource cleanup** - Proper context managers and cleanup
+
+### Configuration Pattern Enforcement (NEW)
+24. **No deprecated configuration patterns** - Use DI (`create_config_from_sources()`), not global state (`get_config()`)
+    - Severity: WARNING (transitional enforcement)
+    - Migration guide: `claudedocs/config_migration_guide_comprehensive.md`
+    - Gold standard: EcoSystemiser config bridge pattern
 
 **Validation**: Run `python scripts/validate_golden_rules.py` before any commit.
 

@@ -9,7 +9,7 @@ import asyncio
 import signal
 import sys
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 # Import from orchestrator's extended database layer (proper app-to-app communication)
 # Import hive logging

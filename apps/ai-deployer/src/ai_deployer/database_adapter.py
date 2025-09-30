@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 # Import from orchestrator for proper app-to-app communication
 from hive_orchestrator.core.db import get_database, get_pooled_connection

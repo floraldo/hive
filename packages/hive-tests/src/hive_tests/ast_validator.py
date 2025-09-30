@@ -67,6 +67,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         self.project_root = project_root
         self.violations: list[Violation] = []
         self.current_line = 1
+        self.function_stack: list[tuple[str, bool]] = []  # Stack of (function_name, is_async)
 
     def add_violation(self, rule_id: str, rule_name: str, line_num: int, message: str, severity: str = "error") -> None:
         """Add a violation if not suppressed"""
@@ -94,6 +95,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         """Validate from imports"""
         self._validate_dependency_direction_from(node)
         self._validate_no_unsafe_imports_from(node)
+        self._validate_no_deprecated_config_imports(node)
         self.generic_visit(node)
 
     def visit_Call(self, node: ast.Call) -> None:
@@ -101,19 +103,28 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         self._validate_no_unsafe_calls(node)
         self._validate_async_sync_mixing(node)
         self._validate_print_statements(node)
+        self._validate_no_deprecated_config_calls(node)
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
         """Validate function definitions"""
         self._validate_interface_contracts(node)
         self._validate_async_naming(node)
+        # Push sync function onto stack
+        self.function_stack.append((node.name, False))
         self.generic_visit(node)
+        # Pop function from stack
+        self.function_stack.pop()
 
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
         """Validate async function definitions"""
         self._validate_interface_contracts_async(node)
         self._validate_async_naming(node)
+        # Push async function onto stack
+        self.function_stack.append((node.name, True))
         self.generic_visit(node)
+        # Pop function from stack
+        self.function_stack.pop()
 
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Validate class definitions"""
@@ -383,6 +394,54 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 "No Unsafe Function Calls",
                 node.lineno,
                 f"Unsafe import: from {node.module}. Consider safer alternatives.",
+            )
+
+    def _validate_no_deprecated_config_imports(self, node: ast.ImportFrom) -> None:
+        """Golden Rule 24: No Deprecated Configuration Patterns"""
+        # Check for deprecated get_config import
+        if node.module == "hive_config":
+            for alias in node.names:
+                if alias.name == "get_config":
+                    # Allow in config module itself and architectural validators
+                    path_str = str(self.context.path).replace("\\", "/")
+                    if (
+                        "unified_config.py" in path_str
+                        or "architectural_validators.py" in path_str
+                        or "/archive/" in path_str
+                    ):
+                        return
+
+                    self.add_violation(
+                        "rule-24",
+                        "No Deprecated Configuration Patterns",
+                        node.lineno,
+                        "Deprecated: 'from hive_config import get_config'. "
+                        "Use 'create_config_from_sources()' with dependency injection instead. "
+                        "See claudedocs/config_migration_guide_comprehensive.md",
+                        severity="warning",
+                    )
+
+    def _validate_no_deprecated_config_calls(self, node: ast.Call) -> None:
+        """Golden Rule 24: No Deprecated Configuration Patterns - Function calls"""
+        # Check for deprecated get_config() calls
+        if isinstance(node.func, ast.Name) and node.func.id == "get_config":
+            # Allow in config module itself and architectural validators
+            path_str = str(self.context.path).replace("\\", "/")
+            if (
+                "unified_config.py" in path_str
+                or "architectural_validators.py" in path_str
+                or "/archive/" in path_str
+            ):
+                return
+
+            self.add_violation(
+                "rule-24",
+                "No Deprecated Configuration Patterns",
+                node.lineno,
+                "Deprecated: 'get_config()' call. "
+                "Use dependency injection: pass 'HiveConfig' through constructor. "
+                "See claudedocs/config_migration_guide_comprehensive.md",
+                severity="warning",
             )
 
     # Helper methods

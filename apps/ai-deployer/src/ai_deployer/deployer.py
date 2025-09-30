@@ -7,7 +7,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from hive_logging import get_logger
 

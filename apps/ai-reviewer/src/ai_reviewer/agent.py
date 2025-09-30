@@ -6,7 +6,7 @@ import argparse
 import asyncio
 import signal
 from datetime import datetime
-from typing import Any
+from typing import Any, List
 
 # Import hive logging
 from hive_logging import get_logger

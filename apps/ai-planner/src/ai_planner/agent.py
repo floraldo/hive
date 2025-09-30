@@ -16,7 +16,7 @@ import time
 import uuid
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from hive_logging import get_logger
 
