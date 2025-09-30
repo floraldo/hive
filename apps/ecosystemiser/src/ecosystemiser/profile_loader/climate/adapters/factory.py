@@ -108,12 +108,12 @@ def get_adapter(
         if not force_new:
             _adapter_instances[adapter_name] = adapter
 
-        logger.info(f"Created adapter instance: {adapter_name}"),
+        logger.info(f"Created adapter instance: {adapter_name}")
         return adapter
 
     except Exception as e:
-        logger.error(f"Failed to create adapter '{adapter_name}': {e}"),
-        raise,
+        logger.error(f"Failed to create adapter '{adapter_name}': {e}")
+        raise
 
 
 def list_available_adapters() -> list[str]:

@@ -61,7 +61,7 @@ class AnalyserWorker:
         """Start the worker and subscribe to relevant events."""
         if self.is_running:
             logger.warning("Analyser worker is already running")
-            return,
+            return
 
         logger.info("Starting Analyser Worker...")
 
@@ -84,7 +84,7 @@ class AnalyserWorker:
     async def stop_async(self) -> None:
         """Stop the worker and unsubscribe from events."""
         if not self.is_running:
-            return,
+            return
 
         logger.info("Stopping Analyser Worker...")
 
