@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
+from pydantic import BaseModel, Field
+
 from ecosystemiser.component_data.repository import ComponentRepository
 from ecosystemiser.profile_loader import ClimateRequest, get_profile_sync
 from ecosystemiser.services.results_io import ResultsIO
@@ -15,18 +16,18 @@ from ecosystemiser.solver.factory import SolverFactory
 from ecosystemiser.system_model.system import System
 from ecosystemiser.utils.system_builder import SystemBuilder
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
 
 class StageConfig(BaseModel):
     """Configuration for a single stage in staged simulation."""
+
     stage_name: str
     system_config_path: str
     solver_type: str = "milp"
-    outputs_to_pass: Optional[List[Dict[str, Any]]] = None
-    inputs_from_stage: Optional[List[Dict[str, Any]]] = None
+    outputs_to_pass: list[dict[str, Any]] | None = None
+    inputs_from_stage: list[dict[str, Any]] | None = None
 
 
 class SimulationConfig(BaseModel):
@@ -36,11 +37,11 @@ class SimulationConfig(BaseModel):
     system_config_path: str | None = None  # Optional for staged simulations
     solver_type: str = "rule_based"
     solver_config: SolverConfig | None = None
-    climate_input: Optional[Dict[str, Any]] = None
-    demand_input: Optional[Dict[str, Any]] = None
-    output_config: Dict[str, Any] = Field(default_factory=dict)
+    climate_input: dict[str, Any] | None = None
+    demand_input: dict[str, Any] | None = None
+    output_config: dict[str, Any] = Field(default_factory=dict)
     # Support for staged simulations
-    stages: Optional[List[StageConfig]] = None
+    stages: list[StageConfig] | None = None
 
 
 class SimulationResult(BaseModel):
@@ -49,8 +50,8 @@ class SimulationResult(BaseModel):
     simulation_id: str
     status: str
     results_path: Path | None = None
-    kpis: Optional[Dict[str, float]] = None
-    solver_metrics: Optional[Dict[str, Any]] = None
+    kpis: dict[str, float] | None = None
+    solver_metrics: dict[str, Any] | None = None
     error: str | None = None
 
 
@@ -108,8 +109,8 @@ class SimulationService:
                 solver_metrics={
                     "solve_time": solver_result.solve_time,
                     "iterations": solver_result.iterations,
-                    "objective_value": solver_result.objective_value
-                }
+                    "objective_value": solver_result.objective_value,
+                },
             )
 
         except Exception as e:
@@ -166,7 +167,7 @@ class SimulationService:
                     system_config_path=stage.system_config_path,
                     solver_type=stage.solver_type,
                     solver_config=config.solver_config,  # Use global solver config
-                    output_config=config.output_config
+                    output_config=config.output_config,
                 )
 
                 # Build system for this stage
@@ -212,7 +213,7 @@ class SimulationService:
                     {
                         "stage_name": stage.stage_name,
                         "status": stage_solver_result.status,
-                        "solve_time": stage_solver_result.solve_time
+                        "solve_time": stage_solver_result.solve_time,
                     }
                 )
 
@@ -223,23 +224,25 @@ class SimulationService:
             total_solve_time = sum(r["solve_time"] for r in stage_results if r.get("solve_time"))
             all_success = all(r["status"] == "optimal" for r in stage_results)
 
-            return SimulationResult(
-                simulation_id=config.simulation_id,
-                status="optimal" if all_success else "feasible",
-                results_path=Path(config.output_config.get("directory", "outputs")),
-                kpis=aggregated_kpis,
-                solver_metrics={
-                    "solve_time": total_solve_time,
-                    "stages": stage_results,
-                    "iterations": len(config.stages)
-                }
-            ),
+            return (
+                SimulationResult(
+                    simulation_id=config.simulation_id,
+                    status="optimal" if all_success else "feasible",
+                    results_path=Path(config.output_config.get("directory", "outputs")),
+                    kpis=aggregated_kpis,
+                    solver_metrics={
+                        "solve_time": total_solve_time,
+                        "stages": stage_results,
+                        "iterations": len(config.stages),
+                    },
+                ),
+            )
 
         except Exception as e:
             logger.error(f"Staged simulation failed: {e}")
             return SimulationResult(simulation_id=config.simulation_id, status="error", error=str(e))
 
-    def _load_profiles(self, config: SimulationConfig) -> Dict[str, Any]:
+    def _load_profiles(self, config: SimulationConfig) -> dict[str, Any]:
         """Load climate and demand profiles.
 
         Args:
@@ -263,19 +266,18 @@ class SimulationService:
         # Load demand profiles if configured
         if config.demand_input:
             try:
-                from ecosystemiser.profile_loader.demand.file_adapter import (
-                    DemandFileAdapter
-                )
+                from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
+
                 adapter = DemandFileAdapter()
                 demand_profiles = adapter.fetch(config.demand_input)
                 profiles.update(demand_profiles)
-                logger.info(f"Loaded {len(demand_profiles)} demand profiles"),
+                (logger.info(f"Loaded {len(demand_profiles)} demand profiles"),)
             except Exception as e:
                 logger.warning(f"Could not load demand profiles: {e}")
 
         return profiles
 
-    def _build_system(self, config: SimulationConfig, profiles: Dict[str, Any]) -> System:
+    def _build_system(self, config: SimulationConfig, profiles: dict[str, Any]) -> System:
         """Build system from configuration.
 
         Args:
@@ -294,7 +296,7 @@ class SimulationService:
         # Assign profiles to components
         builder.assign_profiles(system, profiles)
 
-        logger.info(f"Built system with {len(system.components)} components"),
+        (logger.info(f"Built system with {len(system.components)} components"),)
         return system
 
     def _run_solver(self, system: System, config: SimulationConfig) -> Any:
@@ -342,14 +344,14 @@ class SimulationService:
             metadata={
                 "solver_type": config.solver_type,
                 "solver_status": solver_result.status,
-                "solve_time": solver_result.solve_time
-            }
+                "solve_time": solver_result.solve_time,
+            },
         )
 
         logger.info(f"Results saved to: {results_path}")
         return results_path
 
-    def _calculate_basic_kpis(self, system: System) -> Dict[str, float]:
+    def _calculate_basic_kpis(self, system: System) -> dict[str, float]:
         """Calculate basic KPIs from solved system.
 
         Args:
@@ -359,6 +361,7 @@ class SimulationService:
             Dictionary of KPIs,
         """
         import numpy as np
+
         kpis = {}
 
         # Calculate total energy from grid
@@ -397,7 +400,7 @@ class SimulationService:
         Returns:
             SimulationResult
         """
-        with open(yaml_path, "r") as f:
+        with open(yaml_path) as f:
             config_dict = yaml.safe_load(f)
         config = SimulationConfig(**config_dict)
         return self.run_simulation(config)
@@ -408,7 +411,7 @@ class SimulationService:
         solver_type: str = "milp",
         output_path: Path | None = None,
         solver_config: SolverConfig | None = None,
-        verbose: bool = False
+        verbose: bool = False,
     ) -> SimulationResult:
         """Run a simulation directly from a configuration file path.,
 
@@ -428,25 +431,25 @@ class SimulationService:
         from datetime import datetime
 
         # Load configuration
-        with open(config_path, "r") as f:
-            config_data = yaml.safe_load(f)
+        with open(config_path) as f:
+            yaml.safe_load(f)
 
         # Create simulation configuration
         sim_config = SimulationConfig(
             simulation_id=f"sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            system_config_path=str(config_path), 
+            system_config_path=str(config_path),
             solver_type=solver_type,
             solver_config=solver_config or SolverConfig(verbose=verbose, solver_type=solver_type),
             output_config={
                 "save_results": output_path is not None,
                 "results_path": str(output_path) if output_path else None,
-            }
+            },
         )
 
         # Run simulation
         return self.run_simulation(sim_config)
 
-    def validate_system_config(self, config_path: Path) -> Dict[str, Any]:
+    def validate_system_config(self, config_path: Path) -> dict[str, Any]:
         """Validate a system configuration file.,
 
         This method validates that a configuration can be properly loaded,
@@ -466,15 +469,17 @@ class SimulationService:
             system = builder.build()
 
             # Return validation result
-            return {
-                "valid": True,
-                "system_id": getattr(system, "system_id", "Unknown"), 
-                "num_components": len(system.components),
-                "timesteps": system.N,
-                "components": [
-                    {"name": comp.name, "type": comp.__class__.__name__} for comp in system.components.values()
-                ]
-            },
+            return (
+                {
+                    "valid": True,
+                    "system_id": getattr(system, "system_id", "Unknown"),
+                    "num_components": len(system.components),
+                    "timesteps": system.N,
+                    "components": [
+                        {"name": comp.name, "type": comp.__class__.__name__} for comp in system.components.values()
+                    ],
+                },
+            )
 
         except Exception as e:
             return {"valid": False, "error": str(e)}

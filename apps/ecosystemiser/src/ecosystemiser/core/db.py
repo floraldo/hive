@@ -10,7 +10,6 @@ from __future__ import annotations
 import os
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Generator
 
 from hive_db import get_sqlite_connection, sqlite_transaction
 from hive_logging import get_logger
@@ -51,7 +50,7 @@ def get_ecosystemiser_connection():
     """
     db_path = get_ecosystemiser_db_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Use hive_db's connection manager with EcoSystemiser's path
     with get_sqlite_connection(str(db_path)) as conn:
         # Enable foreign keys for data integrity
@@ -72,7 +71,7 @@ def ecosystemiser_transaction():
     """
     db_path = get_ecosystemiser_db_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Use hive_db's transaction manager
     with sqlite_transaction(str(db_path)) as conn:
         # Enable foreign keys
@@ -101,10 +100,11 @@ def get_db_connection(db_path: Path | None = None):
     logger.warning("Direct connection requested - consider using context managers")
     actual_db_path = get_ecosystemiser_db_path()
     actual_db_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Use hive_db's connection, but return it directly (not context-managed)
     # This maintains backward compatibility while using hive_db under the hood
     import sqlite3
+
     conn = sqlite3.connect(str(actual_db_path))
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
