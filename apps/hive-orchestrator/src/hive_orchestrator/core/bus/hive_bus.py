@@ -7,23 +7,17 @@ Extends the generic messaging toolkit with Hive orchestration capabilities:
 - Workflow coordination
 - Hive-specific error handling
 """
+
 from __future__ import annotations
 
-
 import json
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_bus import BaseBus, BaseEvent
-from hive_errors import BaseError
 from hive_logging import get_logger
 
 from ..db.connection_pool import get_pooled_connection
-from ..errors.hive_exceptions import (
-    EventBusError,
-    EventPublishError,
-    EventSubscribeError
-)
+from ..errors.hive_exceptions import EventPublishError
 from .hive_events import AgentEvent, TaskEvent, WorkflowEvent
 
 logger = get_logger(__name__)
@@ -40,7 +34,7 @@ class HiveEventBus(BaseBus):
     - Task coordination patterns
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         """Initialize the Hive event bus
 
         Args:
@@ -100,8 +94,8 @@ class HiveEventBus(BaseBus):
 
     def publish(
         self,
-        event: Union[BaseEvent, Dict[str, Any]]
-        correlation_id: str | None = None
+        event: BaseEvent | dict[str, Any],
+        correlation_id: str | None = None,
     ) -> str:
         """
         Publish a Hive event with orchestration context.
@@ -141,15 +135,15 @@ class HiveEventBus(BaseBus):
                     (
                         event.event_id,
                         event.event_type,
-                        event.timestamp.isoformat()
+                        event.timestamp.isoformat(),
                         event.source,
                         event.correlation_id,
                         workflow_id,
                         task_id,
                         agent_id,
-                        json.dumps(event.payload)
-                        json.dumps(event.metadata)
-                    )
+                        json.dumps(event.payload),
+                        json.dumps(event.metadata),
+                    ),
                 )
                 conn.commit()
 
@@ -164,10 +158,10 @@ class HiveEventBus(BaseBus):
                 message=f"Failed to publish Hive event: {e}",
                 component="hive-event-bus",
                 operation="publish",
-                original_error=e
+                original_error=e,
             ) from e
 
-    def _create_hive_event_from_dict(self, data: Dict[str, Any]) -> BaseEvent:
+    def _create_hive_event_from_dict(self, data: dict[str, Any]) -> BaseEvent:
         """Create appropriate Hive event type from dictionary"""
         event_type = data.get("event_type", "")
 
@@ -180,15 +174,15 @@ class HiveEventBus(BaseBus):
         else:
             return BaseEvent.from_dict(data)
 
-    def get_workflow_history(self, workflow_id: str, limit: int = 50) -> List[BaseEvent]:
+    def get_workflow_history(self, workflow_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for a workflow (coordination trace)"""
         return self._get_hive_events(workflow_id=workflow_id, limit=limit)
 
-    def get_task_history(self, task_id: str, limit: int = 50) -> List[BaseEvent]:
+    def get_task_history(self, task_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for a task"""
         return self._get_hive_events(task_id=task_id, limit=limit)
 
-    def get_agent_activity(self, agent_id: str, limit: int = 50) -> List[BaseEvent]:
+    def get_agent_activity(self, agent_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for an agent"""
         return self._get_hive_events(agent_id=agent_id, limit=limit)
 
@@ -199,8 +193,8 @@ class HiveEventBus(BaseBus):
         workflow_id: str | None = None,
         task_id: str | None = None,
         agent_id: str | None = None,
-        limit: int = 100
-    ) -> List[BaseEvent]:
+        limit: int = 100,
+    ) -> list[BaseEvent]:
         """Query Hive events with orchestration filters"""
         query_parts = ["SELECT * FROM hive_events WHERE 1=1"]
         params = []
@@ -237,14 +231,14 @@ class HiveEventBus(BaseBus):
 
         events = []
         for row in rows:
-            event_data = {,
-                "event_id": row[0]
+            event_data = {
+                "event_id": row[0],
                 "event_type": row[1],
-                "timestamp": row[2]
+                "timestamp": row[2],
                 "source": row[3],
-                "correlation_id": row[4]
-                "payload": json.loads(row[7]) if row[7] else {}
-                "metadata": json.loads(row[8]) if row[8] else {}
+                "correlation_id": row[4],
+                "payload": json.loads(row[7]) if row[7] else {},
+                "metadata": json.loads(row[8]) if row[8] else {},
             }
 
             # Add Hive-specific fields,
@@ -263,7 +257,7 @@ class HiveEventBus(BaseBus):
         """Handle subscriber callback errors with Hive-specific logging"""
         logger.error(
             f"Hive subscriber {subscriber.subscriber_name} failed to handle event {event.event_id}: ",
-            f"event_type={event.event_type}, source={event.source}"
+            f"event_type={event.event_type}, source={event.source}",
         )
 
 

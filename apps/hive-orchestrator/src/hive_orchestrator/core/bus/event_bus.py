@@ -5,23 +5,18 @@ Provides a database-backed event bus for reliable inter-agent communication.
 The bus makes the implicit choreography pattern explicit and adds full
 event history for debugging and replay capabilities.
 """
+
 from __future__ import annotations
 
-
 import json
-import sqlite3
 import threading
-from contextlib import contextmanager
-from datetime import datetime, timezone
-from typing import Any, Callable, Dict, List
+from collections.abc import Callable
+from datetime import UTC, datetime
+from typing import Any
 
 from hive_db import get_sqlite_connection
 from hive_logging import get_logger
-from hive_orchestrator.core.errors.hive_exceptions import (
-    EventBusError,
-    EventPublishError,
-    EventSubscribeError
-)
+from hive_orchestrator.core.errors.hive_exceptions import EventPublishError, EventSubscribeError
 
 # Async imports for Phase 4.1
 try:
@@ -33,7 +28,7 @@ try:
 except ImportError:
     ASYNC_AVAILABLE = False
 
-from .events import AgentEvent, Event, TaskEvent, WorkflowEvent
+from .events import Event
 from .subscribers import EventSubscriber
 
 logger = get_logger(__name__)
@@ -51,14 +46,14 @@ class EventBus:
     - Async-ready architecture
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         """Initialize the event bus
 
         Args:
             config: Event bus configuration dictionary
         """
         self.config = config if config is not None else {}
-        self._subscribers: Dict[str, List[EventSubscriber]] = {}
+        self._subscribers: dict[str, list[EventSubscriber]] = {}
         self._subscriber_lock = threading.Lock()
         self._ensure_event_tables()
 
@@ -121,7 +116,7 @@ class EventBus:
 
             conn.commit()
 
-    def publish(self, event: Union[Event, Dict[str, Any]], correlation_id: str | None = None) -> str:
+    def publish(self, event: Event | dict[str, Any], correlation_id: str | None = None) -> str:
         """
         Publish an event to the bus
 
@@ -157,12 +152,12 @@ class EventBus:
                     (
                         event.event_id,
                         event.event_type,
-                        event.timestamp.isoformat()
+                        event.timestamp.isoformat(),
                         event.source_agent,
                         event.correlation_id,
-                        json.dumps(event.payload)
-                        json.dumps(event.metadata)
-                    )
+                        json.dumps(event.payload),
+                        json.dumps(event.metadata),
+                    ),
                 )
                 conn.commit()
 
@@ -178,8 +173,8 @@ class EventBus:
     def subscribe(
         self,
         event_pattern: str,
-        callback: Callable[[Event], None]
-        subscriber_name: str = "anonymous"
+        callback: Callable[[Event], None],
+        subscriber_name: str = "anonymous",
     ) -> str:
         """
         Subscribe to events matching a pattern
@@ -193,11 +188,7 @@ class EventBus:
             Subscription ID,
         """
         try:
-            subscriber = EventSubscriber(
-                pattern=event_pattern,
-                callback=callback,
-                subscriber_name=subscriber_name
-            )
+            subscriber = EventSubscriber(pattern=event_pattern, callback=callback, subscriber_name=subscriber_name)
 
             with self._subscriber_lock:
                 if event_pattern not in self._subscribers:
@@ -221,7 +212,7 @@ class EventBus:
             True if subscription was found and removed
         """
         with self._subscriber_lock:
-            for pattern, subscribers in self._subscribers.items():
+            for _pattern, subscribers in self._subscribers.items():
                 for i, subscriber in enumerate(subscribers):
                     if subscriber.subscription_id == subscription_id:
                         del subscribers[i]
@@ -256,8 +247,8 @@ class EventBus:
         correlation_id: str | None = None,
         source_agent: str | None = None,
         since: datetime | None = None,
-        limit: int = 100
-    ) -> List[Event]:
+        limit: int = 100,
+    ) -> list[Event]:
         """
         Query events from the bus
 
@@ -302,20 +293,20 @@ class EventBus:
 
         events = []
         for row in rows:
-            event_data = {,
-                "event_id": row[0]
+            event_data = {
+                "event_id": row[0],
                 "event_type": row[1],
-                "timestamp": row[2]
+                "timestamp": row[2],
                 "source_agent": row[3],
-                "correlation_id": row[4]
-                "payload": json.loads(row[5]) if row[5] else {}
-                "metadata": json.loads(row[6]) if row[6] else {}
+                "correlation_id": row[4],
+                "payload": json.loads(row[5]) if row[5] else {},
+                "metadata": json.loads(row[6]) if row[6] else {},
             }
             events.append(Event.from_dict(event_data))
 
         return events
 
-    def get_event_history(self, correlation_id: str, limit: int = 50) -> List[Event]:
+    def get_event_history(self, correlation_id: str, limit: int = 50) -> list[Event]:
         """Get all events for a correlation ID (workflow trace)"""
         return self.get_events(correlation_id=correlation_id, limit=limit)
 
@@ -353,12 +344,12 @@ class EventBus:
                         (
                             event.event_id,
                             event.event_type,
-                            event.timestamp.isoformat()
+                            event.timestamp.isoformat(),
                             event.source_agent,
                             event.correlation_id,
-                            json.dumps(event.payload)
-                            json.dumps(event.metadata)
-                        )
+                            json.dumps(event.payload),
+                            json.dumps(event.metadata),
+                        ),
                     )
                     await conn.commit()
 
@@ -373,12 +364,8 @@ class EventBus:
                 raise EventPublishError(f"Async event publishing failed: {e}") from e
 
         async def get_events_async(
-            self,
-            event_type: str = None,
-            correlation_id: str = None,
-            source_agent: str = None,
-            limit: int = 100
-        ) -> List[Event]:
+            self, event_type: str = None, correlation_id: str = None, source_agent: str = None, limit: int = 100
+        ) -> list[Event]:
             """
             Async version of get_events for high-performance event retrieval.
 
@@ -419,7 +406,7 @@ class EventBus:
                         ORDER BY timestamp DESC,
                         LIMIT ?
                     """,
-                        params
+                        params,
                     )
 
                     rows = await cursor.fetchall()
@@ -437,7 +424,7 @@ class EventBus:
                 logger.error(f"Failed to get async events: {e}")
                 return []
 
-        async def get_event_history_async(self, correlation_id: str) -> List[Event]:
+        async def get_event_history_async(self, correlation_id: str) -> list[Event]:
             """
             Async version of get_event_history for workflow tracing.
 
@@ -455,7 +442,7 @@ class EventBus:
                         WHERE correlation_id = ?,
                         ORDER BY timestamp ASC,
                     """,
-                        (correlation_id,)
+                        (correlation_id,),
                     )
 
                     rows = await cursor.fetchall()
@@ -509,7 +496,7 @@ class EventBus:
 
     def clear_old_events(self, days_to_keep: int = 30) -> None:
         """Clean up old events to prevent database growth"""
-        cutoff_date = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        cutoff_date = datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
         cutoff_date = cutoff_date.replace(day=cutoff_date.day - days_to_keep)
 
         with get_sqlite_connection() as conn:
@@ -558,12 +545,12 @@ if ASYNC_AVAILABLE:
         bus = await get_async_event_bus_async()
         return await bus.publish_async(event, correlation_id)
 
-    async def get_events_async(**kwargs) -> List[Event]:
+    async def get_events_async(**kwargs) -> list[Event]:
         """Convenience function for async event retrieval"""
         bus = await get_async_event_bus_async()
         return await bus.get_events_async(**kwargs)
 
-    async def get_event_history_async(correlation_id: str) -> List[Event]:
+    async def get_event_history_async(correlation_id: str) -> list[Event]:
         """Convenience function for async event history retrieval"""
         bus = await get_async_event_bus_async()
         return await bus.get_event_history_async(correlation_id)
