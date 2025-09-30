@@ -158,7 +158,7 @@ class RepositoryHygieneScanner:
         try:
             response = requests.head(url, timeout=timeout, allow_redirects=True)
             return response.status_code < 400
-        except:
+        except Exception:
             return False
 
     def _check_internal_link(self, link: str, base_file: Path) -> bool:
@@ -172,7 +172,7 @@ class RepositoryHygieneScanner:
                 target_path = (base_file.parent / link).resolve()
 
             return target_path.exists()
-        except:
+        except Exception:
             return False
 
     def scan_todo_comments(self) -> None:
@@ -238,7 +238,7 @@ class RepositoryHygieneScanner:
                 match = re.search(r"\(([^)]+)\s+\d{4}-\d{2}-\d{2}", blame_line)
                 if match:
                     return match.group(1).strip()
-        except:
+        except Exception:
             pass
 
         return "Unknown"

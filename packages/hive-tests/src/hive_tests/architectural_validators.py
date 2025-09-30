@@ -1564,7 +1564,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
                     if "hypothesis" in content.lower() and "@given" in content:
                         has_hypothesis = True
                         break
-            except:
+            except Exception:
                 continue
 
         if not has_hypothesis:

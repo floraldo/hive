@@ -171,7 +171,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
             try:
                 base64.b64decode(data["qr_code"])
                 log("QR code generated successfully")
-            except:
+            except Exception:
                 log("Invalid base64 in response")
                 return False
 

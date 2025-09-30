@@ -752,7 +752,7 @@ class EnhancedValidator:
                                     message=f"Invalid import in hive-models: {module}. Only data definitions allowed.",
                                 ),
                             )
-            except:
+            except Exception:
                 continue
 
     def _validate_package_naming_consistency(self) -> None:
@@ -820,7 +820,7 @@ class EnhancedValidator:
                                             message=f"App '{app_name}' core/{module_name} doesn't import from {base_package}",
                                         )
                                     )
-                            except:
+                            except Exception:
                                 continue
 
                 # Check for incorrect naming
@@ -875,7 +875,7 @@ class EnhancedValidator:
                             message=f"Root Python version '{root_python_version}' must require {expected_python_version}+",
                         )
                     )
-            except:
+            except Exception:
                 pass
 
         # Check all sub-project pyproject.toml files
@@ -914,7 +914,7 @@ class EnhancedValidator:
                             message=f"Python '{python_version}' should require {expected_python_version}+ (like root)",
                         )
                     )
-            except:
+            except Exception:
                 continue
 
     def _validate_single_config_source(self) -> None:
@@ -979,7 +979,7 @@ class EnhancedValidator:
                             message="Workspace configuration missing from root pyproject.toml",
                         )
                     )
-            except:
+            except Exception:
                 self.violations.append(
                     Violation(
                         rule_id="rule-4",
@@ -1057,7 +1057,7 @@ class EnhancedValidator:
                                                             message=f"Service class '{class_name}' missing docstring",
                                                         )
                                                     )
-                            except:
+                            except Exception:
                                 continue
 
     def _validate_unified_tool_configuration(self) -> None:
@@ -1084,7 +1084,7 @@ class EnhancedValidator:
                                     message=f"Contains [tool.{tool_name}] section. Tool configs must be unified in root pyproject.toml",
                                 )
                             )
-            except:
+            except Exception:
                 continue
 
         # Verify root pyproject.toml has required sections
@@ -1102,7 +1102,7 @@ class EnhancedValidator:
                             message="Root pyproject.toml missing [tool.ruff] configuration",
                         )
                     )
-            except:
+            except Exception:
                 pass
 
     def _validate_pyproject_dependency_usage(self) -> None:
@@ -1157,7 +1157,7 @@ class EnhancedValidator:
                                     if node.module:
                                         package_name = node.module.split(".")[0]
                                         imported_packages.add(package_name)
-                        except:
+                        except Exception:
                             continue
 
                     # Check for unused dependencies
@@ -1182,7 +1182,7 @@ class EnhancedValidator:
                                     message=f"{component_name}: Unused dependency '{unused_dep}' declared but not imported",
                                 )
                             )
-                except:
+                except Exception:
                     continue
 
     def _validate_cli_pattern_consistency(self) -> None:
@@ -1221,7 +1221,7 @@ class EnhancedValidator:
                                 message="CLI file uses click/typer but doesn't use Rich for output formatting",
                             )
                         )
-            except:
+            except Exception:
                 continue
 
     def _validate_test_coverage_mapping(self) -> None:

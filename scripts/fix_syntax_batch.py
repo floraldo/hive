@@ -16,7 +16,7 @@ def detect_missing_comma_in_signature(file_path: Path) -> list[tuple[int, str]]:
         with open(file_path, encoding="utf-8") as f:
             content = f.read()
             lines = content.splitlines()
-    except:
+    except Exception:
         return fixes
 
     try:
@@ -79,7 +79,7 @@ def apply_fixes(file_path: Path, fixes: list[tuple[int, str]]) -> bool:
             ast.parse(f.read())
 
         return True
-    except:
+    except Exception:
         return False
 
 

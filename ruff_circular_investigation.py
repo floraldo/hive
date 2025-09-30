@@ -85,7 +85,7 @@ def analyze_ruff_configuration():
                     print("    ✅ Has [tool.ruff] section")
                 else:
                     print("    ❌ No [tool.ruff] section")
-        except:
+        except Exception:
             print("    ❌ Cannot read file")
 
     # Check ruff settings
@@ -167,7 +167,7 @@ def analyze_git_hooks():
                             print("    ✅ Contains ruff")
                         if "format" in content:
                             print("    ✅ Contains format")
-                except:
+                except Exception:
                     pass
 
     print()

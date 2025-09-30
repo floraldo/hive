@@ -118,7 +118,7 @@ class ScriptsAnalyzer:
                 and isinstance(tree.body[0].value.value, str)
             ):
                 return tree.body[0].value.value.strip().split("\n")[0]
-        except:
+        except Exception:
             pass
 
         # Fall back to initial comments

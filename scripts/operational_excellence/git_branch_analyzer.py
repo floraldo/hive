@@ -76,7 +76,7 @@ def get_branch_last_commit_date(branch: str) -> datetime:
             # Parse git date format: 2025-09-28 14:30:00 +0000
             date_str = output.split(" ")[0] + " " + output.split(" ")[1]
             return datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
-    except:
+    except Exception:
         pass
 
     return datetime.now()

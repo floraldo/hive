@@ -295,7 +295,7 @@ def check_git_hooks():
                             hook_content = f.read()
                             if "ruff" in hook_content:
                                 print("    ⚠️  Contains ruff")
-                    except:
+                    except Exception:
                         pass
         else:
             print("✅ No active git hooks")

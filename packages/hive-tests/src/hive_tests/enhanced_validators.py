@@ -62,7 +62,7 @@ class CircularImportValidator:
                 elif isinstance(node, ast.ImportFrom):
                     if node.module:
                         imports.add(node.module)
-        except:
+        except Exception:
             pass
 
         return imports
@@ -125,7 +125,7 @@ class AsyncPatternValidator:
                     if self._is_async_call_without_await(node):
                         violations.append(f"Async call without await: {file_path}:{node.lineno}")
 
-        except:
+        except Exception:
             pass
 
         return violations
@@ -180,7 +180,7 @@ class ErrorHandlingValidator:
                     if not node.body or (len(node.body) == 1 and isinstance(node.body[0], ast.Pass)):
                         violations.append(f"Exception swallowing: {file_path}:{node.lineno}")
 
-        except:
+        except Exception:
             pass
 
         return violations

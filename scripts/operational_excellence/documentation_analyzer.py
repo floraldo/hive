@@ -93,7 +93,7 @@ def check_internal_link(link: str, base_file: Path) -> bool:
             target_path = (base_file.parent / link).resolve()
 
         return target_path.exists()
-    except:
+    except Exception:
         return False
 
 

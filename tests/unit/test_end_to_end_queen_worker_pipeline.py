@@ -731,10 +731,10 @@ if __name__ == "__main__":
                 try:
                     worker_process.terminate()
                     worker_process.wait(timeout=5)
-                except:
+                except Exception:
                     try:
                         worker_process.kill()
-                    except:
+                    except Exception:
                         pass
 
         self.worker_processes.clear()
@@ -747,10 +747,10 @@ if __name__ == "__main__":
                     try:
                         process.terminate()
                         process.wait(timeout=5)
-                    except:
+                    except Exception:
                         try:
                             process.kill()
-                        except:
+                        except Exception:
                             pass
                 del self.worker_processes[i]
                 break
@@ -794,7 +794,7 @@ if __name__ == "__main__":
         if row and row[0]:
             try:
                 return json.loads(row[0])
-            except:
+            except Exception:
                 return None
 
         return None
