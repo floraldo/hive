@@ -1,0 +1,67 @@
+2025-09-30 11:09:47,065 - __main__ - INFO - VALIDATING Hive Platform against all Golden Rules...
+2025-09-30 11:09:47,065 - __main__ - INFO - Scope: Full platform
+2025-09-30 11:09:47,065 - __main__ - INFO - Engine: AST validator
+2025-09-30 11:09:47,065 - __main__ - INFO - ================================================================================
+2025-09-30 11:10:06,169 - __main__ - INFO - 
+GOLDEN RULES VALIDATION RESULTS
+2025-09-30 11:10:06,170 - __main__ - INFO - ================================================================================
+2025-09-30 11:10:06,170 - __main__ - INFO - FAIL       Golden Rule: Error Handling Standards
+2025-09-30 11:10:06,170 - __main__ - ERROR -          > apps\ecosystemiser\src\ecosystemiser\hive_error_handling.py:36 - Exception class ValidationError should inherit from BaseError or standard exceptions.
+2025-09-30 11:10:06,170 - __main__ - ERROR -          > apps\ecosystemiser\src\ecosystemiser\core\errors.py:127 - Exception class SimulationError should inherit from BaseError or standard exceptions.
+2025-09-30 11:10:06,170 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\services\monitoring\exceptions.py:16 - Exception class MonitoringConfigurationError should inherit from BaseError or standard exceptions.
+2025-09-30 11:10:06,170 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\services\monitoring\exceptions.py:20 - Exception class MonitoringDataError should inherit from BaseError or standard exceptions.
+2025-09-30 11:10:06,170 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\services\monitoring\exceptions.py:24 - Exception class AnalysisError should inherit from BaseError or standard exceptions.
+2025-09-30 11:10:06,171 - __main__ - INFO - FAIL       Golden Rule: Interface Contracts
+2025-09-30 11:10:06,171 - __main__ - ERROR -          > apps\ecosystemiser\src\ecosystemiser\settings.py:35 - Parameter 'cls' in build_url_if_needed() missing type annotation.
+2025-09-30 11:10:06,171 - __main__ - ERROR -          > apps\ecosystemiser\src\ecosystemiser\settings.py:76 - Function ensure_cache_dir_exists() missing return type annotation.
+2025-09-30 11:10:06,171 - __main__ - ERROR -          > apps\ecosystemiser\src\ecosystemiser\settings.py:76 - Parameter 'cls' in ensure_cache_dir_exists() missing type annotation.
+2025-09-30 11:10:06,171 - __main__ - ERROR -          > apps\ecosystemiser\src\ecosystemiser\settings.py:76 - Parameter 'v' in ensure_cache_dir_exists() missing type annotation.
+2025-09-30 11:10:06,171 - __main__ - ERROR -          > apps\ecosystemiser\src\ecosystemiser\settings.py:201 - Function ensure_epw_dir_exists() missing return type annotation.
+2025-09-30 11:10:06,172 - __main__ - ERROR -          ... and 347 more violations
+2025-09-30 11:10:06,172 - __main__ - INFO - FAIL       Golden Rule: Async Pattern Consistency
+2025-09-30 11:10:06,172 - __main__ - ERROR -          > apps\guardian-agent\ascii_architectural_demo.py:38 - Async function demo_architectural_oracle() should end with '_async' or start with 'a' for clarity.
+2025-09-30 11:10:06,172 - __main__ - ERROR -          > apps\guardian-agent\ascii_genesis_phase1_demo.py:44 - Async function demonstrate_genesis_phase1() should end with '_async' or start with 'a' for clarity.
+2025-09-30 11:10:06,172 - __main__ - ERROR -          > apps\guardian-agent\ascii_genesis_phase1_demo.py:367 - Async function simulate_prophecy_analysis() should end with '_async' or start with 'a' for clarity.
+2025-09-30 11:10:06,173 - __main__ - ERROR -          > apps\guardian-agent\ascii_genesis_phase2_demo.py:44 - Async function demonstrate_genesis_phase2() should end with '_async' or start with 'a' for clarity.
+2025-09-30 11:10:06,173 - __main__ - ERROR -          > apps\guardian-agent\ascii_operation_unification_demo.py:43 - Async function demonstrate_operation_unification() should end with '_async' or start with 'a' for clarity.
+2025-09-30 11:10:06,173 - __main__ - ERROR -          ... and 106 more violations
+2025-09-30 11:10:06,173 - __main__ - INFO - FAIL       Golden Rule: No Synchronous Calls in Async Code
+2025-09-30 11:10:06,173 - __main__ - ERROR -          > apps\guardian-agent\ascii_genesis_phase1_demo.py:67 - Use aiofiles.open() instead of open() in async functions.
+2025-09-30 11:10:06,173 - __main__ - ERROR -          > apps\guardian-agent\ascii_genesis_phase1_demo.py:112 - Use aiofiles.open() instead of open() in async functions.
+2025-09-30 11:10:06,173 - __main__ - ERROR -          > apps\guardian-agent\ascii_genesis_phase1_demo.py:153 - Use aiofiles.open() instead of open() in async functions.
+2025-09-30 11:10:06,174 - __main__ - ERROR -          > apps\guardian-agent\ascii_genesis_phase1_demo.py:184 - Use aiofiles.open() instead of open() in async functions.
+2025-09-30 11:10:06,174 - __main__ - ERROR -          > apps\guardian-agent\demo_genesis_phase1.py:68 - Use aiofiles.open() instead of open() in async functions.
+2025-09-30 11:10:06,174 - __main__ - ERROR -          ... and 5 more violations
+2025-09-30 11:10:06,174 - __main__ - INFO - FAIL       Golden Rule: hive-models Purity
+2025-09-30 11:10:06,174 - __main__ - ERROR -          > packages\hive-models\src\hive_models\common.py:8 - Invalid import in hive-models: __future__. Only data definitions allowed.
+2025-09-30 11:10:06,174 - __main__ - ERROR -          > packages\hive-models\tests\smoke\test_smoke_hive_models.py:8 - Invalid import in hive-models: __future__. Only data definitions allowed.
+2025-09-30 11:10:06,174 - __main__ - ERROR -          > packages\hive-models\tests\smoke\test_smoke_hive_models.py:13 - Invalid import in hive-models: hive_models.base. Only data definitions allowed.
+2025-09-30 11:10:06,175 - __main__ - ERROR -          > packages\hive-models\tests\smoke\test_smoke_hive_models.py:20 - Invalid import in hive-models: hive_models.common. Only data definitions allowed.
+2025-09-30 11:10:06,175 - __main__ - INFO - FAIL       Golden Rule: Inherit-Extend Pattern
+2025-09-30 11:10:06,175 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\core\errors\__init__.py:1 - App 'hive-orchestrator' core/errors doesn't import from hive_errors
+2025-09-30 11:10:06,175 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\core\bus\__init__.py:1 - App 'hive-orchestrator' core/bus doesn't import from hive_bus
+2025-09-30 11:10:06,175 - __main__ - INFO - FAIL       Golden Rule: Single Config Source
+2025-09-30 11:10:06,175 - __main__ - ERROR -          > scripts\database\setup.py:1 - Found setup.py file. Use pyproject.toml instead.
+2025-09-30 11:10:06,175 - __main__ - INFO - FAIL       Golden Rule: Service Layer Discipline
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\guardian-agent\src\guardian_agent\core\cost_control.py:1 - Service layer contains business logic indicator: def calculate_
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\core\claude\claude_service.py:1 - Service layer contains business logic indicator: def generate_
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\core\claude\planner_bridge.py:1 - Service layer contains business logic indicator: def generate_
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\hive-orchestrator\src\hive_orchestrator\core\monitoring\pipeline_monitor.py:1 - Service layer contains business logic indicator: def generate_
+2025-09-30 11:10:06,176 - __main__ - INFO - FAIL       Golden Rule: Pyproject Dependency Usage
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\ai-deployer\pyproject.toml:1 - apps/ai-deployer: Unused dependency 'hive_errors' declared but not imported
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\ai-deployer\pyproject.toml:1 - apps/ai-deployer: Unused dependency 'typing_extensions' declared but not imported
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\ai-deployer\pyproject.toml:1 - apps/ai-deployer: Unused dependency 'hive_db' declared but not imported
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\ai-deployer\pyproject.toml:1 - apps/ai-deployer: Unused dependency 'hive_orchestrator' declared but not imported
+2025-09-30 11:10:06,176 - __main__ - ERROR -          > apps\ai-deployer\pyproject.toml:1 - apps/ai-deployer: Unused dependency 'asyncio' declared but not imported
+2025-09-30 11:10:06,177 - __main__ - ERROR -          ... and 156 more violations
+2025-09-30 11:10:06,177 - __main__ - INFO - FAIL       Golden Rule: Test Coverage Mapping
+2025-09-30 11:10:06,177 - __main__ - ERROR -          > packages\hive-ai\src\hive_ai\core\security.py:1 - Missing test file for hive-ai:hive_ai\core\security.py - expected test_core_security.py in tests/unit/ or tests/
+2025-09-30 11:10:06,177 - __main__ - ERROR -          > packages\hive-ai\src\hive_ai\observability\telemetry.py:1 - Missing test file for hive-ai:hive_ai\observability\telemetry.py - expected test_observability_telemetry.py in tests/unit/ or tests/
+2025-09-30 11:10:06,177 - __main__ - ERROR -          > packages\hive-app-toolkit\src\hive_app_toolkit\api\base_app.py:1 - Missing test file for hive-app-toolkit:hive_app_toolkit\api\base_app.py - expected test_api_base_app.py in tests/unit/ or tests/
+2025-09-30 11:10:06,177 - __main__ - ERROR -          > packages\hive-app-toolkit\src\hive_app_toolkit\api\health.py:1 - Missing test file for hive-app-toolkit:hive_app_toolkit\api\health.py - expected test_api_health.py in tests/unit/ or tests/
+2025-09-30 11:10:06,177 - __main__ - ERROR -          > packages\hive-app-toolkit\src\hive_app_toolkit\cli\main.py:1 - Missing test file for hive-app-toolkit:hive_app_toolkit\cli\main.py - expected test_cli_main.py in tests/unit/ or tests/
+2025-09-30 11:10:06,177 - __main__ - ERROR -          ... and 52 more violations
+2025-09-30 11:10:06,177 - __main__ - INFO - ================================================================================
+2025-09-30 11:10:06,177 - __main__ - INFO - SUMMARY: 0 passed, 10 failed
+2025-09-30 11:10:06,177 - __main__ - ERROR - FAIL: GOLDEN RULES VIOLATIONS DETECTED - Platform needs attention
+2025-09-30 11:10:06,178 - __main__ - ERROR - Please fix the violations above to maintain architectural integrity

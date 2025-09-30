@@ -17,7 +17,6 @@ from typing import Any
 
 # Pydantic v2 imports
 from pydantic import ConfigDict, Field, field_validator
-from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings
 
 

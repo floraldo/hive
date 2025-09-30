@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import asyncio
-import time
 import traceback
-import weakref
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List, Set, Tuple
+from typing import Any
 
 from hive_logging import get_logger
 
