@@ -9,7 +9,7 @@ import asyncio
 import signal
 import sys
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 # Import from orchestrator's extended database layer (proper app-to-app communication)
 # Import hive logging
@@ -209,7 +209,7 @@ class DeploymentAgent:
             self.stats["errors"] += 1
 
     async def _update_task_status_async(
-        self, task_id: str, status: str, metadata: Optional[dict[str, Any]] = None,
+        self, task_id: str, status: str, metadata: dict[str, Any] | None = None,
     ) -> None:
         """Update task status in database"""
         try:

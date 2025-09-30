@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 # Import from orchestrator for proper app-to-app communication
 from hive_orchestrator.core.db import get_database, get_pooled_connection
@@ -83,7 +83,7 @@ class DatabaseAdapter:
             logger.error(f"Error getting deployment pending tasks: {e}")
             raise DeploymentDatabaseError(f"Failed to get deployment tasks: {e}") from e
 
-    def update_task_status(self, task_id: str, status: str, metadata: Optional[dict[str, Any]] = None) -> bool:
+    def update_task_status(self, task_id: str, status: str, metadata: dict[str, Any] | None = None) -> bool:
         """
         Update task status and optionally metadata
 
@@ -144,7 +144,7 @@ class DatabaseAdapter:
             logger.error(f"Error updating task {task_id} status: {e}")
             raise DeploymentDatabaseError(f"Failed to update task status: {e}") from e
 
-    def get_task_by_id(self, task_id: str) -> Optional[dict[str, Any]]:
+    def get_task_by_id(self, task_id: str) -> dict[str, Any] | None:
         """
         Get task by ID
 

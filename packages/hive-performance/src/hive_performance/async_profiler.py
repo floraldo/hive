@@ -367,7 +367,7 @@ class AsyncProfiler:
             task_types=dict(task_types),
             bottlenecks=bottlenecks,
             recommendations=recommendations,
-            profile_start=self._profile_start or datetime.utcnow()
+            profile_start=self._profile_start or datetime.utcnow(),
             profile_end=profile_end,
             profile_duration=profile_duration
         )
@@ -432,7 +432,7 @@ class AsyncProfiler:
                         "throughput": report.throughput,
                         "avg_execution_time": report.avg_execution_time,
                         "concurrency_level": report.concurrency_level
-                    }
+                    },
                     "bottlenecks": report.bottlenecks,
                     "recommendations": report.recommendations,
                     "task_types": report.task_types,

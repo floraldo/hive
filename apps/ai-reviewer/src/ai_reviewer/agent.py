@@ -6,7 +6,7 @@ import argparse
 import asyncio
 import signal
 from datetime import datetime
-from typing import Any, List
+from typing import Any
 
 # Import hive logging
 from hive_logging import get_logger
@@ -413,7 +413,7 @@ class ReviewAgent:
             logger.warning(f"Failed to publish async task event {event_type} for task {task_id}: {e}")
             return ""
 
-    async def _get_pending_reviews_async(self) -> List[dict[str, Any]]:
+    async def _get_pending_reviews_async(self) -> list[dict[str, Any]]:
         """Async version of getting pending review tasks."""
         if not ASYNC_DB_AVAILABLE:
             # Fallback to sync version

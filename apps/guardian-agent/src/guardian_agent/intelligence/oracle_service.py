@@ -117,47 +117,47 @@ class OracleService:
         # Genesis Mandate - Prophecy Engine
         if self.config.enable_prophecy_engine:
             prophecy_config = ProphecyEngineConfig(
-                min_confidence_threshold=self.config.prophecy_confidence_threshold,
-                analysis_timeout_seconds=self.config.prophecy_analysis_timeout,
-                design_docs_path=self.config.design_docs_path,
+                min_confidence_threshold=self.config.prophecy_confidence_threshold
+                analysis_timeout_seconds=self.config.prophecy_analysis_timeout
+                design_docs_path=self.config.design_docs_path
             )
             self.prophecy = ProphecyEngine(prophecy_config, oracle=self)
         else:
             self.prophecy = None
 
-        # Genesis Mandate Phase 2 - Symbiosis Engine,
+        # Genesis Mandate Phase 2 - Symbiosis Engine
         if self.config.enable_symbiosis_engine:
             symbiosis_config = SymbiosisEngineConfig(
-                enable_automated_pr_generation=self.config.enable_automated_prs,
-                max_auto_prs_per_day=self.config.max_auto_prs_per_day,
-                min_optimization_confidence=self.config.min_optimization_confidence,
-                require_human_approval=not self.config.enable_automated_prs,
+                enable_automated_pr_generation=self.config.enable_automated_prs
+                max_auto_prs_per_day=self.config.max_auto_prs_per_day
+                min_optimization_confidence=self.config.min_optimization_confidence
+                require_human_approval=not self.config.enable_automated_prs
             )
             self.symbiosis = SymbiosisEngine(symbiosis_config, data_layer=self.data_layer)
         else:
             self.symbiosis = None
 
-        # Operation Unification - Unified Intelligence Core,
+        # Operation Unification - Unified Intelligence Core
         if self.config.enable_unified_intelligence:
             uic_config = UnifiedIntelligenceCoreConfig(
-                storage_path=self.config.uic_storage_path,
-                max_nodes=self.config.max_knowledge_nodes,
-                enable_cross_correlation=self.config.enable_cross_correlation,
-                semantic_similarity_threshold=self.config.semantic_similarity_threshold,
+                storage_path=self.config.uic_storage_path
+                max_nodes=self.config.max_knowledge_nodes
+                enable_cross_correlation=self.config.enable_cross_correlation
+                semantic_similarity_threshold=self.config.semantic_similarity_threshold
             )
             self.unified_intelligence = UnifiedIntelligenceCore(uic_config)
         else:
             self.unified_intelligence = None
 
-        # Service state,
-        self._running = False,
+        # Service state
+        self._running = False
         self._tasks: list[asyncio.Task] = []
 
-        # Cache for expensive operations,
+        # Cache for expensive operations
         self.cache = CacheManager("oracle_service")
 
-        # Last analysis timestamps,
-        self._last_analysis: datetime | None = None,
+        # Last analysis timestamps
+        self._last_analysis: datetime | None = None
         self._last_report: datetime | None = None
 
         logger.info("Oracle Service initialized - Guardian Agent evolved to Oracle")
@@ -168,13 +168,13 @@ class OracleService:
             logger.warning("Oracle Service already running")
             return
 
-        self._running = True,
+        self._running = True
         logger.info("🔮 Starting Hive Oracle Service - Platform Intelligence Active")
 
-        # Start data collection,
+        # Start data collection
         await self.data_layer.start_collection_async()
 
-        # Start periodic tasks,
+        # Start periodic tasks
         self._tasks = [
             asyncio.create_task(self._analysis_loop_async()),
             asyncio.create_task(self._reporting_loop_async()),
@@ -189,17 +189,17 @@ class OracleService:
         if not self._running:
             return
 
-        self._running = False,
+        self._running = False
         logger.info("Stopping Oracle Service...")
 
-        # Stop data collection,
+        # Stop data collection
         await self.data_layer.stop_collection_async()
 
-        # Cancel all tasks,
+        # Cancel all tasks
         for task in self._tasks:
             task.cancel()
 
-        # Wait for tasks to complete,
+        # Wait for tasks to complete
         await asyncio.gather(*self._tasks, return_exceptions=True)
         self._tasks.clear()
 
@@ -237,7 +237,7 @@ class OracleService:
 
         while self._running:
             try:
-                # Force refresh dashboard data,
+                # Force refresh dashboard data
                 await self.dashboard.get_dashboard_data_async(force_refresh=True)
                 await asyncio.sleep(self.config.dashboard_refresh_interval)
 
@@ -265,30 +265,30 @@ class OracleService:
         start_time = datetime.utcnow()
 
         try:
-            # Generate insights,
+            # Generate insights
             insights = await self.insight_generator.generate_insights_async(hours=self.config.prediction_horizon_hours)
 
-            # Filter high-confidence insights,
+            # Filter high-confidence insights
             critical_insights = [
                 i
-                for i in insights,
+                for i in insights
                 if i.confidence >= self.config.min_confidence_threshold and i.severity.value in ["critical", "high"]
             ]
 
             if critical_insights:
                 logger.warning(f"Oracle detected {len(critical_insights)} critical insights")
 
-                # Cache critical insights,
+                # Cache critical insights
                 await self.cache.set_async(
                     "critical_insights",
-                    [insight.__dict__ for insight in critical_insights],
-                    ttl=self.config.cache_ttl_seconds,
+                    [insight.__dict__ for insight in critical_insights]
+                    ttl=self.config.cache_ttl_seconds
                 )
 
-            # Update analysis timestamp,
+            # Update analysis timestamp
             self._last_analysis = start_time
 
-            # Log analysis summary,
+            # Log analysis summary
             analysis_time = (datetime.utcnow() - start_time).total_seconds()
             logger.info(f"Oracle analysis completed in {analysis_time:.2f}s - {len(insights)} insights generated")
 
@@ -300,12 +300,12 @@ class OracleService:
         logger.info("Generating Oracle strategic report...")
 
         try:
-            # Generate recommendations,
+            # Generate recommendations
             report = await self.recommendation_engine.generate_recommendations_async(
                 hours=24, include_predictive=self.config.enable_predictive_analysis
             )
 
-            # Save report,
+            # Save report
             report_path = Path("data/intelligence/reports")
             report_path.mkdir(parents=True, exist_ok=True)
 
@@ -377,7 +377,7 @@ class OracleService:
         """Serialize report for JSON storage."""
 
         def serialize_recommendation(rec):
-            return {,
+            return {
                 "title": rec.title,
                 "description": rec.description,
                 "type": rec.recommendation_type.value,
@@ -396,14 +396,14 @@ class OracleService:
             "title": report.title,
             "summary": report.summary,
             "generated_at": report.generated_at.isoformat(),
-            "critical_recommendations": [serialize_recommendation(r) for r in report.critical_recommendations],
+            "critical_recommendations": [serialize_recommendation(r) for r in report.critical_recommendations]
             "high_priority_recommendations": [
                 serialize_recommendation(r) for r in report.high_priority_recommendations
             ],
             "medium_priority_recommendations": [
                 serialize_recommendation(r) for r in report.medium_priority_recommendations
             ],
-            "low_priority_recommendations": [serialize_recommendation(r) for r in report.low_priority_recommendations],
+            "low_priority_recommendations": [serialize_recommendation(r) for r in report.low_priority_recommendations]
             "total_potential_savings": report.total_potential_savings,
             "recommended_immediate_actions": report.recommended_immediate_actions,
         }
@@ -483,17 +483,17 @@ class OracleService:
             "analysis_completed_at": datetime.utcnow().isoformat(),
             "platform_health": health,
             "insights_count": len(insights),
-            "critical_insights": [i for i in insights if i["severity"] in ["critical", "high"]],
+            "critical_insights": [i for i in insights if i["severity"] in ["critical", "high"]]
         }
 
     def get_service_status(self) -> dict[str, Any]:
         """Get Oracle Service status."""
         return {
             "running": self._running,
-            "last_analysis": self._last_analysis.isoformat() if self._last_analysis else None,
-            "last_report": self._last_report.isoformat() if self._last_report else None,
+            "last_analysis": self._last_analysis.isoformat() if self._last_analysis else None
+            "last_report": self._last_report.isoformat() if self._last_report else None
             "active_tasks": len(self._tasks),
-            "config": {,
+            "config": {
                 "analysis_interval": self.config.analysis_interval,
                 "reporting_interval": self.config.reporting_interval,
                 "predictive_analysis": self.config.enable_predictive_analysis,
@@ -526,10 +526,10 @@ class OracleService:
 
             # Convert to Oracle response format
             response = {
-                "design_intent": {,
+                "design_intent": {
                     "project_name": prophecy_report.design_intent.project_name,
                     "description": prophecy_report.design_intent.description,
-                    "complexity_assessment": {,
+                    "complexity_assessment": {
                         "expected_load": prophecy_report.design_intent.expected_load,
                         "data_requirements": prophecy_report.design_intent.data_requirements,
                         "api_endpoints": prophecy_report.design_intent.api_endpoints,
@@ -537,7 +537,7 @@ class OracleService:
                         "confidence_score": prophecy_report.design_intent.confidence_score,
                     },
                 },
-                "prophecy_analysis": {,
+                "prophecy_analysis": {
                     "overall_risk_level": prophecy_report.overall_risk_level.value,
                     "oracle_confidence": prophecy_report.oracle_confidence,
                     "total_prophecies": prophecy_report.total_prophecies,
@@ -556,7 +556,7 @@ class OracleService:
                         "time_to_manifestation": p.time_to_manifestation,
                         "recommended_approach": p.recommended_approach,
                         "oracle_reasoning": p.oracle_reasoning,
-                        "business_impact": {,
+                        "business_impact": {
                             "cost_implications": p.cost_implications,
                             "performance_impact": p.performance_impact,
                             "maintenance_impact": p.maintenance_impact,
@@ -565,11 +565,11 @@ class OracleService:
                     }
                     for p in prophecy_report.prophecies
                 ],
-                "strategic_recommendations": {,
+                "strategic_recommendations": {
                     "recommended_architecture": prophecy_report.recommended_architecture,
                     "optimal_packages": prophecy_report.optimal_hive_packages,
                     "architectural_patterns": prophecy_report.architectural_patterns,
-                    "development_estimates": {,
+                    "development_estimates": {
                         "estimated_time": prophecy_report.estimated_development_time,
                         "estimated_cost": prophecy_report.estimated_operational_cost,
                         "roi_projection": prophecy_report.roi_projection,
@@ -601,13 +601,13 @@ class OracleService:
             from .data_unification import MetricType
 
             accuracy_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.PROPHECY_ACCURACY],
-                start_time=datetime.utcnow() - timedelta(days=30),
-                limit=100,
+                metric_types=[MetricType.PROPHECY_ACCURACY]
+                start_time=datetime.utcnow() - timedelta(days=30)
+                limit=100
             )
 
             if not accuracy_metrics:
-                return {,
+                return {
                     "message": "No prophecy accuracy data available yet",
                     "overall_accuracy": 0.0,
                     "total_prophecies_validated": 0,
@@ -634,8 +634,8 @@ class OracleService:
                 "overall_accuracy": overall_accuracy,
                 "total_prophecies_validated": len(accuracy_scores),
                 "accuracy_categories": accuracy_categories,
-                "learning_recommendations": learning_actions[:5],  # Top 5,
-                "prophecy_engine_performance": {,
+                "learning_recommendations": learning_actions[:5],  # Top 5
+                "prophecy_engine_performance": {
                     "excellent_predictions": accuracy_categories.get("excellent", 0),
                     "good_predictions": accuracy_categories.get("good", 0),
                     "fair_predictions": accuracy_categories.get("fair", 0),
@@ -660,12 +660,12 @@ class OracleService:
 
             design_metrics = await self.warehouse.query_metrics_async(
                 metric_types=[MetricType.DESIGN_INTENT, MetricType.DESIGN_COMPLEXITY, MetricType.INTENT_EXTRACTION],
-                start_time=datetime.utcnow() - timedelta(days=7),
-                limit=100,
+                start_time=datetime.utcnow() - timedelta(days=7)
+                limit=100
             )
 
             if not design_metrics:
-                return {,
+                return {
                     "message": "No design documents processed recently",
                     "documents_count": 0,
                     "complexity_analysis": {},
@@ -679,7 +679,7 @@ class OracleService:
                 doc_name = metric.tags.get("document_name", "unknown")
 
                 if doc_name not in documents:
-                    documents[doc_name] = {,
+                    documents[doc_name] = {
                         "name": doc_name,
                         "type": metric.tags.get("document_type", "md"),
                         "complexity_level": "unknown",
@@ -746,7 +746,7 @@ class OracleService:
 
             # Convert to Oracle response format
             response = {
-                "ecosystem_analysis": {,
+                "ecosystem_analysis": {
                     "total_patterns_discovered": analysis_report["analysis_summary"]["total_patterns_discovered"],
                     "optimization_opportunities": analysis_report["analysis_summary"]["optimization_opportunities"],
                     "high_priority_optimizations": analysis_report["analysis_summary"]["high_priority_optimizations"],
@@ -807,7 +807,7 @@ class OracleService:
             return {"error": "Symbiosis Engine not available"}
 
         if not self.config.enable_automated_prs:
-            return {,
+            return {
                 "message": "Automated PR generation is disabled",
                 "prs_generated": 0,
                 "manual_approval_required": True,
@@ -821,10 +821,10 @@ class OracleService:
 
             # Convert to Oracle response format
             response = {
-                "autonomous_prs": {,
+                "autonomous_prs": {
                     "total_generated": len(generated_prs),
-                    "auto_submitted": len([pr for pr in generated_prs if pr.submitted_at]),
-                    "pending_approval": len([pr for pr in generated_prs if not pr.submitted_at]),
+                    "auto_submitted": len([pr for pr in generated_prs if pr.submitted_at])
+                    "pending_approval": len([pr for pr in generated_prs if not pr.submitted_at])
                     "generation_timestamp": datetime.utcnow().isoformat(),
                 },
                 "pull_requests": [
@@ -840,14 +840,14 @@ class OracleService:
                         "validation_passed": pr.validation_passed,
                         "tests_passing": pr.tests_passing,
                         "created_at": pr.created_at.isoformat(),
-                        "submitted_at": pr.submitted_at.isoformat() if pr.submitted_at else None,
+                        "submitted_at": pr.submitted_at.isoformat() if pr.submitted_at else None
                         "github_pr_url": pr.github_pr_url,
                         "labels": pr.labels,
                     }
                     for pr in generated_prs
                 ],
                 "next_generation_window": (datetime.utcnow() + timedelta(hours=12)).isoformat(),
-                "daily_limit_status": {,
+                "daily_limit_status": {
                     "limit": self.config.max_auto_prs_per_day,
                     "used": len(generated_prs),
                     "remaining": max(0, self.config.max_auto_prs_per_day - len(generated_prs)),
@@ -877,34 +877,34 @@ class OracleService:
 
             # Enhance with Oracle intelligence
             enhanced_results = {
-                "optimization_validation": {,
+                "optimization_validation": {
                     "optimization_id": optimization_id,
                     "validation_status": validation_results["overall_status"],
                     "oracle_confidence": validation_results["oracle_confidence"],
                     "validation_timestamp": validation_results["validation_timestamp"],
                 },
                 "validation_checks": validation_results["checks"],
-                "impact_assessment": {,
+                "impact_assessment": {
                     "performance_impact": validation_results["checks"].get("performance_improved", {}),
                     "cost_impact": validation_results["checks"].get("costs_reduced", {}),
                     "quality_impact": validation_results["checks"].get("no_regressions", {}),
                     "test_impact": validation_results["checks"].get("tests_passing", {}),
                 },
-                "oracle_assessment": {,
+                "oracle_assessment": {
                     "success_probability": validation_results["oracle_confidence"],
                     "recommendation": (
                         "Continue with similar optimizations",
-                        if validation_results["overall_status"] == "passed",
+                        if validation_results["overall_status"] == "passed"
                         else "Review optimization strategy"
                     ),
-                    "learning_value": "High" if validation_results["overall_status"] == "passed" else "Medium",
+                    "learning_value": "High" if validation_results["overall_status"] == "passed" else "Medium"
                 },
                 "next_steps": [
                     "Monitor optimization impact over next 7 days",
                     "Update optimization confidence models based on results",
                     (
                         "Consider similar optimizations in other packages",
-                        if validation_results["overall_status"] == "passed",
+                        if validation_results["overall_status"] == "passed"
                         else "Review and adjust optimization criteria"
                     ),
                 ],
@@ -923,13 +923,13 @@ class OracleService:
         try:
             # Basic status
             status = {
-                "symbiosis_engine": {,
+                "symbiosis_engine": {
                     "enabled": self.config.enable_symbiosis_engine,
                     "automated_prs_enabled": self.config.enable_automated_prs,
                     "daily_pr_limit": self.config.max_auto_prs_per_day,
                     "min_confidence_threshold": self.config.min_optimization_confidence,
                 },
-                "autonomous_operations": {,
+                "autonomous_operations": {
                     "last_ecosystem_analysis": None,
                     "last_pr_generation": None,
                     "total_optimizations_identified": 0,
@@ -946,10 +946,10 @@ class OracleService:
             # Note: In a real implementation, this would query actual metrics
             status["autonomous_operations"].update(
                 {
-                    "ecosystem_health_score": 85.2,  # Mock data,
-                    "optimization_success_rate": 78.5,  # Mock data,
-                    "average_pr_merge_time": "2.3 days",  # Mock data,
-                    "cost_savings_this_month": "$1,250",  # Mock data,
+                    "ecosystem_health_score": 85.2,  # Mock data
+                    "optimization_success_rate": 78.5,  # Mock data
+                    "average_pr_merge_time": "2.3 days",  # Mock data
+                    "cost_savings_this_month": "$1,250",  # Mock data
                     "performance_improvements": "12% average",  # Mock data
                 }
             )
@@ -1016,20 +1016,20 @@ class OracleService:
 
             # Phase 2: Query unified intelligence for cross-correlations
             query = KnowledgeQuery(
-                query_id=f"unified_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-                query_type=query_type,
+                query_id=f"unified_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+                query_type=query_type
                 target_node_types=[NodeType.PROPHECY, NodeType.CODE_PATTERN, NodeType.OPTIMIZATION_OPPORTUNITY],
                 edge_types=[EdgeType.SOLVES, EdgeType.CORRELATES_WITH, EdgeType.MITIGATES],
-                min_confidence=0.6,
-                max_depth=3,
-                semantic_query="architectural risks optimization patterns solutions",
+                min_confidence=0.6
+                max_depth=3
+                semantic_query="architectural risks optimization patterns solutions"
             )
 
             unified_result = await self.unified_intelligence.query_unified_intelligence_async(query)
 
-            # Phase 3: Generate unified response,
+            # Phase 3: Generate unified response
             response = {
-                "unified_analysis": {,
+                "unified_analysis": {
                     "analysis_type": query_type,
                     "total_knowledge_nodes": unified_result.total_nodes,
                     "total_relationships": unified_result.total_edges,
@@ -1038,17 +1038,17 @@ class OracleService:
                 },
                 "cross_correlations": unified_result.cross_correlations,
                 "strategic_insights": unified_result.strategic_recommendations,
-                "knowledge_synthesis": {,
+                "knowledge_synthesis": {
                     "prophecy_data_ingested": prophecy_data is not None,
                     "symbiosis_data_ingested": symbiosis_data is not None,
                     "unified_patterns_found": len(
                         [
                             n
-                            for n in unified_result.nodes,
+                            for n in unified_result.nodes
                             if n.node_type in [NodeType.CODE_PATTERN, NodeType.SOLUTION_PATTERN]
                         ]
                     ),
-                    "risk_solution_mappings": len([e for e in unified_result.edges if e.edge_type == EdgeType.SOLVES]),
+                    "risk_solution_mappings": len([e for e in unified_result.edges if e.edge_type == EdgeType.SOLVES])
                 },
                 "wisdom_synthesis": self._generate_wisdom_synthesis(unified_result, prophecy_data, symbiosis_data),
                 "generated_at": datetime.utcnow().isoformat(),
@@ -1076,16 +1076,16 @@ class OracleService:
         try:
             logger.info(f"🔮 Oracle processing wisdom query: {semantic_query}")
 
-            # Create knowledge query from natural language,
+            # Create knowledge query from natural language
             query = KnowledgeQuery(
-                query_id=f"wisdom_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-                query_type="unified",
-                semantic_query=semantic_query,
-                min_confidence=0.5,
-                max_depth=4,
+                query_id=f"wisdom_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+                query_type="unified"
+                semantic_query=semantic_query
+                min_confidence=0.5
+                max_depth=4
             )
 
-            # Add context if provided,
+            # Add context if provided
             if context:
                 if "node_types" in context:
                     query.target_node_types = [NodeType(nt) for nt in context["node_types"]]
@@ -1094,13 +1094,13 @@ class OracleService:
                 if "min_confidence" in context:
                     query.min_confidence = context["min_confidence"]
 
-            # Execute wisdom query,
+            # Execute wisdom query
             result = await self.unified_intelligence.query_unified_intelligence_async(query)
 
-            # Format wisdom response,
+            # Format wisdom response
             wisdom_response = {
                 "query": semantic_query,
-                "oracle_wisdom": {,
+                "oracle_wisdom": {
                     "insights_found": len(result.strategic_recommendations),
                     "knowledge_nodes": len(result.nodes),
                     "relationships": len(result.edges),
@@ -1116,14 +1116,14 @@ class OracleService:
                         "confidence": edge.confidence,
                         "evidence": edge.evidence,
                     }
-                    for edge in result.edges[:10]  # Top 10 relationships,
+                    for edge in result.edges[:10]  # Top 10 relationships
                 ],
                 "actionable_recommendations": self._extract_actionable_recommendations(result),
-                "oracle_assessment": {,
-                    "complexity": "high" if result.total_nodes > 20 else "medium" if result.total_nodes > 10 else "low",
+                "oracle_assessment": {
+                    "complexity": "high" if result.total_nodes > 20 else "medium" if result.total_nodes > 10 else "low"
                     "certainty": (
-                        "high",
-                        if result.confidence_score > 0.8,
+                        "high"
+                        if result.confidence_score > 0.8
                         else "medium" if result.confidence_score > 0.6 else "low"
                     ),
                     "urgency": self._assess_urgency(result),
@@ -1151,19 +1151,19 @@ class OracleService:
         try:
             logger.info("🧠 Oracle processing unified feedback for continuous learning...")
 
-            # Process feedback through UIC,
+            # Process feedback through UIC
             await self.unified_intelligence.learn_from_feedback_async(feedback)
 
-            # Generate learning insights,
+            # Generate learning insights
             learning_insights = {
                 "feedback_processed": True,
                 "feedback_type": feedback.get("type", "unknown"),
-                "learning_impact": {,
+                "learning_impact": {
                     "confidence_updates": feedback.get("confidence_impact", "moderate"),
                     "new_correlations_discovered": feedback.get("new_correlations", 0),
                     "knowledge_graph_growth": feedback.get("nodes_added", 0),
                 },
-                "oracle_evolution": {,
+                "oracle_evolution": {
                     "prophecy_accuracy_improvement": feedback.get("prophecy_improvement", 0.0),
                     "symbiosis_success_rate_change": feedback.get("symbiosis_improvement", 0.0),
                     "unified_wisdom_enhancement": feedback.get("wisdom_enhancement", "measured"),
@@ -1183,14 +1183,14 @@ class OracleService:
         """Get comprehensive status of the Unified Intelligence Core."""
 
         try:
-            base_status = {,
+            base_status = {
                 "unified_intelligence_core": {
                     "enabled": self.config.enable_unified_intelligence,
                     "cross_correlation_enabled": self.config.enable_cross_correlation,
                     "semantic_threshold": self.config.semantic_similarity_threshold,
                     "max_knowledge_nodes": self.config.max_knowledge_nodes,
                 },
-                "integration_status": {,
+                "integration_status": {
                     "prophecy_engine_connected": self.prophecy is not None,
                     "symbiosis_engine_connected": self.symbiosis is not None,
                     "data_unification_connected": self.data_layer is not None,
@@ -1201,18 +1201,18 @@ class OracleService:
                 base_status["message"] = "Unified Intelligence Core not available",
                 return base_status
 
-            # Get detailed UIC status,
+            # Get detailed UIC status
             uic_status = await self.unified_intelligence.get_unified_status_async()
 
-            # Merge statuses,
+            # Merge statuses
             unified_status = {**base_status, **uic_status}
 
-            # Add Oracle-specific insights,
+            # Add Oracle-specific insights
             unified_status["oracle_synthesis"] = {
                 "wisdom_synthesis_active": True,
                 "prophecy_symbiosis_correlation": (
-                    "strong",
-                    if uic_status.get("strategic_intelligence", {}).get("prophecy_symbiosis_correlations", 0) > 5,
+                    "strong"
+                        if uic_status.get("strategic_intelligence", {}).get("prophecy_symbiosis_correlations", 0) > 5
                     else "moderate"
                 ),
                 "autonomous_learning_enabled": self.config.enable_cross_correlation,
@@ -1239,20 +1239,20 @@ class OracleService:
             "strategic_alignment": "unknown",
         }
 
-        # Analyze prophecy-symbiosis correlations,
+        # Analyze prophecy-symbiosis correlations
         if prophecy_data and symbiosis_data:
             synthesis["unified_insights"].append(
                 "Cross-correlation analysis reveals strong alignment between predicted risks and existing optimization patterns"
             )
 
-            # Check for solution patterns,
+            # Check for solution patterns
             solution_edges = [e for e in unified_result.edges if e.edge_type == EdgeType.SOLVES]
             if solution_edges:
                 synthesis["prophecy_validation"].append(
                     f"Found {len(solution_edges)} existing solution patterns that address predicted architectural risks"
                 )
 
-            # Check for optimization opportunities,
+            # Check for optimization opportunities
             optimization_nodes = [n for n in unified_result.nodes if n.node_type == NodeType.OPTIMIZATION_OPPORTUNITY]
             if optimization_nodes:
                 synthesis["symbiosis_enhancement"].append(

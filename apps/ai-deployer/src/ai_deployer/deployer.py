@@ -7,7 +7,7 @@ from __future__ import annotations
 import asyncio
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -60,7 +60,7 @@ class DeploymentOrchestrator:
     Orchestrates deployment operations using various strategies
     """
 
-    def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         """
         Initialize deployment orchestrator
 

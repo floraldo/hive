@@ -11,7 +11,7 @@ import re
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Literal, Optional
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -242,7 +242,7 @@ Generate the execution plan now:"""
 
         return prompt
 
-    def _extract_json_from_response(self, response_text: str) -> Optional[dict[str, Any]]:
+    def _extract_json_from_response(self, response_text: str) -> dict[str, Any] | None:
         """Extract JSON from Claude response with robust parsing"""
         try:
             # Try direct JSON parsing first,

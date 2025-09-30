@@ -184,7 +184,7 @@ def get(
 
 @climate.command()
 @option("--pattern", "-p", help='Pattern to match (e.g., "nasa_power_*")')
-def clear_cache(pattern) -> None:
+def clear_cache(pattern: str | None) -> None:
     """Clear climate data cache"""
     from profile_loader.climate.cache.store import clear_cache as _clear_cache
 
@@ -220,7 +220,7 @@ def cache_info() -> None:
     "--solver", "-s", default="milp", type=click.Choice(["milp", "rule_based"]), help="Solver to use for optimization"
 )
 @option("--verbose", "-v", is_flag=True, help="Verbose output")
-def run(config, output, solver, verbose) -> None:
+def run(config: str, output: str | None, solver: str, verbose: bool) -> None:
     """
     Run a system simulation from configuration file.
 
@@ -272,7 +272,7 @@ def run(config, output, solver, verbose) -> None:
 
 @simulate.command()
 @click.argument("config")
-def validate(config) -> None:
+def validate(config: str) -> None:
     """
     Validate a system configuration file.
 
@@ -347,19 +347,19 @@ def discover() -> None:
 @option("--report", is_flag=True, help="Generate HTML report after optimization")
 @option("--verbose", is_flag=True, help="Verbose output")
 def optimize(
-    config,
-    objectives,
-    population,
-    generations,
-    variables,
-    multi_objective,
-    mutation_rate,
-    crossover_rate,
-    output,
-    workers,
-    report,
-    verbose,
-):
+    config: str,
+    objectives: str,
+    population: int,
+    generations: int,
+    variables: str | None,
+    multi_objective: bool,
+    mutation_rate: float,
+    crossover_rate: float,
+    output: str | None,
+    workers: int,
+    report: bool,
+    verbose: bool,
+) -> None:
     """
     Run genetic algorithm optimization to find optimal system configurations.,
 
@@ -530,8 +530,18 @@ def optimize(
 @option("--workers", "-w", default=4, type=int, help="Number of parallel workers")
 @option("--verbose", is_flag=True, help="Verbose output")
 def uncertainty(
-    config, objectives, samples, uncertainties, sampling, confidence, sensitivity, risk, output, workers, verbose
-):
+    config: str,
+    objectives: str,
+    samples: int,
+    uncertainties: str | None,
+    sampling: str,
+    confidence: str,
+    sensitivity: bool,
+    risk: bool,
+    output: str | None,
+    workers: int,
+    verbose: bool,
+) -> None:
     """
     Run Monte Carlo uncertainty analysis to quantify system performance under uncertainty.,
 
@@ -727,7 +737,16 @@ def uncertainty(
 @option("--output", "-o", help="Output directory for results")
 @option("--workers", "-w", default=4, type=int, help="Number of parallel workers")
 @option("--verbose", is_flag=True, help="Verbose output")
-def explore(config, variables, objectives, method, samples, output, workers, verbose) -> None:
+def explore(
+    config: str,
+    variables: str,
+    objectives: str,
+    method: str,
+    samples: int,
+    output: str | None,
+    workers: int,
+    verbose: bool,
+) -> None:
     """
     Comprehensive design space exploration for multi-objective optimization.,
 
@@ -862,7 +881,7 @@ def report() -> None:
 @results.command()
 @click.argument("results_file", type=click.Path(exists=True))
 @option("--format", "-f", type=click.Choice(["summary", "detailed", "kpi"]), default="summary", help="Output format")
-def show(results_file, format) -> None:
+def show(results_file: str, format: str) -> None:
     """
     Display simulation results.
 
@@ -924,7 +943,7 @@ def show(results_file, format) -> None:
 @option("--output", "-o", type=click.Path(), help="Output directory for report files")
 @option("--strategies", "-s", multiple=True, help="Analysis strategies to run (default: all)")
 @option("--format", "output_format", type=click.Choice(["json", "html"]), default="json", help="Output format")
-def analyze(results_file, output, strategies, output_format) -> None:
+def analyze(results_file: str, output: str | None, strategies: tuple[str, ...], output_format: str) -> None:
     """Analyze simulation results and generate report data."""
     from ecosystemiser.analyser import AnalyserService
 
@@ -968,7 +987,7 @@ def analyze(results_file, output, strategies, output_format) -> None:
 @option("--host", default="127.0.0.1", help="Host to bind to")
 @option("--port", default=5000, help="Port to bind to")
 @option("--debug", is_flag=True, help="Enable debug mode")
-def server(host, port, debug) -> None:
+def server(host: str, port: int, debug: bool) -> None:
     """Start the reporting web server."""
     from ecosystemiser.reporting import run_server
 
@@ -997,7 +1016,7 @@ def server(host, port, debug) -> None:
     default="auto",
     help="Type of study (auto-detect by default)",
 )
-def generate(study_file, output, study_type) -> None:
+def generate(study_file: str, output: str, study_type: str) -> None:
     """Generate a standalone HTML report from study results.
 
     Examples:

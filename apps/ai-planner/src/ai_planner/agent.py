@@ -16,7 +16,7 @@ import time
 import uuid
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -94,7 +94,7 @@ class ClaudeBridgeConfig:
 
 
 def get_claude_service(
-    config: Optional[dict[str, Any]] = None, rate_config: Optional[dict[str, Any]] = None,
+    config: dict[str, Any] | None = None, rate_config: dict[str, Any] | None = None,
 ) -> ClaudeService:
     """Get a Claude service instance with optional configuration.
 
@@ -256,7 +256,7 @@ class AIPlanner:
             self.error_reporter.report_error(error)
             return False
 
-    def get_next_task(self) -> Optional[dict[str, Any]]:
+    def get_next_task(self) -> dict[str, Any] | None:
         """
         Fetch the next high-priority task from planning_queue
 
@@ -369,7 +369,7 @@ class AIPlanner:
         else:
             return "medium"
 
-    def generate_execution_plan(self, task: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def generate_execution_plan(self, task: dict[str, Any]) -> dict[str, Any] | None:
         """
         Generate a structured execution plan using Claude AI
 
@@ -864,7 +864,7 @@ class AIPlanner:
                 logger.warning(f"Failed to publish async workflow event {event_type} for task {task_id}: {e}")
                 return ""
 
-        async def get_next_task_async(self) -> Optional[dict[str, Any]]:
+        async def get_next_task_async(self) -> dict[str, Any] | None:
             """
             Async version of get_next_task for non-blocking database operations.
 
