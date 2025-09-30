@@ -648,30 +648,22 @@ class StudyService:
             Fitness function that evaluates parameter vectors,
         """
 
+        # Load base system configuration once (cache for all evaluations)
+        with open(config.base_config.system_config_path) as f:
+            base_system_config = yaml.safe_load(f)
+
         def fitness_function(parameter_vector: np.ndarray) -> dict[str, Any]:
             try:
-                # Load base system configuration
-
-                with open(config.base_config.system_config_path) as f:
-                    base_system_config = yaml.safe_load(f)
-
                 # Decode parameter vector to system configuration
                 modified_config = encoder.decode(parameter_vector, base_system_config)
 
-                # Create temporary config file
-                temp_config_path = config.output_directory / f"temp_config_{hash(tuple(parameter_vector))}.yml"
-                temp_config_path.parent.mkdir(parents=True, exist_ok=True)
-
-                with open(temp_config_path, "w") as f:
-                    yaml.dump(modified_config, f)
-
-                # Create simulation configuration
+                # Create simulation configuration with in-memory config (no temp file!)
                 sim_config = config.base_config.model_copy(deep=True)
-                sim_config.system_config_path = str(temp_config_path)
+                sim_config.system_config = modified_config  # Pass config dict directly
+                sim_config.system_config_path = None  # Clear file path
                 sim_config.simulation_id = f"opt_{hash(tuple(parameter_vector))}"
 
                 # Run simulation using JobFacade (uses self.job_facade from parent class)
-                # Note: We need to pass the job facade reference through closure
                 job_result = self.job_facade.submit_simulation_job(
                     config=sim_config.dict(),
                     correlation_id=f"opt_{hash(tuple(parameter_vector))}",
@@ -685,8 +677,6 @@ class StudyService:
                     result = SimulationResult(**job_result.result)
                 elif job_result.status.value in ["failed", "timeout"]:
                     # Handle job failure
-
-                    temp_config_path.unlink(missing_ok=True)
                     return {
                         "objectives": [float("inf")]
                         * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
@@ -696,8 +686,6 @@ class StudyService:
                     }
                 else:
                     # Unexpected status
-
-                    temp_config_path.unlink(missing_ok=True)
                     return {
                         "objectives": [float("inf")]
                         * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1),
@@ -705,10 +693,6 @@ class StudyService:
                         "valid": False,
                         "error": f"Unexpected job status: {job_result.status.value}",
                     }
-
-                # Clean up temporary file
-
-                temp_config_path.unlink(missing_ok=True)
 
                 # Extract objectives
 

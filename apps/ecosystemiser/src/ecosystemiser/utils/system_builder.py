@@ -19,14 +19,24 @@ logger = get_logger(__name__)
 class SystemBuilder:
     """Build System objects from configuration files using dynamic registry pattern."""
 
-    def __init__(self, config_path: Path, component_repo: ComponentRepository) -> None:
+    def __init__(
+        self,
+        config_path: Path | None = None,
+        component_repo: ComponentRepository | None = None,
+        config_dict: dict[str, Any] | None = None
+    ) -> None:
         """Initialize dynamic system builder.
 
         Args:
-            config_path: Path to system configuration YAML
-            component_repo: Repository for component data,
+            config_path: Path to system configuration YAML (optional if config_dict provided)
+            component_repo: Repository for component data
+            config_dict: In-memory configuration dict (optimization performance)
         """
-        self.config_path = Path(config_path)
+        if config_path is None and config_dict is None:
+            raise ValueError("Either config_path or config_dict must be provided")
+
+        self.config_path = Path(config_path) if config_path else None
+        self.config_dict = config_dict
         self.component_repo = component_repo
 
         # Log available components from registry
@@ -57,9 +67,12 @@ class SystemBuilder:
         Returns:
             Configured System object,
         """
-        # Load system configuration
-        with open(self.config_path) as f:
-            config = yaml.safe_load(f)
+        # Load system configuration from file or use in-memory dict
+        if self.config_dict is not None:
+            config = self.config_dict
+        else:
+            with open(self.config_path) as f:
+                config = yaml.safe_load(f)
 
         # Validate configuration structure
         self._validate_config(config)

@@ -34,7 +34,8 @@ class SimulationConfig(BaseModel):
     """Complete configuration for a simulation run."""
 
     simulation_id: str
-    system_config_path: str | None = None  # Optional for staged simulations
+    system_config_path: str | None = None  # Optional for staged simulations or in-memory config
+    system_config: dict[str, Any] | None = None  # In-memory config (optimization performance)
     solver_type: str = "rule_based"
     solver_config: SolverConfig | None = None
     climate_input: dict[str, Any] | None = None
@@ -287,8 +288,17 @@ class SimulationService:
         Returns:
             Configured System object,
         """
-        # Create system builder
-        builder = SystemBuilder(Path(config.system_config_path), self.component_repo)
+        # Create system builder (prefer in-memory config for performance)
+        if config.system_config is not None:
+            builder = SystemBuilder(
+                config_dict=config.system_config,
+                component_repo=self.component_repo
+            )
+        else:
+            builder = SystemBuilder(
+                config_path=Path(config.system_config_path),
+                component_repo=self.component_repo
+            )
 
         # Build system
         system = builder.build()

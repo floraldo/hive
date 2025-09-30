@@ -346,44 +346,45 @@ def get_source_profile(source: str) -> QCProfile:
     Raises:
         ValueError: If source is unknown,
     """
-    # Mapping of source names to their adapter modules
-    source_mapping = (
-        {
-            "nasa_power": "ecosystemiser.profile_loader.climate.adapters.nasa_power",
-            "meteostat": "ecosystemiser.profile_loader.climate.adapters.meteostat",
-            "era5": "ecosystemiser.profile_loader.climate.adapters.era5",
-            "pvgis": "ecosystemiser.profile_loader.climate.adapters.pvgis",
-            "epw": "ecosystemiser.profile_loader.climate.adapters.file_epw",
-            "file_epw": "ecosystemiser.profile_loader.climate.adapters.file_epw",
-        },
-    )
+    # Factory functions for lazy imports (avoid circular dependencies)
+    def _get_nasa_power() -> QCProfile:
+        from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerQCProfile
+        return NASAPowerQCProfile()
 
-    if source not in source_mapping:
-        available = list(source_mapping.keys())
+    def _get_meteostat() -> QCProfile:
+        from ecosystemiser.profile_loader.climate.adapters.meteostat import MeteostatQCProfile
+        return MeteostatQCProfile()
+
+    def _get_era5() -> QCProfile:
+        from ecosystemiser.profile_loader.climate.adapters.era5 import ERA5QCProfile
+        return ERA5QCProfile()
+
+    def _get_pvgis() -> QCProfile:
+        from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
+        return get_qc_profile()
+
+    def _get_epw() -> QCProfile:
+        from ecosystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
+        return get_qc_profile()
+
+    # Dictionary mapping source names to factory functions
+    source_factories = {
+        "nasa_power": _get_nasa_power,
+        "meteostat": _get_meteostat,
+        "era5": _get_era5,
+        "pvgis": _get_pvgis,
+        "epw": _get_epw,
+        "file_epw": _get_epw,
+    }
+
+    if source not in source_factories:
+        available = list(source_factories.keys())
         raise ValueError(f"Unknown data source: {source}. Available: {available}")
 
-    # Dynamically import the profile from the adapter module
+    # Call factory function to create profile instance
     try:
-        if source == "nasa_power":
-            from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerQCProfile
-
-            return NASAPowerQCProfile()
-        elif source == "meteostat":
-            from ecosystemiser.profile_loader.climate.adapters.meteostat import MeteostatQCProfile
-
-            return MeteostatQCProfile()
-        elif source == "era5":
-            from ecosystemiser.profile_loader.climate.adapters.era5 import ERA5QCProfile
-
-            return ERA5QCProfile()
-        elif source in ["pvgis"]:
-            from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
-
-            return get_qc_profile()
-        elif source in ["epw", "file_epw"]:
-            from ecosystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
-
-            return get_qc_profile()
+        factory = source_factories[source]
+        return factory()
     except ImportError as e:
         logger.warning(f"Could not import QC profile for {source}: {e}")
         raise ValueError(f"QC profile for {source} could not be loaded: {e}") from e
