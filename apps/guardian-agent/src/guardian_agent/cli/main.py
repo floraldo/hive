@@ -276,8 +276,8 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
                     )
 
                     business_value = (
-                        feature.business_value[:40] + "...",
-                        if len(feature.business_value) > 40,
+                        feature.business_value[:40] + "..."
+                        if len(feature.business_value) > 40
                         else feature.business_value
                     )
 
@@ -905,7 +905,7 @@ def generate_prs(ctx: click.Context, max_prs: int | None, dry_run: bool) -> None
                     analysis_result = await oracle_service.analyze_ecosystem_optimization_async()
                     if "optimization_opportunities" in analysis_result:
                         auto_implementable = [
-                            opt,
+                            opt
                             for opt in analysis_result["optimization_opportunities"]
                             if opt["can_auto_implement"] and opt["oracle_confidence"] >= 0.8
                         ]

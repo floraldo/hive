@@ -34,7 +34,11 @@ class DatabaseConnectionPool:
     """
 
     def __init__(
-        self, db_path: Path, min_connections: int = 2, max_connections: int = 10, connection_timeout: float = 30.0,
+        self,
+        db_path: Path,
+        min_connections: int = 2,
+        max_connections: int = 10,
+        connection_timeout: float = 30.0,
     ):
         """
         Initialize connection pool for a specific database.

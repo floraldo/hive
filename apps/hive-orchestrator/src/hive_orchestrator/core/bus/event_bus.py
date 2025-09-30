@@ -364,7 +364,11 @@ class EventBus:
                 raise EventPublishError(f"Async event publishing failed: {e}") from e
 
         async def get_events_async(
-            self, event_type: str = None, correlation_id: str = None, source_agent: str = None, limit: int = 100,
+            self,
+            event_type: str = None,
+            correlation_id: str = None,
+            source_agent: str = None,
+            limit: int = 100,
         ) -> list[Event]:
             """
             Async version of get_events for high-performance event retrieval.

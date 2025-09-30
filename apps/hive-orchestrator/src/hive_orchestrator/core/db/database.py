@@ -626,7 +626,10 @@ def get_tasks_by_status(status: str) -> List[dict[str, Any]]:
 
 
 def register_worker(
-    worker_id: str, role: str, capabilities: Optional[List[str]] = None, metadata: Optional[dict[str, Any]] = None,
+    worker_id: str,
+    role: str,
+    capabilities: Optional[List[str]] = None,
+    metadata: Optional[dict[str, Any]] = None,
 ) -> bool:
     """Register a new worker or update existing worker registration."""
     with transaction() as conn:
@@ -727,7 +730,11 @@ def log_run_result(
     """
     try:
         success = update_run_status(
-            run_id=run_id, status=status, result_data=result_data, error_message=error_message, transcript=transcript,
+            run_id=run_id,
+            status=status,
+            result_data=result_data,
+            error_message=error_message,
+            transcript=transcript,
         )
 
         if success:

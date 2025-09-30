@@ -389,7 +389,9 @@ class CostManager:
         return timedelta(0)
 
     async def get_cost_summary_async(
-        self, start_date: datetime | None = None, end_date: datetime | None = None,
+        self,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> CostSummary:
         """
         Get comprehensive cost summary for a period.
@@ -595,7 +597,10 @@ class CostManager:
         self._budget_alerts.clear()
 
     async def export_cost_data_async(
-        self, start_date: datetime | None = None, end_date: datetime | None = None, format: str = "json",
+        self,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        format: str = "json",
     ) -> dict[str, Any]:
         """Export cost data for external analysis."""
         end_date = end_date or datetime.utcnow()

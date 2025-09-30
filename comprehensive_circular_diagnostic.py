@@ -174,7 +174,10 @@ class CircularReversionDiagnostic:
                                 )
                             elif "false" in line:
                                 self.log_finding(
-                                    "CONFIG", "INFO", "skip-magic-trailing-comma = false", "This is the correct setting",
+                                    "CONFIG",
+                                    "INFO",
+                                    "skip-magic-trailing-comma = false",
+                                    "This is the correct setting",
                                 )
                             break
                 else:
@@ -183,11 +186,17 @@ class CircularReversionDiagnostic:
                 # Check for COM818 in ignore list
                 if "COM818" in content:
                     self.log_finding(
-                        "CONFIG", "INFO", "COM818 found in ignore list", "This should prevent trailing comma errors",
+                        "CONFIG",
+                        "INFO",
+                        "COM818 found in ignore list",
+                        "This should prevent trailing comma errors",
                     )
                 else:
                     self.log_finding(
-                        "CONFIG", "WARNING", "COM818 not found in ignore list", "This might allow trailing comma errors",
+                        "CONFIG",
+                        "WARNING",
+                        "COM818 not found in ignore list",
+                        "This might allow trailing comma errors",
                     )
 
             except Exception as e:
@@ -222,7 +231,10 @@ class CircularReversionDiagnostic:
                 format_on_save = settings.get("editor.formatOnSave")
                 if format_on_save:
                     self.log_finding(
-                        "VSCODE", "WARNING", "Format on save enabled", "This might cause automatic formatting conflicts",
+                        "VSCODE",
+                        "WARNING",
+                        "Format on save enabled",
+                        "This might cause automatic formatting conflicts",
                     )
                 else:
                     self.log_finding("VSCODE", "INFO", "Format on save disabled")

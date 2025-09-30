@@ -223,7 +223,10 @@ class SQLiteLoader:
             return spec_id
 
     def get_component_spec(
-        self, component_type: str, name: str | None = None, version: str | None = None,
+        self,
+        component_type: str,
+        name: str | None = None,
+        version: str | None = None,
     ) -> dict[str, Any]:
         """
         Get a component specification.

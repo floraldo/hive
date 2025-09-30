@@ -301,7 +301,10 @@ def check_file_watchers():
     try:
         # Check for file watcher processes
         result = subprocess.run(
-            "ps aux | grep -E '(watch|monitor|inotify)' | grep -v grep", shell=True, capture_output=True, text=True,
+            "ps aux | grep -E '(watch|monitor|inotify)' | grep -v grep",
+            shell=True,
+            capture_output=True,
+            text=True,
         )
 
         if result.stdout:

@@ -273,7 +273,9 @@ def review_escalated(task_id: str) -> None:
 
         # Get human decision
         decision = Prompt.ask(
-            "\nYour decision", choices=["approve", "reject", "rework", "defer", "cancel"], default="defer",
+            "\nYour decision",
+            choices=["approve", "reject", "rework", "defer", "cancel"],
+            default="defer",
         )
 
         if decision == "cancel":

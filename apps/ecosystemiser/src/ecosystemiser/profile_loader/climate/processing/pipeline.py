@@ -209,7 +209,12 @@ class ProcessingPipeline:
             )
 
     def add_preprocessing_step(
-        self, name: str, function: Callable, config: dict | None = None, enabled: bool = True, required: bool = False,
+        self,
+        name: str,
+        function: Callable,
+        config: dict | None = None,
+        enabled: bool = True,
+        required: bool = False,
     ):
         """Add a preprocessing step to the pipeline"""
         step = ProcessingStep(
@@ -223,7 +228,12 @@ class ProcessingPipeline:
         self.preprocessing_steps.append(step)
 
     def add_postprocessing_step(
-        self, name: str, function: Callable, config: dict | None = None, enabled: bool = True, required: bool = False,
+        self,
+        name: str,
+        function: Callable,
+        config: dict | None = None,
+        enabled: bool = True,
+        required: bool = False,
     ):
         """Add a postprocessing step to the pipeline"""
         step = ProcessingStep(
@@ -277,7 +287,10 @@ class ProcessingPipeline:
         return ds_processed
 
     def execute(
-        self, ds: xr.Dataset, skip_preprocessing: bool = False, skip_postprocessing: bool = False,
+        self,
+        ds: xr.Dataset,
+        skip_preprocessing: bool = False,
+        skip_postprocessing: bool = False,
     ) -> xr.Dataset:
         """
         Execute full pipeline.

@@ -136,7 +136,10 @@ class ErrorReporter:
         conn.close()
 
     def report_error(
-        self, error: Exception, context: ErrorContext | None = None, additional_info: dict[str, Any] | None = None,
+        self,
+        error: Exception,
+        context: ErrorContext | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """
         Report an error with context
@@ -174,7 +177,10 @@ class ErrorReporter:
         return error_id
 
     def _build_error_record(
-        self, error: Exception, context: ErrorContext | None, additional_info: dict[str, Any] | None,
+        self,
+        error: Exception,
+        context: ErrorContext | None,
+        additional_info: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """Build structured error record"""
         record = {

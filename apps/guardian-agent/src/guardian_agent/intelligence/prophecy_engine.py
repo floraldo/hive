@@ -332,7 +332,9 @@ class ProphecyEngine:
             # Return minimal report on error
             return ProphecyReport(
                 design_intent=DesignIntent(
-                    project_name="unknown", description="Analysis failed", document_path=design_doc_path,
+                    project_name="unknown",
+                    description="Analysis failed",
+                    document_path=design_doc_path,
                 ),
                 overall_risk_level=ProphecySeverity.MODERATE,
                 total_prophecies=0,
@@ -631,7 +633,7 @@ class ProphecyEngine:
                 )
                 filtered_prophecies = filtered_prophecies[: self.config.max_prophecies_per_design]
 
-            logger.info(f"Generated {len(filtered_prophecies)} prophecies " f"(filtered from {len(prophecies)} total)")
+            logger.info(f"Generated {len(filtered_prophecies)} prophecies (filtered from {len(prophecies)} total)")
 
             return filtered_prophecies
 
@@ -645,7 +647,7 @@ class ProphecyEngine:
 
         # Database bottleneck prophecy
         if (
-"data_persistence" in design_intent.data_requirements
+            "data_persistence" in design_intent.data_requirements
             and "high_performance" in design_intent.performance_requirements
         ):
             prophecy = ArchitecturalProphecy(
@@ -773,7 +775,7 @@ class ProphecyEngine:
 
         # Authentication prophecy,
         if (
-"authentication" in design_intent.integration_points
+            "authentication" in design_intent.integration_points
             and "security" not in design_intent.preferred_technologies
         ):
             prophecy = ArchitecturalProphecy(
@@ -883,7 +885,9 @@ class ProphecyEngine:
         return severity_map.get(severity, 2)
 
     async def _perform_strategic_analysis_async(
-        self, design_intent: DesignIntent, prophecies: list[ArchitecturalProphecy],
+        self,
+        design_intent: DesignIntent,
+        prophecies: list[ArchitecturalProphecy],
     ) -> dict[str, Any]:
         """Perform strategic analysis and generate architectural recommendations."""
 
@@ -968,7 +972,7 @@ class ProphecyEngine:
             complexity_weeks = sum(complexity_factors) * 0.5
             total_weeks = base_weeks + complexity_weeks
 
-            dev_time = f"{total_weeks:.1f} weeks" if total_weeks < 10 else f"{total_weeks/4:.1f} months"
+            dev_time = f"{total_weeks:.1f} weeks" if total_weeks < 10 else f"{total_weeks / 4:.1f} months"
 
             # Estimate operational cost
             base_cost = 200  # Base monthly cost
@@ -981,7 +985,7 @@ class ProphecyEngine:
             if any("ai" in tech.lower() for tech in design_intent.preferred_technologies):
                 base_cost += 500
 
-            op_cost = f"${base_cost}-{base_cost*2}/month"
+            op_cost = f"${base_cost}-{base_cost * 2}/month"
 
             return {
                 "architecture": ". ".join(architecture_recommendations[:3]),
@@ -1141,7 +1145,3 @@ class ProphecyEngine:
         summary_parts.append("🔮 The Oracle has spoken. The future is revealed.")
 
         return "\n".join(summary_parts)
-
-
-
-

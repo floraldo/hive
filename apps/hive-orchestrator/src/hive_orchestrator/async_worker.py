@@ -205,7 +205,10 @@ class AsyncWorker:
         try:
             # Create async subprocess
             process = await asyncio.create_subprocess_exec(
-                *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE, cwd=str(self.workspace),
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+                cwd=str(self.workspace),
             )
 
             # Wait for completion with timeout

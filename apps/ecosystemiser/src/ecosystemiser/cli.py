@@ -217,7 +217,11 @@ def cache_info() -> None:
 @click.argument("config", type=click.Path(exists=True))
 @option("--output", "-o", help="Output results file path (default: results.json)")
 @option(
-    "--solver", "-s", default="milp", type=click.Choice(["milp", "rule_based"]), help="Solver to use for optimization",
+    "--solver",
+    "-s",
+    default="milp",
+    type=click.Choice(["milp", "rule_based"]),
+    help="Solver to use for optimization",
 )
 @option("--verbose", "-v", is_flag=True, help="Verbose output")
 def run(config: str, output: str | None, solver: str, verbose: bool) -> None:
@@ -239,7 +243,10 @@ def run(config: str, output: str | None, solver: str, verbose: bool) -> None:
         # Run simulation using the new service method
         info(f"[INFO] Running simulation with {solver} solver...")
         result = service.run_simulation_from_path(
-            config_path=Path(config), solver_type=solver, output_path=Path(output) if output else None, verbose=verbose,
+            config_path=Path(config),
+            solver_type=solver,
+            output_path=Path(output) if output else None,
+            verbose=verbose,
         )
 
         # Display summary
@@ -516,13 +523,22 @@ def optimize(
 )
 @option("--samples", "-n", default=1000, type=int, help="Number of Monte Carlo samples")
 @option(
-    "--uncertainties", "-u", type=click.Path(exists=True), help="JSON file defining uncertain parameters (required)",
+    "--uncertainties",
+    "-u",
+    type=click.Path(exists=True),
+    help="JSON file defining uncertain parameters (required)",
 )
 @option(
-    "--sampling", "-s", default="lhs", type=click.Choice(["lhs", "random", "sobol", "halton"]), help="Sampling method",
+    "--sampling",
+    "-s",
+    default="lhs",
+    type=click.Choice(["lhs", "random", "sobol", "halton"]),
+    help="Sampling method",
 )
 @option(
-    "--confidence", default="0.05,0.25,0.50,0.75,0.95", help='Comma-separated confidence levels (e.g., "0.05,0.95")',
+    "--confidence",
+    default="0.05,0.25,0.50,0.75,0.95",
+    help='Comma-separated confidence levels (e.g., "0.05,0.95")',
 )
 @option("--sensitivity", is_flag=True, default=True, help="Perform sensitivity analysis")
 @option("--risk", is_flag=True, default=True, help="Perform risk analysis")
@@ -637,7 +653,9 @@ def uncertainty(
                         # Sort by sensitivity index
                         sorted_params = (
                             sorted(
-                                param_sens.items(), key=lambda x: abs(x[1].get("sensitivity_index", 0)), reverse=True,
+                                param_sens.items(),
+                                key=lambda x: abs(x[1].get("sensitivity_index", 0)),
+                                reverse=True,
                             ),
                         )
                         (info(f"  {obj_name}:"),)

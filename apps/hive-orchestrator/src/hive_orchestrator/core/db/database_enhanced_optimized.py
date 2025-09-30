@@ -26,7 +26,9 @@ from .database import get_connection
 
 
 def get_queued_tasks_with_planning_optimized(
-    limit: int = 10, task_type: str | None = None, use_pool: bool = True,
+    limit: int = 10,
+    task_type: str | None = None,
+    use_pool: bool = True,
 ) -> List[dict[str, Any]]:
     """
     Optimized task selection with single query and dependency pre-fetching.

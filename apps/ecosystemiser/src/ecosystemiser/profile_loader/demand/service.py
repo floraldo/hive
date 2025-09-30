@@ -239,7 +239,10 @@ class DemandService(BaseProfileService):
         return dataset
 
     def _build_response(
-        self, dataset: xr.Dataset, request: DemandRequest, profiles: dict[str, np.ndarray],
+        self,
+        dataset: xr.Dataset,
+        request: DemandRequest,
+        profiles: dict[str, np.ndarray],
     ) -> DemandResponse:
         """Build demand response with metrics."""
         # Calculate basic metrics

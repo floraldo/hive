@@ -149,7 +149,9 @@ class TMYMetrics:
         return float(fs_statistic)
 
     def calculate_persistence_metrics(
-        self, data: np.ndarray, threshold_percentiles: list[float] = None,
+        self,
+        data: np.ndarray,
+        threshold_percentiles: list[float] = None,
     ) -> dict[str, float]:
         """
         Calculate persistence metrics for extreme conditions.,
@@ -334,7 +336,11 @@ class TMYSelector:
         return selected_months
 
     def _select_month_with_quality(
-        self, data: xr.Dataset, month: int, criteria: dict, building_type: str | None,
+        self,
+        data: xr.Dataset,
+        month: int,
+        criteria: dict,
+        building_type: str | None,
     ) -> tuple[int, MonthQuality]:
         """Select month with comprehensive quality assessment"""
 
@@ -385,7 +391,11 @@ class TMYSelector:
         return best_year, best_quality
 
     def _assess_month_quality(
-        self, month_data: xr.Dataset, full_data: xr.Dataset, month: int, criteria: dict,
+        self,
+        month_data: xr.Dataset,
+        full_data: xr.Dataset,
+        month: int,
+        criteria: dict,
     ) -> MonthQuality:
         """Comprehensive quality assessment for a month's data"""
 
@@ -567,7 +577,9 @@ class TMYSelector:
         return adjusted_score
 
     def _optimize_continuity(
-        self, data: xr.Dataset, selected_months: dict[int, tuple[int, MonthQuality]],
+        self,
+        data: xr.Dataset,
+        selected_months: dict[int, tuple[int, MonthQuality]],
     ) -> dict[int, tuple[int, MonthQuality]]:
         """Optimize month selections for better year-to-year continuity"""
 
@@ -840,7 +852,10 @@ class TMYGenerator:
         return best_year, year_scores[best_year]
 
     def _calculate_year_score(
-        self, year_data: xr.Dataset, long_term_stats: dict, weights: dict[str, float],
+        self,
+        year_data: xr.Dataset,
+        long_term_stats: dict,
+        weights: dict[str, float],
     ) -> dict[str, float]:
         """Calculate composite score for a year's data,
 

@@ -123,15 +123,21 @@ class AsyncQueen:
         try:
             # Subscribe to workflow events
             await self.event_bus.subscribe_async(
-                "workflow.plan_generated", self._handle_plan_generated_event, "async-queen-plan-listener",
+                "workflow.plan_generated",
+                self._handle_plan_generated_event,
+                "async-queen-plan-listener",
             )
 
             await self.event_bus.subscribe_async(
-                "task.review_completed", self._handle_review_completed_event, "async-queen-review-listener",
+                "task.review_completed",
+                self._handle_review_completed_event,
+                "async-queen-review-listener",
             )
 
             await self.event_bus.subscribe_async(
-                "task.escalated", self._handle_task_escalated_event, "async-queen-escalation-listener",
+                "task.escalated",
+                self._handle_task_escalated_event,
+                "async-queen-escalation-listener",
             )
 
             self.log.info("Async event subscriptions established")
@@ -190,7 +196,10 @@ class AsyncQueen:
             self.log.error(f"Error handling escalation event: {e}")
 
     async def spawn_worker_async(
-        self, task: dict[str, Any], worker: str, phase: Phase,
+        self,
+        task: dict[str, Any],
+        worker: str,
+        phase: Phase,
     ) -> Optional[tuple[asyncio.subprocess.Process, str]]:
         """Spawn worker process asynchronously for non-blocking execution"""
         task_id = task["id"]
@@ -322,7 +331,9 @@ class AsyncQueen:
                 }
 
                 await self.db_ops.update_task_status_async(
-                    task_id, "in_progress", {"started_at": datetime.now(UTC).isoformat()},
+                    task_id,
+                    "in_progress",
+                    {"started_at": datetime.now(UTC).isoformat()},
                 )
 
                 # Publish event
@@ -401,7 +412,9 @@ class AsyncQueen:
                 await self.db_ops.update_task_status_async(task_id, "in_progress", {"current_phase": Phase.TEST.value})
             else:
                 await self.db_ops.update_task_status_async(
-                    task_id, "failed", {"failure_reason": "Failed to spawn TEST phase"},
+                    task_id,
+                    "failed",
+                    {"failure_reason": "Failed to spawn TEST phase"},
                 )
         else:
             # TEST phase completed
@@ -490,7 +503,9 @@ class AsyncQueen:
                 self.log.info(f"[RECOVER] Zombie task {task_id} (stale {age_minutes:.1f}m)")
 
                 await self.db_ops.update_task_status_async(
-                    task_id, "queued", {"current_phase": "plan", "assignee": None, "started_at": None},
+                    task_id,
+                    "queued",
+                    {"current_phase": "plan", "assignee": None, "started_at": None},
                 )
 
     async def print_status_async(self) -> None:

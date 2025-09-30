@@ -465,7 +465,16 @@ def get_async_climate_from_cli(
         return (
             asyncio.run(
                 wrapper.get_climate_async_cli_async(
-                    location, year, start, end, variables, source, mode, resolution, output, stats,
+                    location,
+                    year,
+                    start,
+                    end,
+                    variables,
+                    source,
+                    mode,
+                    resolution,
+                    output,
+                    stats,
                 ),
             ),
         )

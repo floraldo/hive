@@ -753,7 +753,8 @@ class TestAsyncIntegration:
         async def wrapped_success():
             return await breaker.call_async(
                 lambda: timeout_manager.run_with_timeout_async(
-                    integrated_operation(), operation_name="integrated_test",
+                    integrated_operation(),
+                    operation_name="integrated_test",
                 ),
             )
 

@@ -103,28 +103,28 @@ class AsyncProfiler:
         enable_memory_tracking: bool = True,
         sample_rate: float = 1.0,  # 0.0-1.0, for performance
     ):
-        self.max_task_history = max_task_history,
-        self.enable_stack_traces = enable_stack_traces,
-        self.enable_memory_tracking = enable_memory_tracking,
+        self.max_task_history = (max_task_history,)
+        self.enable_stack_traces = (enable_stack_traces,)
+        self.enable_memory_tracking = (enable_memory_tracking,)
         self.sample_rate = sample_rate
 
         # Task tracking,
-        self._task_profiles: dict[int, TaskProfile] = {},
-        self._completed_profiles: deque = deque(maxlen=max_task_history),
+        self._task_profiles: dict[int, TaskProfile] = ({},)
+        self._completed_profiles: deque = (deque(maxlen=max_task_history),)
         self._active_tasks: set[int] = set()
 
         # Profiling state,
-        self._profiling = False,
-        self._profile_start: datetime | None = None,
+        self._profiling = (False,)
+        self._profile_start: datetime | None = (None,)
         self._monitor_task: asyncio.Task | None = None
 
         # Statistics,
-        self._task_counter = 0,
-        self._completion_times: deque = deque(maxlen=1000),
+        self._task_counter = (0,)
+        self._completion_times: deque = (deque(maxlen=1000),)
         self._concurrency_samples: deque = deque(maxlen=1000)
 
         # Event hooks,
-        self._original_task_factory: Callable | None = None,
+        self._original_task_factory: Callable | None = (None,)
         self._hooked_loop: asyncio.AbstractEventLoop | None = None
 
     async def start_profiling_async(self) -> None:
@@ -132,12 +132,12 @@ class AsyncProfiler:
         if self._profiling:
             return
 
-        self._profiling = True,
+        self._profiling = (True,)
         self._profile_start = datetime.utcnow()
 
         # Hook into the event loop,
         loop = asyncio.get_running_loop()
-        self._hooked_loop = loop,
+        self._hooked_loop = (loop,)
         self._original_task_factory = loop.get_task_factory()
         loop.set_task_factory(self._task_factory)
 
@@ -161,7 +161,7 @@ class AsyncProfiler:
         if self._monitor_task:
             self._monitor_task.cancel()
             try:
-                await self._monitor_task,
+                (await self._monitor_task,)
             except asyncio.CancelledError:
                 pass
 
@@ -280,7 +280,9 @@ class AsyncProfiler:
         return [profile for profile in self._task_profiles.values()]
 
     def get_completed_tasks(
-        self, limit: int | None = None, time_window: timedelta | None = None,
+        self,
+        limit: int | None = None,
+        time_window: timedelta | None = None,
     ) -> list[TaskProfile]:
         """Get completed task profiles."""
         profiles = list(self._completed_profiles)
@@ -371,7 +373,9 @@ class AsyncProfiler:
         )
 
     def _analyze_bottlenecks(
-        self, completed_tasks: list[TaskProfile], active_tasks: list[TaskProfile],
+        self,
+        completed_tasks: list[TaskProfile],
+        active_tasks: list[TaskProfile],
     ) -> tuple[list[str], list[str]]:
         """Analyze performance bottlenecks and generate recommendations."""
         bottlenecks = []
@@ -383,13 +387,13 @@ class AsyncProfiler:
         # High queue times indicate event loop congestion,
         avg_queue_time = sum(t.queue_time for t in completed_tasks) / len(completed_tasks)
         if avg_queue_time > 0.1:  # 100ms threshold,
-            bottlenecks.append(f"High queue times (avg: {avg_queue_time:.3f}s)"),
+            (bottlenecks.append(f"High queue times (avg: {avg_queue_time:.3f}s)"),)
             recommendations.append("Consider reducing task creation rate or optimizing task execution")
 
         # Many failed tasks
         failure_rate = len([t for t in completed_tasks if t.state == "failed"]) / len(completed_tasks)
         if failure_rate > 0.05:  # 5% threshold,
-            bottlenecks.append(f"High failure rate ({failure_rate:.1%})"),
+            (bottlenecks.append(f"High failure rate ({failure_rate:.1%})"),)
             recommendations.append("Review error handling and task robustness")
 
         # Long-running tasks
@@ -408,7 +412,7 @@ class AsyncProfiler:
             if len(times) > 5:  # Significant sample size,
                 avg_time = sum(times) / len(times)
                 if avg_time > 1.0:  # 1 second threshold,
-                    bottlenecks.append(f"Slow task type: {task_type} (avg: {avg_time:.3f}s)"),
+                    (bottlenecks.append(f"Slow task type: {task_type} (avg: {avg_time:.3f}s)"),)
                     recommendations.append(f"Optimize {task_type} implementation")
 
         return bottlenecks, recommendations

@@ -46,7 +46,10 @@ def _should_validate_file(file_path: Path, scope_files: list[Path] | None) -> bo
 
 
 def _cached_validator(
-    rule_name: str, validator_func, project_root: Path, scope_files: list[Path] | None = None,
+    rule_name: str,
+    validator_func,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Cache-aware validator wrapper.
@@ -261,7 +264,8 @@ def validate_single_config_source(project_root: Path, scope_files: list[Path] | 
 
 
 def validate_package_app_discipline(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 5: Package vs App Discipline
@@ -477,7 +481,8 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
 
 
 def validate_service_layer_discipline(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 10: Service Layer Discipline
@@ -572,7 +577,8 @@ def validate_service_layer_discipline(
 
 
 def validate_communication_patterns(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 11: Communication Patterns
@@ -728,7 +734,8 @@ def validate_interface_contracts(project_root: Path, scope_files: list[Path] | N
 
 
 def validate_error_handling_standards(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 8: Error Handling Standards
@@ -784,7 +791,8 @@ def validate_error_handling_standards(
 
 
 def validate_no_hardcoded_env_values(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Validate that packages don't contain hardcoded environment-specific values.
@@ -1011,7 +1019,8 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
 
 
 def validate_inherit_extend_pattern(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 10: Inherit → Extend Pattern
@@ -1086,7 +1095,8 @@ def validate_inherit_extend_pattern(
 
 
 def validate_package_naming_consistency(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 12: Package Naming Consistency
@@ -1137,7 +1147,8 @@ def validate_package_naming_consistency(
 
 
 def validate_development_tools_consistency(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 13: Development Tools Consistency
@@ -1189,7 +1200,8 @@ def validate_development_tools_consistency(
 
 
 def validate_async_pattern_consistency(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 14: Async Pattern Consistency
@@ -1244,7 +1256,8 @@ def validate_async_pattern_consistency(
 
 
 def validate_cli_pattern_consistency(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 15: CLI Pattern Consistency
@@ -1295,7 +1308,8 @@ def validate_cli_pattern_consistency(
 
 
 def validate_no_global_state_access(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 16: No Global State Access
@@ -1774,7 +1788,8 @@ def validate_test_file_quality(project_root: Path, scope_files: list[Path] | Non
 
 
 def validate_pyproject_dependency_usage(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 19: PyProject Dependency Usage Validation
@@ -1891,7 +1906,8 @@ def validate_pyproject_dependency_usage(
 
 
 def validate_unified_tool_configuration(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 21: Unified Tool Configuration
@@ -1949,7 +1965,8 @@ def validate_unified_tool_configuration(
 
 
 def validate_python_version_consistency(
-    project_root: Path, scope_files: list[Path] | None = None,
+    project_root: Path,
+    scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
     """
     Golden Rule 22: Python Version Consistency
@@ -2177,7 +2194,9 @@ def _run_both_validators(project_root: Path, scope_files: list[Path] | None = No
 
 
 def run_all_golden_rules(
-    project_root: Path, scope_files: list[Path] | None = None, engine: str = "ast",
+    project_root: Path,
+    scope_files: list[Path] | None = None,
+    engine: str = "ast",
 ) -> tuple[bool, dict]:
     """
     Run all Golden Rules validation with configurable engine.

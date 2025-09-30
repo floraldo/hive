@@ -49,7 +49,10 @@ registry = CollectorRegistry()
 
 # Request metrics
 http_requests_total = Counter(
-    "climate_http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"], registry=registry,
+    "climate_http_requests_total",
+    "Total HTTP requests",
+    ["method", "endpoint", "status"],
+    registry=registry,
 )
 http_request_duration_seconds = Histogram(
     "climate_http_request_duration_seconds",
@@ -60,13 +63,22 @@ http_request_duration_seconds = Histogram(
 
 # Adapter metrics
 adapter_requests_total = Counter(
-    "climate_adapter_requests_total", "Total adapter requests", ["adapter", "status"], registry=registry,
+    "climate_adapter_requests_total",
+    "Total adapter requests",
+    ["adapter", "status"],
+    registry=registry,
 )
 adapter_latency_seconds = Histogram(
-    "climate_adapter_latency_seconds", "Adapter request latency in seconds", ["adapter", "operation"], registry=registry,
+    "climate_adapter_latency_seconds",
+    "Adapter request latency in seconds",
+    ["adapter", "operation"],
+    registry=registry,
 )
 adapter_data_points_total = Counter(
-    "climate_adapter_data_points_total", "Total data points fetched", ["adapter", "variable"], registry=registry,
+    "climate_adapter_data_points_total",
+    "Total data points fetched",
+    ["adapter", "variable"],
+    registry=registry,
 )
 
 # Cache metrics
@@ -81,27 +93,45 @@ cache_hit_ratio = Gauge("climate_cache_hit_ratio", "Cache hit ratio", ["level"],
 
 # Rate limiting metrics
 rate_limit_throttles_total = Counter(
-    "climate_rate_limit_throttles_total", "Total rate limit throttles", ["adapter"], registry=registry,
+    "climate_rate_limit_throttles_total",
+    "Total rate limit throttles",
+    ["adapter"],
+    registry=registry,
 )
 rate_limit_tokens_remaining = Gauge(
-    "climate_rate_limit_tokens_remaining", "Remaining rate limit tokens", ["adapter"], registry=registry,
+    "climate_rate_limit_tokens_remaining",
+    "Remaining rate limit tokens",
+    ["adapter"],
+    registry=registry,
 )
 
 # Job queue metrics
 job_queue_depth = Gauge("climate_job_queue_depth", "Current job queue depth", ["queue", "status"], registry=registry)
 job_processing_duration_seconds = Histogram(
-    "climate_job_processing_duration_seconds", "Job processing duration in seconds", ["job_type"], registry=registry,
+    "climate_job_processing_duration_seconds",
+    "Job processing duration in seconds",
+    ["job_type"],
+    registry=registry,
 )
 job_errors_total = Counter(
-    "climate_job_errors_total", "Total job processing errors", ["job_type", "error_code"], registry=registry,
+    "climate_job_errors_total",
+    "Total job processing errors",
+    ["job_type", "error_code"],
+    registry=registry,
 )
 
 # Data quality metrics
 data_quality_score = Histogram(
-    "climate_data_quality_score", "Data quality score (0-100)", ["adapter", "variable"], registry=registry,
+    "climate_data_quality_score",
+    "Data quality score (0-100)",
+    ["adapter", "variable"],
+    registry=registry,
 )
 data_gaps_total = Counter(
-    "climate_data_gaps_total", "Total data gaps detected", ["adapter", "variable"], registry=registry,
+    "climate_data_gaps_total",
+    "Total data gaps detected",
+    ["adapter", "variable"],
+    registry=registry,
 )
 
 # System metrics
@@ -314,7 +344,9 @@ def count_calls(metric: Counter, labels: dict[str, str] | None = None) -> None:
 
 
 @contextmanager
-def trace_span(name: str, attributes: dict[str, Any] | None = None, record_exception: bool = True) -> Generator[Any, None, None]:
+def trace_span(
+    name: str, attributes: dict[str, Any] | None = None, record_exception: bool = True
+) -> Generator[Any, None, None]:
     """
     Context manager for creating OpenTelemetry spans.
 

@@ -394,7 +394,11 @@ class CopulaSyntheticGenerator:
 
 
 def copula_synthetic_generation(
-    ds_hist: xr.Dataset, seed: int | None = None, copula_type: str = "gaussian", target_length: str = "1Y", **kwargs,
+    ds_hist: xr.Dataset,
+    seed: int | None = None,
+    copula_type: str = "gaussian",
+    target_length: str = "1Y",
+    **kwargs,
 ) -> xr.Dataset:
     """
     Generate synthetic climate data using copula methods.

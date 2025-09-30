@@ -106,7 +106,11 @@ class AsyncDatabaseOperations:
     # Core Database Operations
 
     async def create_task_async(
-        self, task_type: str, description: str, priority: int = 5, metadata: Optional[dict[str, Any]] = None,
+        self,
+        task_type: str,
+        description: str,
+        priority: int = 5,
+        metadata: Optional[dict[str, Any]] = None,
     ) -> str:
         """
         Create a new task asynchronously

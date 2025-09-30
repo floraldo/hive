@@ -285,7 +285,10 @@ class UnifiedIntelligenceCore:
                 # Create risk nodes and link to prophecies
                 risk_id = await self._create_risk_node_async(prophecy)
                 await self._create_edge_async(
-                    prophecy_id, risk_id, EdgeType.PREDICTS, confidence=prophecy.get("confidence", 0.8),
+                    prophecy_id,
+                    risk_id,
+                    EdgeType.PREDICTS,
+                    confidence=prophecy.get("confidence", 0.8),
                 )
 
             # Create strategic recommendation nodes
@@ -337,7 +340,10 @@ class UnifiedIntelligenceCore:
                 for package_name in optimization.get("affected_packages", []):
                     package_id = await self._ensure_package_node_async(package_name)
                     await self._create_edge_async(
-                        opt_id, package_id, EdgeType.AFFECTS, confidence=optimization.get("oracle_confidence", 0.8),
+                        opt_id,
+                        package_id,
+                        EdgeType.AFFECTS,
+                        confidence=optimization.get("oracle_confidence", 0.8),
                     )
 
             # Cross-correlate with existing prophecies
@@ -681,7 +687,7 @@ class UnifiedIntelligenceCore:
     async def _add_node_async(self, node: KnowledgeNode) -> None:
         """Add a node to the knowledge graph."""
 
-        self.nodes[node.node_id] = node,
+        self.nodes[node.node_id] = (node,)
         self.node_index[node.node_type].add(node.node_id)
 
         # Generate semantic embedding if enabled,
@@ -711,7 +717,7 @@ class UnifiedIntelligenceCore:
             evidence=evidence or [],
         )
 
-        self.edges[edge_id] = edge,
+        self.edges[edge_id] = (edge,)
         self.edge_index[edge_type].add(edge_id)
 
         return edge_id
@@ -727,7 +733,7 @@ class UnifiedIntelligenceCore:
             related_risks = []
             for node in self.nodes.values():
                 if (
-node.node_type == NodeType.ARCHITECTURAL_RISK
+                    node.node_type == NodeType.ARCHITECTURAL_RISK
                     and self._calculate_semantic_similarity(opt_type, node.title) > 0.6
                 ):
                     related_risks.append(node.node_id)
@@ -933,7 +939,3 @@ node.node_type == NodeType.ARCHITECTURAL_RISK
     async def _discover_new_correlations_async(self, feedback: dict[str, Any]) -> None:
         """Discover new correlations from feedback (placeholder)."""
         pass
-
-
-
-
