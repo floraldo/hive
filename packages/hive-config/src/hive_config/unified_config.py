@@ -337,79 +337,20 @@ def create_config_from_sources(config_path: Path | None = None, use_environment:
     return config
 
 
-# Global configuration management utilities
-_global_config: HiveConfig | None = None
-
-
-def load_config(config_path: Path | None = None, use_environment: bool = True) -> HiveConfig:
-    """
-    Load global Hive configuration.
-
-    DEPRECATED: Global state pattern is deprecated. Use dependency injection instead:
-        # OLD (deprecated)
-        load_config()
-        config = get_config()
-
-        # NEW (dependency injection)
-        config = create_config_from_sources()
-        service = MyService(config=config)
-
-    Args:
-        config_path: Optional path to configuration file
-        use_environment: Whether to override with environment variables
-
-    Returns:
-        HiveConfig instance
-    """
-    import warnings
-
-    warnings.warn(
-        "load_config() uses global state and is deprecated. "
-        "Use create_config_from_sources() and pass config explicitly via dependency injection.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    global _global_config
-    _global_config = create_config_from_sources(config_path, use_environment)
-    return _global_config
-
-
-def get_config() -> HiveConfig:
-    """
-    Get the current global configuration.
-
-    DEPRECATED: Global state pattern is deprecated. Use dependency injection instead:
-        # OLD (deprecated)
-        config = get_config()
-
-        # NEW (dependency injection)
-        from hive_config import create_config_from_sources
-        config = create_config_from_sources()
-        # Pass config to constructors/functions explicitly
-
-    Returns:
-        HiveConfig instance
-
-    Raises:
-        RuntimeError: If config has not been loaded yet
-    """
-    import warnings
-
-    warnings.warn(
-        "get_config() uses global state and is deprecated. "
-        "Use create_config_from_sources() and pass config explicitly via dependency injection.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-
-    global _global_config
-    if _global_config is None:
-        _global_config = create_config_from_sources()
-    return _global_config
-
-
-def reset_config() -> None:
-    """Reset the global configuration state"""
-    global _global_config
-    _global_config = None
+# Deprecated global configuration functions have been removed
+# Use dependency injection with create_config_from_sources() instead
+#
+# Migration guide: claudedocs/config_migration_guide_comprehensive.md
+#
+# Example:
+#   # OLD (removed):
+#   load_config()
+#   config = get_config()
+#
+#   # NEW (use this):
+#   from hive_config import HiveConfig, create_config_from_sources
+#
+#   class MyService:
+#       def __init__(self, config: HiveConfig | None = None):
+#           self._config = config or create_config_from_sources()
+#           self.db_path = self._config.database.path
