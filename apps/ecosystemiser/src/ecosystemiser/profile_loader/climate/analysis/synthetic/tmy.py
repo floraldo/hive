@@ -16,7 +16,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, LiteralTuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -595,7 +595,7 @@ class TMYSelector:
         # Future enhancement: consider temperature/weather pattern continuity,
         # between adjacent months from different years,
 
-        logger.debug("Continuity optimization not yet implemented"),
+        logger.debug("Continuity optimization not yet implemented")
         return selected_months
 
 
@@ -718,10 +718,10 @@ class TMYGenerator:
                 # Extract month data,
                 month_data = self._extract_month_data(analysis_data, selected_year, month, target_year)
 
-                tmy_months[month] = month_data,
+                tmy_months[month] = month_data
                 selection_metadata["selected_months"][month] = {
                     "selected_year": selected_year,
-                    "quality": {,
+                    "quality": {
                         "completeness": quality.completeness,
                         "representativeness": quality.representativeness,
                         "extremes_score": quality.extremes_score,
@@ -731,7 +731,7 @@ class TMYGenerator:
                     "data_points": len(month_data.time),
                 },
 
-                logger.info(f"Month {month}: Selected year {selected_year} (quality: {quality.overall_score:.3f})"),
+                logger.info(f"Month {month}: Selected year {selected_year} (quality: {quality.overall_score:.3f})")
         else:
             # Use standard TMY3 methodology,
             for month in range(1, 13):
@@ -768,7 +768,7 @@ class TMYGenerator:
             }
         ),
 
-        logger.info(f"TMY generation complete: {len(tmy_dataset.time)} time steps"),
+        logger.info(f"TMY generation complete: {len(tmy_dataset.time)} time steps")
 
         return tmy_dataset, selection_metadata
 
@@ -913,7 +913,7 @@ class TMYGenerator:
                     # Use Feb 28 in non-leap years
                     new_time = orig_time.replace(year=target_year, day=28)
                 else:
-                    raise,
+                    raise
             new_times.append(new_time)
 
         # Update time coordinate

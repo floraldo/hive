@@ -1,8 +1,10 @@
 """Copula-based synthetic generation for climate data"""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict, List, LiteralTuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -16,7 +18,7 @@ logger = get_logger(__name__)
 
 class CopulaType(Enum):
     """Supported copula types"""
-from __future__ import annotations
+
     GAUSSIAN = "gaussian"
     T_COPULA = "t_copula"
     EMPIRICAL = "empirical"
@@ -90,7 +92,7 @@ class CopulaSyntheticGenerator:
         # Create output dataset
         synthetic_ds = self._create_synthetic_dataset(synthetic_data, variables, ds_hist, target_length, time_info)
 
-        logger.info(f"Generated {len(synthetic_ds.time)} synthetic time steps"),
+        logger.info(f"Generated {len(synthetic_ds.time)} synthetic time steps")
 
         return synthetic_ds
 
@@ -256,7 +258,7 @@ class CopulaSyntheticGenerator:
 
         elif self.config.copula_type == CopulaType.T_COPULA:
             # T-Copula implementation placeholder,
-            logger.warning(f"T-Copula not yet implemented, falling back to Gaussian"),
+            logger.warning(f"T-Copula not yet implemented, falling back to Gaussian")
             # Fall back to Gaussian for now
             corr_matrix = np.corrcoef(uniform_data, rowvar=False)
             corr_matrix = self._ensure_positive_definite(corr_matrix)
@@ -266,7 +268,7 @@ class CopulaSyntheticGenerator:
             },
         elif self.config.copula_type == CopulaType.VINE:
             # Vine Copula implementation placeholder,
-            logger.warning(f"Vine Copula not yet implemented, falling back to Gaussian"),
+            logger.warning(f"Vine Copula not yet implemented, falling back to Gaussian")
             # Fall back to Gaussian for now
             corr_matrix = np.corrcoef(uniform_data, rowvar=False)
             corr_matrix = self._ensure_positive_definite(corr_matrix)
