@@ -125,6 +125,10 @@ def validate_no_syspath_hacks(project_root: Path, scope_files: list[Path] | None
 
         for py_file in base_dir.rglob("*.py"):
             # Skip verification scripts and virtual environments
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             if (
                 "verify_environment.py" in str(py_file)
                 or "architectural_validators.py" in str(py_file)
@@ -260,6 +264,10 @@ def validate_package_app_discipline(project_root: Path, scope_files: list[Path] 
 
                 # Check for business logic in package names or files
                 for py_file in package_dir.rglob("*.py"):
+                    # File-level scoping optimization
+                    if not _should_validate_file(py_file, scope_files):
+                        continue
+
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -311,6 +319,10 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                 package_name = package_dir.name
 
                 for py_file in package_dir.rglob("*.py"):
+                    # File-level scoping optimization
+                    if not _should_validate_file(py_file, scope_files):
+                        continue
+
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -351,6 +363,10 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                 app_name = app_dir.name
 
                 for py_file in app_dir.rglob("*.py"):
+                    # File-level scoping optimization
+                    if not _should_validate_file(py_file, scope_files):
+                        continue
+
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -460,6 +476,10 @@ def validate_service_layer_discipline(project_root: Path, scope_files: list[Path
                     if core_dir.exists() and core_dir.is_dir():
                         # Check files in core/ for business logic indicators
                         for py_file in core_dir.rglob("*.py"):
+                            # File-level scoping optimization
+                            if not _should_validate_file(py_file, scope_files):
+                                continue
+
                             if "__pycache__" in str(py_file):
                                 continue
 
@@ -564,6 +584,10 @@ def validate_communication_patterns(project_root: Path, scope_files: list[Path] 
 
                 # Check for forbidden communication patterns
                 for py_file in app_dir.rglob("*.py"):
+                    # File-level scoping optimization
+                    if not _should_validate_file(py_file, scope_files):
+                        continue
+
                     if ".venv" in str(py_file) or "__pycache__" in str(py_file):
                         continue
 
@@ -611,6 +635,10 @@ def validate_interface_contracts(project_root: Path, scope_files: list[Path] | N
             continue
 
         for py_file in base_dir.rglob("*.py"):
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             if (
                 ".venv" in str(py_file)
                 or "__pycache__" in str(py_file)
@@ -682,6 +710,10 @@ def validate_error_handling_standards(project_root: Path, scope_files: list[Path
             continue
 
         for py_file in base_dir.rglob("*.py"):
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             if ".venv" in str(py_file) or "__pycache__" in str(py_file) or "test" in str(py_file):
                 continue
 
@@ -762,6 +794,10 @@ def validate_no_hardcoded_env_values(project_root: Path, scope_files: list[Path]
 
         for py_file in package_dir.rglob("*.py"):
             # Skip test files, __pycache__, and virtual environments
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             if any(skip in str(py_file) for skip in ["test", "__pycache__", ".venv", ".pytest_cache"]):
                 continue
 
@@ -821,6 +857,10 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
             continue
 
         for py_file in base_dir.rglob("*.py"):
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             if (
                 ".venv" in str(py_file)
                 or "__pycache__" in str(py_file)
@@ -1131,6 +1171,10 @@ def validate_async_pattern_consistency(project_root: Path, scope_files: list[Pat
     # Find Python files that use async
     for py_file in project_root.rglob("*.py"):
         # Skip virtual environment and hidden directories
+        # File-level scoping optimization
+        if not _should_validate_file(py_file, scope_files):
+            continue
+
         if ".venv" in str(py_file) or "/.git/" in str(py_file):
             continue
 
@@ -1185,6 +1229,10 @@ def validate_cli_pattern_consistency(project_root: Path, scope_files: list[Path]
     cli_files = []
     for py_file in project_root.rglob("*.py"):
         # Skip virtual environment and hidden directories
+        # File-level scoping optimization
+        if not _should_validate_file(py_file, scope_files):
+            continue
+
         if ".venv" in str(py_file) or "/.git/" in str(py_file):
             continue
 
@@ -1247,6 +1295,10 @@ def validate_no_global_state_access(project_root: Path, scope_files: list[Path] 
 
         for py_file in base_dir.rglob("*.py"):
             # Skip test files, __pycache__, virtual environments, and config modules
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             if any(
                 skip in str(py_file)
                 for skip in [
@@ -1440,6 +1492,10 @@ def _uses_comprehensive_testing(package_dir: Path) -> bool:
 
     # Check for Hypothesis usage (property-based testing)
     for py_file in tests_dir.rglob("*.py"):
+        # File-level scoping optimization
+        if not _should_validate_file(py_file, scope_files):
+            continue
+
         try:
             with open(py_file, encoding="utf-8") as f:
                 content = f.read()
@@ -1478,6 +1534,10 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
         property_dir = tests_dir / "property_based"
         has_hypothesis = False
         for py_file in property_dir.rglob("*.py"):
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             try:
                 with open(py_file, encoding="utf-8") as f:
                     content = f.read()
@@ -1552,6 +1612,10 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
         source_files = []
         for py_file in src_dir.rglob("*.py"):
             # Skip __init__.py files and __pycache__
+            # File-level scoping optimization
+            if not _should_validate_file(py_file, scope_files):
+                continue
+
             if py_file.name == "__init__.py" or "__pycache__" in str(py_file):
                 continue
 
@@ -1605,6 +1669,10 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
                 tests_dir = app_dir / "tests"
 
                 for py_file in core_dir.rglob("*.py"):
+                    # File-level scoping optimization
+                    if not _should_validate_file(py_file, scope_files):
+                        continue
+
                     if py_file.name == "__init__.py" or "__pycache__" in str(py_file):
                         continue
 
