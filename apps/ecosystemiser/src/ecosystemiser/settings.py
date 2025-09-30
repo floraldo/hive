@@ -73,7 +73,7 @@ class CacheSettings(BaseSettings):
 
     @field_validator("cache_dir")
     @classmethod
-    def ensure_cache_dir_exists(cls, v):
+    def ensure_cache_dir_exists(cls, v: Any) -> Any:
         v.mkdir(parents=True, exist_ok=True)
         return v
 
@@ -198,7 +198,7 @@ class ProfileLoaderSettings(BaseSettings):
 
     @field_validator("epw_data_dir")
     @classmethod
-    def ensure_epw_dir_exists(cls, v):
+    def ensure_epw_dir_exists(cls, v: Any) -> Any:
         v.mkdir(parents=True, exist_ok=True)
         return v
 
