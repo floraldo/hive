@@ -1,10 +1,20 @@
 import ast
 from pathlib import Path
+import sys
+
 
 import toml
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
+# Import validation cache for performance optimization
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent.parent / "scripts"))
+from validation_cache import ValidationCache
+
+# Global cache instance
+_cache = ValidationCache()
+
 
 """
 Architectural Validators - Core validation functions for Hive platform standards.
@@ -36,6 +46,63 @@ def _should_validate_file(file_path: Path, scope_files: list[Path] | None) -> bo
                 return True
     return False
 
+
+
+
+def _cached_validator(rule_name: str, validator_func, project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
+    """
+    Cache-aware validator wrapper.
+    
+    For each file in scope, checks cache first. Only validates files with cache misses.
+    Aggregates results and updates cache for newly validated files.
+    
+    Args:
+        rule_name: Name of the golden rule
+        validator_func: Validator function to call
+        project_root: Project root directory
+        scope_files: Optional list of files to validate
+        
+    Returns:
+        Tuple of (passed, violations)
+    """
+    if scope_files is None:
+        # Full validation - run validator directly
+        return validator_func(project_root, scope_files)
+    
+    # Check cache for each file
+    cached_results = {}
+    uncached_files = []
+    
+    for file_path in scope_files:
+        cached = _cache.get_cached_result(file_path, rule_name)
+        if cached is not None:
+            passed, violations = cached
+            cached_results[file_path] = (passed, violations)
+        else:
+            uncached_files.append(file_path)
+    
+    # If all files are cached, return aggregated results
+    if not uncached_files:
+        all_passed = all(result[0] for result in cached_results.values())
+        all_violations = []
+        for violations_list in (result[1] for result in cached_results.values()):
+            all_violations.extend(violations_list)
+        return all_passed, all_violations
+    
+    # Run validator on uncached files only
+    passed, violations = validator_func(project_root, uncached_files)
+    
+    # Cache results for newly validated files
+    for file_path in uncached_files:
+        _cache.cache_result(file_path, rule_name, passed, violations)
+    
+    # Combine cached and new results
+    all_passed = passed and all(result[0] for result in cached_results.values())
+    all_violations = violations.copy()
+    for violations_list in (result[1] for result in cached_results.values()):
+        all_violations.extend(violations_list)
+    
+    return all_passed, all_violations
 
 
 def validate_app_contracts(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
