@@ -40,11 +40,11 @@ class TaskProfile:
     cpu_time: float = 0.0
 
     # Dependencies
-    waited_for: List[str] = field(default_factory=list)
-    waited_by: List[str] = field(default_factory=list)
+    waited_for: list[str] = field(default_factory=list)
+    waited_by: list[str] = field(default_factory=list)
 
     # Custom metadata
-    tags: Dict[str, Any] = field(default_factory=dict)
+    tags: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -69,14 +69,14 @@ class ProfileReport:
     concurrency_level: float = 0.0  # average concurrent tasks
 
     # Task analysis
-    slowest_tasks: List[TaskProfile] = field(default_factory=list)
-    failed_tasks: List[TaskProfile] = field(default_factory=list)
-    long_running_tasks: List[TaskProfile] = field(default_factory=list)
+    slowest_tasks: list[TaskProfile] = field(default_factory=list)
+    failed_tasks: list[TaskProfile] = field(default_factory=list)
+    long_running_tasks: list[TaskProfile] = field(default_factory=list)
 
     # Patterns and insights
-    task_types: Dict[str, int] = field(default_factory=dict)
-    bottlenecks: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
+    task_types: dict[str, int] = field(default_factory=dict)
+    bottlenecks: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
     # Metadata
     profile_start: datetime = field(default_factory=datetime.utcnow)
@@ -110,9 +110,9 @@ class AsyncProfiler:
         self.sample_rate = sample_rate
 
         # Task tracking,
-        self._task_profiles: Dict[int, TaskProfile] = {},
+        self._task_profiles: dict[int, TaskProfile] = {},
         self._completed_profiles: deque = deque(maxlen=max_task_history),
-        self._active_tasks: Set[int] = set()
+        self._active_tasks: set[int] = set()
 
         # Profiling state,
         self._profiling = False,
@@ -276,13 +276,13 @@ class AsyncProfiler:
         """Sample current concurrency level."""
         self._concurrency_samples.append(len(self._active_tasks))
 
-    def get_active_tasks(self) -> List[TaskProfile]:
+    def get_active_tasks(self) -> list[TaskProfile]:
         """Get currently active task profiles."""
         return [profile for profile in self._task_profiles.values()]
 
     def get_completed_tasks(
         self, limit: int | None = None, time_window: timedelta | None = None
-    ) -> List[TaskProfile]:
+    ) -> list[TaskProfile]:
         """Get completed task profiles."""
         profiles = list(self._completed_profiles)
 
@@ -372,8 +372,8 @@ class AsyncProfiler:
         )
 
     def _analyze_bottlenecks(
-        self, completed_tasks: List[TaskProfile], active_tasks: List[TaskProfile]
-    ) -> Tuple[List[str], List[str]]:
+        self, completed_tasks: list[TaskProfile], active_tasks: list[TaskProfile]
+    ) -> tuple[list[str], list[str]]:
         """Analyze performance bottlenecks and generate recommendations."""
         bottlenecks = []
         recommendations = []

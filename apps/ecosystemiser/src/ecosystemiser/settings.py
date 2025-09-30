@@ -17,6 +17,7 @@ from typing import Any
 
 # Pydantic v2 imports
 from pydantic import ConfigDict, Field, field_validator
+from pydantic.fields import FieldInfo
 from pydantic_settings import BaseSettings
 
 
@@ -32,7 +33,7 @@ class DatabaseConfig(BaseSettings):
 
     @field_validator("url", mode="before")
     @classmethod
-    def build_url_if_needed(cls, v, info):
+    def build_url_if_needed(cls, v: Any, info: Any) -> str | None:
         if v is None and info.data.get("password"):
             return f"postgresql://{info.data.get('user', 'postgres')}:{info.data['password']}@{info.data.get('host', 'localhost')}:{info.data.get('port', 5432)}/{info.data.get('name', 'ecosystemiser')}"
         return v

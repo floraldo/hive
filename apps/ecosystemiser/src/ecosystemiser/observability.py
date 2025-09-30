@@ -14,7 +14,7 @@ import time
 from collections.abc import Callable
 from contextlib import contextmanager
 from functools import wraps
-from typing import Any
+from typing import Any, Generator, Optional
 
 from opentelemetry import metrics, trace
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
@@ -232,7 +232,7 @@ def shutdown_observability() -> None:
 # =============================================================================
 
 
-def track_time(metric: Histogram, labels: Optional[dict[str, str]] = None) -> None:
+def track_time(metric: Histogram, labels: dict[str, str] | None = None) -> None:
     """
     Decorator to track execution time with Prometheus histogram.
 
@@ -243,7 +243,7 @@ def track_time(metric: Histogram, labels: Optional[dict[str, str]] = None) -> No
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def async_wrapper_async(*args, **kwargs):
+        async def async_wrapper_async(*args: Any, **kwargs: Any) -> Any:
             start = time.time()
             try:
                 result = await func(*args, **kwargs)
@@ -256,7 +256,7 @@ def track_time(metric: Histogram, labels: Optional[dict[str, str]] = None) -> No
                     metric.observe(duration)
 
         @wraps(func)
-        def sync_wrapper_async(*args, **kwargs):
+        def sync_wrapper_async(*args: Any, **kwargs: Any) -> Any:
             start = time.time()
             try:
                 result = func(*args, **kwargs)
@@ -278,7 +278,7 @@ def track_time(metric: Histogram, labels: Optional[dict[str, str]] = None) -> No
     return decorator
 
 
-def count_calls(metric: Counter, labels: Optional[dict[str, str]] = None) -> None:
+def count_calls(metric: Counter, labels: dict[str, str] | None = None) -> None:
     """
     Decorator to count function calls.
 
@@ -289,7 +289,7 @@ def count_calls(metric: Counter, labels: Optional[dict[str, str]] = None) -> Non
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def async_wrapper_async(*args, **kwargs):
+        async def async_wrapper_async(*args: Any, **kwargs: Any) -> Any:
             if labels:
                 metric.labels(**labels).inc()
             else:
@@ -297,7 +297,7 @@ def count_calls(metric: Counter, labels: Optional[dict[str, str]] = None) -> Non
             return await func(*args, **kwargs)
 
         @wraps(func)
-        def sync_wrapper_async(*args, **kwargs):
+        def sync_wrapper_async(*args: Any, **kwargs: Any) -> Any:
             if labels:
                 metric.labels(**labels).inc()
             else:
@@ -314,7 +314,7 @@ def count_calls(metric: Counter, labels: Optional[dict[str, str]] = None) -> Non
 
 
 @contextmanager
-def trace_span(name: str, attributes: Optional[dict[str, Any]] = None, record_exception: bool = True):
+def trace_span(name: str, attributes: dict[str, Any] | None = None, record_exception: bool = True) -> Generator[Any, None, None]:
     """
     Context manager for creating OpenTelemetry spans.
 
@@ -351,7 +351,7 @@ def track_adapter_request(adapter_name: str) -> None:
 
     def decorator(func: Callable) -> Callable:
         @wraps(func)
-        async def wrapper_async(*args, **kwargs):
+        async def wrapper_async(*args: Any, **kwargs: Any) -> Any:
             with trace_span(f"adapter.{adapter_name}.request", attributes={"adapter": adapter_name}) as span:
                 start = time.time()
 
