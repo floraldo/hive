@@ -60,7 +60,37 @@ data = {
 ### File Management Rules
 - **Edit existing files** first, don't create new ones unless required
 - **Use hive-* packages**: `from hive_logging import get_logger` not `print()`
-- **Golden Rules validation**: `python scripts/validate_golden_rules.py`
+- **Golden Rules validation**: `python scripts/validation/validate_golden_rules.py`
+
+### Documentation Anti-Sprawl (CRITICAL)
+**Problem**: Multi-agent sessions create doc sprawl (79 files before cleanup)
+
+**RULES - Update, Don't Create**:
+1. **Session summaries**: Update `claudedocs/platform_status_2025_09_30.md`, don't create new dated files
+2. **Progress tracking**: Update existing progress docs, don't create `phase_X_status.md` files
+3. **Agent coordination**: Use agent memory/context, not coordination log files
+4. **Architecture decisions**: Update `claudedocs/architectural_fix_summary.md` or component READMEs
+5. **Migration guides**: Update comprehensive guides, don't create dated snapshots
+
+**ALLOWED New Docs** (rare):
+- New architectural patterns (e.g., new golden rule implementation)
+- New component certification (when component is brand new)
+- Major project milestones (PROJECT_NAME_COMPLETE.md)
+
+**README Hierarchy** (Holy - Never Skip):
+- `README.md` at package/app root - REQUIRED for LLM context
+- All 16 packages have READMEs - validate before creating new packages
+- All apps have READMEs - validate before creating new apps
+- Update package README when adding features, not separate docs
+
+**Validation**:
+```bash
+# Before creating new .md in claudedocs/
+ls claudedocs/*.md | grep -i "$(echo filename)" || echo "OK to create"
+
+# Check package has README
+ls packages/my-package/README.md || echo "REQUIRED - create README first"
+```
 
 ### Configuration Management (CRITICAL)
 **Pattern**: Dependency Injection (DI) - NO global state
@@ -111,9 +141,43 @@ isort = "^5.13.0"           # Import sorting
 1. **Syntax validation**: `python -m py_compile` on all modified files
 2. **Test collection**: `python -m pytest --collect-only` (zero syntax errors)
 3. **Linting**: `python -m ruff check` (zero violations)
-4. **Golden Rules**: `python scripts/validate_golden_rules.py` (24 rules passing, 100% coverage)
+4. **Golden Rules**: `python scripts/validation/validate_golden_rules.py` (severity level depends on phase)
 5. **Type checking**: `python -m mypy` (on typed modules)
 6. **Configuration Pattern**: Use DI (`create_config_from_sources()`), not global state (`get_config()`)
+
+## 🎚️ Tiered Compliance System
+
+### Development Phase Strategy
+**Philosophy**: "Fast in development, tight at milestones"
+
+#### Severity Levels
+- **CRITICAL** (5 rules): System breaks, security, deployment - Always enforced
+- **ERROR** (13 rules): Technical debt, maintainability - Fix before PR
+- **WARNING** (20 rules): Quality issues, test coverage - Fix at sprint boundaries
+- **INFO** (24 rules): Best practices - Fix at major releases
+
+#### Usage
+```bash
+# Rapid development - only critical rules (~5s)
+python scripts/validation/validate_golden_rules.py --level CRITICAL
+
+# Before PR merge - critical and error rules (~15s)
+python scripts/validation/validate_golden_rules.py --level ERROR
+
+# Sprint cleanup - include warnings (~25s)
+python scripts/validation/validate_golden_rules.py --level WARNING
+
+# Production release - all rules (~30s)
+python scripts/validation/validate_golden_rules.py --level INFO
+```
+
+#### Key Benefits
+- **5x faster validation** during rapid prototyping (CRITICAL only)
+- **Test rules at WARNING level** - tests optional during active development
+- **Clear progression path** from prototype to production
+- **Context-appropriate enforcement** based on development phase
+
+See `claudedocs/golden_rules_tiered_compliance_system.md` for complete guide.
 
 ## 🏆 Golden Rules (24 Architectural Validators)
 
@@ -148,7 +212,7 @@ Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/as
     - Migration guide: `claudedocs/config_migration_guide_comprehensive.md`
     - Gold standard: EcoSystemiser config bridge pattern
 
-**Validation**: Run `python scripts/validate_golden_rules.py` before any commit.
+**Validation**: Run `python scripts/validation/validate_golden_rules.py` before any commit.
 
 ## 📂 Platform Architecture Deep Dive
 
@@ -205,7 +269,7 @@ Multi-agent coordination in tmux panes:
 1. **Syntax check**: `python -m py_compile modified_file.py`
 2. **Test collection**: `python -m pytest --collect-only`
 3. **Linting**: `python -m ruff check .`
-4. **Golden rules**: `python scripts/validate_golden_rules.py`
+4. **Golden rules**: `python scripts/validation/validate_golden_rules.py`
 5. **Type check**: `python -m mypy modified_file.py`
 
 ### Emergency Procedures
