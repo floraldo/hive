@@ -65,8 +65,8 @@ def _cached_validator(rule_name: str, validator_func, project_root: Path, scope_
     Returns:
         Tuple of (passed, violations)
     """
-    if scope_files is None:
-        # Full validation - run validator directly
+    if scope_files is None or len(scope_files) == 0:
+        # Full validation or empty scope - run validator directly
         return validator_func(project_root, scope_files)
     
     # Check cache for each file
