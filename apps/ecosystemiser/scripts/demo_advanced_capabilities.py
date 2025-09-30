@@ -35,7 +35,7 @@ try:
         """Demonstrate genetic algorithm optimization for system design."""
         logger.info("=== Genetic Algorithm Design Optimization Demo ===")
 
-        # Create a sample system configuration path (would be real in practice)
+        # Create a sample system configuration path (would be real in practice),
         Path("config/sample_system.yml")
 
         # Define optimization variables (battery and solar sizing)
@@ -416,7 +416,7 @@ try:
 
         return True
 
-    if __name__ == "__main__":,
+    if __name__ == "__main__":
         success = main()
         sys.exit(0 if success else 1)
 

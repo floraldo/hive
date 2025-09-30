@@ -223,38 +223,38 @@ You MUST respond with a valid JSON object that strictly follows this schema. Do 
             "deliverables": ["api_endpoints.py", "unit_tests.py", "integration_tests.py"]
         }}
     ]
-    "dependencies": {{,
+    "dependencies": {{
         "critical_path": ["task-001", "task-002", "task-003"],
         "parallel_groups": [["task-004", "task-005"], ["task-006", "task-007"]]
         "blocking_dependencies": {{
             "task-002": ["task-001"],
             "task-003": ["task-002"]
         }}
-    }}
-    "workflow": {{,
+    }},
+    "workflow": {{
         "lifecycle_phases": ["analysis", "design", "implementation", "testing", "validation"],
-        "phase_transitions": {{,
+        "phase_transitions": {{
             "analysis": "design",
             "design": "implementation",
             "implementation": "testing",
             "testing": "validation",
-        }}
-        "validation_gates": {{,
+        }},
+        "validation_gates": {{
             "design": ["architecture_review", "stakeholder_approval"],
             "implementation": ["code_review", "unit_tests_pass"],
             "testing": ["integration_tests_pass", "performance_benchmarks"],
             "validation": ["user_acceptance", "deployment_ready"]
-        }}
+        }},
         "rollback_strategy": "checkpoint-based rollback with automated reversion",
-    }}
-    "metrics": {{,
+    }},
+    "metrics": {{
         "total_estimated_duration": 240,
         "critical_path_duration": 180,
         "complexity_breakdown": {{"simple": 3, "medium": 4, "complex": 2}},
         "skill_requirements": {{"python": 5, "frontend": 3, "database": 2}},
         "confidence_score": 0.85,
         "risk_factors": ["external_api_dependency", "complex_data_migration"]
-    }}
+    }},
     "recommendations": [
         "Start with architecture review to validate approach",
         "Implement robust error handling early",
@@ -341,7 +341,7 @@ Generate the execution plan now:"""
                     workflow_phase="analysis",
                     required_skills=["analysis"],
                     deliverables=["requirements.md"]
-                )
+                ),
                 SubTask(
                     id="fallback-002",
                     title="Implement Solution",
@@ -353,7 +353,7 @@ Generate the execution plan now:"""
                     workflow_phase="implementation",
                     required_skills=["programming"],
                     deliverables=["implementation.py"]
-                )
+                ),
                 SubTask(
                     id="fallback-003",
                     title="Test and Validate",

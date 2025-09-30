@@ -299,7 +299,7 @@ def save_profiles_and_config() -> None:
         "duration_days": n_hours / 24,
         "profiles_extracted": list(profiles.keys()),
         "profiles_saved": [
-            name,
+            name
             for name in profiles.keys()
             if name not in ["grid_import", "grid_export", "battery_charge", "battery_discharge"]
         ],

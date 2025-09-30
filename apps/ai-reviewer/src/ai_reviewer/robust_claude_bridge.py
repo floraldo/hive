@@ -96,7 +96,7 @@ class RobustClaudeBridge:
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str]
+        code_files: Dict[str, str],
         test_results: Optional[Dict[str, Any]] = None,
         objective_analysis: Optional[Dict[str, Any]] = None,
         transcript: str | None = None
@@ -186,9 +186,9 @@ class RobustClaudeBridge:
     def _create_json_prompt(
         self,
         task_description: str,
-        code_files: Dict[str, str]
-        test_results: Optional[Dict[str, Any]]
-        objective_analysis: Optional[Dict[str, Any]]
+        code_files: Dict[str, str],
+        test_results: Optional[Dict[str, Any]],
+        objective_analysis: Optional[Dict[str, Any]],
         transcript: str | None
     ) -> str:
         """Create a comprehensive prompt that enforces JSON contract"""
@@ -220,19 +220,19 @@ Code Files:
 {objective_context}
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
-{{,
+{{
   "decision": "approve" or "reject" or "rework" or "escalate",
   "summary": "One sentence summary of your review",
   "issues": ["List of specific issues found", "Or empty list if none"],
   "suggestions": ["List of improvement suggestions", "Or empty list if none"],
   "quality_score": 75,
-  "metrics": {{,
+  "metrics": {{
     "code_quality": 80,
     "security": 85,
     "testing": 70,
     "architecture": 75,
     "documentation": 60,
-  }}
+  }},
   "confidence": 0.8,
 }}
 

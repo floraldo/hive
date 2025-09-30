@@ -359,7 +359,7 @@ class ReviewerErrorReporter(BaseErrorReporter):
     def get_error_summary(self) -> Dict[str, Any]:
         """Get summary of all reported errors"""
         return {
-            "total_errors": self.error_counts.get("total", 0)
+            "total_errors": self.error_counts.get("total", 0),
             "analysis_errors": len(self.analysis_errors),
             "review_errors": len(self.review_errors),
             "claude_errors": len(self.claude_errors),

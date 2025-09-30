@@ -99,7 +99,7 @@ class AsyncReviewEngine:
 
         # Generate detailed review analysis
         analysis = {
-            "code_quality": {,
+            "code_quality": {
                 "score": 85 if decision == ReviewDecision.APPROVE else 65,
                 "issues": (
                     []
@@ -112,18 +112,18 @@ class AsyncReviewEngine:
                     else []
                 ),
             },
-            "test_coverage": {,
+            "test_coverage": {
                 "score": 80 if decision == ReviewDecision.APPROVE else 45,
                 "missing_tests": (
                     [] if decision == ReviewDecision.APPROVE else ["Edge case testing", "Error handling tests"]
                 ),
             },
-            "security": {,
+            "security": {
                 "score": 90,
                 "vulnerabilities": [],
                 "recommendations": ["Use parameterized queries", "Validate input data"],
             },
-            "performance": {,
+            "performance": {
                 "score": 75,
                 "bottlenecks": [],
                 "optimizations": ["Consider caching", "Optimize database queries"],
@@ -190,7 +190,7 @@ class AsyncReviewEngine:
                 "confidence": 0.0,
                 "summary": f"Review failed: {str(e)}",
                 "feedback": "Manual review required due to Claude integration error",
-                "analysis": {,
+                "analysis": {
                     "code_quality": {"score": 0, "issues": [str(e)]},
                     "test_coverage": {"score": 0, "missing_tests": []},
                     "security": {"score": 0, "vulnerabilities": [], "recommendations": []},
@@ -345,19 +345,19 @@ Code Files:
 {objective_context}
 
 CRITICAL: Respond with ONLY a JSON object matching this exact structure:
-{{,
+{{
   "decision": "approve" or "reject" or "rework" or "escalate",
   "summary": "One sentence summary of your review",
   "issues": ["List of specific issues found", "Or empty list if none"],
   "suggestions": ["List of improvement suggestions", "Or empty list if none"],
   "quality_score": 75,
-  "metrics": {{,
+  "metrics": {{
     "code_quality": 80,
     "security": 85,
     "testing": 70,
     "architecture": 75,
     "documentation": 60,
-  }}
+  }},
   "confidence": 0.8,
 }}
 
@@ -437,24 +437,24 @@ Respond with ONLY the JSON object, no other text."""
             "confidence": claude_response.get("confidence", 0.8),
             "summary": claude_response.get("summary", "Claude review completed"),
             "feedback": claude_response.get("summary", "Claude review completed"),
-            "analysis": {,
+            "analysis": {
                 "code_quality": {
                     "score": metrics.get("code_quality", 75),
                     "issues": claude_response.get("issues", []),
                     "strengths": claude_response.get("suggestions", []),
                 },
-                "test_coverage": {,
+                "test_coverage": {
                     "score": metrics.get("testing", 70),
                     "missing_tests": [issue for issue in claude_response.get("issues", []) if "test" in issue.lower()],
                 },
-                "security": {,
+                "security": {
                     "score": metrics.get("security", 85),
                     "vulnerabilities": [
                         issue for issue in claude_response.get("issues", []) if "security" in issue.lower()
                     ],
                     "recommendations": claude_response.get("suggestions", []),
                 },
-                "performance": {,
+                "performance": {
                     "score": metrics.get("architecture", 75),
                     "bottlenecks": [
                         issue for issue in claude_response.get("issues", []) if "performance" in issue.lower()

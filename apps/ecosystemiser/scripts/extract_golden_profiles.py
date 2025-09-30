@@ -14,8 +14,9 @@ def extract_profiles_from_golden() -> None:
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-    # Load golden dataset
-    golden_path = Path(__file__).parent.parent / "tests" / "systemiser_minimal_golden.json"
+
+# Load golden dataset
+golden_path = Path(__file__).parent.parent / "tests" / "systemiser_minimal_golden.json"
 
     with open(golden_path, "r") as f:
         golden_data = json.load(f)

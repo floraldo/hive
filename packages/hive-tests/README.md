@@ -189,10 +189,11 @@ python scripts/validate_golden_rules.py --app ecosystemiser  # 5-15s
 python scripts/benchmark_golden_rules.py
 ```
 
-**Performance**:
-- Incremental (first run): ~12s (5x faster than baseline)
-- Incremental (cached): ~0.6s (95% cache speedup)
-- Full validation: 30-60s (7,734 files)
+**Performance** (AST Validator - Default):
+- Full validation: ~30-40s (23 rules, single-pass)
+- Incremental (changed files): ~2-5s (typical)
+- App-scoped: ~5-15s (150-200 files per app)
+- Comparison mode: ~60-90s (runs both validators)
 
 **Key rules for tests**:
 1. No `print()` - use `hive_logging`
@@ -282,36 +283,97 @@ async def test_async_function():
 
 Located in `packages/hive-tests/src/hive_tests/`:
 
-### Golden Rules Validators
+### Validation Engines
 
-15 architectural rules enforced:
+**AST Validator** (Default, Recommended):
+- **Engine**: `--engine ast` (default)
+- **Coverage**: 23/23 rules (100%)
+- **Method**: Semantic analysis via Abstract Syntax Tree
+- **Advantages**:
+  - Syntax gate (only processes valid Python)
+  - Zero false positives (understands code context)
+  - Faster (single-pass vs multi-pass)
+  - Can't introduce syntax errors
+- **Performance**: ~30-40s for full validation
+- **Location**: `packages/hive-tests/src/hive_tests/ast_validator.py`
 
-1. No sys.path manipulation
-2. No print() statements (use hive_logging)
-3. Hive packages required
-4. No direct database imports
-5. No hardcoded paths
-6. Exception handling required
-7. Type hints enforced
-8. Docstring compliance
-9. Layer separation (packages cannot import apps)
-10. Component isolation
-11. Configuration centralized
-12. Async patterns enforced
-13. Cache utilization
-14. Performance monitoring
-15. Resource cleanup
+**Legacy Validator** (Backward Compatibility):
+- **Engine**: `--engine legacy`
+- **Coverage**: 18/23 rules
+- **Method**: String-based pattern matching
+- **Status**: Deprecated, use AST instead
+- **Use Cases**: Emergency rollback, edge cases
+- **Location**: `packages/hive-tests/src/hive_tests/architectural_validators.py`
+
+**Comparison Mode**:
+- **Engine**: `--engine both`
+- **Purpose**: Verification and testing
+- **Output**: Detailed comparison report
+
+### Golden Rules (23 Total)
+
+All rules enforced by AST validator:
+
+1. **App Contract Compliance**: All apps have hive-app.toml
+2. **Co-located Tests Pattern**: Tests/ directory required
+3. **No sys.path Manipulation**: Proper package imports
+4. **Single Config Source**: Centralized configuration
+5. **Package-App Discipline**: Packages cannot import apps
+6. **Dependency Direction**: Correct import hierarchy
+7. **Service Layer Discipline**: Business logic separation
+8. **Interface Contracts**: Type hints required
+9. **Error Handling Standards**: Proper exception hierarchy
+10. **Logging Standards**: Use hive_logging, not print()
+11. **Async Pattern Consistency**: Async naming conventions
+12. **No Synchronous Calls in Async**: No blocking in async code
+13. **Inherit-Extend Pattern**: Apps extend package infrastructure
+14. **Package Naming Consistency**: All packages start with hive-
+15. **No Unsafe Function Calls**: No exec/eval/pickle
+16. **CLI Pattern Consistency**: CLI tools use Rich formatting
+17. **No Global State Access**: Avoid global variables
+18. **Test Coverage Mapping**: Source files have tests
+19. **Documentation Hygiene**: README.md required
+20. **hive-models Purity**: Models package data-only
+21. **Python Version Consistency**: Python 3.11+ enforced
+22. **Pyproject Dependency Usage**: No unused dependencies
+23. **Unified Tool Configuration**: Tools configured in root
 
 ### Usage
 
+**Command Line** (Recommended):
+```bash
+# Default AST validation
+python scripts/validate_golden_rules.py
+
+# Explicit engine selection
+python scripts/validate_golden_rules.py --engine ast      # AST (default)
+python scripts/validate_golden_rules.py --engine legacy   # Legacy (deprecated)
+python scripts/validate_golden_rules.py --engine both     # Comparison mode
+
+# With scope options
+python scripts/validate_golden_rules.py --incremental         # Changed files only
+python scripts/validate_golden_rules.py --app ecosystemiser  # Specific app
+```
+
+**Python API**:
 ```python
+from pathlib import Path
 from hive_tests.architectural_validators import run_all_golden_rules
 
 project_root = Path("/path/to/hive")
+
+# Default AST validation
 all_passed, results = run_all_golden_rules(project_root)
 
+# Explicit engine selection
+all_passed, results = run_all_golden_rules(project_root, engine="ast")      # Default
+all_passed, results = run_all_golden_rules(project_root, engine="legacy")   # Deprecated
+all_passed, results = run_all_golden_rules(project_root, engine="both")     # Comparison
+
+# Process results
 for rule_name, result in results.items():
-    print(f"{rule_name}: {'PASS' if result['passed'] else 'FAIL'}")
+    status = 'PASS' if result['passed'] else 'FAIL'
+    print(f"{rule_name}: {status}")
     if not result['passed']:
         for violation in result['violations']:
             print(f"  - {violation}")
