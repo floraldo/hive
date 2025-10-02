@@ -97,7 +97,22 @@ class ProductionMonitor:
             self.load_default_configuration()
 
     def load_default_configuration(self) -> None:
-        """Load default configuration for testing"""
+        """Load default configuration for testing
+
+        Note: Only loads localhost endpoints if ALLOW_DEFAULT_CONFIG env var is set.
+        This prevents false failures in CI environments where services aren't running.
+        """
+        allow_defaults = os.getenv("ALLOW_DEFAULT_CONFIG", "false").lower() == "true"
+
+        if not allow_defaults:
+            print("No endpoints configured and ALLOW_DEFAULT_CONFIG not set to 'true'.")
+            print("Skipping default localhost configuration to prevent false failures.")
+            print("\nTo enable monitoring:")
+            print("  1. Set PRODUCTION_ENDPOINTS or STAGING_ENDPOINTS environment variables, OR")
+            print("  2. Create production_monitoring_config.json, OR")
+            print("  3. Set ALLOW_DEFAULT_CONFIG=true for local development")
+            return
+
         default_endpoints = [
             {
                 "name": "Hive Orchestrator API",
@@ -138,13 +153,18 @@ class ProductionMonitor:
         health_url = f"{endpoint.url.rstrip('/')}{endpoint.health_check_path}"
 
         result = MonitoringResult(
-            service_name=endpoint.name, endpoint=health_url, environment=endpoint.environment, timestamp=timestamp,
+            service_name=endpoint.name,
+            endpoint=health_url,
+            environment=endpoint.environment,
+            timestamp=timestamp,
         )
 
         try:
             start_time = time.time()
             response = requests.get(
-                health_url, timeout=endpoint.timeout_seconds, headers={"User-Agent": "ProductionShield/1.0"},
+                health_url,
+                timeout=endpoint.timeout_seconds,
+                headers={"User-Agent": "ProductionShield/1.0"},
             )
             end_time = time.time()
 
@@ -199,7 +219,8 @@ class ProductionMonitor:
             endpoints_to_monitor = [ep for ep in self.endpoints if ep.environment == environment_filter]
 
         if not endpoints_to_monitor:
-            print(f"No endpoints configured for environment: {environment_filter}")
+            print(f"⚠️  No endpoints configured for environment: {environment_filter}")
+            print("Monitoring skipped - this is expected in CI environments without services running.")
             return
 
         print(f"Monitoring {len(endpoints_to_monitor)} endpoints in {environment_filter} environment(s)")
@@ -440,10 +461,15 @@ def main():
     )
     parser.add_argument("--config", type=Path, help="Path to monitoring configuration file")
     parser.add_argument(
-        "--create-incidents", action="store_true", help="Create GitHub issues for incidents (requires GITHUB_TOKEN)",
+        "--create-incidents",
+        action="store_true",
+        help="Create GitHub issues for incidents (requires GITHUB_TOKEN)",
     )
     parser.add_argument(
-        "--output-format", choices=["console", "json", "markdown"], default="console", help="Output format",
+        "--output-format",
+        choices=["console", "json", "markdown"],
+        default="console",
+        help="Output format",
     )
 
     args = parser.parse_args()
@@ -451,6 +477,11 @@ def main():
     try:
         monitor = ProductionMonitor(args.config)
         monitor.monitor_all_endpoints(args.environment)
+
+        # Exit cleanly if no endpoints were configured (e.g., in CI without services)
+        if not monitor.results:
+            print("\n✅ Monitoring skipped - no endpoints configured")
+            return 0
 
         analysis = monitor.analyze_results()
 
