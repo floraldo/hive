@@ -58,7 +58,7 @@ jobs:
       - name: Analyze and prioritize
         if: steps.check.outputs.has_recommendations == 'true'
         run: |
-          python scripts/automation/pool_tuning_orchestrator.py --analyze
+          python scripts/performance/pool_tuning_orchestrator.py --analyze
 
   apply-tuning:
     needs: analyze-recommendations
@@ -104,7 +104,7 @@ jobs:
             echo "Filtering to service: ${{ github.event.inputs.service_filter }}"
           fi
 
-          python scripts/automation/pool_tuning_orchestrator.py \
+          python scripts/performance/pool_tuning_orchestrator.py \
             --apply \
             $DRY_RUN_FLAG \
             $SERVICE_FLAG \
@@ -143,7 +143,7 @@ jobs:
             ### Related Files
             - \`data/pool_tuning_history.json\`
             - \`config/pools/*.json\`
-            - \`scripts/automation/pool_tuning_orchestrator.py\`
+            - \`scripts/performance/pool_tuning_orchestrator.py\`
 
             ---
             🤖 Automated by PROJECT VANGUARD Phase 2.2

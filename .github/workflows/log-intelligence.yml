@@ -69,7 +69,7 @@ jobs:
         # Convert comma-separated directories to space-separated
         LOG_DIRS_ARGS=$(echo "$LOG_DIRS" | tr ',' ' ')
         
-        python scripts/operational_excellence/log_intelligence.py \
+        python scripts/monitoring/log_intelligence.py \
           --log-dirs $LOG_DIRS_ARGS \
           --hours $HOURS \
           --output-format markdown

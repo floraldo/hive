@@ -2,13 +2,20 @@
 """
 Golden Rules Validation Script for Hive Platform.
 
-Validates compliance with all 19 Golden Rules for architectural governance
-across the entire platform.
+Validates compliance with 24 Golden Rules for architectural governance
+across the entire platform with tiered severity enforcement.
 
-Supports incremental validation for performance optimization:
-- Full validation: Entire codebase (~30-60s)
+Severity Levels:
+- CRITICAL (5 rules): System breaks, security, deployment failures
+- ERROR (13 rules): Technical debt, maintainability issues
+- WARNING (20 rules): Quality issues, test coverage
+- INFO (24 rules): All rules, best practices
+
+Supports multiple validation modes:
+- Full validation: Entire codebase (~5-30s depending on level)
 - Incremental: Only changed files (~2-5s)
 - App-scoped: Specific app only (~5-15s)
+- Severity filtering: Choose enforcement level for development phase
 """
 
 import argparse
@@ -21,9 +28,20 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "packages" / "hive-tests" / "src"))
 
 from hive_logging import get_logger
-from hive_tests.architectural_validators import run_all_golden_rules
+from hive_tests.architectural_validators import run_all_golden_rules, RuleSeverity
 
 logger = get_logger(__name__)
+
+
+def _get_rule_count(severity: RuleSeverity) -> int:
+    """Get the number of rules enforced at a given severity level."""
+    rule_counts = {
+        RuleSeverity.CRITICAL: 5,
+        RuleSeverity.ERROR: 13,
+        RuleSeverity.WARNING: 20,
+        RuleSeverity.INFO: 24,
+    }
+    return rule_counts.get(severity, 24)
 
 
 def get_changed_files() -> list[Path]:
@@ -87,14 +105,16 @@ def validate_platform_compliance(
     scope_files: list[Path] | None = None,
     quick: bool = False,
     engine: str = "ast",
+    severity_level: RuleSeverity = RuleSeverity.INFO,
 ) -> bool:
     """
     Run Golden Rules validation across Hive platform.
 
     Args:
         scope_files: Optional list of specific files to validate
-        quick: If True, only validate critical rules
-        engine: Validation engine ('ast', 'legacy', 'both')
+        quick: If True, only validate critical rules (deprecated, use severity_level instead)
+        engine: Validation engine ('ast', 'legacy', 'registry', 'both')
+        severity_level: Maximum severity level to enforce (CRITICAL, ERROR, WARNING, INFO)
 
     Returns:
         bool: True if all rules pass, False otherwise
@@ -106,36 +126,61 @@ def validate_platform_compliance(
         logger.info("VALIDATING Hive Platform against all Golden Rules...")
         logger.info("Scope: Full platform")
 
+    # Legacy quick flag support
     if quick:
-        logger.info("Mode: Quick (critical rules only)")
+        logger.info("Mode: Quick (critical rules only) - [DEPRECATED: use --level CRITICAL]")
+        severity_level = RuleSeverity.CRITICAL
 
     logger.info(f"Engine: {engine.upper()} validator")
+    logger.info(f"Severity Level: {severity_level.name} (enforcing {_get_rule_count(severity_level)} rules)")
     logger.info("=" * 80)
 
-    # Run all golden rules validation with file-level scoping
-    all_passed, results = run_all_golden_rules(project_root, scope_files, engine=engine)
+    # Run all golden rules validation with file-level scoping and severity filtering
+    all_passed, results = run_all_golden_rules(
+        project_root,
+        scope_files,
+        engine=engine,
+        max_severity=severity_level,
+    )
 
-    # Display results
+    # Display results grouped by severity
     logger.info("\nGOLDEN RULES VALIDATION RESULTS")
     logger.info("=" * 80)
 
     passed_count = 0
     failed_count = 0
 
+    # Group results by severity for better readability
+    results_by_severity = {}
     for rule_name, result in results.items():
-        status = "PASS" if result["passed"] else "FAIL"
-        logger.info(f"{status:<10} {rule_name}")
+        severity = result.get("severity", "INFO")
+        if severity not in results_by_severity:
+            results_by_severity[severity] = []
+        results_by_severity[severity].append((rule_name, result))
 
-        if result["passed"]:
-            passed_count += 1
-        else:
-            failed_count += 1
-            # Show violations for failed rules
-            for violation in result["violations"][:5]:  # Show first 5 violations
-                logger.error(f"         > {violation}")
+    # Display in severity order
+    for severity in ["CRITICAL", "ERROR", "WARNING", "INFO"]:
+        if severity not in results_by_severity:
+            continue
 
-            if len(result["violations"]) > 5:
-                logger.error(f"         ... and {len(result['violations']) - 5} more violations")
+        severity_results = results_by_severity[severity]
+        logger.info(f"\n[{severity}] - {len(severity_results)} rules")
+        logger.info("-" * 80)
+
+        for rule_name, result in severity_results:
+            status = "PASS" if result["passed"] else "FAIL"
+            logger.info(f"{status:<10} {rule_name}")
+
+            if result["passed"]:
+                passed_count += 1
+            else:
+                failed_count += 1
+                # Show violations for failed rules
+                for violation in result["violations"][:5]:  # Show first 5 violations
+                    logger.error(f"         > {violation}")
+
+                if len(result["violations"]) > 5:
+                    logger.error(f"         ... and {len(result['violations']) - 5} more violations")
 
     # Summary
     logger.info("=" * 80)
@@ -157,26 +202,34 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Full validation (entire codebase)
-  python scripts/validate_golden_rules.py
+  # Full validation with all rules (default)
+  python scripts/validation/validate_golden_rules.py
 
-  # Incremental validation (changed files only)
-  python scripts/validate_golden_rules.py --incremental
+  # Fast development - only critical rules
+  python scripts/validation/validate_golden_rules.py --level CRITICAL
+
+  # Before PR merge - critical and error rules
+  python scripts/validation/validate_golden_rules.py --level ERROR
+
+  # Sprint boundaries - include warnings
+  python scripts/validation/validate_golden_rules.py --level WARNING
+
+  # Incremental validation with error level
+  python scripts/validation/validate_golden_rules.py --incremental --level ERROR
 
   # App-scoped validation
-  python scripts/validate_golden_rules.py --app ecosystemiser
+  python scripts/validation/validate_golden_rules.py --app ecosystemiser --level ERROR
 
-  # Quick validation (critical rules only)
-  python scripts/validate_golden_rules.py --quick
-
-  # Combine modes
-  python scripts/validate_golden_rules.py --incremental --quick
+Severity Levels:
+  CRITICAL:  5 rules  (~5s)  - System breaks, security, deployment
+  ERROR:     13 rules (~15s) - Technical debt, maintainability
+  WARNING:   20 rules (~25s) - Quality issues, tests
+  INFO:      24 rules (~30s) - All rules (default)
 
 Performance:
-  Full validation:    ~30-60s (7,734 files)
+  Full validation:    ~30s (INFO), ~5s (CRITICAL)
   Incremental:        ~2-5s (5-20 files)
   App-scoped:         ~5-15s (150-200 files)
-  Quick mode:         ~50% faster
         """,
     )
 
@@ -219,9 +272,18 @@ Performance:
         "--engine",
         "-e",
         type=str,
-        choices=["ast", "legacy", "both"],
-        default="ast",
-        help="Validation engine: ast (default, recommended), legacy (deprecated), both (comparison)",
+        choices=["ast", "legacy", "registry", "both"],
+        default="registry",
+        help="Validation engine: registry (default, with severity filtering), ast (full AST), legacy (deprecated), both (comparison)",
+    )
+
+    parser.add_argument(
+        "--level",
+        "-l",
+        type=str,
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO"],
+        default="INFO",
+        help="Severity level: CRITICAL (5 rules, ~5s), ERROR (13 rules, ~15s), WARNING (20 rules, ~25s), INFO (24 rules, ~30s, default)",
     )
 
     args = parser.parse_args()
@@ -252,11 +314,21 @@ Performance:
                 sys.exit(1)
             logger.info(f"Found {len(scope_files)} files in app: {args.app}")
 
+        # Convert level string to RuleSeverity enum
+        severity_map = {
+            "CRITICAL": RuleSeverity.CRITICAL,
+            "ERROR": RuleSeverity.ERROR,
+            "WARNING": RuleSeverity.WARNING,
+            "INFO": RuleSeverity.INFO,
+        }
+        severity_level = severity_map[args.level]
+
         # Run validation
         success = validate_platform_compliance(
             scope_files=scope_files,
             quick=args.quick,
             engine=args.engine,
+            severity_level=severity_level,
         )
 
         sys.exit(0 if success else 1)

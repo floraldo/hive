@@ -12,48 +12,11 @@ packages = []
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-exclude = [
-    ".git",
-    "__pycache__",
-    "dist",
-    "build",
-    ".venv",
-    "archive",
-    "templates",
-    "tests/factory_acceptance",
-]
-
-[tool.ruff.lint]
-select = [
-    "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings
-    "F",    # pyflakes
-    "I",    # isort
-    "B",    # flake8-bugbear
-    "C4",   # flake8-comprehensions
-    "UP",   # pyupgrade
-    "COM",  # flake8-commas (enforces trailing commas)
-]
-ignore = [
-    "E501",    # line too long (handled by formatter)
-    "B008",    # do not perform function calls in argument defaults
-    "C901",    # too complex
-    "COM812",  # missing trailing comma (handled by formatter)
-]
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false  # Restore default - prevents invalid trailing commas
-line-ending = "auto"
-
-[tool.ruff.lint.isort]
-known-first-party = ["hive_logging", "hive_config", "hive_db", "hive_cache", "hive_errors", "hive_bus", "hive_async", "hive_performance", "hive_ai", "hive_deployment", "hive_service_discovery", "hive_tests", "hive_models", "hive_algorithms", "hive_cli", "hive_app_toolkit"]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+exclude = [ ".git", "__pycache__", "dist", "build", ".venv", "archive", "templates", "tests/factory_acceptance",]
 
 [tool.black]
 line-length = 120
-target-version = ["py311"]
+target-version = [ "py311",]
 include = "\\.pyi?$"
 extend-exclude = "/(\n  # directories\n  \\.eggs\n  | \\.git\n  | \\.hg\n  | \\.mypy_cache\n  | \\.tox\n  | \\.venv\n  | build\n  | dist\n  | archive\n)/\n"
 
@@ -63,7 +26,7 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-exclude = ["archive/", "legacy/", "tests/"]
+exclude = [ "archive/", "legacy/", "tests/",]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -76,6 +39,16 @@ ai-planner = "ai_planner.agent:main"
 ai-deployer = "ai_deployer.agent:main"
 golden-test = "hive_tests.golden_runner:main"
 
+[tool.ruff.lint]
+select = [ "E", "W", "F", "I", "B", "C4", "UP", "COM", "S",]
+ignore = [ "E501", "B008", "C901", "COM812",]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
 [tool.pytest.ini_options]
 testpaths = [ "apps", "packages", "tests",]
 python_files = "test_*.py"
@@ -86,6 +59,15 @@ markers = [ "integration: marks tests as integration tests", "unit: marks tests 
 
 [tool.poetry.group.workspace]
 optional = true
+
+[tool.ruff.lint.isort]
+known-first-party = [ "hive_logging", "hive_config", "hive_db", "hive_cache", "hive_errors", "hive_bus", "hive_async", "hive_performance", "hive_ai", "hive_deployment", "hive_service_discovery", "hive_tests", "hive_models", "hive_algorithms", "hive_cli", "hive_app_toolkit",]
+section-order = [ "future", "standard-library", "third-party", "first-party", "local-folder",]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [ "S101", "S602", "S604",]
+"scripts/**" = [ "S602", "S604",]
+"archive/**" = [ "S",]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

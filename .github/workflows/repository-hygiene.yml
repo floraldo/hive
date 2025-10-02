@@ -41,27 +41,27 @@ jobs:
     - name: Analyze stale branches
       id: branches
       run: |
-        python scripts/operational_excellence/automated_hygiene.py --analyze-branches
-        
+        python scripts/maintenance/automated_hygiene.py --analyze-branches
+
     - name: Check documentation links
       id: links
       run: |
-        python scripts/operational_excellence/automated_hygiene.py --check-links
-        
+        python scripts/maintenance/automated_hygiene.py --check-links
+
     - name: Scan TODO comments
       id: todos
       run: |
-        python scripts/operational_excellence/automated_hygiene.py --scan-todos
-        
+        python scripts/maintenance/automated_hygiene.py --scan-todos
+
     - name: Lint documentation
       id: markdown
       run: |
-        python scripts/operational_excellence/automated_hygiene.py --lint-docs
-        
+        python scripts/maintenance/automated_hygiene.py --lint-docs
+
     - name: Generate hygiene report
       id: report
       run: |
-        python scripts/operational_excellence/automated_hygiene.py --generate-report
+        python scripts/maintenance/automated_hygiene.py --generate-report
         
     - name: Create or update housekeeping issue
       if: steps.report.outputs.has_findings == 'true' && (github.event.inputs.create_issue == 'true' || github.event_name == 'schedule')

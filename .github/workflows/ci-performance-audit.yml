@@ -40,7 +40,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        python scripts/analysis/async_resource_patterns.py \
+        python scripts/utils/async_resource_patterns.py \
           --repo-owner ${{ github.repository_owner }} \
           --repo-name ${{ github.event.repository.name }} \
           --days ${{ github.event.inputs.days_back || '30' }}
