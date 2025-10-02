@@ -67,29 +67,33 @@ jobs:
           # Create output directory
           mkdir -p guardian_output
 
-          # Run guardian review (to be implemented)
-          poetry run python -c "
-          from pathlib import Path
-          import json
+          # Get changed files
+          changed_files=$(echo '${{ steps.changed-files.outputs.files }}' | tr '\n' ' ')
 
-          # Placeholder - will be replaced with actual RAG engine call
-          changed_files = '''${{ steps.changed-files.outputs.files }}'''.strip().split('\n')
-          changed_files = [f for f in changed_files if f]
+          if [ -z "$changed_files" ]; then
+            echo "No Python files changed"
+            echo '[]' > guardian_output/review_comments.json
+            exit 0
+          fi
 
-          comments = []
-          for file in changed_files:
-              if file:
-                  comments.append({
-                      'path': file,
-                      'line': 1,
-                      'body': f'🤖 **Guardian AI Review**\n\nThis file has been reviewed using RAG-enhanced analysis.\n\nRAG system will provide specific feedback in future iterations.'
-                  })
+          echo "Changed files: $changed_files"
 
-          with open('guardian_output/review_comments.json', 'w') as f:
-              json.dump(comments, f, indent=2)
+          # Run RAG-enhanced review using CLI script
+          poetry run python -m guardian_agent.cli_review \
+            --files $changed_files \
+            --output guardian_output/review_comments.json \
+            --confidence 0.80 \
+            --max-comments 5 \
+            --verbose || {
+              echo "Review failed, creating placeholder output"
+              echo '[]' > guardian_output/review_comments.json
+            }
 
-          print(f'Generated {len(comments)} review comments')
-          "
+          # Show summary
+          if [ -f guardian_output/review_comments.json ]; then
+            comment_count=$(jq '. | length' guardian_output/review_comments.json)
+            echo "Generated $comment_count review comments"
+          fi
 
       - name: Post Review Comments
         if: always()
