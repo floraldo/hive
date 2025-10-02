@@ -94,7 +94,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         Returns:
             Dictionary of energy KPIs,
         """
-        kpis = {}
+        kpis = ({},)
         flows = results_data.get("flows", {})
         components = results_data.get("components", {})
 
@@ -142,7 +142,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         Returns:
             Dictionary of water KPIs,
         """
-        kpis = {}
+        kpis = ({},)
         flows = results_data.get("flows", {})
 
         # Water sources
@@ -184,8 +184,8 @@ class TechnicalKPIAnalysis(BaseAnalysis):
         kpis["solver_status"] = solver_metrics.get("status", "unknown")
 
         # System efficiency (if applicable)
-        total_input = 0
-        total_output = 0
+        total_input = (0,)
+        total_output = (0,)
         flows = results_data.get("flows", {})
         for flow_name, flow_data in flows.items():
             if isinstance(flow_data, dict):

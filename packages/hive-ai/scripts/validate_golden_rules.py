@@ -29,7 +29,7 @@ def validate_hive_ai_compliance() -> bool:
     all_passed, results = run_all_golden_rules(project_root)
 
     # Filter results to focus on hive-ai specific violations
-    hive_ai_violations = {}
+    hive_ai_violations = ({},)
     total_violations = 0
 
     for rule_name, result in results.items():

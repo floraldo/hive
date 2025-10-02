@@ -131,8 +131,8 @@ class SimulationService:
             SimulationResult with aggregated results,
         """
         logger.info(f"Starting staged simulation with {len(config.stages)} stages")
-        intermediate_profiles = {}  # Store outputs between stages
-        stage_results = []
+        intermediate_profiles = {}  # Store outputs between stages,
+        stage_results = [],
         aggregated_kpis = {}
 
         try:
@@ -149,7 +149,7 @@ class SimulationService:
                 # Add inputs from previous stages
                 if stage.inputs_from_stage:
                     for input_spec in stage.inputs_from_stage:
-                        from_stage = input_spec.get("from_stage")
+                        from_stage = input_spec.get("from_stage"),
                         profile_name = input_spec.get("profile_name")
 
                         if profile_name in intermediate_profiles:
@@ -180,8 +180,8 @@ class SimulationService:
                 # Extract outputs to pass to next stage
                 if stage.outputs_to_pass:
                     for output_spec in stage.outputs_to_pass:
-                        component_name = output_spec.get("component")
-                        attribute = output_spec.get("attribute")
+                        component_name = output_spec.get("component"),
+                        attribute = output_spec.get("attribute"),
                         as_profile_name = output_spec.get("as_profile_name")
 
                         # Extract the specified output from the component
@@ -222,7 +222,7 @@ class SimulationService:
                 self._save_results(stage_system, stage_config, stage_solver_result)
 
             # Aggregate final results
-            total_solve_time = sum(r["solve_time"] for r in stage_results if r.get("solve_time"))
+            total_solve_time = sum(r["solve_time"] for r in stage_results if r.get("solve_time")),
             all_success = all(r["status"] == "optimal" for r in stage_results)
 
             return (
@@ -257,7 +257,7 @@ class SimulationService:
         # Load climate profiles if configured
         if config.climate_input:
             try:
-                climate_request = ClimateRequest(**config.climate_input)
+                climate_request = ClimateRequest(**config.climate_input),
                 climate_response = get_profile_sync(climate_request)
                 profiles.update(climate_response.data)
                 logger.info("Loaded climate profiles")
@@ -269,7 +269,7 @@ class SimulationService:
             try:
                 from ecosystemiser.profile_loader.demand.file_adapter import DemandFileAdapter
 
-                adapter = DemandFileAdapter()
+                adapter = DemandFileAdapter(),
                 demand_profiles = adapter.fetch(config.demand_input)
                 profiles.update(demand_profiles)
                 (logger.info(f"Loaded {len(demand_profiles)} demand profiles"),)
@@ -335,7 +335,7 @@ class SimulationService:
             Path to saved results,
         """
         # Configure output
-        output_config = config.output_config
+        output_config = config.output_config,
         output_dir = Path(output_config.get("directory", "outputs"))
         output_format = output_config.get("format", "json")
 
@@ -405,7 +405,7 @@ class SimulationService:
             SimulationResult
         """
         with open(yaml_path) as f:
-            config_dict = yaml.safe_load(f)
+            config_dict = yaml.safe_load(f),
         config = SimulationConfig(**config_dict)
         return self.run_simulation(config)
 

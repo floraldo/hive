@@ -162,8 +162,8 @@ class TestCostLimitError:
 
     def test_cost_limit_error_cost_tracking(self):
         """Test that CostLimitError correctly tracks costs."""
-        current = 125.50
-        limit = 100.00
+        current = (125.50,)
+        limit = (100.00,)
         error = CostLimitError(
             "Budget exceeded",
             current_cost=current,

@@ -54,10 +54,10 @@ def run_script(script_name: str, args: list[str]) -> int:
         return 1
 
     cmd = [sys.executable, str(script_path)] + args
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Running: {script_name}")
     print(f"Command: {' '.join(cmd)}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     result = subprocess.run(cmd)
     return result.returncode
@@ -107,38 +107,26 @@ Examples:
   # Get help for specific operation
   python performance.py --ai-costs --help
   python performance.py --benchmark --help
-"""
+""",
     )
 
     # Main operation flags
-    parser.add_argument('--ai-costs', action='store_true',
-                       help='AI model cost analysis and optimization')
-    parser.add_argument('--benchmark', action='store_true',
-                       help='Golden rules performance benchmarking')
-    parser.add_argument('--ci-analysis', action='store_true',
-                       help='CI/CD pipeline performance analysis')
-    parser.add_argument('--baseline', action='store_true',
-                       help='Performance baseline creation and regression checking')
-    parser.add_argument('--audit', action='store_true',
-                       help='Code performance auditing')
-    parser.add_argument('--pool-config', action='store_true',
-                       help='Connection pool configuration management')
-    parser.add_argument('--pool-optimize', action='store_true',
-                       help='Connection pool optimization analysis')
-    parser.add_argument('--pool-tune', action='store_true',
-                       help='Automated connection pool tuning')
-    parser.add_argument('--all', action='store_true',
-                       help='Run all performance operations (use with --quick)')
+    parser.add_argument("--ai-costs", action="store_true", help="AI model cost analysis and optimization")
+    parser.add_argument("--benchmark", action="store_true", help="Golden rules performance benchmarking")
+    parser.add_argument("--ci-analysis", action="store_true", help="CI/CD pipeline performance analysis")
+    parser.add_argument("--baseline", action="store_true", help="Performance baseline creation and regression checking")
+    parser.add_argument("--audit", action="store_true", help="Code performance auditing")
+    parser.add_argument("--pool-config", action="store_true", help="Connection pool configuration management")
+    parser.add_argument("--pool-optimize", action="store_true", help="Connection pool optimization analysis")
+    parser.add_argument("--pool-tune", action="store_true", help="Automated connection pool tuning")
+    parser.add_argument("--all", action="store_true", help="Run all performance operations (use with --quick)")
 
     # Quick mode for --all
-    parser.add_argument('--quick', action='store_true',
-                       help='Quick mode: run minimal checks (use with --all)')
+    parser.add_argument("--quick", action="store_true", help="Quick mode: run minimal checks (use with --all)")
 
     # Common options
-    parser.add_argument('--dry-run', action='store_true',
-                       help='Show what would be done without executing')
-    parser.add_argument('--verbose', action='store_true',
-                       help='Verbose output')
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be done without executing")
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
 
     args, unknown_args = parser.parse_known_args()
 
@@ -147,29 +135,29 @@ Examples:
     if args.all:
         operations = list(PERFORMANCE_SCRIPTS.keys())
     else:
-        if getattr(args, 'ai_costs', False):
-            operations.append('ai-costs')
+        if getattr(args, "ai_costs", False):
+            operations.append("ai-costs")
         if args.benchmark:
-            operations.append('benchmark')
-        if getattr(args, 'ci_analysis', False):
-            operations.append('ci-analysis')
+            operations.append("benchmark")
+        if getattr(args, "ci_analysis", False):
+            operations.append("ci-analysis")
         if args.baseline:
-            operations.append('baseline')
+            operations.append("baseline")
         if args.audit:
-            operations.append('audit')
-        if getattr(args, 'pool_config', False):
-            operations.append('pool-config')
-        if getattr(args, 'pool_optimize', False):
-            operations.append('pool-optimize')
-        if getattr(args, 'pool_tune', False):
-            operations.append('pool-tune')
+            operations.append("audit")
+        if getattr(args, "pool_config", False):
+            operations.append("pool-config")
+        if getattr(args, "pool_optimize", False):
+            operations.append("pool-optimize")
+        if getattr(args, "pool_tune", False):
+            operations.append("pool-tune")
 
     # If no operation specified, show help
     if not operations:
         parser.print_help()
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("AVAILABLE PERFORMANCE SCRIPTS:")
-        print("="*80)
+        print("=" * 80)
         for op, script in PERFORMANCE_SCRIPTS.items():
             print(f"  --{op:15} → {script}")
         return 0
@@ -191,12 +179,12 @@ Examples:
         script_args = unknown_args.copy()
 
         # Add --quick flag if in quick mode
-        if args.quick and '--quick' not in script_args:
-            script_args.append('--quick')
+        if args.quick and "--quick" not in script_args:
+            script_args.append("--quick")
 
         # Add --verbose if requested
-        if args.verbose and '--verbose' not in script_args:
-            script_args.append('--verbose')
+        if args.verbose and "--verbose" not in script_args:
+            script_args.append("--verbose")
 
         # Run the script
         exit_code = run_script(script, script_args)
@@ -206,9 +194,9 @@ Examples:
             print(f"\n⚠️  Warning: {script} exited with code {exit_code}")
 
     # Summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("PERFORMANCE ANALYSIS SUMMARY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Operations run: {len(operations)}")
     print(f"Successful: {exit_codes.count(0)}")
     print(f"Failed: {len([c for c in exit_codes if c != 0])}")

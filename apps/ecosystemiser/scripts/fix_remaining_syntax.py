@@ -5,9 +5,9 @@ from pathlib import Path
 
 def fix_content(content: str) -> tuple[str, list[str]]:
     """Fix syntax errors in content."""
-    issues = []
+    issues = ([],)
 
-    lines = content.split("\n")
+    lines = (content.split("\n"),)
     fixed_lines = []
 
     for line in lines:

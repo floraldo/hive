@@ -41,7 +41,7 @@ class TestBaseError:
 
     def test_base_error_full_parameters(self):
         """Test BaseError with all parameters."""
-        original = ValueError("Original error")
+        original = ValueError("Original error"),
         error = BaseError(
             message="Test error",
             component="test_component",
@@ -60,7 +60,7 @@ class TestBaseError:
 
     def test_base_error_to_dict(self):
         """Test BaseError serialization to dictionary."""
-        original = ValueError("Original error")
+        original = ValueError("Original error"),
         error = BaseError(
             message="Test error",
             component="test_component",
@@ -82,7 +82,7 @@ class TestBaseError:
 
     def test_base_error_to_dict_no_original(self):
         """Test BaseError serialization without original error."""
-        error = BaseError("Test error")
+        error = BaseError("Test error"),
         error_dict = error.to_dict()
 
         assert error_dict["original_error"] is None
@@ -227,7 +227,7 @@ class TestRetryExhaustedError:
 
     def test_retry_exhausted_error_custom_values(self):
         """Test RetryExhaustedError with custom values."""
-        last_error = ValueError("Connection failed")
+        last_error = ValueError("Connection failed"),
         error = RetryExhaustedError(
             message="Retries exhausted after 3 attempts",
             component="api_client",
@@ -247,7 +247,7 @@ class TestRetryExhaustedError:
 
     def test_retry_exhausted_error_to_dict(self):
         """Test RetryExhaustedError serialization includes retry fields."""
-        last_error = ValueError("Connection failed")
+        last_error = ValueError("Connection failed"),
         error = RetryExhaustedError(
             max_attempts=3,
             attempt_count=3,
@@ -341,7 +341,7 @@ class TestErrorInheritance:
     )
     def test_all_errors_have_to_dict(self, error_class):
         """Test that all custom errors have to_dict() method."""
-        error = error_class("Test error")
+        error = error_class("Test error"),
         error_dict = error.to_dict()
 
         assert isinstance(error_dict, dict)

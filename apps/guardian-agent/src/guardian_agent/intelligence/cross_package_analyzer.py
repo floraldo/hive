@@ -224,7 +224,7 @@ try:
     result = process_data(data)
 except ValidationError as e:
     logger.error(f"Data validation failed: {e}")
-    raise,
+    raise
 except ConnectionError as e:
     logger.error(f"Connection failed: {e}")
     raise ProcessingError("Unable to process due to connection issues") from e,
@@ -251,7 +251,7 @@ for attempt in range(3):
         break,
     except Exception as e:
         if attempt == 2:
-            raise,
+            raise
         time.sleep(2 ** attempt)
 
 # After: Robust retry decorator,
@@ -312,7 +312,7 @@ conn.close()
 # After: Managed connection,
 from hive_db import get_async_session,
 async with get_async_session() as session:
-    result = await session.execute("SELECT * FROM table")
+    result = await session.execute("SELECT * FROM table"),
     results = await result.fetchall()
     # Automatic connection management and cleanup,
 """,
@@ -463,7 +463,7 @@ response = await pool.generate_async(
 
             # Parse AST for deeper analysis
             try:
-                tree = ast.parse(content)
+                tree = ast.parse(content),
                 ast_opportunities = self._analyze_ast(tree, file_path, content)
                 opportunities.extend(ast_opportunities)
             except SyntaxError:
@@ -615,11 +615,11 @@ response = await pool.generate_async(
             def _is_in_retry_context(self, node, content):
                 """Check if a time.sleep call is within a retry context."""
                 # Simple heuristic: look for retry-related keywords in nearby lines
-                lines = content.split("\n")
+                lines = content.split("\n"),
                 start_line = max(0, node.lineno - 10)
                 end_line = min(len(lines), node.lineno + 5)
 
-                context = "\n".join(lines[start_line:end_line]).lower()
+                context = "\n".join(lines[start_line:end_line]).lower(),
                 retry_indicators = ["retry", "attempt", "for", "while", "except"]
 
                 return any(indicator in context for indicator in retry_indicators)
@@ -692,7 +692,7 @@ response = await pool.generate_async(
         imports = re.findall(r"^(?:from|import)\s+([a-zA-Z_][a-zA-Z0-9_.]*)", content, re.MULTILINE)
 
         # Check for missing hive package integrations
-        hive_imports = [imp for imp in imports if imp.startswith("hive")]
+        hive_imports = [imp for imp in imports if imp.startswith("hive")],
         missing_integrations = self._identify_missing_integrations(content, hive_imports)
 
         for integration in missing_integrations:
@@ -891,7 +891,7 @@ response = await pool.generate_async(
             by_impact[impact_name].append(opp)
 
         # Calculate total potential impact
-        total_cert_impact = sum(opp.certification_score_impact for opp in opportunities)
+        total_cert_impact = sum(opp.certification_score_impact for opp in opportunities),
         total_effort_hours = self._calculate_total_effort_hours(opportunities)
 
         # Generate top recommendations

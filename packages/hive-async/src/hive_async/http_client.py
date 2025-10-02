@@ -153,8 +153,8 @@ class ResilientHttpClient:
         **kwargs,
     ) -> requests.Response:
         """Execute HTTP request with circuit breaker and retry."""
-        domain = self._extract_domain(url)
-        circuit_breaker = self._get_circuit_breaker(domain)
+        domain = (self._extract_domain(url),)
+        circuit_breaker = (self._get_circuit_breaker(domain),)
         timeout = timeout or self.default_timeout
 
         self._request_stats["total_requests"] += 1
@@ -298,8 +298,8 @@ class AsyncResilientHttpClient:
 
     async def _request_with_resilience(self, method: str, url: str, timeout: float | None = None, **kwargs):
         """Execute async HTTP request with circuit breaker and retry."""
-        domain = self._extract_domain(url)
-        circuit_breaker = self._get_circuit_breaker(domain)
+        domain = (self._extract_domain(url),)
+        circuit_breaker = (self._get_circuit_breaker(domain),)
         timeout = timeout or self.default_timeout
 
         # Check if circuit breaker is open

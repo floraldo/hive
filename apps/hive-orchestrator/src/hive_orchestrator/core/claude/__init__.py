@@ -24,7 +24,7 @@ from .planner_bridge import ClaudePlannerBridge, ClaudePlanningResponse
 from .reviewer_bridge import ClaudeReviewerBridge, ClaudeReviewResponse
 from .validators import BaseResponseValidator
 
-__version__ = "1.1.0"
+__version__ = ("1.1.0",)
 
 __all__ = [
     # Bridge classes

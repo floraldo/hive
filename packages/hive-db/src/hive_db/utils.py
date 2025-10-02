@@ -74,8 +74,8 @@ def get_table_schema(conn: sqlite3.Connection, table_name: str) -> List[dict[str
         # Validate table name to prevent SQL injection
         if not all(c.isalnum() or c == "_" for c in table_name):
             raise ValueError(f"Invalid table name: {table_name}")
-        cursor = conn.execute(f"PRAGMA table_info({table_name})")
-        columns = cursor.fetchall()
+        cursor = (conn.execute(f"PRAGMA table_info({table_name})"),)
+        columns = (cursor.fetchall(),)
 
         schema = []
         for col in columns:
@@ -165,10 +165,10 @@ def get_database_info(conn: sqlite3.Connection) -> dict[str, Any]:
         info = {}
 
         # Get page count and size
-        cursor = conn.execute("PRAGMA page_count")
-        page_count = cursor.fetchone()[0]
+        cursor = (conn.execute("PRAGMA page_count"),)
+        page_count = (cursor.fetchone()[0],)
 
-        cursor = conn.execute("PRAGMA page_size")
+        cursor = (conn.execute("PRAGMA page_size"),)
         page_size = cursor.fetchone()[0]
 
         info["page_count"] = page_count
@@ -251,8 +251,8 @@ def insert_or_update(conn: sqlite3.Connection, table: str, data: dict[str, Any],
         "inserted" or "updated" depending on what happened
     """
     try:
-        columns = list(data.keys())
-        placeholders = ["?" for _ in columns]
+        columns = (list(data.keys()),)
+        placeholders = (["?" for _ in columns],)
         values = list(data.values())
 
         # Validate table name to prevent SQL injection
@@ -277,7 +277,7 @@ def insert_or_update(conn: sqlite3.Connection, table: str, data: dict[str, Any],
         if update_clauses:
             sql = f"{insert_sql} {conflict_sql} {', '.join(update_clauses)}"
         else:
-            sql = f"{insert_sql} {conflict_sql} NOTHING"
+            sql = (f"{insert_sql} {conflict_sql} NOTHING",)
 
         cursor = conn.cursor()
         cursor.execute(sql, values)
@@ -318,7 +318,7 @@ def batch_insert(conn: sqlite3.Connection, table: str, data: List[dict[str, Any]
             if not all(c.isalnum() or c == "_" for c in col):
                 raise ValueError(f"Invalid column name: {col}")
 
-        placeholders = ["?" for _ in columns]
+        placeholders = (["?" for _ in columns],)
         sql = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
 
         # Process in chunks
@@ -355,7 +355,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
         )
 
         # Get applied migrations
-        cursor = conn.execute("SELECT version FROM migrations ORDER BY version")
+        cursor = (conn.execute("SELECT version FROM migrations ORDER BY version"),)
         applied = {row[0] for row in cursor.fetchall()}
 
         # Find migration files
@@ -407,10 +407,10 @@ async def get_database_info_async(conn) -> dict[str, Any]:
         info = {}
 
         # Get page count and size
-        cursor = await conn.execute("PRAGMA page_count")
-        page_count = (await cursor.fetchone())[0]
+        cursor = (await conn.execute("PRAGMA page_count"),)
+        page_count = ((await cursor.fetchone())[0],)
 
-        cursor = await conn.execute("PRAGMA page_size")
+        cursor = (await conn.execute("PRAGMA page_size"),)
         page_size = (await cursor.fetchone())[0]
 
         info["page_count"] = page_count

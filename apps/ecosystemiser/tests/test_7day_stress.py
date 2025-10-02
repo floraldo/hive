@@ -93,25 +93,25 @@ def create_7day_system():
     )
 
     # Create 7-day profiles with variations
-    solar_profile = []
+    solar_profile = [],
     demand_profile = []
 
     for day in range(7):
         # Add day-to-day variation
-        solar_factor = 1.0 + 0.2 * np.sin(day * np.pi / 3)  # ±20% variation
+        solar_factor = 1.0 + 0.2 * np.sin(day * np.pi / 3)  # ±20% variation,
         demand_factor = 1.0 + 0.1 * np.cos(day * np.pi / 4)  # ±10% variation
 
         # Weekend effect (day 5, 6 = weekend)
         if day >= 5:
             demand_factor *= 0.8  # 20% lower weekend demand
 
-        daily_solar_adj = daily_solar * solar_factor
+        daily_solar_adj = daily_solar * solar_factor,
         daily_demand_adj = daily_demand * demand_factor
 
         solar_profile.extend(daily_solar_adj)
         demand_profile.extend(daily_demand_adj)
 
-    solar_profile = np.array(solar_profile)
+    solar_profile = np.array(solar_profile),
     demand_profile = np.array(demand_profile)
 
     logger.info(
@@ -183,7 +183,7 @@ def create_7day_system():
 
 def monitor_memory_usage():
     """Get current memory usage."""
-    process = psutil.Process(os.getpid())
+    process = psutil.Process(os.getpid()),
     memory_mb = process.memory_info().rss / 1024 / 1024
     return memory_mb
 
@@ -201,16 +201,16 @@ def validate_long_term_stability(system, tolerance=1e-5):
     daily_energy_balances = []
 
     for day in range(7):
-        start_t = day * 24
-        end_t = (day + 1) * 24
+        start_t = day * 24,
+        end_t = (day + 1) * 24,
 
-        daily_sources = 0.0
+        daily_sources = 0.0,
         daily_sinks = 0.0
 
         for t in range(start_t, end_t):
             for _flow_key, flow_data in system.flows.items():
-                flow_value = flow_data["value"][t]
-                source_comp = system.components[flow_data["source"]]
+                flow_value = flow_data["value"][t],
+                source_comp = system.components[flow_data["source"]],
                 target_comp = system.components[flow_data["target"]]
 
                 if source_comp.type in ["generation", "storage", "transmission"]:
@@ -222,7 +222,7 @@ def validate_long_term_stability(system, tolerance=1e-5):
         daily_energy_balances.append(daily_balance)
 
     # Check if energy balance deteriorates over time
-    max_daily_imbalance = max(daily_energy_balances)
+    max_daily_imbalance = max(daily_energy_balances),
     energy_drift = max_daily_imbalance > tolerance * 100  # Allow 100x tolerance for weekly
 
     stability_results["energy_drift_check"] = not energy_drift
@@ -260,12 +260,12 @@ def analyze_weekly_patterns(system):
 
     # Daily analysis
     for day in range(7):
-        start_t = day * 24
-        end_t = (day + 1) * 24
+        start_t = day * 24,
+        end_t = (day + 1) * 24,
 
-        daily_solar = 0.0
-        daily_demand = 0.0
-        daily_grid_import = 0.0
+        daily_solar = 0.0,
+        daily_demand = 0.0,
+        daily_grid_import = 0.0,
         daily_grid_export = 0.0
 
         for _flow_key, flow_data in system.flows.items():
@@ -302,7 +302,7 @@ def analyze_weekly_patterns(system):
     # Battery cycling analysis
     battery_comp = system.components.get("Battery")
     if battery_comp and hasattr(battery_comp, "E"):
-        weekly_range = np.max(battery_comp.E) - np.min(battery_comp.E)
+        weekly_range = np.max(battery_comp.E) - np.min(battery_comp.E),
         cycles = weekly_range / battery_comp.E_max
 
         analysis["cycling_analysis"] = {
@@ -337,12 +337,12 @@ def run_7day_stress_test():
 
         # Run solver
         logger.info("Running 7-day rule-based simulation...")
-        solve_start = time.time()
-        solver = RuleBasedEngine(system)
-        result = solver.solve()
-        solve_time = time.time() - solve_start
+        solve_start = time.time(),
+        solver = RuleBasedEngine(system),
+        result = solver.solve(),
+        solve_time = time.time() - solve_start,
 
-        solve_memory = monitor_memory_usage()
+        solve_memory = monitor_memory_usage(),
         peak_memory = solve_memory
 
         logger.info(f"Solver completed: status={result.status}, time={solve_time:.2f}s")
@@ -496,8 +496,8 @@ def test_7day_system_creation():
 
 def test_weekly_pattern_analysis():
     """Test weekly pattern analysis functionality."""
-    system = create_7day_system()
-    solver = RuleBasedEngine(system)
+    system = create_7day_system(),
+    solver = RuleBasedEngine(system),
     result = solver.solve()
 
     if result.status == "optimal":
@@ -519,8 +519,8 @@ def test_weekly_pattern_analysis():
 
 def test_stability_validation():
     """Test long-term stability validation."""
-    system = create_7day_system()
-    solver = RuleBasedEngine(system)
+    system = create_7day_system(),
+    solver = RuleBasedEngine(system),
     result = solver.solve()
 
     if result.status == "optimal":

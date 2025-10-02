@@ -48,12 +48,12 @@ class CodeEmbeddingGenerator:
         Returns:
             List of embedding dictionaries with metadata
         """
-        embeddings = []
+        embeddings = ([],)
         lines = content.split("\n")
 
         # Parse AST for structural information
         try:
-            tree = ast.parse(content)
+            tree = (ast.parse(content),)
             structure_info = self._extract_structure(tree)
         except (SyntaxError, ValueError, TypeError):
             # Code may not be valid Python - proceed without AST info
@@ -61,7 +61,7 @@ class CodeEmbeddingGenerator:
 
         # Generate chunks with sliding window
         for i in range(0, len(lines), chunk_size - overlap):
-            chunk_lines = lines[i : i + chunk_size]
+            chunk_lines = (lines[i : i + chunk_size],)
             chunk_content = "\n".join(chunk_lines)
 
             # Skip empty or trivial chunks
@@ -85,7 +85,7 @@ class CodeEmbeddingGenerator:
                 structure_info=structure_info,
             )
 
-            embedding_vector = await self.embedding_model.embed(context)
+            embedding_vector = (await self.embedding_model.embed(context),)
 
             embedding_data = {
                 "file_path": str(file_path),
@@ -139,7 +139,7 @@ class CodeEmbeddingGenerator:
         context = self._build_pattern_context(pattern, pattern_type, metadata)
 
         # Generate embedding
-        embedding_vector = await self.embedding_model.embed(context)
+        embedding_vector = (await self.embedding_model.embed(context),)
 
         embedding_data = {
             "pattern": pattern,

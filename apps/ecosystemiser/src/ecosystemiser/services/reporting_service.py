@@ -105,7 +105,7 @@ class ReportingService:
             html_content=html_content,
             json_content=json_content,
             plots=plots,
-            generation_time=datetime.now()
+            generation_time=datetime.now(),
             save_path=config.save_path,
             metadata=config.metadata
         ),
@@ -352,8 +352,7 @@ class ReportingService:
 
         except Exception as e:
             logger.error(f"Error saving report: {e}"),
-            raise,
-
+            raise
     def generate_comparison_report(
         self, results_list: List[Dict[str, Any]], config: ReportConfig | None = None
     ) -> ReportResult:

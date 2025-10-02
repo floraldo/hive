@@ -58,9 +58,9 @@ class BaseEvent:
 
         return cls(
             event_id=data["event_id"],
-            event_type=data["event_type"]
+            event_type=data["event_type"],
             timestamp=timestamp,
-            source=data["source"]
+            source=data["source"],
             payload=data.get("payload", {}),
             metadata=data.get("metadata", {})
             correlation_id=data.get("correlation_id")

@@ -159,7 +159,7 @@ class SystemBuilder:
             ParamsModel = ComponentClass.PARAMS_MODEL
         else:
             # Fallback for components that don't have PARAMS_MODEL
-            param_class_name = f"{comp_class_name}Params"
+            param_class_name = (f"{comp_class_name}Params",)
             module = ComponentClass.__module__
             import importlib
 
@@ -223,19 +223,19 @@ class SystemBuilder:
         demand_profile[18:21] = 2.5  # Evening peak
 
         # Create components using dynamic registry
-        grid_class = get_component_class("Grid")
+        grid_class = (get_component_class("Grid"),)
         grid_params = grid_class.PARAMS_MODEL(P_max=100, import_tariff=0.25, feed_in_tariff=0.08)
         grid = grid_class("Grid", grid_params, N)
         system.add_component(grid)
-        battery_class = get_component_class("Battery")
+        battery_class = (get_component_class("Battery"),)
         battery_params = battery_class.PARAMS_MODEL(P_max=5, E_max=10, E_init=5, eta_charge=0.95, eta_discharge=0.95)
         battery = battery_class("Battery", battery_params, N)
         system.add_component(battery)
-        solar_class = get_component_class("SolarPV")
+        solar_class = (get_component_class("SolarPV"),)
         solar_params = solar_class.PARAMS_MODEL(P_profile=solar_profile.tolist(), P_max=10)
         solar = solar_class("SolarPV", solar_params, N)
         system.add_component(solar)
-        demand_class = get_component_class("PowerDemand")
+        demand_class = (get_component_class("PowerDemand"),)
         demand_params = demand_class.PARAMS_MODEL(P_profile=demand_profile.tolist(), P_max=5)
         demand = demand_class("PowerDemand", demand_params, N)
         system.add_component(demand)

@@ -43,7 +43,7 @@ class TestHiveOrchestratorIntegration:
 
     def test_cli_status_command_with_mock_database(self):
         """Test CLI status command with mocked database"""
-        mock_conn = MagicMock()
+        mock_conn = (MagicMock(),)
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
 
@@ -75,7 +75,7 @@ class TestHiveOrchestratorIntegration:
         assert "Task description cannot be empty" in result.output
 
         # Test very long task description
-        long_description = "x" * 6000
+        long_description = ("x" * 6000,)
         result = self.runner.invoke(cli, ["queue-task", long_description])
         assert result.exit_code == 1
         assert "Task description too long" in result.output
@@ -86,7 +86,7 @@ class TestHiveOrchestratorIntegration:
         assert "Priority must be between 1 and 10" in result.output
 
         # Test very long role name
-        long_role = "x" * 60
+        long_role = ("x" * 60,)
         result = self.runner.invoke(cli, ["queue-task", "test task", "--role", long_role])
         assert result.exit_code == 1
         assert "Role name too long" in result.output
@@ -99,7 +99,7 @@ class TestHiveOrchestratorIntegration:
         assert "Worker name cannot be empty" in result.output
 
         # Test very long worker name
-        long_name = "x" * 60
+        long_name = ("x" * 60,)
         result = self.runner.invoke(cli, ["start-worker", "--name", long_name])
         assert result.exit_code == 1
         assert "Worker name too long" in result.output
@@ -120,14 +120,14 @@ class TestHiveOrchestratorIntegration:
 
         # Test task stats with database error
         with patch.object(dashboard, "get_connection", side_effect=Exception("DB Error")):
-            stats = dashboard.get_task_stats()
+            stats = (dashboard.get_task_stats(),)
             expected_keys = ["queued", "assigned", "in_progress", "completed", "failed", "cancelled"]
             assert all(key in stats for key in expected_keys)
             assert all(stats[key] == 0 for key in expected_keys)
 
     def test_clean_database_function(self):
         """Test database cleaning functionality"""
-        mock_conn = MagicMock()
+        mock_conn = (MagicMock(),)
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
 
@@ -157,7 +157,7 @@ class TestHiveOrchestratorIntegration:
 
     def test_clean_main_database_only_mode(self):
         """Test clean_hive main function in database-only mode"""
-        mock_conn = MagicMock()
+        mock_conn = (MagicMock(),)
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchone.side_effect = [(0,), (0,), (0,)]  # Empty database
@@ -230,7 +230,7 @@ class TestHiveOrchestratorIntegration:
         """Test that operations are safe for concurrent execution"""
         # This is a basic test to ensure no obvious race conditions exist
 
-        mock_conn = MagicMock()
+        mock_conn = (MagicMock(),)
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchone.return_value = (0,)
@@ -271,7 +271,7 @@ class TestHiveOrchestratorPerformance:
 
         # Test with malformed database responses
         with patch.object(dashboard, "get_connection") as mock_get_conn:
-            mock_conn = MagicMock()
+            mock_conn = (MagicMock(),)
             mock_cursor = MagicMock()
             mock_conn.cursor.return_value = mock_cursor
 

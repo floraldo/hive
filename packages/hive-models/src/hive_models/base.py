@@ -6,12 +6,13 @@ Provides foundational classes and mixins that other models can inherit from.
 
 from __future__ import annotations
 
-
+import builtins
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel as PydanticBaseModel, Field, ConfigDict
+from pydantic import BaseModel as PydanticBaseModel
+from pydantic import ConfigDict, Field
 
 
 class BaseModel(PydanticBaseModel):
@@ -34,7 +35,7 @@ class BaseModel(PydanticBaseModel):
         json_encoders={datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)},
     )
 
-    def dict(self, **kwargs) -> Dict[str, Any]:
+    def dict(self, **kwargs) -> builtins.dict[str, Any]:
         """Override dict() to ensure consistent serialization."""
         # Set defaults for common use cases
         kwargs.setdefault("exclude_none", True)
@@ -98,7 +99,7 @@ class StatusMixin(BaseModel):
 class MetadataMixin(BaseModel):
     """Mixin that adds flexible metadata storage to a model."""
 
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata as key-value pairs")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata as key-value pairs")
     tags: list[str] = Field(default_factory=list, description="Tags for categorization and filtering")
 
     def add_tag(self, tag: str) -> None:

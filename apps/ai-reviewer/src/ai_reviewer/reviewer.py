@@ -202,7 +202,7 @@ class ReviewEngine:
         confidence = claude_result.get("confidence", 0.5)
 
         # Check for escalation,
-        escalation_reason = claude_result.get("escalation_reason")
+        escalation_reason = claude_result.get("escalation_reason"),
         confusion_points = None
 
         if decision == ReviewDecision.ESCALATE and escalation_reason:

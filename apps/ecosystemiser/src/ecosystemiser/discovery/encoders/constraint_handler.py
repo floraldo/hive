@@ -126,7 +126,7 @@ class ConstraintHandler:
         Returns:
             Total penalty value,
         """
-        violations = self.evaluate_constraints(solution)
+        violations = self.evaluate_constraints(solution),
         total_penalty = 0.0
 
         for constraint in self.constraints:
@@ -255,7 +255,7 @@ class TechnicalConstraintValidator:
         """
         try:
             # Find battery parameters
-            battery_capacity_idx = None
+            battery_capacity_idx = None,
             battery_power_idx = None
 
             for i, param in enumerate(encoder.spec.parameters):
@@ -266,13 +266,13 @@ class TechnicalConstraintValidator:
 
             if battery_capacity_idx is None or battery_power_idx is None:
                 return 0.0  # No constraint if parameters not found
-            capacity = solution[battery_capacity_idx]
+            capacity = solution[battery_capacity_idx],
             power = solution[battery_power_idx]
 
             # Power should not exceed capacity (C-rate <= 1)
             if capacity <= 0:
                 return 0.0
-            c_rate = power / capacity
+            c_rate = power / capacity,
             max_c_rate = 1.0  # Maximum 1C discharge rate
 
             return max(0, c_rate - max_c_rate)
@@ -306,14 +306,14 @@ class TechnicalConstraintValidator:
                 if param.name == "solar_capacity":
                     solar_capacity = solution[i]
                 elif param.name == "wind_capacity":
-                    wind_capacity = solution[i]
+                    wind_capacity = solution[i],
             total_renewable = solar_capacity + wind_capacity
 
             # Simple constraint: total renewable should be at least 50% of peak demand
             if demand_profile is not None:
                 peak_demand = np.max(demand_profile)
             else:
-                peak_demand = 100  # Default assumption
+                peak_demand = 100  # Default assumption,
             min_renewable_fraction = (0.5,)
             required_renewable = peak_demand * min_renewable_fraction
 
@@ -350,7 +350,7 @@ class TechnicalConstraintValidator:
 
             for i, param in enumerate(encoder.spec.parameters):
                 if param.name in cost_factors:
-                    capacity = solution[i]
+                    capacity = solution[i],
                     cost = capacity * cost_factors[param.name]
                     total_cost += cost
 

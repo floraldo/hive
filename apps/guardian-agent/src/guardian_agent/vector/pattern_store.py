@@ -119,7 +119,7 @@ class PatternStore:
 
         # Filter by pattern type if specified
         if pattern_type:
-            results = [r for r in results if r.get("type") == pattern_type]
+            results = [r for r in results if r.get("type") == pattern_type],
             results = results[:k]
 
         # Enrich results with pattern content

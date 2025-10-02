@@ -29,13 +29,12 @@ import stat
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 
 
 class SecurityAuditResult:
     """Result of a security audit check"""
 
-    def __init__(self, check_name: str, status: str, message: str, severity: str = "INFO", details: Dict = None):
+    def __init__(self, check_name: str, status: str, message: str, severity: str = "INFO", details: dict = None):
         self.check_name = check_name
         self.status = status
         self.message = message
@@ -49,7 +48,7 @@ class SecurityAuditor:
 
     def __init__(self, project_root: Path = None):
         self.project_root = project_root or Path.cwd()
-        self.audit_results: List[SecurityAuditResult] = []
+        self.audit_results: list[SecurityAuditResult] = []
 
         self.sensitive_file_patterns = [
             r"\.env\.?.*",
@@ -132,9 +131,7 @@ class SecurityAuditor:
 
             except Exception as e:
                 self.audit_results.append(
-                    SecurityAuditResult(
-                        "file_permissions", "FAIL", f"Error checking permissions: {str(e)}", "MEDIUM"
-                    )
+                    SecurityAuditResult("file_permissions", "FAIL", f"Error checking permissions: {str(e)}", "MEDIUM")
                 )
 
     def audit_environment_variables(self) -> None:
@@ -184,7 +181,7 @@ class SecurityAuditor:
 
         for log_file in log_files:
             try:
-                with open(log_file, "r", encoding="utf-8", errors="ignore") as f:
+                with open(log_file, encoding="utf-8", errors="ignore") as f:
                     for line_num, line in enumerate(f, 1):
                         if line_num > 1000:
                             break
@@ -234,7 +231,7 @@ class SecurityAuditor:
 
         for config_file in config_files[:50]:
             try:
-                with open(config_file, "r", encoding="utf-8", errors="ignore") as f:
+                with open(config_file, encoding="utf-8", errors="ignore") as f:
                     content = f.read().lower()
 
                     insecure_patterns = [
@@ -376,7 +373,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-

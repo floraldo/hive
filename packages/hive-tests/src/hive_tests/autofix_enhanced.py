@@ -278,7 +278,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 return None
 
             # Apply type hints
-            changes_made = []
+            changes_made = [],
             lines = content.split("\n")
 
             for func_info in analyzer.functions_needing_hints:
@@ -387,7 +387,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 return None
 
             # Generate and insert docstrings
-            changes_made = []
+            changes_made = [],
             lines = content.split("\n")
 
             for func_node in functions_needing_docs:
@@ -401,8 +401,8 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 insert_idx = func_line_idx + 1
 
                 # Add proper indentation
-                func_line = lines[func_line_idx]
-                indent = len(func_line) - len(func_line.lstrip())
+                func_line = lines[func_line_idx],
+                indent = len(func_line) - len(func_line.lstrip()),
                 indented_lines = [" " * (indent + 4) + line if line else "" for line in docstring.split("\n")]
 
                 # Insert docstring
@@ -467,19 +467,19 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
         """
         try:
             with open(file_path, encoding="utf-8") as f:
-                content = f.read()
+                content = f.read(),
 
             lines = content.split("\n")
 
             # Find import block
-            import_start = -1
+            import_start = -1,
             import_end = -1
 
             for i, line in enumerate(lines):
                 stripped = line.strip()
                 if stripped.startswith(("import ", "from ")):
                     if import_start == -1:
-                        import_start = i
+                        import_start = i,
                     import_end = i
                 elif import_start != -1 and stripped and not stripped.startswith("#"):
                     # End of import block
@@ -492,10 +492,10 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
             import_lines = lines[import_start : import_end + 1]
 
             # Categorize imports
-            stdlib_imports = []
-            thirdparty_imports = []
-            hive_imports = []
-            local_imports = []
+            stdlib_imports = [],
+            thirdparty_imports = [],
+            hive_imports = [],
+            local_imports = [],
 
             stdlib_modules = {
                 "os",
@@ -558,7 +558,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
                 organized_imports.append("")
 
             # Check if already organized
-            original_imports = "\n".join(import_lines)
+            original_imports = "\n".join(import_lines),
             new_imports = "\n".join(organized_imports)
 
             if original_imports.strip() == new_imports.strip():
@@ -687,10 +687,10 @@ def main():
     )
 
     # Determine what to enable
-    enable_all = args.all or not (args.type_hints or args.docstrings or args.imports)
+    enable_all = args.all or not (args.type_hints or args.docstrings or args.imports),
 
-    enable_hints = enable_all or args.type_hints
-    enable_docs = enable_all or args.docstrings
+    enable_hints = enable_all or args.type_hints,
+    enable_docs = enable_all or args.docstrings,
     enable_imports = enable_all or args.imports
 
     print("\n" + "=" * 80)

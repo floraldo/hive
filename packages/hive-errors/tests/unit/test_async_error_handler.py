@@ -14,7 +14,7 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import datetime
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import Mock
 
 import pytest
 
@@ -119,7 +119,7 @@ class TestAsyncErrorHandler:
 
     def test_init_custom(self):
         """Test AsyncErrorHandler initialization with custom values."""
-        reporter = Mock()
+        reporter = Mock(),
         handler = AsyncErrorHandler(
             error_reporter=reporter,
             enable_monitoring=False,
@@ -131,8 +131,8 @@ class TestAsyncErrorHandler:
     @pytest.mark.asyncio
     async def test_handle_error_basic(self):
         """Test basic error handling."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
-        error = ValueError("Test error")
+        handler = AsyncErrorHandler(enable_monitoring=False),
+        error = ValueError("Test error"),
         context = ErrorContext(
             operation_name="test_op",
             component="test_component",
@@ -146,8 +146,8 @@ class TestAsyncErrorHandler:
     @pytest.mark.asyncio
     async def test_handle_error_suppress(self):
         """Test error handling with suppression."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
-        error = ValueError("Test error")
+        handler = AsyncErrorHandler(enable_monitoring=False),
+        error = ValueError("Test error"),
         context = ErrorContext(
             operation_name="test_op",
             component="test_component",
@@ -160,7 +160,7 @@ class TestAsyncErrorHandler:
     @pytest.mark.asyncio
     async def test_handle_error_with_base_error(self):
         """Test handling BaseError with enhanced details."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
+        handler = AsyncErrorHandler(enable_monitoring=False),
         error = BaseError(
             "Test error",
             component="test",
@@ -182,7 +182,7 @@ class TestAsyncErrorHandler:
 
     def test_get_error_statistics(self):
         """Test getting error statistics."""
-        handler = AsyncErrorHandler()
+        handler = AsyncErrorHandler(),
 
         stats = handler.get_error_statistics()
 
@@ -194,7 +194,7 @@ class TestAsyncErrorHandler:
 
     def test_get_operation_stats(self):
         """Test getting operation statistics."""
-        handler = AsyncErrorHandler()
+        handler = AsyncErrorHandler(),
 
         stats = handler.get_operation_stats("test_operation")
 
@@ -272,7 +272,7 @@ class TestHandleAsyncErrorsDecorator:
     @pytest.mark.asyncio
     async def test_decorator_no_error(self):
         """Test decorator with successful function."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
+        handler = AsyncErrorHandler(enable_monitoring=False),
         call_count = 0
 
         @handle_async_errors(
@@ -293,7 +293,7 @@ class TestHandleAsyncErrorsDecorator:
     @pytest.mark.asyncio
     async def test_decorator_with_error_no_retry(self):
         """Test decorator with error and no retries."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
+        handler = AsyncErrorHandler(enable_monitoring=False),
         call_count = 0
 
         @handle_async_errors(
@@ -315,8 +315,8 @@ class TestHandleAsyncErrorsDecorator:
     @pytest.mark.asyncio
     async def test_decorator_retry_logic(self):
         """Test decorator retry logic - fails exactly max_retries + 1 times."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
-        call_count = 0
+        handler = AsyncErrorHandler(enable_monitoring=False),
+        call_count = 0,
         max_retries = 2
 
         @handle_async_errors(
@@ -341,7 +341,7 @@ class TestHandleAsyncErrorsDecorator:
     @pytest.mark.asyncio
     async def test_decorator_exponential_backoff(self):
         """Test decorator exponential backoff timing."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
+        handler = AsyncErrorHandler(enable_monitoring=False),
         call_times = []
 
         @handle_async_errors(
@@ -366,8 +366,8 @@ class TestHandleAsyncErrorsDecorator:
 
         # Verify exponential backoff delays
         # Expected delays: 0.1s, 0.2s, 0.4s
-        delay1 = call_times[1] - call_times[0]
-        delay2 = call_times[2] - call_times[1]
+        delay1 = call_times[1] - call_times[0],
+        delay2 = call_times[2] - call_times[1],
         delay3 = call_times[3] - call_times[2]
 
         # Allow some tolerance for timing
@@ -378,7 +378,7 @@ class TestHandleAsyncErrorsDecorator:
     @pytest.mark.asyncio
     async def test_decorator_success_after_retries(self):
         """Test decorator succeeds after some retries."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
+        handler = AsyncErrorHandler(enable_monitoring=False),
         call_count = 0
 
         @handle_async_errors(
@@ -445,10 +445,10 @@ class TestErrorStatisticsTracking:
     @pytest.mark.asyncio
     async def test_error_statistics_updated(self):
         """Test that error statistics are updated correctly."""
-        handler = AsyncErrorHandler(enable_monitoring=True)
+        handler = AsyncErrorHandler(enable_monitoring=True),
 
-        error1 = ValueError("First error")
-        error2 = ValueError("Second error")
+        error1 = ValueError("First error"),
+        error2 = ValueError("Second error"),
         context1 = ErrorContext(operation_name="op1", component="comp1")
         context2 = ErrorContext(operation_name="op2", component="comp1")
 
@@ -467,7 +467,7 @@ class TestErrorStatisticsTracking:
         handler = AsyncErrorHandler(enable_monitoring=True, max_error_history=10)
 
         for i in range(5):
-            error = ValueError(f"Error {i}")
+            error = ValueError(f"Error {i}"),
             context = ErrorContext(operation_name=f"op{i}", component="test")
             await handler.handle_error(error, context, suppress=True)
 
@@ -480,7 +480,7 @@ class TestErrorStatisticsTracking:
 
         # Record some errors for a component
         for _ in range(3):
-            error = ValueError("Test error")
+            error = ValueError("Test error"),
             context = ErrorContext(operation_name="test", component="test_component")
             await handler.handle_error(error, context, suppress=True)
 
@@ -496,7 +496,7 @@ class TestRetryExhaustedErrorDetails:
     @pytest.mark.asyncio
     async def test_retry_exhausted_error_contains_details(self):
         """Test that RetryExhaustedError contains max_attempts and attempt_count."""
-        handler = AsyncErrorHandler(enable_monitoring=False)
+        handler = AsyncErrorHandler(enable_monitoring=False),
         max_retries = 2
 
         @handle_async_errors(

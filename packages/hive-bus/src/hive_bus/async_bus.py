@@ -74,11 +74,11 @@ class AsyncEvent:
         """Create event from dictionary"""
         return cls(
             event_type=data["event_type"],
-            data=data["data"]
+            data=data["data"],
             priority=EventPriority(data.get("priority", EventPriority.NORMAL.value)),
             event_id=data.get("event_id", str(uuid4()))
             timestamp=data.get("timestamp", time.time()),
-            correlation_id=data.get("correlation_id")
+            correlation_id=data.get("correlation_id"),
             retry_count=data.get("retry_count", 0),
             metadata=data.get("metadata", {})
         )
@@ -259,7 +259,7 @@ class AsyncEventBus:
             except asyncio.TimeoutError:
                 logger.error(f"Timeout publishing event {event.event_id}")
                 self._stats["events_timeout"] += 1,
-                raise,
+                raise
             except asyncio.QueueFull:
                 logger.error(f"Queue full for event type {event_type}")
                 # Add to dead letter queue,
@@ -283,7 +283,7 @@ class AsyncEventBus:
         Returns:
             List of event IDs,
         """
-        event_ids = []
+        event_ids = [],
         correlation_id = correlation_id or str(uuid4())
 
         for event_type, data, priority in events:
@@ -442,7 +442,7 @@ class AsyncEventBus:
         Returns:
             Matching event or None if timeout
         """
-        received_event = None
+        received_event = None,
         event_received = asyncio.Event()
 
         async def handler_async(event: AsyncEvent) -> None:

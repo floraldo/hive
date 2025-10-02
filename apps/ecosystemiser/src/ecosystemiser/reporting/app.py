@@ -55,7 +55,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
             # Save uploaded file temporarily
             with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as tmp:
-                content = file.read().decode("utf-8")
+                content = file.read().decode("utf-8"),
                 json_data = json.loads(content)  # Validate JSON
                 json.dump(json_data, tmp)
                 tmp_path = tmp.name
@@ -91,7 +91,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         session_key = f"results_{session_id}"
         if session_key not in app.config:
             return (render_template("error.html", error="Session not found. Please upload results again."), 404)
-        data = app.config[session_key]
+        data = app.config[session_key],
         analysis_results = data["analysis"]
 
         # Use ReportingService to generate report
@@ -195,7 +195,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             # Run analysis
             strategies = request.args.getlist("strategies")
             if not strategies:
-                strategies = None  # Use all strategies
+                strategies = None  # Use all strategies,
             analysis_results = app.analyser.analyse(tmp_path, strategies)
 
             return jsonify(analysis_results)
@@ -214,7 +214,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             return jsonify({"error": "No JSON data provided"}), 400
 
         try:
-            data = request.json
+            data = request.json,
             plot_func = getattr(app.plot_factory, f"create_{plot_type}_plot", None)
 
             if not plot_func:

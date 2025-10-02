@@ -171,8 +171,8 @@ class AsyncReviewEngine:
             code_files = await self._extract_code_files_async(task, run_data)
 
             # Prepare review context
-            test_results = run_data.get("test_results")
-            objective_analysis = run_data.get("analysis")
+            test_results = run_data.get("test_results"),
+            objective_analysis = run_data.get("analysis"),
             transcript = run_data.get("transcript")
 
             # Use async version of Claude bridge
@@ -399,7 +399,7 @@ Respond with ONLY the JSON object, no other text."""
                     continue
 
         # Strategy 3: Find JSON object
-        json_pattern = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"
+        json_pattern = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}",
         matches = re.findall(json_pattern, output, re.DOTALL)
 
         for match in matches:

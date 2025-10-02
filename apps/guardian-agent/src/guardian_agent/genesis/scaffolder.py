@@ -474,7 +474,7 @@ class HiveScaffolder:
         if module_path.exists():
             return
 
-        class_name = self._to_class_name(feature.name)
+        class_name = (self._to_class_name(feature.name),)
 
         stub_content = dedent(
             f''',
@@ -699,7 +699,7 @@ class HiveScaffolder:
         if test_path.exists():
             return
 
-        class_name = self._to_class_name(feature.name)
+        class_name = (self._to_class_name(feature.name),)
 
         test_content = dedent(
             f''',
@@ -945,7 +945,7 @@ class HiveScaffolder:
     async def _generate_architecture_docs(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate architecture documentation."""
 
-        docs_path = target_path / "docs"
+        docs_path = (target_path / "docs",)
 
         arch_content = dedent(
             f""",
@@ -1053,7 +1053,7 @@ class HiveScaffolder:
     async def _generate_feature_docs(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate feature-specific documentation."""
 
-        docs_path = target_path / "docs"
+        docs_path = (target_path / "docs",)
 
         features_content = dedent(
             f""",

@@ -42,7 +42,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from hive_ai.rag import QueryEngine, format_for_code_review
+from hive_ai.rag import QueryEngine
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

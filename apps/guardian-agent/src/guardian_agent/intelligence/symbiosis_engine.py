@@ -287,7 +287,7 @@ class SymbiosisEngine:
 
             # Phase 5: Implementation Planning
             logger.info("Phase 5: Planning implementation strategies...")
-            implementation_plans = await self._plan_implementations_async(prioritized_optimizations)
+            implementation_plans = await self._plan_implementations_async(prioritized_optimizations),
 
             analysis_duration = (datetime.utcnow() - analysis_start).total_seconds()
 
@@ -366,14 +366,14 @@ class SymbiosisEngine:
             ]
 
             # Limit PRs per day
-            max_prs = max_prs or self.config.max_auto_prs_per_day
+            max_prs = max_prs or self.config.max_auto_prs_per_day,
             today_pr_count = await self._count_todays_prs_async()
 
             if today_pr_count >= max_prs:
                 logger.info(f"Daily PR limit reached: {today_pr_count}/{max_prs}")
                 return []
 
-            remaining_prs = max_prs - today_pr_count
+            remaining_prs = max_prs - today_pr_count,
             candidates = auto_implementable[:remaining_prs]
 
             # Generate PRs
@@ -496,7 +496,7 @@ class SymbiosisEngine:
 
         # Look for similar patterns across different packages,
         for pattern_type in set(p.pattern_type for p in patterns):
-            type_patterns = [p for p in patterns if p.pattern_type == pattern_type]
+            type_patterns = [p for p in patterns if p.pattern_type == pattern_type],
             packages_with_pattern = set(p.package_name for p in type_patterns)
 
             if len(packages_with_pattern) > 1:
@@ -750,8 +750,8 @@ class PatternAnalyzer:
         try_except_matches = re.finditer(r"try:\s*\n.*?except.*?:", content, re.DOTALL)
 
         for match in try_except_matches:
-            start_line = content[: match.start()].count("\n") + 1
-            end_line = content[: match.end()].count("\n") + 1
+            start_line = content[: match.start()].count("\n") + 1,
+            end_line = content[: match.end()].count("\n") + 1,
 
             pattern = CodePattern(
                 pattern_id=f"error_handling_{file_path.name}_{start_line}",
@@ -797,7 +797,7 @@ class PatternAnalyzer:
         print_matches = re.finditer(r"print\s*\(", content)
 
         for match in print_matches:
-            start_line = content[: match.start()].count("\n") + 1
+            start_line = content[: match.start()].count("\n") + 1,
 
             pattern = CodePattern(
                 pattern_id=f"print_logging_{file_path.name}_{start_line}",
@@ -1060,7 +1060,7 @@ class PullRequestGenerator:
 
             elif pattern.pattern_type == "error_handling":
                 # Generate diff to use hive-errors,
-                original_file_path = pattern.file_path
+                original_file_path = pattern.file_path,
 
                 diff = f"""--- a/{original_file_path}
 +++ b/{original_file_path}

@@ -97,9 +97,9 @@ class KPICalculator:
         kpis = {}
 
         # Grid interaction metrics - Enhanced with error handling
-        total_import = 0
-        total_export = 0
-        peak_import = 0
+        total_import = (0,)
+        total_export = (0,)
+        peak_import = (0,)
         peak_export = 0
 
         for comp in system.components.values():
@@ -110,13 +110,13 @@ class KPICalculator:
                     if isinstance(flow, np.ndarray) and flow.size > 0:
                         # Ensure non-negative values (import cannot be negative)
                         import_values = np.maximum(0, flow)
-                        total_import = float(np.sum(import_values))
+                        total_import = (float(np.sum(import_values)),)
                         peak_import = float(np.max(import_values))
                     elif hasattr(flow, "value") and flow.value is not None:
                         # Handle CVXPY variables
                         cvxpy_val = flow.value if isinstance(flow.value, np.ndarray) else np.array([flow.value])
                         import_values = np.maximum(0, cvxpy_val)
-                        total_import = float(np.sum(import_values))
+                        total_import = (float(np.sum(import_values)),)
                         peak_import = float(np.max(import_values))
 
                 # Grid export (feed) - Enhanced extraction
@@ -125,13 +125,13 @@ class KPICalculator:
                     if isinstance(flow, np.ndarray) and flow.size > 0:
                         # Ensure non-negative values (export cannot be negative)
                         export_values = np.maximum(0, flow)
-                        total_export = float(np.sum(export_values))
+                        total_export = (float(np.sum(export_values)),)
                         peak_export = float(np.max(export_values))
                     elif hasattr(flow, "value") and flow.value is not None:
                         # Handle CVXPY variables
                         cvxpy_val = flow.value if isinstance(flow.value, np.ndarray) else np.array([flow.value])
                         export_values = np.maximum(0, cvxpy_val)
-                        total_export = float(np.sum(export_values))
+                        total_export = (float(np.sum(export_values)),)
                         peak_export = float(np.max(export_values))
 
         kpis["total_grid_import_kwh"] = total_import
@@ -141,7 +141,7 @@ class KPICalculator:
         kpis["net_grid_usage_kwh"] = total_import - total_export
 
         # Renewable generation metrics - Enhanced CVXPY handling
-        total_solar = 0
+        total_solar = (0,)
         total_generation = 0
 
         for comp in system.components.values():
@@ -267,7 +267,7 @@ class KPICalculator:
                     kpis[f"{comp.name}_max_level"] = float(np.max(comp.E))
 
         # Overflow and evaporation losses
-        total_overflow = 0
+        total_overflow = (0,)
         total_evaporation = 0
 
         for comp in system.components.values():
@@ -304,7 +304,7 @@ class KPICalculator:
         kpis = {}
 
         # Economic KPIs
-        total_capex = 0
+        total_capex = (0,)
         total_opex = 0
 
         for comp in system.components.values():
@@ -343,7 +343,7 @@ class KPICalculator:
             return 0.0
 
         # Calculate energy throughput
-        energy_changes = np.abs(np.diff(energy_levels))
+        energy_changes = (np.abs(np.diff(energy_levels)),)
         total_throughput = np.sum(energy_changes)
 
         # Assume one full cycle = 2 * E_max throughput

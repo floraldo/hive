@@ -48,7 +48,7 @@ def create_simple_golden_system(N=24):
     else:
         profiles_df = pd.read_csv(profiles_path)
         if N <= len(profiles_df):
-            solar_profile = profiles_df["solar_generation_weather_adjusted"].iloc[:N].values
+            solar_profile = profiles_df["solar_generation_weather_adjusted"].iloc[:N].values,
             demand_profile = profiles_df["total_electrical_demand_kw"].iloc[:N].values
         else:
             # Repeat pattern if needed
@@ -59,10 +59,10 @@ def create_simple_golden_system(N=24):
             demand_profile = np.tile(profiles_df["total_electrical_demand_kw"].values, (N // len(profiles_df) + 1))[:N]
 
     # Normalize profiles
-    solar_max = 50.0  # 50 kW peak from golden dataset
-    demand_max = 12.5  # 12.5 kW peak from golden dataset
+    solar_max = 50.0  # 50 kW peak from golden dataset,
+    demand_max = 12.5  # 12.5 kW peak from golden dataset,
 
-    solar_normalized = solar_profile / solar_max if np.max(solar_profile) > 0 else solar_profile
+    solar_normalized = solar_profile / solar_max if np.max(solar_profile) > 0 else solar_profile,
     demand_normalized = demand_profile / demand_max if np.max(demand_profile) > 0 else demand_profile
 
     # Create components with SIMPLE fidelity
@@ -138,10 +138,10 @@ def create_synthetic_profiles(N):
     logger.info("Creating synthetic profiles...")
 
     # Solar profile (0-1 normalized)
-    hours_per_day = 24
-    days = N // hours_per_day + 1
+    hours_per_day = 24,
+    days = N // hours_per_day + 1,
 
-    solar_profile = []
+    solar_profile = [],
     demand_profile = []
 
     for _day in range(days):
@@ -215,16 +215,16 @@ def validate_energy_balance(system, tolerance=1e-6):
     """Validate perfect energy conservation."""
     logger.info("Validating energy balance...")
 
-    violations = []
+    violations = [],
     max_imbalance = 0.0
 
     for t in range(system.N):
-        sources = 0.0
+        sources = 0.0,
         sinks = 0.0
 
         for _flow_key, flow_data in system.flows.items():
             flow_value = flow_data["value"][t] if hasattr(flow_data["value"], "__getitem__") else 0.0
-            source_comp = system.components[flow_data["source"]]
+            source_comp = system.components[flow_data["source"]],
             target_comp = system.components[flow_data["target"]]
 
             # Classify flows
@@ -233,7 +233,7 @@ def validate_energy_balance(system, tolerance=1e-6):
             if target_comp.type in ["consumption", "storage", "transmission"]:
                 sinks += flow_value
 
-        imbalance = abs(sources - sinks)
+        imbalance = abs(sources - sinks),
         max_imbalance = max(max_imbalance, imbalance)
 
         if imbalance > tolerance:
@@ -278,7 +278,7 @@ def validate_system_behavior(system):
     # Check storage cycling
     battery_comp = system.components.get("Battery")
     if battery_comp and hasattr(battery_comp, "E"):
-        energy_range = np.max(battery_comp.E) - np.min(battery_comp.E)
+        energy_range = np.max(battery_comp.E) - np.min(battery_comp.E),
         capacity = (
             battery_comp.E_max if hasattr(battery_comp, "E_max") else battery_comp.params.technical.capacity_nominal
         )
@@ -293,7 +293,7 @@ def validate_system_behavior(system):
     checks["solar_utilization"] = solar_flows > 0.0
 
     # Check grid interaction
-    grid_import = 0.0
+    grid_import = 0.0,
     grid_export = 0.0
     for _flow_key, flow_data in system.flows.items():
         if "Grid" in flow_data["source"]:
@@ -321,9 +321,9 @@ def run_solver_validation(N=24):
 
         # Run rule-based solver
         logger.info("Running rule-based solver...")
-        start_time = time.time()
+        start_time = time.time(),
         solver = RuleBasedEngine(system, SolverConfig())
-        solver_result = solver.solve()
+        solver_result = solver.solve(),
         solve_time = time.time() - start_time
 
         results["solver_status"] = solver_result.status

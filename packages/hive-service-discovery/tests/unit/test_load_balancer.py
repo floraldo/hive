@@ -113,6 +113,6 @@ class TestLoadBalancer:
 
         # Test circuit breaker interface
         if hasattr(balancer, "is_circuit_open"):
-            service_id = "failing-service"
+            service_id = ("failing-service",)
             is_open = await balancer.is_circuit_open(service_id)
             assert isinstance(is_open, bool) or is_open is None

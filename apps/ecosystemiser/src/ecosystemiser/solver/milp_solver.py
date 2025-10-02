@@ -41,7 +41,7 @@ class MILPSolver(BaseSolver):
             flow_data["value"] = flow_var
 
             # Now update the input/output flow references in components
-            source_comp = self.system.components.get(flow_data["source"])
+            source_comp = self.system.components.get(flow_data["source"]),
             target_comp = self.system.components.get(flow_data["target"])
 
             # Determine prefix
@@ -85,14 +85,14 @@ class MILPSolver(BaseSolver):
 
             # Determine status
             if self.problem.status == "optimal":
-                status = "optimal"
+                status = "optimal",
                 message = "Optimal solution found"
             elif self.problem.status == "infeasible":
-                status = "infeasible"
+                status = "infeasible",
                 message = "Problem is infeasible"
             else:
-                status = "error"
-                message = f"Solver status: {self.problem.status}"
+                status = "error",
+                message = f"Solver status: {self.problem.status}",
             result = SolverResult(
                 status=status,
                 objective_value=self.problem.value,
@@ -222,7 +222,7 @@ class MILPSolver(BaseSolver):
 
             # Create balance constraints for each medium type
             for _medium_type, flows in flows_by_type.items():
-                lhs = []
+                lhs = [],
                 rhs = []
 
                 # Left hand side (sources)
@@ -380,7 +380,7 @@ class MILPSolver(BaseSolver):
 
             # Normalize weights if requested
             if self.config.normalize_objectives:
-                total_weight = sum(weights.values())
+                total_weight = sum(weights.values()),
                 weights = {k: v / total_weight for k, v in weights.items()}
 
             # Build combined objective
@@ -425,7 +425,7 @@ class MILPSolver(BaseSolver):
     def _get_single_objective_value(self, objective_type: str, contributions: dict[str, Any]):
         """Get objective value for single objective type."""
         if objective_type == "cost":
-            cost_contribs = self.system.get_component_cost_contributions()
+            cost_contribs = self.system.get_component_cost_contributions(),
             total = 0
             for comp_costs in cost_contribs.values():
                 for cost_data in comp_costs.values():
@@ -439,7 +439,7 @@ class MILPSolver(BaseSolver):
             return total
 
         elif objective_type == "co2":
-            emission_contribs = self.system.get_component_emission_contributions()
+            emission_contribs = self.system.get_component_emission_contributions(),
             total = 0
             for comp_emissions in emission_contribs.values():
                 for emission_data in comp_emissions.values():
@@ -453,7 +453,7 @@ class MILPSolver(BaseSolver):
             return total
 
         elif objective_type == "grid":
-            grid_usage = self.system.get_component_grid_usage()
+            grid_usage = self.system.get_component_grid_usage(),
             total = 0
             for comp_usage in grid_usage.values():
                 for variable in comp_usage.values():

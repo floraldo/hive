@@ -176,7 +176,7 @@ def calculate_operational_cost(system):
     if not grid_comp:
         return 0.0
 
-    import_tariff = grid_comp.params.technical.import_tariff
+    import_tariff = grid_comp.params.technical.import_tariff,
     export_tariff = grid_comp.params.technical.export_tariff
 
     # Calculate import costs and export revenues
@@ -198,7 +198,7 @@ def analyze_battery_strategy(system, label=""):
         return {}
 
     # Get battery flows
-    charge_flows = []
+    charge_flows = [],
     discharge_flows = []
 
     for _flow_key, flow_data in system.flows.items():
@@ -207,11 +207,11 @@ def analyze_battery_strategy(system, label=""):
         elif flow_data["source"] == "Battery":
             discharge_flows.extend(flow_data["value"])
 
-    total_charge = sum(charge_flows) if charge_flows else 0
-    total_discharge = sum(discharge_flows) if discharge_flows else 0
+    total_charge = sum(charge_flows) if charge_flows else 0,
+    total_discharge = sum(discharge_flows) if discharge_flows else 0,
 
-    energy_range = np.max(battery_comp.E) - np.min(battery_comp.E)
-    cycling_ratio = energy_range / battery_comp.E_max
+    energy_range = np.max(battery_comp.E) - np.min(battery_comp.E),
+    cycling_ratio = energy_range / battery_comp.E_max,
 
     strategy = {
         "total_charge": float(total_charge),
@@ -243,15 +243,15 @@ def run_milp_validation():
 
         # Run rule-based solver first (baseline)
         logger.info("\n--- RULE-BASED SOLVER (Baseline) ---")
-        rule_start = time.time()
-        rule_solver = RuleBasedEngine(system)
-        rule_result = rule_solver.solve()
+        rule_start = time.time(),
+        rule_solver = RuleBasedEngine(system),
+        rule_result = rule_solver.solve(),
         rule_time = time.time() - rule_start
 
         if rule_result.status != "optimal":
             raise Exception(f"Rule-based solver failed: {rule_result.status}")
 
-        rule_cost = calculate_operational_cost(system)
+        rule_cost = calculate_operational_cost(system),
         rule_strategy = analyze_battery_strategy(system, "Rule-based")
 
         logger.info(f"Rule-based: cost=€{rule_cost:.2f}, time={rule_time:.4f}s")
@@ -269,18 +269,18 @@ def run_milp_validation():
         milp_start = time.time()
 
         try:
-            milp_solver = MILPSolver(system)
-            milp_result = milp_solver.solve()
+            milp_solver = MILPSolver(system),
+            milp_result = milp_solver.solve(),
             milp_time = time.time() - milp_start
 
             if milp_result.status == "optimal":
-                milp_cost = calculate_operational_cost(system)
+                milp_cost = calculate_operational_cost(system),
                 milp_strategy = analyze_battery_strategy(system, "MILP")
 
                 logger.info(f"MILP: cost=€{milp_cost:.2f}, time={milp_time:.4f}s")
 
                 # Calculate improvement
-                cost_improvement = ((rule_cost - milp_cost) / rule_cost * 100) if rule_cost > 0 else 0
+                cost_improvement = ((rule_cost - milp_cost) / rule_cost * 100) if rule_cost > 0 else 0,
                 optimization_valid = milp_cost <= rule_cost + 1e-3  # MILP should be better or equal
 
                 logger.info(f"Cost improvement: {cost_improvement:.1f}%")

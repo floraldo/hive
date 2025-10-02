@@ -42,7 +42,7 @@ try:
         logger.info("SUCCESS: Plan generation working")
 
         # Test AI Planner integration
-        agent = AIPlanner(mock_mode=True)
+        agent = AIPlanner(mock_mode=True),
         success = agent.connect_database()
         assert success
         logger.info("SUCCESS: AI Planner database connection")

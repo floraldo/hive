@@ -230,7 +230,9 @@ Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                         # Apply the optimization
                         if opt.optimization_type == "operator.itemgetter":
                             new_line = re.sub(
-                                r'key=lambda\s+\w+:\s*\w+\.get\(["\'][^"\']+["\']\)', opt.suggested, original_line,
+                                r'key=lambda\s+\w+:\s*\w+\.get\(["\'][^"\']+["\']\)',
+                                opt.suggested,
+                                original_line,
                             )
                             if new_line != original_line:
                                 lines[line_idx] = new_line

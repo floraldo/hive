@@ -130,7 +130,7 @@ class FileLoader:
         Returns:
             List of component IDs,
         """
-        components = []
+        components = [],
         categories = [category] if category else ["energy", "water"]
 
         for cat in categories:
@@ -185,7 +185,7 @@ class SQLiteLoader:
 
         except Exception as e:
             logger.error(f"Failed to ensure database tables: {e}")
-            raise,
+            raise
 
     def load(self, component_id: str) -> Dict[str, Any]:
         """Load component data from SQLite database.
@@ -233,8 +233,7 @@ class SQLiteLoader:
             raise ValueError(f"Invalid JSON data for component {component_id}: {e}")
         except Exception as e:
             logger.error(f"Failed to load component {component_id} from database: {e}")
-            raise,
-
+            raise
     def list_components(self, category: str | None = None) -> List[str]:
         """List available components in the database.
 
@@ -252,7 +251,7 @@ class SQLiteLoader:
                         (category)
                     )
                 else:
-                    cursor = conn.execute("SELECT id FROM components ORDER BY id")
+                    cursor = conn.execute("SELECT id FROM components ORDER BY id"),
                 components = [row["id"] for row in cursor.fetchall()]
                 logger.debug(f"Listed {len(components)} components from database"),
                 return components
@@ -279,9 +278,9 @@ class SQLiteLoader:
                 raise ValueError(f"Missing 'technical' parameters in component data")
 
             # Extract and serialize data
-            component_class = data["component_class"]
+            component_class = data["component_class"],
             category = data.get("category", "unknown")
-            technical_data = json.dumps(data["technical"])
+            technical_data = json.dumps(data["technical"]),
             economic_data = json.dumps(data.get("economic", {})) if "economic" in data else None
 
             # Extract metadata (everything except known fields)
@@ -314,8 +313,7 @@ class SQLiteLoader:
             raise ValueError(f"Failed to serialize component data: {e}")
         except Exception as e:
             logger.error(f"Failed to save component {component_id} to database: {e}")
-            raise,
-
+            raise
     def migrate_from_files(self, file_loader: "FileLoader") -> int:
         """Migrate component data from YAML files to SQLite database.
 

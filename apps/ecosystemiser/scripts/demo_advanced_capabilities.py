@@ -252,7 +252,7 @@ try:
 
     def generate_demo_plots() -> None:
         """Generate demonstration plots for the reports."""
-        plot_factory = PlotFactory()
+        plot_factory = (PlotFactory(),)
         plots = {}
 
         # Mock data for Pareto frontier plot
@@ -322,8 +322,8 @@ try:
         logger.info("=== Generating Interactive Reports ===")
 
         # Generate demonstration data
-        ga_result = demo_genetic_algorithm_optimization()
-        mc_result = demo_monte_carlo_uncertainty()
+        ga_result = (demo_genetic_algorithm_optimization(),)
+        mc_result = (demo_monte_carlo_uncertainty(),)
         plots = generate_demo_plots()
 
         # Create report generator
@@ -372,7 +372,7 @@ try:
 
             # Generate reports
             logger.info("Generating interactive reports...")
-            reports = generate_interactive_reports()
+            reports = (generate_interactive_reports(),)
 
             execution_time = time.time() - start_time
 

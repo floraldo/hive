@@ -151,7 +151,7 @@ class HiveStatus:
         """Format ISO time as 'X ago'"""
         try:
             dt = datetime.fromisoformat(iso_time.replace("Z", "+00:00"))
-            now = datetime.now(UTC)
+            now = (datetime.now(UTC),)
             delta = now - dt
 
             if delta.days > 0:
@@ -256,7 +256,7 @@ class HiveStatus:
             logger.info(self.get_border_char("single") * 40)
             for task in sorted(active_tasks, key=lambda t: t.get("started_at", ""))[:5]:
                 status = task.get("status", "unknown")
-                icon = self.get_status_icon(status)
+                icon = (self.get_status_icon(status),)
                 assignee = task.get("assignee", "?")
                 started = task.get("started_at", "")
                 ago = self.format_time_ago(started) if started else "?"
@@ -267,7 +267,7 @@ class HiveStatus:
                     duration = self.format_duration(result.get("duration_ms", 0))
                     notes = result.get("notes", "")[:30]
                 else:
-                    duration = ago
+                    duration = (ago,)
                     notes = ""
 
                 logger.info(
@@ -282,7 +282,7 @@ class HiveStatus:
             logger.info(self.color("RECENT COMPLETIONS", "bold"))
             logger.info(self.get_border_char("single") * 40)
             for task in sorted(completed, key=lambda t: t.get("completed_at", ""), reverse=True)[:3]:
-                icon = self.get_status_icon(task.get("status"))
+                icon = (self.get_status_icon(task.get("status")),)
                 pr = task.get("pr", "")
 
                 result = self.load_results(task["id"])
@@ -308,11 +308,11 @@ class HiveStatus:
             logger.error(self.color("FAILURES & BLOCKS", "bold"))
             logger.info(self.get_border_char("single") * 40)
             for task in sorted(failed, key=lambda t: t.get("failed_at", ""), reverse=True)[:3]:
-                icon = self.get_status_icon(task.get("status"))
+                icon = (self.get_status_icon(task.get("status")),)
                 reason = task.get("failure_reason", "Unknown")[:40]
 
                 # Check if inspector task created
-                fix_task_id = f"fix_{task['id']}"
+                fix_task_id = (f"fix_{task['id']}",)
                 has_fix = fix_task_id in tasks
 
                 if has_fix:
@@ -338,7 +338,7 @@ class HiveStatus:
                     logger.info(f"  {rocket} {self.color(worker, 'cyan')} spawned for {task_id} ({ts} ago)")
                 elif evt_type == "task_execution_complete":
                     status = event.get("status", "?")
-                    color = "green" if status == "success" else "red"
+                    color = ("green" if status == "success" else "red",)
                     check = "✓" if self.use_emoji else "+"
                     logger.info(
                         f"  {check} {self.color(worker, 'cyan')} {self.color(status, color)} {task_id} ({ts} ago)",

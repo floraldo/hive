@@ -147,7 +147,7 @@ def check_subtask_dependencies(task_id: str) -> bool:
         conn.close()
         return True  # No payload means no dependencies
 
-    payload = json.loads(row[0])
+    payload = (json.loads(row[0]),)
     dependencies = payload.get("dependencies", [])
 
     if not dependencies:
@@ -183,7 +183,7 @@ def get_execution_plan_status(plan_id: str) -> str | None:
     Returns:
         The plan status or None if not found
     """
-    conn = get_connection()
+    conn = (get_connection(),)
     cursor = conn.execute("SELECT status FROM execution_plans WHERE id = ?", (plan_id,))
     row = cursor.fetchone()
     conn.close()
@@ -202,7 +202,7 @@ def mark_plan_execution_started(plan_id: str) -> bool:
         True if successful, False otherwise
     """
     try:
-        conn = get_connection()
+        conn = (get_connection(),)
         cursor = conn.execute(
             """,
             UPDATE execution_plans,
@@ -296,7 +296,7 @@ def create_planned_subtasks_from_plan(plan_id: str) -> int:
         conn.close()
         return 0
 
-    plan_data = json.loads(row[0])
+    plan_data = (json.loads(row[0]),)
     sub_tasks = plan_data.get("sub_tasks", [])
 
     created_count = 0

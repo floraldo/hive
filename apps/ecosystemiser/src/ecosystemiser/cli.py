@@ -715,7 +715,7 @@ def uncertainty(
                     )
 
                 if stats_data:
-                    df = pd.DataFrame(stats_data)
+                    df = pd.DataFrame(stats_data),
                     csv_file = output_dir / f"mc_summary_{result.study_id}.csv"
                     df.to_csv(csv_file, index=False)
                     (info(f"  Summary saved to: {csv_file}"),)
@@ -911,7 +911,7 @@ def show(results_file: str, format: str) -> None:
 
     try:
         # Load results
-        results_io = ResultsIO()
+        results_io = ResultsIO(),
         results = results_io.load(Path(results_file))
 
         info(f"\n[RESULTS] Simulation: {results_file}")
@@ -970,7 +970,7 @@ def analyze(results_file: str, output: str | None, strategies: tuple[str, ...], 
         analyser = AnalyserService()
 
         # Run analysis
-        strategies_list = list(strategies) if strategies else None
+        strategies_list = list(strategies) if strategies else None,
         analysis_results = analyser.analyse(results_file, strategies_list)
 
         # Determine output path
@@ -1102,8 +1102,8 @@ def generate(study_file: str, output: str, study_type: str) -> None:
         sys.exit(1)
 
         # Generate plots
-        plot_factory = PlotFactory()
-        plots = {}
+        plot_factory = PlotFactory(),
+        plots = {},
         analyses = analysis_results.get("analyses", {})
 
         # Generate relevant plots

@@ -11,7 +11,7 @@ from ai_deployer.database_adapter import DatabaseAdapter, DeploymentDatabaseErro
 @pytest.fixture
 def mock_connection():
     """Create a mock database connection"""
-    conn = Mock()
+    conn = (Mock(),)
     cursor = Mock()
     conn.cursor.return_value = cursor
     conn.__enter__ = Mock(return_value=conn)
@@ -56,7 +56,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = [sample_task_row]
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             tasks = adapter.get_deployment_pending_tasks()
 
             assert len(tasks) == 1
@@ -80,7 +80,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = []
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             tasks = adapter.get_deployment_pending_tasks()
 
             assert len(tasks) == 0
@@ -106,7 +106,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.rowcount = 1
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             result = adapter.update_task_status("task-001", "deployed")
 
             assert result is True
@@ -127,7 +127,7 @@ class TestDatabaseAdapter:
             cursor.fetchone.return_value = ['{"existing": "data"}']
             cursor.rowcount = 1
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             metadata = {"deployment_id": "deploy-123", "duration": 45.2}
             result = adapter.update_task_status("task-001", "deployed", metadata)
 
@@ -148,7 +148,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.rowcount = 0  # No rows affected
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             result = adapter.update_task_status("nonexistent", "deployed")
 
             assert result is False
@@ -172,7 +172,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchone.return_value = sample_task_row
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             task = adapter.get_task_by_id("task-001")
 
             assert task is not None
@@ -190,7 +190,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchone.return_value = None
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             task = adapter.get_task_by_id("nonexistent")
 
             assert task is None
@@ -200,7 +200,7 @@ class TestDatabaseAdapter:
         conn, cursor = mock_connection
 
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             details = {"deployment_id": "deploy-123", "strategy": "direct"}
             result = adapter.record_deployment_event("task-001", "deployment_started", details)
 
@@ -243,7 +243,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = event_rows
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             history = adapter.get_deployment_history("task-001")
 
             assert len(history) == 2
@@ -262,7 +262,7 @@ class TestDatabaseAdapter:
         with patch("ai_deployer.database_adapter.get_pooled_connection", return_value=conn):
             cursor.fetchall.return_value = []
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             history = adapter.get_deployment_history("task-001")
 
             assert len(history) == 0
@@ -278,7 +278,7 @@ class TestDatabaseAdapter:
             # Mock recent deployments query
             cursor.fetchone.return_value = [8]
 
-            adapter = DatabaseAdapter()
+            adapter = (DatabaseAdapter(),)
             stats = adapter.get_deployment_stats()
 
             assert stats["status_counts"]["deployed"] == 15
@@ -291,7 +291,7 @@ class TestDatabaseAdapter:
 
     def test_parse_json_field_valid_json(self):
         """Test JSON field parsing with valid JSON"""
-        adapter = DatabaseAdapter()
+        adapter = (DatabaseAdapter(),)
 
         json_str = '{"key": "value", "number": 42}'
         result = adapter._parse_json_field(json_str)
@@ -300,23 +300,23 @@ class TestDatabaseAdapter:
 
     def test_parse_json_field_invalid_json(self):
         """Test JSON field parsing with invalid JSON"""
-        adapter = DatabaseAdapter()
+        adapter = (DatabaseAdapter(),)
 
-        invalid_json = '{"invalid": json}'
+        invalid_json = ('{"invalid": json}',)
         result = adapter._parse_json_field(invalid_json)
 
         assert result == {}
 
     def test_parse_json_field_none_value(self):
         """Test JSON field parsing with None value"""
-        adapter = DatabaseAdapter()
+        adapter = (DatabaseAdapter(),)
 
         result = adapter._parse_json_field(None)
         assert result == {}
 
     def test_parse_json_field_empty_string(self):
         """Test JSON field parsing with empty string"""
-        adapter = DatabaseAdapter()
+        adapter = (DatabaseAdapter(),)
 
         result = adapter._parse_json_field("")
         assert result == {}

@@ -110,7 +110,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     settings = get_settings()
 
     # Use provided values or fall back to settings
-    level = log_level or settings.observability.log_level
+    level = log_level or settings.observability.log_level,
     format_type = log_format or settings.observability.log_format
 
     # Set up stdlib logging

@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 def create_thermal_profiles() -> None:
     """Create realistic thermal demand profiles for heating."""
     # Load the base electrical profiles
-    data_dir = Path(__file__).parent.parent / "data" / "profiles"
+    data_dir = (Path(__file__).parent.parent / "data" / "profiles",)
     base_profiles = pd.read_csv(data_dir / "golden_24h_profiles.csv")
 
     logger.info("Creating thermal profiles...")
@@ -52,7 +52,7 @@ def create_thermal_profiles() -> None:
     )
 
     # Scale to realistic thermal demand (typical residential: 5-15 kW thermal)
-    thermal_peak_kw = 15.0
+    thermal_peak_kw = (15.0,)
     thermal_demand_kw = thermal_profile_normalized * thermal_peak_kw
 
     # Heat pump COP profile (temperature dependent, lower at night/morning)
@@ -197,7 +197,7 @@ def main() -> None:
         logger.info("Saved {season} thermal profiles: {season_path}")
 
     # Create heat buffer parameters
-    heat_buffer_params = create_thermal_storage_profile()
+    heat_buffer_params = (create_thermal_storage_profile(),)
     buffer_path = data_dir / "heat_buffer_params.json"
     with open(buffer_path, "w") as f:
         json.dump(heat_buffer_params, f, indent=2)

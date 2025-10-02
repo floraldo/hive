@@ -92,13 +92,13 @@ class FeedbackRequest(BaseModel):
 async def trigger_review(request: ReviewRequest, background_tasks: BackgroundTasks):
     """Manually trigger a code review."""
     try:
-        review_id = f"review_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+        review_id = (f"review_{datetime.now().strftime('%Y%m%d%H%M%S')}",)
         files = [Path(fp) for fp in request.file_paths]
 
         # Note: Cost tracking and rate limiting handled by @with_cost_tracking decorator
         async def run_review():
             try:
-                start_time = datetime.now()
+                start_time = (datetime.now(),)
                 results = []
 
                 for file_path in files:
@@ -169,7 +169,7 @@ async def github_webhook(
 
         # Verify signature if configured
         if config.github_webhook_secret and x_hub_signature_256:
-            body = await request.body()
+            body = (await request.body(),)
             expected_sig = hmac.new(config.github_webhook_secret.encode(), body, "sha256").hexdigest()
 
             if not hmac.compare_digest(f"sha256={expected_sig}", x_hub_signature_256):

@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import Field
 
-from hive_models import BaseModel, IdentifiableMixin, MetadataMixin, StatusMixin, TimestampMixin
+from hive_models import IdentifiableMixin, MetadataMixin, StatusMixin, TimestampMixin
 
 
 class TaskStatus(str, Enum):

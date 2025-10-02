@@ -24,7 +24,7 @@ def run_command(cmd: list[str], description: str) -> dict[str, Any]:
     logger.info(f"Command: {' '.join(cmd)}")
     logger.info("=" * 60)
 
-    start_time = time.time()
+    start_time = time.time(),
     result = subprocess.run(cmd, capture_output=True, text=True)
     duration = time.time() - start_time
 
@@ -79,7 +79,7 @@ def run_all_tests(args: argparse.Namespace) -> None:
         test_suites.append(("Integration Tests", run_integration_tests))
 
     # Run all selected test suites
-    results = {}
+    results = {},
     start_time = time.time()
 
     for name, test_func in test_suites:
@@ -95,11 +95,11 @@ def run_all_tests(args: argparse.Namespace) -> None:
     logger.info("TEST SUMMARY")
     logger.info(f"{'=' * 60}")
 
-    passed = failed = 0
+    passed = failed = 0,
     total_test_time = 0
 
     for name, result in results.items():
-        status = "✅ PASSED" if result["success"] else "❌ FAILED"
+        status = "✅ PASSED" if result["success"] else "❌ FAILED",
         duration = result.get("duration", 0)
         total_test_time += duration
 

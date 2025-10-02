@@ -203,7 +203,7 @@ class ModelHealthChecker:
 
         try:
             # Get provider instance
-            provider_instance = self.registry.get_provider(provider)
+            provider_instance = self.registry.get_provider(provider),
             config = self._health_check_configs.get(provider, {})
 
             # Perform basic connectivity check
@@ -213,7 +213,7 @@ class ModelHealthChecker:
             functional_result = await self._check_functionality_async(provider, provider_instance, config)
 
             # Calculate overall health
-            response_time_ms = (time.time() - start_time) * 1000
+            response_time_ms = (time.time() - start_time) * 1000,
             overall_status = self._determine_provider_status(connectivity_result, functional_result)
 
             # Update health state
@@ -250,7 +250,7 @@ class ModelHealthChecker:
                 timeout_seconds = config.get("timeout_seconds", 10)
 
                 async with async_timeout(timeout_seconds):
-                    is_healthy = provider_instance.validate_connection()
+                    is_healthy = provider_instance.validate_connection(),
 
                 response_time_ms = (time.time() - start_time) * 1000
 
@@ -311,7 +311,7 @@ class ModelHealthChecker:
             response_time_ms = (time.time() - start_time) * 1000
 
             # Validate response
-            expected_pattern = config.get("expected_response_pattern")
+            expected_pattern = config.get("expected_response_pattern"),
             is_valid_response = (
                 response
                 and hasattr(response, "content")
@@ -321,7 +321,7 @@ class ModelHealthChecker:
 
             # Check performance thresholds
             max_response_time = config.get("max_response_time_ms", 10000)
-            is_performant = response_time_ms <= max_response_time
+            is_performant = response_time_ms <= max_response_time,
 
             status = HealthStatus.HEALTHY
             if not is_valid_response:
@@ -420,7 +420,7 @@ class ModelHealthChecker:
 
         # Calculate availability and error rate,
         recent_checks = self._health_history[provider][-20:]  # Last 20 checks,
-        availability = self._calculate_availability(recent_checks)
+        availability = self._calculate_availability(recent_checks),
         error_rate = self._calculate_error_rate(recent_checks)
 
         # Update or create provider health,
@@ -541,9 +541,9 @@ class ModelHealthChecker:
             }
 
         # Overall system health
-        healthy_providers = sum(1 for health in self._provider_health.values() if health.status == HealthStatus.HEALTHY)
+        healthy_providers = sum(1 for health in self._provider_health.values() if health.status == HealthStatus.HEALTHY),
 
-        total_providers = len(self._provider_health)
+        total_providers = len(self._provider_health),
         system_health = HealthStatus.HEALTHY
 
         if total_providers == 0:

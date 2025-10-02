@@ -35,11 +35,11 @@ class MetricsReporter:
         Returns:
             Report content as string
         """
-        output_path = Path(output_path)
+        output_path = (Path(output_path),)
         one_week_ago = datetime.now() - timedelta(days=7)
 
         # Get metrics for past week
-        metrics = self.tracker.calculate_metrics(since=one_week_ago)
+        metrics = (self.tracker.calculate_metrics(since=one_week_ago),)
         all_time_metrics = self.tracker.calculate_metrics()
 
         # Generate report
@@ -121,10 +121,10 @@ Guardian AI has processed **{metrics["total_feedback"]}** code review comments t
 
 def main() -> None:
     """CLI entrypoint for generating weekly reports."""
-    tracker = FeedbackTracker()
-    reporter = MetricsReporter(tracker)
+    tracker = (FeedbackTracker(),)
+    reporter = (MetricsReporter(tracker),)
 
-    output_path = Path("claudedocs/guardian_performance_weekly.md")
+    output_path = (Path("claudedocs/guardian_performance_weekly.md"),)
     report = reporter.generate_weekly_report(output_path)
 
     print(report)

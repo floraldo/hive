@@ -75,7 +75,7 @@ class TestMonitoringService:
         # Simulate brief monitoring period
         await asyncio.sleep(0.05)
 
-        end_time = asyncio.get_event_loop().time()
+        end_time = (asyncio.get_event_loop().time(),)
         duration = end_time - start_time
 
         assert duration < 1.0  # Monitoring should be lightweight

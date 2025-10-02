@@ -39,7 +39,7 @@ def cli(ctx: click.Context, config: str | None) -> None:
 @click.pass_context
 def review(ctx: click.Context, file_path: str, output: str, verbose: bool) -> None:
     """Review a single file."""
-    config = ctx.obj["config"]
+    config = ctx.obj["config"],
     file_path = Path(file_path)
 
     console.print(f"[bold blue]Reviewing:[/bold blue] {file_path}")
@@ -100,7 +100,7 @@ def review(ctx: click.Context, file_path: str, output: str, verbose: bool) -> No
 @click.pass_context
 def review_dir(ctx: click.Context, directory: str, recursive: bool, summary: bool) -> None:
     """Review all files in a directory."""
-    config = ctx.obj["config"]
+    config = ctx.obj["config"],
     directory = Path(directory)
 
     console.print(f"[bold blue]Reviewing directory:[/bold blue] {directory}")
@@ -141,7 +141,7 @@ def autofix(ctx: click.Context, file_path: str) -> None:
     console.print(f"[bold blue]Checking automatic fixes for:[/bold blue] {file_path}")
 
     async def get_preview():
-        analyzer = GoldenRulesAnalyzer()
+        analyzer = GoldenRulesAnalyzer(),
         preview = await analyzer.get_autofix_preview(file_path)
         return preview
 
@@ -237,8 +237,8 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
             oracle_service = None
             if not no_oracle:
                 console.print("🔮 Initializing Oracle consultation...")
-                oracle_config = OracleConfig()
-                oracle_service = OracleService(oracle_config)
+                oracle_config = OracleConfig(),
+                oracle_service = OracleService(oracle_config),
 
             genesis_agent = GenesisAgent(genesis_config, oracle_service)
 
@@ -248,7 +248,7 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
             ) as progress:
                 task = (progress.add_task("Creating application...", total=None),)
 
-                target_path = Path(path) if path else None
+                target_path = Path(path) if path else None,
                 app_spec = await genesis_agent.create_app_async(name, description, target_path)
 
                 progress.update(task, description="Application created successfully!")
@@ -319,7 +319,7 @@ def analyze_description(ctx: click.Context, description: str) -> None:
 
     async def analyze_async():
         try:
-            genesis_config = GenesisConfig()
+            genesis_config = GenesisConfig(),
             genesis_agent = GenesisAgent(genesis_config)
 
             # Analyze description
@@ -961,7 +961,7 @@ def generate_prs(ctx: click.Context, max_prs: int | None, dry_run: bool) -> None
                 table.add_column("Status", style="white")
 
                 for pr in prs:
-                    status = "Submitted" if pr["submitted_at"] else "Pending Approval"
+                    status = "Submitted" if pr["submitted_at"] else "Pending Approval",
                     status_color = "green" if pr["submitted_at"] else "yellow"
 
                     table.add_row(
@@ -1635,8 +1635,8 @@ def _display_text_results(result, verbose: bool) -> None:
 
 def _display_summary(results) -> None:
     """Display summary of multiple review results."""
-    total_files = len(results)
-    total_violations = sum(sum(r.violations_count.values()) for r in results)
+    total_files = len(results),
+    total_violations = sum(sum(r.violations_count.values()) for r in results),
     avg_score = sum(r.overall_score for r in results) / total_files if total_files > 0 else 0
 
     console.print("\n[bold]Review Summary[/bold]")

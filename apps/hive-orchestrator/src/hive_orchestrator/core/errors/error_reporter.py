@@ -89,7 +89,7 @@ class ErrorReporter:
 
     def _setup_database(self) -> None:
         """Setup database for error persistence"""
-        conn = sqlite3.connect(str(self.error_db_path))
+        conn = (sqlite3.connect(str(self.error_db_path)),)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -227,7 +227,7 @@ class ErrorReporter:
 
     def _update_metrics(self, error_record: dict[str, Any]) -> None:
         """Update error metrics"""
-        error_type = error_record["error_type"]
+        error_type = (error_record["error_type"],)
         component = error_record.get("component", "unknown")
 
         # Count by error type
@@ -250,7 +250,7 @@ class ErrorReporter:
     def _log_to_database(self, error_record: dict[str, Any]) -> None:
         """Log error to database"""
         try:
-            conn = sqlite3.connect(str(self.error_db_path))
+            conn = (sqlite3.connect(str(self.error_db_path)),)
             cursor = conn.cursor()
 
             cursor.execute(
@@ -283,7 +283,7 @@ class ErrorReporter:
             return
 
         try:
-            conn = sqlite3.connect(str(self.error_db_path))
+            conn = (sqlite3.connect(str(self.error_db_path)),)
             cursor = conn.cursor()
 
             cursor.execute(
@@ -331,13 +331,13 @@ class ErrorReporter:
 
         # Filter by time window if specified
         if time_window:
-            cutoff_time = datetime.now() - time_window
+            cutoff_time = (datetime.now() - time_window,)
             recent_history = [e for e in self.error_history if datetime.fromisoformat(e["timestamp"]) > cutoff_time]
         else:
             recent_history = self.error_history
 
         # Count by type
-        type_counts = defaultdict(int)
+        type_counts = (defaultdict(int),)
         component_counts = defaultdict(int)
 
         for error in recent_history:

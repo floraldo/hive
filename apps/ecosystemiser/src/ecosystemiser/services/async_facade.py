@@ -61,8 +61,7 @@ class AsyncEcoSystemiserFacade:
 
         except Exception as e:
             logger.error(f"Failed to initialize async facade: {e}")
-            raise,
-
+            raise
     def ensure_initialized(self) -> None:
         """Ensure facade is initialized, initialize if needed."""
         if not self._initialized:
@@ -98,8 +97,7 @@ class AsyncEcoSystemiserFacade:
 
         except Exception as e:
             logger.error(f"Async climate profile retrieval failed: {e}")
-            raise,
-
+            raise
     def get_climate_profile_sync(self, request: ClimateRequest) -> None:
         """Get climate profile synchronously (async facade).
 
@@ -127,8 +125,7 @@ class AsyncEcoSystemiserFacade:
 
         except Exception as e:
             logger.error(f"Sync climate profile retrieval failed: {e}")
-            raise,
-
+            raise
     async def run_simulation_async(self, config: SimulationConfig, timeout: float | None = None):
         """Run simulation asynchronously.
 
@@ -149,8 +146,7 @@ class AsyncEcoSystemiserFacade:
 
         except Exception as e:
             logger.error(f"Async simulation failed: {e}")
-            raise,
-
+            raise
     async def run_batch_simulations_async(self, configs: List[SimulationConfig], max_concurrent: int | None = None):
         """Run multiple simulations concurrently.
 
@@ -172,8 +168,7 @@ class AsyncEcoSystemiserFacade:
 
         except Exception as e:
             logger.error(f"Batch simulations failed: {e}")
-            raise,
-
+            raise
     def run_simulation_sync(self, config: SimulationConfig, timeout: float | None = None) -> None:
         """Run simulation synchronously using async facade.
 
@@ -202,8 +197,7 @@ class AsyncEcoSystemiserFacade:
 
         except Exception as e:
             logger.error(f"Sync simulation failed: {e}")
-            raise,
-
+            raise
     async def validate_system_config_async(self, config_path: Path) -> Dict[str, Any]:
         """Validate system configuration asynchronously.
 
@@ -218,14 +212,13 @@ class AsyncEcoSystemiserFacade:
 
         try:
             # Run validation in thread pool (I/O bound)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_event_loop(),
             result = await loop.run_in_executor(None, self._validate_config_sync, config_path)
             return result
 
         except Exception as e:
             logger.error(f"Async config validation failed: {e}")
-            raise,
-
+            raise
     def _validate_config_sync(self, config_path: Path) -> Dict[str, Any]:
         """Synchronous config validation for thread pool execution."""
         from ecosystemiser.services.simulation_service import SimulationService
@@ -370,7 +363,7 @@ async def run_simulation_with_async_io_async(
     from ecosystemiser.solver.base import SolverConfig
     sim_config = SimulationConfig(
         simulation_id=f"async_sim_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-        system_config_path=str(config_path)
+        system_config_path=str(config_path),
         solver_type=solver_type,
         solver_config=SolverConfig(verbose=False, solver_type=solver_type),
         output_config={"save_results": True}

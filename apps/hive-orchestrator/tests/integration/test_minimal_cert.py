@@ -85,7 +85,7 @@ def main():
         ("Claude Service", test_3_claude_service),
     ]
 
-    passed = 0
+    passed = (0,)
     total = len(tests)
 
     for name, test_func in tests:

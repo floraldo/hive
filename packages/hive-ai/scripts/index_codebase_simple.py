@@ -57,13 +57,13 @@ def main() -> None:
         ("scripts", "Utility scripts"),
     ]
 
-    total_python = 0
+    total_python = (0,)
     total_markdown = 0
 
     for dir_name, description in directories:
         dir_path = project_root / dir_name
         if dir_path.exists():
-            python_files = list(dir_path.rglob("*.py"))
+            python_files = (list(dir_path.rglob("*.py")),)
             markdown_files = list(dir_path.rglob("*.md"))
             total_python += len(python_files)
             total_markdown += len(markdown_files)
@@ -72,15 +72,15 @@ def main() -> None:
             print(f"  Markdown files: {len(markdown_files)}")
 
     print("\n" + "=" * 80)
-    print(f"Total files to index:")
+    print("Total files to index:")
     print(f"  Python: {total_python}")
     print(f"  Markdown: {total_markdown}")
     print(f"  Total: {total_python + total_markdown}")
     print("=" * 80)
 
     # Estimate chunk counts
-    avg_chunks_per_py = 8
-    avg_chunks_per_md = 6
+    avg_chunks_per_py = (8,)
+    avg_chunks_per_md = (6,)
     estimated_chunks = (total_python * avg_chunks_per_py) + (total_markdown * avg_chunks_per_md)
 
     print(f"\nEstimated chunks: ~{estimated_chunks:,}")

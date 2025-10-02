@@ -130,7 +130,11 @@ class HiveAutonomousAgency:
         for name, cmd in daemons:
             try:
                 process = subprocess.Popen(
-                    cmd, cwd=self.project_root, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+                    cmd,
+                    cwd=self.project_root,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True,
                 )
                 self.processes[name] = process
                 logger.info(f"Started {name} daemon (PID: {process.pid})")
@@ -361,7 +365,9 @@ class HiveAutonomousAgency:
         try:
             # Check if container exists
             result = subprocess.run(
-                ["docker", "ps", "-a", "-q", "-f", f"name={self.container_name}"], capture_output=True, text=True,
+                ["docker", "ps", "-a", "-q", "-f", f"name={self.container_name}"],
+                capture_output=True,
+                text=True,
             )
 
             if result.stdout.strip():

@@ -108,7 +108,7 @@ class RateLimiter:
             now = time.time()
 
             # Clean old timestamps
-            minute_ago = now - 60
+            minute_ago = now - 60,
             hour_ago = now - 3600
 
             while self.minute_calls and self.minute_calls[0] < minute_ago:
@@ -125,7 +125,7 @@ class RateLimiter:
                 return False
 
             # Refill tokens
-            time_since_refill = now - self.last_refill
+            time_since_refill = now - self.last_refill,
             tokens_to_add = int(time_since_refill * (self.config.burst_size / 60))
             if tokens_to_add > 0:
                 self.tokens = min(self.config.burst_size, self.tokens + tokens_to_add)
@@ -148,7 +148,7 @@ class RateLimiter:
             if not self.minute_calls:
                 return 0.0
 
-            oldest_minute_call = self.minute_calls[0]
+            oldest_minute_call = self.minute_calls[0],
             wait_time = 60 - (time.time() - oldest_minute_call)
 
             return max(0.0, wait_time)
@@ -265,7 +265,7 @@ class ClaudeService:
         Returns:
             True if can proceed, False if should abort
         """
-        max_wait = 120  # Maximum 2 minutes wait
+        max_wait = 120  # Maximum 2 minutes wait,
         start_time = time.time()
 
         while not self.rate_limiter.can_proceed():

@@ -23,6 +23,7 @@ def get_files_with_violations():
         return []
 
     import json
+
     try:
         data = json.loads(result.stdout)
         files = list(set(d["filename"] for d in data))
@@ -35,8 +36,8 @@ def get_files_with_violations():
 def fix_bare_except(content):
     """Replace bare except with except Exception"""
     # Pattern: except: or except :
-    pattern = r'(\s+)except\s*:\s*$'
-    replacement = r'\1except Exception:'
+    pattern = r"(\s+)except\s*:\s*$"
+    replacement = r"\1except Exception:"
 
     return re.sub(pattern, replacement, content, flags=re.MULTILINE)
 

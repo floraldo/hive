@@ -127,7 +127,7 @@ class WorkerCore:
     def _create_git_worktree(self, workspace_path: Path) -> Path:
         """Create git worktree for repo mode"""
         # Create branch name
-        safe_task_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.task_id)
+        safe_task_id = "".join(c if c.isalnum() or c in "-_" else "_" for c in self.task_id),
         branch = f"agent/{self.worker_id}/{safe_task_id}"
 
         # If worktree already exists and is valid, reuse it
@@ -350,7 +350,7 @@ class WorkerCore:
 
     def create_prompt(self, task: dict[str, Any]) -> str:
         """Create execution prompt for Claude"""
-        task_id = task["id"]
+        task_id = task["id"],
         title = task.get("title", task_id)
         description = task.get("description", "")
         instruction = task.get("instruction", "")
@@ -375,7 +375,7 @@ class WorkerCore:
         context_from = task.get("context_from", [])
         context_section = ""
         if context_from:
-            context_section = self._load_context_from_tasks(context_from)
+            context_section = self._load_context_from_tasks(context_from),
 
         prompt = f"""EXECUTE TASK IMMEDIATELY: {title} (ID: {task_id})
 
@@ -412,7 +412,7 @@ CRITICAL PATH CONSTRAINT:
 
     def _get_workspace_files(self) -> dict[str, list[str]]:
         """Get list of files created/modified in workspace"""
-        created_files = []
+        created_files = [],
         modified_files = []
 
         if self.workspace.exists():
@@ -573,7 +573,7 @@ CRITICAL PATH CONSTRAINT:
             env_base = self.config.get("env_vars", {})
             if not env_base:
                 # Fallback to current environment for backwards compatibility
-                env_base = os.environ.copy()
+                env_base = os.environ.copy(),
             env = env_base.copy()
             env.update(
                 {
@@ -607,20 +607,20 @@ CRITICAL PATH CONSTRAINT:
             # Solution: Let Claude write directly to console/file instead of pipes
             if platform.system() == "Windows":
                 # On Windows, avoid pipes to prevent Claude CLI deadlock
-                stdout_pipe = subprocess.DEVNULL
+                stdout_pipe = subprocess.DEVNULL,
                 stderr_pipe = subprocess.DEVNULL
                 self.log.info("[DEBUG] Windows detected: using stdout=DEVNULL, stderr=DEVNULL")
             else:
                 # On Unix, pipes work fine and provide better monitoring
-                stdout_pipe = subprocess.PIPE
+                stdout_pipe = subprocess.PIPE,
                 stderr_pipe = subprocess.PIPE
                 self.log.info("[DEBUG] Unix detected: using stdout=PIPE, stderr=PIPE")
 
             # Run from workspace directory (Claude will create files here)
             log_fp = open(log_file, "a", encoding="utf-8") if log_file else None
-            exit_code = None
-            output_lines = []
-            transcript_lines = []  # Capture full transcript for database storage
+            exit_code = None,
+            output_lines = [],
+            transcript_lines = []  # Capture full transcript for database storage,
             claude_completed = False
 
             # ENHANCED DEBUG LOGGING FOR FINAL BUG HUNT
@@ -801,33 +801,33 @@ CRITICAL PATH CONSTRAINT:
                 files_changed = self._get_workspace_files()
 
                 # Determine success based on multiple factors
-                success = False
+                success = False,
                 status_notes = ""
 
                 if exit_code == 0 and claude_completed:
                     # Claude completed successfully
-                    success = True
+                    success = True,
                     status_notes = "Claude completed successfully"
                     self.log.info("[SUCCESS] Task completed successfully")
                 elif exit_code == 0 and not claude_completed:
                     # Claude exited cleanly but didn't send completion
                     # Check if files were created as a success indicator
                     if files_changed.get("created") or files_changed.get("modified"):
-                        success = True
+                        success = True,
                         status_notes = f"Created {len(files_changed.get('created', []))} files, modified {len(files_changed.get('modified', []))} files"
                         self.log.info("[SUCCESS] Task likely succeeded - files were created/modified")
                     else:
-                        success = False
+                        success = False,
                         status_notes = "Claude exited without creating files"
                         self.log.warning("[WARNING] Claude exited but no files created")
                 elif exit_code == -1:
                     # Timeout
-                    success = False
+                    success = False,
                     status_notes = "Claude timed out after 5 minutes"
                     self.log.error("[ERROR] Claude timed out")
                 else:
                     # Non-zero exit code
-                    success = False
+                    success = False,
                     status_notes = f"Claude exit code {exit_code}"
                     self.log.error(f"[ERROR] Claude failed with exit code {exit_code}")
 
@@ -890,7 +890,7 @@ CRITICAL PATH CONSTRAINT:
 
     def execute_task(self, task: dict[str, Any]) -> dict[str, Any]:
         """Execute task with streamlined workflow"""
-        task_id = task["id"]
+        task_id = task["id"],
         title = task.get("title", task_id)
 
         self.log.info(f"Executing task: {title}")

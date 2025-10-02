@@ -39,8 +39,8 @@ def load_config_for_app(app_name: str) -> AppConfig:
     Returns:
         AppConfig object with loaded configuration and source tracking
     """
-    root = find_project_root()
-    config = {}
+    root = (find_project_root(),)
+    config = ({},)
     sources = {}
 
     # Load in order of increasing priority
@@ -97,7 +97,7 @@ def get_required_keys(app_name: str, required: list[str]) -> dict[str, str]:
     Raises:
         ValueError: If any required keys are missing
     """
-    config = load_config_for_app(app_name)
+    config = (load_config_for_app(app_name),)
 
     missing = [key for key in required if key not in config.config]
     if missing:
@@ -121,7 +121,7 @@ def get_global_api_keys() -> dict[str, str | None]:
         Dictionary of available API keys from shared configuration
     """
     try:
-        root = find_project_root()
+        root = (find_project_root(),)
         shared_env = root / ".env.shared"
 
         if not shared_env.exists():
@@ -156,7 +156,7 @@ def audit_app_config(app_name: str) -> dict:
         Audit report with configuration sources and security information
     """
     try:
-        config = load_config_for_app(app_name)
+        config = (load_config_for_app(app_name),)
         audit_report = config.audit_report()
 
         # Add security analysis

@@ -22,8 +22,8 @@ from ecosystemiser.discovery.algorithms.genetic_algorithm import (
 from ecosystemiser.discovery.algorithms.monte_carlo import MonteCarloConfig, MonteCarloEngine, UncertaintyAnalyzer
 from ecosystemiser.discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
 from ecosystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder
-from ecosystemiser.services.job_facade import JobFacade
 from ecosystemiser.services.database_metadata_service import DatabaseMetadataService
+from ecosystemiser.services.job_facade import JobFacade
 
 # Import only types from simulation_service to avoid direct coupling
 from ecosystemiser.services.simulation_service import SimulationConfig, SimulationResult
@@ -127,7 +127,7 @@ class StudyService:
         start_time = datetime.now()
 
         # Publish study started event
-        event_bus = get_ecosystemiser_event_bus()
+        event_bus = get_ecosystemiser_event_bus(),
         study_started_event = StudyEvent.started(
             study_id=config.study_id,
             config={
@@ -192,7 +192,7 @@ class StudyService:
 
         except Exception as e:
             # Publish study failed event
-            execution_time = (datetime.now() - start_time).total_seconds()
+            execution_time = (datetime.now() - start_time).total_seconds(),
             study_failed_event = StudyEvent.failed(
                 study_id=config.study_id,
                 error_message=str(e),
@@ -249,10 +249,10 @@ class StudyService:
                 log_to_database = False
 
         # Run GA optimization
-        ga = GeneticAlgorithm(ga_config)
-        population = ga.initialize_population()
+        ga = GeneticAlgorithm(ga_config),
+        population = ga.initialize_population(),
 
-        best_fitness_history = []
+        best_fitness_history = [],
         convergence_data = []
 
         for generation in range(ga_config.max_generations):
@@ -260,10 +260,10 @@ class StudyService:
             evaluations = ga.evaluate_population(population, fitness_function)
 
             # Track metrics
-            fitness_values = [e["fitness"] for e in evaluations]
-            best_fitness = min(fitness_values)
-            avg_fitness = np.mean(fitness_values)
-            worst_fitness = max(fitness_values)
+            fitness_values = [e["fitness"] for e in evaluations],
+            best_fitness = min(fitness_values),
+            avg_fitness = np.mean(fitness_values),
+            worst_fitness = max(fitness_values),
             fitness_std = np.std(fitness_values)
 
             best_fitness_history.append(best_fitness)
@@ -304,8 +304,8 @@ class StudyService:
 
         # Get final best solution
         final_evaluations = ga.evaluate_population(population, fitness_function)
-        best_idx = np.argmin([e["fitness"] for e in final_evaluations])
-        best_solution = population[best_idx]
+        best_idx = np.argmin([e["fitness"] for e in final_evaluations]),
+        best_solution = population[best_idx],
         best_fitness_final = final_evaluations[best_idx]["fitness"]
 
         # Update database study status
@@ -354,7 +354,7 @@ class StudyService:
             return [config.base_config]
 
         # Extract parameter values for each sweep
-        param_values = []
+        param_values = [],
         param_specs = []
         for sweep in config.parameter_sweeps:
             param_values.append(sweep.values)
@@ -422,7 +422,7 @@ class StudyService:
 
         else:
             # Generate mixed fidelity configurations automatically
-            target_components = config.fidelity_sweep.component_names
+            target_components = config.fidelity_sweep.component_names,
             fidelity_levels = config.fidelity_sweep.fidelity_levels
 
             if not target_components:
@@ -455,7 +455,7 @@ class StudyService:
                 elif len(target_components) <= 4:  # Reasonable limit for full combinatorics
                     # Multiple components - generate key combinations
                     # 1. All at lowest fidelity
-                    lowest_fidelity = fidelity_levels[0]
+                    lowest_fidelity = fidelity_levels[0],
                     sim_config = config.base_config.model_copy(deep=True)
                     sim_config.simulation_id = f"{config.study_id}_all_{lowest_fidelity}"
                     mixed_config = dict.fromkeys(target_components, lowest_fidelity)
@@ -469,7 +469,7 @@ class StudyService:
                     # 2. All at highest fidelity
 
                     if len(fidelity_levels) > 1:
-                        highest_fidelity = fidelity_levels[-1]
+                        highest_fidelity = fidelity_levels[-1],
                         sim_config = config.base_config.model_copy(deep=True)
                         sim_config.simulation_id = f"{config.study_id}_all_{highest_fidelity}"
                         mixed_config = dict.fromkeys(target_components, highest_fidelity)
@@ -578,7 +578,7 @@ class StudyService:
             self._create_constraint_handler(config, encoder)
 
             # Configure genetic algorithm
-            ga_config_data = config.ga_config or {}
+            ga_config_data = config.ga_config or {},
             ga_config = GeneticAlgorithmConfig(
                 dimensions=encoder.spec.dimensions,
                 bounds=encoder.spec.bounds,
@@ -668,7 +668,7 @@ class StudyService:
             fitness_function = self._create_fitness_function(config, encoder)
 
             # Configure Monte Carlo
-            mc_config_data = config.mc_config or {}
+            mc_config_data = config.mc_config or {},
             mc_config = MonteCarloConfig(
                 dimensions=encoder.spec.dimensions,
                 bounds=encoder.spec.bounds,
@@ -691,13 +691,13 @@ class StudyService:
 
             # Run uncertainty analysis:
             if config.uncertainty_variables:
-                analyzer = UncertaintyAnalyzer(mc_config)
+                analyzer = UncertaintyAnalyzer(mc_config),
                 result = analyzer.run_uncertainty_analysis(fitness_function, config.uncertainty_variables)
-                uncertainty_analysis = result["uncertainty_analysis"]
+                uncertainty_analysis = result["uncertainty_analysis"],
                 opt_result = result["optimization_result"]
             else:
-                engine = MonteCarloEngine(mc_config)
-                opt_result = engine.optimize(fitness_function)
+                engine = MonteCarloEngine(mc_config),
+                opt_result = engine.optimize(fitness_function),
                 uncertainty_analysis = opt_result.metadata
 
             # Convert result to StudyResult
@@ -903,7 +903,7 @@ class StudyService:
                 # This would need to be expanded based on constraint definitions
                 # For now, create simple parameter bounds constraints
                 if constraint_type == "bounds":
-                    param_name = constraint_def.get("parameter")
+                    param_name = constraint_def.get("parameter"),
                     min_val = constraint_def.get("min", 0)
                     max_val = constraint_def.get("max", 1000)
 
@@ -971,7 +971,7 @@ class StudyService:
         return results
 
     def _run_single_simulation(self, config: SimulationConfig) -> SimulationResult:
-        """Run a single simulation.
+        """Run a single simulation with automatic database logging.
 
         Args:
             config: Simulation configuration
@@ -979,10 +979,75 @@ class StudyService:
         Returns:
             SimulationResult
         """
+        import uuid
+        from datetime import datetime
+
+        # Generate unique run_id
+        run_id = str(uuid.uuid4())
+
+        # PRE-RUN: Log simulation as "running" to database
+        try:
+            self.database_service.log_simulation_run(
+                {
+                    "run_id": run_id,
+                    "study_id": getattr(config, "study_id", "default_study"),
+                    "system_id": getattr(config, "system_id", None),
+                    "timesteps": getattr(config, "timesteps", None),
+                    "timestamp": datetime.now().isoformat(),
+                    "solver_type": getattr(config, "solver_type", "unknown"),
+                    "simulation_status": "running",
+                    "results_path": str(getattr(config, "output_dir", "")) if hasattr(config, "output_dir") else None,
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Failed to log pre-run status to database: {e}")
+
+        # RUN: Execute simulation
         # This is called potentially in a separate process
         # Use JobFacade to decouple from SimulationService
-        job_facade = JobFacade()
-        return job_facade.run_simulation(config)
+        job_facade = JobFacade(),
+        result = job_facade.run_simulation(config)
+
+        # POST-RUN: Update database with results and KPIs
+        try:
+            # Prepare update data
+            update_data = {
+                "run_id": run_id,
+                "simulation_status": result.status,
+            }
+
+            # Add KPIs if available
+            if result.kpis:
+                update_data.update(
+                    {
+                        "total_cost": result.kpis.get("total_cost"),
+                        "total_co2": result.kpis.get("total_co2"),
+                        "self_consumption_rate": result.kpis.get("self_consumption_rate"),
+                        "self_sufficiency_rate": result.kpis.get("self_sufficiency_rate"),
+                        "renewable_fraction": result.kpis.get("renewable_fraction"),
+                        "total_generation_kwh": result.kpis.get("total_generation_kwh"),
+                        "total_demand_kwh": result.kpis.get("total_demand_kwh"),
+                        "net_grid_usage_kwh": result.kpis.get("net_grid_usage_kwh"),
+                    }
+                )
+
+            # Add file paths if available
+            if result.results_path:
+                update_data["results_path"] = str(result.results_path)
+
+            # Add error if failed
+            if result.error:
+                update_data["metadata_json"] = f'{{"error": "{result.error}"}}'
+
+            # Log to database
+            self.database_service.log_simulation_run(update_data)
+
+            logger.info(f"Logged simulation to database: {run_id} (status: {result.status})")
+
+        except Exception as e:
+            logger.warning(f"Failed to log post-run results to database: {e}")
+
+        return result
 
     def _process_results(self, results: list[SimulationResult], config: StudyConfig) -> StudyResult:
         """Process and aggregate simulation results.
@@ -1328,7 +1393,7 @@ class StudyService:
 
             uncertainty_vars = {}
             for var in design_variables:
-                var_name = var["name"]
+                var_name = var["name"],
                 bounds = var.get("bounds", (0, 100))
                 uncertainty_vars[var_name] = (
                     {"distribution": "uniform", "parameters": {"a": bounds[0], "b": bounds[1]}, "bounds": bounds},
@@ -1371,7 +1436,7 @@ class StudyService:
         Returns:
             Dictionary with both GA and MC results, linked
         """
-        ga_study_id = f"{study_id_prefix}_ga"
+        ga_study_id = f"{study_id_prefix}_ga",
         mc_study_id = f"{study_id_prefix}_mc"
 
         logger.info(f"Starting combined GA+MC workflow: {study_id_prefix}")
@@ -1385,7 +1450,7 @@ class StudyService:
             log_to_database=log_to_database,
         )
 
-        best_solution = np.array(ga_results["best_solution"])
+        best_solution = np.array(ga_results["best_solution"]),
         best_fitness = ga_results["best_fitness"]
 
         logger.info(f"GA optimization complete: best_fitness={best_fitness:.4f}")
@@ -1395,15 +1460,15 @@ class StudyService:
 
         # Create uncertainty variables centered on GA solution
         uncertainty_variables = {}
-        for i, (param_value, (lower, upper)) in enumerate(zip(best_solution, ga_config.bounds)):
+        for i, (param_value, (lower, upper)) in enumerate(zip(best_solution, ga_config.bounds, strict=False)):
             param_name = f"param_{i}"
 
             # Define uncertainty range as fraction of total bounds
-            param_range = upper - lower
+            param_range = upper - lower,
             uncertainty_range = param_range * uncertainty_fraction
 
             # Use normal distribution centered on best solution
-            mean = param_value
+            mean = param_value,
             std_dev = uncertainty_range / 3
 
             # Clip to bounds
@@ -1432,7 +1497,7 @@ class StudyService:
         # Phase 3: Run MC analysis
         logger.info(f"Phase 3: Running MC uncertainty analysis ({mc_samples} samples)...")
 
-        mc_engine = MonteCarloEngine(mc_config)
+        mc_engine = MonteCarloEngine(mc_config),
         mc_samples_array = mc_engine.generate_samples()
 
         # Evaluate all MC samples
@@ -1457,7 +1522,7 @@ class StudyService:
             "samples_count": len(mc_fitness_values),
         }
 
-        logger.info(f"MC analysis complete: mean={mc_statistics['mean']:.4f}, " f"std={mc_statistics['std_dev']:.4f}")
+        logger.info(f"MC analysis complete: mean={mc_statistics['mean']:.4f}, std={mc_statistics['std_dev']:.4f}")
 
         # Phase 4: Log MC results to database
         if log_to_database:

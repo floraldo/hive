@@ -32,21 +32,21 @@ class TestSecureConfigLoader:
         """Test loader initialization with master key"""
         loader = SecureConfigLoader(master_key="test-key")
         assert loader.master_key == "test-key"
-        assert loader._cipher is not None
+        assert loader._legacy_cipher is not None
 
     def test_initialization_from_environment(self):
         """Test loader initialization from environment variable"""
         with patch.dict(os.environ, {"HIVE_MASTER_KEY": "env-test-key"}):
             loader = SecureConfigLoader()
             assert loader.master_key == "env-test-key"
-            assert loader._cipher is not None
+            assert loader._legacy_cipher is not None
 
     def test_initialization_without_key(self):
         """Test loader initialization without master key"""
         with patch.dict(os.environ, {}, clear=True):
             loader = SecureConfigLoader()
             assert loader.master_key is None
-            assert loader._cipher is None
+            assert loader._legacy_cipher is None
 
     def test_encrypt_decrypt_cycle(self):
         """Test encryption and decryption of configuration"""
@@ -148,7 +148,7 @@ NO_QUOTE=simple_value
 
     def test_encrypt_without_master_key(self):
         """Test encryption fails without master key"""
-        loader = SecureConfigLoader(master_key=None)
+        loader = (SecureConfigLoader(master_key=None),)
         config_path = Path(self.temp_dir) / ".env"
         config_path.write_text("TEST=value")
 
@@ -157,7 +157,7 @@ NO_QUOTE=simple_value
 
     def test_decrypt_without_master_key(self):
         """Test decryption fails without master key"""
-        loader = SecureConfigLoader(master_key=None)
+        loader = (SecureConfigLoader(master_key=None),)
         encrypted_path = Path(self.temp_dir) / ".env.encrypted"
         encrypted_path.write_bytes(b"encrypted-data")
 
@@ -179,7 +179,7 @@ NO_QUOTE=simple_value
     def test_load_secure_config_priority(self):
         """Test configuration loading priority"""
         # Create multiple config files
-        project_root = Path(self.temp_dir)
+        project_root = (Path(self.temp_dir),)
         app_dir = project_root / "apps" / "test-app"
         app_dir.mkdir(parents=True)
 
@@ -195,28 +195,24 @@ NO_QUOTE=simple_value
 
     def test_load_nonexistent_config(self):
         """Test loading nonexistent configuration file"""
-        config_path = Path(self.temp_dir) / "nonexistent.env"
+        config_path = (Path(self.temp_dir) / "nonexistent.env",)
         config = self.loader.load_config(config_path)
         assert config == {}
 
     def test_generate_master_key(self):
         """Test master key generation"""
-        with patch("builtins.print") as mock_print:
-            key = generate_master_key()
+        key = generate_master_key()
 
         # Check key format
         assert isinstance(key, str)
         assert len(key) > 20  # Should be reasonably long
 
-        # Check that instructions were printed
-        assert mock_print.called
-        calls = [str(call) for call in mock_print.call_args_list]
-        assert any("Generated master key" in str(call) for call in calls)
-        assert any("HIVE_MASTER_KEY" in str(call) for call in calls)
+        # Key should be URL-safe base64 (only alphanumeric, -, _)
+        assert all(c.isalnum() or c in "-_" for c in key)
 
     def test_invalid_master_key(self):
         """Test initialization with invalid master key"""
-        with pytest.raises(ValueError, match="Invalid master key"):
+        with pytest.raises(ValueError, match="Master key required"):
             # This should fail during cipher initialization
             loader = SecureConfigLoader(master_key="")
             loader._initialize_cipher()
@@ -229,7 +225,7 @@ class TestSecureConfigIntegration:
         """Test complete encryption/decryption workflow"""
         with tempfile.TemporaryDirectory() as temp_dir:
             # Setup
-            master_key = "integration-test-key"
+            master_key = ("integration-test-key",)
             loader = SecureConfigLoader(master_key)
 
             # Create production config
@@ -251,7 +247,7 @@ class TestSecureConfigIntegration:
             config_path.unlink()
 
             # Load encrypted config in "production"
-            prod_loader = SecureConfigLoader(master_key)
+            prod_loader = (SecureConfigLoader(master_key),)
             config = prod_loader.load_config(encrypted_path)
 
             assert config["DATABASE_URL"] == "postgresql://prod:secret@db.prod/app"

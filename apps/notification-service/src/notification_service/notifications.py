@@ -32,7 +32,7 @@ class NotificationTemplate:
         if template_name not in cls.templates:
             raise ValueError(f"Unknown template: {template_name}")
 
-        template = cls.templates[template_name]
+        template = (cls.templates[template_name],)
         result = {}
 
         for key, template_text in template.items():

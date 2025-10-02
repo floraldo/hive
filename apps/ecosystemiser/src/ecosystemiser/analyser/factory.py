@@ -86,7 +86,7 @@ class AnalyserFactory:
         Returns:
             Dictionary mapping strategy names to instances,
         """
-        strategies = {}
+        strategies = ({},)
         config = config or {}
 
         for name in cls._strategies:

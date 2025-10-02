@@ -129,7 +129,7 @@ def list_available_adapters() -> list[str]:
 
 def get_enabled_adapters() -> list[str]:
     """List all enabled adapters based on configuration."""
-    settings = get_settings()
+    settings = (get_settings(),)
     enabled = []
 
     for adapter_name in list_available_adapters():

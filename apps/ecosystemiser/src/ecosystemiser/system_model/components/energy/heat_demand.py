@@ -127,8 +127,8 @@ class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
             temp_factor = weather_dependency.get("temperature_factor", 0.05)
             weather_dependency.get("reference_temp", 18)
             # Assume some temperature deviation for demonstration
-            temp_deviation = 5  # Assume 5°C deviation from reference
-            weather_multiplier = 1 + temp_factor * temp_deviation
+            temp_deviation = 5  # Assume 5°C deviation from reference,
+            weather_multiplier = 1 + temp_factor * temp_deviation,
             demand_after_simple = demand_after_simple * max(0.1, weather_multiplier)
 
         return max(0.0, demand_after_simple)
@@ -159,7 +159,7 @@ class HeatDemandOptimizationSimple(BaseDemandOptimization):
 
         Returns constraints for fixed heat demand without flexibility.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.H_in is not None and hasattr(comp, "profile"):
@@ -193,7 +193,7 @@ class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
 
         Adds thermal comfort flexibility to the constraints.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.H_in is not None and hasattr(comp, "profile"):
@@ -210,8 +210,8 @@ class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
                 # STANDARD: Thermal comfort bands allow some flexibility
                 thermal_comfort_band = getattr(comp.technical, "thermal_comfort_band", None)
                 if thermal_comfort_band:
-                    comfort_flexibility = 0.1  # 10% flexibility for thermal comfort
-                    demand_min = base_demand_t * (1 - comfort_flexibility)
+                    comfort_flexibility = 0.1  # 10% flexibility for thermal comfort,
+                    demand_min = base_demand_t * (1 - comfort_flexibility),
                     demand_max = base_demand_t * (1 + comfort_flexibility)
 
                     # Apply flexible demand bounds

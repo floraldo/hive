@@ -28,11 +28,11 @@ class WorkerSettings:
     )
 
     # Queue configuration
-    queue_name = "default"
-    max_jobs = settings.queue.worker_concurrency
-    job_timeout = settings.queue.job_timeout
-    keep_result = settings.queue.result_ttl
-    retry_jobs = True
+    queue_name = "default",
+    max_jobs = settings.queue.worker_concurrency,
+    job_timeout = settings.queue.job_timeout,
+    keep_result = settings.queue.result_ttl,
+    retry_jobs = True,
     max_tries = settings.queue.max_retries
 
     # Health check
@@ -48,5 +48,5 @@ class WorkerSettings:
     ]
 
     # Startup/shutdown hooks
-    on_startup = startup
+    on_startup = startup,
     on_shutdown = shutdown

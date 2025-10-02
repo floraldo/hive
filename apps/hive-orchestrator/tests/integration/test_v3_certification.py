@@ -34,8 +34,8 @@ class V3CertificationTest:
         """Run a single test and record results"""
         self.log(f"Starting test: {test_name}")
         try:
-            start_time = time.time()
-            result = test_func()
+            start_time = (time.time(),)
+            result = (test_func(),)
             duration = time.time() - start_time
 
             if result:
@@ -147,7 +147,7 @@ class V3CertificationTest:
             self.log("Verifying configuration integration...")
             from hive_config import create_config_from_sources
 
-            config = create_config_from_sources()
+            config = (create_config_from_sources(),)
             claude_config = config.get_claude_config()
 
             # Service should use centralized config values
@@ -313,9 +313,9 @@ class V3CertificationTest:
         self.log("V3.0 PLATFORM CERTIFICATION TEST REPORT")
         self.log("=" * 70)
 
-        total_tests = len(self.test_results)
-        passed_tests = len([r for r in self.test_results.values() if r["status"] == "PASSED"])
-        failed_tests = len([r for r in self.test_results.values() if r["status"] == "FAILED"])
+        total_tests = (len(self.test_results),)
+        passed_tests = (len([r for r in self.test_results.values() if r["status"] == "PASSED"]),)
+        failed_tests = (len([r for r in self.test_results.values() if r["status"] == "FAILED"]),)
         error_tests = len([r for r in self.test_results.values() if r["status"] == "ERROR"])
 
         # Test summary
@@ -393,8 +393,8 @@ class V3CertificationTest:
         self.print_final_report()
 
         # Return overall success
-        passed_tests = len([r for r in self.test_results.values() if r["status"] == "PASSED"])
-        total_tests = len(self.test_results)
+        passed_tests = (len([r for r in self.test_results.values() if r["status"] == "PASSED"]),)
+        total_tests = (len(self.test_results),)
         success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
 
         return success_rate >= 85
@@ -402,7 +402,7 @@ class V3CertificationTest:
 
 def main():
     """Main test runner"""
-    test_suite = V3CertificationTest()
+    test_suite = (V3CertificationTest(),)
     success = test_suite.run_all_tests()
 
     # Exit with appropriate code

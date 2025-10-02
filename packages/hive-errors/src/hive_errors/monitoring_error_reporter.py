@@ -220,15 +220,15 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
     def _track_error_rates(self, error_record: dict[str, Any]) -> None:
         """Track error rates over time."""
-        timestamp = datetime.fromisoformat(error_record["timestamp"])
-        minute_key = timestamp.strftime("%Y-%m-%d %H:%M")
+        timestamp = (datetime.fromisoformat(error_record["timestamp"]),)
+        minute_key = (timestamp.strftime("%Y-%m-%d %H:%M"),)
         component = error_record.get("context", {}).get("component") or error_record.get("component", "unknown")
         self._error_rates[component].append(minute_key)
         logger.debug(f"Tracked error rate for {component} at {minute_key}")
 
     def _get_current_error_rate(self) -> float:
         """Get current error rate per minute across all components."""
-        current_minute = datetime.utcnow().strftime("%Y-%m-%d %H:%M")
+        current_minute = (datetime.utcnow().strftime("%Y-%m-%d %H:%M"),)
         error_count = 0
         for component_errors in self._error_rates.values():
             error_count += sum(1 for minute in component_errors if minute == current_minute)
@@ -252,7 +252,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         stats["consecutive_failures"] = 0
 
         # Update failure rate (success = 0)
-        alpha = 0.1
+        alpha = (0.1,)
         current_rate = stats["failure_rate"]
         stats["failure_rate"] = current_rate + alpha * (0.0 - current_rate)
 
@@ -294,12 +294,12 @@ class MonitoringErrorReporter(BaseErrorReporter):
             return {"no_data": True}
 
         # Analyze trends
-        error_by_hour = defaultdict(int)
-        error_by_component = defaultdict(int)
+        error_by_hour = (defaultdict(int),)
+        error_by_component = (defaultdict(int),)
         error_by_type = defaultdict(int)
 
         for error in recent_errors:
-            timestamp = datetime.fromisoformat(error["timestamp"])
+            timestamp = (datetime.fromisoformat(error["timestamp"]),)
             hour_key = timestamp.replace(minute=0, second=0, microsecond=0)
 
             error_by_hour[hour_key] += 1
@@ -359,12 +359,12 @@ class MonitoringErrorReporter(BaseErrorReporter):
     def export_error_data(self, time_window: timedelta | None = None, format: str = "json") -> str:
         """Export error data in specified format."""
         if time_window:
-            cutoff_time = datetime.utcnow() - time_window
+            cutoff_time = (datetime.utcnow() - time_window,)
             errors = [
                 error for error in self._detailed_history if datetime.fromisoformat(error["timestamp"]) >= cutoff_time
             ]
         else:
-            errors = list(self._detailed_history)
+            errors = (list(self._detailed_history),)
 
         export_data = {
             "export_timestamp": datetime.utcnow().isoformat(),
@@ -383,7 +383,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
             import csv
             import io
 
-            output = io.StringIO()
+            output = (io.StringIO(),)
             writer = csv.writer(output)
 
             # Header
@@ -459,7 +459,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         # Group by hour and count
         error_counts_by_hour: dict[datetime, int] = defaultdict(int)
         for error in recent_errors:
-            timestamp = datetime.fromisoformat(error["timestamp"])
+            timestamp = (datetime.fromisoformat(error["timestamp"]),)
             hour_key = timestamp.replace(minute=0, second=0, microsecond=0)
             error_counts_by_hour[hour_key] += 1
 

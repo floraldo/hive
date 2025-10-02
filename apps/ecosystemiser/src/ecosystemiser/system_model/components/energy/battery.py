@@ -178,7 +178,7 @@ class BatteryOptimizationSimple(BaseStorageOptimization):
 
         Returns constraints for basic battery operation without losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # Get optimization variables from component
@@ -223,7 +223,7 @@ class BatteryOptimizationStandard(BatteryOptimizationSimple):
         First gets SIMPLE constraints, then modifies energy balance,
         to include self-discharge losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # Get optimization variables from component

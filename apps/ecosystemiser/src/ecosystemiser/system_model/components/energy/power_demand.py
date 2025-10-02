@@ -139,7 +139,7 @@ class PowerDemandOptimizationSimple(BaseDemandOptimization):
 
         Returns constraints for fixed power demand without flexibility.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.P_in is not None and hasattr(comp, "profile"):
@@ -170,7 +170,7 @@ class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
 
         Currently same as SIMPLE but logs power factor for awareness.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.P_in is not None and hasattr(comp, "profile"):

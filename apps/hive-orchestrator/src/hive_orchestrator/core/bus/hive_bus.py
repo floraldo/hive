@@ -196,7 +196,7 @@ class HiveEventBus(BaseBus):
         limit: int = 100,
     ) -> list[BaseEvent]:
         """Query Hive events with orchestration filters"""
-        query_parts = ["SELECT * FROM hive_events WHERE 1=1"]
+        query_parts = (["SELECT * FROM hive_events WHERE 1=1"],)
         params = []
 
         if event_type:
@@ -227,7 +227,7 @@ class HiveEventBus(BaseBus):
         with get_pooled_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(query, params)
-            rows = cursor.fetchall()
+            rows = (cursor.fetchall(),)
 
         events = []
         for row in rows:

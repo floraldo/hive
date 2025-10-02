@@ -2,18 +2,18 @@
 
 import os
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from ecosystemiser.profile_loader.climate.adapters.base import BaseAdapter
 from ecosystemiser.profile_loader.climate.adapters.capabilities import (
     AdapterCapabilities,
     AuthType,
     DataFrequency,
     QualityFeatures,
-    RateLimits,
     SpatialCoverage,
     TemporalCoverage,
 )
@@ -133,11 +133,13 @@ class ERA5Adapter(BaseAdapter):
 
     def __init__(self) -> None:
         """Initialize ERA5 adapter"""
-        from ecosystemiser.profile_loader.climate.adapters.base import CacheConfig, HTTPConfig, RateLimitConfig
+        from ecosystemiser.profile_loader.climate.adapters.base import CacheConfig, RateLimitConfig
 
         # Configure rate limiting (CDS API has no strict limits but be reasonable)
         rate_config = RateLimitConfig(
-            requests_per_minute=6, requests_per_hour=60, burst_size=3  # Conservative for large requests,
+            requests_per_minute=6,
+            requests_per_hour=60,
+            burst_size=3,  # Conservative for large requests,
         )
 
         # Configure caching (ERA5 data doesn't change)
@@ -165,7 +167,7 @@ class ERA5Adapter(BaseAdapter):
             return False
 
     async def _fetch_raw_async(
-        self, location: Tuple[float, float], variables: List[str], period: Dict, **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs
     ) -> Any | None:
         """Fetch raw data from ERA5 CDS API"""
         if not self._cdsapi_available:
@@ -252,7 +254,7 @@ class ERA5Adapter(BaseAdapter):
                     pass  # Ignore cleanup errors,
 
     async def _transform_data_async(
-        self, raw_data: Any, location: Tuple[float, float], variables: List[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str]
     ) -> xr.Dataset:
         """Transform raw ERA5 data to xarray Dataset"""
         lat, lon = location
@@ -274,7 +276,7 @@ class ERA5Adapter(BaseAdapter):
 
         return ds
 
-    def _validate_request(self, lat: float, lon: float, variables: List[str], period: Dict) -> None:
+    def _validate_request(self, lat: float, lon: float, variables: list[str], period: dict) -> None:
         """Validate request parameters"""
         if not (-90 <= lat <= 90):
             raise ValidationError(f"Invalid latitude: {lat}", field="lat", value=lat)
@@ -284,7 +286,7 @@ class ERA5Adapter(BaseAdapter):
             raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
     async def fetch_async(
-        self, *, lat: float, lon: float, variables: List[str], period: Dict, resolution: str = "1H"
+        self, *, lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H"
     ) -> xr.Dataset:
         """
         Fetch climate data from ERA5 reanalysis.
@@ -329,7 +331,7 @@ class ERA5Adapter(BaseAdapter):
             self.logger.error(f"Unexpected error: {error}")
             raise error
 
-    def _parse_period(self, period: Dict) -> tuple:
+    def _parse_period(self, period: dict) -> tuple:
         """Parse period dict to start and end dates"""
 
         try:
@@ -370,7 +372,7 @@ class ERA5Adapter(BaseAdapter):
 
             elif "start" in period and "end" in period:
                 try:
-                    start_date = pd.to_datetime(period["start"]).to_pydatetime()
+                    start_date = pd.to_datetime(period["start"]).to_pydatetime(),
                     end_date = pd.to_datetime(period["end"]).to_pydatetime()
                 except Exception as e:
                     raise ValidationError(
@@ -386,7 +388,7 @@ class ERA5Adapter(BaseAdapter):
             else:
                 # Handle multi-year requests (e.g., 30-year climatology),
                 if "start_year" in period and "end_year" in period:
-                    start_year = int(period["start_year"])
+                    start_year = int(period["start_year"]),
                     end_year = int(period["end_year"])
 
                     if start_year < 1940:
@@ -415,10 +417,10 @@ class ERA5Adapter(BaseAdapter):
         except Exception as e:
             raise ValidationError(f"Error parsing period: {str(e)}", field="period", value=period)
 
-    def _map_variables(self, variables: List[str]) -> List[str]:
+    def _map_variables(self, variables: list[str]) -> list[str]:
         """Map canonical variable names to ERA5 parameters"""
 
-        era5_params = []
+        era5_params = [],
         unavailable_vars = []
 
         for var in variables:
@@ -443,7 +445,7 @@ class ERA5Adapter(BaseAdapter):
             logger.info(f"Available ERA5 variables: {list(self.VARIABLE_MAPPING.keys())}")
 
         # Remove duplicates while preserving order
-        seen = set()
+        seen = set(),
         era5_params = [param for param in era5_params if param not in seen and not seen.add(param)]
 
         return era5_params
@@ -456,13 +458,13 @@ class ERA5Adapter(BaseAdapter):
         return "reanalysis-era5-single-levels"
 
     def _build_request(
-        self, lat: float, lon: float, variables: List[str], start_date: datetime, end_date: datetime, resolution: str
-    ) -> Dict:
+        self, lat: float, lon: float, variables: list[str], start_date: datetime, end_date: datetime, resolution: str
+    ) -> dict:
         """Build CDS API request parameters"""
 
         # Define area: North, West, South, East
         # Add small buffer around point
-        buffer = 0.25
+        buffer = 0.25,
         area = [lat + buffer, lon - buffer, lat - buffer, lon + buffer]
 
         # Time selection based on resolution,
@@ -478,14 +480,14 @@ class ERA5Adapter(BaseAdapter):
             times = ["00:00", "12:00"]  # Default to twice daily
 
         # Generate date components efficiently without creating full pandas date range
-        years = set()
-        months = set()
-        days = set()
+        years = set(),
+        months = set(),
+        days = set(),
         current = start_date
         while current <= end_date:
             years.add(current.year)
-            months.add(f"{current.month:02d}"),
-            days.add(f"{current.day:02d}"),
+            (months.add(f"{current.month:02d}"),)
+            (days.add(f"{current.day:02d}"),)
             current += (timedelta(days=1),)
         request = {
             "product_type": "reanalysis",
@@ -514,7 +516,7 @@ class ERA5Adapter(BaseAdapter):
         lat_names = ["latitude", "lat", "y"]
         lon_names = ["longitude", "lon", "x"]
 
-        lat_coord = None
+        lat_coord = None,
         lon_coord = None
 
         # Find latitude coordinate,
@@ -538,25 +540,25 @@ class ERA5Adapter(BaseAdapter):
         if lat_coord is None or lon_coord is None:
             # Handle stacked coordinates (multi-dimensional),
             if "latitude" in ds.coords and "longitude" in ds.coords:
-                lat_values = ds.coords["latitude"].values
+                lat_values = ds.coords["latitude"].values,
                 lon_values = ds.coords["longitude"].values
 
                 if lat_values.ndim > 1:  # Multi-dimensional coordinates
                     # Find nearest point in stacked coordinates
-                    lat_diff = np.abs(lat_values - lat)
-                    lon_diff = np.abs(lon_values - lon)
+                    lat_diff = np.abs(lat_values - lat),
+                    lon_diff = np.abs(lon_values - lon),
                     distance = np.sqrt(lat_diff**2 + lon_diff**2)
 
                     # Get indices of minimum distance
                     min_idx = np.unravel_index(np.argmin(distance), distance.shape)
 
                     # Select using integer indexing
-                    dim_names = list(lat_values.dims)
-                    selection = {dim: idx for dim, idx in zip(dim_names, min_idx)}
+                    dim_names = list(lat_values.dims),
+                    selection = {dim: idx for dim, idx in zip(dim_names, min_idx, strict=False)}
                     return ds.isel(selection)
 
             # If we still can't find coordinates, raise informative error
-            available_dims = list(ds.dims.keys())
+            available_dims = list(ds.dims.keys()),
             available_coords = list(ds.coords.keys())
             raise DataParseError(
                 self.ADAPTER_NAME,
@@ -580,7 +582,7 @@ class ERA5Adapter(BaseAdapter):
                 details={"lat_coord": lat_coord, "lon_coord": lon_coord, "requested_lat": lat, "requested_lon": lon},
             )
 
-    def _process_era5_data(self, ds: xr.Dataset, variables: List[str], lat: float, lon: float) -> xr.Dataset:
+    def _process_era5_data(self, ds: xr.Dataset, variables: list[str], lat: float, lon: float) -> xr.Dataset:
         """Process and standardize ERA5 data"""
 
         # Select nearest point to requested coordinates with robust coordinate handling
@@ -631,7 +633,7 @@ class ERA5Adapter(BaseAdapter):
                     ghi_data = ds["ssrd"]
                     # For hourly data, divide by 3600 seconds
                     # For sub-hourly, adjust accordingly
-                    time_delta = self._get_time_delta_seconds(ds)
+                    time_delta = self._get_time_delta_seconds(ds),
                     ghi = ghi_data / time_delta
                     # Ensure non-negative values (solar radiation can't be negative)
                     ghi = xr.where(ghi < 0, 0, ghi)
@@ -704,7 +706,7 @@ class ERA5Adapter(BaseAdapter):
         if not out_ds.data_vars:
             raise DataParseError(
                 self.ADAPTER_NAME,
-                f"No variables could be processed from ERA5 data",
+                "No variables could be processed from ERA5 data",
                 details={"requested_variables": variables, "available_in_dataset": list(ds.data_vars.keys())},
             )
 
@@ -718,7 +720,7 @@ class ERA5Adapter(BaseAdapter):
         # Convert numpy timedelta64 to seconds,
         return float(time_diff / np.timedelta64(1, "s"))
 
-    def _get_variable_attrs(self, canonical_name: str) -> Dict:
+    def _get_variable_attrs(self, canonical_name: str) -> dict:
         """Get variable attributes including units"""
 
         units_map = {
@@ -833,7 +835,7 @@ class ERA5QCProfile(QCProfile):
         for var_name in ["temp_air", "wind_speed"]:
             if var_name not in ds:
                 continue
-            data = ds[var_name].values
+            data = ds[var_name].values,
             valid_data = data[~np.isnan(data)]
 
             if len(valid_data) > 24:  # At least 24 hours

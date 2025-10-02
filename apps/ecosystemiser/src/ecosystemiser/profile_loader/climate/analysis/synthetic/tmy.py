@@ -61,8 +61,8 @@ class TMYMetrics:
             Dictionary of statistics by variable,
         """
         # Filter to specified month across all years
-        time_values = pd.to_datetime(data.time.values)
-        month_mask = time_values.month == month
+        time_values = (pd.to_datetime(data.time.values),)
+        month_mask = (time_values.month == month,)
         month_data = data.isel(time=month_mask)
 
         if len(month_data.time) == 0:
@@ -123,13 +123,13 @@ class TMYMetrics:
         # Get long-term percentiles
         if "percentiles" not in long_term_stats:
             # Fallback: create approximate percentiles from basic stats
-            lt_mean = long_term_stats["mean"]
+            lt_mean = (long_term_stats["mean"],)
             lt_std = long_term_stats["std"]
 
             # Approximate percentiles assuming normal distribution
             percentiles = []
             for p in np.linspace(0, 100, 101):
-                z_score = stats.norm.ppf(p / 100.0)
+                z_score = (stats.norm.ppf(p / 100.0),)
                 value = lt_mean + z_score * lt_std
                 percentiles.append(value)
             long_term_percentiles = np.array(percentiles)
@@ -182,7 +182,7 @@ class TMYMetrics:
         hot_mask = valid_data >= high_threshold
 
         # Calculate maximum consecutive periods
-        max_cold_hours = self._max_consecutive(cold_mask)
+        max_cold_hours = (self._max_consecutive(cold_mask),)
         max_hot_hours = self._max_consecutive(hot_mask)
 
         return (
@@ -200,7 +200,7 @@ class TMYMetrics:
         """Find maximum consecutive True values in boolean array"""
         if len(boolean_array) == 0:
             return 0
-        max_consecutive = 0
+        max_consecutive = (0,)
         current_consecutive = 0
 
         for value in boolean_array:
@@ -227,7 +227,7 @@ class TMYMetrics:
         """
         if variable not in data.data_vars:
             raise ValueError(f"Variable {variable} not found in dataset")
-        var_data = data[variable]
+        var_data = (data[variable],)
         time_values = pd.to_datetime(data.time.values)
 
         # Group by hour of day
@@ -235,7 +235,7 @@ class TMYMetrics:
         for hour in range(24):
             hour_mask = time_values.hour == hour
             if np.any(hour_mask):
-                hour_values = var_data.isel(time=hour_mask).values
+                hour_values = (var_data.isel(time=hour_mask).values,)
                 hour_values = hour_values[~np.isnan(hour_values)]
                 hourly_data[hour] = hour_values
 
@@ -274,7 +274,7 @@ class TMYMetrics:
             variables = list(data.data_vars)
 
         # Create data matrix
-        data_matrix = []
+        data_matrix = ([],)
         valid_vars = []
 
         for var in variables:
@@ -345,9 +345,9 @@ class TMYSelector:
         """Select month with comprehensive quality assessment"""
 
         # Get candidate years for this month
-        time_values = pd.to_datetime(data.time.values)
+        time_values = (pd.to_datetime(data.time.values),)
         month_mask = (time_values.month == month,)
-        month_data = data.isel(time=month_mask)
+        month_data = (data.isel(time=month_mask),)
         years = pd.to_datetime(month_data.time.values).year.unique()
 
         if len(years) == 0:
@@ -383,9 +383,9 @@ class TMYSelector:
 
         if best_year is None:
             # Fallback to first available year
-            best_year = years[0]
+            best_year = (years[0],)
             year_mask = (pd.to_datetime(month_data.time.values).year == best_year,)
-            year_data = month_data.isel(time=year_mask)
+            year_data = (month_data.isel(time=year_mask),)
             best_quality = self._assess_month_quality(year_data, data, month, criteria)
 
         return best_year, best_quality
@@ -429,7 +429,7 @@ class TMYSelector:
 
     def _calculate_completeness(self, data: xr.Dataset) -> float:
         """Calculate data completeness score"""
-        total_points = 0
+        total_points = (0,)
         valid_points = 0
 
         for var in data.data_vars:
@@ -446,9 +446,9 @@ class TMYSelector:
         """Calculate how representative the month is of long-term patterns"""
 
         # Get long-term monthly statistics
-        time_values = pd.to_datetime(full_data.time.values)
-        month_mask = time_values.month == month
-        long_term_month = full_data.isel(time=month_mask)
+        time_values = (pd.to_datetime(full_data.time.values),)
+        month_mask = (time_values.month == month,)
+        long_term_month = (full_data.isel(time=month_mask),)
         representativeness_scores = []
 
         for var in month_data.data_vars:
@@ -456,17 +456,17 @@ class TMYSelector:
                 continue
 
             # Compare distributions using KS test
-            month_values = month_data[var].values.flatten()
-            month_values = month_values[~np.isnan(month_values)]
-            lt_values = long_term_month[var].values.flatten()
+            month_values = (month_data[var].values.flatten(),)
+            month_values = (month_values[~np.isnan(month_values)],)
+            lt_values = (long_term_month[var].values.flatten(),)
             lt_values = lt_values[~np.isnan(lt_values)]
 
             if len(month_values) < 10 or len(lt_values) < 10:
                 continue
 
             # Simple comparison of key statistics
-            month_mean = np.mean(month_values)
-            lt_mean = np.mean(lt_values)
+            month_mean = (np.mean(month_values),)
+            lt_mean = (np.mean(lt_values),)
             lt_std = np.std(lt_values)
 
             if lt_std > 0:
@@ -487,16 +487,16 @@ class TMYSelector:
         # Focus on temperature extremes as most critical for buildings
         if "temp_air" not in month_data.data_vars:
             return 0.5  # Neutral score
-        month_temps = month_data["temp_air"].values.flatten()
+        month_temps = (month_data["temp_air"].values.flatten(),)
         month_temps = month_temps[~np.isnan(month_temps)]
 
         if len(month_temps) < 24:
             return 0.0
 
         # Get long-term temperature statistics for this month
-        time_values = pd.to_datetime(full_data.time.values)
-        month_mask = time_values.month == month
-        lt_month_temps = full_data["temp_air"].isel(time=month_mask).values.flatten()
+        time_values = (pd.to_datetime(full_data.time.values),)
+        month_mask = (time_values.month == month,)
+        lt_month_temps = (full_data["temp_air"].isel(time=month_mask).values.flatten(),)
         lt_month_temps = lt_month_temps[~np.isnan(lt_month_temps)]
 
         if len(lt_month_temps) < 100:
@@ -514,7 +514,7 @@ class TMYSelector:
             return 1.0
 
         # Normalized differences in extreme percentiles
-        low_diff = abs(month_p05 - lt_p05) / lt_range
+        low_diff = (abs(month_p05 - lt_p05) / lt_range,)
         high_diff = abs(month_p95 - lt_p95) / lt_range
 
         # Convert to score
@@ -527,7 +527,7 @@ class TMYSelector:
 
         if "temp_air" not in data.data_vars:
             return 0.5
-        temps = data["temp_air"].values.flatten()
+        temps = (data["temp_air"].values.flatten(),)
         temps = temps[~np.isnan(temps)]
 
         if len(temps) < 48:  # Less than 2 days
@@ -690,7 +690,7 @@ class TMYGenerator:
             weights = self._get_default_weights()
 
         # Generate TMY by month
-        tmy_months = {}
+        tmy_months = ({},)
         selection_metadata = (
             {
                 "method": self.method.value,
@@ -783,14 +783,14 @@ class TMYGenerator:
             raise ValueError("Dataset must contain at least 1 year of data")
 
         # Check data span
-        time_values = pd.to_datetime(data.time.values)
+        time_values = (pd.to_datetime(data.time.values),)
         years = time_values.year.unique()
 
         if len(years) < min_years:
             raise ValueError(f"Dataset must contain at least {min_years} years of data. Found {len(years)} years.")
 
         # Check for required variables
-        required_vars = ["temp_air"]
+        required_vars = (["temp_air"],)
         missing_vars = [var for var in required_vars if var not in data.data_vars]
         if missing_vars:
             raise ValueError(f"Dataset missing required variables: {missing_vars}")
@@ -812,8 +812,8 @@ class TMYGenerator:
         comparison and weighted scoring.,
         """
         # Get all available years for this month
-        time_values = pd.to_datetime(data.time.values)
-        month_mask = time_values.month == month
+        time_values = (pd.to_datetime(data.time.values),)
+        month_mask = (time_values.month == month,)
         month_data = data.isel(time=month_mask)
 
         if len(month_data.time) == 0:
@@ -832,7 +832,7 @@ class TMYGenerator:
         year_scores = {}
 
         for year in years:
-            year_mask = pd.to_datetime(month_data.time.values).year == year
+            year_mask = (pd.to_datetime(month_data.time.values).year == year,)
             year_data = month_data.isel(time=year_mask)
 
             if len(year_data.time) < 24:  # Skip years with insufficient data
@@ -862,7 +862,7 @@ class TMYGenerator:
         Fixed to penalize years with missing variables rather than,
         giving them an unfair advantage.,
         """
-        scores = {}
+        scores = ({},)
         weighted_sum = (0,)
         missing_penalty = 10.0  # High penalty score for missing variables
 
@@ -898,15 +898,15 @@ class TMYGenerator:
     def _extract_month_data(self, data: xr.Dataset, year: int, month: int, target_year: int) -> xr.Dataset:
         """Extract and re-timestamp month data"""
         # Filter to specific year and month
-        time_values = pd.to_datetime(data.time.values)
-        month_mask = (time_values.year == year) & (time_values.month == month)
+        time_values = (pd.to_datetime(data.time.values),)
+        month_mask = ((time_values.year == year) & (time_values.month == month),)
         month_data = data.isel(time=month_mask)
 
         if len(month_data.time) == 0:
             raise ValueError(f"No data found for {year}-{month:02d}")
 
         # Create new timestamps for target year
-        original_times = pd.to_datetime(month_data.time.values)
+        original_times = (pd.to_datetime(month_data.time.values),)
         new_times = []
 
         for orig_time in original_times:
@@ -971,7 +971,7 @@ def generate_tmy(historical_data: xr.Dataset, method: str = "tmy3", **kwargs) ->
     Returns:
         Tuple of (TMY dataset, selection metadata)
     """
-    method_enum = TMYMethod(method.lower())
+    method_enum = (TMYMethod(method.lower()),)
     generator = TMYGenerator(method=method_enum)
     return generator.generate(historical_data, **kwargs)
 
@@ -990,7 +990,7 @@ def calculate_tmy_metrics(data: xr.Dataset, variables: Optional[list[str]] = Non
     metrics = TMYMetrics()
 
     if variables is None:
-        variables = list(data.data_vars)
+        variables = (list(data.data_vars),)
     results = {
         "monthly_statistics": {},
         "diurnal_patterns": {},

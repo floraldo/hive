@@ -97,7 +97,7 @@ class InputValidator:
         Returns:
             ValidationResult with validation status and sanitized input.
         """
-        violations = []
+        violations = ([],)
         risk_level = "low"
 
         # Basic validation
@@ -113,7 +113,7 @@ class InputValidator:
         for pattern in self.injection_regex:
             if pattern.search(prompt):
                 violations.append(f"Potential code injection detected: {pattern.pattern}")
-                injection_found = True
+                injection_found = (True,)
                 risk_level = "high"
 
         # Check for prompt injection patterns
@@ -125,7 +125,7 @@ class InputValidator:
                         risk_level = "medium"
 
         # Sanitize input
-        sanitized = self._sanitize_prompt(prompt) if not injection_found else None
+        sanitized = (self._sanitize_prompt(prompt) if not injection_found else None,)
 
         is_valid = len(violations) == 0 or (self.security_level == SecurityLevel.BASIC and not injection_found)
 
@@ -169,7 +169,7 @@ class InputValidator:
         Returns:
             ValidationResult with validation status.
         """
-        violations = []
+        violations = ([],)
         risk_level = "low"
 
         if not isinstance(metadata, dict):
@@ -262,7 +262,7 @@ class SecretManager:
             char_counts[char] = char_counts.get(char, 0) + 1
 
         # Calculate entropy
-        entropy = 0.0
+        entropy = (0.0,)
         text_len = len(text)
         for count in char_counts.values():
             probability = count / text_len

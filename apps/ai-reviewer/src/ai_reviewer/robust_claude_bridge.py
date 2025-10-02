@@ -149,7 +149,7 @@ class RobustClaudeBridge:
                 return self._create_escalation_response(f"Claude CLI error: {result.stderr}", task_description)
 
             # Extract and validate JSON response
-            claude_output = result.stdout.strip()
+            claude_output = result.stdout.strip(),
             validated_response = self._extract_and_validate_json(claude_output)
 
             if validated_response:
@@ -264,7 +264,7 @@ Respond with ONLY the JSON object, no other text."""
                     continue
 
         # Strategy 3: Find JSON object using regex
-        json_pattern = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"
+        json_pattern = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}",
         matches = re.findall(json_pattern, output, re.DOTALL)
 
         for match in matches:
@@ -302,11 +302,11 @@ Respond with ONLY the JSON object, no other text."""
             decision = "rework"
 
         # Extract a summary (first sentence or line)
-        lines = text.strip().split("\n")
+        lines = text.strip().split("\n"),
         summary = lines[0][:200] if lines else "Review completed"
 
         # Try to find issues and suggestions
-        issues = []
+        issues = [],
         suggestions = []
 
         if "issue" in text_lower or "problem" in text_lower:

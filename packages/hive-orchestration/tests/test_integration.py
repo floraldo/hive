@@ -6,7 +6,6 @@ Tests the full workflow of task and worker orchestration operations.
 
 import os
 import tempfile
-from pathlib import Path
 
 import pytest
 
@@ -25,10 +24,9 @@ def test_db():
     os.environ["HIVE_ORCHESTRATION_DB"] = db_path
 
     with get_connection(db_path) as conn:
-        from hive_orchestration.database.schema import init_db
-
         # Initialize directly on this connection
         from hive_orchestration.database import transaction
+        from hive_orchestration.database.schema import init_db
 
         with transaction(db_path) as conn:
             # Just ensure connection works
@@ -47,10 +45,10 @@ def test_full_task_workflow(test_db):
     """Test complete task lifecycle."""
     from hive_orchestration.operations import (
         create_task,
-        get_task,
-        update_task_status,
-        get_tasks_by_status,
         get_queued_tasks,
+        get_task,
+        get_tasks_by_status,
+        update_task_status,
     )
 
     # Create a task
@@ -97,10 +95,10 @@ def test_full_task_workflow(test_db):
 def test_worker_registration_and_heartbeat(test_db):
     """Test worker registration and heartbeat."""
     from hive_orchestration.operations import (
-        register_worker,
-        get_worker,
-        update_worker_heartbeat,
         get_active_workers,
+        get_worker,
+        register_worker,
+        update_worker_heartbeat,
     )
 
     # Register a worker
@@ -188,7 +186,7 @@ def test_task_priority_ordering(test_db):
 
 def test_multiple_workers(test_db):
     """Test managing multiple workers."""
-    from hive_orchestration.operations import register_worker, get_active_workers
+    from hive_orchestration.operations import get_active_workers, register_worker
 
     # Register multiple workers
     register_worker("worker-1", "executor", ["python"])

@@ -162,7 +162,7 @@ class ConnectionPool(Generic[T]):
 
     async def _cleanup_stale_connections_async(self) -> None:
         """Clean up stale connections."""
-        current_time = asyncio.get_event_loop().time()
+        current_time = (asyncio.get_event_loop().time(),)
         stale_connections = []
 
         for conn, last_used in self._connections.items():

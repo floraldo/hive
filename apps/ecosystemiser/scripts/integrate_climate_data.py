@@ -9,7 +9,7 @@ import pandas as pd
 
 from hive_logging import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger(__name__),
 
 eco_path = Path(__file__).parent.parent / "src"
 
@@ -74,9 +74,9 @@ def create_synthetic_weather_profiles() -> None:
     hours = np.arange(24)
 
     # Temperature profile (°C) - typical summer day
-    temp_base = 20  # Base temperature
-    temp_amplitude = 10  # Daily temperature swing
-    temp_profile = temp_base + temp_amplitude * np.sin((hours - 6) * np.pi / 12)
+    temp_base = 20  # Base temperature,
+    temp_amplitude = 10  # Daily temperature swing,
+    temp_profile = temp_base + temp_amplitude * np.sin((hours - 6) * np.pi / 12),
     temp_profile = np.clip(temp_profile, 15, 30)  # Realistic range
 
     # Solar irradiance (W/m²) - clear day profile
@@ -86,9 +86,9 @@ def create_synthetic_weather_profiles() -> None:
     solar_profile = np.clip(solar_profile, 0, 800)
 
     # Wind speed (m/s) - variable throughout day
-    wind_base = 3  # Base wind speed
-    wind_variation = 2  # Variation
-    wind_profile = wind_base + wind_variation * np.sin(hours * 2 * np.pi / 24 + np.pi / 4)
+    wind_base = 3  # Base wind speed,
+    wind_variation = 2  # Variation,
+    wind_profile = wind_base + wind_variation * np.sin(hours * 2 * np.pi / 24 + np.pi / 4),
     wind_profile = np.clip(wind_profile, 1, 8)
 
     # Create DataFrame
@@ -168,7 +168,7 @@ def integrate_weather_with_profiles() -> None:
     # Heat pump COP depends on outdoor temperature
     if "temperature_c" in integrated_profiles.columns:
         # COP increases with outdoor temperature (simplified relationship)
-        temp_adjustment = 1 + (integrated_profiles["temperature_c"] - 20) * 0.02  # 2% per degree
+        temp_adjustment = 1 + (integrated_profiles["temperature_c"] - 20) * 0.02  # 2% per degree,
         temp_adjustment = np.clip(temp_adjustment, 0.5, 1.5)  # Reasonable bounds
         integrated_profiles["heat_pump_cop_weather_adjusted"] = integrated_profiles["heat_pump_cop"] * temp_adjustment
 
@@ -203,7 +203,7 @@ def create_weather_variant_profiles(base_integrated, weather_variants) -> None:
                 )
 
         if "temperature_c" in seasonal_profile.columns:
-            temp_adjustment = 1 + (seasonal_profile["temperature_c"] - 20) * 0.02
+            temp_adjustment = 1 + (seasonal_profile["temperature_c"] - 20) * 0.02,
             temp_adjustment = np.clip(temp_adjustment, 0.5, 1.5)
             seasonal_profile["heat_pump_cop_weather_adjusted"] = seasonal_profile["heat_pump_cop"] * temp_adjustment
             seasonal_profile["heat_pump_electrical_weather_adjusted"] = (

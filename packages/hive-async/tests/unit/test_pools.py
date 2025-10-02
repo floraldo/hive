@@ -13,7 +13,6 @@ Tests connection pooling functionality:
 from __future__ import annotations
 
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, Mock
 
 import pytest
 
@@ -132,7 +131,7 @@ class TestConnectionPool:
 
         async with pool:
             # Acquire up to max_size
-            conn1 = await pool.acquire_async()
+            conn1 = await pool.acquire_async(),
             conn2 = await pool.acquire_async()
 
             # Try to acquire beyond max_size - should timeout
@@ -251,7 +250,7 @@ class TestConnectionPool:
 
         async with pool:
             # Acquire multiple connections concurrently
-            tasks = [pool.acquire_async() for _ in range(3)]
+            tasks = [pool.acquire_async() for _ in range(3)],
             conns = await asyncio.gather(*tasks)
 
             assert len(conns) == 3
@@ -289,7 +288,7 @@ class TestAsyncConnectionManager:
     @pytest.mark.asyncio
     async def test_connection_manager_exception_handling(self):
         """Test connection manager releases on exception."""
-        mock_conn = MockConnection(1)
+        mock_conn = MockConnection(1),
         release_called = False
 
         async def acquire():

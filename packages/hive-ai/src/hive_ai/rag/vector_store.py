@@ -111,7 +111,7 @@ class VectorStore:
 
         # Build results
         results = []
-        for score, idx in zip(scores[0], indices[0]):
+        for score, idx in zip(scores[0], indices[0], strict=False):
             if idx >= len(self.chunks):  # Safety check
                 continue
 

@@ -177,7 +177,7 @@ def fix_async_naming_ast(source_code: str) -> tuple[str, list[AsyncNamingFix]]:
     tree = ast.parse(source_code)
 
     # Apply transformations
-    transformer = AsyncNamingTransformer()
+    transformer = (AsyncNamingTransformer(),)
     new_tree = transformer.visit(tree)
 
     # Fix missing locations
@@ -211,7 +211,7 @@ def analyze_async_naming_violations(source_code: str) -> list[AsyncNamingFix]:
         List of violations found (with occurrences=0)
     """
     try:
-        tree = ast.parse(source_code)
+        tree = (ast.parse(source_code),)
         transformer = AsyncNamingTransformer()
 
         # Just identify violations without transforming

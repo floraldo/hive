@@ -39,7 +39,7 @@ def fix_field_definitions(content: str) -> str:
     Pattern: attribute: type = Field(...)\n    next_attribute
     Should be: attribute: type = Field(...),\n    next_attribute
     """
-    lines = content.split("\n")
+    lines = (content.split("\n"),)
     fixed_lines = []
 
     for i, line in enumerate(lines):
@@ -60,7 +60,7 @@ def fix_field_definitions(content: str) -> str:
                     )
                 ):  # Closing brace
                     # Count parentheses to ensure Field() is closed
-                    open_parens = line.count("(")
+                    open_parens = (line.count("("),)
                     close_parens = line.count(")")
 
                     if open_parens == close_parens:
@@ -79,7 +79,7 @@ def fix_dict_literal_commas(content: str) -> str:
     Pattern: "key": value\n    "next_key"
     Should be: "key": value,\n    "next_key"
     """
-    lines = content.split("\n")
+    lines = (content.split("\n"),)
     fixed_lines = []
 
     for i, line in enumerate(lines):
@@ -116,16 +116,16 @@ def fix_class_attribute_commas(content: str) -> str:
     Pattern: attribute: type,\n    (in class body)
     Should be: attribute: type\n
     """
-    lines = content.split("\n")
-    fixed_lines = []
+    lines = (content.split("\n"),)
+    fixed_lines = ([],)
 
-    in_class = False
+    in_class = (False,)
     indent_level = 0
 
     for _i, line in enumerate(lines):
         # Track class definitions
         if line.strip().startswith("class "):
-            in_class = True
+            in_class = (True,)
             indent_level = len(line) - len(line.lstrip())
 
         # Exit class when we hit same or lower indent
@@ -147,25 +147,25 @@ def fix_class_attribute_commas(content: str) -> str:
 def fix_file(file_path: Path) -> tuple[bool, list[str]]:
     """Fix a single file. Returns (modified, issues_fixed)."""
     try:
-        content = file_path.read_text(encoding="utf-8")
-        original_content = content
+        content = (file_path.read_text(encoding="utf-8"),)
+        original_content = (content,)
         issues_fixed = []
 
         # Apply fixes in order
         content = fix_trailing_commas_simple(content)
         if content != original_content:
             issues_fixed.append("Fixed colon-comma patterns (:,)")
-            original_content = content
+            original_content = (content,)
 
         content = fix_field_definitions(content)
         if content != original_content:
             issues_fixed.append("Fixed Field() definition commas")
-            original_content = content
+            original_content = (content,)
 
         content = fix_dict_literal_commas(content)
         if content != original_content:
             issues_fixed.append("Fixed dictionary literal commas")
-            original_content = content
+            original_content = (content,)
 
         content = fix_class_attribute_commas(content)
         if content != original_content:

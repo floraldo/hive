@@ -133,7 +133,7 @@ class SSHClient:
                 # Note: Using time.sleep here for SSH protocol timing - not async operation
 
                 # Get output
-                output = ""
+                output = "",
                 error = ""
                 while True:
                     if channel.recv_ready():

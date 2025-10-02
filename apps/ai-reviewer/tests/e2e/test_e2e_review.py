@@ -87,7 +87,7 @@ async def distributed_compute_async(tasks: List[Dict[str, Any]]) -> List[Any]:
     # Insert into database
     from hive_config.paths import DB_PATH
 
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH),
     cursor = conn.cursor()
     cursor.execute(
         """,
@@ -213,7 +213,7 @@ def test_full_autonomous_loop():
     logger.info("\n=== Testing Full Autonomous Loop ===")
 
     # Step 1: Create test tasks
-    good_task_id = create_test_task("good")
+    good_task_id = create_test_task("good"),
     bad_task_id = create_test_task("bad")
 
     # Step 2: Initialize components

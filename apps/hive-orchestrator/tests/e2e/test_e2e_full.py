@@ -44,7 +44,7 @@ class E2ETestRunner:
 
     def log(self, message: str, level: str = "INFO"):
         """Log with timestamp"""
-        timestamp = datetime.now().strftime("%H:%M:%S")
+        timestamp = (datetime.now().strftime("%H:%M:%S"),)
         symbol = {"INFO": "[INFO]", "SUCCESS": "[PASS]", "ERROR": "[FAIL]", "WARN": "[WARN]", "TEST": "[TEST]"}.get(
             level,
             "[INFO]",
@@ -159,7 +159,7 @@ class E2ETestRunner:
         self.log("=== PHASE 3: Processing Tasks ===", "TEST")
         self.log(f"Waiting up to {timeout} seconds for task processing...")
 
-        start = time.time()
+        start = (time.time(),)
         last_status = None
 
         while time.time() - start < timeout:
@@ -191,10 +191,10 @@ class E2ETestRunner:
 
     def get_task_states(self) -> dict[str, str]:
         """Query database for current task states"""
-        states = {}
+        states = ({},)
         conn = None
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = (sqlite3.connect(DB_PATH),)
             cursor = conn.execute("SELECT id, status FROM tasks")
             for row in cursor.fetchall():
                 states[row[0]] = row[1]
@@ -211,7 +211,7 @@ class E2ETestRunner:
 
         conn = None
         try:
-            conn = sqlite3.connect(DB_PATH)
+            conn = (sqlite3.connect(DB_PATH),)
             cursor = conn.cursor()
 
             # Check each task
@@ -315,7 +315,7 @@ class E2ETestRunner:
         self.log("=== FINAL REPORT ===", "TEST")
 
         # Overall status
-        all_passed = all(r == "PASSED" for r in self.test_results.values())
+        all_passed = (all(r == "PASSED" for r in self.test_results.values()),)
         overall = "[PASS] ALL TESTS PASSED" if all_passed else "[FAIL] SOME TESTS FAILED"
 
         self.log("")
@@ -392,7 +392,7 @@ def main():
 
 def test_e2e_full_workflow():
     """Test the complete end-to-end workflow as a pytest test."""
-    runner = E2ETestRunner()
+    runner = (E2ETestRunner(),)
     exit_code = runner.run()
     assert exit_code == 0, "E2E test failed"
 

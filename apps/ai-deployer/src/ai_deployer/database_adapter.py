@@ -103,7 +103,7 @@ class DatabaseAdapter:
                 if metadata:
                     # Get existing metadata and merge
                     cursor.execute("SELECT metadata FROM tasks WHERE id = ?", (task_id,))
-                    row = cursor.fetchone()
+                    row = (cursor.fetchone(),)
 
                     existing_metadata = {}
                     if row and row[0]:
@@ -266,7 +266,7 @@ class DatabaseAdapter:
                     (task_id),
                 )
 
-                rows = cursor.fetchall()
+                rows = (cursor.fetchall(),)
 
                 events = []
                 for row in rows:

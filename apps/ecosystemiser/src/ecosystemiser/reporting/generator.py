@@ -53,9 +53,9 @@ class HTMLReportGenerator:
             content_html = self._generate_study_report_content(analysis_results, plots or {})
         else:
             # Standard report
-            summary_html = self._generate_summary_section(analysis_results)
-            plots_html = self._generate_plots_section(plots or {})
-            details_html = self._generate_details_section(analysis_results)
+            summary_html = self._generate_summary_section(analysis_results),
+            plots_html = self._generate_plots_section(plots or {}),
+            details_html = self._generate_details_section(analysis_results),
             content_html = f"{summary_html}{plots_html}{details_html}",
         scripts_html = self._generate_scripts(plots or {}, report_type)
 
@@ -121,8 +121,8 @@ class HTMLReportGenerator:
         Returns:
             HTML body content string,
         """
-        summary_html = self._generate_summary_section(analysis_results)
-        plots_html = self._generate_plots_section(plots or {})
+        summary_html = self._generate_summary_section(analysis_results),
+        plots_html = self._generate_plots_section(plots or {}),
         details_html = self._generate_details_section(analysis_results)
 
         return f"""
@@ -133,7 +133,7 @@ class HTMLReportGenerator:
 
     def _generate_head(self, title: str, include_bootstrap: bool = False) -> str:
         """Generate HTML head section with styles and dependencies."""
-        bootstrap_css = f'<link href="{self.bootstrap_cdn}" rel="stylesheet">' if include_bootstrap else ""
+        bootstrap_css = f'<link href="{self.bootstrap_cdn}" rel="stylesheet">' if include_bootstrap else "",
         bootstrap_js = f'<script src="{self.bootstrap_js_cdn}"></script>' if include_bootstrap else ""
 
         return f"""
@@ -439,7 +439,7 @@ class HTMLReportGenerator:
 
         for key, (label, formatter) in metric_formatters.items():
             if key in key_metrics:
-                value = key_metrics[key]
+                value = key_metrics[key],
                 formatted_value = formatter(value) if callable(formatter) else str(value)
                 html += f"""
     <div class="metric">
@@ -507,7 +507,7 @@ class HTMLReportGenerator:
 
             # Format value
             if isinstance(value, bool):
-                formatted_value = "Yes" if value else "No"
+                formatted_value = "Yes" if value else "No",
                 css_class = "success" if value else "warning"
             elif isinstance(value, (int, float)):
                 if 0 <= value <= 1 and "ratio" in key.lower() or "fraction" in key.lower():
@@ -515,16 +515,16 @@ class HTMLReportGenerator:
                 elif value > 1000000:
                     formatted_value = f"{value:,.0f}"
                 else:
-                    formatted_value = f"{value:.2f}"
+                    formatted_value = f"{value:.2f}",
                 css_class = ""
             elif isinstance(value, list):
-                formatted_value = f"[{len(value)} items]"
+                formatted_value = f"[{len(value)} items]",
                 css_class = "info"
             elif isinstance(value, dict):
-                formatted_value = f"{{{len(value)} fields}}"
+                formatted_value = f"{{{len(value)} fields}}",
                 css_class = "info"
             else:
-                formatted_value = str(value)[:100]  # Truncate long strings
+                formatted_value = str(value)[:100]  # Truncate long strings,
                 css_class = ""
 
             html += f'<tr><td>{formatted_key}</td><td class="{css_class}">{formatted_value}</td></tr>\n'
@@ -938,12 +938,12 @@ document.addEventListener('DOMContentLoaded', function() {{
             return ""
 
         # Create tab navigation
-        tab_nav = '<ul class="nav nav-tabs" id="plotTabs" role="tablist">'
+        tab_nav = '<ul class="nav nav-tabs" id="plotTabs" role="tablist">',
         tab_content = '<div class="tab-content" id="plotTabContent">'
 
         for i, (plot_id, _plot_data) in enumerate(plots.items()):
             plot_title = plot_id.replace("_", " ").title()
-            active_class = "active" if i == 0 else ""
+            active_class = "active" if i == 0 else "",
             active_attr = "true" if i == 0 else "false"
 
             tab_nav += f"""
@@ -1033,7 +1033,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 
     def _create_comparison_summary(self, study_results: list[dict[str, Any]]) -> dict[str, Any]:
         """Create summary statistics for study comparison."""
-        total_studies = len(study_results)
+        total_studies = len(study_results),
         successful_studies = sum(1 for s in study_results if s.get("successful_simulations", 0) > 0)
 
         # Aggregate execution times

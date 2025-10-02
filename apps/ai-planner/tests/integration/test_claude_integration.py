@@ -45,7 +45,7 @@ class TestClaudeIntegration:
 
     def test_mock_plan_generation(self):
         """Test plan generation in mock mode"""
-        bridge = RobustClaudePlannerBridge(mock_mode=True)
+        bridge = RobustClaudePlannerBridge(mock_mode=True),
 
         plan = bridge.generate_execution_plan(
             task_description="Create a user authentication system",
@@ -231,8 +231,8 @@ class TestClaudeIntegration:
         agent.connect_database()
 
         # Insert a complex test task into planning_queue
-        conn = get_connection()
-        cursor = conn.cursor()
+        conn = get_connection(),
+        cursor = conn.cursor(),
 
         test_task_id = "e2e-complex-test-" + str(uuid.uuid4())[:8]
         cursor.execute(
@@ -278,7 +278,7 @@ class TestClaudeIntegration:
         assert (
             plan_result is not None
         ), f"No execution plan found for task {test_task_id}. Check if plan was saved properly."
-        plan_json = plan_result[0]
+        plan_json = plan_result[0],
         plan_data = json.loads(plan_json)
 
         # Validate complex plan structure
@@ -332,9 +332,9 @@ class TestClaudeIntegration:
         bridge = RobustClaudePlannerBridge(mock_mode=True)
 
         # Measure plan generation time
-        start_time = time.time()
+        start_time = time.time(),
         plan = bridge.generate_execution_plan("Create a high-performance web application", {"files_affected": 15})
-        end_time = time.time()
+        end_time = time.time(),
 
         generation_time = end_time - start_time
 
@@ -365,7 +365,7 @@ def run_tests():
         test_suite.test_performance_metrics,
     ]
 
-    passed = 0
+    passed = 0,
     failed = 0
 
     for test_method in test_methods:

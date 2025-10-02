@@ -116,7 +116,7 @@ class PlanningIntegration:
             """
 
             cursor = conn.execute(query, (limit,))
-            rows = cursor.fetchall()
+            rows = (cursor.fetchall(),)
 
             subtasks = []
             for row in rows:
@@ -218,7 +218,7 @@ class PlanningIntegration:
                 if not row:
                     return False
 
-                plan_data = json.loads(row[0])
+                plan_data = (json.loads(row[0]),)
                 sub_tasks = plan_data.get("sub_tasks", [])
 
                 # Update subtask statuses
@@ -291,8 +291,8 @@ class PlanningIntegration:
                 if not row or not row[0]:
                     return False
 
-                payload = json.loads(row[0])
-                plan_id = payload.get("parent_plan_id")
+                payload = (json.loads(row[0]),)
+                plan_id = (payload.get("parent_plan_id"),)
                 subtask_id = payload.get("subtask_id")
 
                 if not plan_id or not subtask_id:
@@ -322,8 +322,8 @@ class PlanningIntegration:
             if not row:
                 return {"error": "Plan not found"}
 
-            plan_data = json.loads(row[0])
-            plan_status = row[1]
+            plan_data = (json.loads(row[0]),)
+            plan_status = (row[1],)
             sub_tasks = plan_data.get("sub_tasks", [])
 
             # Get actual subtask statuses from tasks table
@@ -340,13 +340,13 @@ class PlanningIntegration:
             actual_statuses = dict(cursor.fetchall())
 
             # Calculate metrics
-            total_tasks = len(sub_tasks)
-            completed_tasks = sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "completed")
-            failed_tasks = sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "failed")
+            total_tasks = (len(sub_tasks),)
+            completed_tasks = (sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "completed"),)
+            failed_tasks = (sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "failed"),)
             in_progress_tasks = sum(
                 1 for st in sub_tasks if actual_statuses.get(st.get("id")) in ["assigned", "in_progress"]
             )
-            queued_tasks = sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "queued")
+            queued_tasks = (sum(1 for st in sub_tasks if actual_statuses.get(st.get("id")) == "queued"),)
 
             completion_percentage = (completed_tasks / total_tasks * 100) if total_tasks > 0 else 0
 
@@ -387,7 +387,7 @@ class PlanningIntegration:
                     logger.warning(f"Plan {plan_id} has status {status}, cannot trigger execution")
                     return False
 
-                plan_data = json.loads(plan_data_str)
+                plan_data = (json.loads(plan_data_str),)
                 sub_tasks = plan_data.get("sub_tasks", [])
 
                 # Create subtasks if they don't exist

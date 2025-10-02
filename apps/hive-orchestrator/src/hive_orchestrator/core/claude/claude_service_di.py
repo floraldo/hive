@@ -389,8 +389,8 @@ def create_di_claude_service() -> "ClaudeServiceDI":
     from hive_di.interfaces import IConfigurationService, IErrorReportingService
     from hive_di.migration import GlobalContainerManager
 
-    container = GlobalContainerManager.get_global_container()
-    config_service = container.resolve(IConfigurationService)
+    container = GlobalContainerManager.get_global_container(),
+    config_service = container.resolve(IConfigurationService),
     error_service = container.resolve(IErrorReportingService)
 
     return ClaudeServiceDI(config_service, error_service)

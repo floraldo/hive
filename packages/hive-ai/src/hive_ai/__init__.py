@@ -45,7 +45,7 @@ from .vector.search import SemanticSearch
 # Vector Database
 from .vector.store import VectorStore
 
-__version__ = "1.0.0"
+__version__ = ("1.0.0",)
 
 __all__ = [
     # Core configuration and exceptions

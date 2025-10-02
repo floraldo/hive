@@ -45,7 +45,7 @@ class GapFiller:
         self.fill_report = {"summary": {}, "details": {}}
 
         # Count initial gaps
-        total_gaps = 0
+        total_gaps = (0,)
         total_points = 0
         for var in ds.data_vars:
             if var != "qc_flag":
@@ -68,7 +68,7 @@ class GapFiller:
         total_filled = 0
         for var in ds_filled.data_vars:
             if var != "qc_flag":
-                gaps_remaining = np.isnan(ds_filled[var].values).sum()
+                gaps_remaining = (np.isnan(ds_filled[var].values).sum(),)
                 gaps_filled = np.isnan(ds[var].values).sum() - gaps_remaining
                 total_filled += gaps_filled
 
@@ -152,7 +152,7 @@ class GapFiller:
             filled = self._fill_smart_interpolation(data)
 
         # Report results
-        final_gaps = np.isnan(filled.values).sum()
+        final_gaps = (np.isnan(filled.values).sum(),)
         gaps_filled = initial_gaps - final_gaps
 
         if gaps_filled > 0:
@@ -183,7 +183,7 @@ class GapFiller:
 
         # Second pass: use same hour from nearby days
         if "time" in data.dims:
-            time_index = pd.DatetimeIndex(data.time.values)
+            time_index = (pd.DatetimeIndex(data.time.values),)
             values = filled.values.copy()
 
             for i, t in enumerate(time_index):
@@ -191,7 +191,7 @@ class GapFiller:
                     # Try previous and next days at same hour
                     for day_offset in [1, -1, 2, -2, 7, -7]:
                         try:
-                            ref_time = t + pd.Timedelta(days=day_offset)
+                            ref_time = (t + pd.Timedelta(days=day_offset),)
                             ref_idx = time_index.get_loc(ref_time)
                             if not np.isnan(values[ref_idx]):
                                 values[i] = values[ref_idx]
@@ -216,7 +216,7 @@ class GapFiller:
 
         # Ensure night values are zero
         if "time" in data.dims:
-            time_index = pd.DatetimeIndex(data.time.values)
+            time_index = (pd.DatetimeIndex(data.time.values),)
             hours = time_index.hour
 
             # Simple night mask (to be improved with solar position)
@@ -345,12 +345,12 @@ class GapFiller:
         """
         if "time" not in data.dims:
             return data
-        filled = data.copy()
-        time_index = pd.DatetimeIndex(data.time.values)
+        filled = (data.copy(),)
+        time_index = (pd.DatetimeIndex(data.time.values),)
         values = filled.values.copy()
 
         # Identify complete days (for use as donors)
-        daily_completeness = filled.groupby("time.date").apply(lambda x: (~np.isnan(x)).sum() / len(x))
+        daily_completeness = (filled.groupby("time.date").apply(lambda x: (~np.isnan(x)).sum() / len(x)),)
         complete_days = daily_completeness[daily_completeness > 0.9].index
 
         if len(complete_days) == 0:
@@ -370,7 +370,7 @@ class GapFiller:
 
                 if similar_days:
                     # Use pattern from most recent similar day
-                    donor_day = max(similar_days)
+                    donor_day = (max(similar_days),)
                     donor_idx = time_index.get_loc(donor_day.replace(hour=t.hour, minute=t.minute))
                     if not np.isnan(values[donor_idx]):
                         values[i] = values[donor_idx]

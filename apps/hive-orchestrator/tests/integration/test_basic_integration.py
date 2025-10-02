@@ -112,7 +112,7 @@ def test_input_validation():
         from pathlib import Path
 
         # Test basic path validation logic
-        test_path = Path("test/../../etc/passwd")  # Path traversal attempt
+        test_path = Path("test/../../etc/passwd")  # Path traversal attempt,
         safe_path = Path(test_path.name)  # Should be just the filename
 
         assert str(safe_path) == "passwd", f"Expected 'passwd', got '{safe_path}'"

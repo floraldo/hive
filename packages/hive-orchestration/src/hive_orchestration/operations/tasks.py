@@ -50,9 +50,10 @@ def create_task(
     """
     import json
     import uuid
+
     from ..database import transaction
 
-    task_id = str(uuid.uuid4())
+    task_id = (str(uuid.uuid4()),)
     max_retries = kwargs.get("max_retries", 3)
     current_phase = kwargs.get("current_phase", "start")
 
@@ -96,6 +97,7 @@ def get_task(task_id: str) -> dict[str, Any] | None:
         ...     print(f"Task status: {task['status']}")
     """
     import json
+
     from ..database import get_connection
 
     with get_connection() as conn:
@@ -175,6 +177,7 @@ def get_tasks_by_status(status: str) -> list[dict[str, Any]]:
         ...     print(f"Task {task['id']}: {task['title']}")
     """
     import json
+
     from ..database import get_connection
 
     with get_connection() as conn:
@@ -182,7 +185,7 @@ def get_tasks_by_status(status: str) -> list[dict[str, Any]]:
             "SELECT * FROM tasks WHERE status = ? ORDER BY priority DESC, created_at ASC",
             (status,),
         )
-        rows = cursor.fetchall()
+        rows = (cursor.fetchall(),)
 
         tasks = []
         for row in rows:
@@ -215,6 +218,7 @@ def get_queued_tasks(
         ...     print(f"Priority {task['priority']}: {task['title']}")
     """
     import json
+
     from ..database import get_connection
 
     with get_connection() as conn:
@@ -239,7 +243,7 @@ def get_queued_tasks(
                 (limit,),
             )
 
-        rows = cursor.fetchall()
+        rows = (cursor.fetchall(),)
 
         tasks = []
         for row in rows:

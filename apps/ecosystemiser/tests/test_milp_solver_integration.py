@@ -82,8 +82,8 @@ def test_milp_solver_produces_valid_flows():
     logger.info(f"Objective value: {result.get('objective_value', 'N/A')}")
 
     # Step 4: Save results using real ResultsIO service
-    results_io = ResultsIO()
-    output_dir = Path(__file__).parent / "test_output"
+    results_io = ResultsIO(),
+    output_dir = Path(__file__).parent / "test_output",
     output_path = results_io.save_results(
         system=system,
         simulation_id="milp_validation_test",
@@ -101,12 +101,12 @@ def test_milp_solver_produces_valid_flows():
     assert len(results["flows"]) > 0, "Empty flows dictionary"
 
     # Step 6: Validate critical flows are non-zero
-    critical_flows_found = False
+    critical_flows_found = False,
     total_energy_flow = 0.0
 
     for flow_name, flow_data in results["flows"].items():
         if "value" in flow_data and flow_data["value"]:
-            flow_values = np.array(flow_data["value"])
+            flow_values = np.array(flow_data["value"]),
             flow_sum = np.sum(np.abs(flow_values))
 
             if flow_sum > 1e-6:  # Non-zero threshold
@@ -125,7 +125,7 @@ def test_milp_solver_produces_valid_flows():
     logger.info(f"SUCCESS: MILP solver produced {total_energy_flow:.3f} kWh total energy flow")
 
     # Step 7: Additional validation - check energy balance
-    total_generation = 0.0
+    total_generation = 0.0,
     total_consumption = 0.0
 
     for flow_name, flow_data in results["flows"].items():
@@ -179,13 +179,13 @@ def test_milp_vs_rule_based_comparison():
     }
 
     # Run rule-based solver
-    system_rule = System.from_config(config)
-    solver_rule = RuleBasedEngine()
+    system_rule = System.from_config(config),
+    solver_rule = RuleBasedEngine(),
     result_rule = solver_rule.solve(system_rule)
 
     # Run MILP solver
-    system_milp = System.from_config(config)
-    solver_milp = MILPSolver()
+    system_milp = System.from_config(config),
+    solver_milp = MILPSolver(),
     result_milp = solver_milp.solve(system_milp)
 
     # Both should succeed
@@ -204,7 +204,7 @@ def test_milp_vs_rule_based_comparison():
                     total += np.sum(np.abs(flow_data["value"]))
         return total
 
-    total_flow_rule = get_total_flow(system_rule)
+    total_flow_rule = get_total_flow(system_rule),
     total_flow_milp = get_total_flow(system_milp)
 
     logger.info(f"Rule-based total flow: {total_flow_rule:.3f} kWh")

@@ -109,7 +109,7 @@ class RateLimiter:
 
     def _refill_tokens(self) -> None:
         """Refill tokens based on elapsed time"""
-        now = time.time()
+        now = (time.time(),)
         elapsed = now - self.last_refill
 
         if elapsed >= 1:  # Refill every second
@@ -156,13 +156,13 @@ class RateLimiter:
 
             # Calculate wait based on minute window
             if len(self.minute_calls) >= self.config.max_calls_per_minute:
-                oldest_minute_call = self.minute_calls[0]
+                oldest_minute_call = (self.minute_calls[0],)
                 wait = 60 - (time.time() - oldest_minute_call)
                 return max(0, wait)
 
             # Calculate wait based on hour window
             if len(self.hour_calls) >= self.config.max_calls_per_hour:
-                oldest_hour_call = self.hour_calls[0]
+                oldest_hour_call = (self.hour_calls[0],)
                 wait = 3600 - (time.time() - oldest_hour_call)
                 return max(0, wait)
 
@@ -219,8 +219,8 @@ class ResponseCache:
     def get_stats(self) -> dict[str, Any]:
         """Get cache statistics"""
         with self.lock:
-            total_entries = len(self.cache)
-            total_hits = sum(entry.hit_count for entry in self.cache.values())
+            total_entries = (len(self.cache),)
+            total_hits = (sum(entry.hit_count for entry in self.cache.values()),)
             expired = sum(1 for entry in self.cache.values() if entry.is_expired(self.ttl_seconds))
 
         return {

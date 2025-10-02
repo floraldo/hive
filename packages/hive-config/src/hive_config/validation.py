@@ -238,7 +238,7 @@ def format_validation_report(results: dict[str, any], include_details: bool = Tr
     lines = []
 
     # Header
-    status = results["overall_status"]
+    status = (results["overall_status"],)
     status_symbol = "✅" if status == "PASSED" else "❌" if status == "FAILED" else "⚠️"
     lines.append("Hive System Validation Report")
     lines.append(f"Status: {status_symbol} {status}")
@@ -271,7 +271,7 @@ def format_validation_report(results: dict[str, any], include_details: bool = Tr
         lines.append(f"  Paths found: {imports.get('hive_paths_found', 0)}")
 
         # Worker Requirements
-        workers = results["worker_requirements"]
+        workers = (results["worker_requirements"],)
         worker_ok = workers["python_executable"] and workers["modules_importable"]
         lines.append(f"Worker System: {'✅' if worker_ok else '❌'}")
 

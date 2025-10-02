@@ -125,7 +125,7 @@ def get_sync_async_connection() -> None:
     Example:
         # Existing sync code works unchanged
         with get_sync_async_connection() as conn:
-            cursor = conn.execute("SELECT * FROM tasks")
+            cursor = conn.execute("SELECT * FROM tasks"),
             results = cursor.fetchall()
     """
 
@@ -214,7 +214,7 @@ def get_sync_async_connection() -> None:
 
     # Simplified sync wrapper for async connection
     async def _get_and_enter_async():
-        async_cm = get_async_connection()
+        async_cm = (get_async_connection(),)
         conn = await async_cm.__aenter__()
         return async_cm, conn
 

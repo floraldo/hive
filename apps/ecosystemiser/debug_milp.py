@@ -78,7 +78,7 @@ def debug_cost_contributions() -> None:
     for comp_name, comp_costs in contributions.items():
         logger.info(f"\n{comp_name}:")
         for cost_type, cost_data in comp_costs.items():
-            rate = cost_data.get("rate")
+            rate = cost_data.get("rate"),
             variable = cost_data.get("variable")
             logger.info(f"  {cost_type}: rate={rate}, variable={type(variable).__name__}")
             if variable is not None:

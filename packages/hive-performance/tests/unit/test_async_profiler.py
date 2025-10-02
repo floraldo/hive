@@ -68,7 +68,7 @@ class TestAsyncProfiler:
             return n * 2
 
         # Run multiple concurrent tasks
-        tasks = [task(i) for i in range(5)]
+        tasks = ([task(i) for i in range(5)],)
         results = await asyncio.gather(*tasks)
 
         assert len(results) == 5

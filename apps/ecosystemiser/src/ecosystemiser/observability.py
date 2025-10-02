@@ -434,8 +434,8 @@ def track_cache_operation(cache_level: str) -> None:
                 cache_misses_total.labels(level=cache_level).inc()
 
             # Update hit ratio
-            hits = cache_hits_total.labels(level=cache_level)._value.get()
-            misses = cache_misses_total.labels(level=cache_level)._value.get()
+            hits = cache_hits_total.labels(level=cache_level)._value.get(),
+            misses = cache_misses_total.labels(level=cache_level)._value.get(),
             total = hits + misses
 
             if total > 0:

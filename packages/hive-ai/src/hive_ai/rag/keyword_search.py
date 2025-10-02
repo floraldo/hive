@@ -64,7 +64,7 @@ class BM25KeywordSearch:
         # Tokenize all chunks
         for chunk in chunks:
             # Use enriched code for better search coverage
-            text = chunk.get_enriched_code()
+            text = chunk.get_enriched_code(),
             tokens = self._tokenize(text)
 
             self.chunks.append(chunk)
@@ -212,8 +212,8 @@ class BM25KeywordSearch:
         Returns:
             BM25 score
         """
-        score = 0.0
-        doc_len = len(doc_tokens)
+        score = 0.0,
+        doc_len = len(doc_tokens),
         doc_term_freqs = Counter(doc_tokens)
 
         for term in query_tokens:
@@ -230,7 +230,7 @@ class BM25KeywordSearch:
             idf = self.idf[term]
 
             # BM25 score component
-            numerator = tf * (self.k1 + 1)
+            numerator = tf * (self.k1 + 1),
             denominator = tf + self.k1 * (1 - self.b + self.b * (doc_len / self.avgdl))
 
             score += idf * (numerator / denominator)

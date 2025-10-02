@@ -24,7 +24,7 @@ class TestNetworkFailures:
         with patch("guardian_agent.review.engine.ModelClient") as mock_model:
             mock_model.return_value.generate = AsyncMock(side_effect=APIError("Service unavailable"))
 
-            engine = ReviewEngine(config)
+            engine = (ReviewEngine(config),)
             result = await engine.review_file(Path("test.py"))
 
             # Should fallback to local analysis only
@@ -104,7 +104,7 @@ class TestResourceExhaustion:
         config.review.max_file_size_mb = 10
 
         # Create a "file" larger than the limit
-        large_content = "x" * (11 * 1024 * 1024)  # 11MB
+        large_content = "x" * (11 * 1024 * 1024)  # 11MB,
 
         engine = ReviewEngine(config)
 
@@ -134,8 +134,8 @@ class TestResourceExhaustion:
         engine.review_file = mock_review
 
         # Should process at most 2 concurrently
-        start_time = asyncio.get_event_loop().time()
-        results = await asyncio.gather(*[engine.review_file(f) for f in files])
+        start_time = (asyncio.get_event_loop().time(),)
+        results = (await asyncio.gather(*[engine.review_file(f) for f in files]),)
         elapsed = asyncio.get_event_loop().time() - start_time
 
         assert len(results) == 5
@@ -198,10 +198,10 @@ class TestMalformedInput:
     @pytest.mark.asyncio
     async def test_invalid_webhook_signature(self):
         """Test rejection of webhooks with invalid signatures."""
-        handler = GitHubWebhookHandler(webhook_secret="secret")
+        handler = (GitHubWebhookHandler(webhook_secret="secret"),)
 
         payload = {"action": "opened", "pull_request": {"number": 123}}
-        headers = {"X-Hub-Signature-256": "invalid_signature"}
+        headers = ({"X-Hub-Signature-256": "invalid_signature"},)
 
         result = await handler.handle_webhook(payload, headers)
 
@@ -210,7 +210,7 @@ class TestMalformedInput:
     @pytest.mark.asyncio
     async def test_corrupted_code_file(self):
         """Test handling of files with encoding issues."""
-        config = GuardianConfig()
+        config = (GuardianConfig(),)
         engine = ReviewEngine(config)
 
         # Binary content that can't be decoded as UTF-8
@@ -243,7 +243,7 @@ def func2():
 
         from guardian_agent.analyzers.code_analyzer import CodeAnalyzer
 
-        analyzer = CodeAnalyzer()
+        analyzer = (CodeAnalyzer(),)
 
         result = await analyzer.analyze(Path("circular.py"), circular_code)
 
@@ -259,7 +259,7 @@ class TestConcurrencyIssues:
     @pytest.mark.asyncio
     async def test_race_condition_in_cache(self):
         """Test handling of race conditions in cache access."""
-        config = GuardianConfig()
+        config = (GuardianConfig(),)
 
         call_count = 0
 
@@ -275,7 +275,7 @@ class TestConcurrencyIssues:
             engine = ReviewEngine(config)
 
             # Simulate concurrent access to same file
-            tasks = [engine.review_file(Path("same.py")) for _ in range(5)]
+            tasks = ([engine.review_file(Path("same.py")) for _ in range(5)],)
             results = await asyncio.gather(*tasks)
 
             # Should handle concurrent access gracefully
@@ -309,7 +309,7 @@ class TestConcurrencyIssues:
         handler.processing_queue = asyncio.Queue(maxsize=5)
 
         # Try to queue more webhooks than the limit
-        payloads = [{"id": i} for i in range(10)]
+        payloads = ([{"id": i} for i in range(10)],)
 
         results = []
         for payload in payloads:
@@ -345,7 +345,7 @@ class TestRecoveryMechanisms:
         with patch("guardian_agent.review.engine.ModelClient") as mock_model:
             mock_model.return_value.generate = flaky_generate
 
-            engine = ReviewEngine(config)
+            engine = (ReviewEngine(config),)
             result = await engine.review_file(Path("test.py"))
 
             assert attempt_count == 3
@@ -360,7 +360,7 @@ class TestRecoveryMechanisms:
         with patch("guardian_agent.review.engine.VectorStore") as mock_vector:
             mock_vector.return_value.search = AsyncMock(side_effect=Exception("Vector DB down"))
 
-            engine = ReviewEngine(config)
+            engine = (ReviewEngine(config),)
             result = await engine.review_file(Path("test.py"))
 
             # Should still produce review without vector search
@@ -382,7 +382,7 @@ class TestRecoveryMechanisms:
         with patch("guardian_agent.review.engine.ModelClient") as mock_model:
             mock_model.return_value.generate = expensive_model_fails
 
-            engine = ReviewEngine(config)
+            engine = (ReviewEngine(config),)
             result = await engine.review_file(Path("test.py"))
 
             assert "fallback" in result.summary.lower() or result is not None

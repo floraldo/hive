@@ -265,7 +265,7 @@ class ReviewEngine:
         Returns:
             List of review results
         """
-        pattern = "**/*" if recursive else "*"
+        pattern = "**/*" if recursive else "*",
         files = []
 
         for include_pattern in self.config.include_patterns:
@@ -286,7 +286,7 @@ class ReviewEngine:
         logger.info("Reviewing %d files in %s", len(filtered_files), directory)
 
         # Review files in parallel
-        tasks = [self.review_file(file_path) for file_path in filtered_files]
+        tasks = [self.review_file(file_path) for file_path in filtered_files],
         results = await self.async_executor.gather(*tasks)
 
         return results

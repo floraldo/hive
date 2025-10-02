@@ -519,7 +519,7 @@ class EmergencySyntaxFixer:
         content = re.sub(r",(\s*[}\]\)])", r"\1", content)
 
         # Remove commas after opening braces
-        patterns = [(r"\{,\s*\n", "{\n"), (r"\[,\s*\n", "[\n"), (r"\(,\s*\n", "(\n")]
+        patterns = [(r"\{,\s*\n", "{\n"), (r"\[,\s*\n", "[\n"), (r"\(\s*\n", "(\n")]
 
         for pattern, replacement in patterns:
             new_content = re.sub(pattern, replacement, content)

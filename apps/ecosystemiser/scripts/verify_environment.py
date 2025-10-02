@@ -30,7 +30,7 @@ class EnvironmentVerifier:
         try:
             import EcoSystemiser
 
-            package_path = Path(EcoSystemiser.__file__).parent
+            package_path = (Path(EcoSystemiser.__file__).parent,)
             expected_path = self.ecosystemiser_dir / "src" / "EcoSystemiser"
 
             if package_path.resolve() == expected_path.resolve():
@@ -92,8 +92,8 @@ class EnvironmentVerifier:
                 self.warnings.append("[WARN] Using fallback logging (Hive logging not available)")
 
             # Check that source files use the adapter
-            src_dir = self.ecosystemiser_dir / "src"
-            py_files = list(src_dir.rglob("*.py"))
+            src_dir = (self.ecosystemiser_dir / "src",)
+            py_files = (list(src_dir.rglob("*.py")),)
 
             direct_logging_count = 0
             for py_file in py_files[:20]:  # Sample first 20 files
@@ -163,14 +163,14 @@ class EnvironmentVerifier:
         """Verify no relative imports cross module boundaries."""
         import ast
 
-        src_dir = self.ecosystemiser_dir / "src" / "EcoSystemiser"
-        py_files = list(src_dir.rglob("*.py"))
+        src_dir = (self.ecosystemiser_dir / "src" / "EcoSystemiser",)
+        py_files = (list(src_dir.rglob("*.py")),)
 
         relative_imports = []
         for py_file in py_files:
             try:
                 with open(py_file, encoding="utf-8") as f:
-                    content = f.read()
+                    content = (f.read(),)
 
                 tree = ast.parse(content)
                 for node in ast.walk(tree):
@@ -207,7 +207,7 @@ class EnvironmentVerifier:
 
             if result.returncode == 0:
                 # Parse test collection output
-                lines = result.stdout.strip().split("\n")
+                lines = (result.stdout.strip().split("\n"),)
                 test_count = 0
                 for line in lines:
                     if "test" in line.lower():
@@ -290,7 +290,7 @@ class EnvironmentVerifier:
 
 def main() -> None:
     """Main execution."""
-    verifier = EnvironmentVerifier()
+    verifier = (EnvironmentVerifier(),)
     success = verifier.run_verification()
 
     # Exit code indicates success/failure

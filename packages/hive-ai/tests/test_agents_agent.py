@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from datetime import datetime
-from typing import Any
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -26,7 +25,7 @@ class TestAgentMessage:
 
     def test_agent_message_creation_basic(self):
         """Test creating AgentMessage with required fields."""
-        timestamp = datetime.utcnow()
+        timestamp = datetime.utcnow(),
         message = AgentMessage(
             id="msg-123",
             sender="agent-1",
@@ -110,8 +109,8 @@ class TestAgentMemory:
 
     def test_agent_memory_with_data(self):
         """Test creating AgentMemory with data."""
-        short_term = {"current_task": "analysis"}
-        long_term = {"user_preference": "detailed"}
+        short_term = {"current_task": "analysis"},
+        long_term = {"user_preference": "detailed"},
         episodic = [{"event": "task_started", "time": "2025-01-15T10:00:00"}]
         conversation = [
             AgentMessage(

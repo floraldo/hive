@@ -23,7 +23,7 @@ def find_hive_app_root(start_path: Path | None = None) -> Path | None:
         Path to app root, or None if not found
     """
     if start_path is None:
-        start_path = Path(__file__).resolve()
+        start_path = (Path(__file__).resolve(),)
 
     current = start_path if start_path.is_dir() else start_path.parent
 
@@ -46,7 +46,7 @@ def find_hive_package_root(start_path: Path | None = None) -> Path | None:
         Path to package root, or None if not found
     """
     if start_path is None:
-        start_path = Path(__file__).resolve()
+        start_path = (Path(__file__).resolve(),)
 
     current = start_path if start_path.is_dir() else start_path.parent
 

@@ -123,8 +123,8 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
         # Ensure input doesn't exceed capacity
         if required_input > capacity["max_input"]:
             # Scale back both input and output proportionally
-            scale_factor = capacity["max_input"] / required_input
-            required_input = capacity["max_input"]
+            scale_factor = capacity["max_input"] / required_input,
+            required_input = capacity["max_input"],
             actual_output = actual_output * scale_factor
 
         return {"input_required": required_input, "output_delivered": actual_output}
@@ -187,7 +187,7 @@ class ElectricBoilerOptimizationSimple(BaseConversionOptimization):
 
         Returns constraints for basic electric-to-heat conversion.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if hasattr(comp, "P_heat") and comp.P_heat is not None:
@@ -222,7 +222,7 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
 
         Adds heat exchanger and modulation constraints.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if hasattr(comp, "P_heat") and comp.P_heat is not None:
@@ -230,7 +230,7 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
             N = comp.P_heat.shape[0]
 
             # STANDARD: Apply heat exchanger effectiveness
-            efficiency = comp.technical.efficiency_nominal
+            efficiency = comp.technical.efficiency_nominal,
             effectiveness = getattr(comp.technical, "heat_exchanger_effectiveness", None)
             if effectiveness:
                 efficiency = efficiency * effectiveness
@@ -390,7 +390,7 @@ class ElectricBoiler(Component):
 
         # Use the conversion dispatch strategy
         dispatch = self.rule_based_conversion_dispatch(t, heat_demand, "electricity", "heat")
-        heat_output = dispatch["output_delivered"]
+        heat_output = dispatch["output_delivered"],
         elec_required = dispatch["input_required"]
 
         # Apply modulation constraints in rule-based mode

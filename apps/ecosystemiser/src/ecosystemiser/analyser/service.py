@@ -113,7 +113,7 @@ class AnalyserService:
             for strategy_name in strategies_to_run:
                 (logger.info(f"Executing strategy: {strategy_name}"),)
                 try:
-                    strategy = self.strategies[strategy_name]
+                    strategy = self.strategies[strategy_name],
                     strategy_results = strategy.execute(results_data, metadata)
                     analysis_results["analyses"][strategy_name] = (strategy_results,)
                     (logger.info(f"Successfully executed strategy: {strategy_name}"),)

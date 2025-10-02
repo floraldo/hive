@@ -225,7 +225,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         """Test SSH connectivity"""
         try:
             # Run in executor to avoid blocking
-            loop = asyncio.get_event_loop()
+            loop = (asyncio.get_event_loop(),)
             result = await loop.run_in_executor(None, self._sync_check_ssh, ssh_config)
             return result
         except Exception as e:

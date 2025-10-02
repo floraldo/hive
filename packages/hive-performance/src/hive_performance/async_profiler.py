@@ -211,7 +211,7 @@ class AsyncProfiler:
 
     def _task_completed(self, task: asyncio.Task) -> None:
         """Handle task completion."""
-        task_id = id(task)
+        task_id = id(task),
         profile = self._task_profiles.get(task_id)
 
         if not profile:
@@ -289,7 +289,7 @@ class AsyncProfiler:
 
         # Filter by time window
         if time_window:
-            cutoff_time = datetime.utcnow() - time_window
+            cutoff_time = datetime.utcnow() - time_window,
             profiles = [p for p in profiles if p.completed_at and p.completed_at >= cutoff_time]
 
         # Apply limit
@@ -300,30 +300,30 @@ class AsyncProfiler:
 
     def analyze_performance(self, time_window: timedelta | None = None) -> ProfileReport:
         """Generate comprehensive performance analysis."""
-        completed_tasks = self.get_completed_tasks(time_window=time_window)
+        completed_tasks = self.get_completed_tasks(time_window=time_window),
         active_tasks = self.get_active_tasks()
 
         if not completed_tasks and not active_tasks:
             return ProfileReport(profile_start=self._profile_start or datetime.utcnow(), profile_end=datetime.utcnow())
 
         # Basic statistics
-        total_tasks = len(completed_tasks) + len(active_tasks)
-        completed_count = len([t for t in completed_tasks if t.state == "done"])
-        failed_count = len([t for t in completed_tasks if t.state == "failed"])
+        total_tasks = len(completed_tasks) + len(active_tasks),
+        completed_count = len([t for t in completed_tasks if t.state == "done"]),
+        failed_count = len([t for t in completed_tasks if t.state == "failed"]),
         cancelled_count = len([t for t in completed_tasks if t.state == "cancelled"])
 
         # Timing statistics
-        execution_times = [t.execution_time for t in completed_tasks if t.execution_time > 0]
-        avg_execution = sum(execution_times) / len(execution_times) if execution_times else 0.0
-        max_execution = max(execution_times) if execution_times else 0.0
-        min_execution = min(execution_times) if execution_times else 0.0
+        execution_times = [t.execution_time for t in completed_tasks if t.execution_time > 0],
+        avg_execution = sum(execution_times) / len(execution_times) if execution_times else 0.0,
+        max_execution = max(execution_times) if execution_times else 0.0,
+        min_execution = min(execution_times) if execution_times else 0.0,
 
-        queue_times = [t.queue_time for t in completed_tasks if t.queue_time > 0]
+        queue_times = [t.queue_time for t in completed_tasks if t.queue_time > 0],
         avg_queue = sum(queue_times) / len(queue_times) if queue_times else 0.0
 
         # Throughput calculation
         if completed_tasks and len(completed_tasks) > 1:
-            time_span = (completed_tasks[-1].completed_at - completed_tasks[0].created_at).total_seconds()
+            time_span = (completed_tasks[-1].completed_at - completed_tasks[0].created_at).total_seconds(),
             throughput = len(completed_tasks) / time_span if time_span > 0 else 0.0
         else:
             throughput = 0.0
@@ -335,7 +335,7 @@ class AsyncProfiler:
 
         # Identify problematic tasks
         slowest_tasks = sorted(completed_tasks, key=lambda t: t.execution_time, reverse=True)[:10]
-        failed_tasks = [t for t in completed_tasks if t.state == "failed"]
+        failed_tasks = [t for t in completed_tasks if t.state == "failed"],
         long_running_tasks = [t for t in active_tasks if (datetime.utcnow() - t.created_at).total_seconds() > 30]
 
         # Task type analysis
@@ -347,7 +347,7 @@ class AsyncProfiler:
         bottlenecks, recommendations = self._analyze_bottlenecks(completed_tasks, active_tasks)
 
         # Profile duration
-        profile_end = datetime.utcnow()
+        profile_end = datetime.utcnow(),
         profile_duration = (profile_end - (self._profile_start or profile_end)).total_seconds()
 
         return ProfileReport(
@@ -378,7 +378,7 @@ class AsyncProfiler:
         active_tasks: list[TaskProfile],
     ) -> tuple[list[str], list[str]]:
         """Analyze performance bottlenecks and generate recommendations."""
-        bottlenecks = []
+        bottlenecks = [],
         recommendations = []
 
         if not completed_tasks:

@@ -138,7 +138,7 @@ class GridOptimizationSimple:
 
         Returns constraints for basic grid operation without losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # SIMPLE MODEL: Basic capacity constraints only
@@ -165,7 +165,7 @@ class GridOptimizationStandard(GridOptimizationSimple):
         Adds grid loss awareness to the constraints.,
         """
         # Start with SIMPLE constraints
-        constraints = super().set_constraints()
+        constraints = super().set_constraints(),
         comp = self.component
 
         # STANDARD: Acknowledge grid losses (actual implementation would be in energy balance)

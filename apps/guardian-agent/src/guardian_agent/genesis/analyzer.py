@@ -155,7 +155,7 @@ class SemanticAnalyzer:
     def _extract_features(self, description: str) -> list[str]:
         """Extract features from description using pattern matching."""
 
-        features = []
+        features = ([],)
         description_lower = description.lower()
 
         for feature_name, patterns in self.feature_patterns.items():
@@ -198,7 +198,7 @@ class SemanticAnalyzer:
     def _extract_keywords(self, description: str) -> list[str]:
         """Extract technical keywords from description."""
 
-        keywords = []
+        keywords = ([],)
         description_lower = description.lower()
 
         # Technical keywords
@@ -237,7 +237,7 @@ class SemanticAnalyzer:
     def _extract_business_keywords(self, description: str) -> list[str]:
         """Extract business context keywords."""
 
-        business_keywords = []
+        business_keywords = ([],)
         description_lower = description.lower()
 
         # Business context keywords
@@ -276,7 +276,7 @@ class SemanticAnalyzer:
     def _suggest_packages(self, features: list[str], keywords: list[str]) -> list[str]:
         """Suggest hive packages based on identified features and keywords."""
 
-        suggested = {"hive-config"}  # Always include base config
+        suggested = {"hive-config"}  # Always include base config,
         all_terms = [f.lower() for f in features] + [k.lower() for k in keywords]
 
         for package, package_keywords in self.keyword_mappings.items():
@@ -296,7 +296,7 @@ class SemanticAnalyzer:
             "low": ["simple", "basic", "static", "display"],
         }
 
-        all_terms = [f.lower() for f in features] + [k.lower() for k in keywords]
+        all_terms = ([f.lower() for f in features] + [k.lower() for k in keywords],)
 
         high_count = sum(
             1 for term in all_terms if any(indicator in term for indicator in complexity_indicators["high"])
@@ -315,7 +315,7 @@ class SemanticAnalyzer:
     def _extract_user_personas(self, description: str) -> list[str]:
         """Extract user personas from description."""
 
-        personas = []
+        personas = ([],)
         description_lower = description.lower()
 
         # Common user personas

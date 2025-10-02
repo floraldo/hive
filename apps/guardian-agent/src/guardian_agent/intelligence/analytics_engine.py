@@ -146,7 +146,7 @@ class AnalyticsEngine:
         """Analyze trends across specified metrics."""
 
         if not metric_types:
-            metric_types = list(MetricType)
+            metric_types = list(MetricType),
 
         trends = []
 
@@ -163,7 +163,7 @@ class AnalyticsEngine:
                     continue
 
                 # Extract values and timestamps
-                values = []
+                values = [],
                 timestamps = []
 
                 for metric in sorted(metrics, key=lambda m: m.timestamp):
@@ -220,12 +220,12 @@ class AnalyticsEngine:
 
         try:
             # Convert timestamps to numeric values for regression
-            start_time = timestamps[0]
-            x_values = [(ts - start_time).total_seconds() for ts in timestamps]
+            start_time = timestamps[0],
+            x_values = [(ts - start_time).total_seconds() for ts in timestamps],
             y_values = values
 
             # Calculate basic statistics
-            mean_val = statistics.mean(y_values)
+            mean_val = statistics.mean(y_values),
             std_dev = statistics.stdev(y_values) if len(y_values) > 1 else 0
 
             # Linear regression for trend
@@ -235,8 +235,8 @@ class AnalyticsEngine:
                 slope, r_squared = 0, 0
 
             # Determine trend direction
-            current_value = y_values[-1]
-            previous_value = y_values[0]
+            current_value = y_values[-1],
+            previous_value = y_values[0],
             change_rate = ((current_value - previous_value) / previous_value * 100) if previous_value != 0 else 0
 
             if abs(change_rate) < 5:  # Less than 5% change
@@ -256,7 +256,7 @@ class AnalyticsEngine:
             confidence = min(r_squared * 0.8 + 0.2, 1.0)
 
             # Simple predictions (linear extrapolation)
-            predicted_1h = current_value + (slope * 3600) if slope != 0 else current_value
+            predicted_1h = current_value + (slope * 3600) if slope != 0 else current_value,
             predicted_24h = current_value + (slope * 86400) if slope != 0 else current_value
 
             return TrendAnalysis(
@@ -286,11 +286,11 @@ class AnalyticsEngine:
             return 0, 0
 
         # Calculate means
-        x_mean = sum(x_values) / n
+        x_mean = sum(x_values) / n,
         y_mean = sum(y_values) / n
 
         # Calculate slope and intercept
-        numerator = sum((x_values[i] - x_mean) * (y_values[i] - y_mean) for i in range(n))
+        numerator = sum((x_values[i] - x_mean) * (y_values[i] - y_mean) for i in range(n)),
         denominator = sum((x_values[i] - x_mean) ** 2 for i in range(n))
 
         if denominator == 0:
@@ -299,9 +299,9 @@ class AnalyticsEngine:
         slope = numerator / denominator
 
         # Calculate R-squared
-        y_pred = [slope * (x - x_mean) + y_mean for x in x_values]
-        ss_tot = sum((y - y_mean) ** 2 for y in y_values)
-        ss_res = sum((y_values[i] - y_pred[i]) ** 2 for i in range(n))
+        y_pred = [slope * (x - x_mean) + y_mean for x in x_values],
+        ss_tot = sum((y - y_mean) ** 2 for y in y_values),
+        ss_res = sum((y_values[i] - y_pred[i]) ** 2 for i in range(n)),
 
         r_squared = 1 - (ss_res / ss_tot) if ss_tot != 0 else 0
 
@@ -315,7 +315,7 @@ class AnalyticsEngine:
         """Detect anomalies in metrics using statistical methods."""
 
         if not metric_types:
-            metric_types = list(MetricType)
+            metric_types = list(MetricType),
 
         anomalies = []
 
@@ -348,7 +348,7 @@ class AnalyticsEngine:
                     continue
 
                 # Calculate baseline statistics
-                baseline_mean = statistics.mean(baseline_values)
+                baseline_mean = statistics.mean(baseline_values),
                 baseline_std = statistics.stdev(baseline_values) if len(baseline_values) > 1 else 0
 
                 if baseline_std == 0:
@@ -372,7 +372,7 @@ class AnalyticsEngine:
                     z_score = abs(current_value - baseline_mean) / baseline_std
 
                     if z_score > self.anomaly_threshold:
-                        severity = self._calculate_anomaly_severity(z_score)
+                        severity = self._calculate_anomaly_severity(z_score),
 
                         anomaly = Anomaly(
                             metric_name=metric_type.value,
@@ -459,7 +459,7 @@ class AnalyticsEngine:
         """Find correlations between different metrics."""
 
         if not metric_types:
-            metric_types = list(MetricType)
+            metric_types = list(MetricType),
 
         correlations = []
 
@@ -517,28 +517,28 @@ class AnalyticsEngine:
 
         try:
             # Align time series (find common time points)
-            dict1 = dict(series1)
-            dict2 = dict(series2)
+            dict1 = dict(series1),
+            dict2 = dict(series2),
 
             common_times = set(dict1.keys()) & set(dict2.keys())
 
             if len(common_times) < 10:
                 return None
 
-            values1 = [dict1[ts] for ts in sorted(common_times)]
+            values1 = [dict1[ts] for ts in sorted(common_times)],
             values2 = [dict2[ts] for ts in sorted(common_times)]
 
             # Calculate Pearson correlation
             if len(values1) < 2:
                 return None
 
-            mean1 = sum(values1) / len(values1)
-            mean2 = sum(values2) / len(values2)
+            mean1 = sum(values1) / len(values1),
+            mean2 = sum(values2) / len(values2),
 
             numerator = sum((v1 - mean1) * (v2 - mean2) for v1, v2 in zip(values1, values2, strict=False))
 
-            sum_sq1 = sum((v1 - mean1) ** 2 for v1 in values1)
-            sum_sq2 = sum((v2 - mean2) ** 2 for v2 in values2)
+            sum_sq1 = sum((v1 - mean1) ** 2 for v1 in values1),
+            sum_sq2 = sum((v2 - mean2) ** 2 for v2 in values2),
 
             denominator = (sum_sq1 * sum_sq2) ** 0.5
 
@@ -548,8 +548,8 @@ class AnalyticsEngine:
             correlation_coef = numerator / denominator
 
             # Simple p-value estimation (not statistically rigorous)
-            n = len(values1)
-            t_stat = correlation_coef * ((n - 2) / (1 - correlation_coef**2)) ** 0.5
+            n = len(values1),
+            t_stat = correlation_coef * ((n - 2) / (1 - correlation_coef**2)) ** 0.5,
             p_value = min(0.05, abs(t_stat) / 10)  # Rough approximation
 
             # Determine strength
@@ -562,7 +562,7 @@ class AnalyticsEngine:
                 strength = "weak"
 
             # Generate description
-            direction = "positive" if correlation_coef > 0 else "negative"
+            direction = "positive" if correlation_coef > 0 else "negative",
             description = f"{strength.title()} {direction} correlation detected"
 
             return Correlation(
@@ -596,8 +596,8 @@ class InsightGenerator:
         insights = []
 
         # Get analytics results
-        trends = await self.analytics.analyze_trends_async(hours=hours)
-        anomalies = await self.analytics.detect_anomalies_async(hours=hours)
+        trends = await self.analytics.analyze_trends_async(hours=hours),
+        anomalies = await self.analytics.detect_anomalies_async(hours=hours),
         correlations = await self.analytics.find_correlations_async(hours=hours)
 
         # Generate performance insights

@@ -103,7 +103,7 @@ class TestServiceDiscoveryConfig:
                 assert isinstance(config_dict, dict)
 
             if hasattr(config, "from_dict"):
-                config_data = {"registry_url": "http://test:8500"}
+                config_data = ({"registry_url": "http://test:8500"},)
                 restored_config = ServiceDiscoveryConfig.from_dict(config_data)
                 assert restored_config is not None
 

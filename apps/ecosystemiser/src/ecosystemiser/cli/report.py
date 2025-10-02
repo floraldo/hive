@@ -36,7 +36,7 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
         analyser = AnalyserService()
 
         # Run analysis
-        strategies_list = list(strategies) if strategies else None
+        strategies_list = (list(strategies) if strategies else None,)
         analysis_results = analyser.analyse(results_file, strategies_list)
 
         # Determine output path
@@ -131,7 +131,7 @@ def generate(results_file: str, output: str) -> None:
     """
     try:
         # Run analysis
-        analyser = AnalyserService()
+        analyser = (AnalyserService(),)
         analysis_results = analyser.analyse(results_file)
 
         # Load raw results
@@ -141,8 +141,8 @@ def generate(results_file: str, output: str) -> None:
         # Generate plots
         from ecosystemiser.datavis.plot_factory import PlotFactory
 
-        plot_factory = PlotFactory()
-        plots = {}
+        plot_factory = (PlotFactory(),)
+        plots = ({},)
         analyses = analysis_results.get("analyses", {})
 
         # Generate relevant plots
@@ -335,7 +335,7 @@ def create_standalone_html_report(analysis_results: dict, plots: dict) -> str:
         <h3>Economic Analysis</h3>
         <table class="table table-striped">
         """
-        economic = analyses["economic"]
+        economic = (analyses["economic"],)
         economic_keys = (["lcoe", "npv", "payback_period_years", "capex_total", "opex_annual"],)
 
         for key in economic_keys:

@@ -7,18 +7,16 @@ building-specific derived variables for comprehensive building energy analysis.
 
 from __future__ import annotations
 
-
-from typing import Dict, List, Tuple
-
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def analyze_building_loads(ds: xr.Dataset) -> Dict:
+def analyze_building_loads(ds: xr.Dataset) -> dict:
     """
     Analyze climate data for building load patterns.
 
@@ -42,13 +40,13 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
 
         # Calculate HDD if not already present
         if "time" in temp.dims:
-            daily_temp = temp.resample(time="1D").mean()
+            daily_temp = (temp.resample(time="1D").mean(),)
             hdd = (18 - daily_temp).clip(min=0)
             analysis["heating"]["annual_hdd_base18"] = float(hdd.sum())
 
     # Cooling analysis
     if "temp_air" in ds and "rel_humidity" in ds:
-        temp = ds["temp_air"]
+        temp = (ds["temp_air"],)
         rh = ds["rel_humidity"]
 
         # Cooling indicators
@@ -63,7 +61,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
 
         # Calculate CDD if not already present
         if "time" in temp.dims:
-            daily_temp = temp.resample(time="1D").mean()
+            daily_temp = (temp.resample(time="1D").mean(),)
             cdd = (daily_temp - 24).clip(min=0)
             analysis["cooling"]["annual_cdd_base24"] = float(cdd.sum())
 
@@ -93,7 +91,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
     # Add coincidence analysis if we have temp and solar
     if "temp_air" in ds and "ghi" in ds:
         # Peak cooling typically coincides with high solar
-        hot_hours = ds["temp_air"] > ds["temp_air"].quantile(0.95)
+        hot_hours = (ds["temp_air"] > ds["temp_air"].quantile(0.95),)
         high_solar = ds["ghi"] > ds["ghi"].quantile(0.75)
 
         analysis["coincidence"] = (
@@ -106,7 +104,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
     return analysis
 
 
-def get_design_conditions(ds: xr.Dataset, percentiles: List[float] | None = None) -> Dict:
+def get_design_conditions(ds: xr.Dataset, percentiles: list[float] | None = None) -> dict:
     """
     Calculate ASHRAE-style design conditions for HVAC sizing.
 
@@ -124,8 +122,8 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] | None = None
 
     # Temperature design conditions
     if "temp_air" in ds:
-        temp = ds["temp_air"].values
-        temp_sorted = np.sort(temp[~np.isnan(temp)])
+        temp = (ds["temp_air"].values,)
+        temp_sorted = (np.sort(temp[~np.isnan(temp)]),)
         n = len(temp_sorted)
 
         for p in percentiles:
@@ -149,8 +147,8 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] | None = None
 
     # Humidity extremes
     if "dewpoint" in ds:
-        dp = ds["dewpoint"].values
-        dp_sorted = np.sort(dp[~np.isnan(dp)])
+        dp = (ds["dewpoint"].values,)
+        dp_sorted = (np.sort(dp[~np.isnan(dp)]),)
         n = len(dp_sorted)
 
         for p in percentiles:
@@ -171,7 +169,7 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] | None = None
     return design
 
 
-def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Optional[List[str]] = None) -> Dict:
+def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Optional[list[str]] = None) -> dict:
     """
     Identify peak periods for different variables.
 
@@ -202,7 +200,7 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
             data = ds[var]
 
             # Find overall peak
-            peak_idx = data.argmax()
+            peak_idx = (data.argmax(),)
             peak_time = pd.Timestamp(data.time[peak_idx].values)
 
             peaks[var] = {
@@ -215,13 +213,13 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
 
             # Calculate typical peak timing (mode of peak hours)
             if window == "1D":
-                daily_max = data.resample(time="1D").max()
+                daily_max = (data.resample(time="1D").max(),)
                 daily_max_time = data.resample(time="1D").apply(
                     lambda x: x.time[x.argmax()].values if len(x) > 0 else pd.NaT
                 )
 
                 # Most common hour for daily peaks
-                peak_hours = pd.DatetimeIndex(daily_max_time.values).hour
+                peak_hours = (pd.DatetimeIndex(daily_max_time.values).hour,)
                 peak_hours = peak_hours[~pd.isna(peak_hours)]
                 if len(peak_hours) > 0:
                     peaks[var]["typical_peak_hour"] = int(pd.Series(peak_hours).mode().iloc[0])
@@ -229,13 +227,16 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
             # Seasonal variation
             monthly_max = data.resample(time="1M").max()
             peaks[var]["peak_month_value"] = (
-                {int(m.month): float(v) for m, v in zip(pd.DatetimeIndex(monthly_max.time.values), monthly_max.values)},
+                {
+                    int(m.month): float(v)
+                    for m, v in zip(pd.DatetimeIndex(monthly_max.time.values), monthly_max.values, strict=False)
+                },
             )
 
     return peaks
 
 
-def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = None, by_month: bool = True) -> Dict:
+def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[list[str]] = None, by_month: bool = True) -> dict:
     """
     Calculate average diurnal (hourly) profiles.
 
@@ -289,7 +290,7 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
     return profiles
 
 
-def calculate_simultaneity(ds: xr.Dataset) -> Dict:
+def calculate_simultaneity(ds: xr.Dataset) -> dict:
     """
     Calculate simultaneity factors between different loads.,
 
@@ -312,8 +313,8 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
             simultaneity["temp_solar_correlation"] = float(corr)
 
         # Peak coincidence
-        temp_peak_time = ds.time[ds["temp_air"].argmax()]
-        solar_peak_time = ds.time[ds["ghi"].argmax()]
+        temp_peak_time = (ds.time[ds["temp_air"].argmax()],)
+        solar_peak_time = (ds.time[ds["ghi"].argmax()],)
         time_diff = (
             (abs(pd.Timestamp(temp_peak_time.values) - pd.Timestamp(solar_peak_time.values)).total_seconds() / 3600),
         )
@@ -329,7 +330,7 @@ def calculate_simultaneity(ds: xr.Dataset) -> Dict:
     return simultaneity
 
 
-def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.Dataset:
+def derive_building_variables(ds: xr.Dataset, config: dict | None = None) -> xr.Dataset:
     """
     Derive building-specific variables for HVAC and energy calculations.,
     This is postprocessing - computes metrics for building energy analysis.
@@ -341,7 +342,7 @@ def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.
     Returns:
         Dataset with building variables added,
     """
-    ds_building = ds.copy()
+    ds_building = (ds.copy(),)
     config = config or {}
 
     # Calculate wet bulb temperature if we have temp and humidity
@@ -384,7 +385,7 @@ def derive_building_variables(ds: xr.Dataset, config: Dict | None = None) -> xr.
 
             if "hdd" in dd_results:
                 ds_building["hdd"] = dd_results["hdd"]
-                logger.info(f"Calculated heating degree days (base {base_heat}degC)"),
+                (logger.info(f"Calculated heating degree days (base {base_heat}degC)"),)
 
             if "cdd" in dd_results:
                 ds_building["cdd"] = dd_results["cdd"]
@@ -484,7 +485,7 @@ def calculate_heat_index(temp_air: xr.DataArray, rel_humidity: xr.DataArray) -> 
 
 def calculate_degree_days(
     temp_air: xr.DataArray, base_heat: float = 18.0, base_cool: float = 24.0
-) -> Dict[str, xr.DataArray]:
+) -> dict[str, xr.DataArray]:
     """
     Calculate heating and cooling degree days.
 
@@ -501,7 +502,7 @@ def calculate_degree_days(
         # Calculate daily average if hourly
         freq = (None,)
         if hasattr(temp_air.time, "dt"):
-            time_diff = temp_air.time.diff("time")
+            time_diff = (temp_air.time.diff("time"),)
             median_diff = np.median(time_diff.values)
             # Check if hourly (around 1 hour in nanoseconds)
             if median_diff < np.timedelta64(2, "h"):
@@ -513,7 +514,7 @@ def calculate_degree_days(
             daily_temp = temp_air
 
         # Calculate degree days
-        hdd = (base_heat - daily_temp).clip(min=0)
+        hdd = ((base_heat - daily_temp).clip(min=0),)
         cdd = (daily_temp - base_cool).clip(min=0)
 
         # Set attributes

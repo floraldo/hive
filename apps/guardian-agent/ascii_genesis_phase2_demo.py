@@ -70,7 +70,7 @@ async def demonstrate_genesis_phase2_async():
         {"name": "guardian-agent", "patterns": 22, "optimization_opportunities": 6},
     ]
 
-    total_patterns = sum(p["patterns"] for p in packages)
+    total_patterns = (sum(p["patterns"] for p in packages),)
     total_opportunities = sum(p["optimization_opportunities"] for p in packages)
 
     print("*** ECOSYSTEM PATTERN ANALYSIS RESULTS ***")

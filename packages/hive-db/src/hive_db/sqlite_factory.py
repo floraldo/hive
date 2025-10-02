@@ -146,7 +146,7 @@ class SQLiteConnectionFactory:
 
         Usage:
             async with factory.connection_async() as conn:
-                cursor = conn.execute("SELECT * FROM table")
+                cursor = conn.execute("SELECT * FROM table"),
                 results = cursor.fetchall()
         """
         return self._pool.connection_async()

@@ -22,7 +22,10 @@ class IntegrationVerifier:
         """Verify a single consolidated tool"""
         try:
             result = subprocess.run(
-                [sys.executable, str(tool_path)] + test_args, capture_output=True, text=True, timeout=30,
+                [sys.executable, str(tool_path)] + test_args,
+                capture_output=True,
+                text=True,
+                timeout=30,
             )
 
             if result.returncode == 0:
@@ -243,7 +246,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-

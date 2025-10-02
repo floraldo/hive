@@ -17,6 +17,7 @@ Features:
 """
 
 import argparse
+import asyncio
 import json
 import sys
 from pathlib import Path
@@ -104,7 +105,7 @@ def get_changed_files_from_pr(pr_number: int) -> list[str]:
     return []
 
 
-def review_files_with_rag(
+async def review_files_with_rag(
     files: list[str],
     confidence_threshold: float = 0.80,
 ) -> list[dict[str, Any]]:
@@ -118,8 +119,8 @@ def review_files_with_rag(
         List of review comments with metadata
 
     Note:
-        This connects to the RAGEnhancedCommentEngine from
-        apps/guardian-agent/src/guardian_agent/review/rag_enhanced_engine.py
+        This connects to the RAGCommentEngine from
+        apps/guardian-agent/src/guardian_agent/review/rag_comment_engine.py
     """
     try:
         from guardian_agent.review.rag_comment_engine import RAGCommentEngine
@@ -129,6 +130,8 @@ def review_files_with_rag(
         engine = RAGCommentEngine()
         all_comments = []
 
+        # Prepare PR files format: list of (file_path, content) tuples
+        pr_files = []
         for file_path in files:
             if not Path(file_path).exists():
                 logger.warning(f"File not found: {file_path}")
@@ -140,19 +143,33 @@ def review_files_with_rag(
             with open(file_path, encoding="utf-8") as f:
                 code_content = f.read()
 
-            # Run RAG-enhanced review
-            comments = engine.generate_pr_comments(
-                file_path=file_path,
-                code_content=code_content,
-                confidence_threshold=confidence_threshold,
-            )
+            # Add to PR files list (treat full content as diff for analysis)
+            pr_files.append((file_path, code_content))
 
-            # Add file path to each comment
-            for comment in comments:
-                comment["path"] = file_path
-                all_comments.append(comment)
+        # Run RAG-enhanced review
+        comment_batch = await engine.analyze_pr_for_comments(
+            pr_files=pr_files,
+            pr_number=0,  # CLI mode, no actual PR number
+        )
 
-            logger.info(f"Generated {len(comments)} comments for {file_path} (threshold: {confidence_threshold})")
+        # Convert PRComment objects to GitHub API format
+        for pr_comment in comment_batch.comments:
+            # Filter by confidence threshold
+            if pr_comment.confidence_score >= confidence_threshold:
+                all_comments.append(
+                    {
+                        "path": pr_comment.file_path,
+                        "line": pr_comment.line_number,
+                        "body": pr_comment.to_github_comment(),
+                        "confidence": pr_comment.confidence_score,
+                        "pattern_type": pr_comment.comment_type,
+                    }
+                )
+
+        logger.info(
+            f"Generated {len(all_comments)} comments from {len(comment_batch.comments)} total "
+            f"(threshold: {confidence_threshold})"
+        )
 
         return all_comments
 
@@ -257,8 +274,8 @@ def format_for_github_api(
     return github_comments
 
 
-def main() -> int:
-    """Main CLI entrypoint."""
+async def main_async() -> int:
+    """Main CLI entrypoint (async version)."""
     args = parse_args()
 
     # Configure logging
@@ -285,8 +302,8 @@ def main() -> int:
                     json.dump([], f, indent=2)
                 return 0
 
-        # Run RAG-enhanced review
-        raw_comments = review_files_with_rag(
+        # Run RAG-enhanced review (async)
+        raw_comments = await review_files_with_rag(
             files=files_to_review,
             confidence_threshold=args.confidence,
         )
@@ -316,6 +333,11 @@ def main() -> int:
     except Exception as e:
         logger.error(f"Review failed: {e}", exc_info=True)
         return 1
+
+
+def main() -> int:
+    """Main CLI entrypoint (sync wrapper)."""
+    return asyncio.run(main_async())
 
 
 if __name__ == "__main__":

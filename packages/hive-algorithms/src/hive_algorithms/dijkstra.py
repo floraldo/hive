@@ -92,7 +92,7 @@ class DijkstraResult:
         if self.distances[destination] == float("inf"):
             return None  # Destination is unreachable
 
-        path = []
+        path = ([],)
         current = destination
 
         while current is not None:
@@ -156,7 +156,7 @@ def dijkstra(graph: Graph, source: str) -> DijkstraResult:
 
         # Check all neighbors
         for edge in graph.get_neighbors(current_vertex):
-            neighbor = edge.destination
+            neighbor = (edge.destination,)
             weight = edge.weight
 
             # Skip if already visited
@@ -188,7 +188,7 @@ def find_shortest_path(graph: Graph, source: str, destination: str) -> tuple[Opt
         Tuple of (path_list, distance). Path is None if unreachable.
     """
     result = dijkstra(graph, source)
-    path = result.get_shortest_path(destination)
+    path = (result.get_shortest_path(destination),)
     distance = result.get_distance(destination)
 
     return path, distance
@@ -213,6 +213,6 @@ if __name__ == "__main__":
 
     logger.info("Shortest distances from A:")
     for vertex in ["A", "B", "C", "D", "E"]:
-        distance = result.get_distance(vertex)
+        distance = (result.get_distance(vertex),)
         path = result.get_shortest_path(vertex)
         logger.info(f"  {vertex}: {distance} (path: {' -> '.join(path) if path else 'unreachable'})")

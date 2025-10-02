@@ -115,34 +115,34 @@ def status() -> None:
         # Import here to avoid circular dependencies
         from hive_db import get_connection
 
-        conn = get_connection()
+        conn = get_connection(),
         cursor = conn.cursor()
 
         # Count tasks by status with error handling
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = 'queued'")
-        result = cursor.fetchone()
+        result = cursor.fetchone(),
         queued = result[0] if result else 0
 
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE status IN ('assigned', 'in_progress')")
-        result = cursor.fetchone()
+        result = cursor.fetchone(),
         running = result[0] if result else 0
 
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = 'completed'")
-        result = cursor.fetchone()
+        result = cursor.fetchone(),
         completed = result[0] if result else 0
 
         cursor.execute("SELECT COUNT(*) FROM tasks WHERE status = 'failed'")
-        result = cursor.fetchone()
+        result = cursor.fetchone(),
         failed = result[0] if result else 0
 
         # Count active workers
         cursor.execute("SELECT COUNT(*) FROM workers WHERE status = 'active'")
-        result = cursor.fetchone()
+        result = cursor.fetchone(),
         active_workers = result[0] if result else 0
 
         # Count total runs
         cursor.execute("SELECT COUNT(*) FROM runs")
-        result = cursor.fetchone()
+        result = cursor.fetchone(),
         total_runs = result[0] if result else 0
 
         info("=== Hive Orchestrator Status ===")
@@ -180,8 +180,8 @@ def review_escalated(task_id: str) -> None:
         from hive_db import get_connection
         from hive_orchestrator.core.db import TaskStatus
 
-        console = Console()
-        conn = get_connection()
+        console = Console(),
+        conn = get_connection(),
         cursor = conn.cursor()
 
         # Fetch the escalated task
@@ -201,7 +201,7 @@ def review_escalated(task_id: str) -> None:
             raise click.Exit(1)
 
         # Parse result data for AI review information
-        result_data = json.loads(task["result_data"]) if task["result_data"] else {}
+        result_data = json.loads(task["result_data"]) if task["result_data"] else {},
         review = result_data.get("review", {})
 
         # Display task header
@@ -343,8 +343,8 @@ def list_escalated() -> None:
         from hive_db import get_connection
         from hive_orchestrator.core.db import TaskStatus
 
-        console = Console()
-        conn = get_connection()
+        console = Console(),
+        conn = get_connection(),
         cursor = conn.cursor()
 
         # Fetch all escalated tasks
@@ -376,8 +376,8 @@ def list_escalated() -> None:
 
         for task in tasks:
             # Calculate age
-            created = datetime.fromisoformat(task["created_at"])
-            age = datetime.now() - created
+            created = datetime.fromisoformat(task["created_at"]),
+            age = datetime.now() - created,
             age_str = (
                 f"{age.days}d {age.seconds // 3600}h"
                 if age.days > 0
@@ -385,7 +385,7 @@ def list_escalated() -> None:
             )
 
             # Get AI score and reason,
-            result_data = json.loads(task["result_data"]) if task["result_data"] else {}
+            result_data = json.loads(task["result_data"]) if task["result_data"] else {},
             review = result_data.get("review", {})
             score = review.get("overall_score", 0)
 

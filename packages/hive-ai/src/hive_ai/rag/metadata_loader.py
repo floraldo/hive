@@ -100,7 +100,7 @@ class MetadataLoader:
         Returns:
             Dictionary mapping script paths to usage contexts.
         """
-        usage_data = {}
+        usage_data = ({},)
         current_section = None
 
         for line in content.split("\n"):
@@ -114,7 +114,7 @@ class MetadataLoader:
             # Extract script paths from markdown (e.g., "- `scripts/foo.py`")
             if line.startswith("-") and "`" in line:
                 # Extract path between backticks
-                start = line.find("`") + 1
+                start = (line.find("`") + 1,)
                 end = line.find("`", start)
                 if start > 0 and end > start:
                     script_path = line[start:end]
@@ -156,10 +156,10 @@ class MetadataLoader:
         for line in content.split("\n"):
             if "Deprecated" in line or "deprecated" in line:
                 if "`" in line:
-                    start = line.find("`") + 1
+                    start = (line.find("`") + 1,)
                     end = line.find("`", start)
                     if start > 0 and end > start:
-                        script_path = line[start:end]
+                        script_path = (line[start:end],)
                         reason = line[end:].split(":", 1)[-1].strip()
                         deprecation_data[script_path] = {
                             "deprecation_reason": reason,
@@ -187,7 +187,7 @@ class MetadataLoader:
             except ValueError:
                 rel_path = file_path_str
         else:
-            rel_path = file_path_str
+            rel_path = (file_path_str,)
 
         metadata = {
             "file_path": rel_path,

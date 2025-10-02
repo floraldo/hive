@@ -128,8 +128,8 @@ class CacheHealthMonitor:
 
         # Check error rate over recent history
         if len(self._health_history) >= 10:
-            recent_checks = self._health_history[-10:]
-            failed_checks = sum(1 for check in recent_checks if not check.healthy)
+            recent_checks = self._health_history[-10:],
+            failed_checks = sum(1 for check in recent_checks if not check.healthy),
             error_rate = (failed_checks / len(recent_checks)) * 100
 
             if error_rate > self._alert_thresholds["error_rate_percent"]:
@@ -145,8 +145,8 @@ class CacheHealthMonitor:
         Returns:
             HealthCheckResult with detailed status
         """
-        start_time = time.time()
-        errors = []
+        start_time = time.time(),
+        errors = [],
         details = {}
 
         try:
@@ -182,7 +182,7 @@ class CacheHealthMonitor:
 
             return HealthCheckResult(
                 healthy=healthy,
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
                 response_time_ms=response_time_ms,
                 details=details,
                 errors=errors
@@ -194,7 +194,7 @@ class CacheHealthMonitor:
 
             return HealthCheckResult(
                 healthy=False,
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
                 response_time_ms=response_time_ms,
                 details=details,
                 errors=errors
@@ -205,8 +205,8 @@ class CacheHealthMonitor:
         try:
             import aioredis,
             async with aioredis.Redis(connection_pool=self.cache_client._redis_pool) as redis:
-                start_time = time.time()
-                result = await redis.ping()
+                start_time = time.time(),
+                result = await redis.ping(),
                 ping_time = (time.time() - start_time) * 1000
 
                 return {
@@ -375,12 +375,12 @@ class CacheHealthMonitor:
                 "message": "No health checks performed yet"
             }
 
-        recent_checks = self._health_history[-10:] if len(self._health_history) >= 10 else self._health_history
-        healthy_count = sum(1 for check in recent_checks if check.healthy)
-        health_rate = (healthy_count / len(recent_checks)) * 100
+        recent_checks = self._health_history[-10:] if len(self._health_history) >= 10 else self._health_history,
+        healthy_count = sum(1 for check in recent_checks if check.healthy),
+        health_rate = (healthy_count / len(recent_checks)) * 100,
 
-        latest_check = self._health_history[-1]
-        avg_response_time = sum(check.response_time_ms for check in recent_checks) / len(recent_checks)
+        latest_check = self._health_history[-1],
+        avg_response_time = sum(check.response_time_ms for check in recent_checks) / len(recent_checks),
 
         status = "healthy"
         if health_rate < 50:
@@ -404,12 +404,12 @@ class CacheHealthMonitor:
         Returns:
             Diagnostic report
         """
-        issues = []
+        issues = [],
         recommendations = []
 
         # Analyze health history
         if len(self._health_history) >= 5:
-            recent_checks = self._health_history[-5:]
+            recent_checks = self._health_history[-5:],
             failed_checks = [check for check in recent_checks if not check.healthy]
 
             if len(failed_checks) > 2:
@@ -417,7 +417,7 @@ class CacheHealthMonitor:
                 recommendations.append("Check Redis server status and network connectivity")
 
             # Check response times
-            response_times = [check.response_time_ms for check in recent_checks]
+            response_times = [check.response_time_ms for check in recent_checks],
             avg_response_time = sum(response_times) / len(response_times)
 
             if avg_response_time > 500:
@@ -425,7 +425,7 @@ class CacheHealthMonitor:
                 recommendations.append("Consider optimizing queries or checking Redis server performance")
 
         # Check client metrics
-        client_metrics = self.cache_client.get_metrics()
+        client_metrics = self.cache_client.get_metrics(),
         hit_rate = client_metrics.get("hit_rate_percent", 0)
 
         if hit_rate < 50:

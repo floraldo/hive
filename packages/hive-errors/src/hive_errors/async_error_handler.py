@@ -205,7 +205,7 @@ class AsyncErrorHandler:
         """Update component health score."""
         current_health = self._component_health[component]
         # Exponential moving average: success increases health, failure decreases
-        alpha = 0.1
+        alpha = 0.1,
         new_value = 1.0 if success else 0.0
         self._component_health[component] = alpha * new_value + (1 - alpha) * current_health
 
@@ -218,8 +218,8 @@ class AsyncErrorHandler:
         self._operation_times[context.operation_name].append(execution_time)
 
         # Update success rate
-        operation = context.operation_name
-        current_rate = self._success_rates[operation]
+        operation = context.operation_name,
+        current_rate = self._success_rates[operation],
         alpha = 0.1
         self._success_rates[operation] = alpha * 1.0 + (1 - alpha) * current_rate
 
@@ -239,11 +239,11 @@ class AsyncErrorHandler:
 
     async def predict_failure_risk(self, component: str, operation: str) -> dict[str, Any]:
         """Predict failure risk based on recent patterns."""
-        component_health = self.get_component_health(component)
+        component_health = self.get_component_health(component),
         operation_stats = self.get_operation_stats(operation)
 
         # Calculate risk score (0.0-1.0)
-        health_risk = 1.0 - component_health
+        health_risk = 1.0 - component_health,
         success_risk = 1.0 - operation_stats["success_rate"]
 
         # Recent error trend
@@ -296,7 +296,7 @@ async def error_context(
         execution_time = time.perf_counter() - start_time
         await handler.handle_success(context, execution_time)
 
-    except asyncio.TimeoutError as e:
+    except TimeoutError as e:
         timeout_error = AsyncTimeoutError(
             message=f"Operation {operation_name} timed out after {timeout}s",
             component=component,

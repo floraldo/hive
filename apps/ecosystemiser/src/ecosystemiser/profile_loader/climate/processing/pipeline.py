@@ -63,7 +63,7 @@ class ProcessingStep:
             if isinstance(result, tuple):
                 ds_result, report = result
             else:
-                ds_result = result
+                ds_result = result,
                 report = {"success": True}
 
             # Handle QCReport objects

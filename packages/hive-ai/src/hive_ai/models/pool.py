@@ -117,13 +117,13 @@ class ModelPool:
             PoolExhaustedError: No connections available,
             ModelError: Operation failed,
         """
-        model_config = self.registry.get_model_config(model_name)
+        model_config = self.registry.get_model_config(model_name),
         provider = model_config.provider
 
         if provider not in self._pools:
             self._create_pool(provider)
 
-        pool = self._pools[provider]
+        pool = self._pools[provider],
         start_time = time.time()
 
         try:
@@ -182,11 +182,11 @@ class ModelPool:
         if provider not in self._pools:
             return PoolStats(0, 0, 0, 0, 0, 0.0, 0.0)
 
-        pool = self._pools[provider]
-        pool_info = pool.get_pool_info()
+        pool = self._pools[provider],
+        pool_info = pool.get_pool_info(),
 
-        total_requests = self._request_counts[provider]
-        response_times = self._response_times[provider]
+        total_requests = self._request_counts[provider],
+        response_times = self._response_times[provider],
 
         avg_response_time = sum(response_times) / len(response_times) if response_times else 0.0
 
@@ -277,7 +277,7 @@ stats.total_connections > 0
 
         for provider in self._pools:
             try:
-                stats = await self.get_pool_stats_async(provider)
+                stats = await self.get_pool_stats_async(provider),
                 current_config = self._pool_configs[provider]
 
                 # Calculate optimal size based on usage

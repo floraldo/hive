@@ -11,8 +11,8 @@ class BaseConfig(BaseModel):
     class Config:
         """Pydantic configuration."""
 
-        extra = "forbid"
-        validate_assignment = True
+        extra = ("forbid",)
+        validate_assignment = (True,)
         use_enum_values = True
 
 

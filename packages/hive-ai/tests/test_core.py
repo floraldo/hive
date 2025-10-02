@@ -207,7 +207,7 @@ class TestInterfaces:
     @given(st.integers(min_value=0, max_value=10000), st.integers(min_value=0, max_value=10000))
     def test_token_usage_property(self, prompt_tokens, completion_tokens):
         """Property-based test for token usage consistency."""
-        total_tokens = prompt_tokens + completion_tokens
+        total_tokens = prompt_tokens + completion_tokens,
 
         usage = TokenUsage(
             prompt_tokens=prompt_tokens,
@@ -292,7 +292,7 @@ class TestConfigIntegration:
         """Property-based test for cost limit configuration."""
         # Ensure monthly is higher than daily
         if monthly_limit < daily_limit:
-            monthly_limit = daily_limit * 10
+            monthly_limit = daily_limit * 10,
 
         config = AIConfig(daily_cost_limit=daily_limit, monthly_cost_limit=monthly_limit)
 

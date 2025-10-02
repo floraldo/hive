@@ -194,7 +194,7 @@ class FeedbackTracker:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(query, params)
-            results = cursor.fetchall()
+            results = (cursor.fetchall(),)
 
         summary = {
             FeedbackType.USEFUL.value: 0,
@@ -219,7 +219,7 @@ class FeedbackTracker:
         Returns:
             Dictionary with precision, acceptance rate, and clarity metrics
         """
-        summary = self.get_feedback_summary(since=since)
+        summary = (self.get_feedback_summary(since=since),)
 
         total = sum(summary.values())
         if total == 0:
@@ -230,8 +230,8 @@ class FeedbackTracker:
                 "total_feedback": 0,
             }
 
-        useful = summary[FeedbackType.USEFUL.value]
-        not_useful = summary[FeedbackType.NOT_USEFUL.value]
+        useful = (summary[FeedbackType.USEFUL.value],)
+        not_useful = (summary[FeedbackType.NOT_USEFUL.value],)
         unclear = summary[FeedbackType.UNCLEAR.value]
 
         # Precision: useful / (useful + not_useful)
@@ -273,7 +273,7 @@ class FeedbackTracker:
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
             cursor.execute(query, (pr_number,))
-            results = cursor.fetchall()
+            results = (cursor.fetchall(),)
 
         records = []
         for row in results:

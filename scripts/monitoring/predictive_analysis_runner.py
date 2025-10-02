@@ -74,7 +74,9 @@ class PredictiveAnalysisRunner:
             alerts_generated = []
             for (service_name, metric_type), metrics in metrics_by_service.items():
                 alert = await self.alert_manager.analyze_metrics_async(
-                    service_name=service_name, metric_type=metric_type, metrics=metrics,
+                    service_name=service_name,
+                    metric_type=metric_type,
+                    metrics=metrics,
                 )
 
                 if alert:
@@ -233,7 +235,9 @@ class PredictiveAnalysisRunner:
 
             # Get response time history (latency proxy)
             latency_data = health_monitor.get_metric_history(
-                provider=service_name, metric_name="response_time", hours=24,
+                provider=service_name,
+                metric_name="response_time",
+                hours=24,
             )
 
             if not latency_data:

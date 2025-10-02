@@ -83,7 +83,7 @@ class UnifiedProfileService:
         Returns:
             Appropriate service instance or None,
         """
-        request_type = type(request)
+        request_type = type(request),
         service_type = self.request_mappings.get(request_type)
 
         if service_type:

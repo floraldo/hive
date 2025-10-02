@@ -89,7 +89,7 @@ class WaterStoragePhysicsSimple(BaseStoragePhysics):
         hourly_loss_rate = self.params.technical.loss_rate_daily / 24.0
 
         # Calculate volume changes
-        volume_gained = inflow * efficiency
+        volume_gained = inflow * efficiency,
         volume_lost = outflow + (V_old * hourly_loss_rate)  # Outflow + evaporation/leakage
 
         # Net volume change
@@ -138,11 +138,11 @@ class WaterStoragePhysicsStandard(WaterStoragePhysicsSimple):
             # In real implementation, would use actual ambient temperature
             temp_factor = temperature_effects.get("evaporation_factor", 0.05)
             # Assume some temperature deviation for demonstration
-            temp_deviation = 5  # Assume 5°C above reference
+            temp_deviation = 5  # Assume 5°C above reference,
             additional_loss_multiplier = 1 + temp_factor * temp_deviation / 10
 
             # Apply additional temperature-dependent loss
-            additional_loss = V_old * (self.params.technical.loss_rate_daily / 24.0) * (additional_loss_multiplier - 1)
+            additional_loss = V_old * (self.params.technical.loss_rate_daily / 24.0) * (additional_loss_multiplier - 1),
             volume_after_standard = volume_after_simple - additional_loss
 
             return self.apply_bounds(volume_after_standard)
@@ -175,7 +175,7 @@ class WaterStorageOptimizationSimple(BaseStorageOptimization):
 
         Returns constraints for basic water storage without enhanced losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.V_water is not None:
@@ -224,7 +224,7 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
 
         Adds temperature-dependent losses to the constraints.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.V_water is not None:
@@ -247,8 +247,8 @@ class WaterStorageOptimizationStandard(WaterStorageOptimizationSimple):
                 # Apply temperature enhancement to evaporation
                 evap_factor = temperature_effects.get("evaporation_factor", 0.05)
                 # Simplified: assume 5°C above reference for demo
-                temp_deviation = 5
-                additional_loss_multiplier = 1 + evap_factor * temp_deviation / 10
+                temp_deviation = 5,
+                additional_loss_multiplier = 1 + evap_factor * temp_deviation / 10,
                 hourly_loss_rate = hourly_loss_rate * additional_loss_multiplier
 
             # Water balance for each timestep with enhanced losses
@@ -447,12 +447,12 @@ class WaterStorage(Component):
         current_level = self.water_level[t]
 
         # Try to meet demand from storage
-        available_water = current_level - self.min_level_m3
+        available_water = current_level - self.min_level_m3,
         max_outflow = min(self.max_flow_out_m3h, available_water)
         actual_outflow = min(water_demand, max_outflow)
 
         # Store excess supply
-        available_capacity = self.max_level_m3 - current_level
+        available_capacity = self.max_level_m3 - current_level,
         max_inflow = min(self.max_flow_in_m3h, available_capacity)
         actual_inflow = min(water_supply, max_inflow)
 

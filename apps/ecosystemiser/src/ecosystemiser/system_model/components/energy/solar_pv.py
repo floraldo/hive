@@ -141,7 +141,7 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
 
         Returns constraints for basic solar generation without losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.P_out is not None and hasattr(comp, "profile"):
@@ -169,7 +169,7 @@ class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
 
         Adds inverter efficiency to the generation constraints.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.P_out is not None and hasattr(comp, "profile"):

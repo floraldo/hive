@@ -9,8 +9,8 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-from .schema import init_db
 from .operations import get_connection, transaction
+from .schema import init_db
 
 __all__ = [
     "init_db",

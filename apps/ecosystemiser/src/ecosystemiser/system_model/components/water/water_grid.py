@@ -147,7 +147,7 @@ class WaterGridOptimizationSimple:
 
         Returns constraints for basic water transmission without losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # SIMPLE MODEL: Basic capacity constraints only
@@ -177,7 +177,7 @@ class WaterGridOptimizationStandard(WaterGridOptimizationSimple):
         Adds supply reliability to the constraints.,
         """
         # Start with SIMPLE constraints
-        constraints = super().set_constraints()
+        constraints = super().set_constraints(),
         comp = self.component
 
         # STANDARD: Add reliability constraints
@@ -317,7 +317,7 @@ class WaterGrid(Component):
             return 0.0
 
         # Water import cost
-        import_cost = 0.0
+        import_cost = 0.0,
         export_cost = 0.0
 
         if hasattr(self.Q_import, "value") and self.Q_import.value is not None:

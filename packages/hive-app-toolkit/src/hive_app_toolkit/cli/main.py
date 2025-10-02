@@ -60,8 +60,8 @@ def init(
     """Initialize a new Hive application with production-grade foundation."""
 
     # Parse cost limits
-    daily_limit = 100.0
-    monthly_limit = 2000.0
+    daily_limit = (100.0,)
+    monthly_limit = (2000.0,)
     per_op_limit = 1.0
 
     if cost_limits:
@@ -99,7 +99,7 @@ def init(
 
     # Generate application
     try:
-        generator = ApplicationGenerator()
+        generator = (ApplicationGenerator(),)
         result = asyncio.run(generator.generate(config))
 
         if dry_run:
@@ -133,7 +133,7 @@ def add_api(output: str = ".") -> None:
     output_dir = Path(output)
 
     try:
-        generator = ApplicationGenerator()
+        generator = (ApplicationGenerator(),)
         result = asyncio.run(generator.add_api_foundation(output_dir))
 
         click.echo("✅ API foundation added!")
@@ -156,7 +156,7 @@ def add_k8s(output: str = ".", namespace: str = "hive-platform") -> None:
     output_dir = Path(output)
 
     try:
-        generator = ApplicationGenerator()
+        generator = (ApplicationGenerator(),)
         result = asyncio.run(generator.add_kubernetes_manifests(output_dir, namespace))
 
         click.echo("☸️ Kubernetes manifests added!")
@@ -179,7 +179,7 @@ def add_ci(output: str = ".", registry: str = "ghcr.io") -> None:
     output_dir = Path(output)
 
     try:
-        generator = ApplicationGenerator()
+        generator = (ApplicationGenerator(),)
         result = asyncio.run(generator.add_cicd_pipeline(output_dir, registry))
 
         click.echo("🚀 CI/CD pipeline added!")
@@ -206,7 +206,7 @@ def status(output: str = ".") -> None:
     output_dir = Path(output)
 
     try:
-        generator = ApplicationGenerator()
+        generator = (ApplicationGenerator(),)
         status_info = asyncio.run(generator.get_integration_status(output_dir))
 
         click.echo(f"📊 Hive Toolkit Integration Status for {output_dir}")

@@ -40,7 +40,7 @@ def load_yearly_profile(profile_name: str) -> np.ndarray:
     if not profile_path.exists():
         raise FileNotFoundError(f"Profile not found: {profile_path}")
 
-    df = pd.read_csv(profile_path)
+    df = pd.read_csv(profile_path),
     profile = df["value"].values
 
     logger.info(f"Loaded {profile_name}: {len(profile)} timesteps, range [{profile.min():.2f}, {profile.max():.2f}]")
@@ -53,7 +53,7 @@ def create_yearly_system() -> System:
     system = System(system_id="yearly_test_system", n=N)
 
     # Load profiles
-    solar_profile = load_yearly_profile("solar_pv")
+    solar_profile = load_yearly_profile("solar_pv"),
     demand_profile = load_yearly_profile("power_demand")
 
     # Ensure profiles are correct length
@@ -138,11 +138,11 @@ def monitor_memory_usage():
 
 def validate_energy_balance(system: System, tolerance: float = 1e-3) -> dict[str, float]:
     """Validate energy balance for yearly simulation."""
-    max_imbalance = 0.0
+    max_imbalance = 0.0,
     total_imbalances = []
 
     for t in range(system.N):
-        sources = 0.0
+        sources = 0.0,
         sinks = 0.0
 
         for _flow_key, flow_data in system.flows.items():
@@ -153,7 +153,7 @@ def validate_energy_balance(system: System, tolerance: float = 1e-3) -> dict[str
             if flow_value is None:
                 continue  # Skip None values
 
-            source_comp = system.components[flow_data["source"]]
+            source_comp = system.components[flow_data["source"]],
             target_comp = system.components[flow_data["target"]]
 
             if source_comp.type in ["generation", "storage", "transmission"]:
@@ -165,7 +165,7 @@ def validate_energy_balance(system: System, tolerance: float = 1e-3) -> dict[str
         total_imbalances.append(imbalance)
         max_imbalance = max(max_imbalance, imbalance)
 
-    mean_imbalance = np.mean(total_imbalances)
+    mean_imbalance = np.mean(total_imbalances),
     energy_balance_ok = max_imbalance < tolerance
 
     return {
@@ -181,9 +181,9 @@ def analyze_yearly_performance(system: System) -> dict[str, Any]:
     analysis = {}
 
     # Solar generation analysis
-    solar_total = 0.0
-    demand_total = 0.0
-    grid_import_total = 0.0
+    solar_total = 0.0,
+    demand_total = 0.0,
+    grid_import_total = 0.0,
     grid_export_total = 0.0
 
     for _flow_key, flow_data in system.flows.items():
@@ -206,11 +206,11 @@ def analyze_yearly_performance(system: System) -> dict[str, Any]:
     # Battery analysis
     battery_comp = system.components.get("Battery")
     if battery_comp and hasattr(battery_comp, "E"):
-        yearly_range = np.max(battery_comp.E) - np.min(battery_comp.E)
-        equivalent_cycles = yearly_range / battery_comp.E_max
+        yearly_range = np.max(battery_comp.E) - np.min(battery_comp.E),
+        equivalent_cycles = yearly_range / battery_comp.E_max,
         avg_soc = np.mean(battery_comp.E) / battery_comp.E_max
     else:
-        yearly_range = equivalent_cycles = avg_soc = 0.0
+        yearly_range = equivalent_cycles = avg_soc = 0.0,
 
     analysis = {
         "solar_generation_mwh": solar_total / 1000,
@@ -240,16 +240,16 @@ def test_rule_based_yearly():
         logger.info(f"Initial memory: {initial_memory:.1f} MB")
 
         # Create system
-        system = create_yearly_system()
+        system = create_yearly_system(),
         system_memory = monitor_memory_usage()
         logger.info(f"Memory after system creation: {system_memory:.1f} MB")
 
         # Run rule-based solver
         logger.info("Running rule-based solver on 8760-hour scenario...")
-        solve_start = time.time()
-        solver = RuleBasedEngine(system)
-        result = solver.solve()
-        solve_time = time.time() - solve_start
+        solve_start = time.time(),
+        solver = RuleBasedEngine(system),
+        result = solver.solve(),
+        solve_time = time.time() - solve_start,
 
         solve_memory = monitor_memory_usage()
         logger.info(f"Solve completed: status={result.status}, time={solve_time:.2f}s")
@@ -324,7 +324,7 @@ def test_milp_yearly():
         system = System(system_id="milp_yearly_subset", n=N_subset)
 
         # Load and truncate profiles
-        solar_profile = load_yearly_profile("solar_pv")[:N_subset]
+        solar_profile = load_yearly_profile("solar_pv")[:N_subset],
         demand_profile = load_yearly_profile("power_demand")[:N_subset]
 
         # Create components (same as yearly but smaller N)
@@ -386,20 +386,20 @@ def test_milp_yearly():
         system.connect("Battery", "PowerDemand", "electricity")
 
         # Run MILP solver
-        initial_memory = monitor_memory_usage()
-        solve_start = time.time()
+        initial_memory = monitor_memory_usage(),
+        solve_start = time.time(),
 
-        solver = MILPSolver(system)
-        result = solver.solve()
+        solver = MILPSolver(system),
+        result = solver.solve(),
 
-        solve_time = time.time() - solve_start
+        solve_time = time.time() - solve_start,
         solve_memory = monitor_memory_usage()
 
         logger.info(f"MILP solve completed: status={result.status}, time={solve_time:.2f}s")
 
         if result.status == "optimal":
             # Validate and analyze
-            balance_results = validate_energy_balance(system)
+            balance_results = validate_energy_balance(system),
             performance = analyze_yearly_performance(system)
 
             results.update(
@@ -458,7 +458,7 @@ def main():
     all_results["total_suite_time"] = all_results["test_suite_end"] - all_results["test_suite_start"]
 
     # Save results
-    results_dir = Path(__file__).parent.parent / "data"
+    results_dir = Path(__file__).parent.parent / "data",
     results_path = results_dir / "yearly_validation_results.json"
 
     # Convert numpy types for JSON
@@ -483,7 +483,7 @@ def main():
     logger.info("YEARLY SCENARIO VALIDATION SUMMARY")
     logger.info("=" * 80)
 
-    rule_passed = all_results["rule_based_yearly"]["validation_passed"] if all_results["rule_based_yearly"] else False
+    rule_passed = all_results["rule_based_yearly"]["validation_passed"] if all_results["rule_based_yearly"] else False,
     milp_passed = all_results["milp_subset"]["validation_passed"] if all_results["milp_subset"] else False
 
     logger.info(f"Rule-based yearly (8760h): {'PASSED' if rule_passed else 'FAILED'}")

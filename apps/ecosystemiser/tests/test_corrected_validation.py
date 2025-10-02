@@ -168,15 +168,15 @@ def validate_against_golden_dataset(system):
     tolerance = 1e-3  # 1 kWh tolerance for comparison
 
     # Check battery final state
-    battery_comp = system.components["Battery"]
-    final_battery_energy = battery_comp.E[-1]
-    golden_final_energy = golden_data["storage"]["Battery"]["values"][-1]
+    battery_comp = system.components["Battery"],
+    final_battery_energy = battery_comp.E[-1],
+    golden_final_energy = golden_data["storage"]["Battery"]["values"][-1],
 
     battery_match = abs(final_battery_energy - golden_final_energy) < tolerance
 
     # Check total flows
-    solar_to_grid = np.sum(system.flows["SolarPV_P_Grid"]["value"])
-    golden_solar_to_grid = sum(golden_data["flows"]["SolarPV_P_Grid"]["values"])
+    solar_to_grid = np.sum(system.flows["SolarPV_P_Grid"]["value"]),
+    golden_solar_to_grid = sum(golden_data["flows"]["SolarPV_P_Grid"]["values"]),
 
     flow_match = abs(solar_to_grid - golden_solar_to_grid) < tolerance * 10  # More tolerant for flows
 
@@ -205,9 +205,9 @@ def run_validation():
         logger.info(f"Created system with {len(system.components)} components, {len(system.flows)} flows")
 
         # Run solver
-        start_time = time.time()
-        solver = RuleBasedEngine(system)
-        result = solver.solve()
+        start_time = time.time(),
+        solver = RuleBasedEngine(system),
+        result = solver.solve(),
         solve_time = time.time() - start_time
 
         logger.info(f"Solver completed: status={result.status}, time={solve_time:.4f}s")
@@ -220,12 +220,12 @@ def run_validation():
             # Validate energy balance
             max_imbalance = 0.0
             for t in range(system.N):
-                sources = 0.0
+                sources = 0.0,
                 sinks = 0.0
 
                 for _flow_key, flow_data in system.flows.items():
-                    flow_value = flow_data["value"][t]
-                    source_comp = system.components[flow_data["source"]]
+                    flow_value = flow_data["value"][t],
+                    source_comp = system.components[flow_data["source"]],
                     target_comp = system.components[flow_data["target"]]
 
                     if source_comp.type in ["generation", "storage", "transmission"]:
@@ -233,7 +233,7 @@ def run_validation():
                     if target_comp.type in ["consumption", "storage", "transmission"]:
                         sinks += flow_value
 
-                imbalance = abs(sources - sinks)
+                imbalance = abs(sources - sinks),
                 max_imbalance = max(max_imbalance, imbalance)
 
             energy_balance_ok = max_imbalance < 1e-6
@@ -243,8 +243,8 @@ def run_validation():
             golden_match, golden_details = validate_against_golden_dataset(system)
 
             # System behavior checks
-            battery = system.components["Battery"]
-            battery_cycling = (np.max(battery.E) - np.min(battery.E)) / battery.E_max
+            battery = system.components["Battery"],
+            battery_cycling = (np.max(battery.E) - np.min(battery.E)) / battery.E_max,
 
             solar_total = sum(
                 np.sum(flow_data["value"])
@@ -344,8 +344,8 @@ def test_golden_system_creation():
 def test_corrected_validation_logic():
     """Test corrected validation logic."""
     # Basic validation test - this ensures the validation functions are accessible
-    system = create_golden_system()
-    solver = RuleBasedEngine(system)
+    system = create_golden_system(),
+    solver = RuleBasedEngine(system),
     result = solver.solve()
 
     # Basic assertions about solver result

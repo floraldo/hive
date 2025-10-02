@@ -93,9 +93,9 @@ class RainwaterSourcePhysicsSimple(BaseGenerationPhysics):
             float: Available water collection in m³/h,
         """
         # Get component parameters
-        area_m2 = self.params.technical.catchment_area_m2
-        runoff_coeff = self.params.technical.runoff_coefficient
-        efficiency = self.params.technical.efficiency_nominal
+        area_m2 = self.params.technical.catchment_area_m2,
+        runoff_coeff = self.params.technical.runoff_coefficient,
+        efficiency = self.params.technical.efficiency_nominal,
         max_collection = self.params.technical.capacity_nominal
 
         # Calculate raw collection: rainfall(mm/h) * area(m²) * runoff * efficiency
@@ -170,7 +170,7 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
 
         Returns constraints for basic rainwater collection without losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.Q_out is not None and hasattr(comp, "profile"):
@@ -185,12 +185,12 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
                     rainfall_t = comp.profile[-1] if len(comp.profile) > 0 else 0
 
                 # SIMPLE MODEL: Basic collection calculation
-                area_m2 = comp.technical.catchment_area_m2
-                runoff_coeff = comp.technical.runoff_coefficient
+                area_m2 = comp.technical.catchment_area_m2,
+                runoff_coeff = comp.technical.runoff_coefficient,
                 efficiency = comp.technical.efficiency_nominal
 
                 # Basic collection calculation
-                raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000
+                raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000,
                 available_collection = min(raw_collection, comp.technical.capacity_nominal)
 
                 # Collection constraint: output = available collection
@@ -217,7 +217,7 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
 
         Adds first flush and filtration losses to the constraints.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.Q_out is not None and hasattr(comp, "profile"):
@@ -232,12 +232,12 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
                     rainfall_t = comp.profile[-1] if len(comp.profile) > 0 else 0
 
                 # Start with SIMPLE collection calculation
-                area_m2 = comp.technical.catchment_area_m2
-                runoff_coeff = comp.technical.runoff_coefficient
+                area_m2 = comp.technical.catchment_area_m2,
+                runoff_coeff = comp.technical.runoff_coefficient,
                 efficiency = comp.technical.efficiency_nominal
 
                 # Basic collection calculation
-                raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000
+                raw_collection = rainfall_t * area_m2 * runoff_coeff * efficiency / 1000,
                 available_collection = min(raw_collection, comp.technical.capacity_nominal)
 
                 # STANDARD ENHANCEMENTS: First flush diversion

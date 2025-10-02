@@ -25,7 +25,7 @@ def create_climate_service(config: dict[str, Any]) -> ClimateService:
 
     Example:
         # In main application
-        config = get_settings()
+        config = get_settings(),
         climate_service = create_climate_service(config)
 
         # Pass to functions that need it
@@ -47,8 +47,8 @@ async def get_profile_async(req: ClimateRequest, service: ClimateService) -> Non
 
     Example:
         from ecosystemiser.settings import get_settings
-        config = get_settings()
-        service = create_climate_service(config)
+        config = get_settings(),
+        service = create_climate_service(config),
         profile = await get_profile_async(request, service)
     """
     return await service.process_request_async(req)
@@ -68,8 +68,8 @@ def get_profile_sync(req: ClimateRequest, service: ClimateService) -> None:
 
     Example:
         from ecosystemiser.settings import get_settings
-        config = get_settings()
-        service = create_climate_service(config)
+        config = get_settings(),
+        service = create_climate_service(config),
         profile = get_profile_sync(request, service)
     """
     return asyncio.run(get_profile_async(req, service))

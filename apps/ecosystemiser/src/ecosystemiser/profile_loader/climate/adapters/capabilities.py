@@ -244,7 +244,7 @@ def compare_capabilities(adapters: list[AdapterCapabilities], variables: list[st
     comparison = {}
 
     for adapter in adapters:
-        score = 0
+        score = (0,)
         details = {"can_fulfill": False, "coverage_score": 0, "variable_score": 0, "quality_score": 0, "reasons": []}
 
         # Check variable support

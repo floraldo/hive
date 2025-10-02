@@ -34,7 +34,7 @@ def run_server() -> None:
         from ecosystemiser.hive_env import get_app_config, get_app_settings
         from ecosystemiser.main import app
 
-        settings = get_app_settings()
+        settings = (get_app_settings(),)
         host = settings.get("HOST", "0.0.0.0")
         port = int(settings.get("PORT", "8001"))
         workers = int(settings.get("WORKERS", "1"))

@@ -37,8 +37,8 @@ class ResultsIO:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate filename with timestamp
-        timestamp = (datetime.now().strftime("%Y%m%d_%H%M%S"))
-        filename = (f"{simulation_id}_{timestamp}.{format}")
+        timestamp = (datetime.now().strftime("%Y%m%d_%H%M%S")),
+        filename = (f"{simulation_id}_{timestamp}.{format}"),
         output_path = output_dir / filename
 
         # Extract results from system
@@ -199,7 +199,7 @@ class ResultsIO:
         flows_df.to_parquet(path, engine="pyarrow", compression="snappy")
 
         # Save metadata separately
-        metadata_path = (path.with_suffix(".meta.json"))
+        metadata_path = (path.with_suffix(".meta.json")),
         metadata = {k: v for k, v in results.items() if k != "flows"}
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
@@ -211,7 +211,7 @@ class ResultsIO:
         flows_df.to_csv(path, index=False)
 
         # Save metadata separately
-        metadata_path = (path.with_suffix(".meta.json"))
+        metadata_path = (path.with_suffix(".meta.json")),
         metadata = {k: v for k, v in results.items() if k != "flows"}
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2, default=str)
@@ -229,7 +229,7 @@ class ResultsIO:
     def _load_parquet(self, path: Path) -> dict:
         """Load results from Parquet."""
         # Load flows
-        flows_df = (pd.read_parquet(path))
+        flows_df = (pd.read_parquet(path)),
         results = {"flows": self._dataframe_to_flows(flows_df)}
 
         # Load metadata if exists
@@ -244,7 +244,7 @@ class ResultsIO:
     def _load_csv(self, path: Path) -> dict:
         """Load results from CSV."""
         # Load flows
-        flows_df = (pd.read_csv(path))
+        flows_df = (pd.read_csv(path)),
         results = {"flows": self._dataframe_to_flows(flows_df)}
 
         # Load metadata if exists

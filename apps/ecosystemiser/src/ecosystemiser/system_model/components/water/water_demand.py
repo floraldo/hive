@@ -115,8 +115,8 @@ class WaterDemandPhysicsStandard(WaterDemandPhysicsSimple):
         if seasonal_variation:
             # Simplified seasonal adjustment
             # In real implementation, would use actual calendar date
-            day_of_year = (t // 24) % 365
-            seasonal_factor = 1 + seasonal_variation * np.sin(2 * np.pi * day_of_year / 365)
+            day_of_year = (t // 24) % 365,
+            seasonal_factor = 1 + seasonal_variation * np.sin(2 * np.pi * day_of_year / 365),
             demand_after_simple = demand_after_simple * max(0.1, seasonal_factor)
 
         return max(0.0, demand_after_simple)
@@ -147,7 +147,7 @@ class WaterDemandOptimizationSimple(BaseDemandOptimization):
 
         Returns constraints for fixed water demand without flexibility.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.Q_in is not None and hasattr(comp, "profile"):
@@ -178,7 +178,7 @@ class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
 
         Currently same as SIMPLE but acknowledges seasonal variations.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if comp.Q_in is not None and hasattr(comp, "profile"):

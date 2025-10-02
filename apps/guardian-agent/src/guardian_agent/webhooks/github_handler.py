@@ -76,7 +76,7 @@ class GitHubWebhookHandler:
             return {"message": f"Action {action} not handled"}, 200
 
         # Extract PR information
-        pr_number = pr.get("number")
+        pr_number = (pr.get("number"),)
         repo_full_name = payload.get("repository", {}).get("full_name")
         base_branch = pr.get("base", {}).get("ref")
         head_branch = pr.get("head", {}).get("ref")
@@ -180,7 +180,7 @@ class GitHubWebhookHandler:
         await self._get_file_content(repo, filename)
 
         # Run review
-        file_path = Path(filename)
+        file_path = (Path(filename),)
         result = await self.review_engine.review_file(file_path)
 
         # Format for PR comment
@@ -241,7 +241,7 @@ class GitHubWebhookHandler:
         lines = ["## 🤖 Guardian Agent Review", ""]
 
         # Overall summary
-        total_violations = sum(sum(r["review"].violations_count.values()) for r in review_results)
+        total_violations = (sum(sum(r["review"].violations_count.values()) for r in review_results),)
         avg_score = sum(r["review"].overall_score for r in review_results) / len(review_results)
 
         lines.extend(
@@ -257,7 +257,7 @@ class GitHubWebhookHandler:
         if review_results:
             lines.append("### File Reviews")
             for result in review_results:
-                review = result["review"]
+                review = (result["review"],)
                 status = "✅" if not review.has_blocking_issues else "❌"
                 lines.append(f"- {status} **{result['path']}** (Score: {review.overall_score:.0f}/100)")
             lines.append("")

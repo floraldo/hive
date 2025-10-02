@@ -11,7 +11,7 @@ from enum import Enum
 
 from pydantic import Field
 
-from hive_models import BaseModel, IdentifiableMixin, MetadataMixin, StatusMixin, TimestampMixin
+from hive_models import IdentifiableMixin, MetadataMixin, StatusMixin, TimestampMixin
 
 
 class WorkerStatus(str, Enum):

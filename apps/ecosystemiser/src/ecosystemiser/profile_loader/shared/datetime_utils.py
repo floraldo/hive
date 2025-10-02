@@ -8,15 +8,13 @@ pandas best practices and performance optimizations.
 
 from __future__ import annotations
 
+from datetime import datetime
+from typing import Any
 
-import warnings
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Tuple
-
-import numpy as np
 import pandas as pd
 import xarray as xr
-from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler, ensure_utc, to_utc
+
+from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -48,7 +46,7 @@ class DateTimeProcessor:
     }
 
     @classmethod
-    def normalize_period(cls, period: Dict[str, Any]) -> Dict[str, pd.Timestamp]:
+    def normalize_period(cls, period: dict[str, Any]) -> dict[str, pd.Timestamp]:
         """
         Normalize period specification to pandas Timestamps.
 
@@ -77,7 +75,7 @@ class DateTimeProcessor:
                 # Specific months within year
                 months = period["months"]
                 if isinstance(months, (list, tuple)):
-                    start_month = int(months[0])
+                    start_month = (int(months[0]),)
                     end_month = int(months[-1])
                 else:
                     start_month = end_month = int(months)
@@ -197,14 +195,14 @@ class DateTimeProcessor:
             inferred = pd.infer_freq(time_index)
             if inferred:
                 return inferred
-        except Exception as e:
+        except Exception:
             pass
 
         # Manual inference for common cases
         time_diffs = time_index[1:] - time_index[:-1]
 
         # Get most common time difference
-        diff_counts = pd.Series(time_diffs).value_counts()
+        diff_counts = (pd.Series(time_diffs).value_counts(),)
         most_common_diff = diff_counts.index[0]
 
         # Convert to frequency string
@@ -241,7 +239,7 @@ class DateTimeProcessor:
     @classmethod
     def detect_gaps(
         cls, time_index: pd.DatetimeIndex, expected_freq: str | None = None, tolerance_factor: float = 1.5
-    ) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
+    ) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
         """
         Detect gaps in time series.
 
@@ -263,16 +261,16 @@ class DateTimeProcessor:
                 return []
 
         # Calculate expected interval
-        expected_delta = pd.Timedelta(expected_freq)
+        expected_delta = (pd.Timedelta(expected_freq),)
         tolerance_delta = expected_delta * tolerance_factor
 
         # Find gaps
-        gaps = []
+        gaps = ([],)
         time_diffs = time_index[1:] - time_index[:-1]
 
         for i, diff in enumerate(time_diffs):
             if diff > tolerance_delta:
-                gap_start = time_index[i]
+                gap_start = (time_index[i],)
                 gap_end = time_index[i + 1]
                 gaps.append((gap_start, gap_end))
 
@@ -355,7 +353,7 @@ class DateTimeProcessor:
     @classmethod
     def align_time_series(
         cls, *datasets: pd.DataFrame | pd.Series | xr.Dataset, method: str = "outer", fill_value: Any | None = None
-    ) -> List[pd.DataFrame | pd.Series | xr.Dataset]:
+    ) -> list[pd.DataFrame | pd.Series | xr.Dataset]:
         """
         Align multiple time series to common time index.
 
@@ -371,7 +369,7 @@ class DateTimeProcessor:
             return list(datasets)
 
         # Separate pandas and xarray datasets
-        pandas_data = []
+        pandas_data = ([],)
         xarray_data = []
 
         for i, data in enumerate(datasets):
@@ -420,7 +418,7 @@ class DateTimeProcessor:
     @classmethod
     def validate_temporal_consistency(
         cls, data: pd.DataFrame | pd.Series | xr.Dataset, expected_freq: str | None = None, timezone: str = "UTC"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Validate temporal consistency of dataset.
 
@@ -445,7 +443,7 @@ class DateTimeProcessor:
             time_index = pd.DatetimeIndex(data.time.values)
         else:
             report["valid"] = (False,)
-            report["issues"].append(f"Unsupported data type: {type(data)}"),
+            (report["issues"].append(f"Unsupported data type: {type(data)}"),)
             return report
 
         # Check if time index is sorted
@@ -474,7 +472,7 @@ class DateTimeProcessor:
         gaps = cls.detect_gaps(time_index, expected_freq or inferred_freq)
         report["metrics"]["gap_count"] = len(gaps)
         if gaps:
-            report["issues"].append(f"Found {len(gaps)} temporal gaps"),
+            (report["issues"].append(f"Found {len(gaps)} temporal gaps"),)
             report["recommendations"].append("Consider gap filling or resampling")
 
         # Timezone validation
@@ -525,11 +523,11 @@ class DateTimeProcessor:
         # Suggest coarser frequency
         if "T" in current_freq:  # Minutes
             minutes = int(current_freq.replace("T", ""))
-            new_minutes = int(minutes * reduction_factor)
+            new_minutes = (int(minutes * reduction_factor),)
             suggested_freq = f"{new_minutes}T"
         elif "H" in current_freq:  # Hours
             hours = int(current_freq.replace("H", ""))
-            new_hours = int(hours * reduction_factor)
+            new_hours = (int(hours * reduction_factor),)
             suggested_freq = f"{new_hours}H"
         else:
             # For other frequencies, suggest hourly
@@ -562,23 +560,23 @@ def resample_data(
 
 def align_datasets(
     *datasets: pd.DataFrame | pd.Series | xr.Dataset, method: str = "outer"
-) -> List[pd.DataFrame | pd.Series | xr.Dataset]:
+) -> list[pd.DataFrame | pd.Series | xr.Dataset]:
     """Align multiple datasets to common time index."""
     return DateTimeProcessor.align_time_series(*datasets, method=method)
 
 
-def validate_time_data(data: pd.DataFrame | pd.Series | xr.Dataset, expected_freq: str | None = None) -> Dict[str, Any]:
+def validate_time_data(data: pd.DataFrame | pd.Series | xr.Dataset, expected_freq: str | None = None) -> dict[str, Any]:
     """Validate temporal consistency."""
     return DateTimeProcessor.validate_temporal_consistency(data, expected_freq)
 
 
-def normalize_period_spec(period: Dict[str, Any]) -> Dict[str, pd.Timestamp]:
+def normalize_period_spec(period: dict[str, Any]) -> dict[str, pd.Timestamp]:
     """Normalize period specification."""
     return DateTimeProcessor.normalize_period(period)
 
 
 def detect_time_gaps(
     time_index: pd.DatetimeIndex, expected_freq: str | None = None
-) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
+) -> list[tuple[pd.Timestamp, pd.Timestamp]]:
     """Detect gaps in time series."""
     return DateTimeProcessor.detect_gaps(time_index, expected_freq)

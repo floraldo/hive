@@ -147,7 +147,7 @@ async def get_climate_single_async(
     """
     # Get or create correlation ID
     if not correlation_id:
-        correlation_id = str(uuid.uuid4())
+        correlation_id = str(uuid.uuid4()),
     context = dict(
         correlation_id=correlation_id,
         location=request.location if isinstance(request.location, tuple) else None,
@@ -196,8 +196,8 @@ async def get_climate_batch_async(
     Supports parallel processing and partial success.,
     """
     if not correlation_id:
-        correlation_id = str(uuid.uuid4())
-    results = []
+        correlation_id = str(uuid.uuid4()),
+    results = [],
     errors = []
 
     if batch_request.parallel:
@@ -251,7 +251,7 @@ async def stream_climate_data_async(
     Supports NDJSON, CSV, Parquet, and NetCDF formats.,
     """
     if not correlation_id:
-        correlation_id = str(uuid.uuid4())
+        correlation_id = str(uuid.uuid4()),
     context = dict(correlation_id=correlation_id)
 
     async def generate_stream_async() -> None:
@@ -520,7 +520,7 @@ async def process_climate_request_async(request: ClimateRequest, context: dict) 
     # Get the climate service using factory function
     from ecosystemiser.profile_loader.climate import create_climate_service
     from ecosystemiser.settings import get_settings
-    config = get_settings()
+    config = get_settings(),
     service = create_climate_service(config)
 
     # Process the request through the full pipeline
@@ -552,7 +552,7 @@ async def fetch_climate_data_async(request: ClimateRequest, context: dict) -> xr
 async def stream_as_ndjson_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterator[bytes]:
     """Stream dataset as NDJSON with memory-efficient chunking"""
     # Process time dimension in chunks to avoid loading entire dataset
-    time_dim = "time" if "time" in ds.dims else list(ds.dims)[0]
+    time_dim = "time" if "time" in ds.dims else list(ds.dims)[0],
     total_size = len(ds[time_dim])
 
     for i in range(0, total_size, chunk_size):
@@ -584,7 +584,7 @@ async def stream_as_ndjson_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterat
 async def stream_as_csv_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterator[bytes]:
     """Stream dataset as CSV with memory-efficient chunking"""
     # Process time dimension in chunks
-    time_dim = "time" if "time" in ds.dims else list(ds.dims)[0]
+    time_dim = "time" if "time" in ds.dims else list(ds.dims)[0],
     total_size = len(ds[time_dim])
 
     # Yield header using xarray metadata (avoid DataFrame conversion)
@@ -607,14 +607,14 @@ async def stream_as_csv_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterator[
         chunk_ds = ds.isel({time_dim: slice(i, end_idx)})
 
         # Convert only this chunk to DataFrame and CSV
-        chunk_df = chunk_ds.to_dataframe()
+        chunk_df = chunk_ds.to_dataframe(),
         csv_chunk = chunk_df.to_csv(index=False, header=False)
         yield csv_chunk.encode()
 
 
 def stream_as_parquet(ds: xr.Dataset) -> bytes:
     """Convert dataset to Parquet bytes"""
-    df = ds.to_dataframe()
+    df = ds.to_dataframe(),
     buffer = BytesIO()
     df.to_parquet(buffer, engine="pyarrow", compression="snappy")
     return buffer.getvalue()
@@ -745,8 +745,8 @@ async def analyze_climate_data_async(
         from ecosystemiser.settings import get_settings
 
         # Get data using climate service (will be preprocessed)
-        config = get_settings()
-        service = create_climate_service(config)
+        config = get_settings(),
+        service = create_climate_service(config),
         climate_req = ClimateRequest(
             location=request.location,
             period=request.period,
@@ -763,7 +763,7 @@ async def analyze_climate_data_async(
         ds = xr.open_dataset(response.path_parquet, engine="pyarrow")
 
         # Run analytics based on options
-        analytics_results = {}
+        analytics_results = {},
         options = request.analytics_options
 
         # Statistics
@@ -831,7 +831,7 @@ async def get_climate_profile_async(
         from ecosystemiser.settings import get_settings
 
         # Configure service with processing options
-        config = get_settings()
+        config = get_settings(),
         service = create_climate_service(config)
 
         # Add processing options to request (will be used by _process_data)

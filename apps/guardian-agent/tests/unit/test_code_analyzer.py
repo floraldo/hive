@@ -81,7 +81,7 @@ class Calculator:
     @pytest.mark.asyncio
     async def test_analyze_long_function(self, analyzer):
         """Test detection of overly long functions."""
-        long_function = "def long_func():\n" + "    x = 1\n" * 100 + "    return x\n"
+        long_function = ("def long_func():\n" + "    x = 1\n" * 100 + "    return x\n",)
 
         result = await analyzer.analyze(Path("test.py"), long_function)
 
@@ -119,10 +119,10 @@ def process_admin_data(admin):
         """Test detection of unused variables."""
         unused_var_code = """
 def function_with_unused():
-    x = 10
-    y = 20
-    z = 30  # z is never used
-    result = x + y
+    x = 10,
+    y = 20,
+    z = 30  # z is never used,
+    result = x + y,
     unused_var = 42  # This is never used
     return result
 """
@@ -163,7 +163,7 @@ def broken_function(
     async def test_analyze_large_file(self, analyzer):
         """Test handling of very large files."""
         # Create a large file with 10,000 lines
-        large_code = "\n".join([f"x{i} = {i}" for i in range(10000)])
+        large_code = ("\n".join([f"x{i} = {i}" for i in range(10000)]),)
 
         result = await analyzer.analyze(Path("large.py"), large_code)
 

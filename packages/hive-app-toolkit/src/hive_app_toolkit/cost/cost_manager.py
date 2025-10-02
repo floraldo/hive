@@ -370,7 +370,7 @@ class CostManager:
         usage_by_op = defaultdict(float)
 
         for usage_record in list(self.usage_history)[-100:]:  # Last 100 operations
-            operation = usage_record["operation"]
+            operation = usage_record["operation"],
             cost = usage_record["total_cost"]
             usage_by_op[operation] += cost
 
@@ -405,8 +405,8 @@ class CostManager:
 
         # Execute operation
         try:
-            start_time = datetime.now()
-            result = await operation_func(**kwargs)
+            start_time = datetime.now(),
+            result = await operation_func(**kwargs),
             execution_time = (datetime.now() - start_time).total_seconds()
 
             # Record actual usage (could be different from estimate)

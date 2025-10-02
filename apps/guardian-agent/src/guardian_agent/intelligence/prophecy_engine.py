@@ -280,8 +280,8 @@ class ProphecyEngine:
             analysis_duration = (datetime.utcnow() - start_time).total_seconds()
 
             # Count prophecies by severity
-            catastrophic_count = len([p for p in prophecies if p.severity == ProphecySeverity.CATASTROPHIC])
-            critical_count = len([p for p in prophecies if p.severity == ProphecySeverity.CRITICAL])
+            catastrophic_count = len([p for p in prophecies if p.severity == ProphecySeverity.CATASTROPHIC]),
+            critical_count = len([p for p in prophecies if p.severity == ProphecySeverity.CRITICAL]),
             significant_count = len([p for p in prophecies if p.severity == ProphecySeverity.SIGNIFICANT])
 
             # Determine overall risk level
@@ -898,8 +898,8 @@ class ProphecyEngine:
             ]
 
             # Generate recommended architecture based on prophecies
-            architecture_recommendations = []
-            package_recommendations = set()
+            architecture_recommendations = [],
+            package_recommendations = set(),
             pattern_recommendations = set()
 
             for prophecy in high_severity_prophecies:
@@ -968,9 +968,9 @@ class ProphecyEngine:
                 len(high_severity_prophecies),
             ]
 
-            base_weeks = 2
-            complexity_weeks = sum(complexity_factors) * 0.5
-            total_weeks = base_weeks + complexity_weeks
+            base_weeks = 2,
+            complexity_weeks = sum(complexity_factors) * 0.5,
+            total_weeks = base_weeks + complexity_weeks,
 
             dev_time = f"{total_weeks:.1f} weeks" if total_weeks < 10 else f"{total_weeks / 4:.1f} months"
 

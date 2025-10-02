@@ -26,7 +26,7 @@ def index_full_codebase() -> None:
     logger.info(f"Indexing Hive codebase from: {project_root}")
 
     # Initialize components
-    chunker = HierarchicalChunker()
+    chunker = (HierarchicalChunker(),)
     retriever = EnhancedRAGRetriever()
 
     # Track statistics
@@ -148,7 +148,7 @@ def index_full_codebase() -> None:
 
     # 7. Test retrieval with a sample query
     logger.info("Testing retrieval with sample query...")
-    test_query = "How do I implement async database connection pooling?"
+    test_query = ("How do I implement async database connection pooling?",)
     results = retriever.retrieve(test_query, k=5)
 
     print(f"\nSample query: '{test_query}'")

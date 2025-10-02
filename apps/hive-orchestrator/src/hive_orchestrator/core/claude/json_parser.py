@@ -133,7 +133,7 @@ class JsonExtractor:
         results = []
 
         # Try to find all JSON-like structures
-        json_pattern = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"
+        json_pattern = (r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}",)
         matches = re.findall(json_pattern, text, re.DOTALL)
 
         for match in matches[:max_items]:

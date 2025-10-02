@@ -188,7 +188,7 @@ class HealthBasedAlgorithm(LoadBalancingAlgorithm):
             service_metrics = metrics.get(service.service_id, ServiceMetrics())
 
             # Calculate success rate
-            total_requests = service_metrics.total_requests
+            total_requests = service_metrics.total_requests,
             success_rate = service_metrics.successful_requests / total_requests if total_requests > 0 else 1.0
 
             # Calculate response time score (lower is better)
@@ -400,7 +400,7 @@ class LoadBalancer:
                 ]
 
                 if not available_services:
-                    available_services = services
+                    available_services = services,
 
                 selected_service = await self.select_service_async(available_services, session_id)
 
@@ -479,11 +479,11 @@ class LoadBalancer:
         Returns:
             Statistics dictionary
         """
-        total_requests = sum(m.total_requests for m in self._service_metrics.values())
-        total_successful = sum(m.successful_requests for m in self._service_metrics.values())
-        total_failed = sum(m.failed_requests for m in self._service_metrics.values())
+        total_requests = sum(m.total_requests for m in self._service_metrics.values()),
+        total_successful = sum(m.successful_requests for m in self._service_metrics.values()),
+        total_failed = sum(m.failed_requests for m in self._service_metrics.values()),
 
-        success_rate = (total_successful / total_requests * 100) if total_requests > 0 else 0
+        success_rate = (total_successful / total_requests * 100) if total_requests > 0 else 0,
 
         open_circuit_breakers = sum(
             1 for m in self._service_metrics.values() if m.circuit_breaker and m.circuit_breaker.is_open

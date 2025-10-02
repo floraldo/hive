@@ -30,7 +30,9 @@ async def collect_baseline_metrics() -> dict[str, Any]:
     async_profiler = AsyncProfiler()
 
     analyzer = PerformanceAnalyzer(
-        metrics_collector=metrics_collector, system_monitor=system_monitor, async_profiler=async_profiler,
+        metrics_collector=metrics_collector,
+        system_monitor=system_monitor,
+        async_profiler=async_profiler,
     )
 
     logger.info("Starting system monitoring...")

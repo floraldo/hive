@@ -18,7 +18,6 @@ sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from demo_oracle import demo_oracle_intelligence_async
 
-
 if __name__ == "__main__":
     print("🔮 Hive Oracle Intelligence System - Complete Demo")
     print("=" * 60)

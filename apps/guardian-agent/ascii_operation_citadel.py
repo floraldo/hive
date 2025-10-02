@@ -247,8 +247,8 @@ def demonstrate_cross_package_intelligence():
         print("")
 
     # Summary statistics
-    total_opportunities = len(integration_opportunities)
-    transformative_count = len([o for o in integration_opportunities if o["impact"] == "TRANSFORMATIVE"])
+    total_opportunities = (len(integration_opportunities),)
+    transformative_count = (len([o for o in integration_opportunities if o["impact"] == "TRANSFORMATIVE"]),)
     high_impact_count = len([o for o in integration_opportunities if o["impact"] == "HIGH"])
 
     print("INTEGRATION ANALYSIS SUMMARY:")

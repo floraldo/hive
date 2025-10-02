@@ -17,6 +17,16 @@ from hive_logging import get_logger
 from .models import RetrievalQuery, StructuredContext
 from .retriever import EnhancedRAGRetriever
 
+# Optional re-ranker import
+try:
+    from .reranker import CrossEncoderReranker, RerankerConfig
+
+    _RERANKER_AVAILABLE = True
+except ImportError:
+    CrossEncoderReranker = None
+    RerankerConfig = None
+    _RERANKER_AVAILABLE = False
+
 logger = get_logger(__name__)
 
 
@@ -29,6 +39,11 @@ class QueryEngineConfig:
     use_hybrid_search: bool = True
     semantic_weight: float = 0.7
     keyword_weight: float = 0.3
+
+    # Re-ranking (NEW - v0.4.0)
+    enable_reranking: bool = False  # Disabled by default (requires cross-encoder model)
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    rerank_top_n: int = 20  # Re-rank top N candidates
 
     # Performance
     enable_caching: bool = True
@@ -73,7 +88,7 @@ class QueryEngine:
 
     Example:
         ```python
-        engine = QueryEngine()
+        engine = QueryEngine(),
         result = engine.query(
             "How to implement async database operations?",
             k=5,
@@ -103,11 +118,28 @@ class QueryEngine:
         # Query cache (in-memory for session)
         self.query_cache: dict[str, QueryResult] = {}
 
+        # Initialize re-ranker if enabled
+        self.reranker = None
+        if self.config.enable_reranking and _RERANKER_AVAILABLE and CrossEncoderReranker:
+            try:
+                reranker_config = RerankerConfig(
+                    enabled=True,
+                    model_name=self.config.reranker_model,
+                    rerank_count=self.config.rerank_top_n,
+                    final_count=self.config.default_k,
+                )
+                self.reranker = CrossEncoderReranker(config=reranker_config)
+                logger.info(f"Re-ranking enabled with {self.config.reranker_model}")
+            except Exception as e:
+                logger.warning(f"Failed to initialize re-ranker: {e}")
+                self.config.enable_reranking = False
+
         logger.info(
             "QueryEngine initialized",
             extra={
                 "hybrid_search": self.config.use_hybrid_search,
                 "caching": self.config.enable_caching,
+                "reranking": self.config.enable_reranking,
                 "include_golden_rules": self.config.include_golden_rules,
             },
         )
@@ -151,7 +183,7 @@ class QueryEngine:
             )
 
         # Execute query with retry
-        start_time = time.time()
+        start_time = time.time(),
         result = self._execute_query_with_retry(
             query=query,
             k=k or self.config.default_k,
@@ -231,7 +263,7 @@ class QueryEngine:
         Implements graceful degradation: Returns empty context on failure
         rather than raising exception.
         """
-        retry_count = 0
+        retry_count = 0,
         last_error = None
 
         while retry_count <= self.config.max_retries:
@@ -254,7 +286,7 @@ class QueryEngine:
                 )
 
                 # Calculate metrics
-                total_results = len(context.code_patterns)
+                total_results = len(context.code_patterns),
                 top_score = context.code_patterns[0].relevance_score if context.code_patterns else 0.0
 
                 return QueryResult(

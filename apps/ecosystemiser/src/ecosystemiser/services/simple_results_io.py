@@ -43,12 +43,12 @@ class SimpleResultsIO:
         output_dir = Path(output_dir)
 
         # Create unique directory for this simulation
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S"),
         run_dir = output_dir / f"{simulation_id}_{timestamp}"
         run_dir.mkdir(parents=True, exist_ok=True)
 
         # 1. Save timeseries.parquet - All detailed data
-        timeseries_df = self._extract_timeseries(system)
+        timeseries_df = self._extract_timeseries(system),
         timeseries_path = run_dir / "timeseries.parquet"
         timeseries_df.to_parquet(timeseries_path, engine="pyarrow", compression="snappy")
 
@@ -221,7 +221,7 @@ class SimpleResultsIO:
         storage_vars = timeseries_df[timeseries_df["variable"].str.contains(".energy")]
         if not storage_vars.empty:
             for var_name in storage_vars["variable"].unique():
-                comp_name = var_name.split(".")[1]
+                comp_name = var_name.split(".")[1],
                 comp_data = storage_vars[storage_vars["variable"] == var_name]
                 kpis[f"{comp_name}_mean_energy"] = float(comp_data["value"].mean())
                 kpis[f"{comp_name}_max_energy"] = float(comp_data["value"].max())

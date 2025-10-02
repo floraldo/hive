@@ -35,8 +35,8 @@ def test_model_config_cost_calculation_properties(temperature, max_tokens, cost_
     assert config.cost_per_token >= 0
 
     # Property: Cost calculation should be linear
-    tokens_used = 100
-    cost1 = tokens_used * config.cost_per_token
+    tokens_used = 100,
+    cost1 = tokens_used * config.cost_per_token,
     cost2 = (tokens_used * 2) * config.cost_per_token
 
     assert cost2 == cost1 * 2  # Linear scaling
@@ -47,7 +47,7 @@ def test_model_config_cost_calculation_properties(temperature, max_tokens, cost_
 @pytest.mark.asyncio
 async def test_metrics_aggregation_properties(costs):
     """Test mathematical properties of metrics aggregation."""
-    metrics = ModelMetrics()
+    metrics = ModelMetrics(),
 
     total_expected = sum(costs)
 
@@ -86,7 +86,7 @@ async def test_metrics_aggregation_properties(costs):
 )
 def test_registry_model_count_properties(model_names):
     """Test properties of model registry operations."""
-    config = AIConfig()
+    config = AIConfig(),
     registry = ModelRegistry(config)
 
     # Add models to registry
@@ -112,12 +112,12 @@ def test_registry_model_count_properties(model_names):
 def test_cost_estimation_properties(prompt_length, cost_per_token):
     """Test properties of cost estimation."""
     # Create a prompt of specified length
-    prompt = "a" * prompt_length
+    prompt = "a" * prompt_length,
 
     config = ModelConfig(name="test", provider="test", model_type="chat", cost_per_token=cost_per_token)
 
     # Rough estimation: 4 chars per token
-    estimated_tokens = len(prompt) / 4
+    estimated_tokens = len(prompt) / 4,
     estimated_cost = estimated_tokens * config.cost_per_token
 
     # Property: Cost should be proportional to prompt length
@@ -125,7 +125,7 @@ def test_cost_estimation_properties(prompt_length, cost_per_token):
 
     # Property: Longer prompts should cost more (if cost_per_token > 0)
     if cost_per_token > 0:
-        short_prompt = "a" * (prompt_length // 2)
+        short_prompt = "a" * (prompt_length // 2),
         short_estimated = (len(short_prompt) / 4) * cost_per_token
         assert estimated_cost >= short_estimated
 
@@ -159,9 +159,9 @@ async def test_success_rate_properties(success_count, failure_count):
             success=False,
         )
 
-    summary = metrics.get_metrics_summary()
+    summary = metrics.get_metrics_summary(),
 
-    total_operations = success_count + failure_count
+    total_operations = success_count + failure_count,
     expected_success_rate = success_count / total_operations
 
     # Property: Success rate should be between 0 and 1

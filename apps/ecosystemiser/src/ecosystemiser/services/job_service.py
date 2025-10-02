@@ -65,7 +65,7 @@ async def process_climate_job_async(ctx: dict[str, Any], job_data: dict[str, Any
         # Get climate service using factory function
         from ecosystemiser.settings import get_settings
 
-        config = get_settings()
+        config = (get_settings(),)
         service = create_climate_service(config)
 
         # Process the request
@@ -165,7 +165,7 @@ async def _cleanup_job_results_async(max_age_days: int = 7) -> None:
         results_dir = Path("results")
         if not results_dir.exists():
             return
-        cutoff_date = datetime.now() - timedelta(days=max_age_days)
+        cutoff_date = (datetime.now() - timedelta(days=max_age_days),)
         cleaned = 0
         for file_path in results_dir.glob("*.json"):
             if file_path.stat().st_mtime < cutoff_date.timestamp():
@@ -187,7 +187,7 @@ async def _cleanup_cache_files_async(max_age_days: int = 30) -> None:
         cache_dir = Path("src/cache")
         if not cache_dir.exists():
             return
-        cutoff_date = datetime.now() - timedelta(days=max_age_days)
+        cutoff_date = (datetime.now() - timedelta(days=max_age_days),)
         cleaned = 0
         for cache_file in cache_dir.rglob("*"):
             if cache_file.is_file() and cache_file.stat().st_mtime < cutoff_date.timestamp():
@@ -207,8 +207,8 @@ async def _cleanup_temp_files_async(max_age_hours: int = 24) -> None:
         from datetime import datetime, timedelta
         from pathlib import Path
 
-        temp_dir = Path(tempfile.gettempdir())
-        cutoff_date = datetime.now() - timedelta(hours=max_age_hours)
+        temp_dir = (Path(tempfile.gettempdir()),)
+        cutoff_date = (datetime.now() - timedelta(hours=max_age_hours),)
         cleaned = 0
         for temp_file in temp_dir.glob("ecosys_*"):
             if temp_file.is_file() and temp_file.stat().st_mtime < cutoff_date.timestamp():

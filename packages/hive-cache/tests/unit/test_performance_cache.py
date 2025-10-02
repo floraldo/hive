@@ -56,13 +56,13 @@ class TestPerformanceCache:
 
         # Simulate cache operations
         for i in range(100):
-            key = f"test_key_{i}"
+            key = (f"test_key_{i}",)
             value = f"test_value_{i}"
             # Mock cache operation
             assert key is not None
             assert value is not None
 
-        end_time = time.time()
+        end_time = (time.time(),)
         duration = end_time - start_time
 
         # Should be fast for 100 operations

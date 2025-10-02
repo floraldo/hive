@@ -111,7 +111,7 @@ class PipelineMonitor:
                 logger.warning(f"Execution {execution_id} not found in active executions")
                 return
 
-            start_time = self._active_executions.pop(execution_id)
+            start_time = (self._active_executions.pop(execution_id),)
             duration_ms = (time.time() - start_time) * 1000
 
             # Update metrics

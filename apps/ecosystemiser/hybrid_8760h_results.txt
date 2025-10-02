@@ -1,0 +1,32 @@
+C:\Users\flori\Anaconda\envs\smarthoods_agency\lib\site-packages\pytest_asyncio\plugin.py:207: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+[1m============================= test session starts =============================[0m
+platform win32 -- Python 3.10.16, pytest-8.3.5, pluggy-1.5.0 -- C:\Users\flori\Anaconda\envs\smarthoods_agency\python.exe
+cachedir: .pytest_cache
+rootdir: C:\git\hive\apps\ecosystemiser
+configfile: pytest.ini
+plugins: anyio-4.9.0, asyncio-0.25.3, cov-4.1.0, flask-1.3.0, mock-3.12.0, xdist-3.5.0
+asyncio: mode=strict, asyncio_default_fixture_loop_scope=None
+[1mcollecting ... [0mcollected 1 item
+run-last-failure: 63 known failures not in selected tests
+
+tests/performance/test_hybrid_solver_8760h.py::test_hybrid_vs_rulebased_8760h [31mFAILED[0m
+
+================================== FAILURES ===================================
+[31m[1m_______________________ test_hybrid_vs_rulebased_8760h ________________________[0m
+[1m[31mtests\performance\test_hybrid_solver_8760h.py[0m:213: in test_hybrid_vs_rulebased_8760h
+    [0mhybrid_solver = SolverFactory.get_solver([33m"[39;49;00m[33mhybrid[39;49;00m[33m"[39;49;00m, system, config)[90m[39;49;00m
+[1m[31msrc\ecosystemiser\solver\factory.py[0m:47: in get_solver
+    [0m[94mreturn[39;49;00m solver_class(system, config)[90m[39;49;00m
+[1m[31msrc\ecosystemiser\solver\hybrid_solver.py[0m:50: in __init__
+    [0m[96mself[39;49;00m.surveyor = RollingHorizonMILPSolver(system, rh_config)[90m[39;49;00m
+[1m[31msrc\ecosystemiser\solver\rolling_horizon_milp.py[0m:65: in __init__
+    [0m[94mraise[39;49;00m [96mValueError[39;49;00m([33m"[39;49;00m[33mOverlap hours must be less than horizon hours[39;49;00m[33m"[39;49;00m)[90m[39;49;00m
+[1m[31mE   ValueError: Overlap hours must be less than horizon hours[0m
+------------------------------ Captured log call ------------------------------
+[31m[1mERROR   [0m ecosystemiser.solver.rule_based_engine:rule_based_engine.py:73 Error in rule-based solver: 'MockComponent' object has no attribute 'medium'
+[36m[1m=========================== short test summary info ===========================[0m
+[31mFAILED[0m tests/performance/test_hybrid_solver_8760h.py::[1mtest_hybrid_vs_rulebased_8760h[0m - ValueError: Overlap hours must be less than horizon hours
+[31m============================= [31m[1m1 failed[0m[31m in 21.26s[0m[31m ==============================[0m

@@ -7,14 +7,13 @@ fixes DST edge cases, and provides standardized UTC conversion.
 
 from __future__ import annotations
 
-
 import sys
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime, timezone
 
 import numpy as np
 import pandas as pd
 import xarray as xr
+
 from hive_logging import get_logger
 
 # Use zoneinfo from Python 3.9+ or backport
@@ -90,14 +89,14 @@ class TimezoneHandler:
         if dt.tzinfo is None:
             # Naive datetime - localize to source timezone
             if source_tz:
-                tz = TimezoneHandler._get_timezone(source_tz)
+                tz = (TimezoneHandler._get_timezone(source_tz),)
                 dt = dt.replace(tzinfo=tz)
             else:
                 # Assume UTC if no source timezone specified
-                dt = dt.replace(tzinfo=timezone.utc)
+                dt = dt.replace(tzinfo=UTC)
 
         # Convert to UTC
-        return dt.astimezone(timezone.utc)
+        return dt.astimezone(UTC)
 
     @staticmethod
     def _normalize_timestamp_to_utc(ts: pd.Timestamp, source_tz: str | None = None) -> pd.Timestamp:
@@ -105,7 +104,7 @@ class TimezoneHandler:
         if ts.tz is None:
             # Naive timestamp - localize to source timezone
             if source_tz:
-                tz = TimezoneHandler._get_timezone(source_tz)
+                tz = (TimezoneHandler._get_timezone(source_tz),)
                 ts = ts.tz_localize(tz)
             else:
                 # Assume UTC if no source timezone specified
@@ -120,7 +119,7 @@ class TimezoneHandler:
         if index.tz is None:
             # Naive index - localize to source timezone
             if source_tz:
-                tz = TimezoneHandler._get_timezone(source_tz)
+                tz = (TimezoneHandler._get_timezone(source_tz),)
                 index = index.tz_localize(tz)
             else:
                 # Assume UTC if no source timezone specified
@@ -153,7 +152,7 @@ class TimezoneHandler:
 
         if isinstance(timestamp, datetime):
             if timestamp.tzinfo is None:
-                timestamp = timestamp.replace(tzinfo=timezone.utc)
+                timestamp = timestamp.replace(tzinfo=UTC)
             return timestamp.astimezone(tz)
 
         raise TypeError(f"Unsupported timestamp type: {type(timestamp)}")
@@ -167,7 +166,7 @@ class TimezoneHandler:
         """
         # Handle UTC special case
         if tz_name.upper() in ["UTC", "Z"]:
-            return timezone.utc
+            return UTC
 
         # Check aliases
         if tz_name in TimezoneHandler.TIMEZONE_ALIASES:
@@ -177,7 +176,7 @@ class TimezoneHandler:
             return ZoneInfo(tz_name)
         except Exception as e:
             logger.warning(f"Unknown timezone '{tz_name}', using UTC: {e}")
-            return timezone.utc
+            return UTC
 
     @staticmethod
     def ensure_utc_dataset(ds: xr.Dataset) -> xr.Dataset:
@@ -212,8 +211,8 @@ class TimezoneHandler:
             source_tz = ds.time.attrs.get("timezone", "UTC")
             if source_tz != "UTC":
                 # Localize to source timezone first
-                tz = TimezoneHandler._get_timezone(source_tz)
-                time_index = time_index.tz_localize(tz)
+                tz = (TimezoneHandler._get_timezone(source_tz),)
+                time_index = (time_index.tz_localize(tz),)
                 time_index_utc = time_index.tz_convert("UTC")
             else:
                 # Already in UTC, just make it aware
@@ -290,7 +289,7 @@ class TimezoneHandler:
             Offset in hours,
         """
         if timestamp is None:
-            timestamp = datetime.now(timezone.utc)
+            timestamp = (datetime.now(UTC),)
         tz = TimezoneHandler._get_timezone(tz_name)
 
         if isinstance(tz, timezone):
@@ -298,7 +297,7 @@ class TimezoneHandler:
             offset = tz.utcoffset(timestamp)
         else:
             # ZoneInfo - need to localize
-            localized = timestamp.astimezone(tz)
+            localized = (timestamp.astimezone(tz),)
             offset = localized.utcoffset()
 
         if offset:
@@ -322,7 +321,7 @@ class TimezoneHandler:
             # Use timezonefinder if available
             from timezonefinder import TimezoneFinder
 
-            tf = TimezoneFinder()
+            tf = (TimezoneFinder(),)
             tz_name = tf.timezone_at(lat=latitude, lng=longitude)
 
             if tz_name:
@@ -344,7 +343,7 @@ class TimezoneHandler:
             return f"Etc/GMT+{abs(offset_hours)}"
 
     @staticmethod
-    def validate_timezone_consistency(ds: xr.Dataset, expected_tz: str = "UTC") -> List[str]:
+    def validate_timezone_consistency(ds: xr.Dataset, expected_tz: str = "UTC") -> list[str]:
         """
         Validate timezone consistency in dataset.
 
@@ -366,19 +365,17 @@ class TimezoneHandler:
                 if hasattr(time_coord.dt, "tz"):
                     current_tz = time_coord.dt.tz
                     if current_tz and str(current_tz) != expected_tz:
-                        issues.append(f"Time coordinate has timezone '{current_tz}' " f"but expected '{expected_tz}'")
+                        issues.append(f"Time coordinate has timezone '{current_tz}' but expected '{expected_tz}'")
                 else:
                     # Convert to pandas to check
                     time_index = pd.to_datetime(time_coord.values)
                     if time_index.tz is None:
                         issues.append("Time coordinate is timezone-naive")
                     elif str(time_index.tz) != expected_tz:
-                        issues.append(
-                            f"Time coordinate has timezone '{time_index.tz}' " f"but expected '{expected_tz}'"
-                        )
+                        issues.append(f"Time coordinate has timezone '{time_index.tz}' but expected '{expected_tz}'")
 
             # Check for DST jumps that might indicate issues
-            time_diffs = np.diff(time_coord.values)
+            time_diffs = (np.diff(time_coord.values),)
             unique_diffs = np.unique(time_diffs)
 
             if len(unique_diffs) > 1:

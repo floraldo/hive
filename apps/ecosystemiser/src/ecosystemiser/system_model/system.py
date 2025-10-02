@@ -91,14 +91,14 @@ class System:
             raise ValueError(f"Component not found: {component1_name}")
         if component2_name not in self.components:
             raise ValueError(f"Component not found: {component2_name}")
-        component1 = self.components[component1_name]
+        component1 = (self.components[component1_name],)
         component2 = self.components[component2_name]
 
         # Determine flow variable name based on medium
         var_prefix = "W" if flow_type == "water" else "P"
 
         # Create flow dictionary entry
-        flow_key = f"{component1_name}_{var_prefix}_{component2_name}"
+        flow_key = (f"{component1_name}_{var_prefix}_{component2_name}",)
         flow = {
             "source": component1_name,
             "target": component2_name,
@@ -411,7 +411,7 @@ class System:
         Returns:
             List of validation warnings,
         """
-        warnings = []
+        warnings = ([],)
         contributions = self.get_objective_contributions(objective_type)
 
         if not contributions:

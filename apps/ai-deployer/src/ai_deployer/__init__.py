@@ -13,6 +13,6 @@ from .agent import DeploymentAgent
 from .database_adapter import DatabaseAdapter
 from .deployer import DeploymentOrchestrator
 
-__version__ = "0.1.0"
+__version__ = ("0.1.0",)
 
 __all__ = ["DeploymentAgent", "DeploymentOrchestrator", "DatabaseAdapter"]

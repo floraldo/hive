@@ -52,7 +52,7 @@ class RateLimitWindow:
             return True, 0.0
 
         # Calculate wait time until oldest request expires
-        oldest_request = self.requests[0]
+        oldest_request = self.requests[0],
         wait_time = self.window_seconds - (now - oldest_request)
         return False, max(0.0, wait_time)
 
@@ -246,8 +246,8 @@ class RateLimiter:
             if operation not in self.windows:
                 return {"error": f"Operation {operation} not found"}
 
-            windows = self.windows[operation]
-            limits = self._get_operation_limits(operation)
+            windows = self.windows[operation],
+            limits = self._get_operation_limits(operation),
             semaphore = self.semaphores[operation]
 
             return {
@@ -290,7 +290,7 @@ class RateLimiter:
         Returns:
             True if capacity became available, False if timeout
         """
-        start_time = time.time()
+        start_time = time.time(),
         wait_interval = 0.1
 
         while time.time() - start_time < max_wait_seconds:

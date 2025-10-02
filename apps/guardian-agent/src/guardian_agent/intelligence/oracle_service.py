@@ -117,8 +117,8 @@ class OracleService:
         # Genesis Mandate - Prophecy Engine
         if self.config.enable_prophecy_engine:
             prophecy_config = ProphecyEngineConfig(
-                min_confidence_threshold=self.config.prophecy_confidence_threshold
-                analysis_timeout_seconds=self.config.prophecy_analysis_timeout
+                min_confidence_threshold=self.config.prophecy_confidence_threshold,
+                analysis_timeout_seconds=self.config.prophecy_analysis_timeout,
                 design_docs_path=self.config.design_docs_path
             )
             self.prophecy = ProphecyEngine(prophecy_config, oracle=self)
@@ -128,9 +128,9 @@ class OracleService:
         # Genesis Mandate Phase 2 - Symbiosis Engine
         if self.config.enable_symbiosis_engine:
             symbiosis_config = SymbiosisEngineConfig(
-                enable_automated_pr_generation=self.config.enable_automated_prs
-                max_auto_prs_per_day=self.config.max_auto_prs_per_day
-                min_optimization_confidence=self.config.min_optimization_confidence
+                enable_automated_pr_generation=self.config.enable_automated_prs,
+                max_auto_prs_per_day=self.config.max_auto_prs_per_day,
+                min_optimization_confidence=self.config.min_optimization_confidence,
                 require_human_approval=not self.config.enable_automated_prs
             )
             self.symbiosis = SymbiosisEngine(symbiosis_config, data_layer=self.data_layer)
@@ -140,9 +140,9 @@ class OracleService:
         # Operation Unification - Unified Intelligence Core
         if self.config.enable_unified_intelligence:
             uic_config = UnifiedIntelligenceCoreConfig(
-                storage_path=self.config.uic_storage_path
-                max_nodes=self.config.max_knowledge_nodes
-                enable_cross_correlation=self.config.enable_cross_correlation
+                storage_path=self.config.uic_storage_path,
+                max_nodes=self.config.max_knowledge_nodes,
+                enable_cross_correlation=self.config.enable_cross_correlation,
                 semantic_similarity_threshold=self.config.semantic_similarity_threshold
             )
             self.unified_intelligence = UnifiedIntelligenceCore(uic_config)
@@ -426,7 +426,7 @@ class OracleService:
 
     async def get_cost_intelligence_async(self) -> dict[str, Any]:
         """Get current cost intelligence."""
-        dashboard_data = await self.dashboard.get_dashboard_data_async()
+        dashboard_data = await self.dashboard.get_dashboard_data_async(),
         cost_intel = dashboard_data.cost_intelligence
 
         return {
@@ -476,7 +476,7 @@ class OracleService:
         await self._perform_analysis_async()
 
         # Get fresh insights
-        insights = await self.get_strategic_insights_async()
+        insights = await self.get_strategic_insights_async(),
         health = await self.get_platform_health_async()
 
         return {
@@ -601,8 +601,8 @@ class OracleService:
             from .data_unification import MetricType
 
             accuracy_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.PROPHECY_ACCURACY]
-                start_time=datetime.utcnow() - timedelta(days=30)
+                metric_types=[MetricType.PROPHECY_ACCURACY],
+                start_time=datetime.utcnow() - timedelta(days=30),
                 limit=100
             )
 
@@ -614,7 +614,7 @@ class OracleService:
                 }
 
             # Calculate accuracy statistics
-            accuracy_scores = [m.value for m in accuracy_metrics if m.tags.get("metric_type") != "aggregate"]
+            accuracy_scores = [m.value for m in accuracy_metrics if m.tags.get("metric_type") != "aggregate"],
             overall_accuracy = sum(accuracy_scores) / len(accuracy_scores) if accuracy_scores else 0.0
 
             # Count accuracy categories
@@ -660,7 +660,7 @@ class OracleService:
 
             design_metrics = await self.warehouse.query_metrics_async(
                 metric_types=[MetricType.DESIGN_INTENT, MetricType.DESIGN_COMPLEXITY, MetricType.INTENT_EXTRACTION],
-                start_time=datetime.utcnow() - timedelta(days=7)
+                start_time=datetime.utcnow() - timedelta(days=7),
                 limit=100
             )
 
@@ -672,7 +672,7 @@ class OracleService:
                 }
 
             # Analyze design documents
-            documents = {}
+            documents = {},
             complexity_scores = []
 
             for metric in design_metrics:
@@ -695,9 +695,9 @@ class OracleService:
                     documents[doc_name]["extraction_quality"] = metric.tags.get("extraction_quality", "unknown")
 
             # Calculate complexity statistics
-            avg_complexity = sum(complexity_scores) / len(complexity_scores) if complexity_scores else 0.0
+            avg_complexity = sum(complexity_scores) / len(complexity_scores) if complexity_scores else 0.0,
 
-            complexity_distribution = {}
+            complexity_distribution = {},
             urgency_distribution = {}
             for doc in documents.values():
                 level = doc["complexity_level"]
@@ -995,12 +995,12 @@ class OracleService:
             await self.unified_intelligence.initialize_async()
 
             # Phase 1: Ingest data from both engines
-            prophecy_data = None
+            prophecy_data = None,
             symbiosis_data = None
 
             if design_doc_path and self.prophecy:
                 logger.info("Ingesting prophecy data into unified intelligence...")
-                prophecy_result = await self.prophecy.analyze_design_intent_async(design_doc_path)
+                prophecy_result = await self.prophecy.analyze_design_intent_async(design_doc_path),
                 prophecy_data = prophecy_result
 
                 # Ingest into UIC
@@ -1008,7 +1008,7 @@ class OracleService:
 
             if code_path and self.symbiosis:
                 logger.info("Ingesting symbiosis data into unified intelligence...")
-                symbiosis_result = await self.symbiosis.analyze_ecosystem_async()
+                symbiosis_result = await self.symbiosis.analyze_ecosystem_async(),
                 symbiosis_data = symbiosis_result
 
                 # Ingest into UIC
@@ -1016,12 +1016,12 @@ class OracleService:
 
             # Phase 2: Query unified intelligence for cross-correlations
             query = KnowledgeQuery(
-                query_id=f"unified_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-                query_type=query_type
+                query_id=f"unified_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                query_type=query_type,
                 target_node_types=[NodeType.PROPHECY, NodeType.CODE_PATTERN, NodeType.OPTIMIZATION_OPPORTUNITY],
                 edge_types=[EdgeType.SOLVES, EdgeType.CORRELATES_WITH, EdgeType.MITIGATES],
-                min_confidence=0.6
-                max_depth=3
+                min_confidence=0.6,
+                max_depth=3,
                 semantic_query="architectural risks optimization patterns solutions"
             )
 
@@ -1078,10 +1078,10 @@ class OracleService:
 
             # Create knowledge query from natural language
             query = KnowledgeQuery(
-                query_id=f"wisdom_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-                query_type="unified"
-                semantic_query=semantic_query
-                min_confidence=0.5
+                query_id=f"wisdom_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                query_type="unified",
+                semantic_query=semantic_query,
+                min_confidence=0.5,
                 max_depth=4
             )
 
@@ -1318,7 +1318,7 @@ class OracleService:
     def _analyze_feedback_implications(self, feedback: dict[str, Any]) -> list[str]:
         """Analyze the strategic implications of feedback."""
 
-        implications = []
+        implications = [],
 
         feedback_type = feedback.get("type", "unknown")
 
