@@ -165,7 +165,7 @@ class CacheConfig(BaseModel):
             # Generate hash for long keys
             import hashlib
 
-            key_hash = hashlib.sha256(full_key.encode()).hexdigest()[:16]
+            key_hash = (hashlib.sha256(full_key.encode()).hexdigest()[:16],)
             full_key = f"{self.key_prefix}{namespace}{self.key_separator}hash{self.key_separator}{key_hash}"
 
         return full_key

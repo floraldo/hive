@@ -5,6 +5,7 @@ Runner script for performance baseline that ensures correct package imports.
 This script sets up the Python path to use workspace packages instead of
 globally installed ones, preventing ImportError issues.
 """
+
 import sys
 from pathlib import Path
 
@@ -29,7 +30,8 @@ for pkg in packages_to_add:
 # Now import and run the actual performance baseline
 if __name__ == "__main__":
     # Import after path setup
-    import performance_baseline
     import asyncio
+
+    import performance_baseline
 
     asyncio.run(performance_baseline.main())

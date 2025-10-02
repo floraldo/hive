@@ -179,7 +179,8 @@ class OracleCertificationMentor:
         for rule_name, result in validation_results.items():
             if not result["passed"]:
                 rule_impact = self.knowledge_base["golden_rules_impact"].get(
-                    rule_name, {"impact": 5.0, "category": "technical_excellence"},
+                    rule_name,
+                    {"impact": 5.0, "category": "technical_excellence"},
                 )
 
                 severity = self._calculate_severity(len(result["violations"]), rule_impact["impact"])

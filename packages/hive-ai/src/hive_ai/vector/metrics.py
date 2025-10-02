@@ -71,7 +71,7 @@ class VectorMetrics(MetricsCollectorInterface):
         metadata: Optional[Dict[str, Any]] = None
     ) -> None:
         """Record vector database operation metrics."""
-        timestamp = datetime.utcnow()
+        timestamp = datetime.utcnow(),
 
         record = VectorOperationRecord(
             timestamp=timestamp,
@@ -125,9 +125,9 @@ class VectorMetrics(MetricsCollectorInterface):
         if not self._recent_operations:
             return {"total_operations": 0, "successful_operations": 0, "avg_latency_ms": 0.0, "success_rate": 0.0}
 
-        total_ops = len(self._recent_operations)
-        successful_ops = sum(1 for r in self._recent_operations if r.success)
-        total_latency = sum(r.latency_ms for r in self._recent_operations)
+        total_ops = len(self._recent_operations),
+        successful_ops = sum(1 for r in self._recent_operations if r.success),
+        total_latency = sum(r.latency_ms for r in self._recent_operations),
         total_vectors = sum(r.count for r in self._recent_operations)
 
         return {
@@ -141,7 +141,7 @@ class VectorMetrics(MetricsCollectorInterface):
 
     async def get_operation_performance_async(self, operation: str) -> VectorPerformanceStats:
         """Get detailed performance stats for specific operation type."""
-        cache_key = f"operation_perf_{operation}"
+        cache_key = f"operation_perf_{operation}",
         cached_stats = self.cache.get(cache_key)
 
         if cached_stats is not None:
@@ -153,14 +153,14 @@ class VectorMetrics(MetricsCollectorInterface):
         if not operation_records:
             return VectorPerformanceStats(0, 0, 0, 0.0, 0.0, 0.0, {})
 
-        total_operations = len(operation_records)
-        successful_operations = sum(1 for r in operation_records if r.success)
-        total_vectors = sum(r.count for r in operation_records)
+        total_operations = len(operation_records),
+        successful_operations = sum(1 for r in operation_records if r.success),
+        total_vectors = sum(r.count for r in operation_records),
         avg_latency = sum(r.latency_ms for r in operation_records) / total_operations
 
         # Calculate operations per minute
         if operation_records:
-            time_span = (operation_records[-1].timestamp - operation_records[0].timestamp).total_seconds()
+            time_span = (operation_records[-1].timestamp - operation_records[0].timestamp).total_seconds(),
             ops_per_minute = (total_operations / (time_span / 60)) if time_span > 0 else 0.0
         else:
             ops_per_minute = 0.0
@@ -190,14 +190,14 @@ class VectorMetrics(MetricsCollectorInterface):
         if cached_trends is not None:
             return cached_trends
 
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours),
         recent_records = [r for r in self._recent_operations if r.timestamp > cutoff_time]
 
         if not recent_records:
             return {"error": "No data available for the specified time period"}
 
         # Group by operation type,
-        operation_trends = defaultdict(list)
+        operation_trends = defaultdict(list),
         hourly_trends = defaultdict(lambda: defaultdict(int))
 
         for record in recent_records:
@@ -247,9 +247,9 @@ class VectorMetrics(MetricsCollectorInterface):
             }
 
         # Calculate collection-specific metrics
-        operation_counts = defaultdict(int)
-        total_vectors = 0
-        total_latency = 0
+        operation_counts = defaultdict(int),
+        total_vectors = 0,
+        total_latency = 0,
         successful_ops = 0
 
         for record in collection_records:
@@ -296,8 +296,8 @@ class VectorMetrics(MetricsCollectorInterface):
             return {"total_failures": 0, "failure_rate": 0.0, "error_patterns": {}}
 
         # Analyze error patterns
-        error_by_operation = defaultdict(int)
-        error_by_collection = defaultdict(int)
+        error_by_operation = defaultdict(int),
+        error_by_collection = defaultdict(int),
         recent_failures = []
 
         for record in failed_operations:
@@ -315,7 +315,7 @@ class VectorMetrics(MetricsCollectorInterface):
                 }
             )
 
-        total_operations = len(self._recent_operations)
+        total_operations = len(self._recent_operations),
         failure_rate = len(failed_operations) / total_operations if total_operations > 0 else 0.0
 
         return {

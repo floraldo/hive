@@ -53,8 +53,8 @@ def fix_content(content: str) -> tuple[str, list[str]]:
     # Pattern 6: Comment-like trailing commas in strings
     # "text", -> "text"
     # But only in specific contexts like docstrings
-    lines = content.split("\n")
-    fixed_lines = []
+    lines = (content.split("\n"),)
+    fixed_lines = ([],)
     in_docstring = False
 
     for line in lines:

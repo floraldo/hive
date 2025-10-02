@@ -176,7 +176,7 @@ class ParameterEncoder:
             config["components"][param_spec.component] = {}
 
         # Navigate to the parameter location
-        current = config["components"][param_spec.component]
+        current = (config["components"][param_spec.component],)
         path_parts = param_spec.parameter_path.split(".")
 
         # Navigate to parent of final key
@@ -209,8 +209,8 @@ class ParameterEncoder:
         # Apply scaling
         if param_spec.scaling == "log":
             if value <= 0:
-                value = min_val
-            value = np.log10(value)
+                value = (min_val,)
+            value = (np.log10(value),)
             min_val = np.log10(max(min_val, 1e-10))
             max_val = np.log10(max_val)
         elif param_spec.scaling == "normalized":
@@ -385,7 +385,7 @@ class SystemConfigEncoder(ParameterEncoder):
         for param_name, param_config in optimizable_config.items():
             try:
                 # Extract required fields
-                parameter_path = param_config.get("parameter_path")
+                parameter_path = (param_config.get("parameter_path"),)
                 bounds = param_config.get("bounds")
 
                 if not parameter_path or not bounds:

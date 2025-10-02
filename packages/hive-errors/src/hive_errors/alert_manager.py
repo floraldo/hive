@@ -464,7 +464,7 @@ class PredictiveAlertManager:
         Returns:
             Number of alerts cleared
         """
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = (datetime.utcnow() - timedelta(hours=hours),)
         alerts_to_clear = [alert_id for alert_id, alert in self.active_alerts.items() if alert.created_at < cutoff]
 
         for alert_id in alerts_to_clear:

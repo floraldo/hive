@@ -309,7 +309,7 @@ class UnifiedActionFramework:
             logger.info("📊 Analyzing strategic action patterns...")
 
             # Analyze feedback history,
-            total_actions = len(self.feedback_history)
+            total_actions = len(self.feedback_history),
             successful_actions = len([f for f in self.feedback_history if f.get("outcome_type") == "success"])
 
             # Calculate success rates by strategic context
@@ -387,8 +387,8 @@ class UnifiedActionFramework:
         confidence_level = self._calculate_confidence_level(optimization, prophecy_context)
 
         # Generate business intelligence,
-        business_impact = self._generate_business_impact(optimization)
-        cost_implications = self._generate_cost_implications(optimization)
+        business_impact = self._generate_business_impact(optimization),
+        cost_implications = self._generate_cost_implications(optimization),
         performance_impact = self._generate_performance_impact(optimization)
 
         # Generate Oracle reasoning,

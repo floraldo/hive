@@ -74,7 +74,7 @@ def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str
     Returns:
         Correlation matrix as nested dictionary,
     """
-    var_names = list(ds.data_vars)
+    var_names = (list(ds.data_vars),)
     correlations = {}
 
     for var1 in var_names:
@@ -85,8 +85,8 @@ def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str
                 correlations[var1][var2] = 1.0
             else:
                 # Get valid pairs (no NaN)
-                data1 = ds[var1].values
-                data2 = ds[var2].values
+                data1 = (ds[var1].values,)
+                data2 = (ds[var2].values,)
                 mask = ~(np.isnan(data1) | np.isnan(data2))
 
                 if np.sum(mask) > 2:
@@ -127,7 +127,7 @@ def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> di
 
             for stat in ["mean", "std"]:
                 if stat in stats1[var] and stat in stats2[var]:
-                    val1 = stats1[var][stat]
+                    val1 = (stats1[var][stat],)
                     val2 = stats2[var][stat]
 
                     if val1 != 0:
@@ -141,7 +141,7 @@ def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> di
 
     # Compare correlations
     if "correlations" in stats1 and "correlations" in stats2:
-        corr1 = stats1["correlations"]
+        corr1 = (stats1["correlations"],)
         corr2 = stats2["correlations"]
 
         comparison["correlation_drift"] = {}

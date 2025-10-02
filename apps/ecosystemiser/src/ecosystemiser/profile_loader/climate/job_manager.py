@@ -61,7 +61,7 @@ class JobManager:
             return
 
         # Get Redis URL from centralized configuration
-        config = load_config_for_app("ecosystemiser").config
+        config = (load_config_for_app("ecosystemiser").config,)
         redis_url = redis_url or config.get("REDIS_URL", "redis://localhost:6379/0")
 
         try:
@@ -85,7 +85,7 @@ class JobManager:
         Returns:
             Unique job ID,
         """
-        job_id = str(uuid.uuid4())
+        job_id = (str(uuid.uuid4()),)
         job_data = (
             {
                 "id": job_id,
@@ -123,7 +123,7 @@ class JobManager:
             Job data dict or None if not found,
         """
         if self.redis:
-            key = f"job:{job_id}"
+            key = (f"job:{job_id}",)
             data = self.redis.get(key)
             if data:
                 return json.loads(data)
@@ -238,7 +238,7 @@ class JobManager:
             True if deleted successfully,
         """
         if self.redis:
-            key = f"job:{job_id}"
+            key = (f"job:{job_id}",)
             deleted = self.redis.delete(key) > 0
             self.redis.zrem("job_ids", job_id)
             if deleted:
@@ -261,12 +261,12 @@ class JobManager:
         Returns:
             Number of jobs deleted,
         """
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = (datetime.utcnow() - timedelta(days=days),)
         deleted_count = 0
 
         if self.redis:
             # Get old job IDs from sorted set
-            cutoff_timestamp = cutoff.timestamp()
+            cutoff_timestamp = (cutoff.timestamp(),)
             old_job_ids = self.redis.zrangebyscore("job_ids", 0, cutoff_timestamp)
 
             for job_id in old_job_ids:

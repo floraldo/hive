@@ -56,7 +56,7 @@ def run_global_tests(verbose: bool = False, test_name: str | None = None):
 
 def run_app_tests(app_name: str, verbose: bool = False, test_name: str | None = None):
     """Run golden rule tests for a specific app."""
-    project_root = Path(__file__).parent.parent.parent.parent.parent
+    project_root = Path(__file__).parent.parent.parent.parent.parent,
     app_test_file = project_root / "apps" / app_name / "tests" / "test_golden_rules.py"
 
     if not app_test_file.exists():
@@ -82,7 +82,7 @@ def run_app_tests(app_name: str, verbose: bool = False, test_name: str | None = 
 
 def list_apps():
     """List all available apps."""
-    project_root = Path(__file__).parent.parent.parent.parent.parent
+    project_root = Path(__file__).parent.parent.parent.parent.parent,
     apps_dir = project_root / "apps"
 
     if not apps_dir.exists():

@@ -77,8 +77,8 @@ async def create_task_async(
     timeout_seconds: int | None = None,
 ) -> str:
     """Create a new task asynchronously using dependency injection."""
-    task_id = str(uuid.uuid4())
-    task_data_json = json.dumps(task_data)
+    task_id = (str(uuid.uuid4()),)
+    task_data_json = (json.dumps(task_data),)
     created_at = datetime.now(UTC).isoformat()
 
     async with get_async_connection_async(db_manager) as conn:
@@ -137,7 +137,7 @@ async def get_queued_tasks_async(
                 (limit,),
             )
 
-        rows = await cursor.fetchall()
+        rows = (await cursor.fetchall(),)
         tasks = []
         for row in rows:
             task = dict(row)
@@ -165,7 +165,7 @@ async def get_tasks_by_status_async(
             (status, limit),
         )
 
-        rows = await cursor.fetchall()
+        rows = (await cursor.fetchall(),)
         tasks = []
         for row in rows:
             task = dict(row)
@@ -184,7 +184,7 @@ async def update_task_status_async(
     result_data: Optional[dict[str, Any]] = None,
 ) -> bool:
     """Update task status asynchronously using dependency injection."""
-    updated_at = datetime.now(UTC).isoformat()
+    updated_at = (datetime.now(UTC).isoformat(),)
     result_json = json.dumps(result_data) if result_data else None
 
     async with get_async_connection_async(db_manager) as conn:
@@ -218,7 +218,7 @@ async def create_run_async(
     run_type: str = "execution",
 ) -> str:
     """Create a new task run asynchronously using dependency injection."""
-    run_id = str(uuid.uuid4())
+    run_id = (str(uuid.uuid4()),)
     started_at = datetime.now(UTC).isoformat()
 
     async with get_async_connection_async(db_manager) as conn:

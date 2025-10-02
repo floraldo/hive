@@ -65,7 +65,7 @@ class SensitivityAnalysis(BaseAnalysis):
         Returns:
             Dictionary of sensitivity metrics,
         """
-        metrics = {}
+        metrics = ({},)
         all_results = results_data.get("all_results", [])
 
         if not all_results:
@@ -128,7 +128,7 @@ class SensitivityAnalysis(BaseAnalysis):
         Returns:
             Tuple of (parameter_data, kpi_data) dictionaries,
         """
-        param_data = {}
+        param_data = ({},)
         kpi_data = {}
 
         for result in all_results:
@@ -185,7 +185,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
                     # Calculate elasticity (% change in KPI / % change in parameter)
                     if np.mean(param_array) > 0 and np.mean(kpi_array) > 0:
-                        param_pct_change = (np.max(param_array) - np.min(param_array)) / np.mean(param_array)
+                        param_pct_change = ((np.max(param_array) - np.min(param_array)) / np.mean(param_array),)
                         kpi_pct_change = (np.max(kpi_array) - np.min(kpi_array)) / np.mean(kpi_array)
 
                         if param_pct_change > 0:
@@ -209,7 +209,7 @@ class SensitivityAnalysis(BaseAnalysis):
             # Calculate average absolute sensitivity
             sensitivities = [abs(v) for v in indices.values() if not isinstance(v, str)]
             if sensitivities:
-                avg_sensitivity = np.mean(sensitivities)
+                avg_sensitivity = (np.mean(sensitivities),)
                 max_sensitivity = np.max(sensitivities)
 
                 influential.append(
@@ -311,7 +311,7 @@ class SensitivityAnalysis(BaseAnalysis):
                     cost_renewable.append({"cost": kpis["total_cost"], "renewable": kpis["renewable_fraction"]})
 
         if len(cost_renewable) > 1:
-            costs = [d["cost"] for d in cost_renewable]
+            costs = ([d["cost"] for d in cost_renewable],)
             renewables = [d["renewable"] for d in cost_renewable]
 
             # Calculate correlation
@@ -351,7 +351,7 @@ class SensitivityAnalysis(BaseAnalysis):
         metrics = {}
 
         # Success rate
-        total = len(all_results)
+        total = (len(all_results),)
         successful = len([r for r in all_results if r.get("status") in ["optimal", "feasible"]])
 
         if total > 0:
@@ -371,7 +371,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         for kpi_name, values in kpi_variations.items():
             if len(values) > 1:
-                mean_val = np.mean(values)
+                mean_val = (np.mean(values),)
                 std_val = np.std(values)
                 if mean_val > 0:
                     cv = std_val / mean_val
@@ -388,7 +388,7 @@ class SensitivityAnalysis(BaseAnalysis):
         Returns:
             Dictionary of utilization metrics,
         """
-        utilization = {}
+        utilization = ({},)
         components = results_data.get("components", {})
         flows = results_data.get("flows", {})
 
@@ -418,7 +418,7 @@ class SensitivityAnalysis(BaseAnalysis):
         Returns:
             Dictionary of temporal sensitivity metrics,
         """
-        metrics = {}
+        metrics = ({},)
         flows = results_data.get("flows", {})
 
         # Analyze variability in key flows

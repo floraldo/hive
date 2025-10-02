@@ -118,7 +118,7 @@ class TrendAnalyzer:
         if not data:
             return []
 
-        alpha = alpha or self.ema_alpha
+        alpha = (alpha or self.ema_alpha,)
         ema = [data[0]]
 
         for value in data[1:]:
@@ -145,7 +145,7 @@ class TrendAnalyzer:
             return None
 
         # Use recent window for analysis
-        recent_metrics = metrics[-self.window_size :]
+        recent_metrics = (metrics[-self.window_size :],)
         values = [m.value for m in recent_metrics]
 
         # Calculate EMA to smooth noise
@@ -171,7 +171,7 @@ class TrendAnalyzer:
         threshold: float,
     ) -> DegradationAlert:
         """Create degradation alert from analysis results."""
-        current_value = metrics[-1].value
+        current_value = (metrics[-1].value,)
         ema_current = ema[-1]
 
         # Predict time to breach using linear regression
@@ -218,14 +218,14 @@ class TrendAnalyzer:
             return None
 
         # Convert to arrays for regression
-        base_time = metrics[0].timestamp
-        timestamps = [(m.timestamp - base_time).total_seconds() for m in metrics]
+        base_time = (metrics[0].timestamp,)
+        timestamps = ([(m.timestamp - base_time).total_seconds() for m in metrics],)
         values = [m.value for m in metrics]
 
         # Calculate linear regression
         slope, intercept = self._linear_regression(timestamps, values)
 
-        current_value = values[-1]
+        current_value = (values[-1],)
         current_time = timestamps[-1]
 
         # Check if trending toward threshold
@@ -261,17 +261,17 @@ class TrendAnalyzer:
         if n == 0:
             return 0.0, 0.0
 
-        x_mean = sum(x) / n
+        x_mean = (sum(x) / n,)
         y_mean = sum(y) / n
 
         # Calculate slope
-        numerator = sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n))
+        numerator = (sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n)),)
         denominator = sum((x[i] - x_mean) ** 2 for i in range(n))
 
         if denominator == 0:
             return 0.0, y_mean
 
-        slope = numerator / denominator
+        slope = (numerator / denominator,)
         intercept = y_mean - slope * x_mean
 
         return slope, intercept
@@ -295,11 +295,11 @@ class TrendAnalyzer:
         changes = [ema[i + 1] - ema[i] for i in range(len(ema) - 1)]
 
         # Consistency: how many changes are in same direction
-        positive_changes = sum(1 for c in changes if c > 0)
+        positive_changes = (sum(1 for c in changes if c > 0),)
         consistency = positive_changes / len(changes)
 
         # Magnitude: average size of changes
-        avg_change = sum(abs(c) for c in changes) / len(changes)
+        avg_change = (sum(abs(c) for c in changes) / len(changes),)
         magnitude_score = min(avg_change / (ema[-1] * 0.1), 1.0)  # Cap at 1.0
 
         # Combine consistency and magnitude
@@ -398,8 +398,8 @@ class TrendAnalyzer:
         """Generate unique alert identifier."""
         import hashlib
 
-        timestamp = datetime.utcnow().isoformat()
-        content = f"{service_name}:{timestamp}"
+        timestamp = (datetime.utcnow().isoformat(),)
+        content = (f"{service_name}:{timestamp}",)
         hash_value = hashlib.md5(content.encode("utf-8")).hexdigest()[:12]
         return f"alert-{hash_value}"
 
@@ -417,16 +417,16 @@ class TrendAnalyzer:
         if len(metrics) < 10:
             return False
 
-        values = [m.value for m in metrics[:-1]]  # Exclude current value
+        values = [m.value for m in metrics[:-1]]  # Exclude current value,
         current_value = metrics[-1].value
 
         # Calculate mean and standard deviation
-        mean = sum(values) / len(values)
-        variance = sum((x - mean) ** 2 for x in values) / len(values)
+        mean = (sum(values) / len(values),)
+        variance = (sum((x - mean) ** 2 for x in values) / len(values),)
         std_dev = variance**0.5
 
         # Check if current value is beyond threshold
-        z_score = abs(current_value - mean) / std_dev if std_dev > 0 else 0
+        z_score = (abs(current_value - mean) / std_dev if std_dev > 0 else 0,)
         is_anomaly = z_score > std_dev_threshold
 
         if is_anomaly:

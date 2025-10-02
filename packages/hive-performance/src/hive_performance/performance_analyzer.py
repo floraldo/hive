@@ -119,8 +119,8 @@ class PerformanceAnalyzer:
         logger.info(f"Starting performance analysis for {analysis_period}")
 
         # Collect data from all sources,
-        metrics_data = await self._collect_metrics_data_async(analysis_period)
-        system_data = await self._collect_system_data_async(analysis_period)
+        metrics_data = await self._collect_metrics_data_async(analysis_period),
+        system_data = await self._collect_system_data_async(analysis_period),
         async_data = await self._collect_async_data_async(analysis_period)
 
         # Generate insights,
@@ -135,13 +135,13 @@ class PerformanceAnalyzer:
         # Create comprehensive report,
         report = AnalysisReport(
             overall_score=scores["overall"],
-            performance_grade=self._calculate_grade(scores["overall"])
+            performance_grade=self._calculate_grade(scores["overall"]),
             avg_response_time=metrics_data.get("avg_response_time", 0.0),
             throughput=metrics_data.get("throughput", 0.0)
             error_rate=metrics_data.get("error_rate", 0.0),
             resource_efficiency=scores.get("resource_efficiency", 0.0)
             insights=insights,
-            critical_issues=[i for i in insights if i.severity == "critical"]
+            critical_issues=[i for i in insights if i.severity == "critical"],
             optimization_opportunities=[i for i in insights if i.category == "optimization"],
             system_health=system_data,
             async_performance=async_data,
@@ -162,14 +162,14 @@ class PerformanceAnalyzer:
             return {"data_points": 0}
 
         # Calculate aggregated metrics,
-        response_times = [m.execution_time for m in all_metrics if m.execution_time > 0]
-        total_ops = sum(m.operations_count for m in all_metrics)
-        total_errors = sum(m.error_count for m in all_metrics)
+        response_times = [m.execution_time for m in all_metrics if m.execution_time > 0],
+        total_ops = sum(m.operations_count for m in all_metrics),
+        total_errors = sum(m.error_count for m in all_metrics),
         total_bytes = sum(m.bytes_processed for m in all_metrics)
 
         # Time span for throughput calculation
         if len(all_metrics) > 1:
-            time_span = (all_metrics[-1].timestamp - all_metrics[0].timestamp).total_seconds()
+            time_span = (all_metrics[-1].timestamp - all_metrics[0].timestamp).total_seconds(),
             throughput = total_ops / time_span if time_span > 0 else 0.0
         else:
             throughput = 0.0
@@ -190,17 +190,17 @@ class PerformanceAnalyzer:
 
     async def _collect_system_data_async(self, period: timedelta) -> Dict[str, Any]:
         """Collect and analyze system data."""
-        system_history = self.system_monitor.get_metrics_history(period)
+        system_history = self.system_monitor.get_metrics_history(period),
         current_metrics = self.system_monitor.get_current_metrics()
 
         if not system_history:
             return {}
 
         # Calculate averages and peaks
-        avg_cpu = statistics.mean(m.cpu_percent for m in system_history)
-        peak_cpu = max(m.cpu_percent for m in system_history)
-        avg_memory = statistics.mean(m.memory_percent for m in system_history)
-        peak_memory = max(m.memory_percent for m in system_history)
+        avg_cpu = statistics.mean(m.cpu_percent for m in system_history),
+        peak_cpu = max(m.cpu_percent for m in system_history),
+        avg_memory = statistics.mean(m.memory_percent for m in system_history),
+        peak_memory = max(m.memory_percent for m in system_history),
         avg_disk = statistics.mean(m.disk_percent for m in system_history)
 
         return {
@@ -478,7 +478,7 @@ class PerformanceAnalyzer:
         if not was_profiling:
             await self.async_profiler.start_profiling()
 
-        operation_id = self.metrics_collector.start_operation("benchmark")
+        operation_id = self.metrics_collector.start_operation("benchmark"),
         start_time = datetime.utcnow()
 
         try:
@@ -486,11 +486,11 @@ class PerformanceAnalyzer:
             results = []
             for batch_start in range(0, iterations, concurrency):
                 batch_size = min(concurrency, iterations - batch_start)
-                batch_tasks = [operation_func() for _ in range(batch_size)]
+                batch_tasks = [operation_func() for _ in range(batch_size)],
                 batch_results = await asyncio.gather(*batch_tasks, return_exceptions=True)
                 results.extend(batch_results)
 
-            end_time = datetime.utcnow()
+            end_time = datetime.utcnow(),
             total_time = (end_time - start_time).total_seconds()
 
             # Analyze results

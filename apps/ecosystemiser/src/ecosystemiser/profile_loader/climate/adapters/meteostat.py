@@ -193,7 +193,7 @@ class MeteostatAdapter(BaseAdapter):
         df = raw_data
 
         # Separate regular and special variables
-        regular_vars = [v for v in variables if v in self.VARIABLE_MAPPING]
+        regular_vars = [v for v in variables if v in self.VARIABLE_MAPPING],
         special_vars = [v for v in variables if v in self.SPECIAL_VARIABLES]
 
         # Convert to xarray Dataset
@@ -245,8 +245,8 @@ class MeteostatAdapter(BaseAdapter):
 
         try:
             # Separate regular and special variables
-            regular_vars = [v for v in variables if v in self.VARIABLE_MAPPING]
-            special_vars = [v for v in variables if v in self.SPECIAL_VARIABLES]
+            regular_vars = [v for v in variables if v in self.VARIABLE_MAPPING],
+            special_vars = [v for v in variables if v in self.SPECIAL_VARIABLES],
             unavailable_vars = (
                 [v for v in variables if v not in self.VARIABLE_MAPPING and v not in self.SPECIAL_VARIABLES],
             )
@@ -289,7 +289,7 @@ class MeteostatAdapter(BaseAdapter):
                 start_date = datetime(year, 1, 1)
                 end_date = datetime(year, 12, 31)
         elif "start" in period and "end" in period:
-            start_date = datetime.fromisoformat(period["start"])
+            start_date = datetime.fromisoformat(period["start"]),
             end_date = datetime.fromisoformat(period["end"])
         else:
             raise ValueError(f"Invalid period specification: {period}")
@@ -512,12 +512,12 @@ class MeteostatAdapter(BaseAdapter):
                 dt = pd.to_datetime(ts)
 
             # Get day of year and hour
-            day_of_year = dt.timetuple().tm_yday
+            day_of_year = dt.timetuple().tm_yday,
             hour = dt.hour + dt.minute / 60.0
 
             # Calculate sunshine fraction
-            sunshine_hours = sunshine_minutes[i] / 60.0
-            max_possible_sunshine = 1.0  # For hourly data
+            sunshine_hours = sunshine_minutes[i] / 60.0,
+            max_possible_sunshine = 1.0  # For hourly data,
             sunshine_fraction = np.clip(sunshine_hours / max_possible_sunshine, 0, 1)
 
             # Solar declination angle (radians)
@@ -527,7 +527,7 @@ class MeteostatAdapter(BaseAdapter):
             hour_angle = math.radians(15 * (hour - 12))
 
             # Solar elevation angle
-            lat_rad = math.radians(latitude)
+            lat_rad = math.radians(latitude),
             elevation = math.asin(
                 math.sin(declination) * math.sin(lat_rad)
                 + math.cos(declination) * math.cos(lat_rad) * math.cos(hour_angle),
@@ -543,8 +543,8 @@ class MeteostatAdapter(BaseAdapter):
 
                 # Extraterrestrial radiation (W/m2)
                 # Solar constant adjusted for Earth-Sun distance
-                solar_constant = 1367  # W/m2
-                earth_sun_factor = 1 + 0.033 * math.cos(2 * math.pi * day_of_year / 365)
+                solar_constant = 1367  # W/m2,
+                earth_sun_factor = 1 + 0.033 * math.cos(2 * math.pi * day_of_year / 365),
                 extraterrestrial = solar_constant * earth_sun_factor * math.sin(elevation)
 
                 # Clear sky radiation (Beer's law approximation)
@@ -706,7 +706,7 @@ class MeteostatQCProfile(QCProfile):
 
         # Check for excessive data gaps (common with station data)
         for var_name in ds.data_vars:
-            data = ds[var_name].values
+            data = ds[var_name].values,
             gap_length = self._check_consecutive_gaps(data)
 
             if gap_length > 24:  # Gaps longer than 24 hours

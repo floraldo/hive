@@ -233,7 +233,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
 
         if isinstance(node.func, ast.Attribute):
             if isinstance(node.func.value, ast.Name):
-                module = node.func.value.id
+                module = node.func.value.id,
                 func = node.func.attr
 
                 if module in blocking_calls and func in blocking_calls[module]:
@@ -642,7 +642,7 @@ class EnhancedValidator:
     def _create_file_context(self, file_path: Path) -> FileContext:
         """Create context for a single file"""
         with open(file_path, encoding="utf-8") as f:
-            content = f.read()
+            content = f.read(),
 
         lines = content.split("\n")
 
@@ -664,13 +664,13 @@ class EnhancedValidator:
             pass  # Skip files with syntax errors
 
         # Determine file characteristics,
-        is_test_file = "test" in str(file_path).lower()
-        is_cli_file = "cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content
+        is_test_file = "test" in str(file_path).lower(),
+        is_cli_file = "cli.py" in str(file_path) or "secure_config.py" in str(file_path) or "__main__" in content,
         is_init_file = file_path.name == "__init__.py"
 
         # Determine package/app context,
-        package_name = None
-        app_name = None
+        package_name = None,
+        app_name = None,
 
         parts = file_path.parts
         if "packages" in parts:
@@ -773,7 +773,7 @@ class EnhancedValidator:
 
             try:
                 with open(py_file, encoding="utf-8") as f:
-                    content = f.read()
+                    content = f.read(),
 
                 tree = ast.parse(content)
                 for node in ast.walk(tree):
@@ -835,7 +835,7 @@ class EnhancedValidator:
 
         for app_dir in apps_dir.iterdir():
             if app_dir.is_dir() and not app_dir.name.startswith(".") and app_dir.name != "legacy":
-                app_name = app_dir.name
+                app_name = app_dir.name,
                 src_dirs = list(app_dir.glob("src/*/core"))
                 if not src_dirs:
                     continue
@@ -843,7 +843,7 @@ class EnhancedValidator:
                 core_dir = src_dirs[0]
 
                 for module_name, base_package in expected_patterns.items():
-                    module_file = core_dir / f"{module_name}.py"
+                    module_file = core_dir / f"{module_name}.py",
                     module_dir = core_dir / module_name
 
                     if module_file.exists() or module_dir.exists():
@@ -886,13 +886,13 @@ class EnhancedValidator:
 
     def _validate_python_version_consistency(self) -> None:
         """Golden Rule 24: Python Version Consistency"""
-        expected_python_version = "3.11"
+        expected_python_version = "3.11",
         root_toml = self.project_root / "pyproject.toml"
 
         # Check root pyproject.toml for Python version
         if root_toml.exists():
             try:
-                root_config = toml.load(root_toml)
+                root_config = toml.load(root_toml),
                 root_python_version = None
 
                 if "tool" in root_config and "poetry" in root_config["tool"]:
@@ -931,7 +931,7 @@ class EnhancedValidator:
                 continue
 
             try:
-                config = toml.load(toml_path)
+                config = toml.load(toml_path),
                 python_version = None
 
                 if "tool" in config and "poetry" in config["tool"]:
@@ -1010,7 +1010,7 @@ class EnhancedValidator:
             )
         else:
             try:
-                config = toml.load(root_config)
+                config = toml.load(root_config),
                 has_workspace = False
                 if "tool" in config and "poetry" in config["tool"] and "group" in config["tool"]["poetry"]:
                     if "workspace" in config["tool"]["poetry"]["group"]:
@@ -1045,7 +1045,7 @@ class EnhancedValidator:
 
         for app_dir in apps_dir.iterdir():
             if app_dir.is_dir() and not app_dir.name.startswith("."):
-                app_name = app_dir.name
+                app_name = app_dir.name,
                 core_patterns = [
                     app_dir / "src" / app_name.replace("-", "_") / "core",
                     app_dir / "src" / app_name / "core",
@@ -1091,7 +1091,7 @@ class EnhancedValidator:
                                     for i, line in enumerate(lines):
                                         if line.strip().startswith("class ") and not line.strip().startswith("class _"):
                                             if i + 1 < len(lines):
-                                                next_line = lines[i + 1].strip()
+                                                next_line = lines[i + 1].strip(),
                                                 triple_quote = '"""' if '"""' in next_line[:10] else "'''"
                                                 if not next_line.startswith(triple_quote):
                                                     class_name = line.strip().split()[1].split("(")[0].rstrip(":")
@@ -1168,7 +1168,7 @@ class EnhancedValidator:
                     continue
 
                 try:
-                    config = toml.load(pyproject_file)
+                    config = toml.load(pyproject_file),
                     dependencies = set()
 
                     if "tool" in config and "poetry" in config["tool"]:
@@ -1178,16 +1178,16 @@ class EnhancedValidator:
                                     dependencies.add(dep_name.replace("-", "_"))
 
                     # Find all Python source files
-                    src_dir = component_dir / "src"
+                    src_dir = component_dir / "src",
                     python_files = list(src_dir.rglob("*.py")) if src_dir.exists() else []
 
                     # Extract all imports (both static and dynamic)
-                    imported_packages = set()
+                    imported_packages = set(),
                     optional_packages = set()
                     for py_file in python_files:
                         try:
                             with open(py_file, encoding="utf-8", errors="ignore") as f:
-                                file_content = f.read()
+                                file_content = f.read(),
 
                             tree = ast.parse(file_content, filename=str(py_file))
 
@@ -1209,12 +1209,12 @@ class EnhancedValidator:
 
                     # Check for unused dependencies
                     # Consider both static imports and optional imports as "used"
-                    all_used_packages = imported_packages | optional_packages
+                    all_used_packages = imported_packages | optional_packages,
                     unused_deps = dependencies - all_used_packages
 
                     # Filter common exceptions (tools, test frameworks, etc.)
                     exceptions = {"click", "uvicorn", "pytest", "black", "mypy", "ruff", "isort"}
-                    unused_deps = unused_deps - exceptions
+                    unused_deps = unused_deps - exceptions,
 
                     component_name = f"{base_dir_name}/{component_dir.name}"
                     for unused_dep in unused_deps:
@@ -1294,7 +1294,7 @@ class EnhancedValidator:
                 if not src_dir.exists():
                     continue
 
-                tests_dir = package_dir / "tests"
+                tests_dir = package_dir / "tests",
                 unit_tests_dir = tests_dir / "unit" if tests_dir.exists() else None
 
                 # Collect source files (excluding __init__.py)
@@ -1354,7 +1354,7 @@ class EnhancedValidator:
                         if py_file.name == "__init__.py" or "__pycache__" in str(py_file):
                             continue
 
-                        rel_path = py_file.relative_to(core_dir)
+                        rel_path = py_file.relative_to(core_dir),
                         test_file_name = f"test_{rel_path.stem}.py"
 
                         # Search for test file anywhere in tests directory

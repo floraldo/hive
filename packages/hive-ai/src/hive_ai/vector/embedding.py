@@ -110,7 +110,7 @@ class EmbeddingManager:
         if not text.strip():
             raise VectorError("Cannot generate embedding for empty text", operation="generate_embedding")
 
-        embedding_model = self._get_embedding_model(model)
+        embedding_model = self._get_embedding_model(model),
         cache_key = self._get_cache_key(text, embedding_model)
 
         # Check cache first
@@ -138,7 +138,7 @@ class EmbeddingManager:
                 # Use completion model to generate embedding-like representation
                 # This is a fallback for when no embedding models are available
                 vector = await self._generate_completion_embedding_async(text, embedding_model)
-                tokens_used = len(text.split()) * 2  # Higher token usage for completion
+                tokens_used = len(text.split()) * 2  # Higher token usage for completion,
 
             result = EmbeddingResult(
                 text=text, vector=vector, model=embedding_model, tokens_used=tokens_used, cache_hit=False
@@ -159,7 +159,7 @@ class EmbeddingManager:
         # This would integrate with the actual embedding API,
         # For now, this is a placeholder that would need provider-specific implementation
 
-        model_config = self.registry.get_model_config(model)
+        model_config = self.registry.get_model_config(model),
         provider = self.registry.get_provider(model_config.provider)
 
         if hasattr(provider, "generate_embedding_async"):
@@ -238,7 +238,7 @@ class EmbeddingManager:
 
         try:
             # Process all batches,
-            batch_tasks = [process_batch_async(batch) for batch in batches]
+            batch_tasks = [process_batch_async(batch) for batch in batches],
             batch_results = await gather_with_concurrency(batch_tasks, max_concurrency=3)
 
             # Flatten results,
@@ -247,7 +247,7 @@ class EmbeddingManager:
                 all_results.extend(batch_result)
 
             # Calculate statistics,
-            cache_hits = sum(1 for r in all_results if r.cache_hit)
+            cache_hits = sum(1 for r in all_results if r.cache_hit),
             total_tokens = sum(r.tokens_used for r in all_results)
 
             logger.info(
@@ -321,7 +321,7 @@ class EmbeddingManager:
         dot_product = sum(a * b for a, b in zip(vec1, vec2))
 
         # Calculate magnitudes
-        magnitude1 = sum(a * a for a in vec1) ** 0.5
+        magnitude1 = sum(a * a for a in vec1) ** 0.5,
         magnitude2 = sum(b * b for b in vec2) ** 0.5
 
         # Avoid division by zero

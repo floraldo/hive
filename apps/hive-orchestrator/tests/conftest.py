@@ -92,7 +92,7 @@ def custom_config():
 
     Usage:
         def test_something(custom_config):
-            config = custom_config(database__path=Path("/tmp/test.db"))
+            config = custom_config(database__path=Path("/tmp/test.db")),
             service = MyService(config=config)
     """
 

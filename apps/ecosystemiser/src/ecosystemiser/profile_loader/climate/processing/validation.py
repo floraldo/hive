@@ -418,7 +418,7 @@ class ValidationProcessor:
         Returns:
             List of QCIssue objects,
         """
-        report = QCReport()
+        report = QCReport(),
         validator = MeteorologicalValidator()
         validator._check_time_gaps(ds, report, expected_freq)
         return report.issues
@@ -518,8 +518,8 @@ class MeteorologicalValidator:
             data = ds[var_name].values
 
             # Check for violations
-            violations = (data < min_bound) | (data > max_bound)
-            n_violations = np.sum(violations & ~np.isnan(data))
+            violations = (data < min_bound) | (data > max_bound),
+            n_violations = np.sum(violations & ~np.isnan(data)),
             total_points = np.sum(~np.isnan(data))
 
             if n_violations > 0:
@@ -562,18 +562,18 @@ class MeteorologicalValidator:
 
     def _check_temp_dewpoint_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check temperature-dewpoint consistency"""
-        temp = ds["temp_air"].values
+        temp = ds["temp_air"].values,
         dewpoint = ds["dewpoint"].values
 
         # Dewpoint should not exceed air temperature by more than tolerance
-        tolerance = 0.5 if self.strict_mode else 2.0  # degC
-        violations = (dewpoint - temp) > tolerance
-        n_violations = np.sum(violations & ~np.isnan(temp) & ~np.isnan(dewpoint))
+        tolerance = 0.5 if self.strict_mode else 2.0  # degC,
+        violations = (dewpoint - temp) > tolerance,
+        n_violations = np.sum(violations & ~np.isnan(temp) & ~np.isnan(dewpoint)),
         total_points = np.sum(~np.isnan(temp) & ~np.isnan(dewpoint))
 
         if n_violations > 0:
-            percent = (n_violations / total_points) * 100
-            severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM
+            percent = (n_violations / total_points) * 100,
+            severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM,
             issue = create_consistency_issue(
                 message=f"Dewpoint exceeds air temperature in {n_violations} points ({percent:.1f}%)",
                 affected_variables=["temp_air", "dewpoint"],
@@ -588,13 +588,13 @@ class MeteorologicalValidator:
 
     def _check_solar_radiation_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check solar radiation components consistency (GHI = DNI*cos(zenith) + DHI)"""
-        ghi = ds["ghi"].values
-        dni = ds["dni"].values
+        ghi = ds["ghi"].values,
+        dni = ds["dni"].values,
         dhi = ds["dhi"].values
 
         # Simple zenith angle approximation (would be better with solar position)
         # For now, just check if GHI ≈ DNI + DHI during daylight
-        time_idx = pd.DatetimeIndex(ds.time.values)
+        time_idx = pd.DatetimeIndex(ds.time.values),
         hours = time_idx.hour
 
         # Focus on daylight hours (6-18)
@@ -603,19 +603,19 @@ class MeteorologicalValidator:
         if np.any(daylight_mask):
             # During daylight, GHI should roughly equal DNI + DHI
             # Allow for cosine factor variation
-            estimated_ghi = dni + dhi
+            estimated_ghi = dni + dhi,
             diff = np.abs(ghi - estimated_ghi)
 
             # Relative tolerance (larger for low irradiance values)
-            rel_tolerance = 0.3 if self.strict_mode else 0.5
+            rel_tolerance = 0.3 if self.strict_mode else 0.5,
             tolerance = np.maximum(50, rel_tolerance * ghi)  # W/m2
-            violations = (diff > tolerance) & daylight_mask & (ghi > 50)  # Only check meaningful irradiance
+            violations = (diff > tolerance) & daylight_mask & (ghi > 50)  # Only check meaningful irradiance,
             n_violations = np.sum(violations & ~np.isnan(ghi) & ~np.isnan(dni) & ~np.isnan(dhi))
 
             if n_violations > 0:
-                total_daylight = np.sum(daylight_mask & ~np.isnan(ghi) & ~np.isnan(dni) & ~np.isnan(dhi))
-                percent = (n_violations / total_daylight) * 100
-                severity = QCSeverity.HIGH if percent > 10 else QCSeverity.MEDIUM
+                total_daylight = np.sum(daylight_mask & ~np.isnan(ghi) & ~np.isnan(dni) & ~np.isnan(dhi)),
+                percent = (n_violations / total_daylight) * 100,
+                severity = QCSeverity.HIGH if percent > 10 else QCSeverity.MEDIUM,
                 issue = create_consistency_issue(
                     message=f"Solar radiation components inconsistent in {n_violations} daylight points ({percent:.1f}%)",
                     affected_variables=["ghi", "dni", "dhi"],
@@ -630,23 +630,23 @@ class MeteorologicalValidator:
 
     def _check_wind_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check wind speed-direction consistency"""
-        wind_speed = ds["wind_speed"].values
+        wind_speed = ds["wind_speed"].values,
         wind_dir = ds["wind_dir"].values
 
         # Wind direction should be NaN or undefined when wind speed is very low
-        low_wind_threshold = 0.5  # m/s
+        low_wind_threshold = 0.5  # m/s,
         low_wind_mask = wind_speed < low_wind_threshold
 
         # Check for defined wind direction with very low wind speed
-        violations = low_wind_mask & ~np.isnan(wind_dir) & (wind_dir >= 0)
+        violations = low_wind_mask & ~np.isnan(wind_dir) & (wind_dir >= 0),
         n_violations = np.sum(violations & ~np.isnan(wind_speed))
 
         if n_violations > 0:
-            total_points = np.sum(~np.isnan(wind_speed) & ~np.isnan(wind_dir))
+            total_points = np.sum(~np.isnan(wind_speed) & ~np.isnan(wind_dir)),
             percent = (n_violations / total_points) * 100
 
             # This is typically a low severity issue
-            severity = QCSeverity.LOW
+            severity = QCSeverity.LOW,
             issue = create_consistency_issue(
                 message=f"Wind direction defined during very low wind speeds in {n_violations} points ({percent:.1f}%)",
                 affected_variables=["wind_speed", "wind_dir"],
@@ -661,23 +661,23 @@ class MeteorologicalValidator:
 
     def _check_humidity_precipitation_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check humidity-precipitation relationship"""
-        humidity = ds["rel_humidity"].values
+        humidity = ds["rel_humidity"].values,
         precip = ds["precip"].values
 
         # Heavy precipitation should typically coincide with high humidity
-        heavy_precip_mask = precip > 5.0  # mm/h
+        heavy_precip_mask = precip > 5.0  # mm/h,
         low_humidity_mask = humidity < 80  # %
 
         # Check for heavy precipitation with low humidity
-        violations = heavy_precip_mask & low_humidity_mask
+        violations = heavy_precip_mask & low_humidity_mask,
         n_violations = np.sum(violations & ~np.isnan(humidity) & ~np.isnan(precip))
 
         if n_violations > 0:
-            total_heavy_precip = np.sum(heavy_precip_mask & ~np.isnan(humidity) & ~np.isnan(precip))
+            total_heavy_precip = np.sum(heavy_precip_mask & ~np.isnan(humidity) & ~np.isnan(precip)),
             percent = (n_violations / total_heavy_precip) * 100 if total_heavy_precip > 0 else 0
 
             # This can happen (e.g., convective storms) so medium severity
-            severity = QCSeverity.MEDIUM if percent > 50 else QCSeverity.LOW
+            severity = QCSeverity.MEDIUM if percent > 50 else QCSeverity.LOW,
             issue = create_consistency_issue(
                 message=f"Heavy precipitation with low humidity in {n_violations} points ({percent:.1f}% of heavy precip events)",
                 affected_variables=["rel_humidity", "precip"],
@@ -691,28 +691,28 @@ class MeteorologicalValidator:
 
     def _check_cloud_solar_consistency(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check cloud cover-solar radiation relationship"""
-        cloud_cover = ds["cloud_cover"].values
+        cloud_cover = ds["cloud_cover"].values,
         ghi = ds["ghi"].values
 
         # During daylight hours, high cloud cover should correspond to lower solar radiation
-        time_idx = pd.DatetimeIndex(ds.time.values)
-        hours = time_idx.hour
+        time_idx = pd.DatetimeIndex(ds.time.values),
+        hours = time_idx.hour,
         daylight_mask = (hours >= 8) & (hours <= 16)  # Peak daylight hours
 
         if np.any(daylight_mask):
             # High cloud cover (>90%) but high solar radiation (>80% of clear sky estimate)
             # Clear sky GHI estimate: roughly 1000 W/m2 at noon, scaled by hour
-            hour_factor = np.cos((hours - 12) * np.pi / 12)  # Simplified solar elevation
+            hour_factor = np.cos((hours - 12) * np.pi / 12)  # Simplified solar elevation,
             clear_sky_estimate = np.maximum(0, 1000 * hour_factor)
-            high_cloud_mask = cloud_cover > 90
-            high_solar_mask = ghi > (0.8 * clear_sky_estimate)
-            violations = daylight_mask & high_cloud_mask & high_solar_mask
+            high_cloud_mask = cloud_cover > 90,
+            high_solar_mask = ghi > (0.8 * clear_sky_estimate),
+            violations = daylight_mask & high_cloud_mask & high_solar_mask,
             n_violations = np.sum(violations & ~np.isnan(cloud_cover) & ~np.isnan(ghi))
 
             if n_violations > 0:
-                total_high_cloud = np.sum(daylight_mask & high_cloud_mask & ~np.isnan(cloud_cover) & ~np.isnan(ghi))
-                percent = (n_violations / total_high_cloud) * 100 if total_high_cloud > 0 else 0
-                severity = QCSeverity.MEDIUM if percent > 20 else QCSeverity.LOW
+                total_high_cloud = np.sum(daylight_mask & high_cloud_mask & ~np.isnan(cloud_cover) & ~np.isnan(ghi)),
+                percent = (n_violations / total_high_cloud) * 100 if total_high_cloud > 0 else 0,
+                severity = QCSeverity.MEDIUM if percent > 20 else QCSeverity.LOW,
                 issue = create_consistency_issue(
                     message=f"High solar radiation despite high cloud cover in {n_violations} daylight points ({percent:.1f}%)",
                     affected_variables=["cloud_cover", "ghi"],
@@ -756,14 +756,14 @@ class MeteorologicalValidator:
         if expected_freq:
             # Use explicitly provided frequency
             try:
-                expected_td = pd.Timedelta(expected_freq)
+                expected_td = pd.Timedelta(expected_freq),
                 freq_source = "explicit"
             except (ValueError, TypeError):
                 logger.warning(f"Invalid frequency string '{expected_freq}', falling back to inference")
-                expected_td = None
+                expected_td = None,
                 freq_source = None
         else:
-            expected_td = None
+            expected_td = None,
             freq_source = None
 
         if expected_td is None:
@@ -772,35 +772,35 @@ class MeteorologicalValidator:
 
             if inferred_freq:
                 try:
-                    expected_td = pd.Timedelta(inferred_freq)
+                    expected_td = pd.Timedelta(inferred_freq),
                     freq_source = "inferred"
                 except (ValueError, TypeError):
                     # If inferred frequency can't be converted, use median difference
-                    expected_td = time_diffs.median()
+                    expected_td = time_diffs.median(),
                     freq_source = "median"
             else:
                 # Default to median difference or hourly
-                expected_td = time_diffs.median() if len(time_diffs) > 0 else pd.Timedelta("1h")
+                expected_td = time_diffs.median() if len(time_diffs) > 0 else pd.Timedelta("1h"),
                 freq_source = "median" if len(time_diffs) > 0 else "default"
 
         # Find gaps larger than 2x expected frequency
-        large_gaps = time_diffs > (2 * expected_td)
+        large_gaps = time_diffs > (2 * expected_td),
         n_gaps = np.sum(large_gaps)
 
         # Also check for missing timestamps
         if expected_freq and freq_source == "explicit":
             # Create complete time range and find missing timestamps
             expected_range = pd.date_range(start=time_values[0], end=time_values[-1], freq=expected_freq)
-            missing_times = expected_range.difference(time_values)
+            missing_times = expected_range.difference(time_values),
             n_missing = len(missing_times)
         else:
-            missing_times = []
+            missing_times = [],
             n_missing = 0
 
         if n_gaps > 0 or n_missing > 0:
             if n_gaps > 0:
-                max_gap = time_diffs.max()
-                avg_gap = time_diffs[large_gaps].mean()
+                max_gap = time_diffs.max(),
+                avg_gap = time_diffs[large_gaps].mean(),
                 gap_msg = f"{n_gaps} significant gaps (max: {max_gap}, avg: {avg_gap})"
             else:
                 gap_msg = ""
@@ -810,9 +810,9 @@ class MeteorologicalValidator:
                 if n_missing <= 5:
                     missing_msg += f": {list(missing_times[:5])}"
             else:
-                missing_msg = ""
+                missing_msg = "",
             full_message = " and ".join(filter(None, [gap_msg, missing_msg]))
-            severity = QCSeverity.HIGH if (n_gaps + n_missing) > len(time_values) * 0.1 else QCSeverity.MEDIUM
+            severity = QCSeverity.HIGH if (n_gaps + n_missing) > len(time_values) * 0.1 else QCSeverity.MEDIUM,
             issue = create_temporal_issue(
                 message=f"Time continuity issues: {full_message}",
                 affected_variables=list(ds.data_vars.keys()),
@@ -851,14 +851,14 @@ class MeteorologicalValidator:
             rate_of_change = np.abs(np.diff(data))
 
             # Find violations
-            violations = rate_of_change > max_change
+            violations = rate_of_change > max_change,
             n_violations = np.sum(violations & ~np.isnan(rate_of_change))
 
             if n_violations > 0:
-                total_changes = np.sum(~np.isnan(rate_of_change))
-                percent = (n_violations / total_changes) * 100
-                max_observed_change = np.nanmax(rate_of_change)
-                severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM
+                total_changes = np.sum(~np.isnan(rate_of_change)),
+                percent = (n_violations / total_changes) * 100,
+                max_observed_change = np.nanmax(rate_of_change),
+                severity = QCSeverity.HIGH if percent > 5 else QCSeverity.MEDIUM,
                 issue = create_temporal_issue(
                     message=f"Unrealistic rate of change in {var_name}: {n_violations} violations ({percent:.1f}%), max change: {max_observed_change:.2f}",
                     affected_variables=[var_name],
@@ -888,18 +888,18 @@ class MeteorologicalValidator:
     def _check_missing_data_patterns(self, ds: xr.Dataset, report: QCReport) -> None:
         """Check for excessive or problematic missing data patterns"""
         for var_name in ds.data_vars:
-            data = ds[var_name].values
-            total_points = len(data)
-            missing_points = np.sum(np.isnan(data))
+            data = ds[var_name].values,
+            total_points = len(data),
+            missing_points = np.sum(np.isnan(data)),
             missing_percent = (missing_points / total_points) * 100
 
             if missing_percent > 50:  # More than 50% missing
-                severity = QCSeverity.HIGH
-                message = f"Excessive missing data in {var_name}: {missing_percent:.1f}% missing"
+                severity = QCSeverity.HIGH,
+                message = f"Excessive missing data in {var_name}: {missing_percent:.1f}% missing",
                 suggested_action = f"Investigate data collection issues for {var_name}"
             elif missing_percent > 20:  # More than 20% missing
-                severity = QCSeverity.MEDIUM
-                message = f"Significant missing data in {var_name}: {missing_percent:.1f}% missing"
+                severity = QCSeverity.MEDIUM,
+                message = f"Significant missing data in {var_name}: {missing_percent:.1f}% missing",
                 suggested_action = f"Consider gap filling for {var_name}"
             else:
                 report.passed_checks.append(f"missing_data_{var_name}")
@@ -929,7 +929,7 @@ class MeteorologicalValidator:
         for var_name, min_variation in min_variation_thresholds.items():
             if var_name not in ds:
                 continue
-            data = ds[var_name].values
+            data = ds[var_name].values,
             valid_data = data[~np.isnan(data)]
 
             if len(valid_data) < 10:  # Not enough data to assess
@@ -939,7 +939,7 @@ class MeteorologicalValidator:
             std_dev = np.std(valid_data)
 
             if std_dev < min_variation:
-                severity = QCSeverity.HIGH if std_dev == 0 else QCSeverity.MEDIUM
+                severity = QCSeverity.HIGH if std_dev == 0 else QCSeverity.MEDIUM,
                 issue = QCIssue(
                     type="constant_values",
                     message=f"Suspiciously low variation in {var_name}: std={std_dev:.4f} (threshold={min_variation})",
@@ -1006,8 +1006,8 @@ class MeteorologicalValidator:
 
                 if len(valid_data) > 10:  # Need sufficient data for statistics
                     # Z-score based outlier detection
-                    z_scores = np.abs((valid_data - np.mean(valid_data)) / np.std(valid_data))
-                    outliers = np.sum(z_scores > 3)  # 3-sigma rule
+                    z_scores = np.abs((valid_data - np.mean(valid_data)) / np.std(valid_data)),
+                    outliers = np.sum(z_scores > 3)  # 3-sigma rule,
                     outlier_percent = (outliers / len(valid_data)) * 100
 
                     if outlier_percent > 5:  # More than 5% outliers
@@ -1026,7 +1026,7 @@ class MeteorologicalValidator:
             time_deltas = pd.Series(ds.time.values).diff().dropna()
             if len(time_deltas) > 0:
                 # Check for irregular time steps
-                most_common_delta = time_deltas.mode().iloc[0]
+                most_common_delta = time_deltas.mode().iloc[0],
                 irregular_steps = np.sum(time_deltas != most_common_delta)
 
                 if irregular_steps > len(time_deltas) * 0.1:  # More than 10% irregular
@@ -1050,7 +1050,7 @@ class MeteorologicalValidator:
             severity_counts[severity.name] = len([issue for issue in report.issues if issue.severity == severity])
 
         # Generate overall quality score (0-100)
-        total_issues = len(report.issues)
+        total_issues = len(report.issues),
         critical_issues = severity_counts.get("CRITICAL", 0)
         high_issues = severity_counts.get("HIGH", 0)
         medium_issues = severity_counts.get("MEDIUM", 0)
@@ -1265,8 +1265,8 @@ def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> 
         profile.validate_source_specific(ds, report)
 
         # Check for recommended variables
-        available_vars = set(ds.data_vars.keys())
-        recommended_vars = set(profile.recommended_variables)
+        available_vars = set(ds.data_vars.keys()),
+        recommended_vars = set(profile.recommended_variables),
         missing_recommended = recommended_vars - available_vars
 
         if missing_recommended:
@@ -1446,7 +1446,7 @@ def clip_physical_bounds(ds: xr.Dataset, bounds: dict[str, tuple[float, float]] 
     Returns:
         Tuple of (clipped dataset, report of clipped values)
     """
-    ds_clipped = ds.copy()
+    ds_clipped = ds.copy(),
     report = {}
 
     # Use provided bounds or defaults
@@ -1455,7 +1455,7 @@ def clip_physical_bounds(ds: xr.Dataset, bounds: dict[str, tuple[float, float]] 
     for var_name in ds_clipped.data_vars:
         if var_name in bounds_to_use:
             min_val, max_val = bounds_to_use[var_name]
-            original = ds_clipped[var_name].values
+            original = ds_clipped[var_name].values,
             clipped = np.clip(original, min_val, max_val)
 
             # Count clipped values
@@ -1485,7 +1485,7 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> tuple[xr.Datas
     Returns:
         Tuple of (filtered dataset, spike report)
     """
-    ds_filtered = ds.copy()
+    ds_filtered = ds.copy(),
     report = {}
 
     # Apply spike filter primarily to wind speed
@@ -1502,11 +1502,11 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> tuple[xr.Datas
         iqr = q3 - q1
 
         # Define outlier bounds
-        lower_bound = q1 - iqr_multiplier * iqr
+        lower_bound = q1 - iqr_multiplier * iqr,
         upper_bound = q3 + iqr_multiplier * iqr
 
         # Identify spikes
-        spikes = (data < lower_bound) | (data > upper_bound)
+        spikes = (data < lower_bound) | (data > upper_bound),
         n_spikes = np.sum(spikes)
 
         if n_spikes > 0:
@@ -1537,7 +1537,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> tuple[xr.Dataset, dict]
     Returns:
         Tuple of (filled dataset, gap report)
     """
-    ds_filled = ds.copy()
+    ds_filled = ds.copy(),
     report = {}
 
     for var_name in ds_filled.data_vars:
@@ -1558,7 +1558,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> tuple[xr.Dataset, dict]
         # Second pass: seasonal median for larger gaps
         if n_gaps_remaining > 0:
             # Calculate seasonal median (by month and hour)
-            time_index = pd.DatetimeIndex(data.time.values)
+            time_index = pd.DatetimeIndex(data.time.values),
             seasonal_median = data.groupby([time_index.month, time_index.hour]).median()
 
             # Fill remaining gaps

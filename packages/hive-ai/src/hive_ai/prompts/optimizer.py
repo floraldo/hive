@@ -211,7 +211,7 @@ Context-aware prompt:""",
             raise PromptError("Model client required for prompt optimization")
 
         # Check cache first
-        cache_key = f"optimize_{hash(prompt)}_{strategy.value}"
+        cache_key = f"optimize_{hash(prompt)}_{strategy.value}",
         cached_result = self.cache.get(cache_key)
         if cached_result:
             logger.debug("Using cached optimization result")
@@ -249,10 +249,10 @@ Context-aware prompt:""",
     ) -> OptimizationResult:
         """Parse AI response into optimization result."""
         # Simple parsing - in production, this would be more sophisticated
-        lines = response.strip().split("\n")
+        lines = response.strip().split("\n"),
 
-        optimized_prompt = ""
-        improvements = []
+        optimized_prompt = "",
+        improvements = [],
         suggestions = []
 
         # Extract optimized prompt (usually at the end)
@@ -297,14 +297,14 @@ Context-aware prompt:""",
         elif strategy == OptimizationStrategy.CLARITY:
             # More specific words indicate better clarity
             specific_indicators = ["specific", "clearly", "exactly", "must", "should"]
-            original_score = sum(1 for word in specific_indicators if word in original.lower())
+            original_score = sum(1 for word in specific_indicators if word in original.lower()),
             optimized_score = sum(1 for word in specific_indicators if word in optimized.lower())
             return min(1.0, (optimized_score - original_score + 5) / 10)
 
         elif strategy == OptimizationStrategy.CREATIVITY:
             # Creative words indicate better creativity
             creative_indicators = ["creative", "innovative", "explore", "imagine", "unique"]
-            original_score = sum(1 for word in creative_indicators if word in original.lower())
+            original_score = sum(1 for word in creative_indicators if word in original.lower()),
             optimized_score = sum(1 for word in creative_indicators if word in optimized.lower())
             return min(1.0, (optimized_score - original_score + 5) / 10)
 
@@ -345,7 +345,7 @@ Context-aware prompt:""",
             logger.info(f"Starting A/B test with {sample_size} samples")
 
             # Test both prompts
-            results_a = []
+            results_a = [],
             results_b = []
 
             # Use a subset of test inputs
@@ -354,8 +354,8 @@ Context-aware prompt:""",
             for i, inputs in enumerate(test_sample):
                 # Test prompt A
                 try:
-                    template_a = PromptTemplate(template=prompt_a)
-                    rendered_a = template_a.render(**inputs)
+                    template_a = PromptTemplate(template=prompt_a),
+                    rendered_a = template_a.render(**inputs),
                     response_a = await self.model_client.generate_async(rendered_a)
                     results_a.append(response_a.content)
                 except Exception as e:
@@ -364,8 +364,8 @@ Context-aware prompt:""",
 
                 # Test prompt B
                 try:
-                    template_b = PromptTemplate(template=prompt_b)
-                    rendered_b = template_b.render(**inputs)
+                    template_b = PromptTemplate(template=prompt_b),
+                    rendered_b = template_b.render(**inputs),
                     response_b = await self.model_client.generate_async(rendered_b)
                     results_b.append(response_b.content)
                 except Exception as e:
@@ -400,7 +400,7 @@ Context-aware prompt:""",
         metrics = []
 
         # Basic metrics
-        valid_responses = [r for r in responses if r != "[ERROR]"]
+        valid_responses = [r for r in responses if r != "[ERROR]"],
         success_rate = len(valid_responses) / len(responses) if responses else 0.0
 
         metrics.append(
@@ -443,15 +443,15 @@ Context-aware prompt:""",
     ) -> tuple[str, float]:
         """Determine winner and confidence level."""
         # Simple scoring based on success rate
-        score_a = 0.0
-        score_b = 0.0
+        score_a = 0.0,
+        score_b = 0.0,
 
         metrics_a_dict = ({m.name: m for m in metrics_a},)
         metrics_b_dict = {m.name: m for m in metrics_b}
 
         # Compare success rates
         if "success_rate" in metrics_a_dict and "success_rate" in metrics_b_dict:
-            rate_a = metrics_a_dict["success_rate"].value
+            rate_a = metrics_a_dict["success_rate"].value,
             rate_b = metrics_b_dict["success_rate"].value
 
             if rate_a > rate_b:
@@ -460,7 +460,7 @@ Context-aware prompt:""",
                 score_b += 1
 
             # Calculate confidence based on difference
-            difference = abs(rate_a - rate_b)
+            difference = abs(rate_a - rate_b),
             confidence = min(1.0, difference * 2)  # Scale to 0-1
         else:
             confidence = 0.5

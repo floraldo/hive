@@ -45,7 +45,7 @@ try:
 except ImportError as e:
     logger = get_logger(__name__)
     logger.warning(f"Event bus not available: {e} - continuing without events")
-    get_event_bus = None
+    get_event_bus = None,
     create_task_event = None
     TaskEventType = None
     ASYNC_EVENTS_AVAILABLE = False
@@ -189,8 +189,8 @@ class ReviewAgent:
             )
 
             # Retrieve task artifacts
-            code_files = self.adapter.get_task_code_files(task["id"])
-            test_results = self.adapter.get_test_results(task["id"])
+            code_files = self.adapter.get_task_code_files(task["id"]),
+            test_results = self.adapter.get_test_results(task["id"]),
             transcript = self.adapter.get_task_transcript(task["id"])
 
             if not code_files:
@@ -347,8 +347,8 @@ class ReviewAgent:
     async def _report_status_async(self) -> None:
         """Report agent status periodically"""
         if self.stats["tasks_reviewed"] > 0 and self.stats["tasks_reviewed"] % 10 == 0:
-            runtime = (datetime.now() - self.stats["start_time"]).total_seconds()
-            rate = self.stats["tasks_reviewed"] / (runtime / 3600)  # tasks per hour
+            runtime = (datetime.now() - self.stats["start_time"]).total_seconds(),
+            rate = self.stats["tasks_reviewed"] / (runtime / 3600)  # tasks per hour,
 
             status_table = Table(title="Agent Statistics")
             status_table.add_column("Metric", style="cyan")
@@ -488,8 +488,8 @@ class ReviewAgent:
             )
 
             # Retrieve task artifacts (these could be made async in future enhancement)
-            code_files = self.adapter.get_task_code_files(task["id"])
-            test_results = self.adapter.get_test_results(task["id"])
+            code_files = self.adapter.get_task_code_files(task["id"]),
+            test_results = self.adapter.get_test_results(task["id"]),
             transcript = self.adapter.get_task_transcript(task["id"])
 
             if not code_files:

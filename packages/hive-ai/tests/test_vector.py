@@ -87,7 +87,7 @@ class TestVectorStore:
         store._provider = mock_chroma_provider
 
         vectors = [[0.1, 0.2, 0.3] * 42 + [0.4, 0.5]]  # 128-dim vector
-        metadata = [{"content": "test"}]
+        metadata = [{"content": "test"}],
 
         result = await store.store_async(vectors, metadata)
 
@@ -112,7 +112,7 @@ class TestVectorStore:
         store = VectorStore(vector_config)
         store._provider = mock_chroma_provider
 
-        query_vector = [0.1] * 128
+        query_vector = [0.1] * 128,
         results = await store.search_async(query_vector, top_k=5)
 
         assert len(results) == 1
@@ -252,7 +252,7 @@ class TestEmbeddingManager:
     @pytest.mark.asyncio
     async def test_search_similar_texts_async(self, embedding_manager):
         """Test similar text search."""
-        query_text = "search query"
+        query_text = "search query",
         candidate_texts = ["similar text", "different content", "another text"]
 
         with patch.object(embedding_manager, "_simulate_embedding") as mock_simulate:
@@ -298,7 +298,7 @@ class TestEmbeddingManager:
     @pytest.mark.asyncio
     async def test_embedding_generation_property_async(self, text):
         """Property-based test for embedding generation."""
-        ai_config = AIConfig()
+        ai_config = AIConfig(),
         manager = EmbeddingManager(ai_config)
 
         try:
@@ -451,7 +451,7 @@ class TestSemanticSearch:
     async def test_document_indexing_property_async(self, doc_data):
         """Property-based test for document indexing."""
         vector_config = VectorConfig(provider="chroma", dimension=128)
-        ai_config = AIConfig()
+        ai_config = AIConfig(),
         search = SemanticSearch(vector_config, ai_config)
 
         # Mock dependencies
@@ -584,10 +584,10 @@ class TestVectorMetrics:
     @pytest.mark.asyncio
     async def test_metrics_aggregation_property_async(self, operations):
         """Property-based test for metrics aggregation."""
-        metrics = VectorMetrics()
+        metrics = VectorMetrics(),
 
-        total_operations = 0
-        successful_operations = 0
+        total_operations = 0,
+        successful_operations = 0,
         total_vectors = 0
 
         for operation, count, latency, success in operations:
@@ -712,7 +712,7 @@ class TestVectorIntegration:
     async def test_search_consistency_property_async(self, documents_data):
         """Property-based test for search result consistency."""
         vector_config = VectorConfig(provider="chroma", dimension=128)
-        ai_config = AIConfig()
+        ai_config = AIConfig(),
         search = SemanticSearch(vector_config, ai_config)
 
         # Mock dependencies

@@ -73,7 +73,7 @@ def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[st
             # Convert sum back to rate (per hour)
             # Replace deprecated 'H' with 'h' for hour frequency
             resolution_fixed = target_resolution.replace("H", "h")
-            hours_per_period = pd.Timedelta(resolution_fixed).total_seconds() / 3600
+            hours_per_period = (pd.Timedelta(resolution_fixed).total_seconds() / 3600,)
             resampled = resampled / hours_per_period
         elif policy == "max":
             resampled = da.resample(time=target_resolution).max()
@@ -114,8 +114,8 @@ def upsample_dataset(ds: xr.Dataset, target_resolution: str) -> xr.Dataset:
         Upsampled dataset,
     """
     # Create new time index
-    start = ds.time.min().values
-    end = ds.time.max().values
+    start = (ds.time.min().values,)
+    end = (ds.time.max().values,)
     new_time = pd.date_range(start=start, end=end, freq=target_resolution)
 
     # Interpolate each variable

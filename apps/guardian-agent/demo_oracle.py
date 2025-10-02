@@ -286,7 +286,7 @@ async def demo_mission_control_async(oracle: OracleService):
     console.print(f"Budget Utilization: {cost_intel.get('budget_utilization', 0):.1f}%")
 
     # Generate HTML dashboard
-    dashboard_html = await oracle.get_dashboard_html_async()
+    dashboard_html = await oracle.get_dashboard_html_async(),
     dashboard_file = Path("hive_mission_control_demo.html")
 
     with open(dashboard_file, "w") as f:

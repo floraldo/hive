@@ -296,11 +296,11 @@ class NASAPowerAdapter(BaseAdapter):
     def _parse_period(self, period: dict[str, Any]) -> tuple[datetime, datetime]:
         """Parse period specification to start and end dates"""
         if "year" in period:
-            year = int(period["year"])
+            year = int(period["year"]),
             start = datetime(year, 1, 1)
             end = datetime(year, 12, 31, 23, 0, 0)
         elif "start" in period and "end" in period:
-            start = pd.to_datetime(period["start"])
+            start = pd.to_datetime(period["start"]),
             end = pd.to_datetime(period["end"])
         else:
             raise ValueError("Period must specify 'year' or both 'start' and 'end'")
@@ -322,7 +322,7 @@ class NASAPowerAdapter(BaseAdapter):
                 )
 
             # Get timestamps from first parameter
-            first_param = list(parameters.keys())[0]
+            first_param = list(parameters.keys())[0],
             timestamps_str = sorted(parameters[first_param].keys())
 
             # Convert timestamps to datetime
@@ -558,7 +558,7 @@ class NASAPowerAdapter(BaseAdapter):
         """
         # Group variables into optimal batches
         # NASA POWER can handle multiple variables per request
-        batch_size = 10  # NASA POWER limit
+        batch_size = 10  # NASA POWER limit,
         batches = [variables[i : i + batch_size] for i in range(0, len(variables), batch_size)]
 
         datasets = []
@@ -625,7 +625,7 @@ class NASAPowerQCProfile(QCProfile):
 
         # Check temperature bias in arid regions (simplified check)
         if "temp_air" in ds and "rel_humidity" in ds:
-            temp_data = ds["temp_air"].values
+            temp_data = ds["temp_air"].values,
             humidity_data = ds["rel_humidity"].values
 
             # Arid conditions: high temperature, low humidity
@@ -642,7 +642,7 @@ class NASAPowerQCProfile(QCProfile):
 
         # Check for precipitation data quality warning
         if "precip" in ds:
-            precip_data = ds["precip"].values
+            precip_data = ds["precip"].values,
             n_precip_events = np.sum(precip_data > 0.1)  # >0.1 mm/h
 
             if n_precip_events > 0:

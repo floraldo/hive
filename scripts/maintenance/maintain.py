@@ -53,10 +53,10 @@ def run_script(script_name: str, args: list[str]) -> int:
         return 1
 
     cmd = [sys.executable, str(script_path)] + args
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Running: {script_name}")
     print(f"Command: {' '.join(cmd)}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     result = subprocess.run(cmd)
     return result.returncode
@@ -104,32 +104,22 @@ Examples:
   # Get help for specific operation
   python maintain.py --hygiene --help
   python maintain.py --fix --help
-"""
+""",
     )
 
     # Main operation flags
-    parser.add_argument('--hygiene', action='store_true',
-                       help='Automated repository hygiene (branches, links, TODOs)')
-    parser.add_argument('--docs', action='store_true',
-                       help='Documentation quality analysis')
-    parser.add_argument('--branches', action='store_true',
-                       help='Git branch analysis and cleanup')
-    parser.add_argument('--repo', action='store_true',
-                       help='Repository-wide hygiene and optimization')
-    parser.add_argument('--logs', action='store_true',
-                       help='Log file management')
-    parser.add_argument('--fix', action='store_true',
-                       help='Code fixing and modernization')
-    parser.add_argument('--all', action='store_true',
-                       help='Run all maintenance operations (use with --dry-run)')
+    parser.add_argument("--hygiene", action="store_true", help="Automated repository hygiene (branches, links, TODOs)")
+    parser.add_argument("--docs", action="store_true", help="Documentation quality analysis")
+    parser.add_argument("--branches", action="store_true", help="Git branch analysis and cleanup")
+    parser.add_argument("--repo", action="store_true", help="Repository-wide hygiene and optimization")
+    parser.add_argument("--logs", action="store_true", help="Log file management")
+    parser.add_argument("--fix", action="store_true", help="Code fixing and modernization")
+    parser.add_argument("--all", action="store_true", help="Run all maintenance operations (use with --dry-run)")
 
     # Common options
-    parser.add_argument('--dry-run', action='store_true',
-                       help='Show what would be done without executing')
-    parser.add_argument('--verbose', action='store_true',
-                       help='Verbose output')
-    parser.add_argument('--quick', action='store_true',
-                       help='Quick mode: run minimal checks')
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be done without executing")
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
+    parser.add_argument("--quick", action="store_true", help="Quick mode: run minimal checks")
 
     args, unknown_args = parser.parse_known_args()
 
@@ -139,24 +129,24 @@ Examples:
         operations = list(MAINTENANCE_SCRIPTS.keys())
     else:
         if args.hygiene:
-            operations.append('hygiene')
+            operations.append("hygiene")
         if args.docs:
-            operations.append('docs')
+            operations.append("docs")
         if args.branches:
-            operations.append('branches')
+            operations.append("branches")
         if args.repo:
-            operations.append('repo')
+            operations.append("repo")
         if args.logs:
-            operations.append('logs')
+            operations.append("logs")
         if args.fix:
-            operations.append('fix')
+            operations.append("fix")
 
     # If no operation specified, show help
     if not operations:
         parser.print_help()
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("AVAILABLE MAINTENANCE SCRIPTS:")
-        print("="*80)
+        print("=" * 80)
         for op, script in MAINTENANCE_SCRIPTS.items():
             print(f"  --{op:10} → {script}")
         return 0
@@ -178,16 +168,16 @@ Examples:
         script_args = unknown_args.copy()
 
         # Add --dry-run flag if requested
-        if args.dry_run and '--dry-run' not in script_args:
-            script_args.append('--dry-run')
+        if args.dry_run and "--dry-run" not in script_args:
+            script_args.append("--dry-run")
 
         # Add --verbose if requested
-        if args.verbose and '--verbose' not in script_args:
-            script_args.append('--verbose')
+        if args.verbose and "--verbose" not in script_args:
+            script_args.append("--verbose")
 
         # Add --quick if requested
-        if args.quick and '--quick' not in script_args:
-            script_args.append('--quick')
+        if args.quick and "--quick" not in script_args:
+            script_args.append("--quick")
 
         # Run the script
         exit_code = run_script(script, script_args)
@@ -197,9 +187,9 @@ Examples:
             print(f"\n⚠️  Warning: {script} exited with code {exit_code}")
 
     # Summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("MAINTENANCE SUMMARY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Operations run: {len(operations)}")
     print(f"Successful: {exit_codes.count(0)}")
     print(f"Failed: {len([c for c in exit_codes if c != 0])}")

@@ -278,8 +278,8 @@ def demonstrate_platform_burndown():
     print("")
 
     # Progress projection
-    effort_estimate = 23  # days
-    velocity = 3.2  # points per day
+    effort_estimate = 23  # days,
+    velocity = 3.2  # points per day,
     current_progress = 78.5  # percentage
 
     print("BURNDOWN PROJECTION:")

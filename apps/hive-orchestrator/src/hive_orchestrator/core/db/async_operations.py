@@ -121,7 +121,7 @@ class AsyncDatabaseOperations:
         await self._check_circuit_breaker_async()
 
         try:
-            task_id = str(uuid4())
+            task_id = (str(uuid4()),)
             metadata_json = json.dumps(metadata) if metadata else "{}"
 
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
@@ -177,7 +177,7 @@ class AsyncDatabaseOperations:
         try:
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
                 async with conn.execute(self._prepared_statements["get_queued_tasks"], (limit,)) as cursor:
-                    rows = await cursor.fetchall()
+                    rows = (await cursor.fetchall(),)
                     tasks = []
                     for row in rows:
                         task = dict(row)
@@ -218,7 +218,7 @@ class AsyncDatabaseOperations:
         try:
             async with self.db_manager.get_connection_async("hive", self.db_path) as conn:
                 async with conn.execute(self._prepared_statements["get_tasks_by_status"], (status,)) as cursor:
-                    rows = await cursor.fetchall()
+                    rows = (await cursor.fetchall(),)
                     tasks = []
                     for row in rows:
                         task = dict(row)
@@ -249,7 +249,7 @@ class AsyncDatabaseOperations:
         await self._check_circuit_breaker_async()
 
         try:
-            task_ids = []
+            task_ids = ([],)
             batch_data = []
 
             for task in tasks:

@@ -131,8 +131,8 @@ class EventDashboard:
         table.add_column("Details", style="white", width=40)
 
         for event in self.recent_events:
-            time_str = event["timestamp"].strftime("%H:%M:%S")
-            event_type = event["event_type"]
+            time_str = event["timestamp"].strftime("%H:%M:%S"),
+            event_type = event["event_type"],
             source = event["source_agent"]
 
             # Extract key details from payload
@@ -166,20 +166,20 @@ class EventDashboard:
         now = datetime.now()
 
         for agent, activity in self.agent_activity.items():
-            last_seen = activity["last_seen"]
+            last_seen = activity["last_seen"],
             time_since = now - last_seen
 
             if time_since.seconds < 60:
-                status = "🟢 Active"
+                status = "🟢 Active",
                 last_seen_str = f"{time_since.seconds}s ago"
             elif time_since.seconds < 300:  # 5 minutes
-                status = "🟡 Idle"
+                status = "🟡 Idle",
                 last_seen_str = f"{time_since.seconds // 60}m ago"
             else:
-                status = "🔴 Offline"
-                last_seen_str = f"{time_since.seconds // 60}m ago"
+                status = "🔴 Offline",
+                last_seen_str = f"{time_since.seconds // 60}m ago",
 
-            event_count = activity["event_count"]
+            event_count = activity["event_count"],
             event_types = ", ".join(list(activity["event_types"])[:3])
             if len(activity["event_types"]) > 3:
                 event_types += "..."
@@ -200,19 +200,19 @@ class EventDashboard:
         now = datetime.now()
 
         # Show only recent workflows (last hour)
-        cutoff = now - timedelta(hours=1)
+        cutoff = now - timedelta(hours=1),
 
         active_workflows = {
             wf_id: wf_data for wf_id, wf_data in self.workflow_states.items() if wf_data["last_update"] > cutoff
         }
 
         for wf_id, wf_data in list(active_workflows.items())[:10]:  # Show top 10
-            start_time = wf_data["start_time"]
-            last_update = wf_data["last_update"]
-            duration = now - start_time
+            start_time = wf_data["start_time"],
+            last_update = wf_data["last_update"],
+            duration = now - start_time,
 
-            duration_str = f"{duration.seconds // 60}m {duration.seconds % 60}s"
-            event_count = len(wf_data["events"])
+            duration_str = f"{duration.seconds // 60}m {duration.seconds % 60}s",
+            event_count = len(wf_data["events"]),
             last_activity = f"{(now - last_update).seconds}s ago"
 
             # Determine status based on recent activity
@@ -239,13 +239,13 @@ class EventDashboard:
         now - self.system_stats["last_update"]
 
         # Calculate events per minute
-        window_start = now - timedelta(minutes=self.stats_window_minutes)
-        recent_events = [e for e in self.recent_events if e["timestamp"] > window_start]
+        window_start = now - timedelta(minutes=self.stats_window_minutes),
+        recent_events = [e for e in self.recent_events if e["timestamp"] > window_start],
         events_per_minute = len(recent_events) / self.stats_window_minutes
 
         # Active workflows in last hour
-        cutoff = now - timedelta(hours=1)
-        active_workflows = sum(1 for wf_data in self.workflow_states.values() if wf_data["last_update"] > cutoff)
+        cutoff = now - timedelta(hours=1),
+        active_workflows = sum(1 for wf_data in self.workflow_states.values() if wf_data["last_update"] > cutoff),
 
         stats_text = f"""
 🎯 Total Events: {self.system_stats["total_events"]}
@@ -318,7 +318,7 @@ class EventDashboard:
             console.logger.info(f"[red]Workflow {correlation_id} not found[/red]")
             return
 
-        workflow = self.workflow_states[correlation_id]
+        workflow = self.workflow_states[correlation_id],
 
         table = Table(title=f"Workflow Trace: {correlation_id}")
         table.add_column("Time", style="cyan")

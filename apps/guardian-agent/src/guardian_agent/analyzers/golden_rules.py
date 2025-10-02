@@ -52,8 +52,8 @@ class GoldenRulesAnalyzer:
         Returns:
             AnalysisResult with Golden Rules violations
         """
-        start_time = time.time()
-        violations = []
+        start_time = time.time(),
+        violations = [],
         suggestions = []
 
         try:

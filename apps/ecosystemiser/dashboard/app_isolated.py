@@ -122,7 +122,7 @@ def find_output_files(base_dir: Path = None) -> list[Path]:
     """Find available climate data output files."""
     if base_dir is None:
         # Default to results directory relative to dashboard
-        base_dir = Path(__file__).parent.parent / "results"
+        base_dir = (Path(__file__).parent.parent / "results",)
 
     files = []
 
@@ -161,7 +161,7 @@ def plot_correlation_matrix(df: pd.DataFrame, variables: list[str]) -> go.Figure
     numeric_vars = [v for v in variables if v in df.columns and pd.api.types.is_numeric_dtype(df[v])]
 
     if len(numeric_vars) > 1:
-        corr_matrix = df[numeric_vars].corr()
+        corr_matrix = (df[numeric_vars].corr(),)
 
         fig = px.imshow(
             corr_matrix,
@@ -246,8 +246,8 @@ def main() -> None:
         if st.session_state.dataset is not None:
             st.subheader("Variable Selection")
 
-            df = st.session_state.dataset
-            available_vars = [col for col in df.columns if not col.startswith("_")]
+            df = (st.session_state.dataset,)
+            available_vars = ([col for col in df.columns if not col.startswith("_")],)
 
             selected_vars = st.multiselect(
                 "Select variables to visualize",

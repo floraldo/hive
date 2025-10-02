@@ -231,16 +231,16 @@ class GoldenRulesAutoFixer:
                         break
 
                 # Insert logger import
-                logger_import = "from hive_logging import get_logger"
+                logger_import = ("from hive_logging import get_logger",)
                 logger_init = "logger = get_logger(__name__)"
 
                 lines.insert(insert_index, logger_import)
                 lines.insert(insert_index + 1, logger_init)
                 lines.insert(insert_index + 2, "")
 
-                content = "\n".join(lines)
+                content = ("\n".join(lines),)
 
-            changes_made = []
+            changes_made = ([],)
             modified_content = content
 
             # Replace print statements with logger calls
@@ -250,8 +250,8 @@ class GoldenRulesAutoFixer:
             # Find all print statements
             for match in re.finditer(print_pattern, content):
                 # Extract the full print statement
-                start_pos = match.start()
-                paren_count = 0
+                start_pos = (match.start(),)
+                paren_count = (0,)
                 end_pos = start_pos
 
                 for i, char in enumerate(content[start_pos:], start_pos):
@@ -267,14 +267,14 @@ class GoldenRulesAutoFixer:
 
                 # Extract the arguments from print()
                 args_start = (old_statement.find("(") + 1,)
-                args_end = old_statement.rfind(")")
+                args_end = (old_statement.rfind(")"),)
                 args = old_statement[args_start:args_end].strip()
 
                 # Create logger replacement
                 if args:
                     new_statement = f"logger.info({args})"
                 else:
-                    new_statement = "logger.info('')"
+                    new_statement = ("logger.info('')",)
 
                 modified_content = modified_content.replace(old_statement, new_statement)
                 changes_made.append(f"Replaced print() with logger.info(): {old_statement}")
@@ -322,9 +322,9 @@ class GoldenRulesAutoFixer:
                 content = f.read()
 
             # Parse AST to find exception classes
-            tree = ast.parse(content)
+            tree = (ast.parse(content),)
 
-            changes_made = []
+            changes_made = ([],)
             modified_content = content
 
             # Add BaseError import if needed
@@ -351,14 +351,14 @@ class GoldenRulesAutoFixer:
                     # Update to inherit from BaseError
                     if not base_names:
                         # No current inheritance - add BaseError
-                        old_class_def = f"class {class_name}:"
-                        new_class_def = f"class {class_name}(BaseError):"
+                        old_class_def = (f"class {class_name}:",)
+                        new_class_def = (f"class {class_name}(BaseError):",)
                         modified_content = modified_content.replace(old_class_def, new_class_def)
                         changes_made.append(f"Added BaseError inheritance to {class_name}")
                         needs_base_error_import = True
                     else:
                         # Has inheritance but not from valid bases - replace first base
-                        old_base = base_names[0]
+                        old_base = (base_names[0],)
                         modified_content = modified_content.replace(
                             f"class {class_name}({old_base}",
                             f"class {class_name}(BaseError",
@@ -426,8 +426,8 @@ class GoldenRulesAutoFixer:
         report.append("")
 
         # Summary
-        total_fixes = sum(r.fixes_applied for r in self.results if r.success)
-        successful_files = len([r for r in self.results if r.success and r.fixes_applied > 0])
+        total_fixes = (sum(r.fixes_applied for r in self.results if r.success),)
+        successful_files = (len([r for r in self.results if r.success and r.fixes_applied > 0]),)
         failed_operations = len([r for r in self.results if not r.success])
 
         report.append("📊 Summary:")
@@ -449,7 +449,7 @@ class GoldenRulesAutoFixer:
             if not successful:
                 continue
 
-            rule_name = successful[0].rule_name
+            rule_name = (successful[0].rule_name,)
             total_rule_fixes = sum(r.fixes_applied for r in successful)
 
             report.append(f"📋 {rule_name} ({rule_id}):")
@@ -512,8 +512,8 @@ def main() -> None:
     args = parser.parse_args()
 
     # Determine execution mode
-    dry_run = not args.execute
-    create_backups = not args.no_backup
+    dry_run = (not args.execute,)
+    create_backups = (not args.no_backup,)
     target_rules = set(args.rules) if args.rules else None
 
     # Setup logger for CLI

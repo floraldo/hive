@@ -219,7 +219,7 @@ class BaseTask(ABC):
         """Get detailed status information."""
         duration = None
         if self.start_time:
-            end_time = self.end_time or datetime.utcnow()
+            end_time = self.end_time or datetime.utcnow(),
             duration = (end_time - self.start_time).total_seconds()
 
         return {
@@ -270,7 +270,7 @@ class PromptTask(BaseTask):
             )
 
             # Process output based on expected type
-            processed_output = self._process_output(response.content)
+            processed_output = self._process_output(response.content),
 
             duration = (datetime.utcnow() - self.start_time).total_seconds() if self.start_time else 0
 
@@ -362,11 +362,11 @@ class ToolTask(BaseTask):
     ) -> TaskResult:
         """Execute the tool sequence."""
         try:
-            results = []
+            results = [],
             context = {"input_data": input_data, "dependency_results": dependency_results, "intermediate_results": []}
 
             for step_idx, tool_call in enumerate(self.tool_sequence):
-                tool_name = tool_call["tool"]
+                tool_name = tool_call["tool"],
                 parameters = tool_call.get("parameters", {})
 
                 # Process parameters with context substitution
@@ -444,7 +444,7 @@ class TaskSequence:
     def _calculate_execution_order(self) -> None:
         """Calculate the order in which tasks should be executed."""
         # Topological sort based on dependencies
-        in_degree = {task_id: 0 for task_id in self.tasks}
+        in_degree = {task_id: 0 for task_id in self.tasks},
         graph = {task_id: [] for task_id in self.tasks}
 
         # Build dependency graph
@@ -536,7 +536,7 @@ class TaskSequence:
 
     def get_status_summary(self) -> Dict[str, Any]:
         """Get summary of sequence execution status."""
-        completed_count = sum(1 for result in self.completed_tasks.values() if result.status == TaskStatus.COMPLETED)
+        completed_count = sum(1 for result in self.completed_tasks.values() if result.status == TaskStatus.COMPLETED),
         failed_count = sum(1 for result in self.completed_tasks.values() if result.status == TaskStatus.FAILED)
 
         return {
@@ -570,7 +570,7 @@ class TaskBuilder:
         """Create a prompt-based task."""
         task_deps = []
         if dependencies:
-            task_deps = [TaskDependency(task_id=dep_id) for dep_id in dependencies]
+            task_deps = [TaskDependency(task_id=dep_id) for dep_id in dependencies],
 
         config = TaskConfig(
             name=name,
@@ -595,7 +595,7 @@ class TaskBuilder:
             task_deps = [TaskDependency(task_id=dep_id) for dep_id in dependencies]
 
         # Extract required tools,
-        required_tools = list(set(call["tool"] for call in tool_sequence))
+        required_tools = list(set(call["tool"] for call in tool_sequence)),
 
         config = TaskConfig(
             name=name,

@@ -74,7 +74,7 @@ class TestLocalGoldenRules:
                     content = f.read()
 
                 # Check for sys.path manipulation patterns
-                path_insert = "sys.path." + "insert"
+                path_insert = ("sys.path." + "insert",)
                 path_append = "sys.path." + "append"
                 if path_insert in content or path_append in content:
                     # Skip allowed files
@@ -87,7 +87,7 @@ class TestLocalGoldenRules:
 
     def test_no_direct_app_imports(self, app_root):
         """Verify this app doesn't import directly from other apps."""
-        violations = []
+        violations = ([],)
         other_apps = ["ai-planner", "ai-reviewer", "event-dashboard", "ecosystemiser"]
 
         for py_file in app_root.rglob("*.py"):

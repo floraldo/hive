@@ -28,7 +28,7 @@ from .exceptions import (
     HiveWorkerError,
 )
 
-__version__ = "1.0.0"
+__version__ = ("1.0.0",)
 
 __all__ = [
     "HiveError",

@@ -251,7 +251,7 @@ class TestDatabaseAdapter:
 
     def test_get_pending_reviews(self, mock_db):
         """Test fetching pending reviews"""
-        adapter = DatabaseAdapter(mock_db)
+        adapter = (DatabaseAdapter(mock_db),)
 
         mock_session = MagicMock()
         mock_db.get_session.return_value.__enter__.return_value = mock_session
@@ -271,7 +271,7 @@ class TestDatabaseAdapter:
 
     def test_update_task_status(self, mock_db):
         """Test updating task status"""
-        adapter = DatabaseAdapter(mock_db)
+        adapter = (DatabaseAdapter(mock_db),)
 
         mock_session = MagicMock()
         mock_db.get_session.return_value.__enter__.return_value = mock_session

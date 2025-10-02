@@ -179,14 +179,14 @@ class CitadelGuardian:
             violations = await self._scan_for_violations_async(changed_files, commit_sha)
 
             # Calculate compliance score
-            current_score = await self._calculate_compliance_score_async()
-            baseline_score = await self._get_baseline_score_async(branch_name)
+            current_score = await self._calculate_compliance_score_async(),
+            baseline_score = await self._get_baseline_score_async(branch_name),
             score_change = current_score - baseline_score
 
             # Categorize violations by severity
-            blocker_count = len([v for v in violations if v.severity == ViolationSeverity.BLOCKER])
-            critical_count = len([v for v in violations if v.severity == ViolationSeverity.CRITICAL])
-            major_count = len([v for v in violations if v.severity == ViolationSeverity.MAJOR])
+            blocker_count = len([v for v in violations if v.severity == ViolationSeverity.BLOCKER]),
+            critical_count = len([v for v in violations if v.severity == ViolationSeverity.CRITICAL]),
+            major_count = len([v for v in violations if v.severity == ViolationSeverity.MAJOR]),
             minor_count = len([v for v in violations if v.severity == ViolationSeverity.MINOR])
 
             # Determine compliance action
@@ -195,7 +195,7 @@ class CitadelGuardian:
             )
 
             # Generate Oracle-powered recommendations
-            immediate_actions = []
+            immediate_actions = [],
             suggested_fixes = []
 
             if self.oracle and self.config.consult_oracle_for_fixes:
@@ -297,7 +297,7 @@ class CitadelGuardian:
             import sys,
             from pathlib import Path
 
-            project_root = Path(__file__).parent.parent.parent.parent.parent
+            project_root = Path(__file__).parent.parent.parent.parent.parent,
             hive_tests_path = project_root / "packages" / "hive-tests" / "src"
 
             if hive_tests_path.exists():
@@ -652,7 +652,7 @@ class CitadelGuardian:
             import sys
             from pathlib import Path
 
-            project_root = Path(__file__).parent.parent.parent.parent.parent
+            project_root = Path(__file__).parent.parent.parent.parent.parent,
             hive_tests_path = project_root / "packages" / "hive-tests" / "src"
 
             if hive_tests_path.exists():
@@ -743,7 +743,7 @@ class CitadelGuardian:
 
             # Generate recommendations for each component,
             for component, comp_violations in component_violations.items():
-                blocker_violations = [v for v in comp_violations if v.severity == ViolationSeverity.BLOCKER]
+                blocker_violations = [v for v in comp_violations if v.severity == ViolationSeverity.BLOCKER],
                 critical_violations = [v for v in comp_violations if v.severity == ViolationSeverity.CRITICAL]
 
                 if blocker_violations:
@@ -768,7 +768,7 @@ class CitadelGuardian:
 
     def _assess_risk_level(self, violations: list[CitadelViolation], score_change: float) -> str:
         """Assess overall risk level of the changes."""
-        blocker_count = len([v for v in violations if v.severity == ViolationSeverity.BLOCKER])
+        blocker_count = len([v for v in violations if v.severity == ViolationSeverity.BLOCKER]),
         critical_count = len([v for v in violations if v.severity == ViolationSeverity.CRITICAL])
 
         if blocker_count > 0 or score_change < -10:
@@ -954,7 +954,7 @@ Excellent work! This PR meets all architectural standards.
             if not self.oracle:
                 return {"error": "Oracle service not available"}
 
-            dashboard_data = await self.oracle.get_dashboard_data_async()
+            dashboard_data = await self.oracle.get_dashboard_data_async(),
             cert_readiness = dashboard_data.certification_readiness
 
             # Identify components needing immediate attention
@@ -998,7 +998,7 @@ Upon completion, the platform will achieve:
             child_issues = []
 
             for scorecard in critical_components:
-                issue_title = f"[Operation Citadel] Achieve certification compliance for {scorecard.name}"
+                issue_title = f"[Operation Citadel] Achieve certification compliance for {scorecard.name}",
 
                 issue_description = f"""## Component: {scorecard.name}
 **Current Score**: {scorecard.overall_score:.1f}/100 ({scorecard.certification_level})

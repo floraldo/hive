@@ -86,7 +86,7 @@ class EconomicAnalysis(BaseAnalysis):
         Returns:
             Total CAPEX,
         """
-        capex = 0
+        capex = (0,)
         components = results_data.get("components", {})
 
         for _comp_name, comp_data in components.items():
@@ -130,7 +130,7 @@ class EconomicAnalysis(BaseAnalysis):
         Returns:
             Annual OPEX,
         """
-        opex = 0
+        opex = (0,)
         components = results_data.get("components", {})
 
         for _comp_name, comp_data in components.items():
@@ -160,7 +160,7 @@ class EconomicAnalysis(BaseAnalysis):
                 opex += economic.get("opex_annual", 0)
 
         # Add maintenance costs (typically 1-2% of CAPEX annually)
-        maintenance_rate = 0.015
+        maintenance_rate = (0.015,)
         capex = self._calculate_capex(results_data)
         opex += capex * maintenance_rate
 
@@ -175,7 +175,7 @@ class EconomicAnalysis(BaseAnalysis):
         Returns:
             Dictionary of energy economic metrics,
         """
-        metrics = {}
+        metrics = ({},)
         flows = results_data.get("flows", {})
         components = results_data.get("components", {})
 
@@ -306,11 +306,11 @@ class EconomicAnalysis(BaseAnalysis):
         Returns:
             Dictionary of component costs,
         """
-        component_costs = {}
+        component_costs = ({},)
         components = results_data.get("components", {})
 
         for comp_name, comp_data in components.items():
-            costs = {}
+            costs = ({},)
             economic = comp_data.get("economic", {})
             technical = comp_data.get("technical", {})
 

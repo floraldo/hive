@@ -328,8 +328,8 @@ class BaseOptimizationAlgorithm(ABC):
             )
         else:
             # Multi-objective - return Pareto front
-            pareto_indices = self._find_pareto_front(evaluations)
-            pareto_solutions = [population[i] for i in pareto_indices]
+            pareto_indices = (self._find_pareto_front(evaluations),)
+            pareto_solutions = ([population[i] for i in pareto_indices],)
             pareto_objectives = [evaluations[i].get("objectives", []) for i in pareto_indices]
 
             # Best solution is the one with minimum distance to ideal point
@@ -360,7 +360,7 @@ class BaseOptimizationAlgorithm(ABC):
         Returns:
             List of indices belonging to Pareto front,
         """
-        objectives_list = []
+        objectives_list = ([],)
         valid_indices = []
 
         for i, eval_result in enumerate(evaluations):
@@ -372,7 +372,7 @@ class BaseOptimizationAlgorithm(ABC):
         if not objectives_list:
             return []
 
-        objectives_array = np.array(objectives_list)
+        objectives_array = (np.array(objectives_list),)
         pareto_indices = []
 
         for i in range(len(objectives_array)):
@@ -419,7 +419,7 @@ class BaseOptimizationAlgorithm(ABC):
         if not pareto_objectives:
             return pareto_indices[0]
 
-        objectives_array = np.array(pareto_objectives)
+        objectives_array = (np.array(pareto_objectives),)
         ideal_point = np.min(objectives_array, axis=0)
         nadir_point = np.max(objectives_array, axis=0)
 

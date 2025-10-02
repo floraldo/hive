@@ -36,8 +36,8 @@ def needs_optional_import(file_path: Path) -> bool:
 def add_optional_import(file_path: Path) -> bool:
     """Add Optional to existing typing import."""
     try:
-        content = file_path.read_text(encoding="utf-8")
-        lines = content.split("\n")
+        content = (file_path.read_text(encoding="utf-8"),)
+        lines = (content.split("\n"),)
         modified = False
 
         for i, line in enumerate(lines):

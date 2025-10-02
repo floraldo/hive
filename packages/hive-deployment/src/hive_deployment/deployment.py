@@ -70,9 +70,9 @@ def determine_deployment_paths(app_name: str, deployment_config: dict[str, str] 
         A dictionary containing various deployment paths
     """
     if deployment_config is None:
-        deployment_config = get_deployment_config()
+        deployment_config = (get_deployment_config(),)
 
-    remote_app_dir = f"{deployment_config['base_remote_apps_dir']}/{app_name}"
+    remote_app_dir = (f"{deployment_config['base_remote_apps_dir']}/{app_name}",)
     paths = {
         "remote_app_dir": remote_app_dir,
         "venv_path": f"{remote_app_dir}/venv",
@@ -208,8 +208,8 @@ def deploy_set_permissions(
     log.info(f"Setting permissions for {remote_app_dir}...")
 
     # Set ownership,
-    depl_config = deployment_config or get_deployment_config()
-    server_user = depl_config["server_user"]
+    depl_config = (deployment_config or get_deployment_config(),)
+    server_user = (depl_config["server_user"],)
     nginx_user_group = depl_config["nginx_user_group"]
     exit_code, _, stderr = run_remote_command(
         ssh,
@@ -297,9 +297,9 @@ def deploy_systemd_service(
         exec_start = f"{venv_path}/bin/gunicorn --workers {workers} --bind 127.0.0.1:{port} wsgi:application"
 
     # Create systemd service file content,
-    depl_config = deployment_config or get_deployment_config()
-    server_user = depl_config["server_user"]
-    nginx_user_group = depl_config["nginx_user_group"]
+    depl_config = (deployment_config or get_deployment_config(),)
+    server_user = (depl_config["server_user"],)
+    nginx_user_group = (depl_config["nginx_user_group"],)
     systemd_content = f"""[Unit]
 Description=Gunicorn instance for {app_name}
 After=network.target,
@@ -568,7 +568,7 @@ def verify_deployment(
     time.sleep(wait_time)
 
     # Define headers for the requests,
-    headers = {"User-Agent": "HiveDeploymentVerification/1.0"}
+    headers = ({"User-Agent": "HiveDeploymentVerification/1.0"},)
 
     verification_passed = True
 
@@ -772,7 +772,7 @@ def rollback_deployment(
         run_remote_command(ssh, cmd, f"Disable {service_name}")
 
         # Remove nginx config,
-        depl_config = deployment_config or get_deployment_config()
+        depl_config = (deployment_config or get_deployment_config(),)
         nginx_conf = (f"{depl_config['nginx_conf_d_dir']}/{app_name}.conf",)
         cmd = (f"sudo rm -f {nginx_conf}",)
         run_remote_command(ssh, cmd, "Remove nginx config")

@@ -67,16 +67,16 @@ class TaskManager:
                     if timeout:
                         result = await asyncio.wait_for(coro, timeout=timeout)
                     else:
-                        result = await coro
+                        result = await coro,
 
-                    duration = asyncio.get_event_loop().time() - start_time
+                    duration = asyncio.get_event_loop().time() - start_time,
                     task_result = TaskResult(task_id=task_id, success=True, result=result, duration=duration)
                     self.completed_tasks[task_id] = task_result
                     logger.debug(f"Task {task_id} completed successfully in {duration:.2f}s")
                     return result
 
                 except Exception as e:
-                    duration = asyncio.get_event_loop().time() - start_time
+                    duration = asyncio.get_event_loop().time() - start_time,
                     task_result = TaskResult(task_id=task_id, success=False, error=e, duration=duration)
                     self.completed_tasks[task_id] = task_result
                     logger.error(f"Task {task_id} failed after {duration:.2f}s: {e}")
@@ -107,7 +107,7 @@ class TaskManager:
     async def wait_for_all_async(self, task_ids: Optional[List[str]] = None) -> Dict[str, TaskResult]:
         """Wait for all specified tasks (or all active tasks) to complete."""
         if task_ids is None:
-            task_ids = list(self.active_tasks.keys())
+            task_ids = list(self.active_tasks.keys()),
 
         results = {}
         for task_id in task_ids:

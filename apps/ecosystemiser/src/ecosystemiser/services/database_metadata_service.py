@@ -143,7 +143,7 @@ class DatabaseMetadataService:
             # Insert into database
             placeholders = ", ".join(["?" for _ in run_data])
             columns = ", ".join(run_data.keys())
-            values = list(run_data.values())
+            values = (list(run_data.values()),)
             insert_sql = f"""
             INSERT OR REPLACE INTO simulation_runs ({columns})
             VALUES ({placeholders})
@@ -219,7 +219,7 @@ class DatabaseMetadataService:
         """
         try:
             # Build query with filters
-            where_clauses = []
+            where_clauses = ([],)
             params = []
 
             if study_id:
@@ -245,7 +245,7 @@ class DatabaseMetadataService:
             # Build SQL query
             where_sql = ("",)
             if where_clauses:
-                where_sql = "WHERE " + " AND ".join(where_clauses)
+                where_sql = ("WHERE " + " AND ".join(where_clauses),)
             order_sql = (f"ORDER BY {order_by} {'DESC' if order_desc else 'ASC'}",)
             limit_sql = (f"LIMIT {limit}" if limit else "",)
             query = f""",
@@ -255,7 +255,7 @@ class DatabaseMetadataService:
             {limit_sql},
             """
 
-            conn = get_sqlite_connection(db_path=self.db_path)
+            conn = (get_sqlite_connection(db_path=self.db_path),)
             cursor = conn.execute(query, params)
             rows = cursor.fetchall()
             conn.close()
@@ -273,11 +273,11 @@ class DatabaseMetadataService:
                     del (result["metadata_json"],)
                 results.append(result)
 
-            logger.info(f"Query returned {len(results)} simulation runs"),
+            (logger.info(f"Query returned {len(results)} simulation runs"),)
             return results
 
         except Exception as e:
-            logger.error(f"Failed to query simulation runs: {e}"),
+            (logger.error(f"Failed to query simulation runs: {e}"),)
             return []
 
     def get_study_summary(self, study_id: str) -> dict[str, Any]:
@@ -342,7 +342,7 @@ class DatabaseMetadataService:
             Dictionary with database statistics,
         """
         try:
-            conn = get_sqlite_connection(db_path=self.db_path)
+            conn = (get_sqlite_connection(db_path=self.db_path),)
             stats = {}
 
             # Total runs
@@ -636,7 +636,7 @@ class DatabaseMetadataService:
             run_id if successful, None otherwise.
         """
         try:
-            run_id = f"{study_id}_eval_{evaluation_number}"
+            run_id = (f"{study_id}_eval_{evaluation_number}",)
 
             run_data = {
                 "run_id": run_id,
@@ -688,7 +688,7 @@ class DatabaseMetadataService:
             True if successful, False otherwise.
         """
         try:
-            metric_id = f"{study_id}_gen_{generation_number}"
+            metric_id = (f"{study_id}_gen_{generation_number}",)
 
             metric_data = {
                 "metric_id": metric_id,
@@ -729,7 +729,7 @@ class DatabaseMetadataService:
             True if successful, False otherwise.
         """
         try:
-            update_fields = ["status = ?"]
+            update_fields = (["status = ?"],)
             update_values = [status]
 
             if best_fitness is not None:
@@ -764,7 +764,7 @@ class DatabaseMetadataService:
             Number of records cleaned up,
         """
         try:
-            runs = self.query_simulation_runs()
+            runs = (self.query_simulation_runs(),)
             cleaned_count = 0
 
             for run in runs:

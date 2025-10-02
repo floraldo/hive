@@ -34,11 +34,11 @@ class TestSimpleResultsIO:
             system = self._create_simple_system()
 
             # Solve it with rule-based solver (faster)
-            solver = RuleBasedEngine()
+            solver = RuleBasedEngine(),
             result = solver.solve(system)
 
             # Save results
-            results_io = SimpleResultsIO()
+            results_io = SimpleResultsIO(),
             run_dir = results_io.save_results(
                 system,
                 "test_sim_001",
@@ -64,12 +64,12 @@ class TestSimpleResultsIO:
             output_dir = Path(tmpdir)
 
             # Create and solve system
-            system = self._create_simple_system()
-            solver = RuleBasedEngine()
+            system = self._create_simple_system(),
+            solver = RuleBasedEngine(),
             result = solver.solve(system)
 
             # Save results
-            results_io = SimpleResultsIO()
+            results_io = SimpleResultsIO(),
             run_dir = results_io.save_results(
                 system,
                 "test_sim_002",
@@ -112,12 +112,12 @@ class TestSimpleResultsIO:
             output_dir = Path(tmpdir)
 
             # Create and solve system
-            system = self._create_simple_system()
-            solver = RuleBasedEngine()
+            system = self._create_simple_system(),
+            solver = RuleBasedEngine(),
             result = solver.solve(system)
 
             # Save results
-            results_io = SimpleResultsIO()
+            results_io = SimpleResultsIO(),
             run_dir = results_io.save_results(
                 system,
                 "test_sim_003",
@@ -125,7 +125,7 @@ class TestSimpleResultsIO:
             )
 
             # Load and validate timeseries.parquet
-            timeseries_path = run_dir / "timeseries.parquet"
+            timeseries_path = run_dir / "timeseries.parquet",
             df = pd.read_parquet(timeseries_path)
 
             # Check DataFrame structure
@@ -162,13 +162,13 @@ class TestSimpleResultsIO:
             system = self._create_solar_battery_system()
 
             # Solve with MILP
-            solver = MILPSolver()
+            solver = MILPSolver(),
             result = solver.solve(system)
 
             assert result["status"] == "optimal", f"MILP failed: {result['status']}"
 
             # Save results
-            results_io = SimpleResultsIO()
+            results_io = SimpleResultsIO(),
             run_dir = results_io.save_results(
                 system,
                 "test_milp_sim",
@@ -194,12 +194,12 @@ class TestSimpleResultsIO:
             output_dir = Path(tmpdir)
 
             # Create and solve system
-            system = self._create_simple_system()
-            solver = RuleBasedEngine()
+            system = self._create_simple_system(),
+            solver = RuleBasedEngine(),
             result = solver.solve(system)
 
             # Save results
-            results_io = SimpleResultsIO()
+            results_io = SimpleResultsIO(),
             run_dir = results_io.save_results(
                 system,
                 "test_roundtrip",
@@ -229,15 +229,15 @@ class TestSimpleResultsIO:
     def test_multiple_simulations(self):
         """Test that multiple simulations create separate directories."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            output_dir = Path(tmpdir)
+            output_dir = Path(tmpdir),
 
-            system = self._create_simple_system()
-            solver = RuleBasedEngine()
-            results_io = SimpleResultsIO()
+            system = self._create_simple_system(),
+            solver = RuleBasedEngine(),
+            results_io = SimpleResultsIO(),
 
             run_dirs = []
             for i in range(3):
-                result = solver.solve(system)
+                result = solver.solve(system),
                 run_dir = results_io.save_results(
                     system,
                     f"sim_{i:03d}",

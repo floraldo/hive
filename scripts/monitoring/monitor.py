@@ -45,10 +45,10 @@ def run_script(script_name: str, args: list[str]) -> int:
         return 1
 
     cmd = [sys.executable, str(script_path)] + args
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print(f"Running: {script_name}")
     print(f"Command: {' '.join(cmd)}")
-    print(f"{'='*80}\n")
+    print(f"{'=' * 80}\n")
 
     result = subprocess.run(cmd)
     return result.returncode
@@ -86,32 +86,23 @@ Examples:
   # Get help for specific operation
   python monitor.py --alerts --help
   python monitor.py --logs --help
-"""
+""",
     )
 
     # Main operation flags
-    parser.add_argument('--alerts', action='store_true',
-                       help='Alert validation tracking operations')
-    parser.add_argument('--logs', action='store_true',
-                       help='Log intelligence and analysis')
-    parser.add_argument('--predict', action='store_true',
-                       help='Predictive failure analysis')
-    parser.add_argument('--production', action='store_true',
-                       help='Production health monitoring')
-    parser.add_argument('--test', action='store_true',
-                       help='Monitoring integration tests')
-    parser.add_argument('--all', action='store_true',
-                       help='Run all monitoring operations (use with --quick)')
+    parser.add_argument("--alerts", action="store_true", help="Alert validation tracking operations")
+    parser.add_argument("--logs", action="store_true", help="Log intelligence and analysis")
+    parser.add_argument("--predict", action="store_true", help="Predictive failure analysis")
+    parser.add_argument("--production", action="store_true", help="Production health monitoring")
+    parser.add_argument("--test", action="store_true", help="Monitoring integration tests")
+    parser.add_argument("--all", action="store_true", help="Run all monitoring operations (use with --quick)")
 
     # Quick mode for --all
-    parser.add_argument('--quick', action='store_true',
-                       help='Quick mode: run minimal checks (use with --all)')
+    parser.add_argument("--quick", action="store_true", help="Quick mode: run minimal checks (use with --all)")
 
     # Common options
-    parser.add_argument('--dry-run', action='store_true',
-                       help='Show what would be done without executing')
-    parser.add_argument('--verbose', action='store_true',
-                       help='Verbose output')
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be done without executing")
+    parser.add_argument("--verbose", action="store_true", help="Verbose output")
 
     args, unknown_args = parser.parse_known_args()
 
@@ -121,22 +112,22 @@ Examples:
         operations = list(MONITORING_SCRIPTS.keys())
     else:
         if args.alerts:
-            operations.append('alerts')
+            operations.append("alerts")
         if args.logs:
-            operations.append('logs')
+            operations.append("logs")
         if args.predict:
-            operations.append('predict')
+            operations.append("predict")
         if args.production:
-            operations.append('production')
+            operations.append("production")
         if args.test:
-            operations.append('test')
+            operations.append("test")
 
     # If no operation specified, show help
     if not operations:
         parser.print_help()
-        print("\n" + "="*80)
+        print("\n" + "=" * 80)
         print("AVAILABLE MONITORING SCRIPTS:")
-        print("="*80)
+        print("=" * 80)
         for op, script in MONITORING_SCRIPTS.items():
             print(f"  --{op:12} → {script}")
         return 0
@@ -158,12 +149,12 @@ Examples:
         script_args = unknown_args.copy()
 
         # Add --quick flag if in quick mode
-        if args.quick and '--quick' not in script_args:
-            script_args.append('--quick')
+        if args.quick and "--quick" not in script_args:
+            script_args.append("--quick")
 
         # Add --verbose if requested
-        if args.verbose and '--verbose' not in script_args:
-            script_args.append('--verbose')
+        if args.verbose and "--verbose" not in script_args:
+            script_args.append("--verbose")
 
         # Run the script
         exit_code = run_script(script, script_args)
@@ -173,9 +164,9 @@ Examples:
             print(f"\n⚠️  Warning: {script} exited with code {exit_code}")
 
     # Summary
-    print(f"\n{'='*80}")
+    print(f"\n{'=' * 80}")
     print("MONITORING SUMMARY")
-    print(f"{'='*80}")
+    print(f"{'=' * 80}")
     print(f"Operations run: {len(operations)}")
     print(f"Successful: {exit_codes.count(0)}")
     print(f"Failed: {len([c for c in exit_codes if c != 0])}")

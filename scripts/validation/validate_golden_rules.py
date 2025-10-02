@@ -28,7 +28,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root / "packages" / "hive-tests" / "src"))
 
 from hive_logging import get_logger
-from hive_tests.architectural_validators import run_all_golden_rules, RuleSeverity
+from hive_tests.architectural_validators import RuleSeverity, run_all_golden_rules
 
 logger = get_logger(__name__)
 

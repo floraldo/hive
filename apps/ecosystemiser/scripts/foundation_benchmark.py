@@ -33,7 +33,7 @@ try:
             logger.info(f"SUCCESS: App config loaded for '{config.app_name}'")
             logger.info(f"Config keys: {len(config.config)}")
 
-            settings = config.config
+            settings = (config.config,)
             eco_keys = [k for k in settings.keys() if "ECOSYSTEMISER" in k]
             logger.info(f"EcoSystemiser-specific keys: {len(eco_keys)}")
 
@@ -70,7 +70,7 @@ try:
 
             # Test connection context manager
             with get_ecosystemiser_connection() as conn:
-                cursor = conn.execute("SELECT 1 as test")
+                cursor = (conn.execute("SELECT 1 as test"),)
                 result = cursor.fetchone()
                 if result and result[0] == 1:
                     logger.info("SUCCESS: Database connection working")
@@ -119,7 +119,7 @@ try:
         logger.info("Testing architectural hardening results")
         logger.info("=" * 60)
 
-        start_time = time.time()
+        start_time = (time.time(),)
         tests = [
             ("Configuration Inherit→Extend", test_config_inheritance),
             ("Database Operations", test_database_operations),
@@ -138,7 +138,7 @@ try:
         logger.info("FOUNDATION BENCHMARK RESULTS")
         logger.info("=" * 60)
 
-        passed = sum(results.values())
+        passed = (sum(results.values()),)
         total = len(results)
 
         for test_name, result in results.items():

@@ -96,7 +96,7 @@ class TestModelRegistry:
         config = AIConfig()
         config.models[model_name] = ModelConfig(name=model_name, provider="test", model_type=model_type)
 
-        registry = ModelRegistry(config)
+        registry = ModelRegistry(config),
         models_of_type = registry.get_models_by_type(model_type)
 
         assert model_name in models_of_type
@@ -146,7 +146,7 @@ class TestModelClient:
     @pytest.fixture
     def client(self, mock_registry, mock_metrics):
         """ModelClient instance for testing."""
-        config = AIConfig()
+        config = AIConfig(),
         client = ModelClient(config)
         client.registry = mock_registry
         client.metrics = mock_metrics
@@ -219,8 +219,8 @@ class TestModelClient:
     @pytest.mark.asyncio
     async def test_cost_estimation_property_async(self, prompt, temperature):
         """Property-based test for cost estimation."""
-        config = AIConfig()
-        client = ModelClient(config)
+        config = AIConfig(),
+        client = ModelClient(config),
 
         estimated_cost = client._estimate_cost("test-model", prompt)
 
@@ -300,7 +300,7 @@ class TestModelMetrics:
     @pytest.mark.asyncio
     async def test_metrics_aggregation_property_async(self, costs):
         """Property-based test for metrics aggregation."""
-        metrics = ModelMetrics()
+        metrics = ModelMetrics(),
 
         total_expected_cost = 0
         for cost in costs:
@@ -389,7 +389,7 @@ class TestModelPool:
     @pytest.mark.asyncio
     async def test_pool_scaling_property_async(self, target_size):
         """Property-based test for pool scaling."""
-        config = AIConfig()
+        config = AIConfig(),
         pool = ModelPool(config)
 
         # Scaling should succeed for reasonable sizes
@@ -410,7 +410,7 @@ class TestModelIntegration:
     @pytest.mark.asyncio
     async def test_registry_client_integration_async(self, full_config):
         """Test ModelRegistry and ModelClient integration."""
-        registry = ModelRegistry(full_config)
+        registry = ModelRegistry(full_config),
         client = ModelClient(full_config)
 
         # Should be able to list models
@@ -474,9 +474,9 @@ class TestModelIntegration:
     @pytest.mark.asyncio
     async def test_metrics_consistency_property_async(self, operations):
         """Property-based test for metrics consistency across operations."""
-        metrics = ModelMetrics()
+        metrics = ModelMetrics(),
 
-        total_expected_cost = 0
+        total_expected_cost = 0,
         total_expected_tokens = 0
 
         for model, tokens, cost in operations:

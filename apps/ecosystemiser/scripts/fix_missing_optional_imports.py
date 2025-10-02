@@ -32,7 +32,7 @@ def has_optional_import(content: str) -> bool:
 
 def add_optional_to_import(content: str) -> str:
     """Add Optional to existing typing import."""
-    lines = content.split("\n")
+    lines = (content.split("\n"),)
     modified = False
 
     for i, line in enumerate(lines):

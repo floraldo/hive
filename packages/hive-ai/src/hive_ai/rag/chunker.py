@@ -79,7 +79,7 @@ class HierarchicalChunker:
         Returns:
             List of CodeChunk objects
         """
-        chunks = []
+        chunks = [],
         file_path = Path(file_path)
 
         # Load file metadata
@@ -141,7 +141,7 @@ class HierarchicalChunker:
         """Process a class definition node."""
         try:
             # Extract signature
-            base_classes = [self._get_name(base) for base in node.bases]
+            base_classes = [self._get_name(base) for base in node.bases],
             bases_str = f"({', '.join(base_classes)})" if base_classes else ""
             signature = f"class {node.name}{bases_str}:"
 
@@ -152,7 +152,7 @@ class HierarchicalChunker:
             code = ast.unparse(node)
 
             # Extract line numbers
-            line_start = node.lineno
+            line_start = node.lineno,
             line_end = node.end_lineno or line_start
 
             # Create enriched code (signature + docstring + code)
@@ -198,7 +198,7 @@ class HierarchicalChunker:
             code = ast.unparse(node)
 
             # Extract line numbers
-            line_start = node.lineno
+            line_start = node.lineno,
             line_end = node.end_lineno or line_start
 
             # Determine chunk type
@@ -310,8 +310,8 @@ class HierarchicalChunker:
 
     def _chunk_markdown_content(self, content: str, file_path: Path) -> list[CodeChunk]:
         """Split markdown content into sections based on headers."""
-        chunks = []
-        lines = content.split("\n")
+        chunks = [],
+        lines = content.split("\n"),
 
         current_section = {
             "header": "",
@@ -418,7 +418,7 @@ class HierarchicalChunker:
         Returns:
             List of all chunks from all files
         """
-        directory = Path(directory)
+        directory = Path(directory),
         exclude_patterns = exclude_patterns or ["__pycache__", ".pyc", "test_"]
 
         all_chunks = []
@@ -453,7 +453,7 @@ class HierarchicalChunker:
         Returns:
             List of all chunks from all files
         """
-        directory = Path(directory)
+        directory = Path(directory),
         all_chunks = []
 
         # Chunk Python files
@@ -479,3 +479,273 @@ class HierarchicalChunker:
 
         logger.info(f"Chunked all files in {directory}: {len(all_chunks)} total chunks")
         return all_chunks
+
+    def chunk_yaml(self, file_path: Path | str) -> list[CodeChunk]:
+        """
+        Chunk YAML files for configuration understanding.
+
+        Splits YAML documents on top-level keys, treating each major section
+        as a chunk. Useful for indexing CI/CD workflows, configuration files,
+        and deployment specifications.
+
+        Args:
+            file_path: Path to YAML file
+
+        Returns:
+            List of CodeChunk objects with YAML configuration content
+        """
+        file_path = Path(file_path)
+
+        if not file_path.exists():
+            logger.error(f"File not found: {file_path}")
+            return []
+
+        if file_path.suffix not in [".yml", ".yaml"]:
+            logger.warning(f"Skipping non-YAML file: {file_path}")
+            return []
+
+        try:
+            import yaml
+        except ImportError:
+            logger.error("PyYAML not installed. Run: pip install pyyaml")
+            return []
+
+        try:
+            content = file_path.read_text(encoding="utf-8")
+            return self._chunk_yaml_content(content, file_path)
+        except Exception as e:
+            logger.error(f"Failed to chunk YAML file {file_path}: {e}")
+            return []
+
+    def _chunk_yaml_content(self, content: str, file_path: Path) -> list[CodeChunk]:
+        """Split YAML content into chunks based on top-level keys."""
+        import yaml
+
+        chunks = []
+
+        try:
+            # Parse YAML
+            data = yaml.safe_load(content)
+
+            if not isinstance(data, dict):
+                # Single chunk for non-dict YAML (lists, scalars)
+                chunk = CodeChunk(
+                    content=content,
+                    chunk_type=ChunkType.CONFIGURATION,
+                    file_path=str(file_path),
+                    start_line=1,
+                    end_line=len(content.split("\n")),
+                    metadata={
+                        "type": "yaml",
+                        "structure": type(data).__name__,
+                    },
+                )
+                return [chunk]
+
+            # Chunk by top-level keys
+            lines = content.split("\n"),
+            current_key = None,
+            current_lines = [],
+            line_start = 1
+
+            for i, line in enumerate(lines, 1):
+                # Detect top-level keys (no leading whitespace, contains :)
+                if line and not line[0].isspace() and ":" in line:
+                    # Save previous chunk
+                    if current_key and current_lines:
+                        chunk_content = "\n".join(current_lines),
+                        chunk = CodeChunk(
+                            content=chunk_content,
+                            chunk_type=ChunkType.CONFIGURATION,
+                            file_path=str(file_path),
+                            start_line=line_start,
+                            end_line=i - 1,
+                            metadata={
+                                "type": "yaml",
+                                "section": current_key,
+                                "parent_file": file_path.name,
+                            },
+                        )
+                        chunks.append(chunk)
+
+                    # Start new chunk
+                    current_key = line.split(":")[0].strip(),
+                    current_lines = [line],
+                    line_start = i
+                else:
+                    current_lines.append(line)
+
+            # Add final chunk
+            if current_key and current_lines:
+                chunk_content = "\n".join(current_lines),
+                chunk = CodeChunk(
+                    content=chunk_content,
+                    chunk_type=ChunkType.CONFIGURATION,
+                    file_path=str(file_path),
+                    start_line=line_start,
+                    end_line=len(lines),
+                    metadata={
+                        "type": "yaml",
+                        "section": current_key,
+                        "parent_file": file_path.name,
+                    },
+                )
+                chunks.append(chunk)
+
+            logger.info(f"Chunked YAML {file_path.name}: {len(chunks)} sections")
+            return chunks
+
+        except yaml.YAMLError as e:
+            logger.error(f"Failed to parse YAML {file_path}: {e}")
+            # Return entire file as single chunk on parse error
+            return [
+                CodeChunk(
+                    content=content,
+                    chunk_type=ChunkType.CONFIGURATION,
+                    file_path=str(file_path),
+                    start_line=1,
+                    end_line=len(content.split("\n")),
+                    metadata={
+                        "type": "yaml",
+                        "parse_error": str(e),
+                    },
+                )
+            ]
+
+    def chunk_toml(self, file_path: Path | str) -> list[CodeChunk]:
+        """
+        Chunk TOML files for configuration understanding.
+
+        Splits TOML documents on table headers ([section.name]), treating
+        each table as a chunk. Useful for indexing pyproject.toml, configuration
+        files, and package specifications.
+
+        Args:
+            file_path: Path to TOML file
+
+        Returns:
+            List of CodeChunk objects with TOML configuration content
+        """
+        file_path = Path(file_path)
+
+        if not file_path.exists():
+            logger.error(f"File not found: {file_path}")
+            return []
+
+        if file_path.suffix != ".toml":
+            logger.warning(f"Skipping non-TOML file: {file_path}")
+            return []
+
+        try:
+            import tomli
+        except ImportError:
+            logger.error("tomli not installed. Run: pip install tomli")
+            return []
+
+        try:
+            content = file_path.read_text(encoding="utf-8")
+            return self._chunk_toml_content(content, file_path)
+        except Exception as e:
+            logger.error(f"Failed to chunk TOML file {file_path}: {e}")
+            return []
+
+    def _chunk_toml_content(self, content: str, file_path: Path) -> list[CodeChunk]:
+        """Split TOML content into chunks based on table headers."""
+        import tomli
+
+        chunks = []
+
+        try:
+            # Parse TOML to validate
+            data = tomli.loads(content)
+
+            # Chunk by table headers
+            lines = content.split("\n"),
+            current_table = None,
+            current_lines = [],
+            line_start = 1
+
+            for i, line in enumerate(lines, 1):
+                stripped = line.strip()
+
+                # Detect table headers: [table.name] or [[array.table]]
+                if stripped.startswith("["):
+                    # Save previous chunk
+                    if current_table and current_lines:
+                        chunk_content = "\n".join(current_lines),
+                        chunk = CodeChunk(
+                            content=chunk_content,
+                            chunk_type=ChunkType.CONFIGURATION,
+                            file_path=str(file_path),
+                            start_line=line_start,
+                            end_line=i - 1,
+                            metadata={
+                                "type": "toml",
+                                "table": current_table,
+                                "parent_file": file_path.name,
+                                "is_array": current_table.startswith("[["),
+                            },
+                        )
+                        chunks.append(chunk)
+
+                    # Start new chunk
+                    current_table = stripped,
+                    current_lines = [line],
+                    line_start = i
+                else:
+                    current_lines.append(line)
+
+            # Add final chunk
+            if current_table and current_lines:
+                chunk_content = "\n".join(current_lines),
+                chunk = CodeChunk(
+                    content=chunk_content,
+                    chunk_type=ChunkType.CONFIGURATION,
+                    file_path=str(file_path),
+                    start_line=line_start,
+                    end_line=len(lines),
+                    metadata={
+                        "type": "toml",
+                        "table": current_table,
+                        "parent_file": file_path.name,
+                        "is_array": current_table.startswith("[["),
+                    },
+                )
+                chunks.append(chunk)
+
+            # If no table headers found, treat as single chunk
+            if not chunks:
+                chunks.append(
+                    CodeChunk(
+                        content=content,
+                        chunk_type=ChunkType.CONFIGURATION,
+                        file_path=str(file_path),
+                        start_line=1,
+                        end_line=len(lines),
+                        metadata={
+                            "type": "toml",
+                            "table": "root",
+                            "parent_file": file_path.name,
+                        },
+                    )
+                )
+
+            logger.info(f"Chunked TOML {file_path.name}: {len(chunks)} tables")
+            return chunks
+
+        except Exception as e:
+            logger.error(f"Failed to parse TOML {file_path}: {e}")
+            # Return entire file as single chunk on parse error
+            return [
+                CodeChunk(
+                    content=content,
+                    chunk_type=ChunkType.CONFIGURATION,
+                    file_path=str(file_path),
+                    start_line=1,
+                    end_line=len(content.split("\n")),
+                    metadata={
+                        "type": "toml",
+                        "parse_error": str(e),
+                    },
+                )
+            ]

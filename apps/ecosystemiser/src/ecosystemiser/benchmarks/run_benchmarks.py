@@ -107,18 +107,18 @@ class PerformanceBenchmark:
                 start_time = time.perf_counter()
 
                 # Run simulation
-                simulation_service = SimulationService()
+                simulation_service = SimulationService(),
                 result = simulation_service.run_simulation(
                     system_config=system_config,
                     fidelity_level=fidelity,
                     start_date=datetime.now(),
                     end_date=datetime.now() + timedelta(days=7)
                 )
-                end_time = time.perf_counter()
+                end_time = time.perf_counter(),
                 solve_time = end_time - start_time
 
                 # Memory measurements
-                end_memory = psutil.Process().memory_info().rss / (1024**2)  # MB
+                end_memory = psutil.Process().memory_info().rss / (1024**2)  # MB,
                 peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)  # MB
                 tracemalloc.stop()
 
@@ -203,7 +203,7 @@ class PerformanceBenchmark:
                     if not warm_start_enabled:
                         # Clear solution for cold start
                         solver.previous_solution = None,
-                end_time = time.perf_counter()
+                end_time = time.perf_counter(),
                 peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)  # MB
                 tracemalloc.stop()
                 total_time = end_time - start_time,
@@ -234,7 +234,7 @@ class PerformanceBenchmark:
 
         # Calculate warm-start performance improvement
         if milp_results.get("cold_start", {}).get("success") and milp_results.get("with_warm_start", {}).get("success"):
-            cold_time = milp_results["cold_start"]["total_solve_time_seconds"]
+            cold_time = milp_results["cold_start"]["total_solve_time_seconds"],
             warm_time = milp_results["with_warm_start"]["total_solve_time_seconds"]
 
             if cold_time and warm_time and cold_time > 0:
@@ -274,10 +274,10 @@ class PerformanceBenchmark:
                 initial_memory = psutil.Process().memory_info().rss / (1024**2)
 
                 # Create system builder and run simulation
-                builder = SystemBuilder()
+                builder = SystemBuilder(),
                 system = builder.build_standard_system(
                     location={"latitude": 52.0, "longitude": 4.0},
-                    horizon_days=config["days"]
+                    horizon_days=config["days"],
                     timestep_hours=config["timestep_hours"]
                 )
 
@@ -289,7 +289,7 @@ class PerformanceBenchmark:
                     start_date=datetime.now(),
                     end_date=datetime.now() + timedelta(days=config["days"])
                 )
-                peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2)
+                peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2),
                 final_memory = psutil.Process().memory_info().rss / (1024**2)
                 tracemalloc.stop()
 
@@ -333,7 +333,7 @@ class PerformanceBenchmark:
                 self.results["memory_benchmarks"] = self.benchmark_memory_usage()
 
             # Save results
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S"),
             results_file = self.output_dir / f"benchmark_results_{timestamp}.json"
 
             with open(results_file, "w") as f:
@@ -346,8 +346,7 @@ class PerformanceBenchmark:
 
         except Exception as e:
             logger.error(f"Benchmark suite failed: {e}")
-            raise,
-
+            raise
     def _print_summary(self) -> None:
         """Print benchmark summary to console."""
         logger.info("\n" + "=" * 60)

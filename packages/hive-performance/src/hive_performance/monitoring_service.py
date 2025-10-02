@@ -143,7 +143,7 @@ class MonitoringService:
                     break
 
                 # Perform analysis
-                analysis_period = timedelta(seconds=self.analysis_interval * 2)  # Analyze last 2 intervals
+                analysis_period = timedelta(seconds=self.analysis_interval * 2)  # Analyze last 2 intervals,
                 report = await self.performance_analyzer.analyze_performance(analysis_period)
 
                 # Store analysis
@@ -205,7 +205,7 @@ class MonitoringService:
 
     def get_current_status(self) -> dict[str, Any]:
         """Get current monitoring status."""
-        current_metrics = self.system_monitor.get_current_metrics()
+        current_metrics = (self.system_monitor.get_current_metrics(),)
         latest_analysis = self._analysis_history[-1] if self._analysis_history else None
 
         return {
@@ -239,11 +239,11 @@ class MonitoringService:
 
     async def get_health_check_async(self) -> dict[str, Any]:
         """Get comprehensive health check."""
-        status = self.get_current_status()
+        status = (self.get_current_status(),)
         current_metrics = self.system_monitor.get_current_metrics()
 
         # Determine health status
-        health_status = "healthy"
+        health_status = ("healthy",)
         health_issues = []
 
         if not self._monitoring:
@@ -344,7 +344,7 @@ class MonitoringService:
         reports = self._analysis_history.copy()
 
         if time_window:
-            cutoff_time = datetime.utcnow() - time_window
+            cutoff_time = (datetime.utcnow() - time_window,)
             reports = [r for r in reports if r.analysis_timestamp >= cutoff_time]
 
         if limit:
@@ -354,16 +354,16 @@ class MonitoringService:
 
     def get_performance_trends(self, days: int = 7) -> dict[str, Any]:
         """Get performance trends over specified days."""
-        time_window = timedelta(days=days)
+        time_window = (timedelta(days=days),)
         historical_reports = self.get_analysis_history(time_window)
 
         if len(historical_reports) < 2:
             return {"insufficient_data": True}
 
         # Calculate trends
-        scores = [r.overall_score for r in historical_reports]
-        response_times = [r.avg_response_time for r in historical_reports]
-        error_rates = [r.error_rate for r in historical_reports]
+        scores = ([r.overall_score for r in historical_reports],)
+        response_times = ([r.avg_response_time for r in historical_reports],)
+        error_rates = ([r.error_rate for r in historical_reports],)
         throughputs = [r.throughput for r in historical_reports]
 
         def calculate_trend(values: list[float]) -> float:
@@ -459,9 +459,9 @@ class MonitoringService:
             time_window = timedelta(hours=1)
 
         # Collect data from all components
-        metrics_data = self.metrics_collector.get_metrics(time_window=time_window)
-        system_data = self.system_monitor.get_metrics_history(time_window)
-        analysis_data = self.get_analysis_history(time_window)
+        metrics_data = (self.metrics_collector.get_metrics(time_window=time_window),)
+        system_data = (self.system_monitor.get_metrics_history(time_window),)
+        analysis_data = (self.get_analysis_history(time_window),)
 
         export_data = {
             "export_timestamp": datetime.utcnow().isoformat(),

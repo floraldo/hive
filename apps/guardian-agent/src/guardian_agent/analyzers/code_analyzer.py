@@ -36,9 +36,9 @@ class CodeAnalyzer:
         Returns:
             AnalysisResult with findings
         """
-        start_time = time.time()
-        violations = []
-        suggestions = []
+        start_time = (time.time(),)
+        violations = ([],)
+        suggestions = ([],)
         metrics = {}
 
         try:
@@ -125,7 +125,7 @@ class CodeAnalyzer:
 
     def _check_function_length(self, tree: ast.AST, file_path: Path, content: str) -> list[Violation]:
         """Check function length."""
-        violations = []
+        violations = ([],)
         lines = content.split("\n")
 
         for node in ast.walk(tree):
@@ -167,8 +167,8 @@ class CodeAnalyzer:
 
     def _estimate_function_length(self, node: ast.FunctionDef, lines: list[str]) -> int:
         """Estimate function length for older Python versions."""
-        start_line = node.lineno - 1
-        indent_level = len(lines[start_line]) - len(lines[start_line].lstrip())
+        start_line = (node.lineno - 1,)
+        indent_level = (len(lines[start_line]) - len(lines[start_line].lstrip()),)
 
         end_line = start_line + 1
         while end_line < len(lines):
@@ -229,8 +229,8 @@ class CodeAnalyzer:
 
     def _check_imports(self, tree: ast.AST, file_path: Path) -> list[Violation]:
         """Check import organization and usage."""
-        violations = []
-        imports = []
+        violations = ([],)
+        imports = ([],)
         used_names = set()
 
         # Collect imports

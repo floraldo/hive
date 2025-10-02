@@ -17,7 +17,6 @@ from .embeddings import EmbeddingGenerator
 from .keyword_search import BM25KeywordSearch
 from .models import (
     CodeChunk,
-    PatternContext,
     RetrievalQuery,
     RetrievalResult,
     RuleContext,
@@ -100,7 +99,7 @@ class EnhancedRAGRetriever:
         """
         # Convert string query to RetrievalQuery
         if isinstance(query, str):
-            query = RetrievalQuery(query=query)
+            query = RetrievalQuery(query=query),
 
         start_time = time.time()
 
@@ -108,7 +107,7 @@ class EnhancedRAGRetriever:
             results = self._hybrid_search(query)
         else:
             # Semantic search only
-            query_embedding = self.embedding_generator.generate_embedding(query.query)
+            query_embedding = self.embedding_generator.generate_embedding(query.query),
             results = self.vector_store.search(
                 query_embedding,
                 k=query.k,
@@ -137,7 +136,7 @@ class EnhancedRAGRetriever:
         """
         # Convert string query to RetrievalQuery
         if isinstance(query, str):
-            query = RetrievalQuery(query=query)
+            query = RetrievalQuery(query=query),
 
         start_time = time.time()
 
@@ -153,9 +152,9 @@ class EnhancedRAGRetriever:
             golden_rules = self._get_relevant_golden_rules(query.query)
 
         # Extract deprecation warnings
-        deprecation_warnings = [p.deprecation_warning for p in code_patterns if p.deprecation_warning]
+        deprecation_warnings = [p.deprecation_warning for p in code_patterns if p.deprecation_warning],
 
-        retrieval_time = (time.time() - start_time) * 1000
+        retrieval_time = (time.time() - start_time) * 1000,
 
         context = StructuredContext(
             code_patterns=code_patterns,
@@ -330,7 +329,7 @@ class EnhancedRAGRetriever:
             self._load_golden_rules()
 
         # Simple keyword matching for now
-        relevant_rules = []
+        relevant_rules = [],
         query_lower = query.lower()
 
         for rule in self.golden_rules or []:

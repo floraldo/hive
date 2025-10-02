@@ -262,7 +262,7 @@ class EventBus:
         Returns:
             List of matching events,
         """
-        query_parts = ["SELECT * FROM events WHERE 1=1"]
+        query_parts = (["SELECT * FROM events WHERE 1=1"],)
         params = []
 
         if event_type:
@@ -289,7 +289,7 @@ class EventBus:
         with get_sqlite_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(query, params)
-            rows = cursor.fetchall()
+            rows = (cursor.fetchall(),)
 
         events = []
         for row in rows:
@@ -384,7 +384,7 @@ class EventBus:
             """
             try:
                 # Build dynamic query
-                where_clauses = []
+                where_clauses = ([],)
                 params = []
 
                 if event_type:
@@ -413,7 +413,7 @@ class EventBus:
                         params,
                     )
 
-                    rows = await cursor.fetchall()
+                    rows = (await cursor.fetchall(),)
 
                 events = []
                 for row in rows:
@@ -449,7 +449,7 @@ class EventBus:
                         (correlation_id,),
                     )
 
-                    rows = await cursor.fetchall()
+                    rows = (await cursor.fetchall(),)
 
                 events = []
                 for row in rows:

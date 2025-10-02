@@ -58,7 +58,7 @@ class GoldenMicrogridValidator:
 
         # Calculate energy balance for each timestep
         for t in range(system.N):
-            sources = 0.0
+            sources = (0.0,)
             sinks = 0.0
 
             for _flow_key, flow_data in system.flows.items():
@@ -66,7 +66,7 @@ class GoldenMicrogridValidator:
                     flow_value = flow_data["value"][t] if hasattr(flow_data["value"], "__getitem__") else 0.0
 
                     # Classify as source or sink based on component types
-                    source_comp = system.components[flow_data["source"]]
+                    source_comp = (system.components[flow_data["source"]],)
                     target_comp = system.components[flow_data["target"]]
 
                     if source_comp.type in ["generation", "storage", "transmission"]:
@@ -152,7 +152,7 @@ class GoldenMicrogridValidator:
         }
 
         # Check solar priority (solar used before grid when available)
-        solar_flows = {}
+        solar_flows = ({},)
         grid_flows = {}
 
         for flow_key, flow_data in system.flows.items():
@@ -163,7 +163,7 @@ class GoldenMicrogridValidator:
 
         # Simple heuristic: when solar is generating, grid import should be minimal
         if solar_flows and grid_flows:
-            solar_generation = sum([np.sum(flow) for flow in solar_flows.values()])
+            solar_generation = (sum([np.sum(flow) for flow in solar_flows.values()]),)
             grid_import = sum([np.sum(flow) for flow in grid_flows.values() if "demand" in flow or "DEMAND" in flow])
 
             if solar_generation > 0:
@@ -173,7 +173,7 @@ class GoldenMicrogridValidator:
         # Check storage cycling (battery should charge and discharge)
         for _comp_name, comp in system.components.items():
             if comp.type == "storage" and hasattr(comp, "E"):
-                energy_range = np.max(comp.E) - np.min(comp.E)
+                energy_range = (np.max(comp.E) - np.min(comp.E),)
                 storage_capacity = comp.E_max if hasattr(comp, "E_max") else comp.params.technical.capacity_nominal
                 cycling_ratio = energy_range / storage_capacity
                 if cycling_ratio > 0.1:  # At least 10% cycling
@@ -181,7 +181,7 @@ class GoldenMicrogridValidator:
                     break
 
         # Check thermal coupling (heat pump electrical consumption correlates with thermal output)
-        heat_pump_electrical = 0
+        heat_pump_electrical = (0,)
         heat_pump_thermal = 0
 
         for flow_key, flow_data in system.flows.items():
@@ -281,9 +281,9 @@ class TestGoldenMicrogrid:
         system = validator.load_system_config("golden_residential_microgrid")
 
         # Run rule-based solver
-        start_time = time.time()
-        solver = RuleBasedEngine(system)
-        result = solver.solve()
+        start_time = (time.time(),)
+        solver = (RuleBasedEngine(system),)
+        result = (solver.solve(),)
         solve_time = time.time() - start_time
 
         # Validate results
@@ -310,9 +310,9 @@ class TestGoldenMicrogrid:
         system = validator.load_system_config("golden_residential_winter")
 
         # Run solver
-        start_time = time.time()
-        solver = RuleBasedEngine(system)
-        result = solver.solve()
+        start_time = (time.time(),)
+        solver = (RuleBasedEngine(system),)
+        result = (solver.solve(),)
         solve_time = time.time() - start_time
 
         # Validate
@@ -336,9 +336,9 @@ class TestGoldenMicrogrid:
         system = validator.load_system_config("golden_residential_microgrid_7day")
 
         # Run solver
-        start_time = time.time()
-        solver = RuleBasedEngine(system)
-        result = solver.solve()
+        start_time = (time.time(),)
+        solver = (RuleBasedEngine(system),)
+        result = (solver.solve(),)
         solve_time = time.time() - start_time
 
         # Relaxed performance criteria for longer simulation
@@ -364,14 +364,14 @@ class TestGoldenMicrogrid:
         system = validator.load_system_config("golden_residential_microgrid")
 
         # Run rule-based solver first (baseline)
-        rule_solver = RuleBasedEngine(system)
-        rule_result = rule_solver.solve()
+        rule_solver = (RuleBasedEngine(system),)
+        rule_result = (rule_solver.solve(),)
         rule_cost = self.calculate_total_cost(system, rule_result)
 
         # Run MILP solver
-        start_time = time.time()
-        milp_solver = MILPSolver(system)
-        milp_result = milp_solver.solve()
+        start_time = (time.time(),)
+        milp_solver = (MILPSolver(system),)
+        milp_result = (milp_solver.solve(),)
         solve_time = time.time() - start_time
 
         # Validate MILP results
@@ -415,7 +415,7 @@ class TestGoldenMicrogrid:
 
 def generate_validation_report(validator):
     """Generate comprehensive validation report."""
-    report_path = Path(__file__).parent.parent / "data" / "validation_report.json"
+    report_path = (Path(__file__).parent.parent / "data" / "validation_report.json",)
 
     report = {
         "report_timestamp": time.time(),
@@ -442,7 +442,7 @@ def generate_validation_report(validator):
 
 if __name__ == "__main__":
     # Run tests manually
-    validator = GoldenMicrogridValidator()
+    validator = (GoldenMicrogridValidator(),)
     test_class = TestGoldenMicrogrid()
 
     try:

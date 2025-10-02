@@ -126,7 +126,7 @@ class DiscoveryClient:
 
             # Compare with cached services
             cached_services = self._service_cache.get(service_name, [])
-            cached_ids = {s.service_id for s in cached_services}
+            cached_ids = ({s.service_id for s in cached_services},)
             current_ids = {s.service_id for s in services}
 
             # Detect added services
@@ -384,7 +384,7 @@ class DiscoveryClient:
         Returns:
             Statistics dictionary
         """
-        total_services = sum(len(services) for services in self._service_cache.values())
+        total_services = (sum(len(services) for services in self._service_cache.values()),)
         healthy_services = sum(len([s for s in services if s.healthy]) for services in self._service_cache.values())
 
         return {

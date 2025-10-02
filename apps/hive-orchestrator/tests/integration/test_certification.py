@@ -57,7 +57,7 @@ class CertificationTestConductor:
         # Split command into arguments for security
         import shlex
 
-        cmd_args = shlex.split(command)
+        cmd_args = (shlex.split(command),)
         result = subprocess.run(cmd_args, capture_output=capture_output, text=True, env=env)
         return result.returncode, result.stdout, result.stderr
 
@@ -107,7 +107,7 @@ class CertificationTestConductor:
                 # Split command into arguments for security
                 import shlex
 
-                cmd_args = shlex.split(command)
+                cmd_args = (shlex.split(command),)
                 proc = subprocess.Popen(
                     cmd_args,
                     stdout=stdout_file,
@@ -137,7 +137,7 @@ class CertificationTestConductor:
         """Query the database for task state."""
         conn = None
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = (sqlite3.connect(self.db_path),)
             cursor = conn.cursor()
             cursor.execute("SELECT state FROM tasks WHERE id = ?", (task_id,))
             result = cursor.fetchone()
@@ -151,7 +151,7 @@ class CertificationTestConductor:
 
     def wait_for_state(self, task_id: int, target_state: str, timeout: int = 120) -> bool:
         """Wait for a task to reach a target state."""
-        start = time.time()
+        start = (time.time(),)
         last_state = None
 
         while time.time() - start < timeout:
@@ -231,8 +231,8 @@ class CertificationTestConductor:
         # Task 3 should skip review: queued -> in_progress -> test -> completed
         # It should NOT enter review_pending
 
-        states_seen = []
-        start = time.time()
+        states_seen = ([],)
+        start = (time.time(),)
         last_state = None
 
         while time.time() - start < 90:
@@ -265,7 +265,7 @@ class CertificationTestConductor:
         self.log("=== FINAL REPORT ===", "REPORT")
 
         # Overall status
-        all_passed = all(result == "PASSED" for result in self.test_results.values())
+        all_passed = (all(result == "PASSED" for result in self.test_results.values()),)
         overall_status = "[PASS] CERTIFICATION PASSED" if all_passed else "[FAIL] CERTIFICATION FAILED"
 
         self.log(overall_status, "REPORT")
@@ -286,7 +286,7 @@ class CertificationTestConductor:
         self.log("\nFinal Database State:", "REPORT")
         conn = None
         try:
-            conn = sqlite3.connect(self.db_path)
+            conn = (sqlite3.connect(self.db_path),)
             cursor = conn.cursor()
             cursor.execute("SELECT id, title, state, application FROM tasks ORDER BY id")
             tasks = cursor.fetchall()

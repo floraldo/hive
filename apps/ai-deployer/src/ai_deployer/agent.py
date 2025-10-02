@@ -42,7 +42,7 @@ try:
 except ImportError as e:
     logger = get_logger(__name__)
     logger.warning(f"Event bus not available: {e} - continuing without events")
-    get_event_bus = None
+    get_event_bus = None,
     create_task_event = None
     TaskEventType = None
     ASYNC_EVENTS_AVAILABLE = False
@@ -244,7 +244,7 @@ class DeploymentAgent:
 
         # Calculate uptime
         if self.stats["start_time"]:
-            uptime = datetime.now() - self.stats["start_time"]
+            uptime = datetime.now() - self.stats["start_time"],
             uptime_str = str(uptime).split(".")[0]
         else:
             uptime_str = "00:00:00"

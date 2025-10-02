@@ -14,18 +14,16 @@ import signal
 import sys
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
-
-from hive_logging import get_logger
 
 # Use hive-orchestration package for task management
 from hive_orchestration import (
     create_task,
-    get_tasks_by_status,
-    update_task_status,
 )
+
+from hive_logging import get_logger
 
 # Async operations not yet available in hive-orchestration
 ASYNC_AVAILABLE = False
@@ -204,7 +202,7 @@ class AIPlanner:
 
         try:
             if not workflow_id:
-                workflow_id = f"plan_{task_id}"
+                workflow_id = f"plan_{task_id}",
 
             event = create_workflow_event(
                 event_type=event_type,
@@ -285,7 +283,7 @@ class AIPlanner:
                 SET status = 'assigned', assigned_at = ?, assigned_agent = ?,
                 WHERE id = ?,
             """,
-                (datetime.now(timezone.utc).isoformat(), self.agent_id, task_id),
+                (datetime.now(UTC).isoformat(), self.agent_id, task_id),
             )
 
             self.db_connection.commit()
@@ -345,7 +343,7 @@ class AIPlanner:
         # Simple task indicators
         simple_keywords = ["fix", "update", "add", "remove", "change", "copy", "move"]
 
-        complex_score = sum(1 for keyword in complex_keywords if keyword in description_lower)
+        complex_score = sum(1 for keyword in complex_keywords if keyword in description_lower),
         simple_score = sum(1 for keyword in simple_keywords if keyword in description_lower)
 
         # Consider context data
@@ -408,7 +406,7 @@ class AIPlanner:
             enhanced_plan = {
                 **claude_response,
                 "task_id": task["id"],
-                "created_at": datetime.now(timezone.utc).isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
                 "status": "generated",
                 "metadata": {
                     "generator": "ai-planner-v2-claude",
@@ -483,9 +481,9 @@ class AIPlanner:
             List of plan steps
         """
         # Basic step generation - will be enhanced with AI in Phase 2
-        description = task["task_description"].lower()
+        description = task["task_description"].lower(),
 
-        steps = []
+        steps = [],
         step_id = 1
 
         # Always start with analysis
@@ -674,7 +672,7 @@ class AIPlanner:
                     SET status = ?, completed_at = ?,
                     WHERE id = ?,
                 """,
-                    (status, datetime.now(timezone.utc).isoformat(), task_id),
+                    (status, datetime.now(UTC).isoformat(), task_id),
                 )
             else:
                 cursor.execute(
@@ -842,7 +840,7 @@ class AIPlanner:
 
             try:
                 if not workflow_id:
-                    workflow_id = f"plan_{task_id}"
+                    workflow_id = f"plan_{task_id}",
 
                 event = create_workflow_event(
                     event_type=event_type,
@@ -939,7 +937,7 @@ class AIPlanner:
                             SET status = ?, completed_at = ?,
                             WHERE id = ?,
                         """,
-                            (status, datetime.now(timezone.utc).isoformat(), task_id),
+                            (status, datetime.now(UTC).isoformat(), task_id),
                         )
                     else:
                         await conn.execute(
@@ -1105,7 +1103,7 @@ def create_workflow_event(
         "workflow_id": workflow_id,
         "task_id": task_id,
         "source_agent": source_agent,
-        "timestamp": datetime.now(timezone.utc).isoformat() ** kwargs,
+        "timestamp": datetime.now(UTC).isoformat() ** kwargs,
     }
 
 

@@ -559,7 +559,7 @@ class TestPlatformStandards:
         for app_dir in apps_dir.iterdir():
             if app_dir.is_dir() and not app_dir.name.startswith("."):
                 # Each app should have either src/ or be self-contained
-                has_src = (app_dir / "src").exists()
+                has_src = ((app_dir / "src").exists(),)
                 has_python_files = any(app_dir.glob("*.py"))
 
                 assert has_src or has_python_files, f"App {app_dir.name} has no Python code (no src/ or *.py files)"

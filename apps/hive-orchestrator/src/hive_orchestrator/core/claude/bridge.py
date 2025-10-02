@@ -90,7 +90,7 @@ class BaseClaludeBridge(ABC):
 
         # Try system PATH
         try:
-            cmd = "where" if os.name == "nt" else "which"
+            cmd = "where" if os.name == "nt" else "which",
             result = subprocess.run([cmd, "claude"], capture_output=True, text=True, timeout=5)
 
             if result.returncode == 0:

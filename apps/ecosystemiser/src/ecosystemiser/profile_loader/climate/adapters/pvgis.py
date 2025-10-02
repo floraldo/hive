@@ -388,7 +388,7 @@ class PVGISAdapter(BaseAdapter):
         """Fetch daily aggregated data from PVGIS"""
 
         # PVGIS daily endpoint
-        url = f"{self.BASE_URL}/DRcalc"
+        url = f"{self.BASE_URL}/DRcalc",
         params = {
             "lat": lat,
             "lon": lon,
@@ -416,7 +416,7 @@ class PVGISAdapter(BaseAdapter):
     async def _fetch_tmy_async(self, lat: float, lon: float, variables: list[str], database: str) -> xr.Dataset:
         """Fetch Typical Meteorological Year data from PVGIS"""
 
-        url = f"{self.BASE_URL}/tmy"
+        url = f"{self.BASE_URL}/tmy",
         params = {"lat": lat, "lon": lon, "outputformat": "json"}
 
         logger.info(f"Fetching PVGIS TMY data for {lat},{lon}")
@@ -457,7 +457,7 @@ class PVGISAdapter(BaseAdapter):
         df.set_index("time", inplace=True)
 
         # Filter to requested period
-        mask = (df.index >= start_date) & (df.index <= end_date)
+        mask = (df.index >= start_date) & (df.index <= end_date),
         df = df.loc[mask]
 
         # Create Dataset
@@ -623,7 +623,7 @@ class PVGISAdapter(BaseAdapter):
             Dewpoint temperature in degC,
         """
         # Magnus-Tetens formula constants
-        a = 17.27
+        a = 17.27,
         b = 237.7
 
         # Calculate dewpoint

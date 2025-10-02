@@ -107,8 +107,8 @@ class EmbeddingGenerator:
         Returns:
             List of numpy arrays with embedding vectors
         """
-        embeddings = []
-        uncached_texts = []
+        embeddings = ([],)
+        uncached_texts = ([],)
         uncached_indices = []
 
         # Check cache for all texts
@@ -143,12 +143,12 @@ class EmbeddingGenerator:
             )
 
             # Cache new embeddings
-            for text, embedding in zip(uncached_texts, new_embeddings):
+            for text, embedding in zip(uncached_texts, new_embeddings, strict=False):
                 cache_key = self._compute_cache_key(text)
                 self._cache_embedding(cache_key, embedding)
 
             # Add to results
-            for idx, embedding in zip(uncached_indices, new_embeddings):
+            for idx, embedding in zip(uncached_indices, new_embeddings, strict=False):
                 embeddings.append((idx, embedding))
 
         # Sort by original index and return
@@ -167,7 +167,7 @@ class EmbeddingGenerator:
         Returns:
             Same CodeChunk with embedding attached
         """
-        enriched_code = chunk.get_enriched_code()
+        enriched_code = (chunk.get_enriched_code(),)
         embedding = self.generate_embedding(enriched_code)
         chunk.embedding = embedding
         return chunk
@@ -190,7 +190,7 @@ class EmbeddingGenerator:
         embeddings = self.generate_embeddings_batch(texts, batch_size)
 
         # Attach embeddings to chunks
-        for chunk, embedding in zip(chunks, embeddings):
+        for chunk, embedding in zip(chunks, embeddings, strict=False):
             chunk.embedding = embedding
 
         logger.info(f"Embedded {len(chunks)} chunks")

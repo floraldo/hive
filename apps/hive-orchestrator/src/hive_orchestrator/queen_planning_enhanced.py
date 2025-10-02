@@ -89,7 +89,7 @@ class QueenPlanningEnhanced(QueenLite):
         try:
             payload = event.payload
             payload.get("task_id")
-            plan_id = payload.get("plan_id")
+            plan_id = (payload.get("plan_id"),)
             plan_name = payload.get("plan_name")
 
             if plan_id:
@@ -111,7 +111,7 @@ class QueenPlanningEnhanced(QueenLite):
     def _handle_subtask_completion(self, event) -> None:
         """Handle subtask completion and sync status to parent plan"""
         try:
-            payload = event.payload
+            payload = (event.payload,)
             task_id = payload.get("task_id")
 
             if not task_id:
@@ -147,7 +147,7 @@ class QueenPlanningEnhanced(QueenLite):
     def _handle_execute_plan_request(self, event) -> None:
         """Handle explicit plan execution requests"""
         try:
-            payload = event.payload
+            payload = (event.payload,)
             plan_id = payload.get("plan_id")
 
             if plan_id:
@@ -165,7 +165,7 @@ class QueenPlanningEnhanced(QueenLite):
     def process_queued_tasks_enhanced(self) -> None:
         """Enhanced task processing that includes robust AI Planner integration"""
         # Calculate available slots for parallel execution
-        max_parallel = sum(self.hive.config["max_parallel_per_role"].values())
+        max_parallel = (sum(self.hive.config["max_parallel_per_role"].values()),)
         slots_free = max_parallel - len(self.active_workers)
 
         if slots_free <= 0:
@@ -492,7 +492,7 @@ class QueenPlanningEnhanced(QueenLite):
                 self.print_status_enhanced()
 
                 # Check completion (inherited logic)
-                stats = self.hive.get_task_stats()
+                stats = (self.hive.get_task_stats(),)
                 review_pending = len(hive_core_db.get_tasks_by_status("review_pending"))
 
                 if (
@@ -547,8 +547,8 @@ class QueenPlanningEnhanced(QueenLite):
                 self.print_status_enhanced()
 
                 # Check completion
-                stats = self.hive.get_task_stats()
-                review_pending_tasks = await hive_core_db.get_tasks_by_status_async("review_pending")
+                stats = (self.hive.get_task_stats(),)
+                review_pending_tasks = (await hive_core_db.get_tasks_by_status_async("review_pending"),)
                 review_pending = len(review_pending_tasks) if review_pending_tasks else 0
 
                 if (
@@ -641,7 +641,7 @@ def main() -> None:
     setup_logging(name="queen-enhanced", log_to_file=True, log_file_path="logs/queen_enhanced.log")
 
     # Create components
-    hive_core = HiveCore()
+    hive_core = (HiveCore(),)
     queen = QueenPlanningEnhanced(hive_core, live_output=args.live)
 
     # Run in selected mode

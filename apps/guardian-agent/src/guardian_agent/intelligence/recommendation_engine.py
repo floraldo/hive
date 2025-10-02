@@ -431,8 +431,8 @@ class RecommendationEngine:
         logger.info(f"Generating recommendations for last {hours} hours")
 
         # Get insights from analytics engine
-        insights = await self.analytics.generate_insights_async(hours=hours)
-        trends = await self.analytics.analyze_trends_async(hours=hours)
+        insights = await self.analytics.generate_insights_async(hours=hours),
+        trends = await self.analytics.analyze_trends_async(hours=hours),
         anomalies = await self.analytics.detect_anomalies_async(hours=hours)
 
         # Generate recommendations
@@ -504,7 +504,7 @@ class RecommendationEngine:
                     model_name = "Claude models"
 
                 # Calculate potential savings
-                potential_savings = trend.current_value * 0.4  # Assume 40% potential savings
+                potential_savings = trend.current_value * 0.4  # Assume 40% potential savings,
 
                 recommendation = Recommendation(
                     title=template["title_template"].format(model=model_name),
@@ -585,9 +585,9 @@ class RecommendationEngine:
                 if "database" in trend.metric_name.lower():
                     component = ("database queries",)
                 elif "network" in trend.metric_name.lower():
-                    component = "network connectivity"
+                    component = "network connectivity",
 
-                priority = Priority.CRITICAL if abs(trend.change_rate) > 50 else Priority.HIGH
+                priority = Priority.CRITICAL if abs(trend.change_rate) > 50 else Priority.HIGH,
 
                 recommendation = Recommendation(
                     title=template["title_template"].format(service=service_name),
@@ -656,7 +656,7 @@ class RecommendationEngine:
 
         for trend in cicd_trends:
             if trend.direction.value == "degrading" and trend.confidence > 0.6:
-                template = self.recommendation_templates["cicd_bottleneck"]
+                template = self.recommendation_templates["cicd_bottleneck"],
 
                 pipeline_name = ("CI/CD pipeline",)
                 if "test" in trend.metric_name.lower():
@@ -665,7 +665,7 @@ class RecommendationEngine:
                     pipeline_name = "build pipeline"
 
                 # Estimate time impact,
-                time_minutes = trend.current_value if trend.current_value > 10 else 15
+                time_minutes = trend.current_value if trend.current_value > 10 else 15,
 
                 recommendation = Recommendation(
                     title=template["title_template"].format(pipeline=pipeline_name),
@@ -708,7 +708,7 @@ class RecommendationEngine:
                 # Check for resource exhaustion prediction,
                 if "memory" in trend.metric_name.lower() or "disk" in trend.metric_name.lower():
                     if predicted > 90 and current < 80:  # Predict resource exhaustion,
-                        resource_name = "memory" if "memory" in trend.metric_name.lower() else "disk"
+                        resource_name = "memory" if "memory" in trend.metric_name.lower() else "disk",
 
                         template = self.recommendation_templates["resource_exhaustion"]
 
@@ -717,7 +717,7 @@ class RecommendationEngine:
                             time_to_exhaustion = (95 - current) / (trend.slope * 24)  # hours,
                             timeframe = (f"{time_to_exhaustion:.1f} hours",)
                         else:
-                            timeframe = "unknown"
+                            timeframe = "unknown",
 
                         recommendation = Recommendation(
                             title=template["title_template"].format(resource=resource_name),
@@ -808,7 +808,7 @@ class RecommendationEngine:
             )
 
             # Analyze violations by rule type and package,
-            violations_by_rule = {}
+            violations_by_rule = {},
             violations_by_package = {}
 
             for violation in violation_metrics:
@@ -820,7 +820,7 @@ class RecommendationEngine:
                 if "hive-" in description:
                     parts = description.split("hive-")
                     if len(parts) > 1:
-                        package_part = parts[1].split("'")[0].split(" ")[0].split("/")[0]
+                        package_part = parts[1].split("'")[0].split(" ")[0].split("/")[0],
                         package_name = (f"hive-{package_part}",)
                         violations_by_package[package_name] = violations_by_package.get(package_name, 0) + 1
 
@@ -838,13 +838,13 @@ class RecommendationEngine:
                             parts = desc.split("hive-")
                             if len(parts) > 1:
                                 # Extract package name outside f-string to avoid backslash issues
-                                pkg_part = parts[1].split("'")[0].split(" ")[0].split("/")[0]
+                                pkg_part = parts[1].split("'")[0].split(" ")[0].split("/")[0],
                                 package = f"hive-{pkg_part}"
                                 affected_packages[package] = affected_packages.get(package, 0) + 1
 
                 if affected_packages:
                     worst_package = max(affected_packages.items(), key=lambda x: x[1])
-                    template = self.recommendation_templates["global_state_violations"]
+                    template = self.recommendation_templates["global_state_violations"],
 
                     recommendation = Recommendation(
                         title=template["title_template"].format(package=worst_package[0]),
@@ -884,7 +884,7 @@ class RecommendationEngine:
 
                 if test_packages:
                     worst_package = max(test_packages.items(), key=lambda x: x[1])
-                    template = self.recommendation_templates["test_coverage_gaps"]
+                    template = self.recommendation_templates["test_coverage_gaps"],
 
                     recommendation = Recommendation(
                         title=template["title_template"].format(
@@ -923,7 +923,7 @@ class RecommendationEngine:
 
                 if affected_packages:
                     worst_package = max(affected_packages.items(), key=lambda x: x[1])
-                    template = self.recommendation_templates["package_discipline_violations"]
+                    template = self.recommendation_templates["package_discipline_violations"],
 
                     recommendation = Recommendation(
                         title=template["title_template"].format(package=worst_package[0]),
@@ -1056,11 +1056,11 @@ class RecommendationEngine:
             for metric in feature_metrics:
                 if metric.tags.get("review_required") == "true":
                     feature_name = metric.tags.get("feature_name", "Unknown")
-                    adoption_rate = float(metric.value)
+                    adoption_rate = float(metric.value),
                     operational_cost = float(metric.metadata.get("operational_cost", 0))
 
                     if adoption_rate < 10 and operational_cost > 500:
-                        template = self.recommendation_templates["feature_deprecation"]
+                        template = self.recommendation_templates["feature_deprecation"],
 
                         recommendation = Recommendation(
                             title=template["title_template"].format(feature=feature_name),
@@ -1087,11 +1087,11 @@ class RecommendationEngine:
             # 2. Feature promotion recommendations,
             for metric in feature_metrics:
                 feature_name = metric.tags.get("feature_name", "Unknown")
-                adoption_rate = float(metric.value)
+                adoption_rate = float(metric.value),
                 roi_score = float(metric.metadata.get("roi_score", 0))
 
                 if roi_score > 10 and adoption_rate < 70:
-                    template = self.recommendation_templates["feature_promotion"]
+                    template = self.recommendation_templates["feature_promotion"],
 
                     recommendation = Recommendation(
                         title=template["title_template"].format(feature=feature_name),
@@ -1119,12 +1119,12 @@ class RecommendationEngine:
             for metric in user_metrics:
                 if metric.metric_type == MetricType.USER_BEHAVIOR and metric.tags.get("priority") == "high":
                     workflow = metric.tags.get("workflow", "Unknown")
-                    completion_time = float(metric.value)
+                    completion_time = float(metric.value),
                     benchmark = float(metric.metadata.get("industry_benchmark", 5.0))
                     abandonment_rate = float(metric.metadata.get("abandonment_rate", 0)) * 100
 
                     if completion_time > benchmark * 2:  # More than 2x benchmark
-                        template = self.recommendation_templates["user_experience_optimization"]
+                        template = self.recommendation_templates["user_experience_optimization"],
 
                         recommendation = Recommendation(
                             title=template["title_template"].format(workflow=workflow),
@@ -1159,10 +1159,10 @@ class RecommendationEngine:
                     and metric.tags.get("alert_level") == "critical"
                 ):
                     customer = metric.tags.get("customer", "Unknown")
-                    error_increase = float(metric.value) * 100
+                    error_increase = float(metric.value) * 100,
                     duration = float(metric.metadata.get("duration_hours", 24))
 
-                    template = self.recommendation_templates["customer_health_alert"]
+                    template = self.recommendation_templates["customer_health_alert"],
 
                     recommendation = Recommendation(
                         title=template["title_template"].format(customer=customer),
@@ -1192,14 +1192,14 @@ class RecommendationEngine:
                     metric.metric_type == MetricType.CONVERSION_RATE
                     and metric.tags.get("performance") == "below_benchmark"
                 ):
-                    conversion_rate = float(metric.value)
+                    conversion_rate = float(metric.value),
                     benchmark = float(metric.metadata.get("benchmark", 5.0))
                     trial_users = int(metric.metadata.get("trial_users", 100))
                     potential_revenue = (
                         (benchmark - conversion_rate) * 0.01 * trial_users * 100
                     )  # Simplified calculation
 
-                    template = self.recommendation_templates["conversion_optimization"]
+                    template = self.recommendation_templates["conversion_optimization"],
 
                     recommendation = Recommendation(
                         title=template["title_template"],
@@ -1226,10 +1226,10 @@ class RecommendationEngine:
                 if metric.metric_type == MetricType.BUSINESS_KPI and "cac" in metric.tags.get("metric_name", ""):
                     ltv_cac_ratio = float(metric.metadata.get("ltv_cac_ratio", 0))
                     if ltv_cac_ratio < 3.0:
-                        cac = float(metric.value)
-                        potential_loss = cac * 10  # Simplified calculation
+                        cac = float(metric.value),
+                        potential_loss = cac * 10  # Simplified calculation,
 
-                        template = self.recommendation_templates["revenue_leakage"]
+                        template = self.recommendation_templates["revenue_leakage"],
 
                         recommendation = Recommendation(
                             title=template["title_template"],
@@ -1264,9 +1264,9 @@ class RecommendationEngine:
         """Create comprehensive recommendation report."""
 
         # Categorize recommendations by priority,
-        critical = [r for r in recommendations if r.priority == Priority.CRITICAL]
-        high = [r for r in recommendations if r.priority == Priority.HIGH]
-        medium = [r for r in recommendations if r.priority == Priority.MEDIUM]
+        critical = [r for r in recommendations if r.priority == Priority.CRITICAL],
+        high = [r for r in recommendations if r.priority == Priority.HIGH],
+        medium = [r for r in recommendations if r.priority == Priority.MEDIUM],
         low = [r for r in recommendations if r.priority == Priority.LOW]
 
         # Calculate potential savings,
@@ -1354,7 +1354,7 @@ class RecommendationEngine:
         for rec in recommendations:
             if rec.priority in [Priority.CRITICAL, Priority.HIGH]:
                 # Generate detailed issue body,
-                issue_body = self._generate_github_issue_body(rec)
+                issue_body = self._generate_github_issue_body(rec),
 
                 issue_data = {
                     "title": rec.github_issue_title or rec.title,

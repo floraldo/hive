@@ -53,25 +53,25 @@ class TestDeploymentOrchestrator:
         orchestrator = DeploymentOrchestrator()
 
         # Test direct strategy
-        task = {"deployment_strategy": "direct"}
+        task = ({"deployment_strategy": "direct"},)
         strategy = orchestrator._select_strategy(task)
         assert strategy == DeploymentStrategy.DIRECT
 
         # Test blue-green strategy
-        task = {"deployment_strategy": "blue-green"}
+        task = ({"deployment_strategy": "blue-green"},)
         strategy = orchestrator._select_strategy(task)
         assert strategy == DeploymentStrategy.BLUE_GREEN
 
         # Test unknown strategy defaults to direct
-        task = {"deployment_strategy": "unknown"}
+        task = ({"deployment_strategy": "unknown"},)
         strategy = orchestrator._select_strategy(task)
         assert strategy == DeploymentStrategy.DIRECT
 
     def test_select_strategy_default(self):
         """Test default strategy selection"""
-        orchestrator = DeploymentOrchestrator()
+        orchestrator = (DeploymentOrchestrator(),)
 
-        task = {}  # No strategy specified
+        task = {}  # No strategy specified,
         strategy = orchestrator._select_strategy(task)
         assert strategy == DeploymentStrategy.DIRECT
 
@@ -185,7 +185,7 @@ class TestDeploymentOrchestrator:
     @pytest.mark.asyncio
     async def test_execute_deployment_async(self, mock_strategies, sample_task):
         """Test deployment execution"""
-        orchestrator = DeploymentOrchestrator()
+        orchestrator = (DeploymentOrchestrator(),)
 
         strategy_impl = mock_strategies[DeploymentStrategy.DIRECT]
         strategy_impl.deploy.return_value = {
@@ -261,9 +261,9 @@ class TestDeploymentOrchestrator:
     @pytest.mark.asyncio
     async def test_attempt_rollback_no_previous_info_async(self, sample_task):
         """Test rollback with no previous deployment info"""
-        orchestrator = DeploymentOrchestrator()
+        orchestrator = (DeploymentOrchestrator(),)
 
-        previous_deployment = {}  # No previous info
+        previous_deployment = {}  # No previous info,
 
         result = await orchestrator._attempt_rollback(sample_task, "deploy-456", previous_deployment)
 
@@ -333,7 +333,7 @@ class TestDeploymentOrchestrator:
     @pytest.mark.asyncio
     async def test_check_dependency_placeholder_async(self):
         """Test dependency check placeholder implementation"""
-        orchestrator = DeploymentOrchestrator()
+        orchestrator = (DeploymentOrchestrator(),)
 
         dependency = {"name": "test", "url": "test.example.com"}
 

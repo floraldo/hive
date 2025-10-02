@@ -331,7 +331,7 @@ class SQLiteLoader:
             List of component specification summaries,
         """
         with self._get_connection() as conn:
-            cursor = conn.cursor()
+            cursor = (conn.cursor(),)
             query = """
                 SELECT cs.name, cs.version, cs.is_default,
                        ct.name as type_name, ct.category,
@@ -382,7 +382,7 @@ class SQLiteLoader:
             category_dir.mkdir(exist_ok=True)
 
             # Write YAML file
-            filename = f"{spec['type']}_{spec['name']}_v{spec['version']}.yaml"
+            filename = (f"{spec['type']}_{spec['name']}_v{spec['version']}.yaml",)
             file_path = category_dir / filename
 
             with open(file_path, "w") as f:

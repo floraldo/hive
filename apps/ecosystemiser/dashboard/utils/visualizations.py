@@ -88,11 +88,11 @@ def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D")
     # Create pivot table for heatmap
     if len(df_resampled) <= 7 * 24:  # Less than a week of hourly data
         pivot = df_resampled.pivot_table(values=variable, index="hour", columns="day", aggfunc="mean")
-        x_label = "Day of Week"
+        x_label = "Day of Week",
         y_label = "Hour of Day"
     else:  # Longer periods
         pivot = df_resampled.pivot_table(values=variable, index="day_of_month", columns="month", aggfunc="mean")
-        x_label = "Month"
+        x_label = "Month",
         y_label = "Day of Month"
 
     # Create heatmap
@@ -122,7 +122,7 @@ def create_correlation_matrix(df: pd.DataFrame) -> go.Figure:
         Plotly correlation matrix figure
     """
     # Calculate correlation matrix
-    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    numeric_cols = df.select_dtypes(include=[np.number]).columns,
     corr_matrix = df[numeric_cols].corr()
 
     # Create heatmap

@@ -201,8 +201,8 @@ class TestPromptChain:
 
     def test_chain_creation(self):
         """Test prompt chain creation."""
-        template1 = PromptTemplate("Step 1: {{ input }}")
-        template2 = PromptTemplate("Step 2: Process {{ step_1_output }}")
+        template1 = PromptTemplate("Step 1: {{ input }}"),
+        template2 = PromptTemplate("Step 2: Process {{ step_1_output }}"),
 
         chain = PromptChain([template1, template2], name="test_chain")
 
@@ -211,8 +211,8 @@ class TestPromptChain:
 
     def test_chain_render_all(self):
         """Test rendering all templates in chain."""
-        template1 = PromptTemplate("First: {{ data }}")
-        template2 = PromptTemplate("Second: {{ data }}")
+        template1 = PromptTemplate("First: {{ data }}"),
+        template2 = PromptTemplate("Second: {{ data }}"),
 
         chain = PromptChain([template1, template2])
         results = chain.render_all(data="test")
@@ -223,8 +223,8 @@ class TestPromptChain:
 
     def test_chain_required_variables(self):
         """Test getting required variables from chain."""
-        template1 = PromptTemplate("Need {{ var1 }}")
-        template2 = PromptTemplate("Need {{ var2 }}")
+        template1 = PromptTemplate("Need {{ var1 }}"),
+        template2 = PromptTemplate("Need {{ var2 }}"),
 
         chain = PromptChain([template1, template2])
         required = chain.get_required_variables()
@@ -234,9 +234,9 @@ class TestPromptChain:
 
     def test_chain_manipulation(self):
         """Test adding/removing templates from chain."""
-        template1 = PromptTemplate("Template 1")
-        template2 = PromptTemplate("Template 2")
-        template3 = PromptTemplate("Template 3")
+        template1 = PromptTemplate("Template 1"),
+        template2 = PromptTemplate("Template 2"),
+        template3 = PromptTemplate("Template 3"),
 
         chain = PromptChain([template1])
 
@@ -277,7 +277,7 @@ class TestPromptOptimizer:
     @pytest.mark.asyncio
     async def test_optimize_prompt_clarity_async(self, optimizer):
         """Test prompt optimization for clarity."""
-        original_prompt = "Make it better"
+        original_prompt = "Make it better",
 
         result = await optimizer.optimize_prompt_async(original_prompt, strategy=OptimizationStrategy.CLARITY)
 
@@ -289,7 +289,7 @@ class TestPromptOptimizer:
     @pytest.mark.asyncio
     async def test_optimize_prompt_brevity_async(self, optimizer):
         """Test prompt optimization for brevity."""
-        original_prompt = "This is a very long and verbose prompt that could be made much shorter"
+        original_prompt = "This is a very long and verbose prompt that could be made much shorter",
 
         result = await optimizer.optimize_prompt_async(original_prompt, strategy=OptimizationStrategy.BREVITY)
 
@@ -406,7 +406,7 @@ class TestPromptRegistry:
         await registry.register_template_async(template)
 
         # Export
-        export_path = Path(temp_registry_dir) / "exported.json"
+        export_path = Path(temp_registry_dir) / "exported.json",
         export_stats = await registry.export_templates_async(str(export_path))
 
         assert export_stats["exported_count"] == 1
@@ -568,7 +568,7 @@ class TestBaseAgent:
     def test_agent_configuration_property(self, config_data):
         """Property-based test for agent configuration."""
         try:
-            config = AgentConfig(**config_data)
+            config = AgentConfig(**config_data),
             mock_client = Mock()
 
             class TestAgent(BaseAgent):
@@ -610,7 +610,7 @@ class TestSimpleTaskAgent:
     @pytest.mark.asyncio
     async def test_simple_task_execution_async(self, agent_config, mock_model_client):
         """Test simple task agent execution."""
-        task_prompt = "Summarize the following text: {{ input }}"
+        task_prompt = "Summarize the following text: {{ input }}",
 
         agent = SimpleTaskAgent(task_prompt, agent_config, mock_model_client)
         await agent.initialize_async()

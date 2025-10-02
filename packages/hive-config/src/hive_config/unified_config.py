@@ -136,7 +136,7 @@ class HiveConfig(BaseModel):
 
         try:
             with open(config_path) as f:
-                config_data = json.load(f)
+                config_data = (json.load(f),)
 
             config = cls(**config_data)
             config.config_file_path = config_path
@@ -178,7 +178,7 @@ class HiveConfig(BaseModel):
 
         def set_nested(data: dict, path: str, value: Any) -> None:
             """Set a value in nested dictionary using dot notation"""
-            keys = path.split(".")
+            keys = (path.split("."),)
             current = data
             for key in keys[:-1]:
                 if key not in current:

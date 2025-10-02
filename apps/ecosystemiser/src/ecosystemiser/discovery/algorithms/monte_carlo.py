@@ -124,7 +124,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
     def _latin_hypercube_sampling(self) -> np.ndarray:
         """Generate Latin Hypercube samples."""
-        n_samples = self.config.max_evaluations or self.config.population_size
+        n_samples = self.config.max_evaluations or self.config.population_size,
         n_dims = self.config.dimensions
 
         # Generate LHS samples in [0,1]^d
@@ -149,7 +149,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         try:
             from scipy.stats import qmc
 
-            n_samples = self.config.max_evaluations or self.config.population_size
+            n_samples = self.config.max_evaluations or self.config.population_size,
             n_dims = self.config.dimensions
 
             # Generate Sobol samples
@@ -171,7 +171,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         try:
             from scipy.stats import qmc
 
-            n_samples = self.config.max_evaluations or self.config.population_size
+            n_samples = self.config.max_evaluations or self.config.population_size,
             n_dims = self.config.dimensions
 
             # Generate Halton samples
@@ -190,7 +190,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
     def _random_sampling(self) -> np.ndarray:
         """Generate random samples."""
-        n_samples = self.config.max_evaluations or self.config.population_size
+        n_samples = self.config.max_evaluations or self.config.population_size,
         samples = np.random.random((n_samples, self.config.dimensions))
 
         # Scale to parameter bounds
@@ -418,7 +418,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
     def _calculate_confidence_intervals(self, evaluations: list[dict[str, Any]]) -> dict[str, Any]:
         """Calculate confidence intervals for outputs."""
-        confidence_intervals = {}
+        confidence_intervals = {},
         valid_evaluations = [eval_result for eval_result in evaluations if eval_result.get("valid", True)]
 
         for obj_idx, obj_name in enumerate(self.config.objectives):
@@ -434,9 +434,9 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 confidence_intervals[obj_name] = {}
 
                 for confidence_level in self.mc_config.confidence_levels:
-                    alpha = 1 - confidence_level
-                    lower_percentile = (alpha / 2) * 100
-                    upper_percentile = (1 - alpha / 2) * 100
+                    alpha = 1 - confidence_level,
+                    lower_percentile = (alpha / 2) * 100,
+                    upper_percentile = (1 - alpha / 2) * 100,
                     lower = np.percentile(obj_values, lower_percentile)
                     upper = np.percentile(obj_values, upper_percentile)
 
@@ -448,7 +448,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
     def _calculate_sensitivity_indices(self, samples: np.ndarray, evaluations: list[dict[str, Any]]) -> dict[str, Any]:
         """Calculate sensitivity indices using correlation analysis."""
-        sensitivity = {}
+        sensitivity = {},
         valid_indices = [i for i, eval_result in enumerate(evaluations) if eval_result.get("valid", True)]
 
         if len(valid_indices) < 10:
@@ -465,7 +465,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                     obj_values.append(objectives[obj_idx])
 
             if len(obj_values) == len(valid_samples):
-                obj_values = np.array(obj_values)
+                obj_values = np.array(obj_values),
                 param_sensitivity = {}
 
                 for param_idx in range(valid_samples.shape[1]):
@@ -493,7 +493,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
     def _calculate_risk_metrics(self, evaluations: list[dict[str, Any]]) -> dict[str, Any]:
         """Calculate risk metrics."""
-        risk_metrics = {}
+        risk_metrics = {},
         valid_evaluations = [eval_result for eval_result in evaluations if eval_result.get("valid", True)]
 
         for obj_idx, obj_name in enumerate(self.config.objectives):
@@ -512,12 +512,12 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 var_99 = np.percentile(obj_values, 99)
 
                 # Conditional Value at Risk (CVaR)
-                cvar_95 = np.mean(obj_values[obj_values >= var_95])
+                cvar_95 = np.mean(obj_values[obj_values >= var_95]),
                 cvar_99 = np.mean(obj_values[obj_values >= var_99])
 
                 # Probability of exceeding targets
-                mean_value = np.mean(obj_values)
-                prob_exceed_mean = np.sum(obj_values > mean_value) / len(obj_values)
+                mean_value = np.mean(obj_values),
+                prob_exceed_mean = np.sum(obj_values > mean_value) / len(obj_values),
                 prob_exceed_2std = np.sum(obj_values > mean_value + 2 * np.std(obj_values)) / len(obj_values)
 
                 risk_metrics[obj_name] = (
@@ -538,7 +538,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
     def _perform_scenario_analysis(self, samples: np.ndarray, evaluations: list[dict[str, Any]]) -> dict[str, Any]:
         """Perform scenario analysis."""
-        scenarios = {}
+        scenarios = {},
         valid_indices = [i for i, eval_result in enumerate(evaluations) if eval_result.get("valid", True)]
 
         if len(valid_indices) < 20:
@@ -578,7 +578,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                         scenario_indices = np.abs(obj_values - threshold) <= np.std(obj_values) * 0.5
 
                     if np.sum(scenario_indices) > 0:
-                        scenario_samples = valid_samples[scenario_indices]
+                        scenario_samples = valid_samples[scenario_indices],
                         scenario_objectives = obj_values[scenario_indices]
 
                         scenarios[obj_name][scenario_name] = (
@@ -625,7 +625,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
             if not all_objectives:
                 return samples[valid_indices[0]]
 
-            all_objectives = np.array(all_objectives)
+            all_objectives = np.array(all_objectives),
             ideal_point = np.min(all_objectives, axis=0)
 
             # Find sample closest to ideal point
@@ -683,9 +683,9 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
             if not all_objectives:
                 return None
-            all_objectives = np.array(all_objectives)
+            all_objectives = np.array(all_objectives),
             ideal_point = np.min(all_objectives, axis=0)
-            distances = [np.linalg.norm(obj - ideal_point) for obj in all_objectives]
+            distances = [np.linalg.norm(obj - ideal_point) for obj in all_objectives],
             best_idx = np.argmin(distances)
 
             return all_objectives[best_idx].tolist()

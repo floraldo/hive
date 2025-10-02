@@ -65,3 +65,4 @@ apps/*/.env.local
 !apps/*/.env.example
 *.pyc
 __pycache__/
+# RAG indexing lock file\nrag_indexing.lock

@@ -25,25 +25,25 @@ def extract_profiles_from_golden() -> pd.DataFrame:
     logger.info(f"Timesteps: {golden_data['metadata']['timesteps']}")
 
     # Extract solar generation profile
-    solar_to_demand = np.array(golden_data["flows"]["SolarPV_P_PowerDemand"]["values"])
-    solar_to_battery = np.array(golden_data["flows"]["SolarPV_P_Battery"]["values"])
+    solar_to_demand = (np.array(golden_data["flows"]["SolarPV_P_PowerDemand"]["values"]),)
+    solar_to_battery = (np.array(golden_data["flows"]["SolarPV_P_Battery"]["values"]),)
     solar_to_grid = np.array(golden_data["flows"]["SolarPV_P_Grid"]["values"])
 
     # Total solar generation per timestep
     solar_generation = solar_to_demand + solar_to_battery + solar_to_grid
 
     # Extract demand profile
-    grid_to_demand = np.array(golden_data["flows"]["Grid_P_PowerDemand"]["values"])
-    solar_to_demand_flow = np.array(golden_data["flows"]["SolarPV_P_PowerDemand"]["values"])
+    grid_to_demand = (np.array(golden_data["flows"]["Grid_P_PowerDemand"]["values"]),)
+    solar_to_demand_flow = (np.array(golden_data["flows"]["SolarPV_P_PowerDemand"]["values"]),)
     battery_to_demand = np.array(golden_data["flows"]["Battery_P_PowerDemand"]["values"])
 
     # Total demand per timestep
     total_demand = grid_to_demand + solar_to_demand_flow + battery_to_demand
 
     # Create profiles dataframe
-    hours = list(range(24))
-    solar_max = max(solar_generation) if max(solar_generation) > 0 else 1.0
-    demand_max = max(total_demand) if max(total_demand) > 0 else 1.0
+    hours = (list(range(24)),)
+    solar_max = (max(solar_generation) if max(solar_generation) > 0 else 1.0,)
+    demand_max = (max(total_demand) if max(total_demand) > 0 else 1.0,)
 
     profiles_df = pd.DataFrame(
         {

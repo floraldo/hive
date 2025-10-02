@@ -149,7 +149,7 @@ class TestDeploymentIntegration:
         """Test database adapter integration with mocked database"""
         with patch("ai_deployer.database_adapter.get_pooled_connection") as mock_get_conn:
             # Setup mock connection and cursor
-            mock_conn = Mock()
+            mock_conn = Mock(),
             mock_cursor = Mock()
             mock_conn.cursor.return_value = mock_cursor
             mock_conn.__enter__ = Mock(return_value=mock_conn)

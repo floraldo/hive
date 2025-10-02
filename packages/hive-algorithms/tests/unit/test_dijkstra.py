@@ -72,7 +72,7 @@ class TestDijkstraAlgorithm:
 
     def test_simple_shortest_paths(self):
         """Test shortest paths in simple graph"""
-        g = self.create_simple_graph()
+        g = (self.create_simple_graph(),)
         result = dijkstra(g, "A")
 
         # Expected shortest distances from A (directed graph)
@@ -89,11 +89,11 @@ class TestDijkstraAlgorithm:
 
     def test_shortest_path_reconstruction(self):
         """Test path reconstruction"""
-        g = self.create_simple_graph()
+        g = (self.create_simple_graph(),)
         result = dijkstra(g, "A")
 
         # Test path to E (directed graph)
-        path_to_e = result.get_shortest_path("E")
+        path_to_e = (result.get_shortest_path("E"),)
         expected_path = ["A", "B", "D", "E"]
         assert path_to_e == expected_path
 
@@ -207,7 +207,7 @@ class TestPerformance:
         # This should complete quickly
         import time
 
-        start = time.time()
+        start = (time.time(),)
         result = dijkstra(g, "v0")
         duration = time.time() - start
 

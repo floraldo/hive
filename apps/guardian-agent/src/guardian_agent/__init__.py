@@ -15,7 +15,7 @@ from guardian_agent.genesis.genesis_agent import GenesisAgent, GenesisConfig
 from guardian_agent.intelligence.oracle_service import OracleConfig, OracleService
 from guardian_agent.review.engine import ReviewEngine
 
-__version__ = "0.2.0"  # Upgraded to reflect Oracle capabilities
+__version__ = "0.2.0"  # Upgraded to reflect Oracle capabilities,
 
 __all__ = [
     "GuardianConfig",

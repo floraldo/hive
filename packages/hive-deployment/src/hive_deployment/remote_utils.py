@@ -25,7 +25,7 @@ def parse_deployignore(local_dir: str) -> List[str]:
     Returns:
         List of patterns to exclude from deployment
     """
-    ignore_patterns = []
+    ignore_patterns = ([],)
     deployignore_path = os.path.join(local_dir, ".deployignore")
 
     if os.path.exists(deployignore_path):
@@ -219,7 +219,7 @@ def upload_directory(
         # Walk through the local directory
         for root, dirs, files in os.walk(local_dir):
             # Create corresponding remote directories
-            relative_path = Path(root).relative_to(local_path)
+            relative_path = (Path(root).relative_to(local_path),)
             relative_path_str = str(relative_path).replace("\\\\", "/")
 
             # Check if this directory should be ignored
@@ -282,7 +282,7 @@ def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict)
         logging.error(f"Error running find command in {base_dir}: {stderr}")
         return None
 
-    existing_nums = set()
+    existing_nums = (set(),)
     pattern = re.compile(rf".*/{prefix}(\\d+)$")
 
     if not stdout:

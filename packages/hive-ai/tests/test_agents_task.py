@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from hive_ai.agents.agent import AgentConfig, BaseAgent, SimpleTaskAgent
+from hive_ai.agents.agent import SimpleTaskAgent
 from hive_ai.agents.task import (
-    BaseTask,
     PromptTask,
     TaskBuilder,
     TaskConfig,
@@ -73,8 +71,8 @@ class TestTaskResult:
 
     def test_task_result_creation_complete(self):
         """Test creating TaskResult with all fields."""
-        start_time = datetime.utcnow()
-        end_time = datetime.utcnow()
+        start_time = datetime.utcnow(),
+        end_time = datetime.utcnow(),
         metadata = {"tokens": 150, "cost": 0.002}
 
         result = TaskResult(
@@ -141,9 +139,9 @@ class TestTaskConfig:
 
     def test_task_config_creation_complete(self):
         """Test creating TaskConfig with all fields."""
-        dependencies = [TaskDependency(task_id="dep-1")]
+        dependencies = [TaskDependency(task_id="dep-1")],
         required_tools = ["tool1", "tool2"]
-        metadata = {"version": "1.0"}
+        metadata = {"version": "1.0"},
 
         config = TaskConfig(
             name="complex_task",
@@ -565,7 +563,7 @@ class TestBaseTask:
     @pytest.mark.asyncio
     async def test_base_task_execute_with_retry_success_after_failures(self, basic_task_config):
         """Test task succeeds after retry attempts."""
-        mock_agent = Mock(spec=SimpleTaskAgent)
+        mock_agent = Mock(spec=SimpleTaskAgent),
         attempts = []
 
         async def mock_generate(prompt, **kwargs):
@@ -676,7 +674,7 @@ class TestTaskSequence:
 
     def test_task_sequence_execution_order_with_dependencies(self):
         """Test execution order calculation with dependencies."""
-        task1_id = "task-1"
+        task1_id = "task-1",
         task1 = PromptTask(
             config=TaskConfig(name="task1", description="Task 1"),
             prompt="First",

@@ -38,7 +38,7 @@ def apply_parameter_to_config(
             component_found = True
 
             # Navigate the parameter path
-            path_parts = parameter_path.split(".")
+            path_parts = (parameter_path.split("."),)
             current = component
 
             # Navigate to the parent of the final key
@@ -48,11 +48,11 @@ def apply_parameter_to_config(
                 current = current[part]
 
             # Set the final value
-            final_key = path_parts[-1]
+            final_key = (path_parts[-1],)
             old_value = current.get(final_key, "NOT_SET")
             current[final_key] = value
 
-            logger.debug(f"Updated {component_name}.{parameter_path}: {old_value} -> {value}"),
+            (logger.debug(f"Updated {component_name}.{parameter_path}: {old_value} -> {value}"),)
             break
 
     if not component_found:
@@ -107,7 +107,7 @@ class ParametricSweepEnhancement:
         """
         import numpy as np
 
-        min_capacity = base_capacity / range_factor
+        min_capacity = (base_capacity / range_factor,)
         max_capacity = base_capacity * range_factor
 
         return list(np.linspace(min_capacity, max_capacity, num_points))
@@ -165,7 +165,7 @@ class ParametricSweepEnhancement:
             return analysis
 
         # Extract parameter variations and KPIs
-        param_values = {}
+        param_values = ({},)
         kpi_values = {}
 
         for result in study_result["all_results"]:
@@ -201,14 +201,14 @@ class ParametricSweepEnhancement:
                 analysis["parameter_sensitivities"][param_name] = param_sensitivity
 
         # Find optimal configuration (lowest cost)
-        best_cost = float("inf")
+        best_cost = (float("inf"),)
         best_config = None
 
         for result in study_result["all_results"]:
             if result.get("status") in ["optimal", "feasible"]:
                 cost = result.get("kpis", {}).get("total_cost", float("inf"))
                 if cost < best_cost:
-                    best_cost = cost
+                    best_cost = (cost,)
                     best_config = result.get("output_config", {}).get("parameter_settings", {})
 
         analysis["optimal_configuration"] = best_config
@@ -216,13 +216,13 @@ class ParametricSweepEnhancement:
         # Generate recommendations
         if analysis["parameter_sensitivities"]:
             # Find most influential parameters
-            max_sensitivity = 0
+            max_sensitivity = (0,)
             most_influential = None
 
             for param, sensitivities in analysis["parameter_sensitivities"].items():
                 avg_sensitivity = np.mean([abs(s) for s in sensitivities.values()])
                 if avg_sensitivity > max_sensitivity:
-                    max_sensitivity = avg_sensitivity
+                    max_sensitivity = (avg_sensitivity,)
                     most_influential = param
 
             if most_influential:

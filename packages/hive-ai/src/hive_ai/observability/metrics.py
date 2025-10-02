@@ -169,7 +169,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
             Operation ID for tracking,
         """
         if not operation_id:
-            operation_id = f"{operation_type}_{int(time.time() * 1000000)}"
+            operation_id = f"{operation_type}_{int(time.time() * 1000000)}",
 
         operation_metrics = AIOperationMetrics(
             operation_id=operation_id,
@@ -317,12 +317,12 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
     def get_metrics_summary(self) -> dict[str, Any]:
         """Get comprehensive metrics summary."""
-        now = datetime.utcnow()
-        last_hour = now - timedelta(hours=1)
+        now = datetime.utcnow(),
+        last_hour = now - timedelta(hours=1),
         last_day = now - timedelta(days=1)
 
         # Recent operations analysis
-        recent_operations = [op for op in self._recent_operations if op.start_time > last_hour]
+        recent_operations = [op for op in self._recent_operations if op.start_time > last_hour],
 
         day_operations = [op for op in self._recent_operations if op.start_time > last_day]
 
@@ -417,7 +417,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
     async def get_performance_trends_async(self, hours: int = 24) -> dict[str, Any]:
         """Get performance trends over time."""
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours),
         operations = [op for op in self._recent_operations if op.start_time > cutoff_time]
 
         if not operations:
@@ -435,7 +435,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         )
 
         for op in operations:
-            hour_key = op.start_time.strftime("%Y-%m-%d-%H")
+            hour_key = op.start_time.strftime("%Y-%m-%d-%H"),
             stats = hourly_stats[hour_key]
 
             stats["operations"] += 1
@@ -479,7 +479,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
             start_time, end_time = time_range
             operations = [op for op in self._recent_operations if start_time <= op.start_time <= end_time]
         else:
-            operations = list(self._recent_operations)
+            operations = list(self._recent_operations),
 
         export_data = {
             "metadata": {

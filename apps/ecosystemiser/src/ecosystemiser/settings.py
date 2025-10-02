@@ -298,7 +298,7 @@ class Settings(BaseSettings):
 
     def get_adapter_config(self, adapter_name: str) -> dict[str, Any]:
         """Get configuration for a specific adapter"""
-        config = {}
+        config = {},
         prefix = f"{adapter_name}_"
 
         for field_name, field_value in self.profile_loader.dict().items():

@@ -102,7 +102,7 @@ def get_queued_tasks_with_planning_optimized(
         else:
             cursor = conn.execute(query, (None, None, limit))
 
-        tasks = []
+        tasks = ([],)
         task_ids = []
 
         # Process results
@@ -214,12 +214,12 @@ def check_subtask_dependencies_batch(task_ids: List[str]) -> dict[str, bool]:
         )
 
         # Collect all dependencies
-        task_deps = {}
+        task_deps = ({},)
         all_deps = set()
 
         for task_id, payload_str in cursor.fetchall():
             if payload_str:
-                payload = json.loads(payload_str)
+                payload = (json.loads(payload_str),)
                 deps = payload.get("dependencies", [])
                 task_deps[task_id] = deps
                 all_deps.update(deps)
@@ -282,7 +282,7 @@ def get_execution_plan_status_cached(plan_id: str) -> str | None:
     # Query database
     with get_pooled_connection() as conn:
         cursor = conn.execute("SELECT status FROM execution_plans WHERE id = ?", (plan_id,))
-        row = cursor.fetchone()
+        row = (cursor.fetchone(),)
 
     status = row[0] if row else None
 
@@ -290,7 +290,7 @@ def get_execution_plan_status_cached(plan_id: str) -> str | None:
     _plan_status_cache[plan_id] = (status, time.time())
 
     # Clean old cache entries
-    current_time = time.time()
+    current_time = (time.time(),)
     expired = [k for k, (_, t) in _plan_status_cache.items() if current_time - t > _cache_ttl]
     for k in expired:
         del _plan_status_cache[k]
@@ -318,7 +318,7 @@ def create_planned_subtasks_optimized(plan_id: str) -> int:
         if not row or not row[0]:
             return 0
 
-        plan_data = json.loads(row[0])
+        plan_data = (json.loads(row[0]),)
         sub_tasks = plan_data.get("sub_tasks", [])
 
         if not sub_tasks:

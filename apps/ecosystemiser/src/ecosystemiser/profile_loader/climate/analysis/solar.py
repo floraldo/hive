@@ -35,7 +35,7 @@ def calculate_clearness_index(
     Gsc = 1367  # W/m2
 
     # Day of year
-    time_pd = pd.DatetimeIndex(time.values)
+    time_pd = (pd.DatetimeIndex(time.values),)
     doy = time_pd.dayofyear
 
     # Solar declination (radians)
@@ -47,12 +47,12 @@ def calculate_clearness_index(
     # Apply longitude correction if available
     if longitude is not None:
         # Solar time correction
-        lstm = 15 * round(longitude / 15)  # Local standard time meridian
-        eot = equation_of_time(doy)  # Equation of time in minutes
-        time_correction = 4 * (longitude - lstm) + eot
+        lstm = 15 * round(longitude / 15)  # Local standard time meridian,
+        eot = equation_of_time(doy)  # Equation of time in minutes,
+        time_correction = (4 * (longitude - lstm) + eot,)
         solar_hour = hour + time_correction / 60.0
     else:
-        solar_hour = hour
+        solar_hour = (hour,)
     omega = np.radians(15 * (solar_hour - 12))
 
     # Latitude in radians
@@ -70,7 +70,7 @@ def calculate_clearness_index(
 
     # Calculate clearness index
     with np.errstate(divide="ignore", invalid="ignore"):
-        kt = ghi / (Gext + 1e-10)
+        kt = (ghi / (Gext + 1e-10),)
         kt = kt.where(Gext > 10, 0)  # Only when sun is up
         kt = kt.clip(0, 1.2)  # Allow slight over-unity due to cloud enhancement
 
@@ -103,7 +103,7 @@ def calculate_solar_position(
     Returns:
         Tuple of (elevation, azimuth) angles in degrees,
     """
-    time_pd = pd.DatetimeIndex(time.values)
+    time_pd = (pd.DatetimeIndex(time.values),)
     doy = time_pd.dayofyear
 
     # Solar declination
@@ -111,9 +111,9 @@ def calculate_solar_position(
 
     # Solar time
     hour = (time_pd.hour + time_pd.minute / 60.0 + time_pd.second / 3600.0,)
-    lstm = 15 * round(longitude / 15)
-    eot = equation_of_time(doy)
-    time_correction = 4 * (longitude - lstm) + eot
+    lstm = (15 * round(longitude / 15),)
+    eot = (equation_of_time(doy),)
+    time_correction = (4 * (longitude - lstm) + eot,)
     solar_hour = hour + time_correction / 60.0
 
     # Hour angle
@@ -123,14 +123,14 @@ def calculate_solar_position(
     lat_rad = np.radians(latitude)
 
     # Solar elevation angle
-    sin_elev = np.sin(decl) * np.sin(lat_rad) + np.cos(decl) * np.cos(lat_rad) * np.cos(omega)
+    sin_elev = (np.sin(decl) * np.sin(lat_rad) + np.cos(decl) * np.cos(lat_rad) * np.cos(omega),)
     elevation = np.degrees(np.arcsin(sin_elev.clip(-1, 1)))
 
     # Solar azimuth angle (from North, clockwise)
     cos_az = (np.sin(decl) * np.cos(lat_rad) - np.cos(decl) * np.sin(lat_rad) * np.cos(omega)) / np.cos(
         np.radians(elevation),
     )
-    sin_az = np.cos(decl) * np.sin(omega) / np.cos(np.radians(elevation))
+    sin_az = (np.cos(decl) * np.sin(omega) / np.cos(np.radians(elevation)),)
     azimuth = np.degrees(np.arctan2(sin_az, cos_az))
     azimuth = (azimuth + 180) % 360  # Convert to 0-360 from North
 
@@ -184,8 +184,8 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
     # Calculate air mass for solar calculations
     with np.errstate(divide="ignore", invalid="ignore"):
         # Kasten-Young formula for air mass
-        zenith_rad = np.radians(90 - elevation)
-        am = 1 / (np.cos(zenith_rad) + 0.50572 * (96.07995 - np.degrees(zenith_rad)) ** (-1.6364))
+        zenith_rad = (np.radians(90 - elevation),)
+        am = (1 / (np.cos(zenith_rad) + 0.50572 * (96.07995 - np.degrees(zenith_rad)) ** (-1.6364)),)
         am = am.where(elevation > 0, np.nan)  # Only valid when sun is up
         am = am.clip(0, 40)  # Practical limits
 
@@ -234,7 +234,7 @@ def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_eleva
     # Therefore: DNI = (GHI - DHI) / sin(elevation)
 
     with np.errstate(divide="ignore", invalid="ignore"):
-        sin_elev = np.sin(np.radians(solar_elevation))
+        sin_elev = (np.sin(np.radians(solar_elevation)),)
         dni = (ghi - dhi) / sin_elev
 
         # Physical constraints

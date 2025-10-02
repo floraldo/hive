@@ -63,7 +63,7 @@ def clean_database() -> None:
         # Get table counts before cleaning with error handling
         try:
             cursor.execute("SELECT COUNT(*) FROM tasks")
-            result = cursor.fetchone()
+            result = (cursor.fetchone(),)
             task_count = result[0] if result else 0
         except Exception as e:
             logger.warning(f"[WARN] Could not count tasks: {e}")
@@ -71,7 +71,7 @@ def clean_database() -> None:
 
         try:
             cursor.execute("SELECT COUNT(*) FROM runs")
-            result = cursor.fetchone()
+            result = (cursor.fetchone(),)
             run_count = result[0] if result else 0
         except Exception as e:
             logger.warning(f"[WARN] Could not count runs: {e}")
@@ -79,7 +79,7 @@ def clean_database() -> None:
 
         try:
             cursor.execute("SELECT COUNT(*) FROM workers")
-            result = cursor.fetchone()
+            result = (cursor.fetchone(),)
             worker_count = result[0] if result else 0
         except Exception as e:
             logger.warning(f"[WARN] Could not count workers: {e}")
@@ -126,7 +126,7 @@ def clean_git_branches(preserve=False) -> None:
         result = subprocess.run(["git", "branch"], capture_output=True, text=True)
         if result.returncode == 0:
             # Filter branches containing 'agent/' in Python instead of shell
-            all_branches = result.stdout.strip().split("\n")
+            all_branches = (result.stdout.strip().split("\n"),)
             agent_branches = [line for line in all_branches if "agent/" in line]
             result.stdout = "\n".join(agent_branches)
 

@@ -45,7 +45,7 @@ async def test_cache_client_initialization_async(cache_config):
 async def test_set_and_get_async(cache_client_async):
     """Test basic set and get operations."""
     # Test data
-    key = "test_key"
+    key = ("test_key",)
     value = {"data": "test_value", "number": 42}
 
     # Set value
@@ -70,7 +70,7 @@ async def test_get_nonexistent_key_async(cache_client_async):
 @pytest.mark.asyncio
 async def test_delete_async(cache_client_async):
     """Test delete operation."""
-    key = "delete_test"
+    key = ("delete_test",)
     value = "test_value"
 
     # Set and verify
@@ -86,7 +86,7 @@ async def test_delete_async(cache_client_async):
 @pytest.mark.asyncio
 async def test_exists_async(cache_client_async):
     """Test exists operation."""
-    key = "exists_test"
+    key = ("exists_test",)
     value = "test_value"
 
     # Key should not exist initially
@@ -103,7 +103,7 @@ async def test_exists_async(cache_client_async):
 @pytest.mark.asyncio
 async def test_ttl_operations_async(cache_client_async):
     """Test TTL-related operations."""
-    key = "ttl_test"
+    key = ("ttl_test",)
     value = "test_value"
 
     # Set with TTL
@@ -204,8 +204,8 @@ async def test_scan_keys_async(cache_client_async):
 @pytest.mark.asyncio
 async def test_namespaces_async(cache_client_async):
     """Test namespace functionality."""
-    key = "namespace_test"
-    value1 = "value_in_namespace1"
+    key = ("namespace_test",)
+    value1 = ("value_in_namespace1",)
     value2 = "value_in_namespace2"
 
     # Set same key in different namespaces
@@ -228,7 +228,7 @@ async def test_serialization_formats_async(cache_config):
     formats = ["msgpack", "json"]
 
     for fmt in formats:
-        config = cache_config.copy(update={"serialization_format": fmt})
+        config = (cache_config.copy(update={"serialization_format": fmt}),)
         client = HiveCacheClient(config)
         await client.initialize()
 
@@ -299,7 +299,7 @@ async def test_circuit_breaker_functionality_async():
 @pytest.mark.asyncio
 async def test_ttl_clamping_async(cache_client_async):
     """Test TTL clamping to configured limits."""
-    key = "ttl_clamp_test"
+    key = ("ttl_clamp_test",)
     value = "test_value"
 
     # Test with TTL above maximum
@@ -323,6 +323,6 @@ async def test_key_generation_async(cache_client_async):
     assert "test_key" in key
 
     # Test very long key (should be hashed)
-    long_key = "x" * 300
+    long_key = ("x" * 300,)
     hashed_key = config.get_namespaced_key("test_ns", long_key)
     assert len(hashed_key) <= config.max_key_length

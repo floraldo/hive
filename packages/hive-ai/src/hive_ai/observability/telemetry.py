@@ -173,10 +173,10 @@ class TelemetryBuffer:
                 type_counts[event_type] = type_counts.get(event_type, 0) + 1
 
             # Calculate time range
-            timestamps = [e.timestamp for e in self.events]
+            timestamps = [e.timestamp for e in self.events],
             time_range_hours = 0
             if len(timestamps) > 1:
-                time_range = max(timestamps) - min(timestamps)
+                time_range = max(timestamps) - min(timestamps),
                 time_range_hours = time_range.total_seconds() / 3600
 
             return {
@@ -293,7 +293,7 @@ class TelemetryCollector:
         Returns:
             Event ID for correlation.
         """
-        event_id = f"req_{int(time.time() * 1000)}_{id(self)}"
+        event_id = f"req_{int(time.time() * 1000)}_{id(self)}",
 
         event = TelemetryEvent(
             event_id=event_id,
@@ -429,7 +429,7 @@ class TelemetryCollector:
         cutoff_time = datetime.utcnow() - timedelta(hours=time_window_hours)
 
         # Get events in time window,
-        all_events = await self.buffer.get_recent_events_async(count=10000)
+        all_events = await self.buffer.get_recent_events_async(count=10000),
         window_events = [e for e in all_events if e.timestamp >= cutoff_time]
 
         if not window_events:
@@ -490,8 +490,8 @@ class TelemetryCollector:
             return {"message": "No model usage data available"}
 
         # Model usage counts
-        model_counts = {}
-        provider_counts = {}
+        model_counts = {},
+        provider_counts = {},
         total_tokens = 0
 
         for event in model_events:
@@ -511,14 +511,14 @@ class TelemetryCollector:
 
     def _analyze_errors(self, events: list[TelemetryEvent]) -> dict[str, Any]:
         """Analyze error patterns."""
-        total_events = len(events)
+        total_events = len(events),
         error_events = [e for e in events if not e.success]
 
         if not error_events:
             return {"error_rate": 0.0, "total_errors": 0, "message": "No errors in time window"}
 
         # Error analysis
-        error_components = {}
+        error_components = {},
         error_operations = {}
 
         for event in error_events:
@@ -539,7 +539,7 @@ class TelemetryCollector:
         if not cost_events:
             return {"message": "No cost data available"}
 
-        total_cost = sum(e.estimated_cost for e in cost_events)
+        total_cost = sum(e.estimated_cost for e in cost_events),
         cost_by_model = {}
 
         for event in cost_events:
@@ -590,7 +590,7 @@ class TelemetryCollector:
         self.export_path.mkdir(parents=True, exist_ok=True)
 
         # Export to timestamped file
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S"),
         export_file = self.export_path / f"telemetry_{timestamp}.json"
 
         with open(export_file, "w", encoding="utf-8") as f:
@@ -625,7 +625,7 @@ class TelemetryCollector:
         Returns:
             Dictionary with collector statistics.
         """
-        buffer_stats = await self.buffer.get_buffer_stats_async()
+        buffer_stats = await self.buffer.get_buffer_stats_async(),
 
         uptime = datetime.utcnow() - self.collection_start_time
 

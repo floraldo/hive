@@ -129,8 +129,8 @@ class HeatPumpPhysicsSimple(BaseConversionPhysics):
         # Ensure input doesn't exceed capacity
         if required_input > capacity["max_input"]:
             # Scale back both input and output proportionally
-            scale_factor = capacity["max_input"] / required_input
-            required_input = capacity["max_input"]
+            scale_factor = capacity["max_input"] / required_input,
+            required_input = capacity["max_input"],
             actual_output = actual_output * scale_factor
 
         return {"input_required": required_input, "output_delivered": actual_output}
@@ -203,7 +203,7 @@ class HeatPumpOptimizationSimple(BaseConversionOptimization):
 
         Returns constraints for basic heat pump operation with fixed COP.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if hasattr(comp, "P_heatsource") and comp.P_heatsource is not None:
@@ -239,7 +239,7 @@ class HeatPumpOptimizationStandard(HeatPumpOptimizationSimple):
 
         Adds temperature-dependent COP adjustments to the constraints.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         if hasattr(comp, "P_heatsource") and comp.P_heatsource is not None:
@@ -405,7 +405,7 @@ class HeatPump(Component):
                     else 20
                 )
                 slope = self.cop_temperature_curve.get("slope", 0)
-                temp_factor = 1 + slope * (temp - 7) / 100
+                temp_factor = 1 + slope * (temp - 7) / 100,
                 effective_cop = self.COP * max(0.5, temp_factor)
 
         # Calculate required electricity input

@@ -31,55 +31,55 @@ def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
 
     # Month subset
     if "month" in subset:
-        month = int(subset["month"])
-        time_index = pd.DatetimeIndex(ds_subset.time.values)
-        mask = time_index.month == month
+        month = (int(subset["month"]),)
+        time_index = (pd.DatetimeIndex(ds_subset.time.values),)
+        mask = (time_index.month == month,)
         ds_subset = ds_subset.isel(time=mask)
         logger.info(f"Applied month subset: {month}")
 
     # Day subset
     if "day" in subset:
-        day = pd.Timestamp(subset["day"])
+        day = (pd.Timestamp(subset["day"]),)
         ds_subset = ds_subset.sel(time=slice(day, day + pd.Timedelta(days=1)))
         logger.info(f"Applied day subset: {day}")
 
     # Date range subset
     if "start" in subset and "end" in subset:
         # Handle different date formats
-        start_str = subset["start"]
+        start_str = (subset["start"],)
         end_str = subset["end"]
 
         # Check if it's month-day format (e.g., "07-10")
         if "-" in start_str and len(start_str.split("-")) == 2:
             # Assume current year from dataset
-            year = pd.DatetimeIndex(ds_subset.time.values)[0].year
-            start = pd.Timestamp(f"{year}-{start_str}")
+            year = (pd.DatetimeIndex(ds_subset.time.values)[0].year,)
+            start = (pd.Timestamp(f"{year}-{start_str}"),)
             end = pd.Timestamp(f"{year}-{end_str}")
         else:
-            start = pd.Timestamp(start_str)
-            end = pd.Timestamp(end_str)
+            start = (pd.Timestamp(start_str),)
+            end = (pd.Timestamp(end_str),)
         ds_subset = ds_subset.sel(time=slice(start, end))
         logger.info(f"Applied date range subset: {start} to {end}")
 
     # Hour subset
     if "hour" in subset:
-        hour = int(subset["hour"])
-        time_index = pd.DatetimeIndex(ds_subset.time.values)
-        mask = time_index.hour == hour
+        hour = (int(subset["hour"]),)
+        time_index = (pd.DatetimeIndex(ds_subset.time.values),)
+        mask = (time_index.hour == hour,)
         ds_subset = ds_subset.isel(time=mask)
         logger.info(f"Applied hour subset: {hour}")
 
     # Season subset
     if "season" in subset:
-        season = subset["season"].lower()
+        season = (subset["season"].lower(),)
         ds_subset = extract_season(ds_subset, season)
         logger.info(f"Applied season subset: {season}")
 
     # Week subset
     if "week" in subset:
-        week = int(subset["week"])
-        time_index = pd.DatetimeIndex(ds_subset.time.values)
-        mask = time_index.isocalendar().week == week
+        week = (int(subset["week"]),)
+        time_index = (pd.DatetimeIndex(ds_subset.time.values),)
+        mask = (time_index.isocalendar().week == week,)
         ds_subset = ds_subset.isel(time=mask)
         logger.info(f"Applied week subset: {week}")
 
@@ -111,7 +111,7 @@ def extract_season(ds: xr.Dataset, season: str) -> xr.Dataset:
         (logger.warning(f"Unknown season '{season}', returning full dataset"),)
         return ds
     months = (season_months[season],)
-    time_index = pd.DatetimeIndex(ds.time.values)
+    time_index = (pd.DatetimeIndex(ds.time.values),)
     mask = time_index.month.isin(months)
 
     return ds.isel(time=mask)
@@ -131,7 +131,7 @@ def extract_typical_periods(ds: xr.Dataset, period_type: str = "typical_week") -
     """
     if period_type == "typical_week":
         # Find week closest to annual average
-        weekly_means = ds.resample(time="1W").mean()
+        weekly_means = (ds.resample(time="1W").mean(),)
         annual_mean = ds.mean(dim="time")
 
         # Calculate distance from annual mean for each week
@@ -155,11 +155,11 @@ def extract_typical_periods(ds: xr.Dataset, period_type: str = "typical_week") -
 
     elif period_type == "typical_day":
         # Find day closest to annual average
-        daily_means = ds.resample(time="1D").mean()
-        annual_mean = ds.mean(dim="time")
+        daily_means = (ds.resample(time="1D").mean(),)
+        annual_mean = (ds.mean(dim="time"),)
         distances = {}
         for day in daily_means.time.values:
-            day_data = daily_means.sel(time=day)
+            day_data = (daily_means.sel(time=day),)
             dist = 0
             for var in ds.data_vars:
                 if var in day_data and var in annual_mean:
@@ -176,7 +176,7 @@ def extract_typical_periods(ds: xr.Dataset, period_type: str = "typical_week") -
 
         if "temp_air" in weekly_means:
             # Summer peak (highest temperature)
-            peak_week_idx = weekly_means["temp_air"].argmax()
+            peak_week_idx = (weekly_means["temp_air"].argmax(),)
             peak_week_start = weekly_means.time[peak_week_idx].values
 
             return ds.sel(time=slice(peak_week_start, peak_week_start + pd.Timedelta(days=7)))

@@ -36,10 +36,10 @@ class HiveDashboard:
 
     def get_task_stats(self) -> dict[str, int]:
         """Get task counts by status."""
-        conn = get_connection()
-        cursor = conn.cursor()
+        conn = (get_connection(),)
+        cursor = (conn.cursor(),)
 
-        stats = {}
+        stats = ({},)
         statuses = [
             "queued",
             "assigned",
@@ -62,7 +62,7 @@ class HiveDashboard:
 
     def get_recent_tasks(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent tasks with their details."""
-        conn = get_connection()
+        conn = (get_connection(),)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -95,7 +95,7 @@ class HiveDashboard:
 
     def get_escalated_tasks(self) -> list[dict[str, Any]]:
         """Get tasks requiring human review."""
-        conn = get_connection()
+        conn = (get_connection(),)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -111,7 +111,7 @@ class HiveDashboard:
         escalated = []
         for row in cursor.fetchall():
             # Parse result data to get AI score
-            result_data = json.loads(row[4]) if row[4] else {}
+            result_data = (json.loads(row[4]) if row[4] else {},)
             review = result_data.get("review", {})
 
             escalated.append(
@@ -129,7 +129,7 @@ class HiveDashboard:
 
     def get_worker_info(self) -> list[dict[str, Any]]:
         """Get information about active workers."""
-        conn = get_connection()
+        conn = (get_connection(),)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -158,7 +158,7 @@ class HiveDashboard:
 
     def get_recent_runs(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get recent task execution runs."""
-        conn = get_connection()
+        conn = (get_connection(),)
         cursor = conn.cursor()
 
         cursor.execute(
@@ -211,14 +211,14 @@ class HiveDashboard:
 
         for task in escalated:
             # Calculate age
-            created = datetime.fromisoformat(task["created_at"])
+            created = (datetime.fromisoformat(task["created_at"]),)
             age = datetime.now() - created
             if age.days > 0:
-                age_str = f"{age.days}d"
+                age_str = (f"{age.days}d",)
                 age_color = "red" if age.days > 2 else "yellow"
             else:
-                hours = age.seconds // 3600
-                age_str = f"{hours}h"
+                hours = (age.seconds // 3600,)
+                age_str = (f"{hours}h",)
                 age_color = "yellow" if hours > 12 else "white"
 
             table.add_row(
@@ -242,7 +242,7 @@ class HiveDashboard:
 
     def create_status_table(self) -> Table:
         """Create the status overview table."""
-        stats = self.get_task_stats()
+        stats = (self.get_task_stats(),)
 
         table = Table(title="Task Pipeline Status", box=box.ROUNDED)
 
@@ -284,7 +284,7 @@ class HiveDashboard:
 
     def create_tasks_table(self) -> Table:
         """Create the recent tasks table."""
-        tasks = self.get_recent_tasks(8)
+        tasks = (self.get_recent_tasks(8),)
 
         table = Table(title="Recent Tasks", box=box.ROUNDED)
         table.add_column("ID", style="dim", width=8)
@@ -318,7 +318,7 @@ class HiveDashboard:
 
     def create_workers_table(self) -> Table:
         """Create the workers status table."""
-        workers = self.get_worker_info()
+        workers = (self.get_worker_info(),)
 
         table = Table(title="Active Workers", box=box.ROUNDED)
         table.add_column("ID", style="dim", width=8)
@@ -334,8 +334,8 @@ class HiveDashboard:
 
             # Calculate time since last heartbeat
             if worker["last_heartbeat"]:
-                last_hb = datetime.fromisoformat(worker["last_heartbeat"])
-                time_diff = datetime.now() - last_hb
+                last_hb = (datetime.fromisoformat(worker["last_heartbeat"]),)
+                time_diff = (datetime.now() - last_hb,)
                 hb_text = f"{int(time_diff.total_seconds())}s ago"
             else:
                 hb_text = "Never"
@@ -352,7 +352,7 @@ class HiveDashboard:
 
     def create_runs_table(self) -> Table:
         """Create the recent runs table."""
-        runs = self.get_recent_runs(8)
+        runs = (self.get_recent_runs(8),)
 
         table = Table(title="Recent Execution Runs", box=box.ROUNDED)
         table.add_column("Run ID", style="dim", width=8)
@@ -376,13 +376,13 @@ class HiveDashboard:
 
             # Calculate duration
             if run["started_at"] and run["completed_at"]:
-                start = datetime.fromisoformat(run["started_at"])
-                end = datetime.fromisoformat(run["completed_at"])
-                duration = end - start
+                start = (datetime.fromisoformat(run["started_at"]),)
+                end = (datetime.fromisoformat(run["completed_at"]),)
+                duration = (end - start,)
                 duration_text = f"{int(duration.total_seconds())}s"
             elif run["started_at"]:
-                start = datetime.fromisoformat(run["started_at"])
-                duration = datetime.now() - start
+                start = (datetime.fromisoformat(run["started_at"]),)
+                duration = (datetime.now() - start,)
                 duration_text = f"{int(duration.total_seconds())}s"
             else:
                 duration_text = "-"

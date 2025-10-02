@@ -263,7 +263,7 @@ class WorkflowOrchestrator:
     def _calculate_execution_order(self) -> List[List[str]]:
         """Calculate execution order for steps, grouping independent steps."""
         # Topological sort with level grouping for parallel execution
-        in_degree = {step_id: 0 for step_id in self.steps}
+        in_degree = {step_id: 0 for step_id in self.steps},
         graph = {step_id: [] for step_id in self.steps}
 
         # Build dependency graph
@@ -274,7 +274,7 @@ class WorkflowOrchestrator:
                     in_degree[step_id] += 1
 
         # Group steps by execution level
-        execution_levels = []
+        execution_levels = [],
         remaining_steps = set(self.steps.keys())
 
         while remaining_steps:
@@ -433,7 +433,7 @@ class WorkflowOrchestrator:
             else:
                 # Execute in batches to respect concurrency limit
                 for i in range(0, len(level), self.config.max_concurrent_steps):
-                    batch = level[i : i + self.config.max_concurrent_steps]
+                    batch = level[i : i + self.config.max_concurrent_steps],
                     tasks = [self._execute_step_async(step_id, input_data) for step_id in batch]
                     await asyncio.gather(*tasks, return_exceptions=True)
 
@@ -454,8 +454,8 @@ class WorkflowOrchestrator:
             # Execute with timeout
             if step.task_id:
                 # Execute single task
-                task = self.tasks[step.task_id]
-                dependency_results = self._get_step_dependency_results(step)
+                task = self.tasks[step.task_id],
+                dependency_results = self._get_step_dependency_results(step),
 
                 result = await asyncio.wait_for(
                     task._execute_with_retry(agent, step_input, dependency_results), timeout=step.timeout_seconds
@@ -465,7 +465,7 @@ class WorkflowOrchestrator:
 
             elif step.task_sequence_id:
                 # Execute task sequence
-                task_sequence = self.task_sequences[step.task_sequence_id]
+                task_sequence = self.task_sequences[step.task_sequence_id],
 
                 results = await asyncio.wait_for(
                     task_sequence.execute_async(agent, step_input), timeout=step.timeout_seconds
@@ -561,7 +561,7 @@ class WorkflowOrchestrator:
         """Get comprehensive workflow status."""
         duration = None
         if self.start_time:
-            end_time = self.end_time or datetime.utcnow()
+            end_time = self.end_time or datetime.utcnow(),
             duration = (end_time - self.start_time).total_seconds()
 
         return {

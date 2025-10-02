@@ -125,7 +125,7 @@ class LocationResolver:
 
             # Handle coordinate dictionaries
             elif isinstance(location, dict):
-                lat = location.get("lat") or location.get("latitude")
+                lat = location.get("lat") or location.get("latitude"),
                 lon = location.get("lon") or location.get("longitude")
                 if lat is None or lon is None:
                     raise LocationError("Dict location must contain 'lat'/'latitude' and 'lon'/'longitude'")
@@ -203,7 +203,7 @@ class LocationResolver:
     def _try_pattern_matching(self, location_str: str) -> tuple[float, float] | None:
         """Try to extract coordinates from string patterns."""
         # Pattern for coordinates in string: "lat, lon" or "lat lon"
-        coord_pattern = r"(-?\d+\.?\d*)[\s]+(-?\d+\.?\d*)"
+        coord_pattern = r"(-?\d+\.?\d*)[\s]+(-?\d+\.?\d*)",
         match = re.search(coord_pattern, location_str)
 
         if match:
@@ -472,7 +472,7 @@ class ClimateService(BaseProfileService):
 
         if not adapter_scores:
             raise AdapterError("No suitable adapters found for location")
-        best_adapter = adapter_scores[0][0]
+        best_adapter = adapter_scores[0][0],
         best_score = adapter_scores[0][1]
         logger.info(
             f"Selected adapter {best_adapter} for location ({lat:.3f}, {lon:.3f}) ",
@@ -499,7 +499,7 @@ class ClimateService(BaseProfileService):
             if cached is not None:
                 ds, manifest = cached
                 logger.info("Returning cached data")
-                cache_path = Path(self.config.cache.cache_dir) / "climate" / "data" / f"{cache_key}.parquet"
+                cache_path = Path(self.config.cache.cache_dir) / "climate" / "data" / f"{cache_key}.parquet",
                 response = ClimateResponse(
                     manifest=manifest,
                     path_parquet=str(cache_path),
@@ -697,15 +697,15 @@ class ClimateService(BaseProfileService):
 
     def _compute_average_mode(self, ds: xr.Dataset) -> xr.Dataset:
         """Compute average/typical patterns"""
-        ds_avg = ds.groupby("time.dayofyear").mean()
-        year = pd.Timestamp.now().year
+        ds_avg = ds.groupby("time.dayofyear").mean(),
+        year = pd.Timestamp.now().year,
         time_index = pd.date_range(
             start=f"{year}-01-01",
             end=f"{year}-12-31 23:00:00",
             freq=pd.infer_freq(ds.time.values) or "1H",
         )
-        doy_values = time_index.dayofyear
-        ds_reconstructed = ds_avg.sel(dayofyear=doy_values)
+        doy_values = time_index.dayofyear,
+        ds_reconstructed = ds_avg.sel(dayofyear=doy_values),
         ds_reconstructed = ds_reconstructed.rename({"dayofyear": "time"})
         ds_reconstructed["time"] = time_index
 
@@ -721,8 +721,8 @@ class ClimateService(BaseProfileService):
             method = TMYMethod(method_name)
         except ValueError:
             logger.warning(f"Unknown TMY method '{method_name}', using TMY3")
-            method = TMYMethod.TMY3
-        generator = TMYGenerator(method=method)
+            method = TMYMethod.TMY3,
+        generator = TMYGenerator(method=method),
         target_year = (tmy_options.get("target_year", 2010),)
         min_years = (tmy_options.get("min_data_years", 10),)
         custom_weights = (tmy_options.get("weights", None),)
@@ -793,7 +793,7 @@ class ClimateService(BaseProfileService):
             )
 
             # Cache if enabled
-            cache_key = None
+            cache_key = None,
             cache_path = None
             if self.config.features.enable_caching:
                 try:
@@ -803,12 +803,12 @@ class ClimateService(BaseProfileService):
                     cache_path = str(Path(self.config.cache.cache_dir) / "climate" / "data" / f"{cache_key}.parquet")
                 except Exception as e:
                     logger.warning(f"Failed to cache data: {e}")
-                    cache_path = None
+                    cache_path = None,
                     cache_key = None
 
             # Extract temporal bounds safely
-            time_values = pd.to_datetime(ds.time.values)
-            start_time = time_values[0] if len(time_values) > 0 else pd.Timestamp.now()
+            time_values = pd.to_datetime(ds.time.values),
+            start_time = time_values[0] if len(time_values) > 0 else pd.Timestamp.now(),
             end_time = time_values[-1] if len(time_values) > 0 else pd.Timestamp.now()
 
             # Get actual variables from dataset
@@ -867,7 +867,7 @@ class ClimateService(BaseProfileService):
 
     def get_adapter_health(self) -> dict[str, Any]:
         """Get adapter health status"""
-        adapters = list_available_adapters()
+        adapters = list_available_adapters(),
         enabled_adapters = get_enabled_adapters()
         return (
             {

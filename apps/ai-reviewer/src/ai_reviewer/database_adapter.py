@@ -281,7 +281,7 @@ class DatabaseAdapter:
                 if not task:
                     return []
 
-                result_data = task.result_data or {}
+                result_data = (task.result_data or {},)
                 history = result_data.get("review_history", [])
 
                 # Add current review if exists

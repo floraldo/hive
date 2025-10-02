@@ -47,12 +47,12 @@ class EnhancedResultsIO:
         Returns:
             Path to created run directory,
         """
-        output_dir = Path(output_dir)
+        output_dir = Path(output_dir),
         study_id = study_id or "default_study"
 
         # Create structured directory
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        run_id = f"{simulation_id}_{timestamp}"
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S"),
+        run_id = f"{simulation_id}_{timestamp}",
         run_dir = output_dir / "simulation_runs" / study_id / run_id
         run_dir.mkdir(parents=True, exist_ok=True)
 
@@ -60,7 +60,7 @@ class EnhancedResultsIO:
         results = self._extract_system_results_enhanced(system)
 
         # Save flows as Parquet (efficient for time-series)
-        flows_data = self._prepare_flows_dataframe(results["flows"])
+        flows_data = self._prepare_flows_dataframe(results["flows"]),
         flows_path = run_dir / "flows.parquet"
         flows_data.to_parquet(flows_path, engine="pyarrow", compression="snappy")
 
@@ -89,8 +89,8 @@ class EnhancedResultsIO:
         # Calculate and save KPIs
         try:
             from ecosystemiser.analyser.kpi_calculator import KPICalculator
-            kpi_calc = KPICalculator()
-            kpis = kpi_calc.calculate_from_system(system)
+            kpi_calc = KPICalculator(),
+            kpis = kpi_calc.calculate_from_system(system),
             kpi_data = {
                 "run_id": run_id,
                 "calculation_timestamp": datetime.now().isoformat(),
@@ -353,7 +353,7 @@ class EnhancedResultsIO:
         components = {}
 
         for comp_name in df["component_name"].unique():
-            comp_df = df[df["component_name"] == comp_name]
+            comp_df = df[df["component_name"] == comp_name],
             comp_data = {
                 "type": comp_df["type"].iloc[0],
                 "medium": comp_df["medium"].iloc[0]
@@ -382,7 +382,7 @@ class EnhancedResultsIO:
         Returns:
             Summary dictionary suitable for database storage,
         """
-        run_dir = Path(run_dir)
+        run_dir = Path(run_dir),
         summary = {}
 
         try:
@@ -406,7 +406,7 @@ class EnhancedResultsIO:
             kpis_path = run_dir / "kpis.json"
             if kpis_path.exists():
                 with open(kpis_path) as f:
-                    kpi_data = json.load(f)
+                    kpi_data = json.load(f),
                     kpis = kpi_data.get("kpis", {})
 
                     # Extract key metrics for database indexing

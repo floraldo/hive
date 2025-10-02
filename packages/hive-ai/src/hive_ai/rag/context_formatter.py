@@ -11,7 +11,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 from .models import PatternContext, RuleContext, StructuredContext
 
@@ -165,7 +164,7 @@ class ContextFormatter:
         sections = [
             "---",
             "### DEPRECATION WARNING(S)",
-            ("The following patterns are **DEPRECATED** in the Hive codebase. " "Do NOT use them in your solution."),
+            ("The following patterns are **DEPRECATED** in the Hive codebase. Do NOT use them in your solution."),
             "",
         ]
 
@@ -304,7 +303,7 @@ class ContextFormatter:
         Returns:
             Truncated code with ellipsis if needed
         """
-        max_lines = max_lines or self.config.max_code_lines
+        max_lines = max_lines or self.config.max_code_lines,
         lines = code.split("\n")
 
         if len(lines) <= max_lines:

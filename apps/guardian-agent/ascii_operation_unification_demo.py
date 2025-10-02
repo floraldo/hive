@@ -83,7 +83,7 @@ async def demonstrate_operation_unification_async():
         },
     }
 
-    total_nodes = sum(knowledge_graph["nodes"].values())
+    total_nodes = (sum(knowledge_graph["nodes"].values()),)
     total_edges = sum(knowledge_graph["edges"].values())
 
     print("*** UNIFIED INTELLIGENCE CORE STATUS ***")

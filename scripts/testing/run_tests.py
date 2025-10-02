@@ -30,7 +30,6 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -41,8 +40,8 @@ class TestRunResult:
     passed: bool
     duration: float
     output: str
-    error: Optional[str] = None
-    performance_metrics: Optional[Dict] = None
+    error: str | None = None
+    performance_metrics: dict | None = None
 
 
 class UnifiedTestRunner:
@@ -50,7 +49,7 @@ class UnifiedTestRunner:
 
     def __init__(self, project_root: Path):
         self.project_root = project_root
-        self.results: List[TestRunResult] = []
+        self.results: list[TestRunResult] = []
         self.start_time = time.time()
 
     def run_quick_validation(self) -> bool:
@@ -141,12 +140,12 @@ class UnifiedTestRunner:
         results_dir = self.project_root / "test-results"
         results_dir.mkdir(exist_ok=True)
 
-        print(f"[FIX] Test environment configured")
+        print("[FIX] Test environment configured")
         print(f"   Project Root: {self.project_root}")
         print(f"   Python Path: {os.environ['PYTHONPATH']}")
         print(f"   Test Mode: {os.environ['HIVE_TEST_MODE']}")
 
-    def _execute_test_suite(self, tests: List[Tuple[str, callable]]) -> bool:
+    def _execute_test_suite(self, tests: list[tuple[str, callable]]) -> bool:
         """Execute a suite of tests"""
         all_passed = True
 
@@ -405,16 +404,18 @@ class UnifiedTestRunner:
         passed_count = sum(1 for result in self.results if result.passed)
         total_count = len(self.results)
 
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print("[SUMMARY] COMPREHENSIVE TEST REPORT")
         print("=" * 80)
 
-        print(f"\n[STATS] Overall Results:")
+        print("\n[STATS] Overall Results:")
         print(f"   Tests Passed: {passed_count}/{total_count}")
-        print(f"   Success Rate: {(passed_count/total_count)*100:.1f}%" if total_count > 0 else "   Success Rate: N/A")
+        print(
+            f"   Success Rate: {(passed_count / total_count) * 100:.1f}%" if total_count > 0 else "   Success Rate: N/A"
+        )
         print(f"   Total Duration: {total_duration:.2f} seconds")
 
-        print(f"\n[LIST] Individual Test Results:")
+        print("\n[LIST] Individual Test Results:")
         for result in self.results:
             status = "[PASS] PASSED" if result.passed else "[FAIL] FAILED"
             print(f"   {status} {result.name} ({result.duration:.2f}s)")
@@ -448,7 +449,7 @@ class UnifiedTestRunner:
 
         print(f"\n[FILE] Report saved to: {report_file}")
 
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         if all_passed:
             print("[SUCCESS] ALL TESTS PASSED!")
         else:
@@ -510,12 +511,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-
-
-
-
-
-

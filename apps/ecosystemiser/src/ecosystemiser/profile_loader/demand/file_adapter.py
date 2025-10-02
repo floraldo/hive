@@ -25,7 +25,7 @@ class DemandFileAdapter:
         Returns:
             Dictionary of profile arrays,
         """
-        profiles = {}
+        profiles = ({},)
         file_path = config.get("file_path")
         if not file_path:
             logger.warning("No demand file path specified")

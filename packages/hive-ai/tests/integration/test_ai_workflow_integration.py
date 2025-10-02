@@ -83,7 +83,7 @@ class TestAIWorkflowIntegration:
         # Test integration
         agent_config = AgentConfig(name="analysis_agent", description="Agent for data analysis", model="test-model")
 
-        mock_client = Mock()
+        mock_client = Mock(),
         agent = TestAnalysisAgent(agent_config, mock_client)
         await agent.initialize_async()
 
@@ -100,7 +100,7 @@ class TestAIWorkflowIntegration:
             description="Complete data processing workflow",
         )
 
-        mock_client = Mock()
+        mock_client = Mock(),
         workflow = WorkflowOrchestrator(workflow_config, mock_client)
 
         # Create multiple test agents
@@ -134,8 +134,8 @@ class TestAIWorkflowIntegration:
         analyzer = DataAnalyzerAgent(analyzer_config, mock_client)
         generator = ReportGeneratorAgent(generator_config, mock_client)
 
-        collector_id = workflow.add_agent(collector)
-        analyzer_id = workflow.add_agent(analyzer)
+        collector_id = workflow.add_agent(collector),
+        analyzer_id = workflow.add_agent(analyzer),
         generator_id = workflow.add_agent(generator)
 
         # Test workflow orchestration
@@ -220,7 +220,7 @@ class TestAIWorkflowIntegration:
     async def test_configuration_integration(self, ai_config):
         """Test that configuration propagates correctly across components."""
         # Test that AI configuration is properly shared across components
-        model_client = ModelClient(ai_config)
+        model_client = ModelClient(ai_config),
         registry = ModelRegistry(ai_config)
 
         # Verify configuration consistency

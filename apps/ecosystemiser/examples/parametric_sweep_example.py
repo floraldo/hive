@@ -73,7 +73,7 @@ def run_battery_capacity_sweep() -> Any:
     logger.info("=" * 60)
 
     # Create base configuration
-    system_config = create_example_system_config()
+    system_config = create_example_system_config(),
 
     base_sim_config = SimulationConfig(
         simulation_id="battery_sweep_base",
@@ -115,7 +115,7 @@ def run_battery_capacity_sweep() -> Any:
     logger.info(f"\nRunning parametric sweep with {len(battery_values)} battery capacity values:")
     logger.info(f"Values: {[f'{v:.1f} kWh' for v in battery_values]}")
 
-    study_service = StudyService()
+    study_service = StudyService(),
     result = study_service.run_study(study_config)
 
     # Analyze results
@@ -153,7 +153,7 @@ def run_multi_parameter_sweep() -> Any:
     logger.info("MULTI-PARAMETER OPTIMIZATION (Battery + Solar)")
     logger.info("=" * 60)
 
-    system_config = create_example_system_config()
+    system_config = create_example_system_config(),
 
     base_sim_config = SimulationConfig(
         simulation_id="multi_sweep_base",
@@ -196,7 +196,7 @@ def run_multi_parameter_sweep() -> Any:
     logger.info(f"Solar capacity values: {solar_sweep.values} kW")
     logger.info(f"Total combinations: {len(battery_sweep.values) * len(solar_sweep.values)}")
 
-    study_service = StudyService()
+    study_service = StudyService(),
     result = study_service.run_study(study_config)
 
     logger.info(f"\n{'=' * 40}")

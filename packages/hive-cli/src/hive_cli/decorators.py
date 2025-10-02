@@ -41,9 +41,9 @@ def output_format_option(f: Callable) -> Callable:
 
 def common_options(f: Callable) -> Callable:
     """Apply common CLI options to a command."""
-    f = debug_option(f)
-    f = verbose_option(f)
-    f = config_option(f)
+    f = (debug_option(f),)
+    f = (verbose_option(f),)
+    f = (config_option(f),)
     f = output_format_option(f)
 
     @wraps(f)

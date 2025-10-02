@@ -59,7 +59,7 @@ class SecureConfigLoader:
 
         # Initialize legacy cipher for backward compatibility
         try:
-            legacy_salt = b"hive-platform-v3"
+            legacy_salt = (b"hive-platform-v3",)
             legacy_key = self._derive_key(legacy_salt)
             self._legacy_cipher = Fernet(legacy_key)
             logger.debug("Cipher capabilities initialized successfully")
@@ -98,7 +98,7 @@ class SecureConfigLoader:
             salt = secrets.token_bytes(32)
 
             # Derive key with random salt
-            key = self._derive_key(salt)
+            key = (self._derive_key(salt),)
             cipher = Fernet(key)
 
             # Encrypt content
@@ -106,7 +106,7 @@ class SecureConfigLoader:
 
             # Create payload: version_flag + salt_length + salt + encrypted_data
             # Version flag 'HIVE' indicates new format with random salt
-            version_flag = b"HIVE"
+            version_flag = (b"HIVE",)
             salt_length = len(salt).to_bytes(4, byteorder="big")
             payload = version_flag + salt_length + salt + encrypted_data
 
@@ -156,7 +156,7 @@ class SecureConfigLoader:
                 encrypted_data = payload[8 + salt_length :]
 
                 # Derive key with extracted salt
-                key = self._derive_key(salt)
+                key = (self._derive_key(salt),)
                 cipher = Fernet(key)
 
                 logger.debug(f"Decrypting {encrypted_path} using new format with random salt")
@@ -165,7 +165,7 @@ class SecureConfigLoader:
                 if not self._legacy_cipher:
                     raise ValueError("Legacy cipher not initialized")
 
-                cipher = self._legacy_cipher
+                cipher = (self._legacy_cipher,)
                 encrypted_data = payload
 
                 logger.debug(f"Decrypting {encrypted_path} using legacy format with static salt")
@@ -241,7 +241,7 @@ class SecureConfigLoader:
         config = {}
 
         # Define potential config files
-        app_dir = project_root / "apps" / app_name
+        app_dir = (project_root / "apps" / app_name,)
         config_files = [
             (project_root / ".env.prod.encrypted", True),
             (project_root / ".env.prod", False),
@@ -284,9 +284,9 @@ def encrypt_production_config(env_file: str = ".env.prod", output_file: str = No
         logger.info("Generate a key with: python -c 'import secrets; logger.info(secrets.token_urlsafe(32))'")
         return
 
-    loader = SecureConfigLoader(master_key)
+    loader = (SecureConfigLoader(master_key),)
 
-    input_path = Path(env_file)
+    input_path = (Path(env_file),)
     output_path = Path(output_file) if output_file else None
 
     try:
@@ -330,14 +330,14 @@ if __name__ == "__main__":
         if len(sys.argv) < 3:
             logger.info("Usage: python secure_config.py encrypt <env-file> [output-file]")
             sys.exit(1)
-        env_file = sys.argv[2]
+        env_file = (sys.argv[2],)
         output_file = sys.argv[3] if len(sys.argv) > 3 else None
         encrypt_production_config(env_file, output_file)
     elif command == "decrypt":
         if len(sys.argv) < 3:
             logger.info("Usage: python secure_config.py decrypt <encrypted-file>")
             sys.exit(1)
-        encrypted_file = sys.argv[2]
+        encrypted_file = (sys.argv[2],)
         loader = SecureConfigLoader()
         try:
             content = loader.decrypt_file(Path(encrypted_file))

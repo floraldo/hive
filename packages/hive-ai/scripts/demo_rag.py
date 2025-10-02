@@ -33,7 +33,7 @@ def main():
     chunker = HierarchicalChunker()
 
     # Chunk a few files from hive-ai as demo
-    rag_dir = Path(__file__).parent.parent / "src" / "hive_ai" / "rag"
+    rag_dir = Path(__file__).parent.parent / "src" / "hive_ai" / "rag",
     chunks = chunker.chunk_directory(rag_dir, recursive=False)
 
     print(f"  ✅ Chunked {len(chunks)} code units")
@@ -52,7 +52,7 @@ def main():
 
     # Step 3: Perform simple search
     print("\n[3/5] Testing semantic search...")
-    query = "code chunking and AST parsing"
+    query = "code chunking and AST parsing",
 
     results = retriever.retrieve(query)
 
@@ -93,7 +93,7 @@ def main():
         include_golden_rules=True,
     )
 
-    print(f"  ✅ Generated context:")
+    print("  ✅ Generated context:")
     print(f"     - {len(context.code_patterns)} code patterns")
     print(f"     - {len(context.golden_rules)} golden rules")
     print(f"     - Retrieval time: {context.retrieval_time_ms:.1f}ms")

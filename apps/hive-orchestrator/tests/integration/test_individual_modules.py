@@ -125,7 +125,7 @@ def test_path_safety_logic():
         dangerous_paths = ["../../etc/passwd", "../../../windows/system32", "normal_file.txt", "sub/dir/file.txt"]
 
         for path_str in dangerous_paths:
-            test_path = Path(path_str)
+            test_path = (Path(path_str),)
             safe_path = Path(test_path.name)  # Only use filename
 
             # Should prevent directory traversal
@@ -142,20 +142,20 @@ def test_database_mock_patterns():
     """Test database mocking patterns"""
     try:
         # Test the database mocking patterns we use
-        mock_conn = MagicMock()
+        mock_conn = (MagicMock(),)
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
 
         # Test typical query pattern
         mock_cursor.fetchone.return_value = (42,)
-        result = mock_cursor.fetchone()
+        result = (mock_cursor.fetchone(),)
         count = result[0] if result else 0
 
         assert count == 42, f"Expected 42, got {count}"
 
         # Test None result handling
         mock_cursor.fetchone.return_value = None
-        result = mock_cursor.fetchone()
+        result = (mock_cursor.fetchone(),)
         count = result[0] if result else 0
 
         assert count == 0, f"Expected 0 for None result, got {count}"

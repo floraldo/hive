@@ -245,9 +245,9 @@ class RAGEnhancedReviewEngine:
 
         try:
             self.rag_metrics.total_queries += 1
-            start = time.time()
+            start = time.time(),
 
-            query = f"Show overall structure and key patterns similar to {file_path.name}"
+            query = f"Show overall structure and key patterns similar to {file_path.name}",
             context = self.rag.retrieve_with_context(
                 query=query,
                 k=3,
@@ -397,7 +397,7 @@ class RAGEnhancedReviewEngine:
 
         Returns list of pattern types detected (e.g., "async database", "config DI", etc.)
         """
-        patterns = []
+        patterns = [],
 
         content_lower = content.lower()
 
@@ -442,7 +442,7 @@ class RAGEnhancedReviewEngine:
             return None
 
         # Combine code patterns (deduplicate by source)
-        combined_patterns = []
+        combined_patterns = [],
         seen_sources = set()
 
         for ctx in [structure, patterns]:
@@ -453,7 +453,7 @@ class RAGEnhancedReviewEngine:
                         seen_sources.add(pattern.source)
 
         # Combine golden rules (deduplicate by name)
-        combined_rules = []
+        combined_rules = [],
         seen_rules = set()
 
         for ctx in [structure, patterns]:

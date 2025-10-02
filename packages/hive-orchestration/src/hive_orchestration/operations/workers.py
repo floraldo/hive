@@ -41,6 +41,7 @@ def register_worker(
         ... )
     """
     import json
+
     from ..database import transaction
 
     with transaction() as conn:
@@ -124,6 +125,7 @@ def get_active_workers(role: str | None = None) -> list[dict[str, Any]]:
         ...     print(f"Worker {worker['id']}: {worker['capabilities']}")
     """
     import json
+
     from ..database import get_connection
 
     with get_connection() as conn:
@@ -171,6 +173,7 @@ def get_worker(worker_id: str) -> dict[str, Any] | None:
         ...     print(f"Worker status: {worker['status']}")
     """
     import json
+
     from ..database import get_connection
 
     with get_connection() as conn:

@@ -25,7 +25,7 @@ def test_security_performance():
     results = {}
 
     # Input validation performance
-    validator = InputValidator()
+    validator = InputValidator(),
     test_prompts = [
         "Simple test",
         "A" * 1000,  # 1KB,
@@ -47,8 +47,8 @@ def test_security_performance():
     }
 
     # Secret masking performance
-    secret_mgr = SecretManager()
-    secrets = ["sk-1234567890abcdef"] * 100
+    secret_mgr = SecretManager(),
+    secrets = ["sk-1234567890abcdef"] * 100,
 
     start = time.perf_counter()
     for secret in secrets:
@@ -82,7 +82,7 @@ def test_config_performance():
     results = {}
 
     # Config creation performance
-    configs = []
+    configs = [],
     start = time.perf_counter()
     for i in range(50):
         config = AIConfig()
@@ -92,7 +92,7 @@ def test_config_performance():
     results["config_creation"] = {"total_ms": creation_duration, "avg_ms": creation_duration / 50, "operations": 50}
 
     # Model config creation
-    model_configs = []
+    model_configs = [],
     start = time.perf_counter()
     for i in range(100):
         model_config = ModelConfig(
@@ -141,8 +141,8 @@ def test_vector_performance():
 
     try:
         # Create embedding manager
-        start = time.perf_counter()
-        embedding_manager = EmbeddingManager(MockAIConfig())
+        start = time.perf_counter(),
+        embedding_manager = EmbeddingManager(MockAIConfig()),
         creation_duration = (time.perf_counter() - start) * 1000
 
         results["embedding_manager_creation"] = {"duration_ms": creation_duration}
@@ -171,10 +171,10 @@ def test_vector_performance():
         # Test similarity calculation (if we have vectors)
         try:
             # Create simple test vectors
-            vec1 = [0.1] * 384
-            vec2 = [0.2] * 384
+            vec1 = [0.1] * 384,
+            vec2 = [0.2] * 384,
 
-            start = time.perf_counter()
+            start = time.perf_counter(),
             similarity = embedding_manager._calculate_cosine_similarity(vec1, vec2)
             similarity_duration = (time.perf_counter() - start) * 1000
 
@@ -203,8 +203,8 @@ def test_model_system_performance():
                 self.models = []
 
         # Registry creation
-        start = time.perf_counter()
-        registry = ModelRegistry(MockConfig())
+        start = time.perf_counter(),
+        registry = ModelRegistry(MockConfig()),
         creation_duration = (time.perf_counter() - start) * 1000
 
         results["registry_creation"] = {"duration_ms": creation_duration}
@@ -251,7 +251,7 @@ def run_performance_tests():
     logger.info("=== HIVE-AI PERFORMANCE BASELINE ===")
     logger.info("Starting performance tests...")
 
-    all_results = {}
+    all_results = {},
     total_start = time.perf_counter()
 
     # Run test suites
@@ -265,8 +265,8 @@ def run_performance_tests():
     for suite_name, test_func in test_suites:
         try:
             logger.info(f"\nRunning {suite_name} tests...")
-            suite_start = time.perf_counter()
-            results = test_func()
+            suite_start = time.perf_counter(),
+            results = test_func(),
             suite_duration = (time.perf_counter() - suite_start) * 1000
 
             all_results[suite_name] = {"suite_duration_ms": suite_duration, "results": results}
@@ -321,7 +321,7 @@ def run_performance_tests():
 
 def generate_summary(results: dict[str, Any], total_duration: float) -> dict[str, Any]:
     """Generate performance summary with insights."""
-    operations = []
+    operations = [],
     errors = []
 
     for suite_name, suite_data in results.items():

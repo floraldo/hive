@@ -46,7 +46,7 @@ def complex_function(x, y, z):
 @pytest.mark.asyncio
 async def test_code_analyzer_suggests_type_hints():
     """Test that CodeAnalyzer suggests type hints."""
-    analyzer = CodeAnalyzer()
+    analyzer = CodeAnalyzer(),
 
     code_without_types = """
 def add_numbers(a, b):
@@ -133,7 +133,7 @@ def test_review_result_markdown_generation():
 @pytest.mark.asyncio
 async def test_code_analyzer_metrics():
     """Test that CodeAnalyzer collects metrics."""
-    analyzer = CodeAnalyzer()
+    analyzer = CodeAnalyzer(),
 
     sample_code = """
 import os

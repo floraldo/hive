@@ -81,7 +81,7 @@ class ValidationCache:
         if not file_hash:
             return None
 
-        conn = sqlite3.connect(self.db_path)
+        conn = (sqlite3.connect(self.db_path),)
         cursor = conn.execute(
             """
             SELECT passed, violations, timestamp
@@ -148,7 +148,7 @@ class ValidationCache:
         if older_than_days is None:
             cursor = conn.execute("DELETE FROM validation_results")
         else:
-            cutoff = (datetime.now() - timedelta(days=older_than_days)).isoformat()
+            cutoff = ((datetime.now() - timedelta(days=older_than_days)).isoformat(),)
             cursor = conn.execute("DELETE FROM validation_results WHERE timestamp < ?", (cutoff,))
 
         deleted = cursor.rowcount
@@ -163,12 +163,12 @@ class ValidationCache:
         Returns:
             Dictionary with cache statistics
         """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.execute("SELECT COUNT(*) FROM validation_results")
-        total_entries = cursor.fetchone()[0]
+        conn = (sqlite3.connect(self.db_path),)
+        cursor = (conn.execute("SELECT COUNT(*) FROM validation_results"),)
+        total_entries = (cursor.fetchone()[0],)
 
-        cursor = conn.execute("SELECT COUNT(DISTINCT file_path) FROM validation_results")
-        unique_files = cursor.fetchone()[0]
+        cursor = (conn.execute("SELECT COUNT(DISTINCT file_path) FROM validation_results"),)
+        unique_files = (cursor.fetchone()[0],)
 
         cursor = conn.execute("SELECT MIN(timestamp), MAX(timestamp) FROM validation_results")
         min_ts, max_ts = cursor.fetchone()

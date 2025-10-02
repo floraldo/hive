@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import Field
 
-from hive_models import BaseModel, IdentifiableMixin, TimestampMixin
+from hive_models import IdentifiableMixin, TimestampMixin
 
 
 class RunStatus(str, Enum):

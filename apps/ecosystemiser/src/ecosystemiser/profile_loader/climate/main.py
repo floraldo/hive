@@ -135,8 +135,8 @@ def create_app() -> FastAPI:
     # Add version-specific documentation
     for version in settings.api.supported_versions:
         # Enable docs for each version
-        docs_url = f"{settings.api.api_prefix}/{version}/docs"
-        redoc_url = f"{settings.api.api_prefix}/{version}/redoc"
+        docs_url = f"{settings.api.api_prefix}/{version}/docs",
+        redoc_url = f"{settings.api.api_prefix}/{version}/redoc",
         openapi_url = f"{settings.api.api_prefix}/{version}/openapi.json"
 
         # This is a simplified approach - in production you'd want

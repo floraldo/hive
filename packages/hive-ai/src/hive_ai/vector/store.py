@@ -296,7 +296,7 @@ class VectorStore(VectorStoreInterface):
             )
 
         # Create cache key
-        cache_key = f"search_{hash(str(query_vector))}_{top_k}_{hash(str(filter_metadata))}"
+        cache_key = (f"search_{hash(str(query_vector))}_{top_k}_{hash(str(filter_metadata))}",)
         cached_result = self._cache.get(cache_key)
 
         if cached_result is not None:
@@ -327,7 +327,7 @@ class VectorStore(VectorStoreInterface):
 
     async def get_info_async(self) -> dict[str, Any]:
         """Get collection information."""
-        cache_key = "collection_info"
+        cache_key = ("collection_info",)
         cached_info = self._cache.get(cache_key)
 
         if cached_info is not None:
@@ -342,7 +342,7 @@ class VectorStore(VectorStoreInterface):
     async def health_check_async(self) -> dict[str, Any]:
         """Comprehensive health check."""
         try:
-            provider_healthy = await self._provider.health_check_async()
+            provider_healthy = (await self._provider.health_check_async(),)
             circuit_stats = self._circuit_breaker.get_stats()
 
             return {
@@ -367,7 +367,7 @@ class VectorStore(VectorStoreInterface):
         self._cache.clear()
 
         # Get collection stats
-        info = await self.get_info_async()
+        info = (await self.get_info_async(),)
 
         optimization_results = {"cache_cleared": True, "collection_info": info, "recommendations": []}
 

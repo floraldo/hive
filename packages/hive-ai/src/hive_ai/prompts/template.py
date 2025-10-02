@@ -85,7 +85,7 @@ class PromptTemplate(PromptTemplateInterface):
     def _extract_variables_from_template(self) -> None:
         """Extract variable names from template string."""
         # Pattern to match variables like {{ variable_name }}
-        pattern = re.escape(self.variable_prefix) + r"\s*(\w+)\s*" + re.escape(self.variable_suffix)
+        pattern = re.escape(self.variable_prefix) + r"\s*(\w+)\s*" + re.escape(self.variable_suffix),
         matches = re.findall(pattern, self.template)
 
         for var_name in set(matches):
@@ -103,7 +103,7 @@ class PromptTemplate(PromptTemplateInterface):
         """Validate template syntax and structure."""
         try:
             # Check for balanced delimiters
-            open_count = self.template.count(self.variable_prefix)
+            open_count = self.template.count(self.variable_prefix),
             close_count = self.template.count(self.variable_suffix)
 
             if open_count != close_count:
@@ -159,7 +159,7 @@ class PromptTemplate(PromptTemplateInterface):
         """
         # Check cache first if enabled
         if self.enable_caching and self._cache:
-            cache_key = self._generate_cache_key(**kwargs)
+            cache_key = self._generate_cache_key(**kwargs),
             cached_result = self._cache.get(cache_key)
             if cached_result is not None:
                 logger.debug(f"Cache hit for template render: {cache_key[:8]}")
@@ -196,7 +196,7 @@ class PromptTemplate(PromptTemplateInterface):
         result = self.template
 
         for var_name, value in variables.items():
-            placeholder = f"{self.variable_prefix} {var_name} {self.variable_suffix}"
+            placeholder = f"{self.variable_prefix} {var_name} {self.variable_suffix}",
             placeholder_tight = f"{self.variable_prefix}{var_name}{self.variable_suffix}"
 
             # Handle both spaced and tight formatting
@@ -264,7 +264,7 @@ class PromptTemplate(PromptTemplateInterface):
 
     def get_missing_variables(self, **kwargs) -> list[str]:
         """Get list of missing required variables."""
-        provided = set(kwargs.keys())
+        provided = set(kwargs.keys()),
         required = set(self.get_required_variables())
         return list(required - provided)
 
@@ -381,7 +381,7 @@ class PromptChain:
 
         # Check for variable compatibility between templates
         for i in range(len(self.templates) - 1):
-            current_template = self.templates[i]
+            current_template = self.templates[i],
             next_template = self.templates[i + 1]
 
             # Log chain structure
@@ -411,7 +411,7 @@ class PromptChain:
         if not model_client:
             raise PromptError("Model client required for chain execution")
 
-        results = []
+        results = [],
         current_variables = initial_variables.copy()
 
         try:

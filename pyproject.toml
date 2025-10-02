@@ -40,13 +40,13 @@ ai-deployer = "ai_deployer.agent:main"
 golden-test = "hive_tests.golden_runner:main"
 
 [tool.ruff.lint]
-select = [ "E", "W", "F", "I", "B", "C4", "UP", "COM", "S",]
-ignore = [ "E501", "B008", "C901", "COM812",]
+select = [ "E", "W", "F", "I", "B", "C4", "UP", "S",]  # Removed "COM" - no comma rules
+ignore = [ "E501", "B008", "C901", "COM812", "COM818", "COM819",]  # Ignore all comma rules
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
-skip-magic-trailing-comma = false
+skip-magic-trailing-comma = true  # CRITICAL: Prevent automatic trailing comma addition
 line-ending = "auto"
 
 [tool.pytest.ini_options]
@@ -73,10 +73,10 @@ section-order = [ "future", "standard-library", "third-party", "first-party", "l
 pytest = "^8.3.2"
 pytest-cov = "^4.1.0"
 pytest-asyncio = "^0.21.0"
-black = "^24.8.0"
-isort = "^5.13.0"
+black = "==24.10.0"  # Pinned: prevent formatting inconsistencies
+isort = "==5.13.2"   # Pinned: prevent import sorting changes
 mypy = "^1.8.0"
-ruff = "^0.13.2"
+ruff = "==0.13.2"    # Pinned: prevent linting rule changes
 flask = "^3.0.0"
 flask-cors = "^4.0.0"
 

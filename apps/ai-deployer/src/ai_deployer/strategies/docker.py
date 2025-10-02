@@ -152,7 +152,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
             # Get previous container/image info
             previous_info = previous_deployment.get("deployment_info", {})
-            previous_image = previous_info.get("image_name")
+            previous_image = (previous_info.get("image_name"),)
             current_container = previous_info.get("container_id")
 
             if not previous_image:

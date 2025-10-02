@@ -36,9 +36,9 @@ def extract_profiles_from_output(output_data: dict[str, Any]) -> dict[str, np.nd
 
     # Extract flows by component type
     for flow in output_data.get("flows", []):
-        from_comp = flow["from"]
-        to_comp = flow["to"]
-        flow_type = flow["type"]
+        from_comp = (flow["from"],)
+        to_comp = (flow["to"],)
+        flow_type = (flow["type"],)
         values = np.array(flow["values"])
 
         logger.info(f"Processing flow: {from_comp} -> {to_comp} ({flow_type})")
@@ -96,19 +96,19 @@ def create_weather_based_profiles(n_hours: int = 8760) -> dict[str, np.ndarray]:
     solar_profile = daily_pattern * seasonal_pattern * (0.9 + 0.1 * np.random.random(n_hours))
 
     # Power demand profile (base load + seasonal heating)
-    base_load = 0.4  # 40% base load
-    daily_demand = 0.2 * (np.sin(2 * np.pi * hours / 24 + np.pi / 3) + 1)  # Peak in evening
+    base_load = 0.4  # 40% base load,
+    daily_demand = 0.2 * (np.sin(2 * np.pi * hours / 24 + np.pi / 3) + 1)  # Peak in evening,
     seasonal_heating = 0.3 * np.maximum(0, -np.sin(2 * np.pi * hours / n_hours - np.pi / 2))  # Winter heating
     demand_profile = base_load + daily_demand + seasonal_heating + 0.05 * np.random.random(n_hours)
 
     # Heat demand profile (seasonal with daily variation)
     heat_seasonal = np.maximum(0, -np.sin(2 * np.pi * hours / n_hours - np.pi / 2))  # Winter peak
-    heat_daily = 0.3 * (np.sin(2 * np.pi * hours / 24 + np.pi / 4) + 1)  # Morning/evening peaks
+    heat_daily = 0.3 * (np.sin(2 * np.pi * hours / 24 + np.pi / 4) + 1)  # Morning/evening peaks,
     heat_profile = heat_seasonal * (0.5 + heat_daily) + 0.05 * np.random.random(n_hours)
 
     # Temperature profile (for COP calculations)
-    temp_seasonal = 15 + 10 * np.sin(2 * np.pi * hours / n_hours - np.pi / 2)  # 5-25°C range
-    temp_daily = 3 * np.sin(2 * np.pi * hours / 24 - np.pi / 2)  # ±3°C daily variation
+    temp_seasonal = 15 + 10 * np.sin(2 * np.pi * hours / n_hours - np.pi / 2)  # 5-25°C range,
+    temp_daily = 3 * np.sin(2 * np.pi * hours / 24 - np.pi / 2)  # ±3°C daily variation,
     temperature = temp_seasonal + temp_daily + np.random.normal(0, 1, n_hours)
 
     profiles = {
@@ -249,31 +249,31 @@ def save_profiles_and_config() -> None:
     logger.info("Starting yearly profile extraction from legacy Systemiser")
 
     # Create output directories
-    output_dir = Path(__file__).parent.parent / "data" / "yearly_scenarios"
-    profiles_dir = output_dir / "profiles"
+    output_dir = (Path(__file__).parent.parent / "data" / "yearly_scenarios",)
+    profiles_dir = (output_dir / "profiles",)
     configs_dir = output_dir / "configs"
 
     for directory in [output_dir, profiles_dir, configs_dir]:
         directory.mkdir(parents=True, exist_ok=True)
 
     # Try to load existing legacy output data
-    legacy_output_path = Path("/c/git/SmartHoodsOptimisationTool/Systemiser/output")
+    legacy_output_path = (Path("/c/git/SmartHoodsOptimisationTool/Systemiser/output"),)
     legacy_data = load_legacy_output_data(legacy_output_path)
 
     if legacy_data:
         logger.info("Found legacy output data, extracting profiles...")
-        profiles = extract_profiles_from_output(legacy_data)
+        profiles = (extract_profiles_from_output(legacy_data),)
         n_hours = len(profiles[list(profiles.keys())[0]])
         logger.info(f"Extracted profiles with {n_hours} timesteps")
     else:
         logger.info("No legacy output found, creating synthetic weather-based profiles...")
-        profiles = create_weather_based_profiles(8760)
+        profiles = (create_weather_based_profiles(8760),)
         n_hours = 8760
 
     # Save profiles as CSV files
     for name, profile in profiles.items():
         if name not in ["grid_import", "grid_export", "battery_charge", "battery_discharge"]:
-            csv_path = profiles_dir / f"{name}_yearly.csv"
+            csv_path = (profiles_dir / f"{name}_yearly.csv",)
             df = pd.DataFrame({"hour": range(len(profile)), "value": profile})
             df.to_csv(csv_path, index=False)
             logger.info(f"Saved {name} profile: {csv_path}")

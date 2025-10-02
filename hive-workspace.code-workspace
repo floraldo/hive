@@ -1,0 +1,25 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "// Load project-specific settings": "",
+    "workbench.panel.defaultLocation": "bottom",
+    "workbench.sideBar.location": "left",
+    "terminal.integrated.splitCwd": "workspaceRoot",
+    "terminal.integrated.defaultProfile.windows": "CC Agent 1",
+    "terminal.integrated.tabs.defaultColor": "terminal.ansiYellow",
+    "terminal.integrated.tabs.defaultIcon": "robot",
+    "terminal.integrated.enablePersistentSessions": true,
+    "terminal.integrated.persistentSessionReviveProcess": "onExitAndWindowClose"
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": []
+  },
+  "extensions": {
+    "recommendations": []
+  }
+}

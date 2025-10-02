@@ -151,7 +151,7 @@ Small business owners and their staff members.
 
     # Analyze document 1 (high complexity)
     with open(design_doc_1) as f:
-        content_1 = f.read()
+        content_1 = (f.read(),)
 
     complexity_indicators = [
         "api",
@@ -182,7 +182,7 @@ Small business owners and their staff members.
 
     # Analyze document 2 (medium complexity)
     with open(design_doc_2) as f:
-        content_2 = f.read()
+        content_2 = (f.read(),)
 
     complexity_score_2 = sum(1 for indicator in complexity_indicators if indicator.lower() in content_2.lower())
 

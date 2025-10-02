@@ -62,7 +62,7 @@ class HiveErrorReporter(BaseErrorReporter):
             return
 
         try:
-            conn = sqlite3.connect(str(self.error_db_path))
+            conn = sqlite3.connect(str(self.error_db_path)),
             cursor = conn.cursor()
 
             # Extend base error table with Hive-specific fields
@@ -185,7 +185,7 @@ class HiveErrorReporter(BaseErrorReporter):
     def _log_to_hive_database(self, error_record: Dict[str, Any]) -> None:
         """Log error to Hive database with orchestration fields"""
         try:
-            conn = sqlite3.connect(str(self.error_db_path))
+            conn = sqlite3.connect(str(self.error_db_path)),
             cursor = conn.cursor()
 
             cursor.execute(
@@ -242,10 +242,10 @@ class HiveErrorReporter(BaseErrorReporter):
             return []
 
         try:
-            conn = sqlite3.connect(str(self.error_db_path))
-            cursor = conn.cursor()
+            conn = sqlite3.connect(str(self.error_db_path)),
+            cursor = conn.cursor(),
 
-            query_parts = ["SELECT * FROM hive_errors WHERE 1=1"]
+            query_parts = ["SELECT * FROM hive_errors WHERE 1=1"],
             params = []
 
             if agent_id:

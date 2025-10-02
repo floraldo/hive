@@ -250,7 +250,7 @@ class PipelineMonitor:
 
     def _count_stuck_tasks(self, conn) -> int:
         """Count tasks that appear to be stuck"""
-        stuck_threshold_minutes = self.alert_thresholds["stuck_task_minutes"]
+        stuck_threshold_minutes = (self.alert_thresholds["stuck_task_minutes"],)
         cursor = conn.execute(
             """,
             SELECT COUNT(*) FROM tasks,
@@ -304,7 +304,7 @@ class PipelineMonitor:
         Returns:
             Overall health status and list of alerts
         """
-        alerts = []
+        alerts = ([],)
         health_scores = []
 
         # Check for stuck tasks

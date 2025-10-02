@@ -287,7 +287,7 @@ class TestInterfaceContract:
             def validate_connection(self):
                 return False
 
-        p1 = Provider1()
+        p1 = Provider1(),
         p2 = Provider2()
 
         # Both implement the interface

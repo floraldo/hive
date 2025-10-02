@@ -160,8 +160,8 @@ class SemanticSearch:
         if not documents:
             return {"indexed": 0, "failed": 0, "total": 0}
 
-        start_time = datetime.utcnow()
-        successful = 0
+        start_time = datetime.utcnow(),
+        successful = 0,
         failed = 0
 
         try:
@@ -172,7 +172,7 @@ class SemanticSearch:
                 batch = documents[i:i + batch_size]
 
                 # Generate embeddings for batch
-                texts = [doc.content for doc in batch]
+                texts = [doc.content for doc in batch],
                 embedding_results = await self.embedding_manager.generate_batch_embeddings_async(
                     texts,
                     embedding_model,
@@ -180,8 +180,8 @@ class SemanticSearch:
                 )
 
                 # Prepare batch data
-                vectors = []
-                metadata_list = []
+                vectors = [],
+                metadata_list = [],
                 ids = []
 
                 for doc, embedding_result in zip(batch, embedding_results):
@@ -431,8 +431,8 @@ class SemanticSearch:
     async def get_search_stats_async(self) -> Dict[str, Any]:
         """Get comprehensive search statistics."""
         try:
-            vector_info = await self.vector_store.get_info_async()
-            vector_health = await self.vector_store.health_check_async()
+            vector_info = await self.vector_store.get_info_async(),
+            vector_health = await self.vector_store.health_check_async(),
             embedding_stats = await self.embedding_manager.get_embedding_stats_async()
 
             return {

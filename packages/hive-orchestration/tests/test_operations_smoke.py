@@ -4,13 +4,12 @@ Smoke tests for orchestration operations.
 Tests basic operation functionality without requiring all dependencies.
 """
 
-import tempfile
 import os
+import tempfile
 
 
 def test_database_schema():
     """Test database schema initialization."""
-    from hive_orchestration.database.schema import init_db
     from hive_orchestration.database.operations import get_connection
 
     with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
@@ -34,14 +33,14 @@ def test_database_schema():
 
         # Verify connection works
         with get_connection(db_path) as conn:
-            cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            cursor = (conn.execute("SELECT name FROM sqlite_master WHERE type='table'"),)
             tables = [row[0] for row in cursor.fetchall()]
             assert "tasks" in tables
 
     finally:
         # Give Windows time to release file handles
-        import time
         import gc
+        import time
 
         gc.collect()
         time.sleep(0.1)
@@ -58,11 +57,11 @@ def test_operations_importable():
     # Task operations
     from hive_orchestration.operations.tasks import (
         create_task,
-        get_task,
-        update_task_status,
-        get_tasks_by_status,
-        get_queued_tasks,
         delete_task,
+        get_queued_tasks,
+        get_task,
+        get_tasks_by_status,
+        update_task_status,
     )
 
     assert callable(create_task)
@@ -74,11 +73,11 @@ def test_operations_importable():
 
     # Worker operations
     from hive_orchestration.operations.workers import (
-        register_worker,
-        update_worker_heartbeat,
         get_active_workers,
         get_worker,
+        register_worker,
         unregister_worker,
+        update_worker_heartbeat,
     )
 
     assert callable(register_worker)
@@ -89,9 +88,9 @@ def test_operations_importable():
 
     # Plan operations
     from hive_orchestration.operations.plans import (
+        check_subtask_dependencies,
         create_planned_subtasks_from_plan,
         get_execution_plan_status,
-        check_subtask_dependencies,
         get_next_planned_subtask,
         mark_plan_execution_started,
     )
@@ -105,7 +104,7 @@ def test_operations_importable():
 
 def test_database_operations_importable():
     """Test database operations can be imported."""
-    from hive_orchestration.database import get_connection, transaction, init_db
+    from hive_orchestration.database import get_connection, init_db, transaction
 
     assert callable(get_connection)
     assert callable(transaction)

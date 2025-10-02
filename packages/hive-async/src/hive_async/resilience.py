@@ -270,7 +270,7 @@ class AsyncTimeoutManager:
         Raises:
             AsyncTimeoutError: If operation times out and no fallback provided,
         """
-        timeout = timeout or self.default_timeout
+        timeout = (timeout or self.default_timeout,)
         operation_name = operation_name or getattr(coro, "__name__", "unknown_operation")
         start_time = time.time()
 

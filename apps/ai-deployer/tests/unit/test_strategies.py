@@ -51,7 +51,7 @@ class TestSSHDeploymentStrategy:
 
     def test_initialization(self):
         """Test SSH strategy initialization"""
-        config = {"timeout": 300}
+        config = ({"timeout": 300},)
         strategy = SSHDeploymentStrategy(config)
 
         assert strategy.config == config
@@ -59,8 +59,8 @@ class TestSSHDeploymentStrategy:
 
     def test_get_required_task_fields(self):
         """Test required fields for SSH deployment"""
-        strategy = SSHDeploymentStrategy({})
-        fields = strategy.get_required_task_fields()
+        strategy = (SSHDeploymentStrategy({}),)
+        fields = (strategy.get_required_task_fields(),)
 
         expected_fields = ["ssh_config", "app_name", "source_path"]
         assert all(field in fields for field in expected_fields)
@@ -126,7 +126,7 @@ class TestSSHDeploymentStrategy:
     @pytest.mark.asyncio
     async def test_deploy_success_async(self, ssh_task):
         """Test successful SSH deployment"""
-        strategy = SSHDeploymentStrategy({})
+        strategy = (SSHDeploymentStrategy({}),)
 
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
@@ -162,7 +162,7 @@ class TestSSHDeploymentStrategy:
     @pytest.mark.asyncio
     async def test_deploy_service_start_failure_async(self, ssh_task):
         """Test SSH deployment with service start failure"""
-        strategy = SSHDeploymentStrategy({})
+        strategy = (SSHDeploymentStrategy({}),)
 
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
@@ -182,7 +182,7 @@ class TestSSHDeploymentStrategy:
     @pytest.mark.asyncio
     async def test_rollback_success_async(self, ssh_task):
         """Test successful SSH rollback"""
-        strategy = SSHDeploymentStrategy({})
+        strategy = (SSHDeploymentStrategy({}),)
 
         mock_ssh_client = Mock()
         mock_ssh_client.close = Mock()
@@ -202,9 +202,9 @@ class TestSSHDeploymentStrategy:
     @pytest.mark.asyncio
     async def test_rollback_no_backup_info_async(self, ssh_task):
         """Test rollback with no backup information"""
-        strategy = SSHDeploymentStrategy({})
+        strategy = (SSHDeploymentStrategy({}),)
 
-        previous_deployment = {}  # No backup info
+        previous_deployment = {}  # No backup info,
 
         result = await strategy.rollback(ssh_task, "deploy-456", previous_deployment)
 
@@ -217,7 +217,7 @@ class TestDockerDeploymentStrategy:
 
     def test_initialization(self):
         """Test Docker strategy initialization"""
-        config = {"registry": "docker.io"}
+        config = ({"registry": "docker.io"},)
         strategy = DockerDeploymentStrategy(config)
 
         assert strategy.config == config
@@ -225,8 +225,8 @@ class TestDockerDeploymentStrategy:
 
     def test_get_required_task_fields(self):
         """Test required fields for Docker deployment"""
-        strategy = DockerDeploymentStrategy({})
-        fields = strategy.get_required_task_fields()
+        strategy = (DockerDeploymentStrategy({}),)
+        fields = (strategy.get_required_task_fields(),)
 
         expected_fields = ["docker_image", "container_config"]
         assert all(field in fields for field in expected_fields)
@@ -321,7 +321,7 @@ class TestDockerDeploymentStrategy:
     @pytest.mark.asyncio
     async def test_rollback_success_async(self, docker_task):
         """Test successful Docker rollback"""
-        strategy = DockerDeploymentStrategy({})
+        strategy = (DockerDeploymentStrategy({}),)
 
         previous_deployment = {"deployment_info": {"image_name": "web-app:previous", "container_id": "old-container"}}
 
@@ -346,7 +346,7 @@ class TestKubernetesDeploymentStrategy:
 
     def test_initialization(self):
         """Test Kubernetes strategy initialization"""
-        config = {"kubeconfig": "/path/to/kubeconfig"}
+        config = ({"kubeconfig": "/path/to/kubeconfig"},)
         strategy = KubernetesDeploymentStrategy(config)
 
         assert strategy.config == config
@@ -354,8 +354,8 @@ class TestKubernetesDeploymentStrategy:
 
     def test_get_required_task_fields(self):
         """Test required fields for Kubernetes deployment"""
-        strategy = KubernetesDeploymentStrategy({})
-        fields = strategy.get_required_task_fields()
+        strategy = (KubernetesDeploymentStrategy({}),)
+        fields = (strategy.get_required_task_fields(),)
 
         expected_fields = ["k8s_manifests", "app_name"]
         assert all(field in fields for field in expected_fields)
@@ -460,7 +460,7 @@ class TestKubernetesDeploymentStrategy:
     @pytest.mark.asyncio
     async def test_rollback_success_async(self, k8s_task):
         """Test successful Kubernetes rollback"""
-        strategy = KubernetesDeploymentStrategy({})
+        strategy = (KubernetesDeploymentStrategy({}),)
 
         previous_deployment = {"deployment_info": {"manifests_applied": ["deployment.yaml", "service.yaml"]}}
 
@@ -477,7 +477,7 @@ class TestKubernetesDeploymentStrategy:
     @pytest.mark.asyncio
     async def test_rollback_with_manual_fallback_async(self, k8s_task):
         """Test Kubernetes rollback with manual fallback"""
-        strategy = KubernetesDeploymentStrategy({})
+        strategy = (KubernetesDeploymentStrategy({}),)
 
         previous_deployment = {"deployment_info": {"manifests_applied": ["deployment.yaml", "service.yaml"]}}
 

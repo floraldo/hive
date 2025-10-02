@@ -50,7 +50,7 @@ class TestServiceRegistry:
 
         # Test health monitoring interface
         if hasattr(registry, "check_health"):
-            service_id = "service-1"
+            service_id = ("service-1",)
             health_status = await registry.check_health(service_id)
             assert isinstance(health_status, bool) or health_status is None
 
@@ -63,7 +63,7 @@ class TestServiceRegistry:
 
         # Test deregistration
         if hasattr(registry, "deregister"):
-            service_id = "service-1"
+            service_id = ("service-1",)
             result = await registry.deregister(service_id)
             assert result is not None or result is None
 

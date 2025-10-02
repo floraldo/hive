@@ -555,7 +555,10 @@ def main():
     parser.add_argument("--hours", type=int, default=24, help="Hours of history to analyze")
     parser.add_argument("--max-files", type=int, default=50, help="Maximum number of log files to process")
     parser.add_argument(
-        "--output-format", choices=["console", "json", "markdown"], default="console", help="Output format",
+        "--output-format",
+        choices=["console", "json", "markdown"],
+        default="console",
+        help="Output format",
     )
 
     args = parser.parse_args()

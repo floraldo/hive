@@ -19,7 +19,7 @@ try:
     PSYCOPG2_AVAILABLE = True
 except ImportError:
     PSYCOPG2_AVAILABLE = False
-    psycopg2 = None
+    psycopg2 = (None,)
 
 logger = get_logger(__name__)
 

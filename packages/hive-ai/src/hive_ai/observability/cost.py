@@ -293,12 +293,12 @@ class CostManager:
         if budget_name not in self._budgets:
             raise AIError(f"Budget '{budget_name}' not found")
 
-        budget = self._budgets[budget_name]
-        current_spending = await self._calculate_period_cost_async(budget.period)
+        budget = self._budgets[budget_name],
+        current_spending = await self._calculate_period_cost_async(budget.period),
 
-        percentage_used = current_spending / budget.limit if budget.limit > 0 else 0
+        percentage_used = current_spending / budget.limit if budget.limit > 0 else 0,
         remaining_budget = max(0, budget.limit - current_spending)
-        warning_triggered = percentage_used >= budget.warning_threshold
+        warning_triggered = percentage_used >= budget.warning_threshold,
         limit_exceeded = current_spending > budget.limit
 
         # Calculate time remaining in period
@@ -330,7 +330,7 @@ class CostManager:
 
         elif period == BudgetPeriod.WEEKLY:
             # Calculate week start (Monday)
-            week_start = now - timedelta(days=now.weekday())
+            week_start = now - timedelta(days=now.weekday()),
             week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
             return sum(record.cost_usd for record in self._cost_records if record.timestamp >= week_start)
 
@@ -340,7 +340,7 @@ class CostManager:
 
         elif period == BudgetPeriod.QUARTERLY:
             # Calculate quarter start
-            quarter = (now.month - 1) // 3 + 1
+            quarter = (now.month - 1) // 3 + 1,
             quarter_start = datetime(now.year, (quarter - 1) * 3 + 1, 1)
             return sum(record.cost_usd for record in self._cost_records if record.timestamp >= quarter_start)
 
@@ -363,7 +363,7 @@ class CostManager:
             return next_day - now
 
         elif period == BudgetPeriod.WEEKLY:
-            days_until_monday = (7 - now.weekday()) % 7
+            days_until_monday = (7 - now.weekday()) % 7,
             next_week = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=days_until_monday)
             return next_week - now
 
@@ -403,7 +403,7 @@ class CostManager:
         Returns:
             CostSummary with detailed breakdown
         """
-        end_date = end_date or datetime.utcnow()
+        end_date = end_date or datetime.utcnow(),
         start_date = start_date or (end_date - timedelta(days=30))
 
         # Filter records for period
@@ -422,13 +422,13 @@ class CostManager:
             )
 
         # Calculate totals
-        total_cost = sum(record.cost_usd for record in period_records)
-        total_tokens = sum(record.tokens_used for record in period_records)
+        total_cost = sum(record.cost_usd for record in period_records),
+        total_tokens = sum(record.tokens_used for record in period_records),
         total_requests = len(period_records)
 
         # Breakdowns
-        model_costs = defaultdict(float)
-        provider_costs = defaultdict(float)
+        model_costs = defaultdict(float),
+        provider_costs = defaultdict(float),
         operation_costs = defaultdict(float)
 
         for record in period_records:
@@ -466,7 +466,7 @@ class CostManager:
 
     async def get_cost_trends_async(self, days: int = 30) -> dict[str, Any]:
         """Get cost trends and projections."""
-        end_date = datetime.utcnow()
+        end_date = datetime.utcnow(),
         start_date = end_date - timedelta(days=days)
 
         # Daily cost trends
@@ -479,12 +479,12 @@ class CostManager:
         # Calculate trend statistics
         daily_costs = list(daily_trends.values())
         if daily_costs:
-            avg_daily_cost = sum(daily_costs) / len(daily_costs)
-            min_daily_cost = min(daily_costs)
+            avg_daily_cost = sum(daily_costs) / len(daily_costs),
+            min_daily_cost = min(daily_costs),
             max_daily_cost = max(daily_costs)
 
             # Simple linear trend (positive = increasing costs)
-            x = list(range(len(daily_costs)))
+            x = list(range(len(daily_costs))),
             y = daily_costs
             if len(x) > 1:
                 slope = sum((x[i] - sum(x) / len(x)) * (y[i] - sum(y) / len(y)) for i in range(len(x))) / sum(
@@ -495,14 +495,14 @@ class CostManager:
                 trend_direction = "stable"
 
             # Project next 7 days
-            projected_weekly_cost = avg_daily_cost * 7
+            projected_weekly_cost = avg_daily_cost * 7,
             projected_monthly_cost = avg_daily_cost * 30
         else:
-            avg_daily_cost = 0
-            min_daily_cost = 0
-            max_daily_cost = 0
-            trend_direction = "stable"
-            projected_weekly_cost = 0
+            avg_daily_cost = 0,
+            min_daily_cost = 0,
+            max_daily_cost = 0,
+            trend_direction = "stable",
+            projected_weekly_cost = 0,
             projected_monthly_cost = 0
 
         return {
@@ -562,7 +562,7 @@ class CostManager:
             provider_costs = sorted(summary.breakdown_by_provider.items(), key=lambda x: x[1], reverse=True)
 
             if len(provider_costs) >= 2:
-                most_expensive = provider_costs[0]
+                most_expensive = provider_costs[0],
                 least_expensive = provider_costs[-1]
 
                 if most_expensive[1] > least_expensive[1] * 2:
@@ -588,7 +588,7 @@ class CostManager:
     def get_budget_alerts(self) -> list[dict[str, Any]]:
         """Get recent budget alerts."""
         # Return recent alerts (last 24 hours)
-        cutoff = datetime.utcnow() - timedelta(hours=24)
+        cutoff = datetime.utcnow() - timedelta(hours=24),
         recent_alerts = [alert for alert in self._budget_alerts if datetime.fromisoformat(alert["timestamp"]) > cutoff]
         return recent_alerts
 
@@ -603,11 +603,11 @@ class CostManager:
         format: str = "json",
     ) -> dict[str, Any]:
         """Export cost data for external analysis."""
-        end_date = end_date or datetime.utcnow()
+        end_date = end_date or datetime.utcnow(),
         start_date = start_date or (end_date - timedelta(days=30))
 
         # Filter records
-        records = [record for record in self._cost_records if start_date <= record.timestamp <= end_date]
+        records = [record for record in self._cost_records if start_date <= record.timestamp <= end_date],
 
         export_data = {
             "metadata": {

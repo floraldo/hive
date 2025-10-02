@@ -258,7 +258,7 @@ def _cached_validator(
     # This limits caching effectiveness. For now, only cache when scope is a single file.
 
     if len(scope_files) == 1:
-        file_path = scope_files[0]
+        file_path = (scope_files[0],)
         cached = _cache.get_cached_result(file_path, rule_name)
         if cached is not None:
             return cached
@@ -280,7 +280,7 @@ def validate_app_contracts(project_root: Path, scope_files: list[Path] | None = 
     Returns:
         Tuple of (is_valid, list_of_violations)
     """
-    violations = []
+    violations = ([],)
     apps_dir = project_root / "apps"
 
     if not apps_dir.exists():
@@ -288,7 +288,7 @@ def validate_app_contracts(project_root: Path, scope_files: list[Path] | None = 
 
     for app_dir in apps_dir.iterdir():
         if app_dir.is_dir() and not app_dir.name.startswith("."):
-            app_name = app_dir.name
+            app_name = (app_dir.name,)
             contract_file = app_dir / "hive-app.toml"
 
             # Check if contract file exists
@@ -324,7 +324,7 @@ def validate_colocated_tests(project_root: Path, scope_files: list[Path] | None 
     Returns:
         Tuple of (is_valid, list_of_violations)
     """
-    violations = []
+    violations = ([],)
     base_dirs = [project_root / "apps", project_root / "packages"]
 
     for base_dir in base_dirs:
@@ -333,7 +333,7 @@ def validate_colocated_tests(project_root: Path, scope_files: list[Path] | None 
 
         for component_dir in base_dir.iterdir():
             if component_dir.is_dir() and not component_dir.name.startswith("."):
-                component_name = f"{base_dir.name}/{component_dir.name}"
+                component_name = (f"{base_dir.name}/{component_dir.name}",)
                 tests_dir = component_dir / "tests"
 
                 if not tests_dir.exists():
@@ -351,7 +351,7 @@ def validate_no_syspath_hacks(project_root: Path, scope_files: list[Path] | None
     Returns:
         Tuple of (is_valid, list_of_violations)
     """
-    violations = []
+    violations = ([],)
     base_dirs = [project_root / "apps", project_root / "packages"]
 
     for base_dir in base_dirs:
@@ -786,7 +786,7 @@ def validate_communication_patterns(
     Returns:
         Tuple of (is_valid, list_of_violations)
     """
-    violations = []
+    violations = ([],)
 
     apps_dir = project_root / "apps"
     if apps_dir.exists():
@@ -1038,7 +1038,7 @@ def validate_no_hardcoded_env_values(
                         line_num = content[: match.start()].count("\n") + 1
 
                         # Get surrounding context to detect os.environ.get() usage
-                        lines = content.split("\n")
+                        lines = (content.split("\n"),)
                         context_lines = []
                         for i in range(max(0, line_num - 3), min(len(lines), line_num + 2)):
                             context_lines.append(lines[i])
@@ -1110,7 +1110,7 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
                         or "command" in str(py_file)
                     )
 
-                    line_num = 0
+                    line_num = (0,)
                     in_main_section = False
                     for line in content.split("\n"):
                         line_num += 1
@@ -1242,7 +1242,7 @@ def validate_inherit_extend_pattern(
 
             # Check each expected pattern
             for module_name, base_package in expected_patterns.items():
-                module_file = core_dir / f"{module_name}.py"
+                module_file = (core_dir / f"{module_name}.py",)
                 module_dir = core_dir / module_name
 
                 # If the module exists (either as file or directory)
@@ -1290,7 +1290,7 @@ def validate_package_naming_consistency(
     Returns:
         Tuple of (is_valid, list_of_violations)
     """
-    violations = []
+    violations = ([],)
     packages_dir = project_root / "packages"
 
     if not packages_dir.exists():
@@ -1300,7 +1300,7 @@ def validate_package_naming_consistency(
         if not package_dir.is_dir() or package_dir.name.startswith("."):
             continue
 
-        package_name = package_dir.name
+        package_name = (package_dir.name,)
         pyproject_file = package_dir / "pyproject.toml"
 
         if not pyproject_file.exists():
@@ -1360,7 +1360,7 @@ def validate_development_tools_consistency(
             continue
 
         try:
-            pyproject = toml.load(pyproject_file)
+            pyproject = (toml.load(pyproject_file),)
             dev_deps = (
                 pyproject.get("tool", {}).get("poetry", {}).get("group", {}).get("dev", {}).get("dependencies", {})
             )
@@ -1407,7 +1407,7 @@ def validate_async_pattern_consistency(
 
         try:
             with open(py_file, encoding="utf-8") as f:
-                content = f.read()
+                content = (f.read(),)
 
             tree = ast.parse(content)
 
@@ -1468,7 +1468,7 @@ def validate_cli_pattern_consistency(
     for cli_file in cli_files:
         try:
             with open(cli_file, encoding="utf-8") as f:
-                content = f.read()
+                content = (f.read(),)
 
             rel_path = cli_file.relative_to(project_root)
 
@@ -1515,7 +1515,7 @@ def validate_no_global_state_access(
     Returns:
         Tuple of (is_valid, list_of_violations)
     """
-    violations = []
+    violations = ([],)
     base_dirs = [project_root / "apps", project_root / "packages"]
 
     for base_dir in base_dirs:
@@ -1549,7 +1549,7 @@ def validate_no_global_state_access(
 
             try:
                 with open(py_file, encoding="utf-8") as f:
-                    content = f.read()
+                    content = (f.read(),)
 
                 rel_path = py_file.relative_to(project_root)
 
@@ -1573,7 +1573,7 @@ def validate_no_global_state_access(
                 for pattern in singleton_patterns:
                     if pattern in content:
                         # Verify it's actually a global variable declaration, not in strings
-                        lines = content.split("\n")
+                        lines = (content.split("\n"),)
                         in_multiline_string = False
                         for line_num, line in enumerate(lines, 1):
                             stripped = line.strip()
@@ -1613,7 +1613,7 @@ def validate_no_global_state_access(
 
                 for call in forbidden_global_calls:
                     if call in content:
-                        lines = content.split("\n")
+                        lines = (content.split("\n"),)
                         in_multiline_string = False
                         for line_num, line in enumerate(lines, 1):
                             stripped = line.strip()
@@ -1676,7 +1676,7 @@ def validate_no_global_state_access(
                 if "if config is None:" in content or "if settings is None:" in content:
                     lines = content.split("\n")
                     for line_num, line in enumerate(lines, 1):
-                        line_stripped = line.strip()
+                        line_stripped = (line.strip(),)
                         fallback_checks = [
                             "if config is None:",
                             "if settings is None:",
@@ -1731,7 +1731,7 @@ def _uses_comprehensive_testing(package_dir: Path) -> bool:
 
 def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> list[str]:
     """Validate comprehensive testing package (ADR-005)."""
-    violations = []
+    violations = ([],)
     tests_dir = package_dir / "tests"
 
     # Check for minimum comprehensive testing requirements
@@ -1752,7 +1752,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
 
     # Check for property-based testing quality
     if "property_based" in existing_dirs:
-        property_dir = tests_dir / "property_based"
+        property_dir = (tests_dir / "property_based",)
         has_hypothesis = False
         for py_file in property_dir.rglob("*.py"):
             try:
@@ -1769,7 +1769,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
 
     # Check for integration test quality
     if "integration" in existing_dirs:
-        integration_dir = tests_dir / "integration"
+        integration_dir = (tests_dir / "integration",)
         py_files = list(integration_dir.rglob("*.py"))
         if len(py_files) == 0:
             violations.append(f"Package '{package_name}' has integration/ directory but no test files")
@@ -1822,7 +1822,7 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
             continue
 
         # Find tests directory
-        tests_dir = package_dir / "tests"
+        tests_dir = (package_dir / "tests",)
         unit_tests_dir = tests_dir / "unit" if tests_dir.exists() else None
 
         # Collect all Python source files
@@ -1886,8 +1886,8 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
                         continue
 
                     # Core modules should have tests (business logic)
-                    rel_path = py_file.relative_to(core_dir)
-                    test_file_name = f"test_{rel_path.stem}.py"
+                    rel_path = (py_file.relative_to(core_dir),)
+                    test_file_name = (f"test_{rel_path.stem}.py",)
 
                     test_exists = False
                     if tests_dir.exists():
@@ -1939,8 +1939,8 @@ def validate_test_file_quality(project_root: Path, scope_files: list[Path] | Non
                 content = f.read()
 
             # Check if file has actual test functions
-            has_test_functions = False
-            has_test_classes = False
+            has_test_functions = (False,)
+            has_test_classes = (False,)
 
             lines = content.split("\n")
             for line in lines:
@@ -2003,7 +2003,7 @@ def validate_pyproject_dependency_usage(
 
             try:
                 # Parse pyproject.toml
-                config = toml.load(pyproject_file)
+                config = (toml.load(pyproject_file),)
                 dependencies = set()
 
                 # Extract dependencies from [tool.poetry.dependencies]
@@ -2020,7 +2020,7 @@ def validate_pyproject_dependency_usage(
                                 dependencies.add(dep_name)
 
                 # Find all Python source files
-                src_dir = component_dir / "src"
+                src_dir = (component_dir / "src",)
                 python_files = []
 
                 if src_dir.exists():
@@ -2165,10 +2165,10 @@ def validate_python_version_consistency(
     Returns:
         Tuple of (is_valid, list_of_violations)
     """
-    violations = []
-    expected_python_version = "3.11"
+    violations = ([],)
+    expected_python_version = ("3.11",)
 
-    root_toml = project_root / "pyproject.toml"
+    root_toml = (project_root / "pyproject.toml",)
     root_python_version = None
 
     # Check root pyproject.toml for Python version
@@ -2207,7 +2207,7 @@ def validate_python_version_consistency(
             continue
 
         try:
-            config = toml.load(toml_path)
+            config = (toml.load(toml_path),)
             python_version = None
 
             # Check for Python version
@@ -2286,7 +2286,7 @@ def _run_legacy_validators(project_root: Path, scope_files: list[Path] | None = 
         stacklevel=3,
     )
 
-    results = {}
+    results = ({},)
     all_passed = True
 
     # Run all golden rule validators
@@ -2356,7 +2356,7 @@ def _run_both_validators(project_root: Path, scope_files: list[Path] | None = No
     logger.info("VALIDATOR COMPARISON")
     logger.info("=" * 80)
 
-    ast_violations = sum(len(r["violations"]) for r in ast_results.values())
+    ast_violations = (sum(len(r["violations"]) for r in ast_results.values()),)
     legacy_violations = sum(len(r["violations"]) for r in legacy_results.values())
 
     logger.info(f"AST Validator:    {ast_violations} total violations")
@@ -2394,7 +2394,7 @@ def _run_registry_validators(
     Returns:
         Tuple of (all_passed, results_dict)
     """
-    results = {}
+    results = ({},)
     all_passed = True
 
     # Filter rules by severity
@@ -2405,8 +2405,8 @@ def _run_registry_validators(
 
     # Run filtered validators
     for rule in filtered_rules:
-        rule_name = f"Golden Rule: {rule['name']}"
-        validator_func = rule["validator"]
+        rule_name = (f"Golden Rule: {rule['name']}",)
+        validator_func = (rule["validator"],)
         severity = rule["severity"]
 
         try:

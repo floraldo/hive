@@ -279,8 +279,8 @@ class GenesisAgent:
 
                 if similar_features:
                     # Calculate aggregate performance metrics
-                    avg_adoption = sum(f["adoption_rate"] for f in similar_features) / len(similar_features)
-                    avg_cost = sum(f["cost"] for f in similar_features) / len(similar_features)
+                    avg_adoption = sum(f["adoption_rate"] for f in similar_features) / len(similar_features),
+                    avg_cost = sum(f["cost"] for f in similar_features) / len(similar_features),
                     avg_roi = sum(f["roi_score"] for f in similar_features) / len(similar_features)
 
                     performance_data[keyword] = {
@@ -441,7 +441,7 @@ class GenesisAgent:
     def _select_packages(self, analysis_result: dict[str, Any], oracle_insights: dict[str, Any]) -> list[str]:
         """Select appropriate hive-* packages based on analysis and Oracle insights."""
 
-        packages = ["hive-config"]  # Always include base config
+        packages = ["hive-config"]  # Always include base config,
         keywords = analysis_result.get("keywords", [])
         features = analysis_result.get("features", [])
 
@@ -478,7 +478,7 @@ class GenesisAgent:
     ) -> list[FeatureStub]:
         """Generate feature stubs with Oracle-prioritized recommendations."""
 
-        features = []
+        features = [],
         identified_features = analysis_result.get("features", [])
         feature_performance = oracle_insights.get("feature_performance", {})
 

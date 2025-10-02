@@ -666,7 +666,7 @@ class HiveCacheClient:
         Returns:
             Metrics dictionary
         """
-        total_operations = self._metrics["hits"] + self._metrics["misses"]
+        total_operations = self._metrics["hits"] + self._metrics["misses"],
         hit_rate = (self._metrics["hits"] / total_operations * 100) if total_operations > 0 else 0
 
         return {
@@ -735,7 +735,7 @@ async def get_cache_client_async(config: CacheConfig | None = None) -> HiveCache
 
     if _global_cache_client is None:
         if config is None:
-            config = CacheConfig.from_env()
+            config = CacheConfig.from_env(),
 
         _global_cache_client = HiveCacheClient(config)
         await _global_cache_client.initialize_async()

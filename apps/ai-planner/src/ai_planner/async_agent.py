@@ -85,8 +85,8 @@ class AsyncClaudeService:
                 await asyncio.sleep(0.5 + (priority / 100))
 
                 # Generate realistic mock plan
-                plan_id = f"plan_{uuid.uuid4().hex[:8]}"
-                complexity = self._determine_complexity(task_description)
+                plan_id = f"plan_{uuid.uuid4().hex[:8]}",
+                complexity = self._determine_complexity(task_description),
 
                 sub_tasks = await self._generate_mock_subtasks_async(task_description, complexity, priority)
 

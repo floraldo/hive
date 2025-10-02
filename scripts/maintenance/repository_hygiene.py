@@ -26,7 +26,6 @@ import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List
 
 
 class RepositoryHygieneScanner:
@@ -202,7 +201,12 @@ class RepositoryHygieneScanner:
 
         if self.findings["stale_branches"]:
             report_lines.extend(
-                [f"## Stale Branches ({len(self.findings['stale_branches'])})", "", "These branches can be deleted:", ""]
+                [
+                    f"## Stale Branches ({len(self.findings['stale_branches'])})",
+                    "",
+                    "These branches can be deleted:",
+                    "",
+                ]
             )
 
             for branch in self.findings["stale_branches"][:10]:
@@ -213,7 +217,7 @@ class RepositoryHygieneScanner:
 
         return "\n".join(report_lines)
 
-    def _run_git_command(self, cmd: List[str]) -> str:
+    def _run_git_command(self, cmd: list[str]) -> str:
         """Run a git command and return output"""
         try:
             result = subprocess.run(["git"] + cmd, capture_output=True, text=True, check=True, cwd=self.repo_root)
@@ -279,7 +283,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-

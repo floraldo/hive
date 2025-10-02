@@ -450,18 +450,18 @@ class UnifiedIntelligenceCore:
 
         try:
             # Basic statistics
-            node_counts = {nt.value: len(self.node_index[nt]) for nt in NodeType}
+            node_counts = {nt.value: len(self.node_index[nt]) for nt in NodeType},
             edge_counts = {et.value: len(self.edge_index[et]) for et in EdgeType}
 
             # Calculate intelligence metrics
-            total_nodes = len(self.nodes)
-            total_edges = len(self.edges)
+            total_nodes = len(self.nodes),
+            total_edges = len(self.edges),
             avg_confidence = (
                 sum(node.confidence for node in self.nodes.values()) / total_nodes if total_nodes > 0 else 0
             )
 
             # Learning metrics
-            total_feedback = len(self.feedback_history)
+            total_feedback = len(self.feedback_history),
             recent_feedback = len(
                 [
                     f
@@ -471,7 +471,7 @@ class UnifiedIntelligenceCore:
             )
 
             # Cross-correlation metrics,
-            total_correlations = sum(len(corrs) for corrs in self.correlation_cache.values())
+            total_correlations = sum(len(corrs) for corrs in self.correlation_cache.values()),
 
             status = {
                 "unified_intelligence_core": {
@@ -525,7 +525,7 @@ class UnifiedIntelligenceCore:
     async def _create_design_document_node_async(self, design_intent: dict[str, Any]) -> str:
         """Create a design document node from prophecy data."""
 
-        node_id = f"design_doc_{uuid.uuid4().hex[:8]}"
+        node_id = f"design_doc_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
             node_id=node_id,
@@ -549,7 +549,7 @@ class UnifiedIntelligenceCore:
     async def _create_prophecy_node_async(self, prophecy: dict[str, Any]) -> str:
         """Create a prophecy node from prophecy data."""
 
-        node_id = f"prophecy_{uuid.uuid4().hex[:8]}"
+        node_id = f"prophecy_{uuid.uuid4().hex[:8]}",
 
         confidence_map = {
             "certain": 0.95,
@@ -582,7 +582,7 @@ class UnifiedIntelligenceCore:
     async def _create_risk_node_async(self, prophecy: dict[str, Any]) -> str:
         """Create an architectural risk node from prophecy data."""
 
-        node_id = f"risk_{uuid.uuid4().hex[:8]}"
+        node_id = f"risk_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
             node_id=node_id,
@@ -606,7 +606,7 @@ class UnifiedIntelligenceCore:
     async def _create_pattern_node_async(self, pattern: dict[str, Any]) -> str:
         """Create a code pattern node from symbiosis data."""
 
-        node_id = f"pattern_{uuid.uuid4().hex[:8]}"
+        node_id = f"pattern_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
             node_id=node_id,
@@ -631,7 +631,7 @@ class UnifiedIntelligenceCore:
     async def _create_optimization_node_async(self, optimization: dict[str, Any]) -> str:
         """Create an optimization opportunity node from symbiosis data."""
 
-        node_id = f"optimization_{uuid.uuid4().hex[:8]}"
+        node_id = f"optimization_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
             node_id=node_id,
@@ -663,7 +663,7 @@ class UnifiedIntelligenceCore:
                 return node.node_id
 
         # Create new package node,
-        node_id = f"package_{package_name}_{uuid.uuid4().hex[:8]}"
+        node_id = f"package_{package_name}_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
             node_id=node_id,
@@ -705,7 +705,7 @@ class UnifiedIntelligenceCore:
     ) -> str:
         """Create an edge in the knowledge graph."""
 
-        edge_id = f"edge_{uuid.uuid4().hex[:8]}"
+        edge_id = f"edge_{uuid.uuid4().hex[:8]}",
 
         edge = KnowledgeEdge(
             edge_id=edge_id,
@@ -754,7 +754,7 @@ class UnifiedIntelligenceCore:
     def _calculate_semantic_similarity(self, text1: str, text2: str) -> float:
         """Calculate semantic similarity between two texts."""
         # Simplified implementation - in reality would use embeddings
-        common_words = set(text1.lower().split()) & set(text2.lower().split())
+        common_words = set(text1.lower().split()) & set(text2.lower().split()),
         total_words = set(text1.lower().split()) | set(text2.lower().split())
 
         if not total_words:
@@ -773,7 +773,7 @@ class UnifiedIntelligenceCore:
             current_nodes = await self._find_nodes_by_semantic_query_async(query.semantic_query)
 
         # Traverse the graph to find related nodes
-        visited_nodes = set()
+        visited_nodes = set(),
         visited_edges = set()
 
         for depth in range(query.max_depth):
@@ -865,8 +865,8 @@ class UnifiedIntelligenceCore:
         if not result.nodes and not result.edges:
             return 0.0
 
-        node_confidences = [node.confidence for node in result.nodes]
-        edge_confidences = [edge.confidence for edge in result.edges]
+        node_confidences = [node.confidence for node in result.nodes],
+        edge_confidences = [edge.confidence for edge in result.edges],
 
         all_confidences = node_confidences + edge_confidences
 

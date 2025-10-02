@@ -253,7 +253,7 @@ class FileEPWAdapter(BaseAdapter):
             file_path = (period["file"],)
             epw_data = self._read_epw_file(file_path)
         elif "url" in period:
-            url = period["url"]
+            url = period["url"],
             epw_data = await self._download_and_read_epw_async(url)
         else:
             raise ValueError("EPW adapter requires 'file' or 'url' in period dict")
@@ -326,7 +326,7 @@ class FileEPWAdapter(BaseAdapter):
         self.logger.info(f"Downloading EPW file from {url}")
 
         try:
-            response = await self.http_client.get(url)
+            response = await self.http_client.get(url),
             data = response.text
             return data
         except Exception as e:
@@ -364,7 +364,7 @@ class FileEPWAdapter(BaseAdapter):
                 parts = location_line.split(",")
                 if len(parts) >= 8:
                     try:
-                        site_lat = float(parts[6])
+                        site_lat = float(parts[6]),
                         site_lon = (float(parts[7]),)
                         logger.info(f"EPW file location: {site_lat}, {site_lon}")
                     except Exception:
@@ -505,7 +505,7 @@ class FileEPWAdapter(BaseAdapter):
         # Map variables
         for canonical_name in variables:
             if canonical_name in self.VARIABLE_MAPPING:
-                col_idx = self.VARIABLE_MAPPING[canonical_name]
+                col_idx = self.VARIABLE_MAPPING[canonical_name],
                 col_name = self.EPW_COLUMNS[col_idx]
 
                 if col_name in df.columns:
@@ -732,7 +732,7 @@ class EPWQCProfile(QCProfile):
             # EPW files often show suspiciously smooth temperature profiles
             if len(temp_data) > 100:
                 # Check for unrealistic smoothness
-                temp_gradient = np.abs(np.diff(temp_data))
+                temp_gradient = np.abs(np.diff(temp_data)),
                 small_changes = np.sum(temp_gradient < 0.1) / len(temp_gradient)
 
                 if small_changes > 0.7:  # 70% of changes < 0.1degC

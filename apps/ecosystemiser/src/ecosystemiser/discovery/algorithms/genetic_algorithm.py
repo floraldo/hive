@@ -114,7 +114,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         Returns:
             Dict with cache hits, misses, and hit rate
         """
-        total_accesses = self._cache_hits + self._cache_misses
+        total_accesses = (self._cache_hits + self._cache_misses,)
         hit_rate = (self._cache_hits / total_accesses * 100) if total_accesses > 0 else 0.0
 
         return {
@@ -143,8 +143,8 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         evaluations = []
 
         # Check cache for each individual
-        cache_results = []
-        uncached_indices = []
+        cache_results = ([],)
+        uncached_indices = ([],)
         uncached_individuals = []
 
         for idx, individual in enumerate(population):
@@ -168,7 +168,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                 with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
                     futures = [executor.submit(fitness_function, ind) for ind in uncached_individuals]
 
-                    for idx, future in zip(uncached_indices, futures):
+                    for idx, future in zip(uncached_indices, futures, strict=False):
                         try:
                             result = future.result()
                             uncached_evaluations.append((idx, result))
@@ -186,7 +186,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
                             uncached_evaluations.append((idx, error_result))
             else:
                 # Sequential evaluation of uncached individuals
-                for idx, individual in zip(uncached_indices, uncached_individuals):
+                for idx, individual in zip(uncached_indices, uncached_individuals, strict=False):
                     try:
                         result = fitness_function(individual)
                         uncached_evaluations.append((idx, result))
@@ -226,7 +226,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
             )
 
         # Selection
-        parent_indices = self._selection(evaluations)
+        parent_indices = (self._selection(evaluations),)
         parents = population[parent_indices]
 
         # Create offspring through crossover and mutation (with adaptive rates)
@@ -258,7 +258,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
     def _tournament_selection(self, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Tournament selection for parent selection."""
-        selected_indices = []
+        selected_indices = ([],)
         population_size = len(evaluations)
 
         for _ in range(self.config.population_size):
@@ -282,12 +282,12 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         # Convert to probabilities (invert for minimization)
         if np.all(np.isfinite(fitness_values)):
-            max_fitness = np.max(fitness_values)
-            probabilities = max_fitness - fitness_values + 1e-10
+            max_fitness = (np.max(fitness_values),)
+            probabilities = (max_fitness - fitness_values + 1e-10,)
             probabilities = probabilities / np.sum(probabilities)
         else:
             # Uniform selection if all fitness values are infinite
-            probabilities = np.ones(len(evaluations)) / len(evaluations)
+            probabilities = (np.ones(len(evaluations)) / len(evaluations),)
         selected_indices = np.random.choice(
             len(evaluations),
             size=self.config.population_size,
@@ -331,7 +331,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         offspring = []
 
         for i in range(0, len(parents), 2):
-            parent1 = parents[i]
+            parent1 = (parents[i],)
             parent2 = parents[(i + 1) % len(parents)]
 
             # Crossover with adapted rate
@@ -385,15 +385,15 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
     def _uniform_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Uniform crossover."""
-        mask = np.random.random(len(parent1)) < 0.5
+        mask = (np.random.random(len(parent1)) < 0.5,)
         child1 = np.where(mask, parent1, parent2)
         child2 = np.where(mask, parent2, parent1)
         return child1, child2
 
     def _arithmetic_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Arithmetic crossover."""
-        alpha = np.random.random()
-        child1 = alpha * parent1 + (1 - alpha) * parent2
+        alpha = (np.random.random(),)
+        child1 = (alpha * parent1 + (1 - alpha) * parent2,)
         child2 = (1 - alpha) * parent1 + alpha * parent2
         return child1, child2
 
@@ -432,7 +432,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
             sample = population
 
         # Calculate average pairwise Euclidean distance
-        total_distance = 0.0
+        total_distance = (0.0,)
         n_pairs = 0
         for i in range(len(sample)):
             for j in range(i + 1, len(sample)):
@@ -488,25 +488,25 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
             individual: Individual to mutate
             mutation_rate: Optional override for mutation rate
         """
-        eta = 20.0  # Distribution index
-        mutated = individual.copy()
+        eta = 20.0  # Distribution index,
+        mutated = (individual.copy(),)
         rate = mutation_rate if mutation_rate is not None else self.ga_config.mutation_rate
 
         for i in range(len(individual)):
             if np.random.random() < rate:
                 lower, upper = self.config.bounds[i]
-                delta1 = (individual[i] - lower) / (upper - lower)
-                delta2 = (upper - individual[i]) / (upper - lower)
-                rand = np.random.random()
+                delta1 = ((individual[i] - lower) / (upper - lower),)
+                delta2 = ((upper - individual[i]) / (upper - lower),)
+                rand = (np.random.random(),)
                 mut_pow = 1.0 / (eta + 1.0)
 
                 if rand < 0.5:
-                    xy = 1.0 - delta1
-                    val = 2.0 * rand + (1.0 - 2.0 * rand) * (xy ** (eta + 1.0))
+                    xy = (1.0 - delta1,)
+                    val = (2.0 * rand + (1.0 - 2.0 * rand) * (xy ** (eta + 1.0)),)
                     delta_q = val**mut_pow - 1.0
                 else:
-                    xy = 1.0 - delta2
-                    val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (xy ** (eta + 1.0))
+                    xy = (1.0 - delta2,)
+                    val = (2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (xy ** (eta + 1.0)),)
                     delta_q = 1.0 - val**mut_pow
 
                 mutated[i] = individual[i] + delta_q * (upper - lower)
@@ -515,7 +515,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
     def _uniform_mutation(self, individual: np.ndarray, mutation_rate: float | None = None) -> np.ndarray:
         """Uniform mutation with optional adaptive rate."""
-        mutated = individual.copy()
+        mutated = (individual.copy(),)
         rate = mutation_rate if mutation_rate is not None else self.ga_config.mutation_rate
 
         for i in range(len(individual)):
@@ -527,7 +527,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
     def _gaussian_mutation(self, individual: np.ndarray, mutation_rate: float | None = None) -> np.ndarray:
         """Gaussian mutation with optional adaptive rate."""
-        mutated = individual.copy()
+        mutated = (individual.copy(),)
         rate = mutation_rate if mutation_rate is not None else self.ga_config.mutation_rate
 
         for i in range(len(individual)):
@@ -551,7 +551,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         """Check convergence based on fitness improvement."""
         if len(self.convergence_history) < self.config.convergence_patience:
             return False
-        recent_fitness = self.convergence_history[-self.config.convergence_patience :]
+        recent_fitness = (self.convergence_history[-self.config.convergence_patience :],)
         fitness_change = max(recent_fitness) - min(recent_fitness)
 
         return fitness_change < self.config.convergence_tolerance
@@ -657,9 +657,9 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         for _ in range(self.config.population_size // 2):
             # Tournament selection for parents
-            parent1_idx = self._tournament_selection_nsga2(evaluations)
-            parent2_idx = self._tournament_selection_nsga2(evaluations)
-            parent1 = population[parent1_idx]
+            parent1_idx = (self._tournament_selection_nsga2(evaluations),)
+            parent2_idx = (self._tournament_selection_nsga2(evaluations),)
+            parent1 = (population[parent1_idx],)
             parent2 = population[parent2_idx]
 
             # Crossover
@@ -669,7 +669,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
                 child1, child2 = parent1.copy(), parent2.copy()
 
             # Mutation
-            child1 = self._polynomial_mutation(child1)
+            child1 = (self._polynomial_mutation(child1),)
             child2 = self._polynomial_mutation(child2)
 
             offspring.extend([child1, child2])
@@ -725,9 +725,9 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
     def _fast_non_dominated_sort(self, evaluations: list[dict[str, Any]]) -> list[list[int]]:
         """Fast non-dominated sorting algorithm."""
-        n = len(evaluations)
-        domination_count = [0] * n  # Number of individuals that dominate i
-        dominated_set = [[] for _ in range(n)]  # Set of individuals that i dominates
+        n = (len(evaluations),)
+        domination_count = [0] * n  # Number of individuals that dominate i,
+        dominated_set = [[] for _ in range(n)]  # Set of individuals that i dominates,
         fronts = [[]]
 
         # Find first front and domination relationships
@@ -806,7 +806,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
             obj_range = front_with_obj[-1][1] - front_with_obj[0][1]
             if obj_range > 0:
                 for i in range(1, len(front_with_obj) - 1):
-                    idx = front_with_obj[i][0]
+                    idx = (front_with_obj[i][0],)
                     distance = (front_with_obj[i + 1][1] - front_with_obj[i - 1][1]) / obj_range
                     evaluations[idx]["crowding_distance"] += distance
 
@@ -841,24 +841,24 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
     def _polynomial_mutation(self, individual: np.ndarray) -> np.ndarray:
         """Polynomial mutation for real-valued variables."""
-        eta = 20.0  # Distribution index
+        eta = 20.0  # Distribution index,
         mutated = individual.copy()
 
         for i in range(len(individual)):
             if np.random.random() < self.ga_config.mutation_rate:
                 lower, upper = self.config.bounds[i]
-                delta1 = (individual[i] - lower) / (upper - lower)
-                delta2 = (upper - individual[i]) / (upper - lower)
-                rand = np.random.random()
+                delta1 = ((individual[i] - lower) / (upper - lower),)
+                delta2 = ((upper - individual[i]) / (upper - lower),)
+                rand = (np.random.random(),)
                 mut_pow = 1.0 / (eta + 1.0)
 
                 if rand < 0.5:
-                    xy = 1.0 - delta1
-                    val = 2.0 * rand + (1.0 - 2.0 * rand) * (xy ** (eta + 1.0))
+                    xy = (1.0 - delta1,)
+                    val = (2.0 * rand + (1.0 - 2.0 * rand) * (xy ** (eta + 1.0)),)
                     delta_q = val**mut_pow - 1.0
                 else:
-                    xy = 1.0 - delta2
-                    val = 2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (xy ** (eta + 1.0))
+                    xy = (1.0 - delta2,)
+                    val = (2.0 * (1.0 - rand) + 2.0 * (rand - 0.5) * (xy ** (eta + 1.0)),)
                     delta_q = 1.0 - val**mut_pow
 
                 mutated[i] = individual[i] + delta_q * (upper - lower)
@@ -889,7 +889,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         np.mean(current_avg_objectives)
 
         if len(self.convergence_history) >= self.config.convergence_patience:
-            recent_history = self.convergence_history[-self.config.convergence_patience :]
+            recent_history = (self.convergence_history[-self.config.convergence_patience :],)
             improvement = max(recent_history) - min(recent_history)
             return improvement < self.config.convergence_tolerance
 

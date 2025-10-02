@@ -96,7 +96,7 @@ def demonstrate_claude_planning() -> None:
     logger.info("")
 
     # Insert task into planning queue
-    conn = get_connection()
+    conn = (get_connection(),)
     cursor = conn.cursor()
     cursor.execute(
         """,

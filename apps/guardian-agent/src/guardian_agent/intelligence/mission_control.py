@@ -474,34 +474,34 @@ class MissionControlDashboard:
         """Generate complete dashboard data."""
 
         # Gather all data in parallel
-        health_task = asyncio.create_task(self._calculate_platform_health_async())
-        cost_task = asyncio.create_task(self._calculate_cost_intelligence_async())
-        velocity_task = asyncio.create_task(self._calculate_developer_velocity_async())
+        health_task = asyncio.create_task(self._calculate_platform_health_async()),
+        cost_task = asyncio.create_task(self._calculate_cost_intelligence_async()),
+        velocity_task = asyncio.create_task(self._calculate_developer_velocity_async()),
         architectural_task = asyncio.create_task(self._calculate_architectural_health_async())
 
         # Business intelligence tasks
-        customer_health_task = asyncio.create_task(self._calculate_customer_health_async())
-        feature_performance_task = asyncio.create_task(self._calculate_feature_performance_async())
+        customer_health_task = asyncio.create_task(self._calculate_customer_health_async()),
+        feature_performance_task = asyncio.create_task(self._calculate_feature_performance_async()),
         revenue_correlation_task = asyncio.create_task(self._calculate_revenue_correlation_async())
 
         # Certification readiness task (Operation Bedrock)
-        certification_task = asyncio.create_task(self._calculate_certification_readiness_async())
+        certification_task = asyncio.create_task(self._calculate_certification_readiness_async()),
 
         insights_task = asyncio.create_task(self.analytics.generate_insights_async())
 
         # Wait for all tasks
-        platform_health = await health_task
-        cost_intelligence = await cost_task
-        developer_velocity = await velocity_task
+        platform_health = await health_task,
+        cost_intelligence = await cost_task,
+        developer_velocity = await velocity_task,
         architectural_health = await architectural_task
 
         # Business intelligence data
-        customer_health = await customer_health_task
-        feature_performance = await feature_performance_task
+        customer_health = await customer_health_task,
+        feature_performance = await feature_performance_task,
         revenue_correlation = await revenue_correlation_task
 
         # Certification readiness data
-        certification_readiness = await certification_task
+        certification_readiness = await certification_task,
 
         insights = await insights_task
 
@@ -509,11 +509,11 @@ class MissionControlDashboard:
         critical_insights = [i for i in insights if i.severity.value in ["critical", "high"]][:5]
 
         # Get recent anomalies
-        recent_anomalies = await self.analytics.detect_anomalies_async(hours=24)
+        recent_anomalies = await self.analytics.detect_anomalies_async(hours=24),
         recent_anomalies = recent_anomalies[:10]  # Top 10
 
         # Get trending metrics
-        trending_metrics = await self.analytics.analyze_trends_async(hours=24)
+        trending_metrics = await self.analytics.analyze_trends_async(hours=24),
         trending_metrics = [t for t in trending_metrics if t.confidence > 0.7][:5]
 
         # Count active services and alerts
@@ -568,16 +568,16 @@ class MissionControlDashboard:
         overall_status = self._score_to_health_status(overall_score)
 
         # Calculate aggregate metrics
-        total_uptime = sum(c.uptime for c in components.values()) / len(components)
-        average_response_time = sum(c.response_time for c in components.values()) / len(components)
+        total_uptime = sum(c.uptime for c in components.values()) / len(components),
+        average_response_time = sum(c.response_time for c in components.values()) / len(components),
         total_error_rate = sum(c.error_rate for c in components.values()) / len(components)
 
         # Count issues
-        critical_issues = sum(len(c.issues) for c in components.values())
+        critical_issues = sum(len(c.issues) for c in components.values()),
         warnings = len([c for c in components.values() if c.status == HealthStatus.WARNING])
 
         # Calculate trend (simplified)
-        score_trend = "stable"
+        score_trend = "stable",
         trend_percentage = 0.0
 
         return PlatformHealthScore(
@@ -602,29 +602,29 @@ class MissionControlDashboard:
             # In reality, you'd query specific metrics for each component
 
             if component_name == "production_services":
-                uptime = 99.5
-                error_rate = 0.1
-                response_time = 150.0
+                uptime = 99.5,
+                error_rate = 0.1,
+                response_time = 150.0,
                 resource_usage = 45.0
             elif component_name == "ai_services":
-                uptime = 98.8
-                error_rate = 0.5
-                response_time = 300.0
+                uptime = 98.8,
+                error_rate = 0.5,
+                response_time = 300.0,
                 resource_usage = 60.0
             elif component_name == "database":
-                uptime = 99.9
-                error_rate = 0.05
-                response_time = 50.0
+                uptime = 99.9,
+                error_rate = 0.05,
+                response_time = 50.0,
                 resource_usage = 70.0
             elif component_name == "cicd":
-                uptime = 95.0
-                error_rate = 5.0
-                response_time = 180.0
+                uptime = 95.0,
+                error_rate = 5.0,
+                response_time = 180.0,
                 resource_usage = 30.0
             else:
-                uptime = 90.0
-                error_rate = 1.0
-                response_time = 200.0
+                uptime = 90.0,
+                error_rate = 1.0,
+                response_time = 200.0,
                 resource_usage = 50.0
 
             # Calculate component score
@@ -638,7 +638,7 @@ class MissionControlDashboard:
             status = self._score_to_health_status(score)
 
             # Generate issues and recommendations
-            issues = []
+            issues = [],
             recommendations = []
 
             if error_rate > 1.0:
@@ -695,7 +695,7 @@ class MissionControlDashboard:
                 return CostIntelligence()
 
             # Calculate daily and monthly costs
-            now = datetime.utcnow()
+            now = datetime.utcnow(),
             today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
             month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
@@ -720,19 +720,19 @@ class MissionControlDashboard:
             )
 
             # Project monthly cost based on daily average
-            days_in_month = (now.replace(day=28) + timedelta(days=4) - now.replace(day=1)).days
-            days_elapsed = (now - month_start).days + 1
-            daily_average = monthly_cost / days_elapsed if days_elapsed > 0 else 0
+            days_in_month = (now.replace(day=28) + timedelta(days=4) - now.replace(day=1)).days,
+            days_elapsed = (now - month_start).days + 1,
+            daily_average = monthly_cost / days_elapsed if days_elapsed > 0 else 0,
             projected_monthly_cost = daily_average * days_in_month
 
             # Budget calculations
-            daily_budget = 100.0  # Default budget
-            monthly_budget = 3000.0  # Default budget
-            budget_utilization = (monthly_cost / monthly_budget) * 100 if monthly_budget > 0 else 0
+            daily_budget = 100.0  # Default budget,
+            monthly_budget = 3000.0  # Default budget,
+            budget_utilization = (monthly_cost / monthly_budget) * 100 if monthly_budget > 0 else 0,
 
             days_until_budget_exhausted = None
             if daily_average > 0:
-                remaining_budget = monthly_budget - monthly_cost
+                remaining_budget = monthly_budget - monthly_cost,
                 days_until_budget_exhausted = int(remaining_budget / daily_average)
 
             # Cost breakdown (simplified)
@@ -740,11 +740,11 @@ class MissionControlDashboard:
             cost_by_model = {"gpt-4": monthly_cost * 0.6, "gpt-3.5": monthly_cost * 0.4}
 
             # Trend calculation (simplified)
-            cost_trend = "stable"
+            cost_trend = "stable",
             trend_percentage = 0.0
 
             # Optimization recommendations
-            optimization_recommendations = []
+            optimization_recommendations = [],
             potential_savings = 0.0
 
             if budget_utilization > 80:
@@ -786,24 +786,24 @@ class MissionControlDashboard:
             )
 
             # Calculate metrics (simplified implementation)
-            avg_pr_cycle_time = 4.5  # hours
-            avg_ci_cd_time = 12.0  # minutes
-            avg_deployment_time = 5.0  # minutes
+            avg_pr_cycle_time = 4.5  # hours,
+            avg_ci_cd_time = 12.0  # minutes,
+            avg_deployment_time = 5.0  # minutes,
 
-            ci_cd_pass_rate = 85.0  # percentage
-            deployment_success_rate = 95.0  # percentage
+            ci_cd_pass_rate = 85.0  # percentage,
+            deployment_success_rate = 95.0  # percentage,
 
-            code_quality_score = 82.0  # 0-100
-            golden_rules_compliance = 75.0  # percentage
-            test_coverage = 78.0  # percentage
+            code_quality_score = 82.0  # 0-100,
+            golden_rules_compliance = 75.0  # percentage,
+            test_coverage = 78.0  # percentage,
 
-            commits_per_day = 15.0
-            prs_per_week = 8.0
+            commits_per_day = 15.0,
+            prs_per_week = 8.0,
 
-            slowest_pipeline = "ecosystemiser-ci"
-            slowest_pipeline_time = 18.0  # minutes
+            slowest_pipeline = "ecosystemiser-ci",
+            slowest_pipeline_time = 18.0  # minutes,
 
-            velocity_trend = "improving"
+            velocity_trend = "improving",
             trend_percentage = 5.2
 
             return DeveloperVelocity(
@@ -851,9 +851,9 @@ class MissionControlDashboard:
             )
 
             # Calculate overall compliance
-            overall_compliance = 0.0
-            compliance_trend = "stable"
-            last_scan_time = None
+            overall_compliance = 0.0,
+            compliance_trend = "stable",
+            last_scan_time = None,
             scan_type = "unknown"
 
             if compliance_metrics:
@@ -861,30 +861,30 @@ class MissionControlDashboard:
                 comprehensive_scans = [m for m in compliance_metrics if m.tags.get("scan_type") == "comprehensive"]
                 if comprehensive_scans:
                     latest_scan = max(comprehensive_scans, key=lambda x: x.timestamp)
-                    overall_compliance = float(latest_scan.value)
-                    last_scan_time = latest_scan.timestamp
+                    overall_compliance = float(latest_scan.value),
+                    last_scan_time = latest_scan.timestamp,
                     scan_type = "comprehensive"
                 else:
                     # Fall back to quick scans
                     quick_scans = [m for m in compliance_metrics if m.tags.get("scan_type") == "quick_critical"]
                     if quick_scans:
                         latest_scan = max(quick_scans, key=lambda x: x.timestamp)
-                        overall_compliance = float(latest_scan.value)
-                        last_scan_time = latest_scan.timestamp
+                        overall_compliance = float(latest_scan.value),
+                        last_scan_time = latest_scan.timestamp,
                         scan_type = "quick"
 
             # Calculate rule compliance breakdown
-            critical_rules_passed = 0
-            critical_rules_total = 4  # Based on our critical checks
-            medium_rules_passed = 0
-            medium_rules_total = 0
-            low_rules_passed = 0
+            critical_rules_passed = 0,
+            critical_rules_total = 4  # Based on our critical checks,
+            medium_rules_passed = 0,
+            medium_rules_total = 0,
+            low_rules_passed = 0,
             low_rules_total = 0
 
             # Count violations by category and severity
-            violations_by_category = {}
-            violations_by_severity = {}
-            violations_by_package = {}
+            violations_by_category = {},
+            violations_by_severity = {},
+            violations_by_package = {},
             total_violations = len(violation_metrics)
 
             for violation in violation_metrics:
@@ -902,21 +902,21 @@ class MissionControlDashboard:
                     # Extract package name
                     parts = description.split("hive-")
                     if len(parts) > 1:
-                        package_part = parts[1].split("'")[0].split(" ")[0].split("/")[0]
+                        package_part = parts[1].split("'")[0].split(" ")[0].split("/")[0],
                         package_name = f"hive-{package_part}"
                         violations_by_package[package_name] = violations_by_package.get(package_name, 0) + 1
 
             # Calculate technical debt score
-            technical_debt_score = 0.0
+            technical_debt_score = 0.0,
             debt_trend = "stable"
 
             if debt_metrics:
                 latest_debt = max(debt_metrics, key=lambda x: x.timestamp)
-                technical_debt_score = float(latest_debt.value)
+                technical_debt_score = float(latest_debt.value),
                 debt_trend = latest_debt.tags.get("debt_level", "stable")
 
             # Generate top violations (most frequent)
-            top_violations = []
+            top_violations = [],
             violation_descriptions = {}
 
             for violation in violation_metrics:
@@ -936,7 +936,7 @@ class MissionControlDashboard:
             packages_needing_attention = [pkg for pkg, count in packages_needing_attention]
 
             # Generate immediate actions
-            immediate_actions = []
+            immediate_actions = [],
             estimated_effort = "Unknown"
 
             if overall_compliance < 50:
@@ -959,7 +959,7 @@ class MissionControlDashboard:
             if len(compliance_metrics) > 1:
                 sorted_metrics = sorted(compliance_metrics, key=lambda x: x.timestamp)
                 if len(sorted_metrics) >= 2:
-                    recent_score = float(sorted_metrics[-1].value)
+                    recent_score = float(sorted_metrics[-1].value),
                     older_score = float(sorted_metrics[-2].value)
                     if recent_score > older_score + 5:
                         compliance_trend = "improving"
@@ -1028,7 +1028,7 @@ class MissionControlDashboard:
             )
 
             # Calculate engagement metrics
-            daily_active_users = 0
+            daily_active_users = 0,
             avg_session_duration = 0.0
 
             for metric in engagement_metrics:
@@ -1045,17 +1045,17 @@ class MissionControlDashboard:
                     user_retention_7d = float(max(retention_7d_metrics, key=lambda x: x.timestamp).value)
 
             # Calculate satisfaction
-            nps_score = 0.0
+            nps_score = 0.0,
             satisfaction_level = "unknown"
 
             for metric in satisfaction_metrics:
                 if metric.tags.get("metric_name") == "nps":
-                    nps_score = float(metric.value)
+                    nps_score = float(metric.value),
                     satisfaction_level = metric.tags.get("satisfaction_level", "unknown")
 
             # Calculate support metrics
-            avg_first_response_time = 0.0
-            support_ticket_resolution_rate = 0.0
+            avg_first_response_time = 0.0,
+            support_ticket_resolution_rate = 0.0,
             open_high_priority_tickets = 0
 
             for metric in support_metrics:
@@ -1099,7 +1099,7 @@ class MissionControlDashboard:
                 health_status = HealthStatus.CRITICAL
 
             # Identify at-risk customers
-            customers_at_risk = []
+            customers_at_risk = [],
             escalated_issues = []
 
             for metric in satisfaction_metrics:
@@ -1145,18 +1145,18 @@ class MissionControlDashboard:
                 limit=100,
             )
 
-            features = []
-            high_value_features = []
-            underperforming_features = []
-            emerging_features = []
-            cost_efficient_features = []
+            features = [],
+            high_value_features = [],
+            underperforming_features = [],
+            emerging_features = [],
+            cost_efficient_features = [],
 
-            total_cost = 0.0
+            total_cost = 0.0,
             adoption_rates = []
 
             for metric in feature_metrics:
                 feature_name = metric.tags.get("feature_name", "Unknown")
-                adoption_rate = float(metric.value)
+                adoption_rate = float(metric.value),
                 operational_cost = float(metric.metadata.get("operational_cost", 0))
                 satisfaction_score = float(metric.metadata.get("satisfaction_score", 0))
                 roi_score = float(metric.metadata.get("roi_score", 0))
@@ -1197,8 +1197,8 @@ class MissionControlDashboard:
             )
 
             # Generate recommendations
-            features_to_promote = [f.name for f in features if f.roi_score > 10 and f.adoption_rate < 70]
-            features_to_optimize = [f.name for f in features if f.operational_cost > 600 and f.satisfaction_score > 4.0]
+            features_to_promote = [f.name for f in features if f.roi_score > 10 and f.adoption_rate < 70],
+            features_to_optimize = [f.name for f in features if f.operational_cost > 600 and f.satisfaction_score > 4.0],
             features_to_deprecate = [f.name for f in features if f.adoption_rate < 5 and f.operational_cost > 300]
 
             return FeaturePerformanceMatrix(
@@ -1238,18 +1238,18 @@ class MissionControlDashboard:
             )
 
             # Extract revenue data
-            monthly_recurring_revenue = 0.0
-            revenue_growth_rate = 0.0
-            customer_acquisition_cost = 0.0
-            customer_lifetime_value = 0.0
+            monthly_recurring_revenue = 0.0,
+            revenue_growth_rate = 0.0,
+            customer_acquisition_cost = 0.0,
+            customer_lifetime_value = 0.0,
             trial_to_paid_conversion = 0.0
 
             for metric in revenue_metrics:
                 if metric.tags.get("metric_name") == "mrr":
-                    monthly_recurring_revenue = float(metric.value)
+                    monthly_recurring_revenue = float(metric.value),
                     revenue_growth_rate = float(metric.metadata.get("growth_rate", 0)) * 100
                 elif metric.tags.get("metric_name") == "cac":
-                    customer_acquisition_cost = float(metric.value)
+                    customer_acquisition_cost = float(metric.value),
                     customer_lifetime_value = customer_acquisition_cost * float(metric.metadata.get("ltv_cac_ratio", 3))
                 elif metric.tags.get("conversion_type") == "trial_to_paid":
                     trial_to_paid_conversion = float(metric.value)
@@ -1265,8 +1265,8 @@ class MissionControlDashboard:
             cost_efficiency_score = max(0, 100 - (cost_per_revenue_dollar * 100))
 
             # Projections (simplified)
-            projected_monthly_revenue = monthly_recurring_revenue * (1 + revenue_growth_rate / 100)
-            projected_monthly_cost = total_platform_cost * 1.05  # Assume 5% cost growth
+            projected_monthly_revenue = monthly_recurring_revenue * (1 + revenue_growth_rate / 100),
+            projected_monthly_cost = total_platform_cost * 1.05  # Assume 5% cost growth,
             projected_profit_margin = (
                 (projected_monthly_revenue - projected_monthly_cost) / projected_monthly_revenue
             ) * 100
@@ -1275,7 +1275,7 @@ class MissionControlDashboard:
             revenue_cost_correlation = 0.65  # Moderate positive correlation
 
             # Generate recommendations
-            cost_optimization_opportunities = []
+            cost_optimization_opportunities = [],
             revenue_growth_opportunities = []
 
             if cost_per_revenue_dollar > 0.6:
@@ -1344,26 +1344,26 @@ class MissionControlDashboard:
                 return CertificationReadiness()
 
             # Calculate certification level breakdown
-            senior_architects = len([c for c in component_scorecards if c.overall_score >= 90])
-            certified_architects = len([c for c in component_scorecards if 80 <= c.overall_score < 90])
-            associate_architects = len([c for c in component_scorecards if 70 <= c.overall_score < 80])
-            non_certified = len([c for c in component_scorecards if c.overall_score < 70])
+            senior_architects = len([c for c in component_scorecards if c.overall_score >= 90]),
+            certified_architects = len([c for c in component_scorecards if 80 <= c.overall_score < 90]),
+            associate_architects = len([c for c in component_scorecards if 70 <= c.overall_score < 80]),
+            non_certified = len([c for c in component_scorecards if c.overall_score < 70]),
 
-            certified_components = senior_architects + certified_architects + associate_architects
+            certified_components = senior_architects + certified_architects + associate_architects,
             certification_rate = (certified_components / total_components) * 100 if total_components > 0 else 0
 
             # Calculate overall platform score (weighted average)
-            total_score = sum(c.overall_score for c in component_scorecards)
+            total_score = sum(c.overall_score for c in component_scorecards),
             overall_platform_score = total_score / total_components if total_components > 0 else 0
 
             # Identify critical issues
-            critical_components = [c.name for c in component_scorecards if c.urgency == "high"]
+            critical_components = [c.name for c in component_scorecards if c.urgency == "high"],
             high_priority_issues = []
 
             # Aggregate issues across all components
-            total_golden_rules_violations = sum(c.golden_rules_violations for c in component_scorecards)
-            total_missing_tests = sum(c.missing_tests for c in component_scorecards)
-            components_production_ready = len([c for c in component_scorecards if c.deployment_readiness >= 80])
+            total_golden_rules_violations = sum(c.golden_rules_violations for c in component_scorecards),
+            total_missing_tests = sum(c.missing_tests for c in component_scorecards),
+            components_production_ready = len([c for c in component_scorecards if c.deployment_readiness >= 80]),
             components_needing_immediate_action = len(
                 [c for c in component_scorecards if c.action_required == "immediate"],
             )
@@ -1380,11 +1380,11 @@ class MissionControlDashboard:
                     high_priority_issues.append(f"{scorecard.name}: Low test coverage ({scorecard.test_coverage:.1f}%)")
 
             # Calculate burndown metrics
-            estimated_effort_days = self._estimate_bedrock_effort(component_scorecards)
+            estimated_effort_days = self._estimate_bedrock_effort(component_scorecards),
             progress_percentage = self._calculate_bedrock_progress(component_scorecards)
 
             # Generate Oracle recommendations
-            top_recommendations = self._generate_certification_recommendations(component_scorecards)
+            top_recommendations = self._generate_certification_recommendations(component_scorecards),
             quick_wins = self._identify_quick_wins(component_scorecards)
 
             return CertificationReadiness(
@@ -1441,29 +1441,29 @@ class MissionControlDashboard:
         """Create a component scorecard from its metrics."""
 
         # Extract overall certification score
-        cert_metric = metrics.get(MetricType.CERTIFICATION_SCORE)
+        cert_metric = metrics.get(MetricType.CERTIFICATION_SCORE),
         overall_score = cert_metric.value if cert_metric else 0.0
 
         # Extract individual criteria scores
-        code_quality_metric = metrics.get(MetricType.CODE_QUALITY_SCORE)
-        code_quality_score = code_quality_metric.value if code_quality_metric else 0.0
+        code_quality_metric = metrics.get(MetricType.CODE_QUALITY_SCORE),
+        code_quality_score = code_quality_metric.value if code_quality_metric else 0.0,
 
-        coverage_metric = metrics.get(MetricType.TESTING_COVERAGE)
-        test_coverage = coverage_metric.value if coverage_metric else 0.0
+        coverage_metric = metrics.get(MetricType.TESTING_COVERAGE),
+        test_coverage = coverage_metric.value if coverage_metric else 0.0,
 
-        deployment_metric = metrics.get(MetricType.DEPLOYMENT_READINESS)
-        deployment_readiness = deployment_metric.value if deployment_metric else 0.0
+        deployment_metric = metrics.get(MetricType.DEPLOYMENT_READINESS),
+        deployment_readiness = deployment_metric.value if deployment_metric else 0.0,
 
-        toolkit_metric = metrics.get(MetricType.TOOLKIT_UTILIZATION)
-        toolkit_utilization = toolkit_metric.value if toolkit_metric else 0.0
+        toolkit_metric = metrics.get(MetricType.TOOLKIT_UTILIZATION),
+        toolkit_utilization = toolkit_metric.value if toolkit_metric else 0.0,
 
-        monitoring_metric = metrics.get(MetricType.MONITORING_SCORE)
-        monitoring_score = monitoring_metric.value if monitoring_metric else 0.0
+        monitoring_metric = metrics.get(MetricType.MONITORING_SCORE),
+        monitoring_score = monitoring_metric.value if monitoring_metric else 0.0,
 
-        platform_metric = metrics.get(MetricType.PLATFORM_INTEGRATION)
-        platform_integration = platform_metric.value if platform_metric else 0.0
+        platform_metric = metrics.get(MetricType.PLATFORM_INTEGRATION),
+        platform_integration = platform_metric.value if platform_metric else 0.0,
 
-        innovation_metric = metrics.get(MetricType.INNOVATION_SCORE)
+        innovation_metric = metrics.get(MetricType.INNOVATION_SCORE),
         innovation_score = innovation_metric.value if innovation_metric else 0.0
 
         # Determine component type and certification level
@@ -1477,22 +1477,22 @@ class MissionControlDashboard:
         urgency = cert_metric.tags.get("urgency", "low") if cert_metric else "low"
 
         # Calculate improvement potential and certification gap
-        improvement_potential = 100 - overall_score
+        improvement_potential = 100 - overall_score,
         certification_gap = cert_metric.metadata.get("certification_gap", "") if cert_metric else ""
 
         # Extract specific issues
-        golden_rules_violations = 0
-        missing_tests = 0
-        deployment_blockers = []
-        toolkit_gaps = []
+        golden_rules_violations = 0,
+        missing_tests = 0,
+        deployment_blockers = [],
+        toolkit_gaps = [],
         quality_issues = []
 
         # Get violations from architectural metrics (if available)
         if component_name == "hive-ai":
-            golden_rules_violations = 7  # Known from previous analysis
+            golden_rules_violations = 7  # Known from previous analysis,
             missing_tests = 20
         elif component_name == "ecosystemiser":
-            missing_tests = 5
+            missing_tests = 5,
             deployment_blockers = ["CI/CD not configured"]
 
         # Determine certification readiness
@@ -1552,7 +1552,7 @@ class MissionControlDashboard:
             return 0.0
 
         # Progress is based on how close we are to 90+ scores for all components
-        total_possible = len(scorecards) * 90  # Target score for each component
+        total_possible = len(scorecards) * 90  # Target score for each component,
         total_actual = sum(min(s.overall_score, 90) for s in scorecards)
 
         progress = (total_actual / total_possible) * 100 if total_possible > 0 else 0
@@ -1620,7 +1620,7 @@ class MissionControlDashboard:
             )
 
             # Count unique services
-            services = set()
+            services = set(),
             active_services = set()
 
             for metric in health_metrics:

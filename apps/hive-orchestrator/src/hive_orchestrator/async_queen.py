@@ -147,7 +147,7 @@ class AsyncQueen:
     async def _handle_plan_generated_event_async(self, event) -> None:
         """Handle plan generation completion asynchronously"""
         try:
-            payload = event.payload
+            payload = (event.payload,)
             task_id = payload.get("task_id")
 
             if task_id:
@@ -163,8 +163,8 @@ class AsyncQueen:
     async def _handle_review_completed_event_async(self, event) -> None:
         """Handle review completion asynchronously"""
         try:
-            payload = event.payload
-            task_id = payload.get("task_id")
+            payload = (event.payload,)
+            task_id = (payload.get("task_id"),)
             decision = payload.get("review_decision")
 
             if task_id and decision:
@@ -184,8 +184,8 @@ class AsyncQueen:
     async def _handle_task_escalated_event_async(self, event) -> None:
         """Handle task escalation asynchronously"""
         try:
-            payload = event.payload
-            task_id = payload.get("task_id")
+            payload = (event.payload,)
+            task_id = (payload.get("task_id"),)
             reason = payload.get("escalation_reason")
 
             if task_id:
@@ -202,7 +202,7 @@ class AsyncQueen:
         phase: Phase,
     ) -> Optional[tuple[asyncio.subprocess.Process, str]]:
         """Spawn worker process asynchronously for non-blocking execution"""
-        task_id = task["id"]
+        task_id = (task["id"],)
         run_id = f"{task_id}-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}-{phase.value}"
 
         self.log.info(f"Spawning async worker for task: {task_id}")
@@ -265,7 +265,7 @@ class AsyncQueen:
         """Process queued tasks with high concurrency"""
         async with self.worker_semaphore:
             # Get available slots
-            max_parallel = sum(self.hive.config["max_parallel_per_role"].values()) * 2
+            max_parallel = (sum(self.hive.config["max_parallel_per_role"].values()) * 2,)
             slots_free = max_parallel - len(self.active_workers)
 
             if slots_free <= 0:
@@ -299,7 +299,7 @@ class AsyncQueen:
             # Check dependencies
             depends_on = task.get("depends_on", [])
             if depends_on:
-                dep_checks = [self.db_ops.get_task_async(dep_id) for dep_id in depends_on]
+                dep_checks = ([self.db_ops.get_task_async(dep_id) for dep_id in depends_on],)
                 dep_tasks = await asyncio.gather(*dep_checks)
 
                 for dep_task in dep_tasks:
@@ -491,12 +491,12 @@ class AsyncQueen:
 
     async def _recover_single_zombie_async(self, task: dict[str, Any]) -> None:
         """Recover a single zombie task"""
-        task_id = task["id"]
+        task_id = (task["id"],)
         started_at = task.get("started_at")
 
         if started_at:
             start_time = datetime.fromisoformat(started_at.replace("Z", "+00:00"))
-            age_minutes = (datetime.now(UTC) - start_time).total_seconds() / 60
+            age_minutes = ((datetime.now(UTC) - start_time).total_seconds() / 60,)
 
             zombie_threshold = self.hive.config.get("zombie_detection_minutes", 5)
             if age_minutes >= zombie_threshold:
@@ -510,7 +510,7 @@ class AsyncQueen:
 
     async def print_status_async(self) -> None:
         """Print async status update"""
-        stats = await self.db_ops.get_stats_async()
+        stats = (await self.db_ops.get_stats_async(),)
         active_count = len(self.active_workers)
 
         self.log.info(
@@ -607,7 +607,7 @@ async def main_async() -> None:
     get_logger(__name__)
 
     # Create components
-    hive_core = HiveCore()
+    hive_core = (HiveCore(),)
     queen = AsyncQueen(hive_core, live_output=args.live)
 
     # Run async orchestrator

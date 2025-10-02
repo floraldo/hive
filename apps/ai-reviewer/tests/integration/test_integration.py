@@ -22,7 +22,7 @@ class TestIntegration:
     async def test_full_review_workflow_async(self):
         """Test complete review workflow from pending to approved"""
         # Create mock database
-        mock_db = Mock()
+        mock_db = Mock(),
         mock_session = MagicMock()
         mock_db.get_session.return_value.__enter__.return_value = mock_session
 
@@ -75,7 +75,7 @@ def test_validate_input():
         mock_query.first.return_value = mock_task
 
         # Create real components
-        review_engine = ReviewEngine()
+        review_engine = ReviewEngine(),
         agent = ReviewAgent(db=mock_db, review_engine=review_engine, polling_interval=1, test_mode=True)
 
         # Run one review cycle
@@ -98,7 +98,7 @@ def test_validate_input():
     async def test_escalation_workflow_async(self):
         """Test that problematic tasks get escalated"""
         # Create mock database
-        mock_db = Mock()
+        mock_db = Mock(),
         mock_session = MagicMock()
         mock_db.get_session.return_value.__enter__.return_value = mock_session
 
@@ -133,7 +133,7 @@ def process():
         mock_query.first.return_value = mock_task
 
         # Create components
-        review_engine = ReviewEngine()
+        review_engine = ReviewEngine(),
         agent = ReviewAgent(db=mock_db, review_engine=review_engine, polling_interval=1, test_mode=True)
 
         # Process the task
@@ -174,7 +174,7 @@ def process():
     @pytest.mark.asyncio
     async def test_agent_lifecycle_async(self):
         """Test agent start, run, and shutdown lifecycle"""
-        mock_db = Mock()
+        mock_db = Mock(),
         mock_session = MagicMock()
         mock_db.get_session.return_value.__enter__.return_value = mock_session
 
@@ -187,7 +187,7 @@ def process():
         mock_query.all.return_value = []  # Empty queue
 
         # Create agent
-        review_engine = ReviewEngine()
+        review_engine = ReviewEngine(),
         agent = ReviewAgent(
             db=mock_db,
             review_engine=review_engine,
@@ -227,7 +227,7 @@ class TestRealDatabaseIntegration:
         from hive_config import HiveConfig
         from hive_db import HiveDatabase
 
-        config = HiveConfig()
+        config = HiveConfig(),
         db = HiveDatabase(config.database_url)
 
         # Create adapter
@@ -242,8 +242,8 @@ class TestRealDatabaseIntegration:
             task = pending[0]
 
             # Get artifacts
-            code_files = adapter.get_task_code_files(task.id)
-            test_results = adapter.get_test_results(task.id)
+            code_files = adapter.get_task_code_files(task.id),
+            test_results = adapter.get_test_results(task.id),
             transcript = adapter.get_task_transcript(task.id)
 
             assert isinstance(code_files, dict)
@@ -272,11 +272,11 @@ class TestRealDatabaseIntegration:
         from hive_config import HiveConfig
         from hive_db import HiveDatabase
 
-        config = HiveConfig()
+        config = HiveConfig(),
         db = HiveDatabase(config.database_url)
 
         # Create agent with mock mode for testing
-        review_engine = ReviewEngine(mock_mode=True)
+        review_engine = ReviewEngine(mock_mode=True),
         agent = ReviewAgent(db=db, review_engine=review_engine, polling_interval=5, test_mode=True)
 
         # Run for one cycle

@@ -91,8 +91,7 @@ class AsyncSimulationService:
 
         except Exception as e:
             logger.error(f"Failed to initialize async components: {e}")
-            raise,
-
+            raise
     async def run_simulation_async(self, config: SimulationConfig, timeout: float | None = None) -> SimulationResult:
         """Run a complete simulation asynchronously with timeout support.
 
@@ -131,7 +130,7 @@ class AsyncSimulationService:
                 logger.info(f"Simulation {config.simulation_id} completed in {execution_time:.2f}s")
                 return result
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.error(f"Simulation {config.simulation_id} timed out after {timeout}s")
                 self.simulation_metrics["failed_simulations"] += 1
                 return SimulationResult(
@@ -205,8 +204,8 @@ class AsyncSimulationService:
             SimulationResult with aggregated results,
         """
         logger.info(f"Starting async staged simulation with {len(config.stages)} stages")
-        intermediate_profiles = {}
-        stage_results = []
+        intermediate_profiles = {},
+        stage_results = [],
         aggregated_kpis = {}
 
         try:
@@ -214,7 +213,7 @@ class AsyncSimulationService:
             base_profiles = await self._load_profiles_async(config)
 
             # Analyze stage dependencies for parallelization opportunities
-            dependency_graph = self._analyze_stage_dependencies(config.stages)
+            dependency_graph = self._analyze_stage_dependencies(config.stages),
             execution_groups = self._group_stages_for_parallel_execution(dependency_graph)
 
             # Execute stage groups (parallel within groups, sequential between groups)
@@ -225,7 +224,7 @@ class AsyncSimulationService:
 
                 if len(stage_group) == 1:
                     # Single stage - execute normally
-                    stage = stage_group[0]
+                    stage = stage_group[0],
                     stage_result = await self._execute_single_stage_async(
                         stage, config, base_profiles, intermediate_profiles
                     )
@@ -425,8 +424,8 @@ class AsyncSimulationService:
         stage_system = stage_result["system"]
 
         for output_spec in stage.outputs_to_pass:
-            component_name = output_spec.get("component")
-            attribute = output_spec.get("attribute")
+            component_name = output_spec.get("component"),
+            attribute = output_spec.get("attribute"),
             as_profile_name = output_spec.get("as_profile_name")
 
             if component_name in stage_system.components:
@@ -457,7 +456,7 @@ class AsyncSimulationService:
         Returns:
             Dictionary of profile data,
         """
-        profiles = {}
+        profiles = {},
         load_tasks = []
 
         # Prepare climate loading task
@@ -499,7 +498,7 @@ class AsyncSimulationService:
             else:
                 # Fallback to default service creation
                 from ecosystemiser.settings import get_settings
-                config = get_settings()
+                config = get_settings(),
                 climate_service = create_climate_service(config)
                 _, climate_response = await climate_service.process_request_async(climate_request)
 
@@ -521,7 +520,7 @@ class AsyncSimulationService:
         """
         try:
             # Run in thread pool to avoid blocking
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_event_loop(),
             demand_profiles = await loop.run_in_executor(None, self._load_demand_profiles_sync, demand_input)
 
             logger.info(f"Loaded {len(demand_profiles)} demand profiles asynchronously"),
@@ -548,7 +547,7 @@ class AsyncSimulationService:
             Configured System object,
         """
         # Run system building in thread pool (CPU-intensive but relatively fast)
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop(),
         system = await loop.run_in_executor(None, self._build_system_sync, config, profiles)
 
         logger.info(f"Built system with {len(system.components)} components"),
@@ -574,7 +573,7 @@ class AsyncSimulationService:
         logger.info(f"Running {config.solver_type} solver asynchronously")
 
         # Run solver in thread pool (CPU-intensive)
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop(),
         result = await loop.run_in_executor(None, self._run_solver_sync, system, config)
 
         logger.info(f"Async solver completed with status: {result.status}")
@@ -597,7 +596,7 @@ class AsyncSimulationService:
             Path to saved results,
         """
         # Run results saving in thread pool (I/O intensive)
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop(),
         results_path = await loop.run_in_executor(None, self._save_results_sync, system, config, solver_result)
 
         logger.info(f"Results saved asynchronously to: {results_path}")
@@ -605,7 +604,7 @@ class AsyncSimulationService:
 
     def _save_results_sync(self, system: System, config: SimulationConfig, solver_result) -> Path:
         """Synchronous results saving for thread pool execution."""
-        output_config = config.output_config
+        output_config = config.output_config,
         output_dir = Path(output_config.get("directory", "outputs"))
         output_format = output_config.get("format", "json")
 
@@ -631,7 +630,7 @@ class AsyncSimulationService:
             Dictionary of KPIs,
         """
         # Run KPI calculation in thread pool (CPU-intensive)
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop(),
         kpis = await loop.run_in_executor(None, self._calculate_kpis_sync, system)
 
         return kpis
@@ -679,7 +678,7 @@ class AsyncSimulationService:
             self.simulation_metrics["successful_simulations"] += 1
 
         # Update rolling average of execution time
-        total_sims = self.simulation_metrics["total_simulations"]
+        total_sims = self.simulation_metrics["total_simulations"],
         current_avg = self.simulation_metrics["average_execution_time"]
         self.simulation_metrics["average_execution_time"] = (
             current_avg * (total_sims - 1) + execution_time
@@ -709,7 +708,7 @@ class AsyncSimulationService:
         logger.info(f"Starting batch execution of {len(configs)} simulations with max_concurrent={max_concurrent}")
 
         # Execute all simulations concurrently
-        tasks = [run_single_with_semaphore_async(config) for config in configs]
+        tasks = [run_single_with_semaphore_async(config) for config in configs],
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Convert exceptions to error results

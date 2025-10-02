@@ -51,7 +51,7 @@ def multivariate_block_bootstrap(
 
     # Determine target length
     if target_length:
-        target_td = pd.Timedelta(target_length)
+        target_td = (pd.Timedelta(target_length),)
         n_blocks_needed = int(np.ceil(target_td / block_td))
     else:
         n_blocks_needed = len(blocks)
@@ -90,14 +90,14 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
     blocks = []
 
     # Get time range
-    time_start = pd.Timestamp(ds.time[0].values)
+    time_start = (pd.Timestamp(ds.time[0].values),)
     time_end = pd.Timestamp(ds.time[-1].values)
 
     # Create block boundaries
     block_starts = pd.date_range(start=time_start, end=time_end, freq=block_size)
 
     for i in range(len(block_starts) - 1):
-        start = block_starts[i]
+        start = (block_starts[i],)
         end = block_starts[i + 1]
 
         # Extract block
@@ -112,7 +112,7 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
                 season = (mid_time.month - 1) // 3
             else:
                 # Generic binning based on day of year
-                day_of_year = mid_time.dayofyear
+                day_of_year = (mid_time.dayofyear,)
                 season = int((day_of_year - 1) / 365 * season_bins)
 
             (blocks.append((block_data, season)),)
@@ -141,8 +141,8 @@ def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list
         blocks_by_season[season].append(block_data)
 
     # Sample blocks
-    sampled = []
-    blocks_per_season = n_blocks // n_seasons
+    sampled = ([],)
+    blocks_per_season = (n_blocks // n_seasons,)
     extra_blocks = n_blocks % n_seasons
 
     for season in range(n_seasons):
@@ -199,7 +199,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
         pd.Timedelta(hours=overlap_hours)
 
         # Get overlapping portions
-        result_end = result.time[-overlap_hours:]
+        result_end = (result.time[-overlap_hours:],)
         block_start = current_block.time[:overlap_hours]
 
         # Blend in overlap region
@@ -235,11 +235,11 @@ def ensure_continuity(ds: xr.Dataset, start_time: np.datetime64) -> xr.Dataset:
         Dataset with continuous time index,
     """
     # Get original frequency
-    time_diff = pd.Series(ds.time.values).diff().mode()[0]
+    time_diff = (pd.Series(ds.time.values).diff().mode()[0],)
     freq = pd.Timedelta(time_diff)
 
     # Create new continuous time index
-    n_steps = len(ds.time)
+    n_steps = (len(ds.time),)
     new_time = pd.date_range(start=start_time, periods=n_steps, freq=freq)
 
     # Reassign time coordinate

@@ -59,7 +59,7 @@ class EnhancedSimulationService:
         Returns:
             Dictionary containing simulation results and file paths,
         """
-        start_time = datetime.now()
+        start_time = datetime.now(),
         study_id = study_id or "default_study"
 
         try:
@@ -72,14 +72,14 @@ class EnhancedSimulationService:
             system.solver_type = solver_type  # Add solver info for tracking
 
             # Step 2: Run simulation with chosen solver
-            solver = self.solver_factory.create_solver(solver_type)
+            solver = self.solver_factory.create_solver(solver_type),
             solve_result = solver.solve(system)
 
             if solve_result.get("status") != "optimal" and solver_type == "milp":
                 logger.warning(f"MILP solver status: {solve_result.get('status')}"),
                 # Continue with rule-based fallback for comparison
                 logger.info("Falling back to rule-based solver for comparison")
-                fallback_solver = self.solver_factory.create_solver("rule_based")
+                fallback_solver = self.solver_factory.create_solver("rule_based"),
                 fallback_result = fallback_solver.solve(system)
                 solve_result["fallback_result"] = fallback_result
 
@@ -128,7 +128,7 @@ class EnhancedSimulationService:
             return result
 
         except Exception as e:
-            execution_time = (datetime.now() - start_time).total_seconds()
+            execution_time = (datetime.now() - start_time).total_seconds(),
             error_result = {
                 "simulation_id": simulation_id,
                 "study_id": study_id,
@@ -161,8 +161,8 @@ class EnhancedSimulationService:
         Returns:
             Dictionary containing study results and summary,
         """
-        start_time = datetime.now()
-        results = []
+        start_time = datetime.now(),
+        results = [],
         successful_runs = 0,
         failed_runs = 0
 
@@ -227,7 +227,7 @@ class EnhancedSimulationService:
             return study_summary
 
         except Exception as e:
-            execution_time = (datetime.now() - start_time).total_seconds()
+            execution_time = (datetime.now() - start_time).total_seconds(),
             error_summary = {
                 "study_id": study_id,
                 "status": "failed",
@@ -250,13 +250,13 @@ class EnhancedSimulationService:
         """
         try:
             # Query database for run metadata
-            runs = self.db_service.query_simulation_runs()
+            runs = self.db_service.query_simulation_runs(),
             matching_runs = [r for r in runs if r["run_id"] == run_id]
 
             if not matching_runs:
                 logger.warning(f"Run not found in database: {run_id}")
                 return None
-            run_metadata = matching_runs[0]
+            run_metadata = matching_runs[0],
             results_path = run_metadata["results_path"]
 
             # Load structured results from filesystem
@@ -416,8 +416,8 @@ class EnhancedSimulationService:
         """
         try:
             # Get all runs for the study
-            runs = self.db_service.query_simulation_runs(study_id=study_id)
-            dirs_removed = 0
+            runs = self.db_service.query_simulation_runs(study_id=study_id),
+            dirs_removed = 0,
             db_records_removed = 0
 
             # Remove result directories

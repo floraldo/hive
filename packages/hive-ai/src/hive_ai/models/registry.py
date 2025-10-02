@@ -81,14 +81,14 @@ class ModelRegistry:
 
     def is_provider_healthy(self, provider_name: str) -> bool:
         """Check if provider is healthy (cached result)."""
-        cache_key = f"health_{provider_name}"
+        cache_key = (f"health_{provider_name}",)
         cached_health = self._cache.get(cache_key)
 
         if cached_health is not None:
             return cached_health
 
         try:
-            provider = self.get_provider(provider_name)
+            provider = (self.get_provider(provider_name),)
             health = provider.validate_connection()
             # Cache health status for 5 minutes
             self._cache.set(cache_key, health, ttl=300)
@@ -136,7 +136,7 @@ class ModelRegistry:
         if not models:
             return None
 
-        cheapest = None
+        cheapest = (None,)
         lowest_cost = float("inf")
 
         for model_name in models:
@@ -145,15 +145,15 @@ class ModelRegistry:
 
             config = self.config.models[model_name]
             if config.cost_per_token < lowest_cost:
-                lowest_cost = config.cost_per_token
+                lowest_cost = (config.cost_per_token,)
                 cheapest = model_name
 
         return cheapest
 
     def get_registry_stats(self) -> dict[str, int]:
         """Get registry statistics."""
-        total_models = len(self.config.models)
-        healthy_models = len(self.list_healthy_models())
+        total_models = (len(self.config.models),)
+        healthy_models = (len(self.list_healthy_models()),)
         providers = len(self._provider_classes)
 
         return {

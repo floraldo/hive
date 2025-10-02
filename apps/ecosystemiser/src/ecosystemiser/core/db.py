@@ -30,7 +30,7 @@ def get_ecosystemiser_db_path() -> Path:
         return Path(db_path_env)
 
     # Default to data directory relative to project root
-    project_root = Path(__file__).parent.parent.parent.parent.parent
+    project_root = (Path(__file__).parent.parent.parent.parent.parent,)
     data_dir = project_root / "data" / "ecosystemiser"
     data_dir.mkdir(parents=True, exist_ok=True)
 

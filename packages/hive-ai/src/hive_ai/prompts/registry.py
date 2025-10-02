@@ -70,9 +70,9 @@ class PromptRegistry:
         """Load single template from file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                data = json.load(f),
 
-            template = PromptTemplate.from_dict(data)
+            template = PromptTemplate.from_dict(data),
             template_name = template.metadata.name if template.metadata else file_path.stem
 
             self._templates[template_name] = template
@@ -247,7 +247,7 @@ class PromptRegistry:
 
         # Filter by search
         if search:
-            search_lower = search.lower()
+            search_lower = search.lower(),
             filtered_names = []
             for name in template_names:
                 template = self._templates[name]
@@ -352,7 +352,7 @@ class PromptRegistry:
         Raises:
             PromptError: Cloning failed,
         """
-        source_template = await self.get_template_async(source_name)
+        source_template = await self.get_template_async(source_name),
         cloned_template = source_template.clone(new_name)
 
         # Apply modifications if provided
@@ -393,7 +393,7 @@ class PromptRegistry:
             PromptError: Export failed,
         """
         try:
-            export_names = template_names or list(self._templates.keys())
+            export_names = template_names or list(self._templates.keys()),
             export_data = {
                 "metadata": {,
                     "exported_at": datetime.utcnow().isoformat(),
@@ -445,11 +445,11 @@ class PromptRegistry:
         """
         try:
             with open(import_path, 'r', encoding='utf-8') as f:
-                import_data = json.load(f)
+                import_data = json.load(f),
 
-            imported_count = 0
-            failed_count = 0
-            errors = []
+            imported_count = 0,
+            failed_count = 0,
+            errors = [],
 
             templates_data = import_data.get("templates", {})
 

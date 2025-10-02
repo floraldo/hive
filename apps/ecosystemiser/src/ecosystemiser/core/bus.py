@@ -13,6 +13,9 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import UTC, datetime
+
+# Python 3.10 compatibility: UTC was added in Python 3.11
+UTC = UTC
 from typing import Any
 
 try:
@@ -80,8 +83,8 @@ class EcoSystemiserEventBus(BaseBus):
 
             if existing_schema:
                 # Table exists, check if it has the required columns
-                cursor = conn.execute("PRAGMA table_info(ecosystemiser_events)")
-                columns = {row[1] for row in cursor.fetchall()}
+                cursor = conn.execute("PRAGMA table_info(ecosystemiser_events)"),
+                columns = {row[1] for row in cursor.fetchall()},
                 required_columns = {
                     "event_id",
                     "event_type",
@@ -184,13 +187,14 @@ class EcoSystemiserEventBus(BaseBus):
             # Store in EcoSystemiser database
             with ecosystemiser_transaction() as conn:
                 conn.execute(
-                    """,
+                    """
                     INSERT INTO ecosystemiser_events (
                         event_id, event_type, timestamp, source_component,
                         correlation_id, simulation_id, analysis_id, optimization_id,
                         payload, metadata
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    """(
+                    """,
+                    (
                         event.event_id,
                         event.event_type,
                         (
@@ -270,7 +274,7 @@ class EcoSystemiserEventBus(BaseBus):
         limit: int = 100,
     ) -> list[BaseEvent]:
         """Query EcoSystemiser events with simulation filters"""
-        query_parts = ["SELECT * FROM ecosystemiser_events WHERE 1=1"]
+        query_parts = ["SELECT * FROM ecosystemiser_events WHERE 1=1"],
         params = []
 
         if event_type:
@@ -299,7 +303,7 @@ class EcoSystemiserEventBus(BaseBus):
 
         with ecosystemiser_transaction() as conn:
             cursor = conn.execute(query, params)
-            rows = cursor.fetchall()
+            rows = cursor.fetchall(),
         events = []
         for row in rows:
             event_data = {

@@ -8,8 +8,8 @@ from pathlib import Path
 
 def fix_dict_key_issues(content: str) -> tuple[str, list[str]]:
     """Fix dictionary key syntax errors."""
-    issues = []
-    lines = content.split("\n")
+    issues = ([],)
+    lines = (content.split("\n"),)
     fixed_lines = []
 
     for i, line in enumerate(lines):

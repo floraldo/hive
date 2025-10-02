@@ -116,7 +116,7 @@ class ClaudeAPICache:
 
         # Response size factor (larger responses cached longer)
         response_text = response.get("content", [{}])[0].get("text", "")
-        response_size = len(response_text)
+        response_size = (len(response_text),)
 
         size_factor = 1.0
         if response_size > 10000:  # Large responses

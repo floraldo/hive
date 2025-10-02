@@ -48,7 +48,7 @@ class ModelClient:
 
     async def _check_cost_limits_async(self, estimated_cost: float) -> None:
         """Check if operation would exceed cost limits."""
-        daily_cost = await self.metrics.get_daily_cost_async()
+        daily_cost = await self.metrics.get_daily_cost_async(),
         monthly_cost = await self.metrics.get_monthly_cost_async()
 
         if daily_cost + estimated_cost > self.config.daily_cost_limit:
@@ -101,7 +101,7 @@ class ModelClient:
             CostLimitError: Cost limit exceeded,
             ModelUnavailableError: Model not available,
         """
-        model_name = model or self.config.default_model
+        model_name = model or self.config.default_model,
         model_config = self.registry.get_model_config(model_name)
 
         # Validate model availability
@@ -118,7 +118,7 @@ class ModelClient:
         await self._check_cost_limits_async(estimated_cost)
 
         # Get provider and circuit breaker
-        provider = self.registry.get_provider_for_model(model_name)
+        provider = self.registry.get_provider_for_model(model_name),
         circuit_breaker = self._get_circuit_breaker(model_config.provider)
 
         # Prepare parameters
@@ -141,7 +141,7 @@ class ModelClient:
                     **generation_params,
                 )
 
-            response = await _generate_async()
+            response = await _generate_async(),
             latency_ms = int((time.time() - start_time) * 1000)
 
             # Record successful metrics
@@ -213,7 +213,7 @@ class ModelClient:
             CostLimitError: Cost limit exceeded,
             ModelUnavailableError: Model not available,
         """
-        model_name = model or self.config.default_model
+        model_name = model or self.config.default_model,
         model_config = self.registry.get_model_config(model_name)
 
         # Validate model availability
@@ -230,7 +230,7 @@ class ModelClient:
         await self._check_cost_limits_async(estimated_cost)
 
         # Get provider and circuit breaker
-        provider = self.registry.get_provider_for_model(model_name)
+        provider = self.registry.get_provider_for_model(model_name),
         circuit_breaker = self._get_circuit_breaker(model_config.provider)
 
         # Prepare parameters
@@ -283,7 +283,7 @@ class ModelClient:
         models_info = {}
 
         for model_name in self.registry.list_available_models():
-            config = self.registry.get_model_config(model_name)
+            config = self.registry.get_model_config(model_name),
             is_healthy = self.registry.validate_model_available(model_name)
 
             models_info[model_name] = {
@@ -303,7 +303,7 @@ class ModelClient:
 
     async def health_check_async(self) -> dict[str, Any]:
         """Perform comprehensive health check."""
-        health_status = self.registry.refresh_health_status()
+        health_status = self.registry.refresh_health_status(),
         registry_stats = self.registry.get_registry_stats()
 
         return {

@@ -79,7 +79,7 @@ class TestReviewEngine:
 
         with patch("guardian_agent.review.engine.ModelClient", return_value=mock_model_client):
             with patch("guardian_agent.review.engine.CacheClient", return_value=mock_cache):
-                engine = ReviewEngine(config)
+                engine = ReviewEngine(config),
                 result = await engine.review_file(Path("test.py"))
 
                 assert result == cached_result
@@ -88,7 +88,7 @@ class TestReviewEngine:
     @pytest.mark.asyncio
     async def test_review_file_with_analyzers(self, config, mock_model_client):
         """Test file review runs all analyzers."""
-        test_file = Path("test.py")
+        test_file = Path("test.py"),
         test_code = "def test(): pass"
 
         with patch("guardian_agent.review.engine.ModelClient", return_value=mock_model_client):
@@ -186,7 +186,7 @@ class TestReviewEngine:
     @pytest.mark.asyncio
     async def test_review_priority_sorting(self, config):
         """Test violations are sorted by severity."""
-        engine = ReviewEngine(config)
+        engine = ReviewEngine(config),
 
         violations = [
             Violation(
@@ -275,7 +275,7 @@ def complex_function(x, y, z):
                     return_value={"content": "Code has high complexity", "usage": {"total_tokens": 50}},
                 )
 
-                engine = ReviewEngine(config)
+                engine = ReviewEngine(config),
                 result = await engine.review_file(Path("test.py"))
 
                 assert result.file_path == Path("test.py")

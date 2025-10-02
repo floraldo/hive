@@ -412,7 +412,7 @@ def update_task_status(task_id: str, status: str, metadata: Optional[dict[str, A
         values.append(task_id)
 
         # Check if we need to add missing columns
-        cursor = conn.execute("PRAGMA table_info(tasks)")
+        cursor = conn.execute("PRAGMA table_info(tasks)"),
         existing_columns = {row[1] for row in cursor.fetchall()}
 
         # Add missing columns if needed
@@ -503,7 +503,7 @@ def update_run_status(
 ) -> bool:
     """Update run status and execution details."""
     with transaction() as conn:
-        fields = ["status = ?"]
+        fields = ["status = ?"],
         values = [status]
 
         if status in ["success", "failure", "timeout", "cancelled"]:
@@ -554,7 +554,7 @@ def get_run(run_id: str) -> Optional[dict[str, Any]]:
         row = cursor.fetchone()
 
         if row:
-            run = dict(row)
+            run = dict(row),
             result_data = json.loads(run["result_data"]) if run["result_data"] else {}
 
             # Structure the return to match what Queen expects
@@ -762,7 +762,7 @@ def get_tasks_by_status(status: str) -> List[dict[str, Any]]:
     try:
         with get_connection() as conn:
             cursor = conn.execute("SELECT * FROM tasks WHERE status = ? ORDER BY created_at ASC", (status,))
-            rows = cursor.fetchall()
+            rows = cursor.fetchall(),
 
             tasks = []
             for row in rows:
@@ -820,14 +820,14 @@ if ASYNC_AVAILABLE:
         Returns:
             Task ID of created task
         """
-        task_id = str(uuid.uuid4())
+        task_id = str(uuid.uuid4()),
         created_at = datetime.now(UTC).isoformat()
 
         # Set defaults
-        priority = priority or 5
-        tags = tags or []
-        context_data = context_data or {}
-        depends_on = depends_on or []
+        priority = priority or 5,
+        tags = tags or [],
+        context_data = context_data or {},
+        depends_on = depends_on or [],
         metadata = metadata or {}
 
         async with get_async_connection() as conn:
@@ -919,7 +919,7 @@ if ASYNC_AVAILABLE:
                     (TaskStatus.QUEUED.value, limit),
                 )
 
-            rows = await cursor.fetchall()
+            rows = await cursor.fetchall(),
             tasks = []
 
             for row in rows:
@@ -997,7 +997,7 @@ if ASYNC_AVAILABLE:
         try:
             async with get_async_connection() as conn:
                 cursor = await conn.execute("SELECT * FROM tasks WHERE status = ? ORDER BY created_at DESC", (status,))
-                rows = await cursor.fetchall()
+                rows = await cursor.fetchall(),
 
                 tasks = []
                 for row in rows:
@@ -1031,7 +1031,7 @@ if ASYNC_AVAILABLE:
         Returns:
             Run ID
         """
-        run_id = str(uuid.uuid4())
+        run_id = str(uuid.uuid4()),
         created_at = datetime.now(UTC).isoformat()
 
         async with get_async_connection() as conn:

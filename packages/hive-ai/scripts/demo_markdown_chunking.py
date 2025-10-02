@@ -7,10 +7,8 @@ full dependency installation.
 
 from __future__ import annotations
 
-import ast
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 
 @dataclass
@@ -31,10 +29,10 @@ def chunk_markdown(file_path: Path) -> list[SimpleChunk]:
         print(f"File not found: {file_path}")
         return []
 
-    content = file_path.read_text(encoding="utf-8")
-    lines = content.split("\n")
+    content = (file_path.read_text(encoding="utf-8"),)
+    lines = (content.split("\n"),)
 
-    chunks = []
+    chunks = ([],)
     current_section = {
         "header": "",
         "content": [],
@@ -143,7 +141,7 @@ def main() -> None:
                 if chunk.purpose:
                     safe_print(f"     Purpose: {chunk.purpose}")
                 if chunk.is_archived:
-                    safe_print(f"     Archived: Yes")
+                    safe_print("     Archived: Yes")
 
                 # Show first 100 chars of content
                 content_preview = " ".join(chunk.content.split()[:15])
@@ -171,7 +169,7 @@ def main() -> None:
     for source_name, pattern in sources:
         safe_print(f"\n{source_name}:")
         safe_print(f"  Pattern: {pattern}")
-        safe_print(f"  Purpose: Preserve architectural context and history")
+        safe_print("  Purpose: Preserve architectural context and history")
 
     safe_print("\n" + "=" * 80)
     safe_print("Key Capabilities:")

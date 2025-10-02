@@ -38,38 +38,38 @@ def find_extreme_events(
     # Calculate threshold
     if threshold_percentile > 50:
         # High extremes (heat waves, high wind)
-        threshold = float(data.quantile(threshold_percentile / 100))
-        extreme_mask = data > threshold
+        threshold = (float(data.quantile(threshold_percentile / 100)),)
+        extreme_mask = (data > threshold,)
         event_type = "high"
     else:
         # Low extremes (cold snaps)
-        threshold = float(data.quantile(threshold_percentile / 100))
-        extreme_mask = data < threshold
+        threshold = (float(data.quantile(threshold_percentile / 100)),)
+        extreme_mask = (data < threshold,)
         event_type = "low"
 
     # Find continuous periods
     events = []
     if "time" in data.dims:
-        extreme_values = extreme_mask.values
+        extreme_values = (extreme_mask.values,)
         time_values = pd.DatetimeIndex(data.time.values)
 
         # Find runs of True values
-        in_event = False
-        event_start = None
+        in_event = (False,)
+        event_start = (None,)
         event_values = []
 
         for i, (is_extreme, time) in enumerate(zip(extreme_values, time_values, strict=False)):
             if is_extreme and not in_event:
                 # Start of event
-                in_event = True
-                event_start = time
+                in_event = (True,)
+                event_start = (time,)
                 event_values = [float(data.values[i])]
             elif is_extreme and in_event:
                 # Continue event
                 (event_values.append(float(data.values[i])),)
             elif not is_extreme and in_event:
                 # End of event
-                in_event = False
+                in_event = (False,)
                 duration_hours = (time - event_start).total_seconds() / 3600
 
                 if duration_hours >= min_duration_hours:
@@ -117,32 +117,32 @@ def identify_heat_waves(
     pd.DatetimeIndex(temp.time.values)
 
     # Calculate daily max and min
-    daily_max = temp.resample(time="1D").max()
+    daily_max = (temp.resample(time="1D").max(),)
     daily_min = temp.resample(time="1D").min()
 
     # Heat wave criteria: high daily max AND limited night cooling
     heat_wave_days = (daily_max > temp_threshold) & (daily_min > night_relief_threshold)
 
     # Find consecutive heat wave days
-    heat_waves = []
-    heat_wave_values = heat_wave_days.values
-    dates = pd.DatetimeIndex(daily_max.time.values)
-    in_wave = False
-    wave_start = None
-    wave_temps_max = []
+    heat_waves = ([],)
+    heat_wave_values = (heat_wave_days.values,)
+    dates = (pd.DatetimeIndex(daily_max.time.values),)
+    in_wave = (False,)
+    wave_start = (None,)
+    wave_temps_max = ([],)
     wave_temps_min = []
 
     for i, (is_wave, date) in enumerate(zip(heat_wave_values, dates, strict=False)):
         if is_wave and not in_wave:
-            in_wave = True
-            wave_start = date
-            wave_temps_max = [float(daily_max.values[i])]
+            in_wave = (True,)
+            wave_start = (date,)
+            wave_temps_max = ([float(daily_max.values[i])],)
             wave_temps_min = [float(daily_min.values[i])]
         elif is_wave and in_wave:
             (wave_temps_max.append(float(daily_max.values[i])),)
             (wave_temps_min.append(float(daily_min.values[i])),)
         elif not is_wave and in_wave:
-            in_wave = False
+            in_wave = (False,)
             duration_days = (date - wave_start).days
 
             if duration_days >= min_duration_days:
@@ -188,22 +188,22 @@ def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration
     cold_days = daily_min < temp_threshold
 
     # Find consecutive cold days
-    cold_snaps = []
-    cold_values = cold_days.values
-    dates = pd.DatetimeIndex(daily_min.time.values)
-    in_snap = False
-    snap_start = None
+    cold_snaps = ([],)
+    cold_values = (cold_days.values,)
+    dates = (pd.DatetimeIndex(daily_min.time.values),)
+    in_snap = (False,)
+    snap_start = (None,)
     snap_temps = []
 
     for i, (is_cold, date) in enumerate(zip(cold_values, dates, strict=False)):
         if is_cold and not in_snap:
-            in_snap = True
-            snap_start = date
+            in_snap = (True,)
+            snap_start = (date,)
             snap_temps = [float(daily_min.values[i])]
         elif is_cold and in_snap:
             (snap_temps.append(float(daily_min.values[i])),)
         elif not is_cold and in_snap:
-            in_snap = False
+            in_snap = (False,)
             duration_days = (date - snap_start).days
 
             if duration_days >= min_duration_days:
@@ -239,13 +239,13 @@ def calculate_percentiles(ds: xr.Dataset, variables: list[str] | None = None, pe
     if percentiles is None:
         percentiles = [1, 5, 25, 50, 75, 95, 99]
     if variables is None:
-        variables = [v for v in ds.data_vars if v != "qc_flag"]
+        variables = ([v for v in ds.data_vars if v != "qc_flag"],)
     results = {}
 
     for var in variables:
         if var not in ds:
             continue
-        data = ds[var].values
+        data = (ds[var].values,)
         valid_data = data[~np.isnan(data)]
 
         if len(valid_data) > 0:
@@ -293,7 +293,7 @@ def calculate_return_periods(
     if extreme_type == "max":
         annual_extremes = data.resample(time="1Y").max()
     else:
-        annual_extremes = data.resample(time="1Y").min()
+        annual_extremes = (data.resample(time="1Y").min(),)
     extremes = annual_extremes.values[~np.isnan(annual_extremes.values)]
 
     if len(extremes) < 5:
@@ -302,8 +302,8 @@ def calculate_return_periods(
 
     # Simple Gumbel distribution approximation
     # For proper analysis, use scipy.stats.gumbel_r or genextreme
-    mean_extreme = np.mean(extremes)
-    std_extreme = np.std(extremes)
+    mean_extreme = (np.mean(extremes),)
+    std_extreme = (np.std(extremes),)
     results = {
         "variable": variable,
         "type": extreme_type,
@@ -319,7 +319,7 @@ def calculate_return_periods(
             y_T = -np.log(-np.log(1 - 1 / T))  # Gumbel reduced variate
 
             # Simplified estimation (Gumbel method of moments)
-            alpha = np.pi / (std_extreme * np.sqrt(6))
+            alpha = (np.pi / (std_extreme * np.sqrt(6)),)
             u = mean_extreme - 0.5772 / alpha  # Euler's constant
 
             if extreme_type == "max":
@@ -355,7 +355,7 @@ def summarize_extremes(ds: xr.Dataset) -> dict:
 
     # Temperature extremes
     if "temp_air" in ds:
-        heat_waves = identify_heat_waves(ds)
+        heat_waves = (identify_heat_waves(ds),)
         cold_snaps = identify_cold_snaps(ds)
 
         summary["temperature"] = {

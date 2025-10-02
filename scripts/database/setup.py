@@ -163,7 +163,7 @@ class DatabaseSetup:
 
             conn.close()
 
-            print(f"Database seeded successfully")
+            print("Database seeded successfully")
             print(f"  - Tasks: {task_count}")
             print(f"  - Workers: {worker_count}")
             return True
@@ -319,7 +319,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-

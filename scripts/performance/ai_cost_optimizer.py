@@ -137,7 +137,9 @@ class AIConstOptimizer:
         return report
 
     async def _analyze_optimization_opportunities_async(
-        self, summary, analysis_days: int,
+        self,
+        summary,
+        analysis_days: int,
     ) -> list[OptimizationOpportunity]:
         """Analyze and identify specific optimization opportunities."""
         opportunities = []

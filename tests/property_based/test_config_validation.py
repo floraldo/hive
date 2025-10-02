@@ -71,7 +71,10 @@ def json_config_content(draw):
     # Add various configuration sections
     sections = draw(
         st.lists(
-            st.sampled_from(["database", "api", "logging", "cache", "security"]), min_size=1, max_size=5, unique=True,
+            st.sampled_from(["database", "api", "logging", "cache", "security"]),
+            min_size=1,
+            max_size=5,
+            unique=True,
         ),
     )
 
@@ -164,7 +167,10 @@ class TestConfigurationProperties:
         st.dictionaries(
             keys=st.text(min_size=1, max_size=50),
             values=st.one_of(
-                st.text(max_size=100), st.integers(), st.floats(allow_nan=False, allow_infinity=False), st.booleans(),
+                st.text(max_size=100),
+                st.integers(),
+                st.floats(allow_nan=False, allow_infinity=False),
+                st.booleans(),
             ),
             min_size=1,
             max_size=20,
@@ -218,7 +224,10 @@ class TestConfigurationProperties:
     @given(
         st.lists(
             st.dictionaries(
-                keys=st.text(min_size=1, max_size=20), values=st.text(max_size=50), min_size=1, max_size=10,
+                keys=st.text(min_size=1, max_size=20),
+                values=st.text(max_size=50),
+                min_size=1,
+                max_size=10,
             ),
             min_size=1,
             max_size=5,

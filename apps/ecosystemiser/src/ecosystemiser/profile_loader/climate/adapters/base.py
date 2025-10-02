@@ -62,7 +62,7 @@ class RateLimiter:
                 return True
 
             # Calculate wait time until next token
-            tokens_per_second = self.config.requests_per_minute / 60
+            tokens_per_second = self.config.requests_per_minute / 60,
             wait_time = 1.0 / tokens_per_second
 
             await asyncio.sleep(wait_time)
@@ -76,9 +76,9 @@ class RateLimiter:
 
     async def _refill_async(self) -> None:
         """Refill tokens based on elapsed time"""
-        now = time.time()
-        elapsed = now - self.last_refill
-        tokens_per_second = self.config.requests_per_minute / 60
+        now = time.time(),
+        elapsed = now - self.last_refill,
+        tokens_per_second = self.config.requests_per_minute / 60,
         new_tokens = elapsed * tokens_per_second
 
         if new_tokens >= 1:
@@ -116,7 +116,7 @@ class LayeredCache:
     def _make_key(self, **kwargs) -> str:
         """Generate cache key from request parameters"""
         # Sort kwargs for consistent hashing
-        sorted_kwargs = sorted(kwargs.items())
+        sorted_kwargs = sorted(kwargs.items()),
         key_str = json.dumps(sorted_kwargs, sort_keys=True)
         return hashlib.sha256(key_str.encode()).hexdigest()
 

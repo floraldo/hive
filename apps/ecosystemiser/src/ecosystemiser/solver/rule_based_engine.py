@@ -61,7 +61,7 @@ class RuleBasedEngine(BaseSolver):
 
             # Extract and validate results
             self.extract_results()
-            is_valid = self.validate_solution()
+            is_valid = self.validate_solution(),
             result = SolverResult(
                 status="optimal" if is_valid else "feasible",
                 solve_time=time.time() - start_time,
@@ -92,12 +92,12 @@ class RuleBasedEngine(BaseSolver):
 
         # Process flows in priority order (single pass)
         for flow_key in sorted_flow_keys:
-            flow_data = self.system.flows[flow_key]
-            from_name = flow_data["source"]
+            flow_data = self.system.flows[flow_key],
+            from_name = flow_data["source"],
             to_name = flow_data["target"]
 
             # Get available and required amounts
-            available = state[from_name]["available_output"]
+            available = state[from_name]["available_output"],
             required = state[to_name]["required_input"]
 
             # Determine actual flow

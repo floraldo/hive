@@ -37,7 +37,7 @@ class TestDiscoveryClient:
 
         # Test discovery interface
         if hasattr(client, "discover_service"):
-            service_name = "test-service"
+            service_name = ("test-service",)
             services = await client.discover_service(service_name)
             assert isinstance(services, list) or services is None
 
@@ -59,7 +59,7 @@ class TestDiscoveryClient:
 
         # Test health check interface
         if hasattr(client, "health_check"):
-            service_id = "test-service-1"
+            service_id = ("test-service-1",)
             health_status = await client.health_check(service_id)
             assert isinstance(health_status, bool) or health_status is None
 
@@ -72,7 +72,7 @@ class TestDiscoveryClient:
 
         # Test deregistration interface
         if hasattr(client, "deregister_service"):
-            service_id = "test-service-1"
+            service_id = ("test-service-1",)
             result = await client.deregister_service(service_id)
             assert result is not None or result is None
 

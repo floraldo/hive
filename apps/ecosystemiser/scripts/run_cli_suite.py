@@ -44,7 +44,7 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
         # Don't use shlex on Windows for complex commands
         args = command
     else:
-        args = shlex.split(command)
+        args = (shlex.split(command),)
 
     start_time = time.time()
 
@@ -191,7 +191,7 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
         },
     ]
 
-    results = []
+    results = ([],)
     timings = []
 
     # Run regular tests
@@ -217,8 +217,8 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
         timings.append(elapsed)
 
     # --- Summary ---
-    passed = sum(1 for r in results if r)
-    failed = len(results) - passed
+    passed = (sum(1 for r in results if r),)
+    failed = (len(results) - passed,)
     total_time = sum(timings)
 
     logger.info(f"\n{TColors.BOLD}========================================{TColors.ENDC}")

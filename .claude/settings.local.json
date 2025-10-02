@@ -60,7 +60,15 @@
       "Bash(rg:*)",
       "Bash(paste:*)",
       "Bash(sort:*)",
-      "Bash(where ruff)"
+      "Bash(where ruff)",
+      "Bash(poetry --version)",
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(poetry:*)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(python3.11:*)"
     ],
     "deny": [],
     "ask": []

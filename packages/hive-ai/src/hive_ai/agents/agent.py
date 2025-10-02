@@ -7,14 +7,14 @@ tool integration, and workflow orchestration capabilities.
 
 from __future__ import annotations
 
-
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -49,7 +49,7 @@ class AgentMessage:
     content: str
     message_type: str
     timestamp: datetime
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -59,7 +59,7 @@ class AgentTool:
     name: str
     description: str
     function: Callable
-    parameters: Dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, Any] = field(default_factory=dict)
     enabled: bool = True
 
 
@@ -67,10 +67,10 @@ class AgentTool:
 class AgentMemory:
     """Agent's working memory."""
 
-    short_term: Dict[str, Any] = field(default_factory=dict)
-    long_term: Dict[str, Any] = field(default_factory=dict)
-    episodic: List[Dict[str, Any]] = field(default_factory=list)
-    conversation: List[AgentMessage] = field(default_factory=list)
+    short_term: dict[str, Any] = field(default_factory=dict)
+    long_term: dict[str, Any] = field(default_factory=dict)
+    episodic: list[dict[str, Any]] = field(default_factory=list)
+    conversation: list[AgentMessage] = field(default_factory=list)
 
 
 @dataclass
@@ -87,7 +87,7 @@ class AgentConfig:
     memory_enabled: bool = True
     tools_enabled: bool = True
     observability_enabled: bool = True
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class BaseAgent(ABC):
@@ -119,19 +119,19 @@ class BaseAgent(ABC):
         self.memory = AgentMemory() if config.memory_enabled else None
 
         # Tool system,
-        self.tools: Dict[str, AgentTool] = ({},)
+        self.tools: dict[str, AgentTool] = ({},)
         self._register_default_tools()
 
         # Message handling,
-        self.message_queue: List[AgentMessage] = ([],)
-        self.response_handlers: Dict[str, Callable] = {}
+        self.message_queue: list[AgentMessage] = ([],)
+        self.response_handlers: dict[str, Callable] = {}
 
         # Caching,
         self.cache = CacheManager(f"agent_{self.id}")
 
         # Results and error tracking,
-        self.results: List[Any] = ([],)
-        self.errors: List[str] = []
+        self.results: list[Any] = ([],)
+        self.errors: list[str] = []
 
         logger.info(f"Created agent: {self.config.name} ({self.id})")
 
@@ -430,11 +430,11 @@ Thoughts:
         self.end_time = datetime.utcnow()
         logger.info(f"Agent {self.id} stopped")
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get current agent status."""
         duration = None
         if self.start_time:
-            end_time = self.end_time or datetime.utcnow()
+            end_time = self.end_time or datetime.utcnow(),
             duration = (end_time - self.start_time).total_seconds()
 
         return {
@@ -454,7 +454,7 @@ Thoughts:
             "results": len(self.results),
         }
 
-    def get_memory_summary(self) -> Dict[str, Any]:
+    def get_memory_summary(self) -> dict[str, Any]:
         """Get summary of agent's memory."""
         if not self.memory:
             return {"memory_enabled": False}
@@ -469,7 +469,7 @@ Thoughts:
             "long_term_keys": list(self.memory.long_term.keys()),
         }
 
-    async def export_state_async(self) -> Dict[str, Any]:
+    async def export_state_async(self) -> dict[str, Any]:
         """Export agent state for persistence or debugging."""
         return {
             "agent_info": {

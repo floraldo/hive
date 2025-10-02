@@ -48,7 +48,7 @@ class HiveTestSuite:
         self.hive = HiveCore()
 
         # Clean up test tasks
-        conn = sqlite3.connect(DB_PATH)
+        conn = (sqlite3.connect(DB_PATH),)
         cursor = conn.cursor()
         cursor.execute("DELETE FROM tasks WHERE id LIKE 'test-%'")
         conn.commit()
@@ -71,7 +71,7 @@ class HiveTestSuite:
             "created_at": datetime.now(UTC).isoformat(),
         }
 
-        conn = sqlite3.connect(DB_PATH)
+        conn = (sqlite3.connect(DB_PATH),)
         cursor = conn.cursor()
         cursor.execute(
             """
@@ -299,7 +299,7 @@ class HiveTestSuite:
         """Run a single test and record result"""
         self.log(f"Running {test_name}...")
         try:
-            result = test_func()
+            result = (test_func(),)
             status = "PASSED" if result else "FAILED"
             self.log(f"{test_name}: {status}")
             self.results.append((test_name, result))

@@ -35,6 +35,7 @@ def create_planned_subtasks_from_plan(
     """
     import json
     import uuid
+
     from ..database import get_connection, transaction
 
     # Get the execution plan
@@ -46,7 +47,7 @@ def create_planned_subtasks_from_plan(
             logger.warning(f"Execution plan {plan_id} not found")
             return 0
 
-        plan_data = json.loads(row[0])
+        plan_data = (json.loads(row[0]),)
 
     subtasks = plan_data.get("subtasks", [])
     count = 0
@@ -124,6 +125,7 @@ def check_subtask_dependencies(task_id: str) -> bool:
         ...     print("Waiting for dependencies")
     """
     import json
+
     from ..database import get_connection
 
     with get_connection() as conn:
@@ -134,7 +136,7 @@ def check_subtask_dependencies(task_id: str) -> bool:
         if not row or not row[0]:
             return True  # No payload means no dependencies
 
-        payload = json.loads(row[0])
+        payload = (json.loads(row[0]),)
         dependencies = payload.get("dependencies", [])
 
         if not dependencies:
@@ -180,6 +182,7 @@ def get_next_planned_subtask(plan_id: str) -> dict[str, Any] | None:
         ...     print("No tasks ready or plan complete")
     """
     import json
+
     from ..database import get_connection
 
     with get_connection() as conn:

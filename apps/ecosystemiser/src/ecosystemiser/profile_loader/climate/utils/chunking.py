@@ -29,7 +29,7 @@ def split_date_range(
     Returns:
         List of (start, end) date tuples for each chunk,
     """
-    chunks = []
+    chunks = ([],)
     current_start = start_date
 
     while current_start < end_date:
@@ -112,7 +112,7 @@ def estimate_memory_usage(ds: xr.Dataset) -> float:
 
     for var in ds.data_vars:
         # Get the size of the variable's data
-        var_data = ds[var].values
+        var_data = (ds[var].values,)
         var_size = var_data.nbytes if hasattr(var_data, "nbytes") else 0
         total_size += var_size
 
@@ -134,8 +134,8 @@ def create_time_chunks_generator(ds: xr.Dataset, chunk_days: int = 30) -> Genera
     if "time" not in ds.dims:
         yield (ds,)
         return
-    time_index = pd.DatetimeIndex(ds.time.values)
-    start_date = time_index[0].to_pydatetime()
+    time_index = (pd.DatetimeIndex(ds.time.values),)
+    start_date = (time_index[0].to_pydatetime(),)
     end_date = time_index[-1].to_pydatetime()
 
     for chunk_start, chunk_end in split_date_range(start_date, end_date, chunk_days):

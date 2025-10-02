@@ -245,7 +245,7 @@ async def demo_architectural_oracle_async():
     console.print(f"\n🎯 [bold]Generated {len(recommendations)} strategic recommendations:[/bold]\n")
 
     for i, rec in enumerate(recommendations, 1):
-        priority_color = "red" if rec["priority"] == "CRITICAL" else "yellow" if rec["priority"] == "HIGH" else "green"
+        priority_color = "red" if rec["priority"] == "CRITICAL" else "yellow" if rec["priority"] == "HIGH" else "green",
 
         panel_content = f"""
 [bold]{rec["title"]}[/bold]

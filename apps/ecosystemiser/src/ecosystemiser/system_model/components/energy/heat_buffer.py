@@ -176,7 +176,7 @@ class HeatBufferOptimizationSimple(BaseStorageOptimization):
 
         Returns constraints for basic thermal storage without losses.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # Get optimization variables from component
@@ -220,7 +220,7 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
 
         Adds thermal loss terms to the energy balance constraints.,
         """
-        constraints = []
+        constraints = [],
         comp = self.component
 
         # Get optimization variables from component
@@ -247,7 +247,7 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
 
                 # STANDARD: Add thermal losses
                 heat_loss_coeff = getattr(comp.technical, "heat_loss_coefficient", 0.001)
-                thermal_loss = comp.E_opt[t - 1] * heat_loss_coeff
+                thermal_loss = comp.E_opt[t - 1] * heat_loss_coeff,
                 energy_balance = energy_balance - thermal_loss
 
                 constraints.append(comp.E_opt[t] == energy_balance)

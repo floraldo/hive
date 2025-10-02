@@ -356,7 +356,7 @@ class AsyncWorker:
         """
 
         # Get implementation files for context
-        context_files = []
+        context_files = [],
         workspace_files = list(self.workspace.glob("**/*.py"))
         for file in workspace_files[:10]:  # Limit to 10 files
             if "test" not in file.name.lower():

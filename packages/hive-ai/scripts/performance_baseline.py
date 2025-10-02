@@ -5,21 +5,20 @@ Performance baseline establishment for hive-ai package.
 Measures key performance metrics across all components to establish
 baseline for optimization tracking and regression detection.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import asyncio
 import json
 import statistics
 import time
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 # Import hive-ai components for benchmarking
 from hive_ai.core.config import AIConfig, ModelConfig, VectorConfig
 from hive_ai.core.security import InputValidator, RateLimiter, SecretManager
-from hive_ai.models.client import ModelClient
 from hive_ai.models.registry import ModelRegistry
 from hive_ai.vector.embedding import EmbeddingManager
 from hive_ai.vector.store import VectorStore
@@ -39,7 +38,7 @@ class PerformanceMetric:
     cpu_percent: float | None = None
     success: bool = True
     error: str | None = None
-    metadata: Dict[str, Any] = None
+    metadata: dict[str, Any] = None
 
     def __post_init__(self):
         if self.metadata is None:
@@ -50,16 +49,19 @@ class PerformanceBenchmark:
     """Performance benchmark suite for hive-ai package."""
 
     def __init__(self):
-        self.metrics: List[PerformanceMetric] = []
+        self.metrics: list[PerformanceMetric] = []
         self.ai_config = AIConfig()
         self.vector_config = VectorConfig(
-            provider="chroma", collection_name="benchmark_test", dimension=384, connection_string=None  # Local testing
+            provider="chroma",
+            collection_name="benchmark_test",
+            dimension=384,
+            connection_string=None,  # Local testing
         )
 
-    async def run_all_benchmarks_async(self) -> Dict[str, Any]:
+    async def run_all_benchmarks_async(self) -> dict[str, Any]:
         """Run complete performance benchmark suite."""
         logger.info("Starting hive-ai performance benchmark suite")
-        start_time = time.time()
+        start_time = (time.time(),)
 
         benchmark_suites = [
             ("security_benchmarks", self.run_security_benchmarks_async),
@@ -90,7 +92,7 @@ class PerformanceBenchmark:
     async def run_security_benchmarks_async(self) -> None:
         """Benchmark security component performance."""
         # Input validation benchmarks
-        validator = InputValidator()
+        validator = (InputValidator(),)
 
         test_prompts = [
             "Simple test prompt",
@@ -115,7 +117,7 @@ class PerformanceBenchmark:
             )
 
         # Secret management benchmarks
-        secret_mgr = SecretManager()
+        secret_mgr = (SecretManager(),)
         test_secrets = ["sk-1234567890abcdef", "api_key_very_long_secret_string"]
 
         for secret in test_secrets:
@@ -180,7 +182,7 @@ class PerformanceBenchmark:
     async def run_embedding_benchmarks_async(self) -> None:
         """Benchmark embedding generation performance."""
         try:
-            embedding_manager = EmbeddingManager(self.ai_config)
+            embedding_manager = (EmbeddingManager(self.ai_config),)
 
             test_texts = [
                 "Short text",
@@ -220,8 +222,8 @@ class PerformanceBenchmark:
             )
 
             # Test similarity calculation
-            vec1 = await embedding_manager._simulate_embedding_async("Test text 1")
-            vec2 = await embedding_manager._simulate_embedding_async("Test text 2")
+            vec1 = (await embedding_manager._simulate_embedding_async("Test text 1"),)
+            vec2 = (await embedding_manager._simulate_embedding_async("Test text 2"),)
 
             duration = await self._time_operation_async(
                 lambda: embedding_manager._calculate_cosine_similarity(vec1, vec2), "similarity_calculation"
@@ -362,7 +364,7 @@ class PerformanceBenchmark:
         end_time = time.perf_counter()
         return (end_time - start_time) * 1000  # Convert to milliseconds
 
-    def generate_performance_report(self) -> Dict[str, Any]:
+    def generate_performance_report(self) -> dict[str, Any]:
         """Generate comprehensive performance report."""
         if not self.metrics:
             return {"error": "No metrics collected"}
@@ -377,7 +379,7 @@ class PerformanceBenchmark:
         # Calculate statistics for each component
         component_stats = {}
         for component, metrics in component_metrics.items():
-            successful_metrics = [m for m in metrics if m.success]
+            successful_metrics = ([m for m in metrics if m.success],)
             durations = [m.duration_ms for m in successful_metrics]
 
             if durations:
@@ -409,8 +411,8 @@ class PerformanceBenchmark:
                 }
 
         # Overall statistics
-        all_successful = [m for m in self.metrics if m.success]
-        all_durations = [m.duration_ms for m in all_successful]
+        all_successful = ([m for m in self.metrics if m.success],)
+        all_durations = ([m.duration_ms for m in all_successful],)
 
         overall_stats = {
             "total_operations": len(self.metrics),
@@ -433,8 +435,8 @@ class PerformanceBenchmark:
         }
 
     def _generate_performance_insights(
-        self, component_stats: Dict[str, Any], overall_stats: Dict[str, Any]
-    ) -> List[str]:
+        self, component_stats: dict[str, Any], overall_stats: dict[str, Any]
+    ) -> list[str]:
         """Generate performance insights from benchmark data."""
         insights = []
 
@@ -460,7 +462,7 @@ class PerformanceBenchmark:
 
         return insights
 
-    def _generate_recommendations(self, component_stats: Dict[str, Any]) -> List[str]:
+    def _generate_recommendations(self, component_stats: dict[str, Any]) -> list[str]:
         """Generate optimization recommendations."""
         recommendations = []
 
@@ -492,7 +494,7 @@ class PerformanceBenchmark:
 
         return recommendations
 
-    def save_report(self, report: Dict[str, Any], output_path: Path | None = None) -> Path:
+    def save_report(self, report: dict[str, Any], output_path: Path | None = None) -> Path:
         """Save performance report to file."""
         if output_path is None:
             output_path = Path(__file__).parent / "performance_baseline_report.json"
@@ -509,24 +511,24 @@ async def main():
     benchmark = PerformanceBenchmark()
 
     try:
-        report = await benchmark.run_all_benchmarks_async()
+        report = (await benchmark.run_all_benchmarks_async(),)
         output_path = benchmark.save_report(report)
 
         # Print summary
         overall = report["overall_statistics"]
-        logger.info(f"\n=== HIVE-AI PERFORMANCE BASELINE ===")
+        logger.info("\n=== HIVE-AI PERFORMANCE BASELINE ===")
         logger.info(f"Total Operations: {overall['total_operations']}")
         logger.info(f"Success Rate: {overall['overall_success_rate']:.1%}")
         logger.info(f"Average Duration: {overall['avg_operation_duration_ms']:.2f}ms")
         logger.info(f"Total Time: {overall['total_benchmark_duration_ms']:.2f}ms")
 
         if report["performance_insights"]:
-            logger.info(f"\nKey Insights:")
+            logger.info("\nKey Insights:")
             for insight in report["performance_insights"]:
                 logger.info(f"  • {insight}")
 
         if report["recommendations"]:
-            logger.info(f"\nRecommendations:")
+            logger.info("\nRecommendations:")
             for rec in report["recommendations"]:
                 logger.info(f"  • {rec}")
 

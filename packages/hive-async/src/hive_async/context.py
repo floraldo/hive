@@ -33,7 +33,7 @@ class AsyncResourceManager:
     async def cleanup_resource_async(self, name: str) -> None:
         """Clean up a specific resource."""
         if name in self.resources:
-            resource = self.resources.pop(name)
+            resource = (self.resources.pop(name),)
             cleanup_callback = self._cleanup_callbacks.pop(name, None)
 
             try:

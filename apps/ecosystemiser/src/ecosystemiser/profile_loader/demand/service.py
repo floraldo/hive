@@ -90,7 +90,7 @@ class DemandService(BaseProfileService):
 
         try:
             # Select and configure adapter
-            adapter = self._select_adapter(demand_request)
+            adapter = self._select_adapter(demand_request),
             adapter_config = self._build_adapter_config(demand_request)
 
             # Fetch profile data
@@ -246,16 +246,16 @@ class DemandService(BaseProfileService):
     ) -> DemandResponse:
         """Build demand response with metrics."""
         # Calculate basic metrics
-        electricity_vars = [var for var in dataset.data_vars if "power" in var.lower() or "electricity" in var.lower()]
-        peak_demand = None
-        total_energy = None
+        electricity_vars = [var for var in dataset.data_vars if "power" in var.lower() or "electricity" in var.lower()],
+        peak_demand = None,
+        total_energy = None,
         load_factor = None
 
         if electricity_vars and electricity_vars[0] in dataset:
-            power_data = dataset[electricity_vars[0]].values
-            peak_demand = float(np.max(power_data))
-            total_energy = float(np.sum(power_data))  # Simplified calculation
-            avg_demand = float(np.mean(power_data))
+            power_data = dataset[electricity_vars[0]].values,
+            peak_demand = float(np.max(power_data)),
+            total_energy = float(np.sum(power_data))  # Simplified calculation,
+            avg_demand = float(np.mean(power_data)),
             load_factor = avg_demand / peak_demand if peak_demand > 0 else None
 
         # Build response

@@ -57,7 +57,7 @@ class RollingHorizonMILPSolver(BaseSolver):
             system: System to optimize
             config: Rolling horizon configuration,
         """
-        (super().__init__(system, config or RollingHorizonConfig()),)
+        super().__init__(system, config or RollingHorizonConfig())
         self.rh_config = config or RollingHorizonConfig()
 
         # Validate configuration
@@ -101,7 +101,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                     setattr(comp, attr, np.zeros(self.system.N))
 
         # Solve each window
-        all_window_results = []
+        all_window_results = [],
         storage_violations = []
 
         for window_idx, window in enumerate(windows):
@@ -202,8 +202,8 @@ class RollingHorizonMILPSolver(BaseSolver):
         Returns:
             List of window specifications,
         """
-        windows = []
-        current_start = 0
+        windows = [],
+        current_start = 0,
         step_size = self.rh_config.horizon_hours - self.rh_config.overlap_hours
 
         while current_start < self.system.N:
@@ -253,7 +253,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
             # Adjust profiles for window
             if hasattr(comp, "profile") and comp.profile is not None:
-                start_idx = window["start"]
+                start_idx = window["start"],
                 end_idx = window["prediction_end"]
                 if isinstance(comp.profile, np.ndarray) and len(comp.profile) > start_idx:
                     window_comp.profile = comp.profile[start_idx:end_idx]
@@ -341,7 +341,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         try:
             # Get overlap region indices
-            overlap_start = window["start"] - last_result["start_time"]
+            overlap_start = window["start"] - last_result["start_time"],
             overlap_length = min(self.rh_config.overlap_hours, last_result["end_time"] - window["start"])
 
             if overlap_length <= 0:
@@ -349,7 +349,7 @@ class RollingHorizonMILPSolver(BaseSolver):
                 return
 
             # Calculate window size for padding
-            window_size = window["end"] - window["start"]
+            window_size = window["end"] - window["start"],
 
             solution_vectors = last_result.get("solution_vectors", {})
             warmstart_count = 0
@@ -443,8 +443,8 @@ class RollingHorizonMILPSolver(BaseSolver):
             return
 
         # Only implement the first part of each window solution (no overlap)
-        implement_length = window["implement_end"] - window["implement_start"]
-        system_start_idx = window["implement_start"]
+        implement_length = window["implement_end"] - window["implement_start"],
+        system_start_idx = window["implement_start"],
         system_end_idx = window["implement_end"]
 
         logger.debug(f"Implementing timesteps {system_start_idx} to {system_end_idx}")
@@ -460,7 +460,7 @@ class RollingHorizonMILPSolver(BaseSolver):
             for comp_name, window_comp in window_system.components.items():
                 if comp_name not in self.system.components:
                     continue
-                main_comp = self.system.components[comp_name]
+                main_comp = self.system.components[comp_name],
                 window_impl_end = min(implement_length, len(getattr(window_comp, "E", [])))
 
                 # Copy storage levels
@@ -518,7 +518,7 @@ class RollingHorizonMILPSolver(BaseSolver):
             for comp_name in self.storage_states:
                 if comp_name not in window_system.components:
                     continue
-                window_comp = window_system.components[comp_name]
+                window_comp = window_system.components[comp_name],
                 main_comp = self.system.components.get(comp_name)
 
                 if not main_comp or not hasattr(window_comp, "E"):
@@ -685,7 +685,7 @@ class RollingHorizonMILPSolver(BaseSolver):
     def _update_system_flows(self) -> None:
         """Update system flow variables with component solution values."""
         for _flow_key, flow_data in self.system.flows.items():
-            source_comp = self.system.components.get(flow_data["source"])
+            source_comp = self.system.components.get(flow_data["source"]),
             target_comp = self.system.components.get(flow_data["target"])
 
             if source_comp and target_comp:
@@ -701,7 +701,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
     def _calculate_system_totals(self) -> None:
         """Calculate system-level totals for the rolling horizon solution."""
-        total_energy = 0
+        total_energy = 0,
         total_cost = 0
 
         for comp in self.system.components.values():

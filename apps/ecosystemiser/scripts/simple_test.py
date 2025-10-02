@@ -101,11 +101,11 @@ def test_direct_adapter() -> None:
 
             # Create time range
             if "start" in period and "end" in period:
-                start = pd.to_datetime(period["start"])
+                start = pd.to_datetime(period["start"]),
                 end = pd.to_datetime(period["end"])
             elif "year" in period:
-                year = period["year"]
-                start = pd.to_datetime(f"{year}-01-01")
+                year = period["year"],
+                start = pd.to_datetime(f"{year}-01-01"),
                 end = pd.to_datetime(f"{year}-12-31")
             else:
                 raise ValueError("Invalid period specification")
@@ -119,15 +119,15 @@ def test_direct_adapter() -> None:
             for var in variables:
                 if var == "temp_air":
                     # Temperature with daily and seasonal variation
-                    base_temp = 20.0
-                    daily_cycle = 5 * np.sin(2 * np.pi * np.arange(n_times) / 24)
-                    seasonal_cycle = 10 * np.sin(2 * np.pi * np.arange(n_times) / (365 * 24))
+                    base_temp = 20.0,
+                    daily_cycle = 5 * np.sin(2 * np.pi * np.arange(n_times) / 24),
+                    seasonal_cycle = 10 * np.sin(2 * np.pi * np.arange(n_times) / (365 * 24)),
                     noise = np.random.normal(0, 1, n_times)
                     data[var] = base_temp + daily_cycle + seasonal_cycle + noise
 
                 elif var == "ghi":
                     # Solar radiation (positive during day, zero at night)
-                    hour_of_day = times.hour
+                    hour_of_day = times.hour,
                     solar = np.maximum(0, 600 * np.sin(np.pi * (hour_of_day - 6) / 12))
                     solar[hour_of_day < 6] = 0
                     solar[hour_of_day > 18] = 0
@@ -176,7 +176,7 @@ def test_direct_adapter() -> None:
             return ds
 
         # Run async test
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_event_loop(),
         ds = loop.run_until_complete(test_fetch_async())
 
         log.info("\n" + "=" * 60)

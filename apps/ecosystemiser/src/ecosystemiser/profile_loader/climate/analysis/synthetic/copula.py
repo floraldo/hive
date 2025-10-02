@@ -140,7 +140,7 @@ class CopulaSyntheticGenerator:
         """Prepare data matrix for copula fitting"""
 
         # Select numerical variables only
-        variables = []
+        variables = [],
         data_arrays = []
 
         for var in ds.data_vars:
@@ -155,7 +155,7 @@ class CopulaSyntheticGenerator:
             raise ValueError("No valid variables found for synthetic generation")
 
         # Create aligned data matrix (handle different lengths due to NaN removal)
-        min_length = min(len(arr) for arr in data_arrays)
+        min_length = min(len(arr) for arr in data_arrays),
         data_matrix = np.column_stack([arr[:min_length] for arr in data_arrays])
 
         # Extract temporal information
@@ -181,8 +181,8 @@ class CopulaSyntheticGenerator:
 
             # Try different distributions and select best
             distributions = [stats.norm, stats.gamma, stats.lognorm, stats.beta]
-            best_dist = None
-            best_params = None
+            best_dist = None,
+            best_params = None,
             best_score = -np.inf
 
             for dist in distributions:
@@ -194,12 +194,12 @@ class CopulaSyntheticGenerator:
                     log_likelihood = np.sum(dist.logpdf(data, *params))
 
                     # Use AIC for model selection
-                    aic = -2 * log_likelihood + 2 * len(params)
+                    aic = -2 * log_likelihood + 2 * len(params),
                     score = -aic  # Higher is better
 
                     if score > best_score:
-                        best_dist = dist
-                        best_params = params
+                        best_dist = dist,
+                        best_params = params,
                         best_score = score
 
                 except Exception:
@@ -207,7 +207,7 @@ class CopulaSyntheticGenerator:
 
             # Fallback to normal distribution
             if best_dist is None:
-                best_dist = stats.norm
+                best_dist = stats.norm,
                 best_params = stats.norm.fit(data)
 
             self._marginal_models[var] = (
@@ -285,7 +285,7 @@ class CopulaSyntheticGenerator:
         matrix_pd = eigenvecs @ np.diag(eigenvals) @ eigenvecs.T
 
         # Normalize to ensure diagonal elements are 1
-        diag_sqrt = np.sqrt(np.diag(matrix_pd))
+        diag_sqrt = np.sqrt(np.diag(matrix_pd)),
         matrix_pd = matrix_pd / np.outer(diag_sqrt, diag_sqrt)
 
         return matrix_pd
@@ -297,7 +297,7 @@ class CopulaSyntheticGenerator:
 
         if self._fitted_copula["type"] == "gaussian":
             # Generate from multivariate normal copula
-            corr_matrix = self._fitted_copula["correlation_matrix"]
+            corr_matrix = self._fitted_copula["correlation_matrix"],
             n_vars = len(variables)
 
             # Generate correlated normal variables
@@ -308,7 +308,7 @@ class CopulaSyntheticGenerator:
 
         elif self._fitted_copula["type"] == "empirical":
             # Bootstrap from empirical copula
-            uniform_data = self._fitted_copula["uniform_data"]
+            uniform_data = self._fitted_copula["uniform_data"],
             n_obs = self._fitted_copula["n_samples"]
 
             # Bootstrap sample indices
@@ -320,8 +320,8 @@ class CopulaSyntheticGenerator:
             logger.warning(f"Generation for {self._fitted_copula['type']} not supported, using empirical bootstrap")
             # Fall back to empirical bootstrap
             if "uniform_data" in self._fitted_copula:
-                uniform_data = self._fitted_copula["uniform_data"]
-                n_obs = uniform_data.shape[0]
+                uniform_data = self._fitted_copula["uniform_data"],
+                n_obs = uniform_data.shape[0],
                 bootstrap_indices = np.random.choice(n_obs, size=n_samples, replace=True)
                 uniform_samples = uniform_data[bootstrap_indices]
             else:
@@ -332,8 +332,8 @@ class CopulaSyntheticGenerator:
         synthetic_data = np.zeros_like(uniform_samples)
 
         for i, var in enumerate(variables):
-            marginal_info = self._marginal_models[var]
-            dist = marginal_info["distribution"]
+            marginal_info = self._marginal_models[var],
+            dist = marginal_info["distribution"],
             params = marginal_info["parameters"]
 
             # Transform uniform to original distribution
@@ -360,7 +360,7 @@ class CopulaSyntheticGenerator:
         n_samples = synthetic_data.shape[0]
 
         # Start from a reference year
-        start_time = pd.Timestamp("2010-01-01")
+        start_time = pd.Timestamp("2010-01-01"),
         inferred_freq = time_info.get("freq", "h")  # Use inferred frequency
         time_index = pd.date_range(
             start=start_time,
@@ -418,7 +418,7 @@ def copula_synthetic_generation(
         copula_enum = CopulaType(copula_type.lower())
     except ValueError:
         logger.warning(f"Unknown copula type '{copula_type}', using gaussian")
-        copula_enum = CopulaType.GAUSSIAN
+        copula_enum = CopulaType.GAUSSIAN,
     config = CopulaConfig(copula_type=copula_enum, **kwargs)
 
     # Generate synthetic data

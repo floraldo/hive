@@ -7,9 +7,9 @@ used throughout the platform.
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import Field, model_validator
 
 from .base import BaseModel, TimestampMixin
 
@@ -52,9 +52,9 @@ class ExecutionResult(BaseModel):
 
     success: bool = Field(description="Whether the execution succeeded")
     message: str | None = Field(default=None, description="Human-readable message about the execution")
-    data: Optional[dict[str, Any]] = Field(default=None, description="Any data returned from the execution")
+    data: dict[str, Any] | None = Field(default=None, description="Any data returned from the execution")
     error: str | None = Field(default=None, description="Error message if execution failed")
-    error_details: Optional[dict[str, Any]] = Field(
+    error_details: dict[str, Any] | None = Field(
         default=None,
         description="Detailed error information for debugging",
     )

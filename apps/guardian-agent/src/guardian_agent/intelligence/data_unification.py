@@ -247,7 +247,7 @@ class MetricsWarehouse:
         """Query metrics with flexible filtering."""
 
         # Build query conditions
-        conditions = []
+        conditions = [],
         params = []
 
         if metric_types:
@@ -268,7 +268,7 @@ class MetricsWarehouse:
             conditions.append("timestamp <= ?")
             params.append(end_time)
 
-        where_clause = " AND ".join(conditions) if conditions else "1=1"
+        where_clause = " AND ".join(conditions) if conditions else "1=1",
 
         query = f"""
             SELECT * FROM unified_metrics
@@ -281,7 +281,7 @@ class MetricsWarehouse:
         try:
             async with get_async_session() as session:
                 result = await session.execute(query, params)
-                rows = await result.fetchall()
+                rows = await result.fetchall(),
 
                 metrics = []
                 for row in rows:
@@ -646,7 +646,7 @@ class DataUnificationLayer:
             # Collect system metrics using hive-performance
             from hive_performance import SystemMonitor
 
-            monitor = SystemMonitor()
+            monitor = SystemMonitor(),
             system_metrics = await monitor._collect_system_metrics_async()
 
             return [
@@ -723,7 +723,7 @@ class DataUnificationLayer:
 
     async def _run_architectural_validation_async(self, source_name: str) -> list[UnifiedMetric]:
         """Run comprehensive architectural validation using Golden Rules."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -732,7 +732,7 @@ class DataUnificationLayer:
             from pathlib import Path
 
             # Add packages to path to import validators
-            project_root = Path(__file__).parent.parent.parent.parent.parent
+            project_root = Path(__file__).parent.parent.parent.parent.parent,
             hive_tests_path = project_root / "packages" / "hive-tests" / "src"
 
             if hive_tests_path.exists():
@@ -744,8 +744,8 @@ class DataUnificationLayer:
                 all_passed, results = run_all_golden_rules(project_root)
 
                 # Create overall compliance metric
-                total_rules = len(results)
-                passed_rules = sum(1 for r in results.values() if r["passed"])
+                total_rules = len(results),
+                passed_rules = sum(1 for r in results.values() if r["passed"]),
                 compliance_score = (passed_rules / total_rules) * 100 if total_rules > 0 else 0
 
                 metrics.append(
@@ -786,7 +786,7 @@ class DataUnificationLayer:
                             )
 
                 # Create technical debt metric
-                total_violations = sum(len(r["violations"]) for r in results.values() if not r["passed"])
+                total_violations = sum(len(r["violations"]) for r in results.values() if not r["passed"]),
                 debt_score = min(total_violations * 10, 100)  # Scale to 0-100
 
                 metrics.append(
@@ -830,7 +830,7 @@ class DataUnificationLayer:
 
     async def _run_compliance_check_async(self, source_name: str) -> list[UnifiedMetric]:
         """Run quick compliance check focusing on key metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -838,7 +838,7 @@ class DataUnificationLayer:
             import sys
             from pathlib import Path
 
-            project_root = Path(__file__).parent.parent.parent.parent.parent
+            project_root = Path(__file__).parent.parent.parent.parent.parent,
             hive_tests_path = project_root / "packages" / "hive-tests" / "src"
 
             if hive_tests_path.exists():
@@ -860,7 +860,7 @@ class DataUnificationLayer:
                     ("Dependency Direction", validate_dependency_direction),
                 ]
 
-                total_critical = len(critical_checks)
+                total_critical = len(critical_checks),
                 passed_critical = 0
 
                 for check_name, validator_func in critical_checks:
@@ -913,7 +913,7 @@ class DataUnificationLayer:
 
     async def _collect_user_analytics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect user engagement and behavior analytics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -976,7 +976,7 @@ class DataUnificationLayer:
 
     async def _collect_feature_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect feature adoption and usage metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -1050,7 +1050,7 @@ class DataUnificationLayer:
 
     async def _collect_business_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect business KPIs and revenue metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -1109,7 +1109,7 @@ class DataUnificationLayer:
 
     async def _collect_customer_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect customer satisfaction and support metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -1337,7 +1337,7 @@ class DataUnificationLayer:
             metric.tags["oracle_component"] = "feature_analytics"
 
             if metric.metric_type == MetricType.FEATURE_ADOPTION:
-                adoption_rate = metric.value
+                adoption_rate = metric.value,
                 operational_cost = metric.metadata.get("operational_cost", 0)
                 satisfaction_score = metric.metadata.get("satisfaction_score", 0)
 
@@ -1381,7 +1381,7 @@ class DataUnificationLayer:
                         metric.tags["growth_status"] = "healthy"
 
             elif metric.metric_type == MetricType.CONVERSION_RATE:
-                conversion_rate = metric.value
+                conversion_rate = metric.value,
                 benchmark = metric.metadata.get("benchmark", 0)
 
                 if conversion_rate < benchmark * 0.8:
@@ -1434,7 +1434,7 @@ class DataUnificationLayer:
 
             elif metric.metric_type == MetricType.SUPPORT_METRICS:
                 if "first_response_time" in metric.tags.get("metric_name", ""):
-                    response_time = metric.value
+                    response_time = metric.value,
                     sla_target = metric.metadata.get("sla_target", 4.0)
 
                     if response_time > sla_target:
@@ -1445,7 +1445,7 @@ class DataUnificationLayer:
                         metric.tags["sla_status"] = "on_target"
 
                 elif "open_tickets" in metric.tags.get("metric_name", ""):
-                    open_count = metric.value
+                    open_count = metric.value,
                     trend = metric.metadata.get("trend", "stable")
 
                     if open_count > 20 and trend == "increasing":
@@ -1461,7 +1461,7 @@ class DataUnificationLayer:
 
     async def _run_certification_audit_async(self, source_name: str) -> list[UnifiedMetric]:
         """Run comprehensive certification audit for all components."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -1558,7 +1558,7 @@ class DataUnificationLayer:
             base_scores["operational_readiness"] = 22.0
 
         # Scale to match overall score
-        total_base = sum(base_scores.values())
+        total_base = sum(base_scores.values()),
         scale_factor = overall_score / total_base
 
         return {k: v * scale_factor for k, v in base_scores.items()}
@@ -1595,7 +1595,7 @@ class DataUnificationLayer:
 
     async def _collect_code_quality_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect code quality and security scanning metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -1692,7 +1692,7 @@ class DataUnificationLayer:
 
     async def _collect_deployment_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect deployment readiness and CI/CD pipeline health metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -1796,7 +1796,7 @@ class DataUnificationLayer:
 
     async def _collect_toolkit_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect toolkit utilization and platform integration metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -1984,7 +1984,7 @@ class DataUnificationLayer:
             metric.tags["oracle_component"] = "code_quality_scan"
 
             if metric.metric_type == MetricType.TESTING_COVERAGE:
-                coverage = metric.value
+                coverage = metric.value,
                 target = metric.metadata.get("target_coverage", 90.0)
 
                 if coverage < target:
@@ -2023,7 +2023,7 @@ class DataUnificationLayer:
 
     async def _collect_design_documents_async(self, source_name: str, docs_path: Path) -> list[UnifiedMetric]:
         """Collect and process design documents for intent extraction."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -2045,7 +2045,7 @@ class DataUnificationLayer:
                         content = f.read()
 
                     # Extract basic metadata
-                    word_count = len(content.split())
+                    word_count = len(content.split()),
                     line_count = len(content.splitlines())
 
                     # Simple complexity assessment
@@ -2189,7 +2189,7 @@ class DataUnificationLayer:
 
     async def _collect_prophecy_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect architectural prophecy generation and tracking metrics."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -2252,7 +2252,7 @@ class DataUnificationLayer:
 
     async def _collect_prophecy_accuracy_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect prophecy accuracy validation metrics (retrospective analysis)."""
-        metrics = []
+        metrics = [],
         timestamp = datetime.utcnow()
 
         try:
@@ -2311,7 +2311,7 @@ class DataUnificationLayer:
                 )
 
             # Calculate overall prophecy engine accuracy
-            total_accuracy = sum(case["accuracy"] for case in validation_cases)
+            total_accuracy = sum(case["accuracy"] for case in validation_cases),
             avg_accuracy = total_accuracy / len(validation_cases) if validation_cases else 0.0
 
             # Overall accuracy metric
@@ -2364,7 +2364,7 @@ class DataUnificationLayer:
             metric.tags["oracle_component"] = "architectural_prophecy"
 
             if metric.metric_type == MetricType.ARCHITECTURAL_PROPHECY:
-                confidence = metric.value
+                confidence = metric.value,
                 severity = metric.tags.get("severity", "moderate")
 
                 # Add urgency based on confidence and severity

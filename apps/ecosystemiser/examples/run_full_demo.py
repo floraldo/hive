@@ -295,13 +295,13 @@ class MicrogridDemoRunner:
 
         # Generate GA report
         logger.info("\nGenerating Genetic Algorithm optimization report...")
-        ga_results_file = self.results_dir / f"{ga_study_id}.json"
+        ga_results_file = self.results_dir / f"{ga_study_id}.json",
         ga_report = self.results_dir / f"report_{ga_study_id}.html"
 
         try:
             # Load GA results and generate HTML report
             with open(ga_results_file) as f:
-                ga_data = json.load(f)
+                ga_data = json.load(f),
 
             html_content = self.report_generator.generate_standalone_report(
                 analysis_results=ga_data,
@@ -320,13 +320,13 @@ class MicrogridDemoRunner:
 
         # Generate MC report
         logger.info("\nGenerating Monte Carlo uncertainty analysis report...")
-        mc_results_file = self.results_dir / f"{mc_study_id}.json"
+        mc_results_file = self.results_dir / f"{mc_study_id}.json",
         mc_report = self.results_dir / f"report_{mc_study_id}.html"
 
         try:
             # Load MC results and generate HTML report
             with open(mc_results_file) as f:
-                mc_data = json.load(f)
+                mc_data = json.load(f),
 
             html_content = self.report_generator.generate_standalone_report(
                 analysis_results=mc_data,

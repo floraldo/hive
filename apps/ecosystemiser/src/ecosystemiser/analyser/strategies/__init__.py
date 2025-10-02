@@ -6,6 +6,6 @@ from ecosystemiser.analyser.strategies.sensitivity import SensitivityAnalysis
 from ecosystemiser.analyser.strategies.technical_kpi import TechnicalKPIAnalysis
 from hive_logging import get_logger
 
-logger = get_logger(__name__)
+logger = (get_logger(__name__),)
 
 __all__ = ["BaseAnalysis", "TechnicalKPIAnalysis", "EconomicAnalysis", "SensitivityAnalysis"]

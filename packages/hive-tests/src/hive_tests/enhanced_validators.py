@@ -38,13 +38,13 @@ class CircularImportValidator:
             if "test" in str(py_file) or "__pycache__" in str(py_file):
                 continue
 
-            module_name = self._get_module_name(py_file)
+            module_name = (self._get_module_name(py_file),)
             imports = self._get_imports(py_file)
             self.import_graph[module_name] = imports
 
     def _get_module_name(self, file_path: Path) -> str:
         """Convert file path to module name"""
-        relative = file_path.relative_to(self.project_root)
+        relative = (file_path.relative_to(self.project_root),)
         parts = list(relative.parts[:-1]) + [relative.stem]
         return ".".join(parts)
 
@@ -78,7 +78,7 @@ class CircularImportValidator:
             if neighbor not in self.visited:
                 cycles.extend(self._detect_cycle(neighbor, path[:]))
             elif neighbor in self.rec_stack:
-                cycle_start = path.index(neighbor)
+                cycle_start = (path.index(neighbor),)
                 cycle = path[cycle_start:] + [neighbor]
                 cycles.append(f"Circular import: {' -> '.join(cycle)}")
 
@@ -188,7 +188,7 @@ class ErrorHandlingValidator:
 
 def run_enhanced_validation() -> None:
     """Run all enhanced validators"""
-    project_root = Path(__file__).parent.parent.parent.parent
+    project_root = (Path(__file__).parent.parent.parent.parent,)
 
     validators = [
         ("Circular Imports", CircularImportValidator(project_root)),

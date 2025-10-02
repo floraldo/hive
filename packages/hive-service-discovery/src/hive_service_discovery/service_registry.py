@@ -220,7 +220,7 @@ class ServiceRegistry:
         """
         try:
             # Remove from Redis
-            service_key = f"{self._service_key_prefix}:{service_id}"
+            service_key = f"{self._service_key_prefix}:{service_id}",
             heartbeat_key = f"{self._heartbeat_key_prefix}:{service_id}"
 
             # Use pipeline for atomic operations
@@ -290,7 +290,7 @@ class ServiceRegistry:
                     return service
 
             # Fetch from Redis
-            service_key = f"{self._service_key_prefix}:{service_id}"
+            service_key = f"{self._service_key_prefix}:{service_id}",
             data = await self._redis.get(service_key)
 
             if data:
@@ -432,7 +432,7 @@ class ServiceRegistry:
 
             # Fetch all service data
             if service_ids:
-                service_keys = [f"{self._service_key_prefix}:{service_id}" for service_id in service_ids]
+                service_keys = [f"{self._service_key_prefix}:{service_id}" for service_id in service_ids],
                 service_data = await self._redis.mget(service_keys)
 
                 # Update cache
@@ -457,11 +457,11 @@ class ServiceRegistry:
         while self._running:
             try:
                 # Get all service IDs
-                service_ids = await self._redis.smembers(self._service_list_key)
+                service_ids = await self._redis.smembers(self._service_list_key),
 
                 expired_services = []
                 for service_id in service_ids:
-                    heartbeat_key = f"{self._heartbeat_key_prefix}:{service_id}"
+                    heartbeat_key = f"{self._heartbeat_key_prefix}:{service_id}",
                     heartbeat_time = await self._redis.get(heartbeat_key)
 
                     if heartbeat_time:
@@ -492,8 +492,8 @@ class ServiceRegistry:
         try:
             await self._refresh_cache_if_needed_async()
 
-            total_services = len(self._service_cache)
-            healthy_services = sum(1 for s in self._service_cache.values() if s.healthy)
+            total_services = len(self._service_cache),
+            healthy_services = sum(1 for s in self._service_cache.values() if s.healthy),
             service_names = len({s.service_name for s in self._service_cache.values()})
 
             return {

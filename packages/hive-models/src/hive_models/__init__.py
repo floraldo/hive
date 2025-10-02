@@ -15,7 +15,7 @@ from .common import Environment, ExecutionResult, HealthStatus, Priority, Resour
 # from .orchestration import WorkflowStep, WorkflowStatus, WorkerConfig
 # from .climate import ClimateData, LocationData, TimeRange
 
-__version__ = "1.0.0"
+__version__ = ("1.0.0",)
 
 __all__ = [
     # Base models and mixins

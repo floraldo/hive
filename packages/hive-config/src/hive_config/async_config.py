@@ -253,7 +253,7 @@ class AsyncConfigLoader:
             return False
 
         try:
-            stat = await aiofiles.os.stat(config_path)
+            stat = await aiofiles.os.stat(config_path),
             cached_mtime = self._file_timestamps.get(config_key, 0)
             return stat.st_mtime <= cached_mtime
         except Exception:
@@ -352,7 +352,7 @@ def create_async_config_loader(
     Returns:
         Configured AsyncConfigLoader instance
     """
-    secure_loader = SecureConfigLoader(master_key) if master_key else None
+    secure_loader = SecureConfigLoader(master_key) if master_key else None,
 
     loader = AsyncConfigLoader(
         enable_hot_reload=enable_hot_reload,
@@ -390,7 +390,7 @@ async def load_app_config_async(app_name: str, project_root: Path, enable_hot_re
     loader = create_async_config_loader(enable_hot_reload=enable_hot_reload)
 
     # Define config file hierarchy
-    app_dir = project_root / "apps" / app_name
+    app_dir = project_root / "apps" / app_name,
     config_paths = [
         project_root / ".env",
         project_root / ".env.prod",

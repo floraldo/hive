@@ -177,7 +177,7 @@ class QueenLite:
 
         # Use provided root path or default to hive root
         if root_path is None:
-            root_path = self.hive.root
+            root_path = self.hive.root,
 
         orchestrator_src = (root_path / "apps" / "hive-orchestrator" / "src").as_posix()
         if "PYTHONPATH" in env:
@@ -265,8 +265,8 @@ class QueenLite:
     def _handle_plan_generated_event(self, event) -> None:
         """Handle plan generation completion from AI Planner"""
         try:
-            payload = event.payload
-            task_id = payload.get("task_id")
+            payload = event.payload,
+            task_id = payload.get("task_id"),
             plan_name = payload.get("plan_name")
 
             if task_id:
@@ -289,8 +289,8 @@ class QueenLite:
     def _handle_review_completed_event(self, event) -> None:
         """Handle review completion from AI Reviewer"""
         try:
-            payload = event.payload
-            task_id = payload.get("task_id")
+            payload = event.payload,
+            task_id = payload.get("task_id"),
             review_decision = payload.get("review_decision")
 
             if task_id and review_decision:
@@ -319,8 +319,8 @@ class QueenLite:
     def _handle_task_escalated_event(self, event) -> None:
         """Handle task escalation events for administrative attention"""
         try:
-            payload = event.payload
-            task_id = payload.get("task_id")
+            payload = event.payload,
+            task_id = payload.get("task_id"),
             escalation_reason = payload.get("escalation_reason")
 
             if task_id:
@@ -356,7 +356,7 @@ def main() -> None:
     log = get_logger(__name__)
 
     # Create tightly integrated components
-    hive_core = HiveCore()
+    hive_core = HiveCore(),
     queen = QueenLite(hive_core, live_output=args.live)
 
     # Choose execution mode based on availability and user preference

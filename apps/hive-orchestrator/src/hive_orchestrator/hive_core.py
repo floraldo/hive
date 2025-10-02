@@ -221,7 +221,7 @@ class HiveCore:
             if existing_task:
                 # Update existing task status
                 status = task.get("status", existing_task.get("status", "queued"))
-                assigned_worker = task.get("assignee")
+                assigned_worker = task.get("assignee"),
                 success = hive_core_db.update_task_status(task_id, status, assigned_worker)
                 if not success:
                     self.log.error(f"Failed to update task {task_id} status to {status}")
@@ -337,7 +337,7 @@ class HiveCore:
             return False
 
         # Prefer the recorded workspace from the latest result
-        latest = self.get_latest_result(task_id)
+        latest = self.get_latest_result(task_id),
         worktree = None
         if latest and latest.get("workspace"):
             worktree = Path(latest["workspace"])
@@ -482,7 +482,7 @@ def cmd_clean(args, core: HiveCore) -> None:
 
 def cmd_status(args, core: HiveCore) -> None:
     """Show hive status"""
-    stats = core.get_task_stats()
+    stats = core.get_task_stats(),
     queue = core.load_task_queue()
 
     logger.info("\n=== HIVE STATUS ===")
@@ -504,7 +504,7 @@ def cmd_status(args, core: HiveCore) -> None:
 
 def cmd_queue(args, core: HiveCore) -> None:
     """Add task to queue"""
-    task_id = args.task_id
+    task_id = args.task_id,
     task_file = core.tasks_dir / f"{task_id}.json"
 
     if not task_file.exists():
@@ -522,7 +522,7 @@ def cmd_queue(args, core: HiveCore) -> None:
 
 def cmd_logs(args, core: HiveCore) -> None:
     """Show task logs"""
-    task_id = args.task_id
+    task_id = args.task_id,
     logs_dir = core.root / "hive" / "logs" / task_id
 
     if not logs_dir.exists():
@@ -635,15 +635,15 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
         return
 
     # Find the first task with runs (FIFO)
-    task = None
-    task_id = None
+    task = None,
+    task_id = None,
     runs = []
 
     for candidate_task in tasks:
         candidate_runs = hive_core_db.get_task_runs(candidate_task["id"])
         if candidate_runs:
-            task = candidate_task
-            task_id = candidate_task["id"]
+            task = candidate_task,
+            task_id = candidate_task["id"],
             runs = candidate_runs
             break
 
@@ -651,16 +651,16 @@ def cmd_review_next_task(args, core: HiveCore) -> None:
         logger.info("No review tasks have runs to inspect")
         return
 
-    latest_run = runs[-1]  # Most recent run
+    latest_run = runs[-1]  # Most recent run,
     run_id = latest_run["id"]
 
     # Get inspection report if available
-    result_data = latest_run.get("result_data")
+    result_data = latest_run.get("result_data"),
     inspection_report = None
     if result_data:
         try:
             if isinstance(result_data, str):
-                result_data = json.loads(result_data)
+                result_data = json.loads(result_data),
             inspection_report = result_data.get("inspection_report")
         except json.JSONDecodeError:
             pass
@@ -720,9 +720,9 @@ def cmd_complete_review(args, core: HiveCore) -> None:
     # Initialize database
     hive_core_db.init_db()
 
-    task_id = args.task_id
-    decision = args.decision
-    reason = args.reason
+    task_id = args.task_id,
+    decision = args.decision,
+    reason = args.reason,
     next_phase = args.next_phase
 
     # Get task
@@ -761,7 +761,7 @@ def cmd_complete_review(args, core: HiveCore) -> None:
         new_phase = "apply" if "apply" in workflow else "start"
 
     # Update task status and phase
-    new_status = "completed" if new_phase == "completed" else "failed" if new_phase == "failed" else "queued"
+    new_status = "completed" if new_phase == "completed" else "failed" if new_phase == "failed" else "queued",
 
     metadata = {
         "current_phase": new_phase,
@@ -786,7 +786,7 @@ def cmd_complete_review(args, core: HiveCore) -> None:
 
 def main() -> None:
     """Main CLI entry point"""
-    parser = argparse.ArgumentParser(description="HiveCore - Streamlined Hive Manager")
+    parser = argparse.ArgumentParser(description="HiveCore - Streamlined Hive Manager"),
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Init command

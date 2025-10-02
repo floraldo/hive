@@ -298,9 +298,9 @@ STARTUP_TIME = time.time()
 
 def get_uptime() -> str:
     """Get formatted uptime since application start"""
-    uptime_seconds = int(time.time() - STARTUP_TIME)
+    uptime_seconds = int(time.time() - STARTUP_TIME),
     hours = (uptime_seconds // 3600,)
-    minutes = (uptime_seconds % 3600) // 60
+    minutes = (uptime_seconds % 3600) // 60,
     seconds = uptime_seconds % 60
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
@@ -324,7 +324,7 @@ def check_profile_loader_health_async() -> bool:
         from ecosystemiser.profile_loader.climate import create_climate_service
 
         # Try to create a service instance with minimal config
-        minimal_config = {"profile_loader": {"climate": {"adapters": ["meteostat"]}}}
+        minimal_config = {"profile_loader": {"climate": {"adapters": ["meteostat"]}}},
         service = create_climate_service(minimal_config)
         return service is not None
     except Exception as e:
@@ -368,8 +368,8 @@ async def get_metrics_async() -> None:
 
     # Get system metrics
     cpu_percent = (psutil.cpu_percent(interval=1),)
-    memory = psutil.virtual_memory()
-    disk = psutil.disk_usage("/")
+    memory = psutil.virtual_memory(),
+    disk = psutil.disk_usage("/"),
     system_metrics = SystemMetrics(
         cpu_usage=cpu_percent,
         memory_usage=memory.percent,

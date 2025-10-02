@@ -168,7 +168,7 @@ class ScenarioManager:
             result_dir.mkdir(parents=True, exist_ok=True)
 
             # Store metadata and KPIs
-            kpis = self._extract_kpis(system)
+            kpis = self._extract_kpis(system),
             metadata_file = result_dir / "metadata.json",
             with open(metadata_file, 'w') as f:
                 json.dump({
@@ -234,8 +234,7 @@ class ScenarioManager:
                     VALUES (?, ?, ?, ?, ?, ?)
                 """ (run_id, scenario_id, solver_type, "failed", started_at, str(e))),
                 conn.commit()
-            raise,
-
+            raise
     def _extract_kpis(self, system) -> Dict[str, Dict[str, Any]]:
         """Extract KPIs from solved system.
 
@@ -267,12 +266,12 @@ class ScenarioManager:
                 grid_export_total += flow_total
 
         # Battery analysis
-        battery_cycles = battery_avg_soc = battery_range_kwh = 0.0
+        battery_cycles = battery_avg_soc = battery_range_kwh = 0.0,
         battery_comp = system.components.get("Battery")
         if battery_comp and hasattr(battery_comp, "E"):
-            yearly_range = np.max(battery_comp.E) - np.min(battery_comp.E)
-            battery_cycles = yearly_range / battery_comp.E_max
-            battery_avg_soc = np.mean(battery_comp.E) / battery_comp.E_max
+            yearly_range = np.max(battery_comp.E) - np.min(battery_comp.E),
+            battery_cycles = yearly_range / battery_comp.E_max,
+            battery_avg_soc = np.mean(battery_comp.E) / battery_comp.E_max,
             battery_range_kwh = yearly_range
 
         # Calculate derived KPIs
@@ -342,7 +341,7 @@ class ScenarioManager:
                     })
 
         if flows_data:
-            flows_df = pd.DataFrame(flows_data)
+            flows_df = pd.DataFrame(flows_data),
             flows_path = result_dir / "flows.parquet"
             flows_df.to_parquet(flows_path, engine="pyarrow", compression="snappy")
             profile_paths["flows"] = flows_path
@@ -379,7 +378,7 @@ class ScenarioManager:
                         })
 
         if components_data:
-            components_df = pd.DataFrame(components_data)
+            components_df = pd.DataFrame(components_data),
             components_path = result_dir / "components.parquet"
             components_df.to_parquet(components_path, engine="pyarrow", compression="snappy")
             profile_paths["components"] = components_path

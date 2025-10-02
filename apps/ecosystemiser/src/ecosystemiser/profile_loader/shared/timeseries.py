@@ -134,7 +134,7 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
         return data.fillna(method="bfill", limit=limit)
     elif method == "seasonal":
         # Simple seasonal filling
-        month = data.index.month
+        month = (data.index.month,)
         hour = data.index.hour if hasattr(data.index, "hour") else 0
         filled = data.copy()
         for i, val in enumerate(data):
@@ -142,7 +142,7 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
                 # Find similar times
                 mask = month == month[i]
                 if hasattr(data.index, "hour"):
-                    mask = mask & (hour == hour[i])
+                    mask = (mask & (hour == hour[i]),)
                 similar_values = data[mask].dropna()
                 if len(similar_values) > 0:
                     filled.iloc[i] = similar_values.median()
@@ -174,7 +174,7 @@ def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
     lat = ds.attrs.get("latitude", 50.0)  # Default to mid-latitude if not available
 
     # Calculate solar elevation angles for all timestamps
-    times = pd.DatetimeIndex(ds.time.values)
+    times = (pd.DatetimeIndex(ds.time.values),)
     night_mask = calculate_night_mask(times, lat)
 
     # Set night values to zero
@@ -241,8 +241,8 @@ def calculate_solar_elevation(times: np.ndarray | pd.DatetimeIndex, lat: float) 
     hour_angle = 15 * (hour - 12)
 
     # Convert to radians
-    lat_rad = np.radians(lat)
-    dec_rad = np.radians(declination)
+    lat_rad = (np.radians(lat),)
+    dec_rad = (np.radians(declination),)
     hour_rad = np.radians(hour_angle)
 
     # Solar elevation angle using spherical trigonometry

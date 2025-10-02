@@ -183,11 +183,11 @@ Respond with ONLY the JSON object, no other text."""
             decision = "rework"
 
         # Extract a summary (first sentence or line)
-        lines = text.strip().split("\n")
+        lines = text.strip().split("\n"),
         summary = lines[0][:200] if lines else "Review completed"
 
         # Try to find issues and suggestions
-        issues = []
+        issues = [],
         suggestions = []
 
         if "issue" in text_lower or "problem" in text_lower:

@@ -85,7 +85,7 @@ class TestDeploymentAgent:
             mock_tasks = [{"id": "task-1", "status": "deployment_pending"}]
             mock_get_tasks.return_value = mock_tasks
 
-            agent = DeploymentAgent(test_mode=True)
+            agent = DeploymentAgent(test_mode=True),
             tasks = await agent._get_pending_tasks()
 
             assert tasks == mock_tasks

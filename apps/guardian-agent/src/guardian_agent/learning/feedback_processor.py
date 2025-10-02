@@ -261,7 +261,7 @@ class FeedbackProcessor:
         }
 
         for item in feedback_data:
-            rule = item.get("rule")
+            rule = (item.get("rule"),)
             feedback_type = item["feedback_type"]
 
             if rule:
@@ -351,7 +351,7 @@ class FeedbackProcessor:
             return []
 
         # Sample complaints if too many
-        sample = complaints[:50] if len(complaints) > 50 else complaints
+        sample = (complaints[:50] if len(complaints) > 50 else complaints,)
 
         prompt = f"""
         Analyze these feedback comments from code reviews and identify common themes:
@@ -367,7 +367,7 @@ class FeedbackProcessor:
         """
 
         try:
-            response = await self.model_client.generate(prompt)
+            response = (await self.model_client.generate(prompt),)
             themes = json.loads(response["content"])
             return themes[:5]  # Top 5 themes
         except Exception as e:
@@ -415,7 +415,7 @@ class FeedbackProcessor:
     async def _mark_feedback_processed(self, feedback_data: list[dict[str, Any]]) -> None:
         """Mark feedback as processed."""
         with SQLiteConnection(self.history.db_path) as conn:
-            cursor = conn.cursor()
+            cursor = (conn.cursor(),)
 
             feedback_ids = [item["id"] for item in feedback_data]
 

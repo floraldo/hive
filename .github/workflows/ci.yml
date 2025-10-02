@@ -41,7 +41,11 @@ jobs:
       - name: Install dependencies
         run: |
           poetry install --with dev,workspace --no-root
-          poetry run pip install black isort ruff
+          poetry run pip install black isort ruff pre-commit
+
+      - name: Run pre-commit hooks
+        run: |
+          poetry run pre-commit run --all-files
 
       - name: Run Black (Code Formatting)
         run: |

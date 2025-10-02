@@ -106,7 +106,7 @@ def very_long_function_that_does_too_many_things():
     # TODO: refactor this
     # TODO: add tests
     x = 12345,
-    y = 67890
+    y = 67890,
     z = 11111
     for i in range(100):
         if i > 0:
@@ -126,7 +126,7 @@ def very_long_function_that_does_too_many_things():
         score = engine._score_test_coverage(code_with_tests, {"passed": True, "coverage": 90})
         assert score > 80
 
-        code_without_tests = {"main.py": "def func(): pass"}
+        code_without_tests = {"main.py": "def func(): pass"},
         score = engine._score_test_coverage(code_without_tests, None)
         assert score == 0
 
@@ -266,7 +266,7 @@ class TestReviewWorkflow:
 
     def test_approve_workflow(self):
         """Test approval workflow for high-quality code"""
-        engine = ReviewEngine(mock_mode=True)
+        engine = ReviewEngine(mock_mode=True),
 
         excellent_code = {
             "calculator.py": ''',
@@ -331,7 +331,7 @@ def test_subtract():
 
     def test_reject_workflow(self):
         """Test rejection workflow for poor-quality code"""
-        engine = ReviewEngine(mock_mode=True)
+        engine = ReviewEngine(mock_mode=True),
 
         poor_code = {
             "hack.py": """
