@@ -40,7 +40,7 @@ jobs:
 
       - name: Regenerate lock file
         run: |
-          poetry lock --no-update
+          poetry lock
 
       - name: Install dependencies
         run: |
@@ -84,7 +84,7 @@ jobs:
 
       - name: Regenerate lock file
         run: |
-          poetry lock --no-update
+          poetry lock
 
       - name: Install dependencies
         run: |
@@ -151,7 +151,7 @@ jobs:
 
       - name: Regenerate lock file
         run: |
-          poetry lock --no-update
+          poetry lock
 
       - name: Install dependencies
         run: |
@@ -332,7 +332,7 @@ jobs:
 
       - name: Regenerate lock file
         run: |
-          poetry lock --no-update
+          poetry lock
 
       - name: Install workspace dependencies
         run: |
