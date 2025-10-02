@@ -237,11 +237,19 @@ def format_for_github_api(
     # Format for GitHub API
     github_comments = []
     for comment in limited_comments:
+        # Add feedback footer to comment body
+        body_with_feedback = f"""{comment["body"]}
+
+---
+**Was this helpful?** 👍 useful | 👎 not useful | 🤔 unclear
+
+*This review powered by Guardian AI + RAG system | Confidence: {comment.get("confidence", 0):.0%}*"""
+
         github_comments.append(
             {
                 "path": comment["path"],
                 "line": comment.get("line", 1),
-                "body": comment["body"],
+                "body": body_with_feedback,
                 "side": "RIGHT",  # Comment on the new version
             }
         )
