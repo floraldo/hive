@@ -2,20 +2,21 @@
 # Focused on preventing syntax errors that plague AI agents
 
 repos:
-  # Ruff - Fast Python linter and formatter
+  # Ruff - Fast Python linter (formatting DISABLED to prevent trailing comma issues)
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.13.2
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format
+      # DISABLED: ruff-format adds trailing commas causing syntax errors
+      # - id: ruff-format
 
-  # Black - Code formatter (backup to ruff)
-  - repo: https://github.com/psf/black
-    rev: 24.10.0
-    hooks:
-      - id: black
-        language_version: python3.11
+  # Black - Code formatter (DISABLED to prevent trailing comma issues)
+  # - repo: https://github.com/psf/black
+  #   rev: 24.10.0
+  #   hooks:
+  #     - id: black
+  #       language_version: python3.11
 
   # Basic Python syntax check
   - repo: local
