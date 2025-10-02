@@ -5,6 +5,7 @@ This module provides comprehensive date/time handling capabilities
 building on the existing timezone and timeseries modules with modern
 pandas best practices and performance optimizations.
 """
+
 from __future__ import annotations
 
 
@@ -15,11 +16,7 @@ from typing import Any, Dict, List, Tuple
 import numpy as np
 import pandas as pd
 import xarray as xr
-from ecosystemiser.profile_loader.shared.timezone import (
-    TimezoneHandler,
-    ensure_utc,
-    to_utc
-)
+from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler, ensure_utc, to_utc
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -47,7 +44,7 @@ class DateTimeProcessor:
         "weekly": "1W",
         "monthly": "1M",
         "yearly": "1Y",
-        "annual": "1Y"
+        "annual": "1Y",
     }
 
     @classmethod
@@ -150,7 +147,7 @@ class DateTimeProcessor:
         start: str | datetime | pd.Timestamp,
         end: str | datetime | pd.Timestamp,
         freq: str = "1H",
-        timezone: str = "UTC"
+        timezone: str = "UTC",
     ) -> pd.DatetimeIndex:
         """
         Create optimized pandas DatetimeIndex.
@@ -179,7 +176,7 @@ class DateTimeProcessor:
 
         return index
 
-    @classmethod,
+    @classmethod
     def infer_frequency_robust(cls, time_index: pd.DatetimeIndex) -> str | None:
         """
         Robustly infer frequency from DatetimeIndex.,
@@ -243,10 +240,7 @@ class DateTimeProcessor:
 
     @classmethod
     def detect_gaps(
-        cls,
-        time_index: pd.DatetimeIndex,
-        expected_freq: str | None = None,
-        tolerance_factor: float = 1.5
+        cls, time_index: pd.DatetimeIndex, expected_freq: str | None = None, tolerance_factor: float = 1.5
     ) -> List[Tuple[pd.Timestamp, pd.Timestamp]]:
         """
         Detect gaps in time series.
@@ -280,18 +274,18 @@ class DateTimeProcessor:
             if diff > tolerance_delta:
                 gap_start = time_index[i]
                 gap_end = time_index[i + 1]
-                gaps.append((gap_start, gap_end)),
+                gaps.append((gap_start, gap_end))
 
         return gaps
 
-    @classmethod,
+    @classmethod
     def resample_with_metadata(
         cls,
-        data: pd.DataFrame, pd.Series | xr.Dataset,
+        data: pd.DataFrame | pd.Series | xr.Dataset,
         target_freq: str,
         method: str = "mean",
-        preserve_attrs: bool = True
-    ) -> pd.DataFrame, pd.Series | xr.Dataset:
+        preserve_attrs: bool = True,
+    ) -> pd.DataFrame | pd.Series | xr.Dataset:
         """
         Resample data with metadata preservation.
 
@@ -358,13 +352,10 @@ class DateTimeProcessor:
         else:
             raise TypeError(f"Unsupported data type: {type(data)}")
 
-    @classmethod,
+    @classmethod
     def align_time_series(
-        cls,
-        *datasets: pd.DataFrame, pd.Series | xr.Dataset,
-        method: str = "outer",
-        fill_value: Any | None = None
-    ) -> List[pd.DataFrame, pd.Series | xr.Dataset]:
+        cls, *datasets: pd.DataFrame | pd.Series | xr.Dataset, method: str = "outer", fill_value: Any | None = None
+    ) -> List[pd.DataFrame | pd.Series | xr.Dataset]:
         """
         Align multiple time series to common time index.
 
@@ -385,11 +376,11 @@ class DateTimeProcessor:
 
         for i, data in enumerate(datasets):
             if isinstance(data, (pd.DataFrame, pd.Series)):
-                pandas_data.append((i, data)),
+                pandas_data.append((i, data))
             elif isinstance(data, xr.Dataset):
                 xarray_data.append((i, data))
             else:
-                raise TypeError(f"Unsupported data type at index {i}: {type(data)}"),
+                raise TypeError(f"Unsupported data type at index {i}: {type(data)}")
         aligned = [None] * len(datasets)
 
         # Align pandas data
@@ -426,12 +417,9 @@ class DateTimeProcessor:
 
         return aligned
 
-    @classmethod,
+    @classmethod
     def validate_temporal_consistency(
-        cls,
-        data: pd.DataFrame, pd.Series | xr.Dataset,
-        expected_freq: str | None = None,
-        timezone: str = "UTC"
+        cls, data: pd.DataFrame | pd.Series | xr.Dataset, expected_freq: str | None = None, timezone: str = "UTC"
     ) -> Dict[str, Any]:
         """
         Validate temporal consistency of dataset.
@@ -448,27 +436,27 @@ class DateTimeProcessor:
 
         # Get time index
         if isinstance(data, (pd.DataFrame, pd.Series)):
-            time_index = data.index,
+            time_index = (data.index,)
         elif isinstance(data, xr.Dataset):
             if "time" not in data.dims:
-                report["valid"] = False,
+                report["valid"] = (False,)
                 report["issues"].append("No time dimension found")
-                return report,
+                return (report,)
             time_index = pd.DatetimeIndex(data.time.values)
         else:
-            report["valid"] = False,
+            report["valid"] = (False,)
             report["issues"].append(f"Unsupported data type: {type(data)}"),
             return report
 
         # Check if time index is sorted
         if not time_index.is_monotonic_increasing:
-            report["valid"] = False,
+            report["valid"] = (False,)
             report["issues"].append("Time index is not sorted")
             report["recommendations"].append("Sort by time index")
 
         # Check for duplicates
         if time_index.has_duplicates:
-            report["valid"] = False,
+            report["valid"] = (False,)
             duplicates = time_index.duplicated().sum()
             report["issues"].append(f"Found {duplicates} duplicate timestamps")
             report["recommendations"].append("Remove duplicate timestamps")
@@ -508,7 +496,7 @@ class DateTimeProcessor:
 
         return report
 
-    @classmethod,
+    @classmethod
     def optimize_time_index(cls, time_index: pd.DatetimeIndex, target_memory_mb: float = 100.0) -> pd.DatetimeIndex:
         """
         Optimize DatetimeIndex for memory efficiency.
@@ -549,7 +537,7 @@ class DateTimeProcessor:
 
         logger.info(
             f"Time index memory usage {current_memory:.1f}MB exceeds target {target_memory_mb}MB. ",
-            f"Consider resampling from {current_freq} to {suggested_freq}"
+            f"Consider resampling from {current_freq} to {suggested_freq}",
         )
 
         return time_index
@@ -559,35 +547,27 @@ class DateTimeProcessor:
 
 
 def create_time_range(
-    start: str | datetime,
-    end: str | datetime,
-    freq: str = "1H",
-    timezone: str = "UTC"
+    start: str | datetime, end: str | datetime, freq: str = "1H", timezone: str = "UTC"
 ) -> pd.DatetimeIndex:
     """Create optimized time range."""
     return DateTimeProcessor.create_time_index(start, end, freq, timezone)
 
 
 def resample_data(
-    data: pd.DataFrame, pd.Series | xr.Dataset,
-    target_freq: str,
-    method: str = "mean"
-) -> pd.DataFrame, pd.Series | xr.Dataset:
+    data: pd.DataFrame | pd.Series | xr.Dataset, target_freq: str, method: str = "mean"
+) -> pd.DataFrame | pd.Series | xr.Dataset:
     """Resample data with metadata preservation."""
     return DateTimeProcessor.resample_with_metadata(data, target_freq, method)
 
 
 def align_datasets(
-    *datasets: pd.DataFrame, pd.Series | xr.Dataset, method: str = "outer"
-) -> List[pd.DataFrame, pd.Series | xr.Dataset]:
+    *datasets: pd.DataFrame | pd.Series | xr.Dataset, method: str = "outer"
+) -> List[pd.DataFrame | pd.Series | xr.Dataset]:
     """Align multiple datasets to common time index."""
     return DateTimeProcessor.align_time_series(*datasets, method=method)
 
 
-def validate_time_data(
-    data: pd.DataFrame, pd.Series | xr.Dataset,
-    expected_freq: str | None = None
-) -> Dict[str, Any]:
+def validate_time_data(data: pd.DataFrame | pd.Series | xr.Dataset, expected_freq: str | None = None) -> Dict[str, Any]:
     """Validate temporal consistency."""
     return DateTimeProcessor.validate_temporal_consistency(data, expected_freq)
 

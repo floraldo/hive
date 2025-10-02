@@ -482,7 +482,10 @@ class PipelineMonitor:
         return "\n".join(report_lines)
 
     def _generate_recommendations(
-        self, metrics: PipelineMetrics, health: HealthStatus, alerts: list[PipelineAlert],
+        self,
+        metrics: PipelineMetrics,
+        health: HealthStatus,
+        alerts: list[PipelineAlert],
     ) -> list[str]:
         """Generate actionable recommendations based on current state"""
         recommendations = []

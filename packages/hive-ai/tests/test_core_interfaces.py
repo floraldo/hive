@@ -1,4 +1,5 @@
 """Tests for hive_ai.core.interfaces module."""
+
 from __future__ import annotations
 
 import pytest

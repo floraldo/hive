@@ -31,6 +31,7 @@ class RuleSeverity(Enum):
     WARNING: Fix at milestones - quality issues, sprint boundaries
     INFO: Nice to have - best practices, major releases only
     """
+
     CRITICAL = 1
     ERROR = 2
     WARNING = 3
@@ -54,145 +55,142 @@ def _initialize_golden_rules_registry():
             "name": "No sys.path Manipulation",
             "validator": validate_no_syspath_hacks,
             "severity": RuleSeverity.CRITICAL,
-            "description": "Prevents import system corruption"
+            "description": "Prevents import system corruption",
         },
         {
             "name": "Single Config Source",
             "validator": validate_single_config_source,
             "severity": RuleSeverity.CRITICAL,
-            "description": "Prevents setup.py/pyproject.toml conflicts"
+            "description": "Prevents setup.py/pyproject.toml conflicts",
         },
         {
             "name": "No Hardcoded Env Values",
             "validator": validate_no_hardcoded_env_values,
             "severity": RuleSeverity.CRITICAL,
-            "description": "Security - no secrets in code"
+            "description": "Security - no secrets in code",
         },
         {
             "name": "Package vs. App Discipline",
             "validator": validate_package_app_discipline,
             "severity": RuleSeverity.CRITICAL,
-            "description": "Core architectural boundary"
+            "description": "Core architectural boundary",
         },
         {
             "name": "App Contracts",
             "validator": validate_app_contracts,
             "severity": RuleSeverity.CRITICAL,
-            "description": "Application interface stability"
+            "description": "Application interface stability",
         },
-
         # ERROR (8 rules) - Fix before merge
         {
             "name": "Dependency Direction",
             "validator": validate_dependency_direction,
             "severity": RuleSeverity.ERROR,
-            "description": "Packages cannot import apps"
+            "description": "Packages cannot import apps",
         },
         {
             "name": "Error Handling Standards",
             "validator": validate_error_handling_standards,
             "severity": RuleSeverity.ERROR,
-            "description": "Exceptions inherit from BaseError"
+            "description": "Exceptions inherit from BaseError",
         },
         {
             "name": "Logging Standards",
             "validator": validate_logging_standards,
             "severity": RuleSeverity.ERROR,
-            "description": "Use hive_logging, no print()"
+            "description": "Use hive_logging, no print()",
         },
         {
             "name": "No Global State Access",
             "validator": validate_no_global_state_access,
             "severity": RuleSeverity.ERROR,
-            "description": "Use DI pattern, not get_config()"
+            "description": "Use DI pattern, not get_config()",
         },
         {
             "name": "Async Pattern Consistency",
             "validator": validate_async_pattern_consistency,
             "severity": RuleSeverity.ERROR,
-            "description": "Async functions end with _async"
+            "description": "Async functions end with _async",
         },
         {
             "name": "Interface Contracts",
             "validator": validate_interface_contracts,
             "severity": RuleSeverity.ERROR,
-            "description": "Type hints on public functions"
+            "description": "Type hints on public functions",
         },
         {
             "name": "Communication Patterns",
             "validator": validate_communication_patterns,
             "severity": RuleSeverity.ERROR,
-            "description": "Event bus usage patterns"
+            "description": "Event bus usage patterns",
         },
         {
             "name": "Service Layer Discipline",
             "validator": validate_service_layer_discipline,
             "severity": RuleSeverity.ERROR,
-            "description": "Service layer separation"
+            "description": "Service layer separation",
         },
-
         # WARNING (7 rules) - Fix at milestones
         {
             "name": "Test Coverage Mapping",
             "validator": validate_test_coverage_mapping,
             "severity": RuleSeverity.WARNING,
-            "description": "Source files have test files"
+            "description": "Source files have test files",
         },
         {
             "name": "Test File Quality",
             "validator": validate_test_file_quality,
             "severity": RuleSeverity.WARNING,
-            "description": "Tests follow standards"
+            "description": "Tests follow standards",
         },
         {
             "name": "Inherit-Extend Pattern",
             "validator": validate_inherit_extend_pattern,
             "severity": RuleSeverity.WARNING,
-            "description": "Infrastructure vs business logic"
+            "description": "Infrastructure vs business logic",
         },
         {
             "name": "Package Naming Consistency",
             "validator": validate_package_naming_consistency,
             "severity": RuleSeverity.WARNING,
-            "description": "Follow hive-* convention"
+            "description": "Follow hive-* convention",
         },
         {
             "name": "Development Tools Consistency",
             "validator": validate_development_tools_consistency,
             "severity": RuleSeverity.WARNING,
-            "description": "Standardized tooling"
+            "description": "Standardized tooling",
         },
         {
             "name": "CLI Pattern Consistency",
             "validator": validate_cli_pattern_consistency,
             "severity": RuleSeverity.WARNING,
-            "description": "CLI interface patterns"
+            "description": "CLI interface patterns",
         },
         {
             "name": "Pyproject Dependency Usage",
             "validator": validate_pyproject_dependency_usage,
             "severity": RuleSeverity.WARNING,
-            "description": "No unused dependencies"
+            "description": "No unused dependencies",
         },
-
         # INFO (4 rules) - Nice to have
         {
             "name": "Unified Tool Configuration",
             "validator": validate_unified_tool_configuration,
             "severity": RuleSeverity.INFO,
-            "description": "Consolidated config files"
+            "description": "Consolidated config files",
         },
         {
             "name": "Python Version Consistency",
             "validator": validate_python_version_consistency,
             "severity": RuleSeverity.INFO,
-            "description": "Single Python version"
+            "description": "Single Python version",
         },
         {
             "name": "Colocated Tests",
             "validator": validate_colocated_tests,
             "severity": RuleSeverity.INFO,
-            "description": "Tests near source code"
+            "description": "Tests near source code",
         },
     ]
 
@@ -2400,10 +2398,7 @@ def _run_registry_validators(
     all_passed = True
 
     # Filter rules by severity
-    filtered_rules = [
-        rule for rule in GOLDEN_RULES_REGISTRY
-        if rule["severity"].value <= max_severity.value
-    ]
+    filtered_rules = [rule for rule in GOLDEN_RULES_REGISTRY if rule["severity"].value <= max_severity.value]
 
     logger.info(f"Running {len(filtered_rules)} rules at severity level {max_severity.name} or higher")
     logger.info(f"Enforcement level: {max_severity.name} (1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO)")
@@ -2491,7 +2486,9 @@ def run_all_golden_rules(
     elif engine == "both":
         return _run_both_validators(project_root, scope_files)
     else:
-        raise ValueError(f"Unknown validation engine: {engine}. Valid options: 'ast' (default), 'legacy', 'registry', 'both'")
+        raise ValueError(
+            f"Unknown validation engine: {engine}. Valid options: 'ast' (default), 'legacy', 'registry', 'both'"
+        )
 
 
 # Initialize the registry after all validators are defined

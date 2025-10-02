@@ -186,7 +186,11 @@ class ReviewHistory:
         return review_id
 
     async def store_feedback(
-        self, review_id: int, feedback_type: str, feedback_text: str, violation_id: int | None = None,
+        self,
+        review_id: int,
+        feedback_type: str,
+        feedback_text: str,
+        violation_id: int | None = None,
     ) -> None:
         """
         Store feedback on a review.

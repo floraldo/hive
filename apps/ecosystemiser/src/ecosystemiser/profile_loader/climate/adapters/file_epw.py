@@ -691,7 +691,6 @@ class FileEPWAdapter(BaseAdapter):
 EPWAdapter = FileEPWAdapter
 
 
-
 class EPWQCProfile(QCProfile):
     """QC profile for EPW (EnergyPlus Weather) files"""
 

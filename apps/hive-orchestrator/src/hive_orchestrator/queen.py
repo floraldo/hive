@@ -242,12 +242,16 @@ class QueenLite:
         try:
             # Subscribe to AI Planner events to trigger task scheduling
             self.event_bus.subscribe(
-                "workflow.plan_generated", self._handle_plan_generated_event, "queen-plan-listener",
+                "workflow.plan_generated",
+                self._handle_plan_generated_event,
+                "queen-plan-listener",
             )
 
             # Subscribe to AI Reviewer events to advance approved tasks
             self.event_bus.subscribe(
-                "task.review_completed", self._handle_review_completed_event, "queen-review-listener",
+                "task.review_completed",
+                self._handle_review_completed_event,
+                "queen-review-listener",
             )
 
             # Subscribe to task failure events for escalation handling
@@ -274,7 +278,9 @@ class QueenLite:
                 if task and task.get("status") == "planned":
                     self.log.info(f"Auto-triggering execution for planned task {task_id}")
                     hive_core_db.update_task_status(
-                        task_id, "queued", {"auto_triggered": True, "triggered_by": "plan_completion_event"},
+                        task_id,
+                        "queued",
+                        {"auto_triggered": True, "triggered_by": "plan_completion_event"},
                     )
 
         except Exception as e:

@@ -31,7 +31,11 @@ def verbose_option(f: Callable) -> Callable:
 def output_format_option(f: Callable) -> Callable:
     """Add output format option."""
     return click.option(
-        "--output", "-o", type=click.Choice(["json", "yaml", "table", "text"]), default="table", help="Output format",
+        "--output",
+        "-o",
+        type=click.Choice(["json", "yaml", "table", "text"]),
+        default="table",
+        help="Output format",
     )(f)
 
 

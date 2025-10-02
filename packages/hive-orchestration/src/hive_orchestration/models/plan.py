@@ -24,7 +24,7 @@ class PlanStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class ExecutionPlan(BaseModel, IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
+class ExecutionPlan(IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
     """
     Execution plan model.
 

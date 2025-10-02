@@ -3,6 +3,7 @@ Base models and mixins for Hive platform data structures.
 
 Provides foundational classes and mixins that other models can inherit from.
 """
+
 from __future__ import annotations
 
 
@@ -30,10 +31,7 @@ class BaseModel(PydanticBaseModel):
         # Include fields with None values in dict()
         # exclude_none=False,
         # Custom JSON encoder for datetime, UUID, etc.
-        json_encoders={
-            datetime: lambda v: v.isoformat()
-            UUID: lambda v: str(v)
-        }
+        json_encoders={datetime: lambda v: v.isoformat(), UUID: lambda v: str(v)},
     )
 
     def dict(self, **kwargs) -> Dict[str, Any]:

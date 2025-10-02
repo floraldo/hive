@@ -309,7 +309,9 @@ class CostControlManager:
     def __init__(self, daily_limit: float = 100.0, monthly_limit: float = 2000.0, per_review_limit: float = 1.0):
         """Initialize cost control manager."""
         self.cost_tracker = CostTracker(
-            daily_limit=daily_limit, monthly_limit=monthly_limit, per_review_limit=per_review_limit,
+            daily_limit=daily_limit,
+            monthly_limit=monthly_limit,
+            per_review_limit=per_review_limit,
         )
         self.rate_limiter = RateLimiter()
         self.size_limiter = ReviewSizeLimiter()
@@ -317,7 +319,10 @@ class CostControlManager:
         logger.info(f"CostControlManager initialized with daily limit ${daily_limit:.2f}")
 
     async def pre_request_check(
-        self, estimated_tokens: int, model: str, files: list[Path] | None = None,
+        self,
+        estimated_tokens: int,
+        model: str,
+        files: list[Path] | None = None,
     ) -> tuple[bool, str]:
         """Check all limits before making a request."""
         # Check cost limits

@@ -330,7 +330,10 @@ def test_milp_yearly():
         # Create components (same as yearly but smaller N)
         grid_params = GridParams(
             technical=GridTechnicalParams(
-                capacity_nominal=800.0, import_tariff=0.25, feed_in_tariff=0.08, fidelity_level=FidelityLevel.SIMPLE,
+                capacity_nominal=800.0,
+                import_tariff=0.25,
+                feed_in_tariff=0.08,
+                fidelity_level=FidelityLevel.SIMPLE,
             ),
         )
         grid = Grid("Grid", grid_params, N_subset)
@@ -349,7 +352,9 @@ def test_milp_yearly():
 
         solar_params = SolarPVParams(
             technical=SolarPVTechnicalParams(
-                capacity_nominal=40.0, efficiency_nominal=1.0, fidelity_level=FidelityLevel.SIMPLE,
+                capacity_nominal=40.0,
+                efficiency_nominal=1.0,
+                fidelity_level=FidelityLevel.SIMPLE,
             ),
         )
         solar = SolarPV("SolarPV", solar_params, N_subset)

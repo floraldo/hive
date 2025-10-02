@@ -30,7 +30,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
     """
 
     def __init__(
-        self, enable_alerts: bool = True, alert_thresholds: dict[str, Any] | None = None, max_history: int = 10000,
+        self,
+        enable_alerts: bool = True,
+        alert_thresholds: dict[str, Any] | None = None,
+        max_history: int = 10000,
     ):
         super().__init__()
         self.enable_alerts = enable_alerts
@@ -64,7 +67,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
         self._error_impact: dict[str, list[float]] = defaultdict(list)  # Response time impact
 
     def report_error(
-        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None,
+        self,
+        error: Exception,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """Report an error with enhanced monitoring."""
         # Build error record
@@ -87,7 +93,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
         return error_id
 
     async def report_error_async(
-        self, error: Exception, context: dict[str, Any] | None = None, additional_info: dict[str, Any] | None = None,
+        self,
+        error: Exception,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """Async version of error reporting."""
         error_id = self.report_error(error, context, additional_info)
@@ -183,7 +192,10 @@ class MonitoringErrorReporter(BaseErrorReporter):
                 logger.error(f"Error in alert callback: {e}")
 
     async def _trigger_async_alerts_async(
-        self, error: Exception, context: dict[str, Any] | None, additional_info: dict[str, Any] | None,
+        self,
+        error: Exception,
+        context: dict[str, Any] | None,
+        additional_info: dict[str, Any] | None,
     ) -> None:
         """Trigger async alert callbacks."""
         # This would integrate with async monitoring systems

@@ -26,7 +26,7 @@ class RunStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class Run(BaseModel, IdentifiableMixin, TimestampMixin):
+class Run(IdentifiableMixin, TimestampMixin):
     """
     Task execution run model.
 

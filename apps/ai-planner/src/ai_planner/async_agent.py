@@ -18,9 +18,9 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+# TODO: Migrate to hive-orchestration async operations when available
+# For now, async operations still use hive_orchestrator
 from hive_orchestrator.core.bus import get_async_event_bus
-
-# V4.0 Async infrastructure imports
 from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
 # Import recovery strategies

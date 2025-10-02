@@ -22,7 +22,10 @@ def run_script(script_name: str) -> bool:
 
     try:
         result = subprocess.run(
-            [sys.executable, str(script_path)], cwd=script_path.parent.parent, capture_output=False, text=True,
+            [sys.executable, str(script_path)],
+            cwd=script_path.parent.parent,
+            capture_output=False,
+            text=True,
         )
         return result.returncode == 0
     except Exception as e:

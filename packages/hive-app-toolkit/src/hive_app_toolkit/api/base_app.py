@@ -29,7 +29,11 @@ class HiveApp:
     """
 
     def __init__(
-        self, title: str, description: str, version: str = "1.0.0", config: HiveAppConfig | None = None,
+        self,
+        title: str,
+        description: str,
+        version: str = "1.0.0",
+        config: HiveAppConfig | None = None,
     ) -> None:
         """Initialize Hive application."""
         self.config = config or HiveAppConfig()

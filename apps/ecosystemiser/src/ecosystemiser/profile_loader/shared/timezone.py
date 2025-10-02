@@ -4,6 +4,7 @@ Timezone handling utilities using modern zoneinfo (PEP 615).,
 Replaces pytz with standard library zoneinfo for better timezone handling
 fixes DST edge cases, and provides standardized UTC conversion.
 """
+
 from __future__ import annotations
 
 
@@ -25,7 +26,7 @@ else:
     except ImportError:
         raise ImportError(
             "zoneinfo requires Python 3.9+ or backports.zoneinfo package. ",
-            "Install with: pip install backports.zoneinfo"
+            "Install with: pip install backports.zoneinfo",
         )
 logger = get_logger(__name__)
 
@@ -51,13 +52,12 @@ class TimezoneHandler:
         "GMT": "UTC",
         "BST": "Europe/London",
         "CET": "Europe/Paris",
-        "CEST": "Europe/Paris"
+        "CEST": "Europe/Paris",
     }
 
     @staticmethod
     def normalize_to_utc(
-        timestamp: datetime | pd.Timestamp | pd.DatetimeIndex | np.datetime64,
-        source_tz: str | None = None
+        timestamp: datetime | pd.Timestamp | pd.DatetimeIndex | np.datetime64, source_tz: str | None = None
     ) -> datetime | pd.Timestamp | pd.DatetimeIndex:
         """
         Normalize any timestamp to UTC.
@@ -131,8 +131,8 @@ class TimezoneHandler:
 
     @staticmethod
     def localize_from_utc(
-        timestamp: datetime, pd.Timestamp | pd.DatetimeIndex, target_tz: str
-    ) -> datetime, pd.Timestamp | pd.DatetimeIndex:
+        timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, target_tz: str
+    ) -> datetime | pd.Timestamp | pd.DatetimeIndex:
         """
         Convert UTC timestamp to local timezone.
 
@@ -158,7 +158,7 @@ class TimezoneHandler:
 
         raise TypeError(f"Unsupported timestamp type: {type(timestamp)}")
 
-    @staticmethod,
+    @staticmethod
     def _get_timezone(tz_name: str) -> ZoneInfo | timezone:
         """
         Get timezone object from name.,
@@ -321,6 +321,7 @@ class TimezoneHandler:
         try:
             # Use timezonefinder if available
             from timezonefinder import TimezoneFinder
+
             tf = TimezoneFinder()
             tz_name = tf.timezone_at(lat=latitude, lng=longitude)
 
@@ -393,9 +394,8 @@ class TimezoneHandler:
 
 
 def to_utc(
-    timestamp: datetime, pd.Timestamp | pd.DatetimeIndex,
-    source_tz: str | None = None
-) -> datetime, pd.Timestamp | pd.DatetimeIndex:
+    timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, source_tz: str | None = None
+) -> datetime | pd.Timestamp | pd.DatetimeIndex:
     """
     Convert timestamp to UTC.
 
@@ -410,8 +410,8 @@ def to_utc(
 
 
 def from_utc(
-    timestamp: datetime, pd.Timestamp | pd.DatetimeIndex, target_tz: str
-) -> datetime, pd.Timestamp | pd.DatetimeIndex:
+    timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, target_tz: str
+) -> datetime | pd.Timestamp | pd.DatetimeIndex:
     """
     Convert UTC timestamp to local timezone.
 

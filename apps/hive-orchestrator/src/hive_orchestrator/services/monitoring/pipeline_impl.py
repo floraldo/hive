@@ -140,7 +140,11 @@ class PipelineMonitor:
             logger.info(f"Completed execution {execution_id}: success={success}, duration={duration_ms:.2f}ms")
 
     def record_stage_execution(
-        self, stage_name: str, duration_ms: float, success: bool, error: str | None = None,
+        self,
+        stage_name: str,
+        duration_ms: float,
+        success: bool,
+        error: str | None = None,
     ) -> None:
         """Record execution of a pipeline stage"""
         with self.lock:

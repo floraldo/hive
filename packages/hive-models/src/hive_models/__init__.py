@@ -5,7 +5,7 @@ This package provides centralized data models used across multiple Hive applicat
 ensuring consistent data structures and clean dependency management.
 """
 
-from .base import BaseModel, IdentifiableMixin, StatusMixin, TimestampMixin
+from .base import BaseModel, IdentifiableMixin, MetadataMixin, StatusMixin, TimestampMixin
 from .common import Environment, ExecutionResult, HealthStatus, Priority, ResourceMetrics, Status
 
 # Import from domain-specific modules as they're created
@@ -23,6 +23,7 @@ __all__ = [
     "TimestampMixin",
     "IdentifiableMixin",
     "StatusMixin",
+    "MetadataMixin",
     # Common models
     "Status",
     "Priority",

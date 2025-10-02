@@ -110,7 +110,7 @@ class PerformanceBenchmark:
                     component="security",
                     operation=f"validate_prompt_size_{len(prompt)}",
                     duration_ms=duration,
-                    metadata={"prompt_length": len(prompt)}
+                    metadata={"prompt_length": len(prompt)},
                 )
             )
 
@@ -126,7 +126,7 @@ class PerformanceBenchmark:
                     component="security",
                     operation="mask_secret",
                     duration_ms=duration,
-                    metadata={"secret_length": len(secret)}
+                    metadata={"secret_length": len(secret)},
                 )
             )
 
@@ -159,7 +159,7 @@ class PerformanceBenchmark:
                 model_type="completion",
                 max_tokens=4096,
                 temperature=0.7,
-                cost_per_token=0.001
+                cost_per_token=0.001,
             )
             for i in range(10)
         ]
@@ -173,7 +173,7 @@ class PerformanceBenchmark:
                 component="config",
                 operation="model_config_batch_serialize",
                 duration_ms=duration,
-                metadata={"config_count": len(model_configs)}
+                metadata={"config_count": len(model_configs)},
             )
         )
 
@@ -200,7 +200,7 @@ class PerformanceBenchmark:
                         component="embedding",
                         operation=f"generate_single_length_{len(text)}",
                         duration_ms=duration,
-                        metadata={"text_length": len(text)}
+                        metadata={"text_length": len(text)},
                     )
                 )
 
@@ -215,7 +215,7 @@ class PerformanceBenchmark:
                     component="embedding",
                     operation="generate_batch",
                     duration_ms=duration,
-                    metadata={"batch_size": len(test_texts)}
+                    metadata={"batch_size": len(test_texts)},
                 )
             )
 
@@ -232,7 +232,7 @@ class PerformanceBenchmark:
                     component="embedding",
                     operation="cosine_similarity",
                     duration_ms=duration,
-                    metadata={"vector_dimension": len(vec1)}
+                    metadata={"vector_dimension": len(vec1)},
                 )
             )
 
@@ -271,7 +271,7 @@ class PerformanceBenchmark:
                     component="vector_store",
                     operation="config_batch_validation",
                     duration_ms=duration,
-                    metadata={"config_count": len(test_configs)}
+                    metadata={"config_count": len(test_configs)},
                 )
             )
 
@@ -304,7 +304,7 @@ class PerformanceBenchmark:
                     provider="test",
                     model_type="completion",
                     max_tokens=4096,
-                    cost_per_token=0.001
+                    cost_per_token=0.001,
                 )
                 for i in range(20)
             ]
@@ -318,7 +318,7 @@ class PerformanceBenchmark:
                     component="model_registry",
                     operation="register_batch_20",
                     duration_ms=duration,
-                    metadata={"model_count": len(test_models)}
+                    metadata={"model_count": len(test_models)},
                 )
             )
 
@@ -332,7 +332,7 @@ class PerformanceBenchmark:
                     component="model_registry",
                     operation="lookup_batch_100",
                     duration_ms=duration,
-                    metadata={"lookup_count": 100}
+                    metadata={"lookup_count": 100},
                 )
             )
 
@@ -395,17 +395,17 @@ class PerformanceBenchmark:
                             "operation": m.operation,
                             "duration_ms": m.duration_ms,
                             "success": m.success,
-                            "metadata": m.metadata
+                            "metadata": m.metadata,
                         }
                         for m in metrics
-                    ]
+                    ],
                 }
             else:
                 component_stats[component] = {
                     "operation_count": len(metrics),
                     "success_count": 0,
                     "success_rate": 0.0,
-                    "error": "No successful operations"
+                    "error": "No successful operations",
                 }
 
         # Overall statistics
@@ -417,7 +417,7 @@ class PerformanceBenchmark:
             "successful_operations": len(all_successful),
             "overall_success_rate": len(all_successful) / len(self.metrics) if self.metrics else 0,
             "total_benchmark_duration_ms": sum(all_durations) if all_durations else 0,
-            "avg_operation_duration_ms": statistics.mean(all_durations) if all_durations else 0
+            "avg_operation_duration_ms": statistics.mean(all_durations) if all_durations else 0,
         }
 
         # Performance insights
@@ -429,7 +429,7 @@ class PerformanceBenchmark:
             "overall_statistics": overall_stats,
             "component_statistics": component_stats,
             "performance_insights": insights,
-            "recommendations": self._generate_recommendations(component_stats)
+            "recommendations": self._generate_recommendations(component_stats),
         }
 
     def _generate_performance_insights(

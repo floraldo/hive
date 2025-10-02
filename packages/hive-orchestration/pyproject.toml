@@ -48,5 +48,13 @@ python_files = ["test_*.py", "*_test.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v --tb=short"
-pythonpath = ["src"]
+pythonpath = [
+    "src",
+    "../hive-models/src",
+    "../hive-logging/src",
+    "../hive-db/src",
+    "../hive-bus/src",
+    "../hive-async/src",
+    "../hive-errors/src"
+]
 asyncio_mode = "auto"

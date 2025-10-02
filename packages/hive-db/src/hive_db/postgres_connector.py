@@ -65,7 +65,8 @@ def get_postgres_connection(
     """
     if not PSYCOPG2_AVAILABLE:
         raise ImportError(
-            "psycopg2-binary is required for PostgreSQL connectivity. ", "Install it with: pip install psycopg2-binary",
+            "psycopg2-binary is required for PostgreSQL connectivity. ",
+            "Install it with: pip install psycopg2-binary",
         )
 
     # Config is now required - no fallback to empty dict
@@ -206,7 +207,11 @@ def create_connection_pool(
     if database_url and not any([host, port, database, user, password]):
         try:
             pool = psycopg2.pool.ThreadedConnectionPool(
-                minconn, maxconn, database_url, cursor_factory=RealDictCursor, **kwargs,
+                minconn,
+                maxconn,
+                database_url,
+                cursor_factory=RealDictCursor,
+                **kwargs,
             )
             logger.info(f"PostgreSQL connection pool created via database_url: {minconn}-{maxconn} connections")
             return pool

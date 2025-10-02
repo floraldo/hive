@@ -109,7 +109,10 @@ def create_retry_decorator(config: AsyncRetryConfig | None = None) -> None:
 # Convenience decorators for common scenarios
 retry_on_connection_error = create_retry_decorator(
     AsyncRetryConfig(
-        max_attempts=5, min_wait=0.5, max_wait=30.0, retry_exceptions=(ConnectionError, OSError, TimeoutError),
+        max_attempts=5,
+        min_wait=0.5,
+        max_wait=30.0,
+        retry_exceptions=(ConnectionError, OSError, TimeoutError),
     ),
 )
 

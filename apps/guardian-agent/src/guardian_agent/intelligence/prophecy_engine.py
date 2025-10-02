@@ -1145,9 +1145,3 @@ class ProphecyEngine:
         summary_parts.append("🔮 The Oracle has spoken. The future is revealed.")
 
         return "\n".join(summary_parts)
-
-
-
-
-
-

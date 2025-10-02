@@ -31,7 +31,7 @@ class TaskStatus(str, Enum):
     CANCELLED = "cancelled"
 
 
-class Task(BaseModel, IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
+class Task(IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
     """
     Orchestration task model.
 

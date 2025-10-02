@@ -40,7 +40,25 @@ def register_worker(
         ...     capabilities=["python", "bash", "docker"],
         ... )
     """
-    raise NotImplementedError("Worker registration will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import transaction
+
+    with transaction() as conn:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO workers (id, role, capabilities, metadata, last_heartbeat)
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+            """,
+            (
+                worker_id,
+                role,
+                json.dumps(capabilities) if capabilities else None,
+                json.dumps(metadata) if metadata else None,
+            ),
+        )
+
+    logger.info(f"Worker registered: {worker_id} ({role})")
+    return True
 
 
 def update_worker_heartbeat(
@@ -62,7 +80,29 @@ def update_worker_heartbeat(
     Example:
         >>> success = update_worker_heartbeat("worker-123", status="active")
     """
-    raise NotImplementedError("Worker heartbeat will be implemented during extraction from hive-orchestrator")
+    from ..database import transaction
+
+    with transaction() as conn:
+        if status:
+            cursor = conn.execute(
+                """
+                UPDATE workers
+                SET last_heartbeat = CURRENT_TIMESTAMP, status = ?
+                WHERE id = ?
+                """,
+                (status, worker_id),
+            )
+        else:
+            cursor = conn.execute(
+                """
+                UPDATE workers
+                SET last_heartbeat = CURRENT_TIMESTAMP
+                WHERE id = ?
+                """,
+                (worker_id,),
+            )
+
+        return cursor.rowcount > 0
 
 
 def get_active_workers(role: str | None = None) -> list[dict[str, Any]]:
@@ -83,7 +123,36 @@ def get_active_workers(role: str | None = None) -> list[dict[str, Any]]:
         >>> for worker in workers:
         ...     print(f"Worker {worker['id']}: {worker['capabilities']}")
     """
-    raise NotImplementedError("Active worker query will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        if role:
+            cursor = conn.execute(
+                """
+                SELECT * FROM workers
+                WHERE role = ? AND status = 'active'
+                ORDER BY last_heartbeat DESC
+                """,
+                (role,),
+            )
+        else:
+            cursor = conn.execute(
+                """
+                SELECT * FROM workers
+                WHERE status = 'active'
+                ORDER BY last_heartbeat DESC
+                """,
+            )
+
+        workers = []
+        for row in cursor.fetchall():
+            worker = dict(row)
+            worker["capabilities"] = json.loads(worker["capabilities"]) if worker["capabilities"] else []
+            worker["metadata"] = json.loads(worker["metadata"]) if worker["metadata"] else {}
+            workers.append(worker)
+
+        return workers
 
 
 def get_worker(worker_id: str) -> dict[str, Any] | None:
@@ -101,7 +170,20 @@ def get_worker(worker_id: str) -> dict[str, Any] | None:
         >>> if worker:
         ...     print(f"Worker status: {worker['status']}")
     """
-    raise NotImplementedError("Worker query will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        cursor = conn.execute("SELECT * FROM workers WHERE id = ?", (worker_id,))
+        row = cursor.fetchone()
+
+        if row:
+            worker = dict(row)
+            worker["capabilities"] = json.loads(worker["capabilities"]) if worker["capabilities"] else []
+            worker["metadata"] = json.loads(worker["metadata"]) if worker["metadata"] else {}
+            return worker
+
+        return None
 
 
 def unregister_worker(worker_id: str) -> bool:
@@ -117,7 +199,18 @@ def unregister_worker(worker_id: str) -> bool:
     Example:
         >>> success = unregister_worker("worker-123")
     """
-    raise NotImplementedError("Worker unregistration will be implemented during extraction from hive-orchestrator")
+    from ..database import transaction
+
+    with transaction() as conn:
+        cursor = conn.execute("DELETE FROM workers WHERE id = ?", (worker_id,))
+        success = cursor.rowcount > 0
+
+    if success:
+        logger.info(f"Worker unregistered: {worker_id}")
+    else:
+        logger.warning(f"Worker {worker_id} not found for unregistration")
+
+    return success
 
 
 __all__ = [

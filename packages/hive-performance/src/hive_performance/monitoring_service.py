@@ -51,11 +51,14 @@ class MonitoringService:
         max_history_points = int(max_history_hours * 3600 / collection_interval)
 
         self.metrics_collector = MetricsCollector(
-            collection_interval=collection_interval, max_history=max_history_points,
+            collection_interval=collection_interval,
+            max_history=max_history_points,
         )
 
         self.system_monitor = SystemMonitor(
-            collection_interval=collection_interval, max_history=max_history_points, enable_alerts=enable_alerts,
+            collection_interval=collection_interval,
+            max_history=max_history_points,
+            enable_alerts=enable_alerts,
         )
 
         self.async_profiler = AsyncProfiler(
@@ -65,7 +68,9 @@ class MonitoringService:
         )
 
         self.performance_analyzer = PerformanceAnalyzer(
-            self.metrics_collector, self.system_monitor, self.async_profiler,
+            self.metrics_collector,
+            self.system_monitor,
+            self.async_profiler,
         )
 
         # Service state
@@ -273,18 +278,24 @@ class MonitoringService:
         }
 
     async def generate_report_async(
-        self, time_window: timedelta | None = None, include_recommendations: bool = True,
+        self,
+        time_window: timedelta | None = None,
+        include_recommendations: bool = True,
     ) -> AnalysisReport:
         """Generate comprehensive performance report."""
         if time_window is None:
             time_window = timedelta(hours=1)
 
         return await self.performance_analyzer.analyze_performance(
-            analysis_period=time_window, include_predictions=include_recommendations,
+            analysis_period=time_window,
+            include_predictions=include_recommendations,
         )
 
     async def benchmark_system_async(
-        self, operation_func: Callable, iterations: int = 100, concurrency: int = 10,
+        self,
+        operation_func: Callable,
+        iterations: int = 100,
+        concurrency: int = 10,
     ) -> dict[str, Any]:
         """Run system benchmark."""
         logger.info(f"Starting system benchmark: {iterations} iterations, concurrency {concurrency}")
@@ -298,7 +309,9 @@ class MonitoringService:
         try:
             # Run benchmark
             benchmark_results = await self.performance_analyzer.benchmark_operation(
-                operation_func, iterations=iterations, concurrency=concurrency,
+                operation_func,
+                iterations=iterations,
+                concurrency=concurrency,
             )
 
             # Get system metrics during benchmark
@@ -323,7 +336,9 @@ class MonitoringService:
                 await self.stop_monitoring_async()
 
     def get_analysis_history(
-        self, time_window: timedelta | None = None, limit: int | None = None,
+        self,
+        time_window: timedelta | None = None,
+        limit: int | None = None,
     ) -> list[AnalysisReport]:
         """Get historical analysis reports."""
         reports = self._analysis_history.copy()

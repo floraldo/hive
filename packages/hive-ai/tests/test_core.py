@@ -230,7 +230,12 @@ class TestInterfaces:
     def test_model_response_property(self, content, model, tokens, cost):
         """Property-based test for ModelResponse invariants."""
         response = ModelResponse(
-            content=content, model=model, tokens_used=tokens, cost=cost, latency_ms=1000, metadata={},
+            content=content,
+            model=model,
+            tokens_used=tokens,
+            cost=cost,
+            latency_ms=1000,
+            metadata={},
         )
 
         assert response.tokens_used >= 0

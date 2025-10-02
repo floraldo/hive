@@ -158,7 +158,9 @@ async def get_review_status(review_id: str):
 
 @app.post("/webhooks/github")
 async def github_webhook(
-    request: Request, background_tasks: BackgroundTasks, x_hub_signature_256: str | None = Header(None),
+    request: Request,
+    background_tasks: BackgroundTasks,
+    x_hub_signature_256: str | None = Header(None),
 ):
     """Handle GitHub webhook events."""
     try:

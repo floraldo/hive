@@ -26,7 +26,9 @@ def run_tests():
     try:
         # Try to run with pytest if available
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", str(test_dir), "-v", "--tb=short"], capture_output=True, text=True,
+            [sys.executable, "-m", "pytest", str(test_dir), "-v", "--tb=short"],
+            capture_output=True,
+            text=True,
         )
 
         logger.info(result.stdout)

@@ -337,7 +337,9 @@ class AsyncConfigLoader:
 
 # Factory function for easy instantiation
 def create_async_config_loader(
-    enable_hot_reload: bool = False, cache_configs: bool = True, master_key: str | None = None,
+    enable_hot_reload: bool = False,
+    cache_configs: bool = True,
+    master_key: str | None = None,
 ) -> AsyncConfigLoader:
     """
     Create an AsyncConfigLoader with optional secure configuration support
@@ -353,7 +355,9 @@ def create_async_config_loader(
     secure_loader = SecureConfigLoader(master_key) if master_key else None
 
     loader = AsyncConfigLoader(
-        enable_hot_reload=enable_hot_reload, cache_configs=cache_configs, secure_loader=secure_loader,
+        enable_hot_reload=enable_hot_reload,
+        cache_configs=cache_configs,
+        secure_loader=secure_loader,
     )
 
     if enable_hot_reload and not WATCHDOG_AVAILABLE:

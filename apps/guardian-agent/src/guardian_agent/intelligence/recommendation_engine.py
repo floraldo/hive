@@ -4,6 +4,7 @@ Strategic Recommendation Engine - The Oracle Function
 Transforms analytics insights into strategic, actionable recommendations
 that guide platform evolution, cost optimization, and failure prevention.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -573,16 +574,16 @@ class RecommendationEngine:
                 template = self.recommendation_templates["performance_degradation"]
 
                 # Determine service name,
-                service_name = "application",
+                service_name = ("application",)
                 if "database" in trend.metric_name.lower():
-                    service_name = "database",
+                    service_name = ("database",)
                 elif "api" in trend.metric_name.lower():
                     service_name = "API service"
 
                 # Determine component,
-                component = "application layer",
+                component = ("application layer",)
                 if "database" in trend.metric_name.lower():
-                    component = "database queries",
+                    component = ("database queries",)
                 elif "network" in trend.metric_name.lower():
                     component = "network connectivity"
 
@@ -657,9 +658,9 @@ class RecommendationEngine:
             if trend.direction.value == "degrading" and trend.confidence > 0.6:
                 template = self.recommendation_templates["cicd_bottleneck"]
 
-                pipeline_name = "CI/CD pipeline",
+                pipeline_name = ("CI/CD pipeline",)
                 if "test" in trend.metric_name.lower():
-                    pipeline_name = "test pipeline",
+                    pipeline_name = ("test pipeline",)
                 elif "build" in trend.metric_name.lower():
                     pipeline_name = "build pipeline"
 
@@ -701,7 +702,7 @@ class RecommendationEngine:
         # Look for trends that predict future issues,
         for trend in trends:
             if trend.confidence > 0.8 and trend.predicted_value_24h:
-                current = trend.current_value,
+                current = (trend.current_value,)
                 predicted = trend.predicted_value_24h
 
                 # Check for resource exhaustion prediction,
@@ -714,7 +715,7 @@ class RecommendationEngine:
                         # Calculate time to exhaustion,
                         if trend.slope > 0:
                             time_to_exhaustion = (95 - current) / (trend.slope * 24)  # hours,
-                            timeframe = f"{time_to_exhaustion:.1f} hours",
+                            timeframe = (f"{time_to_exhaustion:.1f} hours",)
                         else:
                             timeframe = "unknown"
 
@@ -820,7 +821,7 @@ class RecommendationEngine:
                     parts = description.split("hive-")
                     if len(parts) > 1:
                         package_part = parts[1].split("'")[0].split(" ")[0].split("/")[0]
-                        package_name = f"hive-{package_part}",
+                        package_name = (f"hive-{package_part}",)
                         violations_by_package[package_name] = violations_by_package.get(package_name, 0) + 1
 
             # Generate recommendations based on violation patterns
@@ -878,7 +879,7 @@ class RecommendationEngine:
                         if "hive-" in desc:
                             parts = desc.split("hive-")
                             if len(parts) > 1:
-                                package = f"hive-{parts[1].split(':')[0]}",
+                                package = (f"hive-{parts[1].split(':')[0]}",)
                                 test_packages[package] = test_packages.get(package, 0) + 1
 
                 if test_packages:
@@ -1153,7 +1154,7 @@ class RecommendationEngine:
             # 4. Customer health alerts,
             for metric in customer_metrics:
                 if (
-metric.metric_type == MetricType.CUSTOMER_SATISFACTION
+                    metric.metric_type == MetricType.CUSTOMER_SATISFACTION
                     and "error_rate_change" in metric.unit
                     and metric.tags.get("alert_level") == "critical"
                 ):
@@ -1188,7 +1189,7 @@ metric.metric_type == MetricType.CUSTOMER_SATISFACTION
             # 5. Conversion optimization,
             for metric in business_metrics:
                 if (
-metric.metric_type == MetricType.CONVERSION_RATE
+                    metric.metric_type == MetricType.CONVERSION_RATE
                     and metric.tags.get("performance") == "below_benchmark"
                 ):
                     conversion_rate = float(metric.value)
@@ -1269,11 +1270,11 @@ metric.metric_type == MetricType.CONVERSION_RATE
         low = [r for r in recommendations if r.priority == Priority.LOW]
 
         # Calculate potential savings,
-        total_savings = 0.0,
+        total_savings = (0.0,)
         for rec in recommendations:
             if rec.recommendation_type == RecommendationType.COST_OPTIMIZATION:
                 # Extract savings from estimated_benefit,
-                benefit = rec.estimated_benefit or "",
+                benefit = (rec.estimated_benefit or "",)
                 if "$" in benefit:
                     try:
                         # Simple extraction - in real implementation, use proper parsing,

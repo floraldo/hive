@@ -146,7 +146,11 @@ class ResilientHttpClient:
         return self._request_with_resilience("DELETE", url, timeout=timeout, **kwargs)
 
     def _request_with_resilience(
-        self, method: str, url: str, timeout: float | None = None, **kwargs,
+        self,
+        method: str,
+        url: str,
+        timeout: float | None = None,
+        **kwargs,
     ) -> requests.Response:
         """Execute HTTP request with circuit breaker and retry."""
         domain = self._extract_domain(url)
@@ -272,7 +276,8 @@ class AsyncResilientHttpClient:
         """Get or create circuit breaker for domain."""
         if domain not in self._circuit_breakers:
             self._circuit_breakers[domain] = AsyncCircuitBreaker(
-                failure_threshold=self.failure_threshold, recovery_timeout=self.recovery_timeout,
+                failure_threshold=self.failure_threshold,
+                recovery_timeout=self.recovery_timeout,
             )
         return self._circuit_breakers[domain]
 

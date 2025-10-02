@@ -48,9 +48,36 @@ def create_task(
         ...     priority=5,
         ... )
     """
-    # Implementation will call hive-orchestrator database functions
-    # This is a placeholder for the extraction process
-    raise NotImplementedError("Task creation will be implemented during extraction from hive-orchestrator")
+    import json
+    import uuid
+    from ..database import transaction
+
+    task_id = str(uuid.uuid4())
+    max_retries = kwargs.get("max_retries", 3)
+    current_phase = kwargs.get("current_phase", "start")
+
+    with transaction() as conn:
+        conn.execute(
+            """
+            INSERT INTO tasks (id, title, description, task_type, priority, current_phase, workflow, payload, max_retries, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                task_id,
+                title,
+                description,
+                task_type,
+                priority,
+                current_phase,
+                json.dumps(workflow) if workflow else None,
+                json.dumps(payload) if payload else None,
+                max_retries,
+                json.dumps(tags) if tags else None,
+            ),
+        )
+
+    logger.info(f"Task created: {task_id} - {title}")
+    return task_id
 
 
 def get_task(task_id: str) -> dict[str, Any] | None:
@@ -68,7 +95,21 @@ def get_task(task_id: str) -> dict[str, Any] | None:
         >>> if task:
         ...     print(f"Task status: {task['status']}")
     """
-    raise NotImplementedError("Task retrieval will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        cursor = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+        row = cursor.fetchone()
+
+        if row:
+            task = dict(row)
+            task["payload"] = json.loads(task["payload"]) if task["payload"] else None
+            task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
+            task["tags"] = json.loads(task["tags"]) if task["tags"] else []
+            return task
+
+        return None
 
 
 def update_task_status(
@@ -90,7 +131,32 @@ def update_task_status(
     Example:
         >>> success = update_task_status("task-123", "running", {"assigned_worker": "worker-1"})
     """
-    raise NotImplementedError("Task status update will be implemented during extraction from hive-orchestrator")
+    from ..database import transaction
+
+    with transaction() as conn:
+        fields = ["status = ?", "updated_at = CURRENT_TIMESTAMP"]
+        values = [status]
+
+        if metadata:
+            if "assigned_worker" in metadata:
+                fields.append("assigned_worker = ?")
+                values.append(metadata["assigned_worker"])
+            if "current_phase" in metadata:
+                fields.append("current_phase = ?")
+                values.append(metadata["current_phase"])
+
+        values.append(task_id)
+        query = f"UPDATE tasks SET {', '.join(fields)} WHERE id = ?"
+
+        cursor = conn.execute(query, values)
+        success = cursor.rowcount > 0
+
+    if success:
+        logger.info(f"Task {task_id} updated to status: {status}")
+    else:
+        logger.warning(f"Task {task_id} not found for status update")
+
+    return success
 
 
 def get_tasks_by_status(status: str) -> list[dict[str, Any]]:
@@ -108,7 +174,25 @@ def get_tasks_by_status(status: str) -> list[dict[str, Any]]:
         >>> for task in pending_tasks:
         ...     print(f"Task {task['id']}: {task['title']}")
     """
-    raise NotImplementedError("Task query will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        cursor = conn.execute(
+            "SELECT * FROM tasks WHERE status = ? ORDER BY priority DESC, created_at ASC",
+            (status,),
+        )
+        rows = cursor.fetchall()
+
+        tasks = []
+        for row in rows:
+            task = dict(row)
+            task["payload"] = json.loads(task["payload"]) if task["payload"] else None
+            task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
+            task["tags"] = json.loads(task["tags"]) if task["tags"] else []
+            tasks.append(task)
+
+        return tasks
 
 
 def get_queued_tasks(
@@ -130,7 +214,42 @@ def get_queued_tasks(
         >>> for task in tasks:
         ...     print(f"Priority {task['priority']}: {task['title']}")
     """
-    raise NotImplementedError("Queued task query will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        if task_type:
+            cursor = conn.execute(
+                """
+                SELECT * FROM tasks
+                WHERE status = 'queued' AND task_type = ?
+                ORDER BY priority DESC, created_at ASC
+                LIMIT ?
+                """,
+                (task_type, limit),
+            )
+        else:
+            cursor = conn.execute(
+                """
+                SELECT * FROM tasks
+                WHERE status = 'queued'
+                ORDER BY priority DESC, created_at ASC
+                LIMIT ?
+                """,
+                (limit,),
+            )
+
+        rows = cursor.fetchall()
+
+        tasks = []
+        for row in rows:
+            task = dict(row)
+            task["payload"] = json.loads(task["payload"]) if task["payload"] else None
+            task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
+            task["tags"] = json.loads(task["tags"]) if task["tags"] else []
+            tasks.append(task)
+
+        return tasks
 
 
 def delete_task(task_id: str) -> bool:
@@ -146,7 +265,18 @@ def delete_task(task_id: str) -> bool:
     Example:
         >>> success = delete_task("task-123")
     """
-    raise NotImplementedError("Task deletion will be implemented during extraction from hive-orchestrator")
+    from ..database import transaction
+
+    with transaction() as conn:
+        cursor = conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+        success = cursor.rowcount > 0
+
+    if success:
+        logger.info(f"Task deleted: {task_id}")
+    else:
+        logger.warning(f"Task {task_id} not found for deletion")
+
+    return success
 
 
 __all__ = [

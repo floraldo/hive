@@ -17,7 +17,9 @@ logger = get_logger(__name__)
 
 
 def get_sqlite_connection(
-    db_path: str | None = None, config: dict[str, Any] | None = None, **kwargs,
+    db_path: str | None = None,
+    config: dict[str, Any] | None = None,
+    **kwargs,
 ) -> sqlite3.Connection:
     """
     Get a SQLite database connection.

@@ -9,7 +9,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 from .base import BaseModel, TimestampMixin
 
@@ -55,16 +55,17 @@ class ExecutionResult(BaseModel):
     data: Optional[dict[str, Any]] = Field(default=None, description="Any data returned from the execution")
     error: str | None = Field(default=None, description="Error message if execution failed")
     error_details: Optional[dict[str, Any]] = Field(
-        default=None, description="Detailed error information for debugging",
+        default=None,
+        description="Detailed error information for debugging",
     )
     duration_ms: float | None = Field(default=None, description="Execution duration in milliseconds")
 
-    @field_validator("error")
-    def validate_error_consistency(cls, v: str | None, values: dict[str, Any]) -> str | None:
+    @model_validator(mode="after")
+    def validate_error_consistency(self) -> "ExecutionResult":
         """Ensure error is only set when success is False."""
-        if v and values.get("success", True):
+        if self.error and self.success:
             raise ValueError("Error cannot be set when success is True")
-        return v
+        return self
 
 
 class ResourceMetrics(BaseModel):
@@ -81,7 +82,7 @@ class ResourceMetrics(BaseModel):
     thread_count: int | None = Field(default=None, ge=0, description="Number of active threads")
 
 
-class HealthStatus(BaseModel, TimestampMixin):
+class HealthStatus(TimestampMixin):
     """Health status for services and components."""
 
     component: str = Field(description="Name of the component or service")

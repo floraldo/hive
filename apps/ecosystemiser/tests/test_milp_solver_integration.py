@@ -85,7 +85,10 @@ def test_milp_solver_produces_valid_flows():
     results_io = ResultsIO()
     output_dir = Path(__file__).parent / "test_output"
     output_path = results_io.save_results(
-        system=system, simulation_id="milp_validation_test", output_dir=output_dir, format="json",
+        system=system,
+        simulation_id="milp_validation_test",
+        output_dir=output_dir,
+        format="json",
     )
 
     logger.info(f"Results saved to: {output_path}")

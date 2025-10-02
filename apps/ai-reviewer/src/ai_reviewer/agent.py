@@ -94,7 +94,11 @@ class ReviewAgent:
             self.event_bus = None
 
     def _publish_task_event(
-        self, event_type: "TaskEventType", task_id: str, correlation_id: str = None, **additional_payload,
+        self,
+        event_type: "TaskEventType",
+        task_id: str,
+        correlation_id: str = None,
+        **additional_payload,
     ) -> str:
         """Publish task events for explicit agent communication
 
@@ -112,7 +116,10 @@ class ReviewAgent:
 
         try:
             event = create_task_event(
-                event_type=event_type, task_id=task_id, source_agent="ai-reviewer", **additional_payload,
+                event_type=event_type,
+                task_id=task_id,
+                source_agent="ai-reviewer",
+                **additional_payload,
             )
 
             event_id = self.event_bus.publish(event, correlation_id=correlation_id)
@@ -394,7 +401,11 @@ class ReviewAgent:
     # ================================================================================
 
     async def _publish_task_event_async(
-        self, event_type: "TaskEventType", task_id: str, correlation_id: str = None, **additional_payload,
+        self,
+        event_type: "TaskEventType",
+        task_id: str,
+        correlation_id: str = None,
+        **additional_payload,
     ) -> str:
         """Async version of task event publishing."""
         if not self.event_bus or not create_task_event or not TaskEventType or not ASYNC_EVENTS_AVAILABLE:
@@ -402,7 +413,10 @@ class ReviewAgent:
 
         try:
             event = create_task_event(
-                event_type=event_type, task_id=task_id, source_agent="ai-reviewer", **additional_payload,
+                event_type=event_type,
+                task_id=task_id,
+                source_agent="ai-reviewer",
+                **additional_payload,
             )
 
             event_id = await publish_event_async(event, correlation_id=correlation_id)
@@ -482,7 +496,9 @@ class ReviewAgent:
                 logger.warning(f"No code files found for async task {task['id']}")
                 # Mark as needing escalation asynchronously
                 await self._update_task_status_async(
-                    task["id"], "escalated", {"reason": "No code files found for review"},
+                    task["id"],
+                    "escalated",
+                    {"reason": "No code files found for review"},
                 )
                 self.stats["escalated"] += 1
 

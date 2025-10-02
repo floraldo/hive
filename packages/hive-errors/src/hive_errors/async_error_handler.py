@@ -4,6 +4,7 @@ import asyncio
 import time
 from collections import defaultdict, deque
 from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -63,17 +64,17 @@ class AsyncErrorHandler:
         enable_monitoring: bool = True,
         max_error_history: int = 1000,
     ):
-        self.error_reporter = (error_reporter,)
-        self.enable_monitoring = (enable_monitoring,)
+        self.error_reporter = error_reporter
+        self.enable_monitoring = enable_monitoring
         self.max_error_history = max_error_history
 
-        # Error tracking,
+        # Error tracking
         self._error_stats = ErrorStats()
-        self._error_history: deque = (deque(maxlen=max_error_history),)
+        self._error_history: deque = deque(maxlen=max_error_history)
         self._component_health: dict[str, float] = defaultdict(lambda: 1.0)  # 0.0-1.0
 
-        # Performance tracking,
-        self._operation_times: dict[str, deque] = (defaultdict(lambda: deque(maxlen=100)),)
+        # Performance tracking
+        self._operation_times: dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
         self._success_rates: dict[str, float] = defaultdict(lambda: 1.0)
 
     async def handle_error(self, error: Exception, context: ErrorContext, suppress: bool = False) -> Exception | None:
@@ -107,9 +108,9 @@ class AsyncErrorHandler:
         # Log error with context,
         await self._log_error(error, context)
 
-        # Return processed error,
+        # Return processed error
         if suppress:
-            return (None,)
+            return None
         return error
 
     async def _record_error(self, error: Exception, context: ErrorContext) -> dict[str, Any]:
@@ -192,6 +193,50 @@ class AsyncErrorHandler:
             "max_execution_time": max(times) if times else 0.0,
         }
 
+    async def _update_error_stats(self, error: Exception, context: ErrorContext) -> None:
+        """Update error statistics."""
+        self._error_stats.total_errors += 1
+        error_type = error.__class__.__name__
+        self._error_stats.errors_by_type[error_type] += 1
+        self._error_stats.errors_by_component[context.component] += 1
+        self._error_stats.last_error_time = datetime.utcnow()
+
+    async def _update_component_health(self, component: str, success: bool) -> None:
+        """Update component health score."""
+        current_health = self._component_health[component]
+        # Exponential moving average: success increases health, failure decreases
+        alpha = 0.1
+        new_value = 1.0 if success else 0.0
+        self._component_health[component] = alpha * new_value + (1 - alpha) * current_health
+
+    async def handle_success(self, context: ErrorContext, execution_time: float) -> None:
+        """Handle successful operation completion."""
+        # Update component health
+        await self._update_component_health(context.component, success=True)
+
+        # Track execution time
+        self._operation_times[context.operation_name].append(execution_time)
+
+        # Update success rate
+        operation = context.operation_name
+        current_rate = self._success_rates[operation]
+        alpha = 0.1
+        self._success_rates[operation] = alpha * 1.0 + (1 - alpha) * current_rate
+
+    def get_component_health(self, component: str) -> float:
+        """Get health score for a component (0.0-1.0)."""
+        return self._component_health[component]
+
+    def _get_risk_recommendations(self, risk_score: float, component: str, operation: str) -> list[str]:
+        """Get risk mitigation recommendations."""
+        recommendations = []
+        if risk_score > 0.7:
+            recommendations.append(f"Consider circuit breaker for {component}")
+            recommendations.append(f"Review recent errors for {operation}")
+        elif risk_score > 0.4:
+            recommendations.append(f"Monitor {component} closely")
+        return recommendations
+
     async def predict_failure_risk(self, component: str, operation: str) -> dict[str, Any]:
         """Predict failure risk based on recent patterns."""
         component_health = self.get_component_health(component)
@@ -223,6 +268,7 @@ class AsyncErrorHandler:
         }
 
 
+@asynccontextmanager
 async def error_context(
     handler: AsyncErrorHandler,
     operation_name: str,
@@ -244,17 +290,13 @@ async def error_context(
     start_time = time.perf_counter()
 
     try:
-        if timeout:
-            async with asyncio.timeout(timeout):
-                yield (context,)
-        else:
-            yield context
+        yield context
 
-        # Record success,
-        execution_time = (time.perf_counter() - start_time,)
+        # Record success
+        execution_time = time.perf_counter() - start_time
         await handler.handle_success(context, execution_time)
 
-    except TimeoutError as e:
+    except asyncio.TimeoutError as e:
         timeout_error = AsyncTimeoutError(
             message=f"Operation {operation_name} timed out after {timeout}s",
             component=component,
@@ -310,8 +352,8 @@ def handle_async_errors(
 
                 except Exception as e:
                     if attempt < max_retries:
-                        # Calculate delay with optional exponential backoff,
-                        delay = (retry_delay,)
+                        # Calculate delay with optional exponential backoff
+                        delay = retry_delay
                         if exponential_backoff:
                             delay *= 2**attempt
 

@@ -346,25 +346,31 @@ def get_source_profile(source: str) -> QCProfile:
     Raises:
         ValueError: If source is unknown,
     """
+
     # Factory functions for lazy imports (avoid circular dependencies)
     def _get_nasa_power() -> QCProfile:
         from ecosystemiser.profile_loader.climate.adapters.nasa_power import NASAPowerQCProfile
+
         return NASAPowerQCProfile()
 
     def _get_meteostat() -> QCProfile:
         from ecosystemiser.profile_loader.climate.adapters.meteostat import MeteostatQCProfile
+
         return MeteostatQCProfile()
 
     def _get_era5() -> QCProfile:
         from ecosystemiser.profile_loader.climate.adapters.era5 import ERA5QCProfile
+
         return ERA5QCProfile()
 
     def _get_pvgis() -> QCProfile:
         from ecosystemiser.profile_loader.climate.adapters.pvgis import get_qc_profile
+
         return get_qc_profile()
 
     def _get_epw() -> QCProfile:
         from ecosystemiser.profile_loader.climate.adapters.file_epw import get_qc_profile
+
         return get_qc_profile()
 
     # Dictionary mapping source names to factory functions

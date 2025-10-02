@@ -196,7 +196,9 @@ class DiscoveryClient:
         return [s for s in services if s.healthy]
 
     async def select_service_instance_async(
-        self, service_name: str, session_id: str | None = None,
+        self,
+        service_name: str,
+        session_id: str | None = None,
     ) -> ServiceInfo | None:
         """Select a service instance using load balancing.
 
@@ -251,7 +253,12 @@ class DiscoveryClient:
                 raise ServiceNotFoundError(f"No healthy instances found for service {service_name}")
 
             return await self.load_balancer.execute_with_retry(
-                healthy_services, request_func, max_retries, session_id, *args, **kwargs,
+                healthy_services,
+                request_func,
+                max_retries,
+                session_id,
+                *args,
+                **kwargs,
             )
 
         except Exception as e:

@@ -54,7 +54,8 @@ class TestServiceDiscoveryConfig:
         """Test configuration from environment variables."""
         try:
             with patch.dict(
-                "os.environ", {"HIVE_DISCOVERY_URL": "http://env-registry:8500", "HIVE_DISCOVERY_TIMEOUT": "30"},
+                "os.environ",
+                {"HIVE_DISCOVERY_URL": "http://env-registry:8500", "HIVE_DISCOVERY_TIMEOUT": "30"},
             ):
                 from hive_service_discovery.config import load_config
 

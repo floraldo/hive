@@ -1164,7 +1164,11 @@ class HiveScaffolder:
         """Generate Dockerfile for the application."""
 
         # Prepare Docker content outside f-string to avoid backslash issues
-        expose_line = "EXPOSE 8000" if app_spec.category.value in ["web_application", "api_service"] else "# No port exposure needed"
+        expose_line = (
+            "EXPOSE 8000"
+            if app_spec.category.value in ["web_application", "api_service"]
+            else "# No port exposure needed"
+        )
         healthcheck_line = (
             "HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \\\n  CMD curl -f http://localhost:8000/health || exit 1"
             if app_spec.category.value in ["web_application", "api_service"]

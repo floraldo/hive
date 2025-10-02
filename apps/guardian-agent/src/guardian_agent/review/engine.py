@@ -40,7 +40,8 @@ class ReviewEngine:
         # Initialize vector store for pattern matching
         if self.config.vector_search.enabled:
             self.vector_store = VectorStore(
-                index_path=str(self.config.vector_search.index_path), model_name=self.config.vector_search.model_name,
+                index_path=str(self.config.vector_search.index_path),
+                model_name=self.config.vector_search.model_name,
             )
         else:
             self.vector_store = None
@@ -48,7 +49,8 @@ class ReviewEngine:
         # Initialize cache
         if self.config.cache.enabled:
             self.cache = CacheClient(
-                ttl_seconds=self.config.cache.ttl_seconds, max_size_mb=self.config.cache.max_cache_size_mb,
+                ttl_seconds=self.config.cache.ttl_seconds,
+                max_size_mb=self.config.cache.max_cache_size_mb,
             )
         else:
             self.cache = None
@@ -166,7 +168,10 @@ class ReviewEngine:
         return results
 
     async def _get_ai_review(
-        self, file_path: Path, content: str, analysis_results: list[AnalysisResult],
+        self,
+        file_path: Path,
+        content: str,
+        analysis_results: list[AnalysisResult],
     ) -> dict[str, Any]:
         """Get AI-powered review using hive-ai."""
         # Find similar code patterns if vector search is enabled
@@ -183,7 +188,10 @@ class ReviewEngine:
 
         # Build prompt
         prompt = self.prompt_builder.build_review_prompt(
-            file_path=file_path, content=content, analysis_results=analysis_results, similar_patterns=similar_patterns,
+            file_path=file_path,
+            content=content,
+            analysis_results=analysis_results,
+            similar_patterns=similar_patterns,
         )
 
         # Get AI review
@@ -212,7 +220,10 @@ class ReviewEngine:
         return ai_review
 
     def _combine_results(
-        self, file_path: Path, analysis_results: list[AnalysisResult], ai_review: dict[str, Any],
+        self,
+        file_path: Path,
+        analysis_results: list[AnalysisResult],
+        ai_review: dict[str, Any],
     ) -> ReviewResult:
         """Combine all analysis results into final review."""
         # Count violations by severity

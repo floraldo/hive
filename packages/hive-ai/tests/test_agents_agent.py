@@ -1,4 +1,5 @@
 """Tests for hive_ai.agents.agent module."""
+
 from __future__ import annotations
 
 import asyncio
@@ -531,7 +532,7 @@ class TestBaseAgentMemory:
             name="test_agent",
             description="Test agent",
             model="claude-3-sonnet",
-            )
+        )
 
     @pytest.mark.asyncio
     async def test_remember_short_term(self, agent):

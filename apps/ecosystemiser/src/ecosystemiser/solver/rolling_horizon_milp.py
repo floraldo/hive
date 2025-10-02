@@ -172,7 +172,9 @@ class RollingHorizonMILPSolver(BaseSolver):
         # Calculate total objective (if all windows optimal)
         total_objective = None
         if overall_status in ["optimal", "feasible"]:
-            objectives = [r.get("objective_value", 0) for r in all_window_results if r.get("objective_value") is not None]
+            objectives = [
+                r.get("objective_value", 0) for r in all_window_results if r.get("objective_value") is not None
+            ]
             if objectives:
                 total_objective = sum(objectives)
 

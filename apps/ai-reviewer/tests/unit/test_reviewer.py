@@ -213,7 +213,11 @@ def process():
 
         # Medium score should suggest rework
         medium_metrics = QualityMetrics(
-            code_quality=70, test_coverage=60, documentation=50, security=75, architecture=70,
+            code_quality=70,
+            test_coverage=60,
+            documentation=50,
+            security=75,
+            architecture=70,
         )
         decision = engine._make_decision(medium_metrics, [])
         assert decision == ReviewDecision.REWORK
@@ -348,7 +352,10 @@ def do_stuff(x):
         }
 
         result = engine.review_task(
-            task_id="poor-001", task_description="Process user input", code_files=poor_code, test_results=None,
+            task_id="poor-001",
+            task_description="Process user input",
+            code_files=poor_code,
+            test_results=None,
         )
 
         assert result.decision in [ReviewDecision.REJECT, ReviewDecision.ESCALATE]

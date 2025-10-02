@@ -89,11 +89,15 @@ def run_battery_capacity_sweep() -> Any:
 
     # Create battery capacity sweep
     battery_values = ParametricSweepEnhancement.create_battery_capacity_sweep(
-        base_capacity=100, num_points=7, range_factor=3.0,
+        base_capacity=100,
+        num_points=7,
+        range_factor=3.0,
     )
 
     battery_sweep = ParameterSweepSpec(
-        component_name="battery", parameter_path="technical.capacity_nominal", values=battery_values,
+        component_name="battery",
+        parameter_path="technical.capacity_nominal",
+        values=battery_values,
     )
 
     # Configure study

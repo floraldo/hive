@@ -347,17 +347,29 @@ class GoldenRuleVisitor(ast.NodeVisitor):
             # Also accept app-specific base error patterns (e.g., XxxError that ends with Error and starts with capital)
             # These are intermediate base classes that should themselves inherit from BaseError
             app_specific_base_patterns = {
-                "EcoSystemiserError", "HiveError", "GuardianError",  # Known app bases
-                "SimulationError", "ProfileError", "SolverError", "ComponentError", "DatabaseError", "EventBusError",  # Domain bases
-                "TaskError", "WorkerError", "ClaudeError",  # Service bases
+                "EcoSystemiserError",
+                "HiveError",
+                "GuardianError",  # Known app bases
+                "SimulationError",
+                "ProfileError",
+                "SolverError",
+                "ComponentError",
+                "DatabaseError",
+                "EventBusError",  # Domain bases
+                "TaskError",
+                "WorkerError",
+                "ClaudeError",  # Service bases
                 "MonitoringServiceError",  # Monitoring bases
             }
 
             has_valid_base = any(
-                isinstance(base, ast.Name) and (
-                    base.id in valid_bases or
-                    base.id in app_specific_base_patterns or
-                    (base.id.endswith("Error") and base.id != node.name)  # Allow any XxxError base (inheritance chain)
+                isinstance(base, ast.Name)
+                and (
+                    base.id in valid_bases
+                    or base.id in app_specific_base_patterns
+                    or (
+                        base.id.endswith("Error") and base.id != node.name
+                    )  # Allow any XxxError base (inheritance chain)
                 )
                 for base in node.bases
             )
@@ -488,25 +500,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
             if module_name.startswith(app_name_normalized):
                 return False
 
-        # Platform app exceptions (DEPRECATED - migrate to hive-orchestration)
-        # Documented in .claude/ARCHITECTURE_PATTERNS.md
-        # NOTE: These are still allowed but should be migrated to hive-orchestration package
-        DEPRECATED_PLATFORM_EXCEPTIONS = {
-            "hive_orchestrator.core.db": ["ai_planner", "ai_deployer"],
-            "hive_orchestrator.core.bus": ["ai_planner", "ai_deployer"],
-        }
-
-        # Check if this is a deprecated platform app import from an allowed app
-        for platform_module, allowed_apps in DEPRECATED_PLATFORM_EXCEPTIONS.items():
-            if module_name.startswith(platform_module):
-                if self.context.app_name and self.context.app_name in allowed_apps:
-                    # Still allowed but deprecated - apps should migrate to hive-orchestration
-                    # TODO: Add deprecation warning in future validator enhancement
-                    return False  # Allowed (but deprecated)
-                # Otherwise, importing platform core from non-allowed app is invalid
-
         # Allow imports from other apps' core modules (general pattern)
-        # Note: Platform apps above are more specific and take precedence
         if ".core." in module_name or module_name.endswith(".core"):
             return False
 

@@ -201,7 +201,11 @@ class AdvancedTimeoutManager:
         logger.debug(f"Operation {operation_name} completed in {duration:.3f}s (timeout: {timeout:.1f}s)")
 
     async def _record_timeout_async(
-        self, operation_name: str, duration: float, timeout: float, retry_attempt: int,
+        self,
+        operation_name: str,
+        duration: float,
+        timeout: float,
+        retry_attempt: int,
     ) -> None:
         """Record timeout occurrence."""
         metrics = self._operation_metrics[operation_name]

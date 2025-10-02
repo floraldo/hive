@@ -109,7 +109,10 @@ class CertificationTestConductor:
 
                 cmd_args = shlex.split(command)
                 proc = subprocess.Popen(
-                    cmd_args, stdout=stdout_file, stderr=stderr_file, preexec_fn=os.setsid if os.name != "nt" else None,
+                    cmd_args,
+                    stdout=stdout_file,
+                    stderr=stderr_file,
+                    preexec_fn=os.setsid if os.name != "nt" else None,
                 )
                 self.processes[name] = proc
                 self.log(f"{name} started with PID {proc.pid}", "SUCCESS")

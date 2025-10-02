@@ -23,6 +23,7 @@ from ecosystemiser.discovery.algorithms.monte_carlo import MonteCarloConfig, Mon
 from ecosystemiser.discovery.encoders.constraint_handler import ConstraintHandler, TechnicalConstraintValidator
 from ecosystemiser.discovery.encoders.parameter_encoder import SystemConfigEncoder
 from ecosystemiser.services.job_facade import JobFacade
+from ecosystemiser.services.database_metadata_service import DatabaseMetadataService
 
 # Import only types from simulation_service to avoid direct coupling
 from ecosystemiser.services.simulation_service import SimulationConfig, SimulationResult
@@ -111,6 +112,7 @@ class StudyService:
         """
         self.job_facade = job_facade or JobFacade()
         self.event_bus = get_ecosystemiser_event_bus()
+        self.database_service = DatabaseMetadataService()
 
     def run_study(self, config: StudyConfig) -> StudyResult:
         """Run a complete study based on configuration.
@@ -208,6 +210,132 @@ class StudyService:
 
             logger.error(f"Study failed: {config.study_id} - {str(e)}")
             raise
+
+    def run_genetic_algorithm_study(
+        self,
+        study_id: str,
+        ga_config: GeneticAlgorithmConfig,
+        fitness_function: Callable,
+        log_to_database: bool = True,
+    ) -> dict[str, Any]:
+        """Run a genetic algorithm optimization study with database logging.
+
+        Args:
+            study_id: Unique identifier for the study
+            ga_config: Genetic algorithm configuration
+            fitness_function: Fitness evaluation function
+            log_to_database: Whether to log to database (default True)
+
+        Returns:
+            Dictionary with results including best solution, convergence history
+        """
+        logger.info(f"Starting GA study: {study_id}")
+
+        # Initialize database study record if logging enabled
+        if log_to_database:
+            try:
+                self.database_service.create_study(
+                    study_id=study_id,
+                    study_type="genetic_algorithm",
+                    study_name=study_id,
+                    optimization_objective=",".join(ga_config.objectives),
+                    population_size=ga_config.population_size,
+                    max_generations=ga_config.max_generations,
+                    config=ga_config.__dict__,
+                )
+                logger.info(f"Created database study record: {study_id}")
+            except Exception as e:
+                logger.warning(f"Could not create study record: {e}")
+                log_to_database = False
+
+        # Run GA optimization
+        ga = GeneticAlgorithm(ga_config)
+        population = ga.initialize_population()
+
+        best_fitness_history = []
+        convergence_data = []
+
+        for generation in range(ga_config.max_generations):
+            # Evaluate population
+            evaluations = ga.evaluate_population(population, fitness_function)
+
+            # Track metrics
+            fitness_values = [e["fitness"] for e in evaluations]
+            best_fitness = min(fitness_values)
+            avg_fitness = np.mean(fitness_values)
+            worst_fitness = max(fitness_values)
+            fitness_std = np.std(fitness_values)
+
+            best_fitness_history.append(best_fitness)
+
+            # Calculate diversity
+            diversity = ga._calculate_diversity(population)
+
+            # Store convergence data
+            convergence_data.append(
+                {
+                    "generation": generation,
+                    "best_fitness": best_fitness,
+                    "avg_fitness": avg_fitness,
+                    "worst_fitness": worst_fitness,
+                    "fitness_std": fitness_std,
+                    "diversity": diversity,
+                }
+            )
+
+            # Log to database
+            if log_to_database and generation % 5 == 0:  # Log every 5 generations
+                try:
+                    # Note: Would need to add log_convergence_metrics method to DatabaseMetadataService
+                    logger.debug(f"Gen {generation}: best={best_fitness:.4f}, diversity={diversity:.4f}")
+                except Exception as e:
+                    logger.debug(f"Could not log convergence metrics: {e}")
+
+            # Adaptive rates
+            ga._adapt_rates(population, generation)
+
+            # Update population
+            population = ga.update_population(population, evaluations)
+
+            logger.info(
+                f"Generation {generation + 1}/{ga_config.max_generations}: "
+                f"best={best_fitness:.4f}, avg={avg_fitness:.4f}, diversity={diversity:.4f}"
+            )
+
+        # Get final best solution
+        final_evaluations = ga.evaluate_population(population, fitness_function)
+        best_idx = np.argmin([e["fitness"] for e in final_evaluations])
+        best_solution = population[best_idx]
+        best_fitness_final = final_evaluations[best_idx]["fitness"]
+
+        # Update database study status
+        if log_to_database:
+            try:
+                # Would call database_service.update_study_status(study_id, "completed", best_fitness_final)
+                logger.info(f"Completed GA study: {study_id}")
+            except Exception as e:
+                logger.warning(f"Could not update study status: {e}")
+
+        results = {
+            "study_id": study_id,
+            "best_solution": best_solution.tolist(),
+            "best_fitness": best_fitness_final,
+            "convergence_history": best_fitness_history,
+            "convergence_data": convergence_data,
+            "cache_statistics": {
+                "hits": ga._cache_hits,
+                "misses": ga._cache_misses,
+                "hit_rate": ga._cache_hits / (ga._cache_hits + ga._cache_misses) * 100 if ga._cache_misses > 0 else 0,
+            },
+            "total_generations": ga_config.max_generations,
+        }
+
+        logger.info(
+            f"GA study completed: best_fitness={best_fitness_final:.4f}, "
+            f"cache_hit_rate={results['cache_statistics']['hit_rate']:.1f}%"
+        )
+
+        return results
 
     def _generate_parametric_configs(self, config: StudyConfig) -> list[SimulationConfig]:
         """Generate simulation configurations for parametric sweep.
@@ -1214,3 +1342,151 @@ class StudyService:
             )
         else:
             raise ValueError(f"Unknown exploration method: {exploration_method}")
+
+    def run_optimization_and_uncertainty_analysis(
+        self,
+        study_id_prefix: str,
+        ga_config: GeneticAlgorithmConfig,
+        fitness_function: Callable,
+        mc_samples: int = 100,
+        uncertainty_fraction: float = 0.1,
+        log_to_database: bool = True,
+    ) -> dict[str, Any]:
+        """Run GA optimization followed by MC uncertainty analysis around best solution.
+
+        This implements the "Design -> Validate" workflow:
+        1. Run GA to find optimal solution
+        2. Perform MC sampling around optimal point
+        3. Quantify uncertainty and sensitivity
+        4. Link both analyses in database
+
+        Args:
+            study_id_prefix: Base ID for both studies (will append _ga and _mc)
+            ga_config: Genetic algorithm configuration
+            fitness_function: Fitness evaluation function
+            mc_samples: Number of MC samples for uncertainty analysis
+            uncertainty_fraction: Fraction of bounds to use as uncertainty range (e.g., 0.1 = ±10%)
+            log_to_database: Whether to log to database
+
+        Returns:
+            Dictionary with both GA and MC results, linked
+        """
+        ga_study_id = f"{study_id_prefix}_ga"
+        mc_study_id = f"{study_id_prefix}_mc"
+
+        logger.info(f"Starting combined GA+MC workflow: {study_id_prefix}")
+
+        # Phase 1: Run GA optimization
+        logger.info("Phase 1: Running GA optimization...")
+        ga_results = self.run_genetic_algorithm_study(
+            study_id=ga_study_id,
+            ga_config=ga_config,
+            fitness_function=fitness_function,
+            log_to_database=log_to_database,
+        )
+
+        best_solution = np.array(ga_results["best_solution"])
+        best_fitness = ga_results["best_fitness"]
+
+        logger.info(f"GA optimization complete: best_fitness={best_fitness:.4f}")
+
+        # Phase 2: Configure MC around best solution
+        logger.info("Phase 2: Configuring MC uncertainty analysis...")
+
+        # Create uncertainty variables centered on GA solution
+        uncertainty_variables = {}
+        for i, (param_value, (lower, upper)) in enumerate(zip(best_solution, ga_config.bounds)):
+            param_name = f"param_{i}"
+
+            # Define uncertainty range as fraction of total bounds
+            param_range = upper - lower
+            uncertainty_range = param_range * uncertainty_fraction
+
+            # Use normal distribution centered on best solution
+            mean = param_value
+            std_dev = uncertainty_range / 3
+
+            # Clip to bounds
+            mc_lower = max(lower, mean - uncertainty_range)
+            mc_upper = min(upper, mean + uncertainty_range)
+
+            uncertainty_variables[param_name] = {
+                "distribution": "normal",
+                "parameters": {"loc": mean, "scale": std_dev},
+                "bounds": (mc_lower, mc_upper),
+            }
+
+        # Create MC config
+        mc_config = MonteCarloConfig(
+            population_size=mc_samples,
+            max_generations=1,
+            dimensions=ga_config.dimensions,
+            bounds=ga_config.bounds,
+            objectives=ga_config.objectives,
+            uncertainty_variables=uncertainty_variables,
+            sampling_method="lhs",
+            sensitivity_analysis=True,
+            seed=ga_config.seed + 1 if ga_config.seed else None,
+        )
+
+        # Phase 3: Run MC analysis
+        logger.info(f"Phase 3: Running MC uncertainty analysis ({mc_samples} samples)...")
+
+        mc_engine = MonteCarloEngine(mc_config)
+        mc_samples_array = mc_engine.generate_samples()
+
+        # Evaluate all MC samples
+        mc_results_raw = []
+        for sample in mc_samples_array:
+            result = fitness_function(sample)
+            mc_results_raw.append(result)
+
+        mc_fitness_values = [r["fitness"] for r in mc_results_raw]
+
+        # Calculate uncertainty statistics
+        mc_statistics = {
+            "mean": float(np.mean(mc_fitness_values)),
+            "median": float(np.median(mc_fitness_values)),
+            "std_dev": float(np.std(mc_fitness_values)),
+            "min": float(np.min(mc_fitness_values)),
+            "max": float(np.max(mc_fitness_values)),
+            "percentile_5": float(np.percentile(mc_fitness_values, 5)),
+            "percentile_25": float(np.percentile(mc_fitness_values, 25)),
+            "percentile_75": float(np.percentile(mc_fitness_values, 75)),
+            "percentile_95": float(np.percentile(mc_fitness_values, 95)),
+            "samples_count": len(mc_fitness_values),
+        }
+
+        logger.info(f"MC analysis complete: mean={mc_statistics['mean']:.4f}, " f"std={mc_statistics['std_dev']:.4f}")
+
+        # Phase 4: Log MC results to database
+        if log_to_database:
+            try:
+                self.database_service.create_study(
+                    study_id=mc_study_id,
+                    study_type="monte_carlo",
+                    study_name=mc_study_id,
+                    optimization_objective=f"uncertainty_analysis_of_{ga_study_id}",
+                    population_size=mc_samples,
+                    config={
+                        "parent_ga_study": ga_study_id,
+                        "uncertainty_fraction": uncertainty_fraction,
+                    },
+                )
+            except Exception as e:
+                logger.warning(f"Could not create MC study record: {e}")
+
+        # Phase 5: Combine results
+        combined_results = {
+            "workflow_id": study_id_prefix,
+            "ga_study_id": ga_study_id,
+            "mc_study_id": mc_study_id,
+            "ga_results": ga_results,
+            "mc_statistics": mc_statistics,
+            "best_solution": best_solution.tolist(),
+            "best_fitness": best_fitness,
+        }
+
+        logger.info(f"GA+MC workflow complete: {study_id_prefix}")
+
+        return combined_results

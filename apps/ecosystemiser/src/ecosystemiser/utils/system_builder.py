@@ -23,7 +23,7 @@ class SystemBuilder:
         self,
         config_path: Path | None = None,
         component_repo: ComponentRepository | None = None,
-        config_dict: dict[str, Any] | None = None
+        config_dict: dict[str, Any] | None = None,
     ) -> None:
         """Initialize dynamic system builder.
 

@@ -12,7 +12,9 @@ T = TypeVar("T")
 
 
 async def gather_with_concurrency_async(
-    *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False,
+    *coros: Awaitable[T],
+    max_concurrent: int = 10,
+    return_exceptions: bool = False,
 ) -> list[Any]:
     """
     Gather coroutines with concurrency limit.

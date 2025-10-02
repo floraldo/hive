@@ -33,7 +33,51 @@ def create_planned_subtasks_from_plan(
         >>> count = create_planned_subtasks_from_plan("plan-123")
         >>> print(f"Created {count} subtasks")
     """
-    raise NotImplementedError("Plan subtask creation will be implemented during extraction from hive-orchestrator")
+    import json
+    import uuid
+    from ..database import get_connection, transaction
+
+    # Get the execution plan
+    with get_connection() as conn:
+        cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
+        row = cursor.fetchone()
+
+        if not row or not row[0]:
+            logger.warning(f"Execution plan {plan_id} not found")
+            return 0
+
+        plan_data = json.loads(row[0])
+
+    subtasks = plan_data.get("subtasks", [])
+    count = 0
+
+    with transaction() as conn:
+        for subtask in subtasks:
+            task_id = str(uuid.uuid4())
+            conn.execute(
+                """
+                INSERT INTO tasks (id, title, description, task_type, priority, payload)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    task_id,
+                    subtask.get("title", "Planned Subtask"),
+                    subtask.get("description", ""),
+                    subtask.get("task_type", "planned"),
+                    subtask.get("priority", 1),
+                    json.dumps(
+                        {
+                            "plan_id": plan_id,
+                            "subtask_id": subtask.get("id"),
+                            "dependencies": subtask.get("dependencies", []),
+                        }
+                    ),
+                ),
+            )
+            count += 1
+
+    logger.info(f"Created {count} subtasks from plan {plan_id}")
+    return count
 
 
 def get_execution_plan_status(plan_id: str) -> str | None:
@@ -52,7 +96,12 @@ def get_execution_plan_status(plan_id: str) -> str | None:
         >>> if status == "in_progress":
         ...     print("Plan is currently executing")
     """
-    raise NotImplementedError("Plan status query will be implemented during extraction from hive-orchestrator")
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        cursor = conn.execute("SELECT status FROM execution_plans WHERE id = ?", (plan_id,))
+        row = cursor.fetchone()
+        return row[0] if row else None
 
 
 def check_subtask_dependencies(task_id: str) -> bool:
@@ -74,7 +123,38 @@ def check_subtask_dependencies(task_id: str) -> bool:
         ... else:
         ...     print("Waiting for dependencies")
     """
-    raise NotImplementedError("Dependency checking will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        # Get the task and its payload
+        cursor = conn.execute("SELECT payload FROM tasks WHERE id = ?", (task_id,))
+        row = cursor.fetchone()
+
+        if not row or not row[0]:
+            return True  # No payload means no dependencies
+
+        payload = json.loads(row[0])
+        dependencies = payload.get("dependencies", [])
+
+        if not dependencies:
+            return True  # No dependencies to check
+
+        # Check if all dependency tasks are completed
+        for dep_id in dependencies:
+            cursor = conn.execute(
+                """
+                SELECT status FROM tasks
+                WHERE (id = ? OR json_extract(payload, '$.subtask_id') = ?)
+                """,
+                (dep_id, dep_id),
+            )
+
+            dep_row = cursor.fetchone()
+            if not dep_row or dep_row[0] != "completed":
+                return False  # Dependency not completed
+
+        return True  # All dependencies satisfied
 
 
 def get_next_planned_subtask(plan_id: str) -> dict[str, Any] | None:
@@ -99,7 +179,30 @@ def get_next_planned_subtask(plan_id: str) -> dict[str, Any] | None:
         ... else:
         ...     print("No tasks ready or plan complete")
     """
-    raise NotImplementedError("Next subtask query will be implemented during extraction from hive-orchestrator")
+    import json
+    from ..database import get_connection
+
+    with get_connection() as conn:
+        # Get queued tasks for this plan
+        cursor = conn.execute(
+            """
+            SELECT * FROM tasks
+            WHERE json_extract(payload, '$.plan_id') = ? AND status = 'queued'
+            ORDER BY priority DESC, created_at ASC
+            """,
+            (plan_id,),
+        )
+
+        for row in cursor.fetchall():
+            task = dict(row)
+            # Check if dependencies are satisfied
+            if check_subtask_dependencies(task["id"]):
+                task["payload"] = json.loads(task["payload"]) if task["payload"] else None
+                task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
+                task["tags"] = json.loads(task["tags"]) if task["tags"] else []
+                return task
+
+        return None  # No ready tasks
 
 
 def mark_plan_execution_started(plan_id: str) -> bool:
@@ -117,7 +220,22 @@ def mark_plan_execution_started(plan_id: str) -> bool:
     Example:
         >>> success = mark_plan_execution_started("plan-123")
     """
-    raise NotImplementedError("Plan status update will be implemented during extraction from hive-orchestrator")
+    from ..database import transaction
+
+    try:
+        with transaction() as conn:
+            cursor = conn.execute(
+                """
+                UPDATE execution_plans
+                SET status = 'executing'
+                WHERE id = ? AND status IN ('draft', 'approved')
+                """,
+                (plan_id,),
+            )
+            return cursor.rowcount > 0
+    except Exception as e:
+        logger.error(f"Error marking plan {plan_id} as started: {e}")
+        return False
 
 
 def check_subtask_dependencies_batch(task_ids: list[str]) -> dict[str, bool]:
@@ -136,7 +254,10 @@ def check_subtask_dependencies_batch(task_ids: list[str]) -> dict[str, bool]:
         >>> results = check_subtask_dependencies_batch(["task-1", "task-2", "task-3"])
         >>> ready_tasks = [tid for tid, ready in results.items() if ready]
     """
-    raise NotImplementedError("Batch dependency checking will be implemented during extraction from hive-orchestrator")
+    results = {}
+    for task_id in task_ids:
+        results[task_id] = check_subtask_dependencies(task_id)
+    return results
 
 
 def get_execution_plan_status_cached(plan_id: str) -> str | None:
@@ -154,7 +275,9 @@ def get_execution_plan_status_cached(plan_id: str) -> str | None:
     Example:
         >>> status = get_execution_plan_status_cached("plan-123")
     """
-    raise NotImplementedError("Cached plan status will be implemented during extraction from hive-orchestrator")
+    # For now, just call the regular function
+    # Caching can be added later with hive-cache package
+    return get_execution_plan_status(plan_id)
 
 
 __all__ = [

@@ -16,8 +16,6 @@ from .postgres_connector import create_connection_pool, get_postgres_connection,
 from .sqlite_connector import get_sqlite_connection, sqlite_transaction
 from .sqlite_factory import SQLiteConnectionFactory, SQLiteConnectionManager, create_sqlite_manager
 from .utils import (
-    async_get_database_info,
-    async_table_exists,
     backup_database,
     batch_insert,
     create_table_if_not_exists,
@@ -70,6 +68,4 @@ __all__ = [
     "insert_or_update",
     "batch_insert",
     "migrate_database",
-    "async_table_exists",
-    "async_get_database_info",
 ]

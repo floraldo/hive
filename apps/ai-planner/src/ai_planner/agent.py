@@ -14,29 +14,21 @@ import signal
 import sys
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
 from hive_logging import get_logger
 
-# Use orchestrator's core database functions
-try:
-    from hive_orchestrator.core.db import (
-        create_task,
-        create_task_async,
-        get_async_connection,
-        get_connection,
-        get_tasks_by_status_async,
-        update_task_status_async,
-    )
+# Use hive-orchestration package for task management
+from hive_orchestration import (
+    create_task,
+    get_tasks_by_status,
+    update_task_status,
+)
 
-    ASYNC_AVAILABLE = True
-except ImportError:
-    # Fallback to basic functions if async not available
-    from hive_orchestrator.core.db import create_task, get_connection
-
-    ASYNC_AVAILABLE = False
+# Async operations not yet available in hive-orchestration
+ASYNC_AVAILABLE = False
 
 
 # Claude bridge functionality has been moved to individual apps
@@ -46,7 +38,12 @@ class ClaudeService:
         self.mock_mode = getattr(config, "mock_mode", True)
 
     def generate_execution_plan(
-        self, task_description: str, context_data: dict[str, Any], priority: int, requestor: str, use_cache: bool = True,
+        self,
+        task_description: str,
+        context_data: dict[str, Any],
+        priority: int,
+        requestor: str,
+        use_cache: bool = True,
     ) -> dict[str, Any]:
         """Generate an execution plan for a task.
 
@@ -94,7 +91,8 @@ class ClaudeBridgeConfig:
 
 
 def get_claude_service(
-    config: dict[str, Any] | None = None, rate_config: dict[str, Any] | None = None,
+    config: dict[str, Any] | None = None,
+    rate_config: dict[str, Any] | None = None,
 ) -> ClaudeService:
     """Get a Claude service instance with optional configuration.
 
@@ -123,16 +121,10 @@ from ai_planner.core.errors import (
 # Initialize error reporter following the pattern,
 ErrorReporter = get_error_reporter  # Use the core error reporter
 
-# Database imports - use orchestrator's extended database layer for Hive schema,
-try:
-    # Import the orchestrator's Hive-specific database layer (extends hive-db-utils)
-    from hive_orchestrator.core.db import get_connection, get_pooled_connection
+# Database imports - use hive-db package for connections
+from hive_db import get_sqlite_connection
 
-    DATABASE_AVAILABLE = (True,)
-except ImportError:
-    # Fallback to generic database utilities if orchestrator not available,
-
-    DATABASE_AVAILABLE = False
+DATABASE_AVAILABLE = True
 
 # Note: AI Planner communicates with orchestrator through shared database,
 # This maintains app independence while accessing Hive-specific schema
@@ -240,7 +232,7 @@ class AIPlanner:
         try:
 
             def _connect():
-                self.db_connection = get_connection()
+                self.db_connection = get_sqlite_connection()
                 return self.db_connection
 
             # Use recovery strategy for database connection
@@ -293,7 +285,7 @@ class AIPlanner:
                 SET status = 'assigned', assigned_at = ?, assigned_agent = ?,
                 WHERE id = ?,
             """,
-                (datetime.now(UTC).isoformat(), self.agent_id, task_id),
+                (datetime.now(timezone.utc).isoformat(), self.agent_id, task_id),
             )
 
             self.db_connection.commit()
@@ -416,7 +408,7 @@ class AIPlanner:
             enhanced_plan = {
                 **claude_response,
                 "task_id": task["id"],
-                "created_at": datetime.now(UTC).isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
                 "status": "generated",
                 "metadata": {
                     "generator": "ai-planner-v2-claude",
@@ -650,7 +642,9 @@ class AIPlanner:
                     logger.debug(f"Rollback failed: {rollback_error}")
 
             error = DatabaseConnectionError(
-                message="Failed to save execution plan to database", original_error=e, retry_count=0,
+                message="Failed to save execution plan to database",
+                original_error=e,
+                retry_count=0,
             )
             self.error_reporter.report_error(error)
             return False
@@ -680,7 +674,7 @@ class AIPlanner:
                     SET status = ?, completed_at = ?,
                     WHERE id = ?,
                 """,
-                    (status, datetime.now(UTC).isoformat(), task_id),
+                    (status, datetime.now(timezone.utc).isoformat(), task_id),
                 )
             else:
                 cursor.execute(
@@ -698,7 +692,9 @@ class AIPlanner:
 
         except Exception as e:
             error = DatabaseConnectionError(
-                message=f"Failed to update task status to {status}", original_error=e, retry_count=0,
+                message=f"Failed to update task status to {status}",
+                original_error=e,
+                retry_count=0,
             )
             self.error_reporter.report_error(error)
             return False
@@ -918,7 +914,10 @@ class AIPlanner:
                 return None
 
         async def update_task_status_async(
-            self, task_id: str, status: str, completion_data: dict | None = None,
+            self,
+            task_id: str,
+            status: str,
+            completion_data: dict | None = None,
         ) -> bool:
             """
             Async version of update_task_status.
@@ -940,7 +939,7 @@ class AIPlanner:
                             SET status = ?, completed_at = ?,
                             WHERE id = ?,
                         """,
-                            (status, datetime.now(UTC).isoformat(), task_id),
+                            (status, datetime.now(timezone.utc).isoformat(), task_id),
                         )
                     else:
                         await conn.execute(
@@ -1083,7 +1082,11 @@ class WorkflowEventType(Enum):
 
 
 def create_workflow_event(
-    event_type: WorkflowEventType, workflow_id: str, task_id: str, source_agent: str, **kwargs,
+    event_type: WorkflowEventType,
+    workflow_id: str,
+    task_id: str,
+    source_agent: str,
+    **kwargs,
 ) -> dict[str, Any]:
     """Create a workflow event.
 
@@ -1102,7 +1105,7 @@ def create_workflow_event(
         "workflow_id": workflow_id,
         "task_id": task_id,
         "source_agent": source_agent,
-        "timestamp": datetime.now(UTC).isoformat() ** kwargs,
+        "timestamp": datetime.now(timezone.utc).isoformat() ** kwargs,
     }
 
 

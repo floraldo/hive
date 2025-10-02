@@ -290,15 +290,9 @@ class SimulationService:
         """
         # Create system builder (prefer in-memory config for performance)
         if config.system_config is not None:
-            builder = SystemBuilder(
-                config_dict=config.system_config,
-                component_repo=self.component_repo
-            )
+            builder = SystemBuilder(config_dict=config.system_config, component_repo=self.component_repo)
         else:
-            builder = SystemBuilder(
-                config_path=Path(config.system_config_path),
-                component_repo=self.component_repo
-            )
+            builder = SystemBuilder(config_path=Path(config.system_config_path), component_repo=self.component_repo)
 
         # Build system
         system = builder.build()

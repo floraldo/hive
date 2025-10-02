@@ -23,7 +23,7 @@ class WorkerStatus(str, Enum):
     ERROR = "error"
 
 
-class Worker(BaseModel, IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
+class Worker(IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
     """
     Orchestration worker model.
 

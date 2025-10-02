@@ -450,9 +450,3 @@ async def simulate_prophecy_analysis_async():
 
 if __name__ == "__main__":
     asyncio.run(demonstrate_genesis_phase1_async())
-
-
-
-
-
-

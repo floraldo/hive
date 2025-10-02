@@ -1,5 +1,6 @@
 """Base classes for optimization algorithms."""
 
+import time
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -95,6 +96,7 @@ class BaseOptimizationAlgorithm(ABC):
         self.current_generation = 0
         self.current_evaluations = 0
         self.convergence_history = []
+        self._fitness_function = None  # Store fitness function for offspring evaluation
 
         # Set random seed for reproducibility
         if config.seed is not None:
@@ -162,6 +164,9 @@ class BaseOptimizationAlgorithm(ABC):
 
         try:
             self.status = OptimizationStatus.IN_PROGRESS
+
+            # Store fitness function for offspring evaluation in update_population
+            self._fitness_function = fitness_function
 
             # Initialize population
             population = self.initialize_population()
@@ -302,7 +307,10 @@ class BaseOptimizationAlgorithm(ABC):
         # Find best solution
         if len(self.config.objectives) == 1:
             # Single objective - find minimum
-            best_idx = (min(range(len(evaluations)), key=lambda i: evaluations[i].get("fitness", float("inf"))),)
+            best_idx = min(range(len(evaluations)), key=lambda i: evaluations[i].get("fitness", float("inf")))
+
+            # Debug: log the best evaluation
+            logger.debug(f"Best index: {best_idx}, Best eval: {evaluations[best_idx]}")
 
             return OptimizationResult(
                 best_solution=population[best_idx],

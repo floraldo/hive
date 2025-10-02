@@ -122,7 +122,10 @@ def create_7day_system():
     # Create components
     grid_params = GridParams(
         technical=GridTechnicalParams(
-            capacity_nominal=100.0, import_tariff=0.25, export_tariff=0.10, fidelity_level=FidelityLevel.SIMPLE,
+            capacity_nominal=100.0,
+            import_tariff=0.25,
+            export_tariff=0.10,
+            fidelity_level=FidelityLevel.SIMPLE,
         ),
     )
     grid = Grid("Grid", grid_params, N)
@@ -151,7 +154,10 @@ def create_7day_system():
 
     demand_params = PowerDemandParams(
         technical=PowerDemandTechnicalParams(
-            capacity_nominal=12.5, peak_demand=12.5, load_profile_type="variable", fidelity_level=FidelityLevel.SIMPLE,
+            capacity_nominal=12.5,
+            peak_demand=12.5,
+            load_profile_type="variable",
+            fidelity_level=FidelityLevel.SIMPLE,
         ),
     )
     demand = PowerDemand("PowerDemand", demand_params, N)

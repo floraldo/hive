@@ -641,7 +641,8 @@ class PVGISAdapter(BaseAdapter):
         # PVGIS generally uses standard units, minimal conversion needed
         conversions = {
             # Solar elevation to zenith angle
-            "solar_zenith": lambda x: 90 - x,
+            "solar_zenith": lambda x: 90
+            - x,
         }
 
         if canonical_name in conversions:

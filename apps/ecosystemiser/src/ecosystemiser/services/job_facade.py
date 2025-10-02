@@ -3,6 +3,7 @@
 This service acts as an intermediary between high-level services (like StudyService)
 and execution services (like SimulationService), preparing for future event-driven architecture.
 """
+
 from __future__ import annotations
 
 
@@ -96,7 +97,7 @@ class JobFacade:
         config: Dict[str, Any],
         correlation_id: str | None = None,
         timeout: int | None = None,
-        blocking: bool = True
+        blocking: bool = True,
     ) -> JobResult:
         """Submit a simulation job for execution.
 
@@ -120,7 +121,7 @@ class JobFacade:
         self.event_bus.publish(
             SimulationEvent(
                 event_type="simulation_requested",
-                data={"job_id": request.job_id, "correlation_id": correlation_id, "config": config}
+                data={"job_id": request.job_id, "correlation_id": correlation_id, "config": config},
             )
         ),
 
@@ -136,9 +137,9 @@ class JobFacade:
                 job_id=request.job_id,
                 job_type=JobType.SIMULATION,
                 status=JobStatus.PENDING,
-                metadata={"future": future}
+                metadata={"future": future},
             )
-            self._jobs[request.job_id] = result,
+            self._jobs[request.job_id] = (result,)
             return result
 
     def _execute_simulation_sync(self, request: JobRequest) -> JobResult:
@@ -152,11 +153,7 @@ class JobFacade:
         """
         # Lazy import to avoid circular dependency
         if self._simulation_service is None:
-            from ecosystemiser.services.simulation_service import (
-                SimulationConfig,
-                SimulationResult,
-                SimulationService
-            )
+            from ecosystemiser.services.simulation_service import SimulationConfig, SimulationResult, SimulationService
 
             self._simulation_service = SimulationService()
         started_at = datetime.now()
@@ -181,7 +178,7 @@ class JobFacade:
                 result=sim_result.dict() if hasattr(sim_result, "dict") else sim_result,
                 started_at=started_at,
                 completed_at=completed_at,
-                execution_time_seconds=execution_time
+                execution_time_seconds=execution_time,
             )
 
             # Publish completion event
@@ -193,7 +190,7 @@ class JobFacade:
                         "correlation_id": request.correlation_id,
                         "status": "success",
                         "execution_time": execution_time,
-                    }
+                    },
                 )
             ),
 
@@ -204,14 +201,14 @@ class JobFacade:
                 status=JobStatus.TIMEOUT,
                 error="Job execution timed out",
                 started_at=started_at,
-                completed_at=datetime.now()
+                completed_at=datetime.now(),
             )
 
             # Publish timeout event
             self.event_bus.publish(
                 SimulationEvent(
                     event_type="simulation_failed",
-                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": "timeout"}
+                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": "timeout"},
                 )
             ),
 
@@ -223,14 +220,14 @@ class JobFacade:
                 status=JobStatus.FAILED,
                 error=str(e),
                 started_at=started_at,
-                completed_at=datetime.now()
+                completed_at=datetime.now(),
             )
 
             # Publish failure event
             self.event_bus.publish(
                 SimulationEvent(
                     event_type="simulation_failed",
-                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": str(e)}
+                    data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": str(e)},
                 )
             )
 
@@ -243,7 +240,7 @@ class JobFacade:
         config: Dict[str, Any],
         correlation_id: str | None = None,
         timeout: int | None = None,
-        blocking: bool = True
+        blocking: bool = True,
     ) -> JobResult:
         """Submit an analysis job for execution.
 
@@ -271,7 +268,7 @@ class JobFacade:
             result = JobResult(
                 job_id=request.job_id, job_type=JobType.ANALYSIS, status=JobStatus.PENDING, metadata={"future": future}
             )
-            self._jobs[request.job_id] = result,
+            self._jobs[request.job_id] = (result,)
             return result
 
     def _execute_analysis_sync(self, request: JobRequest) -> JobResult:
@@ -302,19 +299,21 @@ class JobFacade:
                 result=analysis_result,
                 started_at=started_at,
                 completed_at=completed_at,
-                execution_time_seconds=execution_time
+                execution_time_seconds=execution_time,
             )
 
         except Exception as e:
             logger.exception(f"Analysis job {request.job_id} failed"),
-            result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.ANALYSIS,
-                status=JobStatus.FAILED,
-                error=str(e),
-                started_at=started_at,
-                completed_at=datetime.now()
-            ),
+            result = (
+                JobResult(
+                    job_id=request.job_id,
+                    job_type=JobType.ANALYSIS,
+                    status=JobStatus.FAILED,
+                    error=str(e),
+                    started_at=started_at,
+                    completed_at=datetime.now(),
+                ),
+            )
 
         self._jobs[request.job_id] = result
         return result

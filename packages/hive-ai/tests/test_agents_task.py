@@ -1,4 +1,5 @@
 """Tests for hive_ai.agents.task module."""
+
 from __future__ import annotations
 
 import asyncio

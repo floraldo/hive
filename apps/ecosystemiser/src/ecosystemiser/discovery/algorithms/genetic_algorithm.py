@@ -45,18 +45,84 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         """Initialize genetic algorithm.
 
         Args:
-            config: Genetic algorithm configuration,
+            config: Genetic algorithm configuration
+
+        Raises:
+            ValueError: If configuration parameters are invalid
         """
         super().__init__(config)
         self.ga_config = config
 
-        # Validate configuration
+        # Validate configuration parameters
+        self._validate_config(config)
+
+        # Initialize fitness cache for duplicate detection
+        self._fitness_cache: dict[tuple, dict[str, Any]] = {}
+        self._cache_hits = 0
+        self._cache_misses = 0
+
+    def _validate_config(self, config: GeneticAlgorithmConfig) -> None:
+        """Validate genetic algorithm configuration.
+
+        Args:
+            config: Configuration to validate
+
+        Raises:
+            ValueError: If any configuration parameter is invalid
+        """
+        # Validate rates
         if not 0 <= config.mutation_rate <= 1:
-            raise ValueError("Mutation rate must be between 0 and 1")
+            raise ValueError(f"Mutation rate must be between 0 and 1, got {config.mutation_rate}")
         if not 0 <= config.crossover_rate <= 1:
-            raise ValueError("Crossover rate must be between 0 and 1")
+            raise ValueError(f"Crossover rate must be between 0 and 1, got {config.crossover_rate}")
+        if not 0 <= config.elitism_ratio <= 1:
+            raise ValueError(f"Elitism ratio must be between 0 and 1, got {config.elitism_ratio}")
+
+        # Validate population
+        if config.population_size < 4:
+            raise ValueError(f"Population size must be >= 4 for crossover, got {config.population_size}")
         if config.tournament_size < 1:
-            raise ValueError("Tournament size must be at least 1")
+            raise ValueError(f"Tournament size must be >= 1, got {config.tournament_size}")
+
+        # Validate bounds
+        if config.dimensions < 1:
+            raise ValueError(f"Dimensions must be >= 1, got {config.dimensions}")
+        if len(config.bounds) != config.dimensions:
+            raise ValueError(f"Number of bounds ({len(config.bounds)}) must match dimensions ({config.dimensions})")
+
+        for i, (lower, upper) in enumerate(config.bounds):
+            if lower >= upper:
+                raise ValueError(f"Bound {i}: lower bound ({lower}) must be < upper bound ({upper})")
+
+        # Validate objectives
+        if not config.objectives:
+            raise ValueError("At least one objective must be specified")
+
+        logger.info(
+            "GA configuration validated",
+            extra={
+                "population_size": config.population_size,
+                "dimensions": config.dimensions,
+                "mutation_rate": config.mutation_rate,
+                "crossover_rate": config.crossover_rate,
+            },
+        )
+
+    def get_cache_statistics(self) -> dict[str, Any]:
+        """Get fitness cache statistics.
+
+        Returns:
+            Dict with cache hits, misses, and hit rate
+        """
+        total_accesses = self._cache_hits + self._cache_misses
+        hit_rate = (self._cache_hits / total_accesses * 100) if total_accesses > 0 else 0.0
+
+        return {
+            "hits": self._cache_hits,
+            "misses": self._cache_misses,
+            "total_accesses": total_accesses,
+            "hit_rate": hit_rate,
+        }
 
     def initialize_population(self) -> np.ndarray:
         """Initialize random population within bounds."""
@@ -73,64 +139,108 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         return population
 
     def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
-        """Evaluate fitness of population."""
+        """Evaluate fitness of population with caching for duplicate individuals."""
         evaluations = []
 
-        if self.config.parallel_evaluation and self.config.max_workers > 1:
-            # Parallel evaluation
-            with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
-                futures = [executor.submit(fitness_function, individual) for individual in population]
+        # Check cache for each individual
+        cache_results = []
+        uncached_indices = []
+        uncached_individuals = []
 
-                for future in futures:
+        for idx, individual in enumerate(population):
+            # Create hashable key from individual parameters
+            ind_key = tuple(np.round(individual, decimals=8))
+
+            if ind_key in self._fitness_cache:
+                cache_results.append((idx, self._fitness_cache[ind_key]))
+                self._cache_hits += 1
+            else:
+                uncached_indices.append(idx)
+                uncached_individuals.append(individual)
+                self._cache_misses += 1
+
+        # Evaluate only uncached individuals
+        uncached_evaluations = []
+
+        if uncached_individuals:
+            if self.config.parallel_evaluation and self.config.max_workers > 1:
+                # Parallel evaluation of uncached individuals
+                with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
+                    futures = [executor.submit(fitness_function, ind) for ind in uncached_individuals]
+
+                    for idx, future in zip(uncached_indices, futures):
+                        try:
+                            result = future.result()
+                            uncached_evaluations.append((idx, result))
+                            # Cache the result
+                            ind_key = tuple(np.round(uncached_individuals[uncached_indices.index(idx)], decimals=8))
+                            self._fitness_cache[ind_key] = result
+                        except Exception as e:
+                            logger.warning(f"Evaluation failed: {e}")
+                            error_result = {
+                                "fitness": float("inf"),
+                                "objectives": [float("inf")] * len(self.config.objectives),
+                                "valid": False,
+                                "error": str(e),
+                            }
+                            uncached_evaluations.append((idx, error_result))
+            else:
+                # Sequential evaluation of uncached individuals
+                for idx, individual in zip(uncached_indices, uncached_individuals):
                     try:
-                        result = future.result()
-                        evaluations.append(result)
+                        result = fitness_function(individual)
+                        uncached_evaluations.append((idx, result))
+                        # Cache the result
+                        ind_key = tuple(np.round(individual, decimals=8))
+                        self._fitness_cache[ind_key] = result
                     except Exception as e:
                         logger.warning(f"Evaluation failed: {e}")
-                        evaluations.append(
-                            {
-                                "fitness": float("inf"),
-                                "objectives": [float("inf")] * len(self.config.objectives),
-                                "valid": False,
-                                "error": str(e),
-                            },
-                        )
-        else:
-            # Sequential evaluation
-            for individual in population:
-                try:
-                    result = fitness_function(individual)
-                    evaluations.append(result)
-                except Exception as e:
-                    logger.warning(f"Evaluation failed: {e}")
-                    (
-                        evaluations.append(
-                            {
-                                "fitness": float("inf"),
-                                "objectives": [float("inf")] * len(self.config.objectives),
-                                "valid": False,
-                                "error": str(e),
-                            },
-                        ),
-                    )
+                        error_result = {
+                            "fitness": float("inf"),
+                            "objectives": [float("inf")] * len(self.config.objectives),
+                            "valid": False,
+                            "error": str(e),
+                        }
+                        uncached_evaluations.append((idx, error_result))
+
+        # Combine cached and uncached results in correct order
+        all_results = cache_results + uncached_evaluations
+        all_results.sort(key=lambda x: x[0])  # Sort by index
+        evaluations = [result for _, result in all_results]
+
+        if self._cache_hits + self._cache_misses > 0:
+            cache_hit_rate = self._cache_hits / (self._cache_hits + self._cache_misses) * 100
+            logger.debug(
+                f"Fitness cache: {self._cache_hits} hits, {self._cache_misses} misses ({cache_hit_rate:.1f}% hit rate)"
+            )
 
         return evaluations
 
     def update_population(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Update population using genetic operators."""
+        # Guard against missing fitness function (for backward compatibility with old tests)
+        if self._fitness_function is None:
+            raise RuntimeError(
+                "Fitness function not set. Call optimize() instead of update_population() directly, "
+                "or set self._fitness_function before calling this method."
+            )
+
         # Selection
         parent_indices = self._selection(evaluations)
         parents = population[parent_indices]
 
-        # Create offspring through crossover and mutation
-        offspring = self._create_offspring(parents)
+        # Create offspring through crossover and mutation (with adaptive rates)
+        offspring = self._create_offspring(parents, generation=self.current_generation)
 
         # Ensure bounds compliance
         offspring = self.validate_bounds(offspring)
 
         # Combine parents and offspring for replacement
         combined_population = np.vstack([population, offspring])
-        combined_evaluations = evaluations + self.evaluate_population(offspring, lambda x: {"fitness": 0})
+
+        # Evaluate offspring with the real fitness function
+        offspring_evaluations = self.evaluate_population(offspring, self._fitness_function)
+        combined_evaluations = evaluations + offspring_evaluations
 
         # Environmental selection (keep best individuals)
         survivor_indices = self._environmental_selection(combined_population, combined_evaluations)
@@ -205,23 +315,34 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return selected_indices
 
-    def _create_offspring(self, parents: np.ndarray) -> np.ndarray:
-        """Create offspring through crossover and mutation."""
+    def _create_offspring(self, parents: np.ndarray, generation: int = 0) -> np.ndarray:
+        """Create offspring through crossover and mutation with adaptive rates.
+
+        Args:
+            parents: Parent population
+            generation: Current generation number for adaptive rate calculation
+
+        Returns:
+            Offspring population
+        """
+        # Calculate adaptive rates based on population diversity
+        adapted_mutation, adapted_crossover = self._adapt_rates(parents, generation)
+
         offspring = []
 
         for i in range(0, len(parents), 2):
             parent1 = parents[i]
             parent2 = parents[(i + 1) % len(parents)]
 
-            # Crossover
-            if np.random.random() < self.ga_config.crossover_rate:
+            # Crossover with adapted rate
+            if np.random.random() < adapted_crossover:
                 child1, child2 = self._crossover(parent1, parent2)
             else:
                 child1, child2 = parent1.copy(), parent2.copy()
 
-            # Mutation
-            child1 = self._mutate(child1)
-            child2 = self._mutate(child2)
+            # Mutation with adapted rate
+            child1 = self._mutate(child1, mutation_rate=adapted_mutation)
+            child2 = self._mutate(child2, mutation_rate=adapted_mutation)
 
             offspring.extend([child1, child2])
 
@@ -276,22 +397,103 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         child2 = (1 - alpha) * parent1 + alpha * parent2
         return child1, child2
 
-    def _mutate(self, individual: np.ndarray) -> np.ndarray:
-        """Mutate individual."""
-        if self.ga_config.mutation_method == "polynomial":
-            return self._polynomial_mutation(individual)
-        elif self.ga_config.mutation_method == "uniform":
-            return self._uniform_mutation(individual)
-        else:
-            return self._gaussian_mutation(individual)
+    def _mutate(self, individual: np.ndarray, mutation_rate: float | None = None) -> np.ndarray:
+        """Mutate individual with optional adaptive mutation rate.
 
-    def _polynomial_mutation(self, individual: np.ndarray) -> np.ndarray:
-        """Polynomial mutation."""
+        Args:
+            individual: Individual to mutate
+            mutation_rate: Optional override for mutation rate (for adaptive rates)
+
+        Returns:
+            Mutated individual
+        """
+        if self.ga_config.mutation_method == "polynomial":
+            return self._polynomial_mutation(individual, mutation_rate)
+        elif self.ga_config.mutation_method == "uniform":
+            return self._uniform_mutation(individual, mutation_rate)
+        else:
+            return self._gaussian_mutation(individual, mutation_rate)
+
+    def _calculate_diversity(self, population: np.ndarray) -> float:
+        """Calculate population diversity as average pairwise distance.
+
+        Returns:
+            Diversity metric (0 = no diversity, higher = more diverse)
+        """
+        if len(population) < 2:
+            return 0.0
+
+        # Sample subset for efficiency if population is large
+        sample_size = min(50, len(population))
+        if len(population) > sample_size:
+            indices = np.random.choice(len(population), sample_size, replace=False)
+            sample = population[indices]
+        else:
+            sample = population
+
+        # Calculate average pairwise Euclidean distance
+        total_distance = 0.0
+        n_pairs = 0
+        for i in range(len(sample)):
+            for j in range(i + 1, len(sample)):
+                total_distance += np.linalg.norm(sample[i] - sample[j])
+                n_pairs += 1
+
+        diversity = total_distance / n_pairs if n_pairs > 0 else 0.0
+        return diversity
+
+    def _adapt_rates(self, population: np.ndarray, generation: int) -> tuple[float, float]:
+        """Adapt mutation and crossover rates based on population diversity.
+
+        Args:
+            population: Current population
+            generation: Current generation number
+
+        Returns:
+            Adapted (mutation_rate, crossover_rate)
+        """
+        diversity = self._calculate_diversity(population)
+
+        # Normalize diversity (rough estimate based on search space)
+        search_space_size = np.mean([upper - lower for lower, upper in self.config.bounds])
+        normalized_diversity = diversity / search_space_size
+
+        # Adapt mutation rate: increase when diversity is low
+        base_mutation = self.ga_config.mutation_rate
+        if normalized_diversity < 0.1:  # Low diversity
+            adapted_mutation = min(base_mutation * 2.0, 0.5)
+        elif normalized_diversity < 0.3:  # Medium diversity
+            adapted_mutation = base_mutation * 1.5
+        else:  # High diversity
+            adapted_mutation = base_mutation
+
+        # Adapt crossover rate: increase when diversity is moderate/high
+        base_crossover = self.ga_config.crossover_rate
+        if normalized_diversity > 0.2:
+            adapted_crossover = min(base_crossover * 1.1, 0.95)
+        else:
+            adapted_crossover = base_crossover
+
+        logger.debug(
+            f"Generation {generation}: diversity={normalized_diversity:.3f}, "
+            f"mutation_rate={adapted_mutation:.3f}, crossover_rate={adapted_crossover:.3f}"
+        )
+
+        return adapted_mutation, adapted_crossover
+
+    def _polynomial_mutation(self, individual: np.ndarray, mutation_rate: float | None = None) -> np.ndarray:
+        """Polynomial mutation with optional adaptive rate.
+
+        Args:
+            individual: Individual to mutate
+            mutation_rate: Optional override for mutation rate
+        """
         eta = 20.0  # Distribution index
         mutated = individual.copy()
+        rate = mutation_rate if mutation_rate is not None else self.ga_config.mutation_rate
 
         for i in range(len(individual)):
-            if np.random.random() < self.ga_config.mutation_rate:
+            if np.random.random() < rate:
                 lower, upper = self.config.bounds[i]
                 delta1 = (individual[i] - lower) / (upper - lower)
                 delta2 = (upper - individual[i]) / (upper - lower)
@@ -311,23 +513,25 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         return mutated
 
-    def _uniform_mutation(self, individual: np.ndarray) -> np.ndarray:
-        """Uniform mutation."""
+    def _uniform_mutation(self, individual: np.ndarray, mutation_rate: float | None = None) -> np.ndarray:
+        """Uniform mutation with optional adaptive rate."""
         mutated = individual.copy()
+        rate = mutation_rate if mutation_rate is not None else self.ga_config.mutation_rate
 
         for i in range(len(individual)):
-            if np.random.random() < self.ga_config.mutation_rate:
+            if np.random.random() < rate:
                 lower, upper = self.config.bounds[i]
                 mutated[i] = np.random.uniform(lower, upper)
 
         return mutated
 
-    def _gaussian_mutation(self, individual: np.ndarray) -> np.ndarray:
-        """Gaussian mutation."""
+    def _gaussian_mutation(self, individual: np.ndarray, mutation_rate: float | None = None) -> np.ndarray:
+        """Gaussian mutation with optional adaptive rate."""
         mutated = individual.copy()
+        rate = mutation_rate if mutation_rate is not None else self.ga_config.mutation_rate
 
         for i in range(len(individual)):
-            if np.random.random() < self.ga_config.mutation_rate:
+            if np.random.random() < rate:
                 lower, upper = self.config.bounds[i]
                 std = self.ga_config.mutation_strength * (upper - lower)
                 mutated[i] += np.random.normal(0, std)
@@ -435,11 +639,8 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         offspring = self._create_offspring_nsga2(population, evaluations)
         offspring = self.validate_bounds(offspring)
 
-        # Evaluate offspring
-        offspring_evaluations = self.evaluate_population(
-            offspring,
-            lambda x: {"objectives": [0] * len(self.config.objectives)},
-        )
+        # Evaluate offspring with the real fitness function
+        offspring_evaluations = self.evaluate_population(offspring, self._fitness_function)
 
         # Combine parent and offspring populations
         combined_population = np.vstack([population, offspring])

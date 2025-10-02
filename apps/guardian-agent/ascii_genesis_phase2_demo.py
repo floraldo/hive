@@ -419,9 +419,3 @@ async def demonstrate_genesis_phase2_async():
 
 if __name__ == "__main__":
     asyncio.run(demonstrate_genesis_phase2_async())
-
-
-
-
-
-

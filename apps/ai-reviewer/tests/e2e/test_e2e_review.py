@@ -186,7 +186,9 @@ def test_review_engine():
 
     logger.info("Testing review of good code...")
     result = engine.review_task(
-        task_id="test-engine-good", task_description="Fibonacci implementation", code_files=good_code,
+        task_id="test-engine-good",
+        task_description="Fibonacci implementation",
+        code_files=good_code,
     )
 
     logger.info(f"  Decision: {result.decision}")
@@ -241,7 +243,9 @@ def test_full_autonomous_loop():
 
         # Perform review
         result = engine.review_task(
-            task_id=task_id, task_description=task.get("description", "Test task"), code_files=code_files,
+            task_id=task_id,
+            task_description=task.get("description", "Test task"),
+            code_files=code_files,
         )
 
         logger.info(f"  Review completed: {result.decision.value}")

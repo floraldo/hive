@@ -41,8 +41,8 @@ class ConnectionPool(Generic[T]):
         self.health_check = health_check
         self.config = config or PoolConfig()
 
-        self._pool: asyncio.Queue = (asyncio.Queue(maxsize=self.config.max_size),)
-        self._connections: dict[T, float] = ({},)
+        self._pool: asyncio.Queue = asyncio.Queue(maxsize=self.config.max_size)
+        self._connections: dict[T, float] = {}
         self._lock = asyncio.Lock()
         self._closed = False
         self._health_check_task: asyncio.Task | None = None

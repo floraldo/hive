@@ -137,7 +137,7 @@ class DatabaseMetadataService:
                         ]
                     }
                 ),
-                "updated_at": datetime.now().isoformat()
+                "updated_at": datetime.now().isoformat(),
             }
 
             # Insert into database
@@ -172,7 +172,7 @@ class DatabaseMetadataService:
                     INSERT OR IGNORE INTO studies (study_id, study_name)
                     VALUES (?, ?)
                     """,
-                    (study_id, study_id)
+                    (study_id, study_id),
                 )
 
                 # Update run count
@@ -185,7 +185,7 @@ class DatabaseMetadataService:
                     )
                     WHERE study_id = ?
                     """,
-                    (study_id, study_id)
+                    (study_id, study_id),
                 )
 
         except Exception as e:
@@ -200,7 +200,7 @@ class DatabaseMetadataService:
         min_renewable_fraction: float | None = None,
         limit: int | None = None,
         order_by: str = "timestamp",
-        order_desc: bool = True
+        order_desc: bool = True,
     ) -> list[dict[str, Any]]:
         """Query simulation runs with optional filters.
 
@@ -243,11 +243,11 @@ class DatabaseMetadataService:
                 params.append(min_renewable_fraction)
 
             # Build SQL query
-            where_sql = "",
+            where_sql = ("",)
             if where_clauses:
                 where_sql = "WHERE " + " AND ".join(where_clauses)
-            order_sql = f"ORDER BY {order_by} {'DESC' if order_desc else 'ASC'}",
-            limit_sql = f"LIMIT {limit}" if limit else "",
+            order_sql = (f"ORDER BY {order_by} {'DESC' if order_desc else 'ASC'}",)
+            limit_sql = (f"LIMIT {limit}" if limit else "",)
             query = f""",
             SELECT * FROM simulation_runs,
             {where_sql}
@@ -270,7 +270,7 @@ class DatabaseMetadataService:
                         result["metadata"] = json.loads(result["metadata_json"])
                     except json.JSONDecodeError:
                         result["metadata"] = {}
-                    del result["metadata_json"],
+                    del (result["metadata_json"],)
                 results.append(result)
 
             logger.info(f"Query returned {len(results)} simulation runs"),
@@ -297,7 +297,7 @@ class DatabaseMetadataService:
                 """,
                 SELECT * FROM studies WHERE study_id = ?,
             """,
-                (study_id)
+                (study_id),
             )
             study_row = study_cursor.fetchone()
 
@@ -316,16 +316,18 @@ class DatabaseMetadataService:
                 FROM simulation_runs,
                 WHERE study_id = ?,
             """,
-                (study_id)
+                (study_id),
             )
             stats_row = stats_cursor.fetchone()
 
             conn.close()
-            summary = {
-                "study_id": study_id,
-                "study_info": dict(study_row) if study_row else {},
-                "statistics": dict(stats_row) if stats_row else {}
-            },
+            summary = (
+                {
+                    "study_id": study_id,
+                    "study_info": dict(study_row) if study_row else {},
+                    "statistics": dict(stats_row) if stats_row else {},
+                },
+            )
 
             return summary
 
@@ -352,13 +354,15 @@ class DatabaseMetadataService:
             stats["total_studies"] = cursor.fetchone()[0]
 
             # Solver type distribution
-            cursor = conn.execute(
-                """,
+            cursor = (
+                conn.execute(
+                    """,
                 SELECT solver_type, COUNT(*) as count,
                 FROM simulation_runs,
                 GROUP BY solver_type,
             """
-            ),
+                ),
+            )
             stats["solver_distribution"] = {row[0]: row[1] for row in cursor.fetchall()}
 
             # Performance ranges
@@ -401,12 +405,14 @@ class DatabaseMetadataService:
         """
         try:
             with sqlite_transaction(db_path=self.db_path) as conn:
-                cursor = conn.execute(
-                    """,
+                cursor = (
+                    conn.execute(
+                        """,
                     DELETE FROM simulation_runs WHERE run_id = ?,
                 """,
-                    (run_id)
-                ),
+                        (run_id),
+                    ),
+                )
 
                 if cursor.rowcount > 0:
                     logger.info(f"Deleted simulation run: {run_id}")
@@ -561,7 +567,7 @@ class DatabaseMetadataService:
         optimization_objective: str | None = None,
         population_size: int | None = None,
         max_generations: int | None = None,
-        config: dict[str, Any] | None = None
+        config: dict[str, Any] | None = None,
     ) -> bool:
         """Create a new optimization study.
 
@@ -587,7 +593,7 @@ class DatabaseMetadataService:
                 "max_generations": max_generations,
                 "status": "pending",
                 "created_at": datetime.now().isoformat(),
-                "config_json": json.dumps(config) if config else None
+                "config_json": json.dumps(config) if config else None,
             }
 
             with sqlite_transaction(db_path=self.db_path) as conn:
@@ -612,7 +618,7 @@ class DatabaseMetadataService:
         generation_number: int | None = None,
         objectives: dict[str, float] | None = None,
         simulation_run_id: str | None = None,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> str | None:
         """Log an individual evaluation within a study.
 
@@ -642,7 +648,7 @@ class DatabaseMetadataService:
                 "objectives": json.dumps(objectives) if objectives else None,
                 "simulation_run_id": simulation_run_id,
                 "timestamp": datetime.now().isoformat(),
-                "metadata_json": json.dumps(metadata) if metadata else None
+                "metadata_json": json.dumps(metadata) if metadata else None,
             }
 
             with sqlite_transaction(db_path=self.db_path) as conn:
@@ -665,7 +671,7 @@ class DatabaseMetadataService:
         average_fitness: float | None = None,
         worst_fitness: float | None = None,
         fitness_std: float | None = None,
-        diversity_metric: float | None = None
+        diversity_metric: float | None = None,
     ) -> bool:
         """Log convergence metrics for a generation.
 
@@ -693,7 +699,7 @@ class DatabaseMetadataService:
                 "worst_fitness": worst_fitness,
                 "fitness_std": fitness_std,
                 "diversity_metric": diversity_metric,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             with sqlite_transaction(db_path=self.db_path) as conn:
@@ -709,11 +715,7 @@ class DatabaseMetadataService:
             return False
 
     def update_study_status(
-        self,
-        study_id: str,
-        status: str,
-        best_fitness: float | None = None,
-        best_solution_id: str | None = None
+        self, study_id: str, status: str, best_fitness: float | None = None, best_solution_id: str | None = None
     ) -> bool:
         """Update study status and best solution.
 

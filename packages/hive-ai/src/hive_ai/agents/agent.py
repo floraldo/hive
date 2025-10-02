@@ -4,6 +4,7 @@ Base agent framework for autonomous AI operations.
 Provides foundation for building intelligent agents with state management
 tool integration, and workflow orchestration capabilities.
 """
+
 from __future__ import annotations
 
 
@@ -29,12 +30,12 @@ logger = get_logger(__name__)
 class AgentState(Enum):
     """Agent execution states."""
 
-    CREATED = "created",
-    INITIALIZED = "initialized",
-    RUNNING = "running",
-    PAUSED = "paused",
-    COMPLETED = "completed",
-    FAILED = "failed",
+    CREATED = ("created",)
+    INITIALIZED = ("initialized",)
+    RUNNING = ("running",)
+    PAUSED = ("paused",)
+    COMPLETED = ("completed",)
+    FAILED = ("failed",)
     STOPPED = "stopped"
 
 
@@ -100,8 +101,8 @@ class BaseAgent(ABC):
     def __init__(
         self, config: AgentConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
     ):
-        self.config = config,
-        self.model_client = model_client,
+        self.config = (config,)
+        self.model_client = (model_client,)
         self.metrics = metrics_collector
 
         # Agent identity,
@@ -109,27 +110,27 @@ class BaseAgent(ABC):
         self.created_at = datetime.utcnow()
 
         # State management,
-        self.state = AgentState.CREATED,
-        self.current_iteration = 0,
-        self.start_time: datetime | None = None,
+        self.state = (AgentState.CREATED,)
+        self.current_iteration = (0,)
+        self.start_time: datetime | None = (None,)
         self.end_time: datetime | None = None
 
         # Memory system,
         self.memory = AgentMemory() if config.memory_enabled else None
 
         # Tool system,
-        self.tools: Dict[str, AgentTool] = {},
+        self.tools: Dict[str, AgentTool] = ({},)
         self._register_default_tools()
 
         # Message handling,
-        self.message_queue: List[AgentMessage] = [],
+        self.message_queue: List[AgentMessage] = ([],)
         self.response_handlers: Dict[str, Callable] = {}
 
         # Caching,
         self.cache = CacheManager(f"agent_{self.id}")
 
         # Results and error tracking,
-        self.results: List[Any] = [],
+        self.results: List[Any] = ([],)
         self.errors: List[str] = []
 
         logger.info(f"Created agent: {self.config.name} ({self.id})")
@@ -140,7 +141,7 @@ class BaseAgent(ABC):
             AgentTool(
                 name="think",
                 description="Think about the current situation and plan next steps",
-                function=self._think_tool_async
+                function=self._think_tool_async,
             )
         )
 
@@ -148,7 +149,7 @@ class BaseAgent(ABC):
             AgentTool(
                 name="remember",
                 description="Store information in memory for later use",
-                function=self._remember_tool_async
+                function=self._remember_tool_async,
             )
         )
 
@@ -169,10 +170,10 @@ Think step by step and be specific about your analysis.
 
 Thoughts:
 """,
-            variables=[]
+            variables=[],
         )
 
-        rendered_prompt = thinking_prompt.render(agent_name=self.config.name, prompt=prompt),
+        rendered_prompt = (thinking_prompt.render(agent_name=self.config.name, prompt=prompt),)
 
         response = await self.model_client.generate_async(
             rendered_prompt, model=self.config.model, temperature=self.config.temperature
@@ -185,7 +186,7 @@ Thoughts:
                     "type": "thinking",
                     "prompt": prompt,
                     "thoughts": response.content,
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
             )
 
@@ -197,9 +198,9 @@ Thoughts:
             return "Memory is disabled for this agent"
 
         if memory_type == "short_term":
-            self.memory.short_term[key] = value,
+            self.memory.short_term[key] = (value,)
         elif memory_type == "long_term":
-            self.memory.long_term[key] = value,
+            self.memory.long_term[key] = (value,)
         else:
             return f"Unknown memory type: {memory_type}"
 
@@ -274,7 +275,7 @@ Thoughts:
             recipient=recipient,
             content=content,
             message_type=message_type,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
 
         # Store in conversation memory
@@ -320,7 +321,7 @@ Thoughts:
             logger.info(f"Agent {self.id} initialized successfully")
 
         except Exception as e:
-            self.state = AgentState.FAILED,
+            self.state = (AgentState.FAILED,)
             error_msg = f"Agent initialization failed: {str(e)}"
             self.errors.append(error_msg)
             logger.error(error_msg)
@@ -358,7 +359,7 @@ Thoughts:
                     operation_type="agent_execution",
                     model=self.config.model,
                     provider="agent_framework",
-                    metadata={"agent_id": self.id, "agent_name": self.config.name}
+                    metadata={"agent_id": self.id, "agent_name": self.config.name},
                 )
             else:
                 operation_id = None
@@ -377,7 +378,7 @@ Thoughts:
                 self.metrics.end_operation(
                     operation_id,
                     success=True,
-                    additional_metadata={"iterations": self.current_iteration, "duration_ms": duration_ms}
+                    additional_metadata={"iterations": self.current_iteration, "duration_ms": duration_ms},
                 )
 
             logger.info(f"Agent {self.id} completed successfully in {self.current_iteration} iterations")
@@ -399,8 +400,8 @@ Thoughts:
                     additional_metadata={
                         "iterations": self.current_iteration,
                         "duration_ms": duration_ms,
-                        "error": error_msg
-                    }
+                        "error": error_msg,
+                    },
                 )
 
             logger.error(error_msg)
@@ -450,7 +451,7 @@ Thoughts:
             "messages_sent": len(self.message_queue),
             "memory_enabled": self.memory is not None,
             "errors": len(self.errors),
-            "results": len(self.results)
+            "results": len(self.results),
         }
 
     def get_memory_summary(self) -> Dict[str, Any]:
@@ -465,7 +466,7 @@ Thoughts:
             "episodic_memories": len(self.memory.episodic),
             "conversation_messages": len(self.memory.conversation),
             "short_term_keys": list(self.memory.short_term.keys()),
-            "long_term_keys": list(self.memory.long_term.keys())
+            "long_term_keys": list(self.memory.long_term.keys()),
         }
 
     async def export_state_async(self) -> Dict[str, Any]:
@@ -539,7 +540,7 @@ class SimpleTaskAgent(BaseAgent):
         task_prompt: str,
         config: AgentConfig,
         model_client: ModelClient,
-        metrics_collector: AIMetricsCollector | None = None
+        metrics_collector: AIMetricsCollector | None = None,
     ):
         super().__init__(config, model_client, metrics_collector)
         self.task_prompt = task_prompt
@@ -554,7 +555,7 @@ class SimpleTaskAgent(BaseAgent):
         """Execute the task prompt with optional input data."""
         # Build prompt with input data if provided,
         if input_data:
-            full_prompt = f"{self.task_prompt}\n\nInput: {input_data}",
+            full_prompt = (f"{self.task_prompt}\n\nInput: {input_data}",)
         else:
             full_prompt = self.task_prompt
 
@@ -563,5 +564,5 @@ class SimpleTaskAgent(BaseAgent):
             full_prompt, model=self.config.model, temperature=self.config.temperature, max_tokens=self.config.max_tokens
         )
 
-        self.current_iteration += 1,
+        self.current_iteration += (1,)
         return response.content

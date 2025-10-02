@@ -41,7 +41,8 @@ class ModelClient:
         """Get or create circuit breaker for provider."""
         if provider not in self._circuit_breakers:
             self._circuit_breakers[provider] = AsyncCircuitBreaker(
-                failure_threshold=self.config.failure_threshold, recovery_timeout=self.config.recovery_timeout,
+                failure_threshold=self.config.failure_threshold,
+                recovery_timeout=self.config.recovery_timeout,
             )
         return self._circuit_breakers[provider]
 
@@ -134,7 +135,10 @@ class ModelClient:
             @async_retry(max_attempts=3, delay=1.0)
             async def _generate_async():
                 return await circuit_breaker.call_async(
-                    provider.generate_async, prompt, model_config.name, **generation_params,
+                    provider.generate_async,
+                    prompt,
+                    model_config.name,
+                    **generation_params,
                 )
 
             response = await _generate_async()
@@ -242,7 +246,10 @@ class ModelClient:
 
             async def _stream_async() -> None:
                 async for chunk in circuit_breaker.call_async(
-                    provider.generate_stream_async, prompt, model_config.name, **generation_params,
+                    provider.generate_stream_async,
+                    prompt,
+                    model_config.name,
+                    **generation_params,
                 ):
                     yield chunk
 

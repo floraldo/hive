@@ -91,7 +91,11 @@ class PromptError(BaseError):
     """
 
     def __init__(
-        self, message: str, template_name: str | None = None, missing_variables: list | None = None, **kwargs,
+        self,
+        message: str,
+        template_name: str | None = None,
+        missing_variables: list | None = None,
+        **kwargs,
     ) -> None:
         """Initialize prompt error with template context.
 

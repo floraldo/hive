@@ -75,7 +75,7 @@ def generate_parameter_report(parameter_settings: dict[str, Any], results: dict[
         "parameters": parameter_settings,
         "kpis": results.get("kpis", {}),
         "solver_metrics": results.get("solver_metrics", {}),
-        "sensitivity_score": 0.0
+        "sensitivity_score": 0.0,
     }
 
     # Calculate sensitivity score based on KPI variance
@@ -105,13 +105,14 @@ class ParametricSweepEnhancement:
         Returns:
             List of capacity values to sweep,
         """
-        import numpy as np,
-        min_capacity = base_capacity / range_factor,
+        import numpy as np
+
+        min_capacity = base_capacity / range_factor
         max_capacity = base_capacity * range_factor
 
         return list(np.linspace(min_capacity, max_capacity, num_points))
 
-    @staticmethod,
+    @staticmethod
     def create_solar_capacity_sweep(base_capacity: float, num_points: int = 5) -> list[float]:
         """Create a sweep of solar PV capacity values.
 
@@ -151,12 +152,14 @@ class ParametricSweepEnhancement:
         Returns:
             Analysis report with parameter sensitivities,
         """
-        analysis = {
-            "parameter_sensitivities": {},
-            "optimal_configuration": None,
-            "pareto_frontier": [],
-            "recommendations": []
-        },
+        analysis = (
+            {
+                "parameter_sensitivities": {},
+                "optimal_configuration": None,
+                "pareto_frontier": [],
+                "recommendations": [],
+            },
+        )
 
         if not study_result.get("all_results"):
             return analysis
