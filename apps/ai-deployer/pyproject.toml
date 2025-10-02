@@ -22,8 +22,11 @@ hive-errors = { path = "../../packages/hive-errors", develop = true }
 hive-deployment = { path = "../../packages/hive-deployment", develop = true }
 hive-bus = { path = "../../packages/hive-bus", develop = true }
 
-# Import from other apps (allowed app-to-app dependencies)
-hive-orchestrator = { path = "../hive-orchestrator", develop = true }
+# Orchestration package
+hive-orchestration = { path = "../../packages/hive-orchestration", develop = true }
+
+# DEPRECATED - Will be removed after migration validation
+hive-orchestrator = { path = "../hive-orchestrator", develop = true, optional = true }
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

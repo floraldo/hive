@@ -189,7 +189,9 @@ class TestDeploymentIntegration:
 
             # Record deployment event
             event_result = adapter.record_deployment_event(
-                "test-task-001", "deployment_completed", {"duration": 30.5, "success": True},
+                "test-task-001",
+                "deployment_completed",
+                {"duration": 30.5, "success": True},
             )
             assert event_result is True
 
@@ -270,7 +272,9 @@ class TestDeploymentIntegration:
             mock_orchestrator = Mock()
             mock_orchestrator.deploy = AsyncMock(
                 return_value=DeploymentResult(
-                    success=True, strategy=DeploymentStrategy.DIRECT, deployment_id="event-test-123",
+                    success=True,
+                    strategy=DeploymentStrategy.DIRECT,
+                    deployment_id="event-test-123",
                 ),
             )
             mock_orchestrator.check_health = AsyncMock(return_value=Mock(healthy=True))

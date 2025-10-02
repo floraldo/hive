@@ -11,17 +11,14 @@ import sys
 from datetime import datetime
 from typing import Any
 
+# TODO: Migrate to hive-orchestration async operations when available
+# For now, use sync operations from hive-orchestration
 # Import from orchestrator's extended database layer (proper app-to-app communication)
 # Import hive logging
 from hive_logging import get_logger
 
-# Async database imports
-try:
-    from hive_orchestrator.core.db import get_async_connection, get_tasks_by_status_async, update_task_status_async
-
-    ASYNC_DB_AVAILABLE = True
-except ImportError:
-    ASYNC_DB_AVAILABLE = False
+# Async operations not yet available
+ASYNC_DB_AVAILABLE = False
 
 from rich.console import Console
 from rich.live import Live
@@ -61,7 +58,10 @@ class DeploymentAgent:
     """
 
     def __init__(
-        self, orchestrator: DeploymentOrchestrator | None = None, polling_interval: int = 30, test_mode: bool = False,
+        self,
+        orchestrator: DeploymentOrchestrator | None = None,
+        polling_interval: int = 30,
+        test_mode: bool = False,
     ):
         """
         Initialize the deployment agent
@@ -197,7 +197,9 @@ class DeploymentAgent:
                 # Publish failure event
                 if self.event_bus and create_task_event:
                     event = create_task_event(
-                        task_id=task_id, event_type=TaskEventType.DEPLOYMENT_FAILED, payload={"error": result.error},
+                        task_id=task_id,
+                        event_type=TaskEventType.DEPLOYMENT_FAILED,
+                        payload={"error": result.error},
                     )
                     self.event_bus.publish(event)
 
@@ -209,7 +211,10 @@ class DeploymentAgent:
             self.stats["errors"] += 1
 
     async def _update_task_status_async(
-        self, task_id: str, status: str, metadata: dict[str, Any] | None = None,
+        self,
+        task_id: str,
+        status: str,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """Update task status in database"""
         try:

@@ -137,7 +137,10 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "error": str(e)}
 
     async def rollback_async(
-        self, task: dict[str, Any], deployment_id: str, previous_deployment: dict[str, Any],
+        self,
+        task: dict[str, Any],
+        deployment_id: str,
+        previous_deployment: dict[str, Any],
     ) -> dict[str, Any]:
         """
         Rollback Kubernetes deployment to previous version

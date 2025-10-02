@@ -8,9 +8,8 @@ import json
 from datetime import datetime
 from typing import Any
 
-# Import from orchestrator for proper app-to-app communication
-from hive_orchestrator.core.db import get_database, get_pooled_connection
-
+# Use hive-db package for database connections
+from hive_db import get_sqlite_connection
 from hive_errors import BaseError
 from hive_logging import get_logger
 
@@ -30,7 +29,8 @@ class DatabaseAdapter:
 
     def __init__(self) -> None:
         """Initialize database adapter"""
-        self.db = get_database()
+        # Database connections are now managed per-operation via get_sqlite_connection()
+        pass
 
     def get_deployment_pending_tasks(self) -> list[dict[str, Any]]:
         """
@@ -40,20 +40,20 @@ class DatabaseAdapter:
             List of deployment task dictionaries
         """
         try:
-            with get_pooled_connection() as conn:
+            with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
 
                 # Query for deployment_pending tasks
                 cursor.execute(
-                    """,
-                    SELECT,
+                    """
+                    SELECT
                         id, title, description, created_at, updated_at,
                         worker_id, priority, task_data, metadata,
-                        status, estimated_duration,
+                        status, estimated_duration
                     FROM tasks
                     WHERE status = 'deployment_pending'
                     ORDER BY priority DESC, created_at ASC
-                """,
+                """
                 )
 
                 rows = cursor.fetchall()
@@ -96,7 +96,7 @@ class DatabaseAdapter:
             True if update successful
         """
         try:
-            with get_pooled_connection() as conn:
+            with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
 
                 # Prepare update query
@@ -115,20 +115,22 @@ class DatabaseAdapter:
 
                     # Update with metadata
                     cursor.execute(
-                        """,
-                        UPDATE tasks,
-                        SET status = ?, metadata = ?, updated_at = ?,
-                        WHERE id = ?,
-                    """(status, metadata_json, datetime.now().isoformat(), task_id),
+                        """
+                        UPDATE tasks
+                        SET status = ?, metadata = ?, updated_at = ?
+                        WHERE id = ?
+                    """,
+                        (status, metadata_json, datetime.now().isoformat(), task_id),
                     )
                 else:
                     # Update status only
                     cursor.execute(
                         """
                         UPDATE tasks
-                        SET status = ?, updated_at = ?,
-                        WHERE id = ?,
-                    """(status, datetime.now().isoformat(), task_id),
+                        SET status = ?, updated_at = ?
+                        WHERE id = ?
+                    """,
+                        (status, datetime.now().isoformat(), task_id),
                     )
 
                 conn.commit()
@@ -155,18 +157,19 @@ class DatabaseAdapter:
             Task dictionary or None if not found
         """
         try:
-            with get_pooled_connection() as conn:
+            with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
 
                 cursor.execute(
-                    """,
-                    SELECT,
+                    """
+                    SELECT
                         id, title, description, created_at, updated_at,
                         worker_id, priority, task_data, metadata,
-                        status, estimated_duration,
+                        status, estimated_duration
                     FROM tasks
                     WHERE id = ?
-                """(task_id),
+                """,
+                    (task_id),
                 )
 
                 row = cursor.fetchone()
@@ -204,12 +207,12 @@ class DatabaseAdapter:
             True if recording successful
         """
         try:
-            with get_pooled_connection() as conn:
+            with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
 
                 # Create deployment_events table if it doesn't exist
                 cursor.execute(
-                    """,
+                    """
                     CREATE TABLE IF NOT EXISTS deployment_events (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         task_id TEXT NOT NULL,
@@ -218,7 +221,7 @@ class DatabaseAdapter:
                         timestamp TEXT NOT NULL,
                         FOREIGN KEY (task_id) REFERENCES tasks (id)
                     )
-                """,
+                """
                 )
 
                 # Insert event
@@ -227,7 +230,8 @@ class DatabaseAdapter:
                     INSERT INTO deployment_events
                     (task_id, event_type, details, timestamp)
                     VALUES (?, ?, ?, ?)
-                """(task_id, event_type, json.dumps(details), datetime.now().isoformat()),
+                """,
+                    (task_id, event_type, json.dumps(details), datetime.now().isoformat()),
                 )
 
                 conn.commit()
@@ -249,16 +253,17 @@ class DatabaseAdapter:
             List of deployment events
         """
         try:
-            with get_pooled_connection() as conn:
+            with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
 
                 cursor.execute(
+                    """
+                    SELECT event_type, details, timestamp
+                    FROM deployment_events
+                    WHERE task_id = ?
+                    ORDER BY timestamp DESC
                     """,
-                    SELECT event_type, details, timestamp,
-                    FROM deployment_events,
-                    WHERE task_id = ?,
-                    ORDER BY timestamp DESC,
-                """(task_id),
+                    (task_id),
                 )
 
                 rows = cursor.fetchall()
@@ -283,29 +288,29 @@ class DatabaseAdapter:
             Dictionary with deployment statistics
         """
         try:
-            with get_pooled_connection() as conn:
+            with get_sqlite_connection() as conn:
                 cursor = conn.cursor()
 
                 # Get status counts
                 cursor.execute(
-                    """,
-                    SELECT status, COUNT(*) as count,
-                    FROM tasks,
+                    """
+                    SELECT status, COUNT(*) as count
+                    FROM tasks
                     WHERE status IN ('deployed', 'deployment_failed', 'deploying', 'deployment_pending')
-                    GROUP BY status,
-                """,
+                    GROUP BY status
+                    """
                 )
 
                 status_counts = dict(cursor.fetchall())
 
                 # Get recent deployment activity
                 cursor.execute(
-                    """,
-                    SELECT COUNT(*) as recent_deployments,
-                    FROM tasks,
-                    WHERE status = 'deployed',
+                    """
+                    SELECT COUNT(*) as recent_deployments
+                    FROM tasks
+                    WHERE status = 'deployed'
                     AND updated_at > datetime('now', '-24 hours')
-                """,
+                """
                 )
 
                 recent_deployments = cursor.fetchone()[0]

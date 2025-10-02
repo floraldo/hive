@@ -135,7 +135,10 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "error": str(e)}
 
     async def rollback_async(
-        self, task: dict[str, Any], deployment_id: str, previous_deployment: dict[str, Any],
+        self,
+        task: dict[str, Any],
+        deployment_id: str,
+        previous_deployment: dict[str, Any],
     ) -> dict[str, Any]:
         """
         Rollback SSH deployment to previous version
@@ -252,7 +255,11 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         return await loop.run_in_executor(None, connect_to_server, ssh_config)
 
     async def _deploy_application_async(
-        self, ssh_client, source_path: str, deployment_paths: dict[str, str], task: dict[str, Any],
+        self,
+        ssh_client,
+        source_path: str,
+        deployment_paths: dict[str, str],
+        task: dict[str, Any],
     ) -> dict[str, Any]:
         """Deploy application files"""
         loop = asyncio.get_event_loop()
@@ -293,7 +300,10 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         pass
 
     async def _send_deployment_notifications_async(
-        self, task: dict[str, Any], deployment_id: str, success: bool,
+        self,
+        task: dict[str, Any],
+        deployment_id: str,
+        success: bool,
     ) -> None:
         """Send deployment notifications"""
         # Implementation would send notifications via email, Slack, etc.
