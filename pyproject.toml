@@ -116,7 +116,7 @@ develop = true
 path = "apps/ai-planner"
 develop = true
 
-[tool.poetry.group.workspace.dependencies.ai-reviewer]
+[tool.poetry.group.workspace.dependencies.hive-ai-reviewer]
 path = "apps/ai-reviewer"
 develop = true
 
