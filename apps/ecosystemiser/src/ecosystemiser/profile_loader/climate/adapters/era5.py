@@ -2,7 +2,7 @@
 
 import os
 from datetime import date, datetime, timedelta
-from typing import Any, Dict, ListTuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -229,7 +229,7 @@ class ERA5Adapter(BaseAdapter):
         # Build request parameters
         request_params = self._build_request(
             lat, lon, era5_params, start_date, end_date, kwargs.get("resolution", "1H")
-        ),
+        )
 
         self.logger.info(f"Fetching ERA5 data for {lat},{lon} from {start_date} to {end_date}")
         self.logger.info(f"Dataset: {dataset}, Variables: {era5_params}")
@@ -250,7 +250,7 @@ class ERA5Adapter(BaseAdapter):
                     "params": request_params,
                     "lat": lat,
                     "lon": lon,
-                }
+                },
                 suggested_action="Check CDS API status and request parameters"
             )
 
@@ -345,10 +345,10 @@ class ERA5Adapter(BaseAdapter):
             # Use base class fetch method,
             return await super().fetch_async(
                 location=(lat, lon),
-                variables=variables
-                period=period
+                variables=variables,
+                period=period,
                 resolution=resolution
-            ),
+            )
 
         except Exception as e:
             # Wrap unexpected errors
@@ -356,9 +356,9 @@ class ERA5Adapter(BaseAdapter):
                 self.ADAPTER_NAME,
                 f"Unexpected error fetching ERA5 data: {str(e)}",
                 details={"lat": lat, "lon": lon, "variables": variables}
-            ),
+            )
             self.logger.error(f"Unexpected error: {error}")
-            raise error,
+            raise error
 
     def _parse_period(self, period: Dict) -> tuple:
         """Parse period dict to start and end dates"""
@@ -370,9 +370,9 @@ class ERA5Adapter(BaseAdapter):
                 # ERA5 available from 1940 to present,
                 if year < 1940:
                     raise ValidationError(
-                        "ERA5 data only available from 1940 onwards"
-                        field="period.year"
-                        value=year
+                        "ERA5 data only available from 1940 onwards",
+                        field="period.year",
+                        value=year,
                         suggested_action="Use year >= 1940"
                     )
 
@@ -380,7 +380,7 @@ class ERA5Adapter(BaseAdapter):
                 current_year = datetime.now().year
                 if year > current_year:
                     raise ValidationError(
-                        f"ERA5 data not yet available for year {year}"
+                        f"ERA5 data not yet available for year {year}",
                         field="period.year",
                         value=year,
                         suggested_action=f"Use year <= {current_year}"
@@ -390,9 +390,9 @@ class ERA5Adapter(BaseAdapter):
                     month = int(period["month"]) if isinstance(period["month"], str) else period["month"]
                     if not 1 <= month <= 12:
                         raise ValidationError(
-                            "Month must be between 1 and 12"
-                            field="period.month"
-                            value=month
+                            "Month must be between 1 and 12",
+                        field="period.month",
+                        value=month
                         )
                     start_date = datetime(year, month, 1)
                     if month == 12:
@@ -409,16 +409,16 @@ class ERA5Adapter(BaseAdapter):
                     end_date = pd.to_datetime(period["end"]).to_pydatetime()
                 except Exception as e:
                     raise ValidationError(
-                        f"Invalid date format in period: {e}"
-                        field="period.start/end"
-                        value=period
+                        f"Invalid date format in period: {e}",
+                        field="period.start/end",
+                        value=period,
                         suggested_action="Use ISO format (YYYY-MM-DD) or datetime objects"
-                    ),
+                    )
 
                 if start_date > end_date:
                     raise ValidationError(
-                        "Start date must be before end date"
-                        field="period"
+                        "Start date must be before end date",
+                        field="period",
                         value=period
                     )
 
@@ -430,22 +430,22 @@ class ERA5Adapter(BaseAdapter):
 
                     if start_year < 1940:
                         raise ValidationError(
-                            "ERA5 data only available from 1940 onwards"
-                            field="period.start_year",
+                            "ERA5 data only available from 1940 onwards",
+                        field="period.start_year",
                             value=start_year
                         )
 
                     if start_year > end_year:
                         raise ValidationError(
-                            "Start year must be before or equal to end year"
-                            field="period",
+                            "Start year must be before or equal to end year",
+                        field="period",
                             value=period
                         )
                     start_date = datetime(start_year, 1, 1)
                     end_date = datetime(end_year, 12, 31)
                 else:
                     raise ValidationError(
-                        f"Invalid period specification: {period}"
+                        f"Invalid period specification: {period}",
                         field="period",
                         value=period,
                         suggested_action="Use 'year', 'start'/'end', or 'start_year'/'end_year'"
@@ -454,7 +454,7 @@ class ERA5Adapter(BaseAdapter):
             return start_date, end_date
 
         except ValidationError:
-            raise,
+            raise
         except Exception as e:
             raise ValidationError(f"Error parsing period: {str(e)}", field="period", value=period)
 
@@ -545,7 +545,7 @@ class ERA5Adapter(BaseAdapter):
             "day": sorted(list(days)),
             "time": times,
             "area": area,
-        },
+        }
 
         return request
 
@@ -609,14 +609,14 @@ class ERA5Adapter(BaseAdapter):
             available_coords = list(ds.coords.keys())
             raise DataParseError(
                 self.ADAPTER_NAME,
-                f"Could not find latitude/longitude coordinates in ERA5 dataset. ",
-                f"Available dimensions: {available_dims}, coordinates: {available_coords}"
+                f"Could not find latitude/longitude coordinates in ERA5 dataset. "
+                f"Available dimensions: {available_dims}, coordinates: {available_coords}",
                 details={
                     "requested_lat": lat,
                     "requested_lon": lon,
                     "available_dimensions": available_dims,
                     "available_coordinates": available_coords
-                }
+                },
             )
 
         # Standard coordinate selection
@@ -632,7 +632,7 @@ class ERA5Adapter(BaseAdapter):
                     "requested_lat": lat,
                     "requested_lon": lon
                 }
-            ),
+            )
 
     def _process_era5_data(self, ds: xr.Dataset, variables: List[str], lat: float, lon: float) -> xr.Dataset:
         """Process and standardize ERA5 data"""
@@ -660,7 +660,7 @@ class ERA5Adapter(BaseAdapter):
                     out_ds[canonical_name].attrs = {
                         "units": "m/s",
                         "long_name": "Wind Speed"
-                    },
+                    }
 
             elif canonical_name == "wind_dir":
                 # Calculate from u and v components,
@@ -671,7 +671,7 @@ class ERA5Adapter(BaseAdapter):
                     out_ds[canonical_name].attrs = {
                         "units": "degrees",
                         "long_name": "Wind Direction"
-                    },
+                    }
 
             elif canonical_name == "rel_humidity":
                 # Calculate from temperature and dewpoint,
@@ -684,7 +684,7 @@ class ERA5Adapter(BaseAdapter):
                     out_ds[canonical_name].attrs = {
                         "units": "%",
                         "long_name": "Relative Humidity"
-                    },
+                    }
 
             elif canonical_name == "ghi":
                 # Solar radiation in ERA5 is accumulated, need to convert to instantaneous,
@@ -702,7 +702,7 @@ class ERA5Adapter(BaseAdapter):
                     out_ds[canonical_name].attrs = {
                         "units": "W/m2",
                         "long_name": "Global Horizontal Irradiance"
-                    },
+                    }
 
             elif canonical_name in self.VARIABLE_MAPPING:
                 era5_name = self.VARIABLE_MAPPING[canonical_name]
@@ -773,7 +773,7 @@ class ERA5Adapter(BaseAdapter):
                     "requested_variables": variables,
                     "available_in_dataset": list(ds.data_vars.keys())
                 }
-            ),
+            )
 
         return out_ds
 
@@ -803,7 +803,7 @@ class ERA5Adapter(BaseAdapter):
             "evaporation": "mm/h",  # ERA5 provides accumulation over preceding hour,
             "soil_temp": "degC",
             "soil_moisture": "m3/m3"
-        },
+        }
 
         return {
             "units": units_map.get(canonical_name, "unknown"),
@@ -816,64 +816,64 @@ class ERA5Adapter(BaseAdapter):
             name="ERA5",
             version=self.ADAPTER_VERSION,
             description="ECMWF's fifth generation atmospheric reanalysis of global climate",
-            temporal=TemporalCoverage(,
+            temporal=TemporalCoverage(
                 start_date=date(1940, 1, 1),
                 end_date=None,  # Present (5 days behind real-time)
                 historical_years=84,
                 forecast_days=0,
                 real_time=False,
-                delay_hours=120,  # 5 days delay,
-            )
-            spatial=SpatialCoverage(,
+                delay_hours=120  # 5 days delay
+            ),
+            spatial=SpatialCoverage(
                 global_coverage=True,
                 regions=None,
-                resolution_km=31,  # 0.25deg x 0.25deg,
+                resolution_km=31,  # 0.25deg x 0.25deg
                 station_based=False,
                 grid_based=True,
-                custom_locations=True,
-            )
-            supported_variables=list(self.VARIABLE_MAPPING.keys())
-            primary_variables=[,
-                "temp_air"
+                custom_locations=True
+            ),
+            supported_variables=list(self.VARIABLE_MAPPING.keys()),
+            primary_variables=[
+                "temp_air",
                 "pressure",
-                "wind_speed"
+                "wind_speed",
                 "precip",
-                "soil_temp"
-                "soil_moisture",  # Unique land surface vars
-            ]
+                "soil_temp",
+                "soil_moisture"  # Unique land surface vars
+            ],
             derived_variables=["rel_humidity", "wind_speed", "wind_dir"],
-            supported_frequencies=[,
+            supported_frequencies=[
                 DataFrequency.HOURLY,
                 DataFrequency.THREEHOURLY,
                 DataFrequency.DAILY,
                 DataFrequency.MONTHLY
-            ]
+            ],
             native_frequency=DataFrequency.HOURLY,
             auth_type=AuthType.API_KEY,
-            requires_subscription=False,  # Free with registration,
-            free_tier_limits=None,  # No hard limits, but be reasonable,
-            quality=QualityFeatures(,
-                gap_filling=True,  # Complete coverage,
+            requires_subscription=False,  # Free with registration
+            free_tier_limits=None,  # No hard limits, but be reasonable
+            quality=QualityFeatures(
+                gap_filling=True,  # Complete coverage
                 quality_flags=False,
-                uncertainty_estimates=True,  # Through ensemble,
-                ensemble_members=True,  # 10-member ensemble available,
-                bias_correction=True,
-            )
-            max_request_days=None,  # Can request decades,
+                uncertainty_estimates=True,  # Through ensemble
+                ensemble_members=True,  # 10-member ensemble available
+                bias_correction=True
+            ),
+            max_request_days=None,  # Can request decades
             max_variables_per_request=20,
             batch_requests_supported=True,
-            async_requests_required=True,  # Large requests queued,
-            special_features=[,
+            async_requests_required=True,  # Large requests queued
+            special_features=[
                 "Most comprehensive reanalysis dataset",
                 "Global coverage since 1940",
                 "137 atmospheric levels",
                 "10-member ensemble for uncertainty",
                 "Land, ocean, and atmospheric variables",
                 "Consistent long-term climate record",
-                "High temporal and spatial resolution",
-            ]
-            data_products=["Reanalysis", "ERA5-Land", "Ensemble", "Pressure Levels"],
-        ),
+                "High temporal and spatial resolution"
+            ],
+            data_products=["Reanalysis", "ERA5-Land", "Ensemble", "Pressure Levels"]
+        )
 
 
 class ERA5QCProfile(QCProfile):
@@ -883,23 +883,23 @@ class ERA5QCProfile(QCProfile):
         super().__init__(
             name="ERA5",
             description="ECMWF's fifth-generation atmospheric reanalysis",
-            known_issues=[,
+            known_issues=[
                 "Smoothed data due to reanalysis model constraints",
                 "May not capture extreme local weather events accurately",
                 "Precipitation and cloud fields have known biases",
                 "Surface variables affected by model topography vs real topography"
-            ]
-            recommended_variables=[,
-                "temp_air"
+            ],
+            recommended_variables=[
+                "temp_air",
                 "dewpoint",
-                "wind_speed"
+                "wind_speed",
                 "wind_dir",
-                "pressure"
+                "pressure",
                 "rel_humidity"
-            ]
+            ],
             temporal_resolution_limits={"all": "hourly"},
             spatial_accuracy="0.25deg x 0.25deg (~30km resolution)",
-        ),
+        )
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """ERA5 specific validation"""
@@ -918,14 +918,14 @@ class ERA5QCProfile(QCProfile):
                 smooth_ratio = np.mean(second_derivative < 0.01)  # Very small changes
 
                 if smooth_ratio > 0.8:  # 80% of changes are very small
-                    issue = QCIssue(,
+                    issue = QCIssue(
                         type="reanalysis_smoothing",
                         message=f"Data appears over-smoothed in {var_name} (typical of reanalysis)",
                         severity=QCSeverity.LOW,
                         affected_variables=[var_name],
                         metadata={"smooth_ratio": float(smooth_ratio)},
-                        suggested_action="Consider supplementing with higher-resolution data for local applications",
-                    ),
+                        suggested_action="Consider supplementing with higher-resolution data for local applications"
+                    )
                     report.add_issue(issue)
 
         # Warn about precipitation biases,

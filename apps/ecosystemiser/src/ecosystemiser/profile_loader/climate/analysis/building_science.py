@@ -103,7 +103,7 @@ def analyze_building_loads(ds: xr.Dataset) -> Dict:
     return analysis
 
 
-def get_design_conditions(ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2, 99, 99.6]) -> Dict:
+def get_design_conditions(ds: xr.Dataset, percentiles: List[float] | None = None) -> Dict:
     """
     Calculate ASHRAE-style design conditions for HVAC sizing.
 
@@ -114,6 +114,9 @@ def get_design_conditions(ds: xr.Dataset, percentiles: List[float] = [0.4, 1, 2,
     Returns:
         Dictionary with design conditions,
     """
+    if percentiles is None:
+        percentiles = [0.4, 1, 2, 99, 99.6]
+
     design = {"heating": {}, "cooling": {}, "humidity": {}}
 
     # Temperature design conditions
@@ -261,7 +264,7 @@ def analyze_diurnal_profiles(ds: xr.Dataset, variables: Optional[List[str]] = No
                         f"hour_{h:02d}": float(monthly_hourly.sel(month=m, hour=h))
                         for h in range(24)
                         if (m, h) in monthly_hourly.coords
-                    },
+                    }
                     for m in range(1, 13)
                 }
             }

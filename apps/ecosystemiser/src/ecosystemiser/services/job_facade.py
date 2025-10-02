@@ -221,7 +221,7 @@ class JobFacade:
                 job_id=request.job_id,
                 job_type=JobType.SIMULATION,
                 status=JobStatus.FAILED,
-                error=str(e)
+                error=str(e),
                 started_at=started_at,
                 completed_at=datetime.now()
             )
@@ -311,7 +311,7 @@ class JobFacade:
                 job_id=request.job_id,
                 job_type=JobType.ANALYSIS,
                 status=JobStatus.FAILED,
-                error=str(e)
+                error=str(e),
                 started_at=started_at,
                 completed_at=datetime.now()
             ),

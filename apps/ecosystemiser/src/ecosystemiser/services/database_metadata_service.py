@@ -75,7 +75,7 @@ class DatabaseMetadataService:
             logger.info(f"Database schema initialized at {self.db_path}")
         except Exception as e:
             logger.error(f"Failed to initialize database schema: {e}")
-            raise,
+            raise
 
     def log_simulation_run(self, run_summary: dict[str, Any]) -> bool:
         """Log a simulation run to the database.
@@ -90,31 +90,31 @@ class DatabaseMetadataService:
             # Prepare data for insertion
             run_data = {
                 "run_id": run_summary.get("run_id"),
-                "study_id": run_summary.get("study_id", "default_study")
+                "study_id": run_summary.get("study_id", "default_study"),
                 "system_id": run_summary.get("system_id"),
-                "timesteps": run_summary.get("timesteps")
+                "timesteps": run_summary.get("timesteps"),
                 "timestamp": run_summary.get("timestamp"),
-                "solver_type": run_summary.get("solver_type", "unknown")
-                "simulation_status": run_summary.get("simulation_status", "completed")
+                "solver_type": run_summary.get("solver_type", "unknown"),
+                "simulation_status": run_summary.get("simulation_status", "completed"),
                 # KPIs
                 "total_cost": run_summary.get("total_cost"),
-                "total_co2": run_summary.get("total_co2")
+                "total_co2": run_summary.get("total_co2"),
                 "self_consumption_rate": run_summary.get("self_consumption_rate"),
-                "self_sufficiency_rate": run_summary.get("self_sufficiency_rate")
+                "self_sufficiency_rate": run_summary.get("self_sufficiency_rate"),
                 "renewable_fraction": run_summary.get("renewable_fraction"),
-                "total_generation_kwh": run_summary.get("total_generation_kwh")
+                "total_generation_kwh": run_summary.get("total_generation_kwh"),
                 "total_demand_kwh": run_summary.get("total_demand_kwh"),
-                "net_grid_usage_kwh": run_summary.get("net_grid_usage_kwh")
+                "net_grid_usage_kwh": run_summary.get("net_grid_usage_kwh"),
                 # File paths
                 "results_path": run_summary.get("results_path"),
-                "flows_path": run_summary.get("flows_path")
-                "components_path": run_summary.get("components_path")
+                "flows_path": run_summary.get("flows_path"),
+                "components_path": run_summary.get("components_path"),
                 # Metadata
                 "metadata_json": json.dumps(
                     {
-                        k: v,
+                        k: v
                         for k, v in run_summary.items()
-                        if k,
+                        if k
                         not in [
                             "run_id",
                             "study_id",
@@ -168,25 +168,25 @@ class DatabaseMetadataService:
             with sqlite_transaction(db_path=self.db_path) as conn:
                 # Insert or update study
                 conn.execute(
-                    """,
+                    """
                     INSERT OR IGNORE INTO studies (study_id, study_name)
                     VALUES (?, ?)
-                """,
+                    """,
                     (study_id, study_id)
                 )
 
                 # Update run count
                 conn.execute(
-                    """,
-                    UPDATE studies,
+                    """
+                    UPDATE studies
                     SET run_count = (
-                        SELECT COUNT(*) FROM simulation_runs,
+                        SELECT COUNT(*) FROM simulation_runs
                         WHERE study_id = ?
-                    ),
-                    WHERE study_id = ?,
-                """,
+                    )
+                    WHERE study_id = ?
+                    """,
                     (study_id, study_id)
-                ),
+                )
 
         except Exception as e:
             logger.warning(f"Failed to update study run count: {e}")
@@ -417,6 +417,342 @@ class DatabaseMetadataService:
 
         except Exception as e:
             logger.error(f"Failed to delete simulation run: {e}")
+            return False
+
+    def migrate_to_enhanced_schema(self) -> bool:
+        """Migrate database to enhanced schema supporting GA/MC optimization studies.
+
+        This adds tables for:
+        - study_runs: Individual evaluations within optimization studies
+        - pareto_fronts: Pareto-optimal solutions for multi-objective optimization
+        - convergence_metrics: Generation-by-generation convergence tracking
+        - uncertainty_analysis: Monte Carlo distribution statistics
+        - sensitivity_analysis: Parameter importance rankings
+
+        The migration is backward compatible - existing simulation_runs table is preserved.
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        enhanced_schema_sql = """
+        -- Enhance studies table for optimization support
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS study_type TEXT DEFAULT 'single_simulation';
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS optimization_objective TEXT;
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS population_size INTEGER;
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS max_generations INTEGER;
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS convergence_threshold REAL;
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS best_fitness REAL;
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS best_solution_id TEXT;
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS completed_at TEXT;
+        ALTER TABLE studies ADD COLUMN IF NOT EXISTS config_json TEXT;
+
+        -- Add foreign keys to simulation_runs for study linking (backward compatible)
+        ALTER TABLE simulation_runs ADD COLUMN IF NOT EXISTS study_run_id TEXT;
+
+        -- Individual evaluations within a study (GA, MC, etc.)
+        CREATE TABLE IF NOT EXISTS study_runs (
+            run_id TEXT PRIMARY KEY,
+            study_id TEXT NOT NULL,
+            evaluation_number INTEGER NOT NULL,
+            generation_number INTEGER,
+            parameter_vector TEXT NOT NULL,
+            fitness REAL NOT NULL,
+            objectives TEXT,
+            is_pareto_optimal BOOLEAN DEFAULT 0,
+            simulation_run_id TEXT,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            metadata_json TEXT,
+            FOREIGN KEY (study_id) REFERENCES studies(study_id),
+            FOREIGN KEY (simulation_run_id) REFERENCES simulation_runs(run_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_study_runs_study_id ON study_runs(study_id);
+        CREATE INDEX IF NOT EXISTS idx_study_runs_fitness ON study_runs(fitness);
+        CREATE INDEX IF NOT EXISTS idx_study_runs_generation ON study_runs(study_id, generation_number);
+        CREATE INDEX IF NOT EXISTS idx_study_runs_pareto ON study_runs(study_id, is_pareto_optimal);
+
+        -- Pareto front tracking for multi-objective optimization
+        CREATE TABLE IF NOT EXISTS pareto_fronts (
+            pareto_id TEXT PRIMARY KEY,
+            study_id TEXT NOT NULL,
+            generation_number INTEGER,
+            run_ids TEXT NOT NULL,
+            objectives TEXT NOT NULL,
+            hypervolume REAL,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (study_id) REFERENCES studies(study_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_pareto_fronts_study_id ON pareto_fronts(study_id);
+        CREATE INDEX IF NOT EXISTS idx_pareto_fronts_generation ON pareto_fronts(study_id, generation_number);
+
+        -- Convergence metrics for tracking optimization progress
+        CREATE TABLE IF NOT EXISTS convergence_metrics (
+            metric_id TEXT PRIMARY KEY,
+            study_id TEXT NOT NULL,
+            generation_number INTEGER NOT NULL,
+            best_fitness REAL NOT NULL,
+            average_fitness REAL,
+            worst_fitness REAL,
+            fitness_std REAL,
+            diversity_metric REAL,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (study_id) REFERENCES studies(study_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_convergence_metrics_study_id ON convergence_metrics(study_id);
+        CREATE INDEX IF NOT EXISTS idx_convergence_metrics_generation ON convergence_metrics(study_id, generation_number);
+
+        -- Uncertainty analysis for Monte Carlo sampling
+        CREATE TABLE IF NOT EXISTS uncertainty_analysis (
+            analysis_id TEXT PRIMARY KEY,
+            study_id TEXT NOT NULL,
+            parameter_name TEXT NOT NULL,
+            metric_name TEXT NOT NULL,
+            mean_value REAL,
+            median_value REAL,
+            std_dev REAL,
+            min_value REAL,
+            max_value REAL,
+            percentile_5 REAL,
+            percentile_25 REAL,
+            percentile_75 REAL,
+            percentile_95 REAL,
+            sample_count INTEGER,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (study_id) REFERENCES studies(study_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_uncertainty_analysis_study_id ON uncertainty_analysis(study_id);
+        CREATE INDEX IF NOT EXISTS idx_uncertainty_analysis_parameter ON uncertainty_analysis(study_id, parameter_name);
+
+        -- Sensitivity analysis for parameter importance
+        CREATE TABLE IF NOT EXISTS sensitivity_analysis (
+            sensitivity_id TEXT PRIMARY KEY,
+            study_id TEXT NOT NULL,
+            parameter_name TEXT NOT NULL,
+            metric_name TEXT NOT NULL,
+            correlation_coefficient REAL,
+            importance_rank INTEGER,
+            variance_contribution REAL,
+            timestamp TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (study_id) REFERENCES studies(study_id)
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_sensitivity_analysis_study_id ON sensitivity_analysis(study_id);
+        CREATE INDEX IF NOT EXISTS idx_sensitivity_analysis_importance ON sensitivity_analysis(study_id, importance_rank);
+        """
+
+        try:
+            with sqlite_transaction(db_path=self.db_path) as conn:
+                conn.executescript(enhanced_schema_sql)
+            logger.info("Successfully migrated database to enhanced schema")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to migrate to enhanced schema: {e}")
+            return False
+
+    def create_study(
+        self,
+        study_id: str,
+        study_type: str,
+        study_name: str | None = None,
+        optimization_objective: str | None = None,
+        population_size: int | None = None,
+        max_generations: int | None = None,
+        config: dict[str, Any] | None = None
+    ) -> bool:
+        """Create a new optimization study.
+
+        Args:
+            study_id: Unique identifier for the study
+            study_type: Type of study ('genetic_algorithm', 'monte_carlo', 'single_simulation')
+            study_name: Human-readable name
+            optimization_objective: Objective function description
+            population_size: GA population size
+            max_generations: GA maximum generations
+            config: Additional configuration as dict
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            study_data = {
+                "study_id": study_id,
+                "study_type": study_type,
+                "study_name": study_name or study_id,
+                "optimization_objective": optimization_objective,
+                "population_size": population_size,
+                "max_generations": max_generations,
+                "status": "pending",
+                "created_at": datetime.now().isoformat(),
+                "config_json": json.dumps(config) if config else None
+            }
+
+            with sqlite_transaction(db_path=self.db_path) as conn:
+                placeholders = ", ".join(["?" for _ in study_data])
+                columns = ", ".join(study_data.keys())
+                sql = f"INSERT INTO studies ({columns}) VALUES ({placeholders})"
+                conn.execute(sql, tuple(study_data.values()))
+
+            logger.info(f"Created study: {study_id} (type: {study_type})")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to create study: {e}")
+            return False
+
+    def log_study_run(
+        self,
+        study_id: str,
+        evaluation_number: int,
+        parameter_vector: list[float],
+        fitness: float,
+        generation_number: int | None = None,
+        objectives: dict[str, float] | None = None,
+        simulation_run_id: str | None = None,
+        metadata: dict[str, Any] | None = None
+    ) -> str | None:
+        """Log an individual evaluation within a study.
+
+        Args:
+            study_id: Study identifier
+            evaluation_number: Sequential evaluation number
+            parameter_vector: Parameter values for this evaluation
+            fitness: Fitness value
+            generation_number: GA generation number (if applicable)
+            objectives: Multi-objective values
+            simulation_run_id: Link to full simulation results
+            metadata: Additional metadata
+
+        Returns:
+            run_id if successful, None otherwise.
+        """
+        try:
+            run_id = f"{study_id}_eval_{evaluation_number}"
+
+            run_data = {
+                "run_id": run_id,
+                "study_id": study_id,
+                "evaluation_number": evaluation_number,
+                "generation_number": generation_number,
+                "parameter_vector": json.dumps(parameter_vector),
+                "fitness": fitness,
+                "objectives": json.dumps(objectives) if objectives else None,
+                "simulation_run_id": simulation_run_id,
+                "timestamp": datetime.now().isoformat(),
+                "metadata_json": json.dumps(metadata) if metadata else None
+            }
+
+            with sqlite_transaction(db_path=self.db_path) as conn:
+                placeholders = ", ".join(["?" for _ in run_data])
+                columns = ", ".join(run_data.keys())
+                sql = f"INSERT INTO study_runs ({columns}) VALUES ({placeholders})"
+                conn.execute(sql, tuple(run_data.values()))
+
+            return run_id
+
+        except Exception as e:
+            logger.error(f"Failed to log study run: {e}")
+            return None
+
+    def log_convergence_metrics(
+        self,
+        study_id: str,
+        generation_number: int,
+        best_fitness: float,
+        average_fitness: float | None = None,
+        worst_fitness: float | None = None,
+        fitness_std: float | None = None,
+        diversity_metric: float | None = None
+    ) -> bool:
+        """Log convergence metrics for a generation.
+
+        Args:
+            study_id: Study identifier
+            generation_number: Generation number
+            best_fitness: Best fitness in generation
+            average_fitness: Average fitness
+            worst_fitness: Worst fitness
+            fitness_std: Standard deviation of fitness
+            diversity_metric: Population diversity metric
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            metric_id = f"{study_id}_gen_{generation_number}"
+
+            metric_data = {
+                "metric_id": metric_id,
+                "study_id": study_id,
+                "generation_number": generation_number,
+                "best_fitness": best_fitness,
+                "average_fitness": average_fitness,
+                "worst_fitness": worst_fitness,
+                "fitness_std": fitness_std,
+                "diversity_metric": diversity_metric,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            with sqlite_transaction(db_path=self.db_path) as conn:
+                placeholders = ", ".join(["?" for _ in metric_data])
+                columns = ", ".join(metric_data.keys())
+                sql = f"INSERT INTO convergence_metrics ({columns}) VALUES ({placeholders})"
+                conn.execute(sql, tuple(metric_data.values()))
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to log convergence metrics: {e}")
+            return False
+
+    def update_study_status(
+        self,
+        study_id: str,
+        status: str,
+        best_fitness: float | None = None,
+        best_solution_id: str | None = None
+    ) -> bool:
+        """Update study status and best solution.
+
+        Args:
+            study_id: Study identifier
+            status: New status ('pending', 'running', 'completed', 'failed')
+            best_fitness: Best fitness found
+            best_solution_id: ID of best solution
+
+        Returns:
+            True if successful, False otherwise.
+        """
+        try:
+            update_fields = ["status = ?"]
+            update_values = [status]
+
+            if best_fitness is not None:
+                update_fields.append("best_fitness = ?")
+                update_values.append(best_fitness)
+
+            if best_solution_id is not None:
+                update_fields.append("best_solution_id = ?")
+                update_values.append(best_solution_id)
+
+            if status == "completed":
+                update_fields.append("completed_at = ?")
+                update_values.append(datetime.now().isoformat())
+
+            update_values.append(study_id)
+
+            with sqlite_transaction(db_path=self.db_path) as conn:
+                sql = f"UPDATE studies SET {', '.join(update_fields)} WHERE study_id = ?"
+                conn.execute(sql, tuple(update_values))
+
+            logger.info(f"Updated study {study_id} status to {status}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to update study status: {e}")
             return False
 
     def cleanup_orphaned_records(self) -> int:

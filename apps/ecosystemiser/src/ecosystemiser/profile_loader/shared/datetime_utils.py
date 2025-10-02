@@ -147,8 +147,8 @@ class DateTimeProcessor:
     @classmethod
     def create_time_index(
         cls,
-        start: str, datetime | pd.Timestamp,
-        end: str, datetime | pd.Timestamp,
+        start: str | datetime | pd.Timestamp,
+        end: str | datetime | pd.Timestamp,
         freq: str = "1H",
         timezone: str = "UTC"
     ) -> pd.DatetimeIndex:

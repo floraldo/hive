@@ -440,7 +440,7 @@ class BenchmarkRunner:
                         "peak_memory_mb": round(peak_memory, 2),
                         "evaluations": num_evaluations,
                         "evaluations_per_second": round(num_evaluations / solve_time, 2),
-                        "best_fitness": result.get("best_fitness", None),
+                        "best_fitness": result.best_fitness if hasattr(result, "best_fitness") else result.get("best_fitness", None),
                         "error": None,
                     }
                 )
@@ -470,6 +470,7 @@ class BenchmarkRunner:
                     mc_config = MonteCarloConfig(
                         dimensions=config["dimensions"],
                         bounds=[(0, 100)] * config["dimensions"],
+                        objectives=["total_cost"],
                         population_size=config["samples"],
                         sampling_method=config["method"],
                         confidence_levels=[0.05, 0.95],
