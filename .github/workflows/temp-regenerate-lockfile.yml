@@ -1,0 +1,49 @@
+name: 🔐 Regenerate Poetry Lock File
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  regenerate-lock:
+    runs-on: ubuntu-latest
+    # Only run this workflow if this specific file has been added/modified.
+    if: "contains(github.event.head_commit.message, 'chore(ci): Regenerate poetry.lock')"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # We need a token with write permissions to push back to the repo
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python and Poetry
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Regenerate lock file
+        run: poetry lock
+
+      - name: Commit and push if lock file changed
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add poetry.lock
+          # Use "git diff --staged --quiet" to check if there are staged changes.
+          # If it exits with 1, there are changes to commit.
+          if ! git diff --staged --quiet; then
+            git commit -m "chore(ci): Regenerate poetry.lock to match pyproject.toml"
+            git push
+            echo "poetry.lock was updated and pushed to the repository."
+          else
+            echo "poetry.lock is already up to date."
+          fi

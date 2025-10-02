@@ -38,13 +38,9 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Regenerate lock file
-        run: |
-          poetry lock
-
       - name: Install dependencies
         run: |
-          poetry install --with dev,workspace --no-root
+          poetry install --with dev,workspace
           poetry run pip install black isort ruff
 
       - name: Run Black (Code Formatting)
@@ -82,13 +78,9 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Regenerate lock file
-        run: |
-          poetry lock
-
       - name: Install dependencies
         run: |
-          poetry install --with dev,workspace --no-root
+          poetry install --with dev,workspace
 
       - name: Run Smoke Tests (Import Validation)
         run: |
@@ -149,13 +141,9 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Regenerate lock file
-        run: |
-          poetry lock
-
       - name: Install dependencies
         run: |
-          poetry install --with dev,workspace --no-root
+          poetry install --with dev,workspace
 
       - name: Run Golden Tests (Architectural Validation)
         run: |
@@ -330,13 +318,9 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Regenerate lock file
-        run: |
-          poetry lock
-
       - name: Install workspace dependencies
         run: |
-          poetry install --with dev,workspace --no-root
+          poetry install --with dev,workspace
 
       - name: Run Integration Tests
         run: |
