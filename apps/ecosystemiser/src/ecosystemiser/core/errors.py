@@ -132,7 +132,7 @@ class SimulationError(EcoSystemiserError):
         super().__init__(message=message, **kwargs)
 
 
-class SimulationConfigError(BaseError):
+class SimulationConfigError(SimulationError):
     """Error in simulation configuration"""
 
     def __init__(self, message: str, config_key: str | None = None, config_value: Any = None, **kwargs) -> None:
@@ -155,7 +155,7 @@ class SimulationConfigError(BaseError):
         super().__init__(message=message, operation="configuration", **kwargs)
 
 
-class SimulationExecutionError(BaseError):
+class SimulationExecutionError(SimulationError):
     """Error during simulation execution"""
 
     def __init__(self, message: str, **kwargs) -> None:
@@ -176,14 +176,15 @@ class SimulationExecutionError(BaseError):
 # ===============================================================================
 
 
-class ProfileError(BaseError):
+class ProfileError(EcoSystemiserError):
     """Base class for profile-related errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(message=message, component=kwargs.get("component", "profile_loader"), **kwargs)
+        kwargs.setdefault("component", "profile_loader")
+        super().__init__(message=message, **kwargs)
 
 
-class ProfileLoadError(BaseError):
+class ProfileLoadError(ProfileError):
     """Error loading profile data"""
 
     def __init__(self, message: str, profile_type: str | None = None, source: str | None = None, **kwargs) -> None:
@@ -207,7 +208,7 @@ class ProfileLoadError(BaseError):
         super().__init__(message=message, operation="load", **kwargs)
 
 
-class ProfileValidationError(BaseError):
+class ProfileValidationError(ProfileError):
     """Error validating profile data"""
 
     def __init__(
@@ -242,14 +243,15 @@ class ProfileValidationError(BaseError):
 # ===============================================================================
 
 
-class SolverError(BaseError):
+class SolverError(EcoSystemiserError):
     """Base class for solver-related errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(message=message, component=kwargs.get("component", "solver"), **kwargs)
+        kwargs.setdefault("component", "solver")
+        super().__init__(message=message, **kwargs)
 
 
-class OptimizationInfeasibleError(BaseError):
+class OptimizationInfeasibleError(SolverError):
     """Error when optimization problem is infeasible"""
 
     def __init__(
@@ -280,7 +282,7 @@ class OptimizationInfeasibleError(BaseError):
         super().__init__(message=message, operation="optimization", **kwargs)
 
 
-class SolverConvergenceError(BaseError):
+class SolverConvergenceError(SolverError):
     """Error when solver fails to converge"""
 
     def __init__(self, message: str, iterations: int | None = None, tolerance: float | None = None, **kwargs) -> None:
@@ -310,7 +312,7 @@ class SolverConvergenceError(BaseError):
 # ===============================================================================
 
 
-class ComponentError(BaseError):
+class ComponentError(EcoSystemiserError):
     """Base class for component-related errors"""
 
     def __init__(
@@ -327,10 +329,11 @@ class ComponentError(BaseError):
             details["component_type"] = component_type
 
         kwargs["details"] = details
-        super().__init__(message=message, component=kwargs.get("component", "component_system"), **kwargs)
+        kwargs.setdefault("component", "component_system")
+        super().__init__(message=message, **kwargs)
 
 
-class ComponentConnectionError(BaseError):
+class ComponentConnectionError(ComponentError):
     """Error in component connections"""
 
     def __init__(
@@ -363,7 +366,7 @@ class ComponentConnectionError(BaseError):
         super().__init__(message=message, operation="connection", **kwargs)
 
 
-class ComponentValidationError(BaseError):
+class ComponentValidationError(ComponentError):
     """Error validating component parameters"""
 
     def __init__(
@@ -401,14 +404,15 @@ class ComponentValidationError(BaseError):
 # ===============================================================================
 
 
-class DatabaseError(BaseError):
+class DatabaseError(EcoSystemiserError):
     """Base class for database-related errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(message=message, component=kwargs.get("component", "database"), **kwargs)
+        kwargs.setdefault("component", "database")
+        super().__init__(message=message, **kwargs)
 
 
-class DatabaseConnectionError(BaseError):
+class DatabaseConnectionError(DatabaseError):
     """Error connecting to EcoSystemiser database"""
 
     def __init__(self, message: str, db_path: str | None = None, **kwargs) -> None:
@@ -430,7 +434,7 @@ class DatabaseConnectionError(BaseError):
         super().__init__(message=message, operation="connection", **kwargs)
 
 
-class DatabaseTransactionError(BaseError):
+class DatabaseTransactionError(DatabaseError):
     """Error during database transaction"""
 
     def __init__(self, message: str, transaction_type: str | None = None, **kwargs) -> None:
@@ -457,14 +461,15 @@ class DatabaseTransactionError(BaseError):
 # ===============================================================================
 
 
-class EventBusError(BaseError):
+class EventBusError(EcoSystemiserError):
     """Base class for event bus errors"""
 
     def __init__(self, message: str, **kwargs) -> None:
-        super().__init__(message=message, component=kwargs.get("component", "event_bus"), **kwargs)
+        kwargs.setdefault("component", "event_bus")
+        super().__init__(message=message, **kwargs)
 
 
-class EventPublishError(BaseError):
+class EventPublishError(EventBusError):
     """Error publishing event to bus"""
 
     def __init__(self, message: str, event_type: str | None = None, event_id: str | None = None, **kwargs) -> None:
@@ -642,28 +647,36 @@ def get_error_reporter() -> EcoSystemiserErrorReporter:
 # Export main classes and functions
 __all__ = [
     # Base classes
-    "EcoSystemiserError"
+    "EcoSystemiserError",
     # Simulation errors
-    "SimulationError" "SimulationConfigError",
-    "SimulationExecutionError"
+    "SimulationError",
+    "SimulationConfigError",
+    "SimulationExecutionError",
     # Profile errors
-    "ProfileError" "ProfileLoadError",
-    "ProfileValidationError"
+    "ProfileError",
+    "ProfileLoadError",
+    "ProfileValidationError",
     # Solver errors
-    "SolverError" "OptimizationInfeasibleError",
-    "SolverConvergenceError"
+    "SolverError",
+    "OptimizationInfeasibleError",
+    "SolverConvergenceError",
     # Component errors
-    "ComponentError" "ComponentConnectionError",
-    "ComponentValidationError"
+    "ComponentError",
+    "ComponentConnectionError",
+    "ComponentValidationError",
     # Database errors
-    "DatabaseError" "DatabaseConnectionError",
-    "DatabaseTransactionError"
+    "DatabaseError",
+    "DatabaseConnectionError",
+    "DatabaseTransactionError",
     # Event bus errors
-    "EventBusError" "EventPublishError"
+    "EventBusError",
+    "EventPublishError",
     # Reporter
-    "EcoSystemiserErrorReporter" "get_error_reporter"
+    "EcoSystemiserErrorReporter",
+    "get_error_reporter",
     # Legacy aliases for backward compatibility
-    "AdapterError" "ValidationError",
+    "AdapterError",
+    "ValidationError",
 ]
 
 
