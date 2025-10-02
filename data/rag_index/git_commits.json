@@ -1,72 +1,22 @@
 [
   {
-    "hash": "cef9367c",
-    "full_hash": "cef9367c3009fd8b3ee5d9e361426e7350f877ed",
+    "hash": "fc1bd09f",
+    "full_hash": "fc1bd09f9b2fae43e54ef56aac1f16df7c610e91",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-02T23:27:21",
-    "subject": "fix(ci)[agent:golden]: Standardize Poetry install in golden-rules workflow",
-    "body": "Fixed inconsistent Poetry install pattern to match other workflows.",
-    "searchable_text": "fix(ci)[agent:golden]: Standardize Poetry install in golden-rules workflow Fixed inconsistent Poetry install pattern to match other workflows."
+    "date": "2025-10-03T01:34:16",
+    "subject": "fix(config)[agent:golden]: Disable trailing comma formatters",
+    "body": "CRITICAL FIX: Prevent linter-induced trailing comma syntax errors",
+    "searchable_text": "fix(config)[agent:golden]: Disable trailing comma formatters CRITICAL FIX: Prevent linter-induced trailing comma syntax errors"
   },
   {
-    "hash": "2ca2a2a7",
-    "full_hash": "2ca2a2a7022a34cd712ebe875dba00c760b51d8f",
+    "hash": "9e42a1f2",
+    "full_hash": "9e42a1f29abc3f33516ddea840d8d05f910be441",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-02T23:25:56",
-    "subject": "fix(ci)[agent:golden]: Fix AutoFix import error and standardize Poetry installs",
-    "body": "Critical fixes to make CI workflows actually pass on GitHub.",
-    "searchable_text": "fix(ci)[agent:golden]: Fix AutoFix import error and standardize Poetry installs Critical fixes to make CI workflows actually pass on GitHub."
-  },
-  {
-    "hash": "b184ba30",
-    "full_hash": "b184ba307b940307d845f4a564aa8b0e17f70b67",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-02T23:11:57",
-    "subject": "fix(monitoring)[agent:golden]: Harden production monitor for CI environments",
-    "body": "Prevented false failures in CI by making localhost endpoints opt-in only.\nScript now exits cleanly (code 0) when no endpoints are configured.",
-    "searchable_text": "fix(monitoring)[agent:golden]: Harden production monitor for CI environments Prevented false failures in CI by making localhost endpoints opt-in only.\nScript now exits cleanly (code 0) when no endpoints are configured."
-  },
-  {
-    "hash": "a7525ecc",
-    "full_hash": "a7525ecc7c0f63631b6c6952a232d1bb5ef1499b",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-02T22:59:34",
-    "subject": "chore(ci)[agent:golden]: Disable noisy production monitoring workflow",
-    "body": "Renamed predictive-monitoring.yml to .disabled to stop false-positive\nfailures. Workflow was checking localhost services in isolated GitHub\nrunner where no services are running.",
-    "searchable_text": "chore(ci)[agent:golden]: Disable noisy production monitoring workflow Renamed predictive-monitoring.yml to .disabled to stop false-positive\nfailures. Workflow was checking localhost services in isolated GitHub\nrunner where no services are running."
-  },
-  {
-    "hash": "a83ce4d2",
-    "full_hash": "a83ce4d2be18b9b3a2132d47c8b916ad8a91fba0",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-02T22:52:01",
-    "subject": "docs(guardian): Complete Phase 2 & 2.5 activation summary",
-    "body": "Comprehensive documentation of Guardian Agent evolution from infrastructure\nto production-ready RAG-enhanced code reviewer with feedback loop.",
-    "searchable_text": "docs(guardian): Complete Phase 2 & 2.5 activation summary Comprehensive documentation of Guardian Agent evolution from infrastructure\nto production-ready RAG-enhanced code reviewer with feedback loop."
-  },
-  {
-    "hash": "82b87bca",
-    "full_hash": "82b87bca38f40cb92c3b8c9c23ecbfafd25fb097",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-02T22:49:48",
-    "subject": "feat(guardian): Add human feedback loop and performance metrics",
-    "body": "Phase 2.5 Guardian hardening - implements data-driven quality measurement.",
-    "searchable_text": "feat(guardian): Add human feedback loop and performance metrics Phase 2.5 Guardian hardening - implements data-driven quality measurement."
-  },
-  {
-    "hash": "e8289e2f",
-    "full_hash": "e8289e2f9e91f0fb035186198b11d524cf2a391a",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-02T22:44:10",
-    "subject": "feat(guardian): Integrate RAG engine into PR review workflow",
-    "body": "Phase 2 Guardian Agent activation - connects real RAG engine to CI/CD.",
-    "searchable_text": "feat(guardian): Integrate RAG engine into PR review workflow Phase 2 Guardian Agent activation - connects real RAG engine to CI/CD."
+    "date": "2025-10-03T01:26:48",
+    "subject": "fix(guardian)[agent:golden]: Fix critical CLI bugs for Guardian Agent",
+    "body": "Phase 1: Critical Bug Fixes\n- Fixed trailing comma syntax error in cli_review.py:129 (created tuple instead of engine)\n- Fixed method mismatch: CLI now uses analyze_pr_for_comments() instead of non-existent generate_pr_comments()\n- Converted CLI to async/await pattern to match RAGCommentEngine API\n- Fixed rag_comment_engine.py syntax errors (trailing commas on lines 210, 359)\n- Added test file with Golden Rule violations for validation",
+    "searchable_text": "fix(guardian)[agent:golden]: Fix critical CLI bugs for Guardian Agent Phase 1: Critical Bug Fixes\n- Fixed trailing comma syntax error in cli_review.py:129 (created tuple instead of engine)\n- Fixed method mismatch: CLI now uses analyze_pr_for_comments() instead of non-existent generate_pr_comments()\n- Converted CLI to async/await pattern to match RAGCommentEngine API\n- Fixed rag_comment_engine.py syntax errors (trailing commas on lines 210, 359)\n- Added test file with Golden Rule violations for validation"
   }
 ]
