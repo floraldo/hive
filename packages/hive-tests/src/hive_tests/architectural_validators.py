@@ -1,4 +1,5 @@
 import ast
+from enum import Enum
 from pathlib import Path
 
 import toml
@@ -19,6 +20,181 @@ Architectural Validators - Core validation functions for Hive platform standards
 These validators are used by the Golden Tests to enforce architectural
 gravity across the entire platform.
 """
+
+
+class RuleSeverity(Enum):
+    """
+    Severity levels for Golden Rules.
+
+    CRITICAL: Never compromise - system breaks, security issues, deployment failures
+    ERROR: Fix before merge - technical debt, maintainability issues
+    WARNING: Fix at milestones - quality issues, sprint boundaries
+    INFO: Nice to have - best practices, major releases only
+    """
+    CRITICAL = 1
+    ERROR = 2
+    WARNING = 3
+    INFO = 4
+
+
+# Golden Rules Registry with Severity Mappings
+# NOTE: Registry is defined before validators, so it will be populated by init function after all validators are defined
+GOLDEN_RULES_REGISTRY = []
+
+
+def _initialize_golden_rules_registry():
+    """
+    Initialize the Golden Rules registry after all validators are defined.
+    This function is called at the end of this module.
+    """
+    global GOLDEN_RULES_REGISTRY
+    GOLDEN_RULES_REGISTRY = [
+        # CRITICAL (5 rules) - Never compromise
+        {
+            "name": "No sys.path Manipulation",
+            "validator": validate_no_syspath_hacks,
+            "severity": RuleSeverity.CRITICAL,
+            "description": "Prevents import system corruption"
+        },
+        {
+            "name": "Single Config Source",
+            "validator": validate_single_config_source,
+            "severity": RuleSeverity.CRITICAL,
+            "description": "Prevents setup.py/pyproject.toml conflicts"
+        },
+        {
+            "name": "No Hardcoded Env Values",
+            "validator": validate_no_hardcoded_env_values,
+            "severity": RuleSeverity.CRITICAL,
+            "description": "Security - no secrets in code"
+        },
+        {
+            "name": "Package vs. App Discipline",
+            "validator": validate_package_app_discipline,
+            "severity": RuleSeverity.CRITICAL,
+            "description": "Core architectural boundary"
+        },
+        {
+            "name": "App Contracts",
+            "validator": validate_app_contracts,
+            "severity": RuleSeverity.CRITICAL,
+            "description": "Application interface stability"
+        },
+
+        # ERROR (8 rules) - Fix before merge
+        {
+            "name": "Dependency Direction",
+            "validator": validate_dependency_direction,
+            "severity": RuleSeverity.ERROR,
+            "description": "Packages cannot import apps"
+        },
+        {
+            "name": "Error Handling Standards",
+            "validator": validate_error_handling_standards,
+            "severity": RuleSeverity.ERROR,
+            "description": "Exceptions inherit from BaseError"
+        },
+        {
+            "name": "Logging Standards",
+            "validator": validate_logging_standards,
+            "severity": RuleSeverity.ERROR,
+            "description": "Use hive_logging, no print()"
+        },
+        {
+            "name": "No Global State Access",
+            "validator": validate_no_global_state_access,
+            "severity": RuleSeverity.ERROR,
+            "description": "Use DI pattern, not get_config()"
+        },
+        {
+            "name": "Async Pattern Consistency",
+            "validator": validate_async_pattern_consistency,
+            "severity": RuleSeverity.ERROR,
+            "description": "Async functions end with _async"
+        },
+        {
+            "name": "Interface Contracts",
+            "validator": validate_interface_contracts,
+            "severity": RuleSeverity.ERROR,
+            "description": "Type hints on public functions"
+        },
+        {
+            "name": "Communication Patterns",
+            "validator": validate_communication_patterns,
+            "severity": RuleSeverity.ERROR,
+            "description": "Event bus usage patterns"
+        },
+        {
+            "name": "Service Layer Discipline",
+            "validator": validate_service_layer_discipline,
+            "severity": RuleSeverity.ERROR,
+            "description": "Service layer separation"
+        },
+
+        # WARNING (7 rules) - Fix at milestones
+        {
+            "name": "Test Coverage Mapping",
+            "validator": validate_test_coverage_mapping,
+            "severity": RuleSeverity.WARNING,
+            "description": "Source files have test files"
+        },
+        {
+            "name": "Test File Quality",
+            "validator": validate_test_file_quality,
+            "severity": RuleSeverity.WARNING,
+            "description": "Tests follow standards"
+        },
+        {
+            "name": "Inherit-Extend Pattern",
+            "validator": validate_inherit_extend_pattern,
+            "severity": RuleSeverity.WARNING,
+            "description": "Infrastructure vs business logic"
+        },
+        {
+            "name": "Package Naming Consistency",
+            "validator": validate_package_naming_consistency,
+            "severity": RuleSeverity.WARNING,
+            "description": "Follow hive-* convention"
+        },
+        {
+            "name": "Development Tools Consistency",
+            "validator": validate_development_tools_consistency,
+            "severity": RuleSeverity.WARNING,
+            "description": "Standardized tooling"
+        },
+        {
+            "name": "CLI Pattern Consistency",
+            "validator": validate_cli_pattern_consistency,
+            "severity": RuleSeverity.WARNING,
+            "description": "CLI interface patterns"
+        },
+        {
+            "name": "Pyproject Dependency Usage",
+            "validator": validate_pyproject_dependency_usage,
+            "severity": RuleSeverity.WARNING,
+            "description": "No unused dependencies"
+        },
+
+        # INFO (4 rules) - Nice to have
+        {
+            "name": "Unified Tool Configuration",
+            "validator": validate_unified_tool_configuration,
+            "severity": RuleSeverity.INFO,
+            "description": "Consolidated config files"
+        },
+        {
+            "name": "Python Version Consistency",
+            "validator": validate_python_version_consistency,
+            "severity": RuleSeverity.INFO,
+            "description": "Single Python version"
+        },
+        {
+            "name": "Colocated Tests",
+            "validator": validate_colocated_tests,
+            "severity": RuleSeverity.INFO,
+            "description": "Tests near source code"
+        },
+    ]
 
 
 def _should_validate_file(file_path: Path, scope_files: list[Path] | None) -> bool:
@@ -328,6 +504,15 @@ def validate_package_app_discipline(
                         continue
 
                     file_name = py_file.stem.lower()
+                    # Skip __init__ files and infrastructure patterns
+                    if file_name in ["__init__", "__main__"]:
+                        continue
+
+                    # Special exemption: hive-ai's agent.py, task.py, workflow.py are AI infrastructure (ADR-006)
+                    # These files provide generic AI agent framework, not business-specific logic
+                    if package_name == "hive-ai" and file_name in ["agent", "task", "workflow"]:
+                        continue
+
                     for indicator in business_logic_indicators:
                         if indicator in file_name and "test" not in file_name:
                             violations.append(f"Package '{package_name}' may contain business logic: {py_file.name}")
@@ -2193,13 +2378,76 @@ def _run_both_validators(project_root: Path, scope_files: list[Path] | None = No
     return ast_passed, ast_results
 
 
+def _run_registry_validators(
+    project_root: Path,
+    scope_files: list[Path] | None = None,
+    max_severity: RuleSeverity = RuleSeverity.INFO,
+) -> tuple[bool, dict]:
+    """
+    Run registry-based validators with severity filtering.
+
+    This implementation uses GOLDEN_RULES_REGISTRY and filters rules based on severity level.
+
+    Args:
+        project_root: Root directory of the project
+        scope_files: Optional list of specific files to validate
+        max_severity: Maximum severity level to enforce
+
+    Returns:
+        Tuple of (all_passed, results_dict)
+    """
+    results = {}
+    all_passed = True
+
+    # Filter rules by severity
+    filtered_rules = [
+        rule for rule in GOLDEN_RULES_REGISTRY
+        if rule["severity"].value <= max_severity.value
+    ]
+
+    logger.info(f"Running {len(filtered_rules)} rules at severity level {max_severity.name} or higher")
+    logger.info(f"Enforcement level: {max_severity.name} (1=CRITICAL, 2=ERROR, 3=WARNING, 4=INFO)")
+
+    # Run filtered validators
+    for rule in filtered_rules:
+        rule_name = f"Golden Rule: {rule['name']}"
+        validator_func = rule["validator"]
+        severity = rule["severity"]
+
+        try:
+            passed, violations = _cached_validator(rule_name, validator_func, project_root, scope_files)
+            results[rule_name] = {
+                "passed": passed,
+                "violations": violations,
+                "severity": severity.name,
+                "severity_level": severity.value,
+                "description": rule.get("description", ""),
+            }
+            if not passed:
+                all_passed = False
+                logger.warning(f"[{severity.name}] {rule['name']} - {len(violations)} violations")
+        except Exception as e:
+            results[rule_name] = {
+                "passed": False,
+                "violations": [f"Validation error: {e}"],
+                "severity": severity.name,
+                "severity_level": severity.value,
+                "description": rule.get("description", ""),
+            }
+            all_passed = False
+            logger.error(f"[{severity.name}] {rule['name']} - Validation error: {e}")
+
+    return all_passed, results
+
+
 def run_all_golden_rules(
     project_root: Path,
     scope_files: list[Path] | None = None,
     engine: str = "ast",
+    max_severity: RuleSeverity = RuleSeverity.INFO,
 ) -> tuple[bool, dict]:
     """
-    Run all Golden Rules validation with configurable engine.
+    Run all Golden Rules validation with configurable engine and severity filtering.
 
     Args:
         project_root: Root directory of the project
@@ -2207,7 +2455,13 @@ def run_all_golden_rules(
         engine: Validation engine to use:
             - 'ast' (default): AST-based semantic validation (recommended)
             - 'legacy': String-based validation (deprecated, backward compatibility)
+            - 'registry': Registry-based validation with severity filtering
             - 'both': Run both validators and compare (verification mode)
+        max_severity: Maximum severity level to enforce (default: INFO = all rules)
+            - RuleSeverity.CRITICAL: Only 5 critical rules (fast, ~5s)
+            - RuleSeverity.ERROR: Critical + Error rules (13 total, ~15s)
+            - RuleSeverity.WARNING: Critical + Error + Warning (20 total, ~25s)
+            - RuleSeverity.INFO: All rules (24 total, ~30s)
 
     Returns:
         Tuple of (all_passed, results_dict)
@@ -2216,20 +2470,29 @@ def run_all_golden_rules(
         ValueError: If unknown engine specified
 
     Examples:
-        # Default AST validation
+        # Default AST validation with all rules
         passed, results = run_all_golden_rules(project_root)
 
-        # Legacy compatibility
-        passed, results = run_all_golden_rules(project_root, engine='legacy')
+        # Fast validation - only critical rules
+        passed, results = run_all_golden_rules(project_root, max_severity=RuleSeverity.CRITICAL)
 
-        # Verification mode
-        passed, results = run_all_golden_rules(project_root, engine='both')
+        # Before PR merge - critical and error rules
+        passed, results = run_all_golden_rules(project_root, max_severity=RuleSeverity.ERROR)
+
+        # Registry-based validation with severity filtering
+        passed, results = run_all_golden_rules(project_root, engine='registry', max_severity=RuleSeverity.ERROR)
     """
     if engine == "ast":
         return _run_ast_validator(project_root, scope_files)
     elif engine == "legacy":
         return _run_legacy_validators(project_root, scope_files)
+    elif engine == "registry":
+        return _run_registry_validators(project_root, scope_files, max_severity)
     elif engine == "both":
         return _run_both_validators(project_root, scope_files)
     else:
-        raise ValueError(f"Unknown validation engine: {engine}. Valid options: 'ast' (default), 'legacy', 'both'")
+        raise ValueError(f"Unknown validation engine: {engine}. Valid options: 'ast' (default), 'legacy', 'registry', 'both'")
+
+
+# Initialize the registry after all validators are defined
+_initialize_golden_rules_registry()

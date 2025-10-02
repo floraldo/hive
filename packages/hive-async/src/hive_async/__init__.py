@@ -29,12 +29,16 @@ from .resilience import (
 from .retry import AsyncRetryConfig, create_retry_decorator, run_async_with_retry_async
 from .tasks import gather_with_concurrency_async, run_with_timeout_async
 
+# Alias for backward compatibility
+async_retry = run_async_with_retry_async
+
 __all__ = [
     # Context management
     "AsyncResourceManager",
     "async_context",
     # Retry utilities
     "run_async_with_retry_async",
+    "async_retry",  # Alias for backward compatibility
     "AsyncRetryConfig",
     "create_retry_decorator",
     # Connection pooling

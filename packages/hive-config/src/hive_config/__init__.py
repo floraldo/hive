@@ -61,9 +61,7 @@ __all__ = [
     "WorkerConfig",
     "AIConfig",
     "LoggingConfig",
-    "load_config",
-    "get_config",
-    "reset_config",
+    "create_config_from_sources",
     # Secure config exports
     "SecureConfigLoader",
     "encrypt_production_config",
@@ -87,7 +85,5 @@ from .unified_config import (
     LoggingConfig,
     OrchestrationConfig,
     WorkerConfig,
-    get_config,
-    load_config,
-    reset_config,
+    create_config_from_sources,
 )
