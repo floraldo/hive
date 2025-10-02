@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          poetry install --with dev,workspace
+          poetry install --with dev,workspace --no-root
 
       - name: Run AI Cost Optimizer
         id: cost_analysis
