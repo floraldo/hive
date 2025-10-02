@@ -223,7 +223,7 @@ class JobInfo(BaseModel):
     result_url: str | None = None
     error: Optional[dict[str, Any]] = None
     eta: datetime | None = None
-    priority: JobPriority,
+    priority: JobPriority
 
 
 class JobListResponse(BaseModel):

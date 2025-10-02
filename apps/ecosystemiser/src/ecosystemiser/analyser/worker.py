@@ -239,11 +239,11 @@ class AnalyserWorker:
             ),
             await self.event_bus.publish_analysis_event(analysis_failed_event)
 
-            logger.error(f"Analysis {analysis_id} failed: {e}"),
+            logger.error(f"Analysis {analysis_id} failed: {e}")
             raise ProcessingError(
                 f"Analysis execution failed: {str(e)}",
                 details={"analysis_id": analysis_id, "strategies": strategies}
-            ),
+            )
 
     def _get_strategies_for_study_type(self, study_type: str | None) -> List[str]:
         """Determine appropriate analysis strategies based on study type.

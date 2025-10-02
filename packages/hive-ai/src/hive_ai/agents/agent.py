@@ -471,29 +471,29 @@ Thoughts:
     async def export_state_async(self) -> Dict[str, Any]:
         """Export agent state for persistence or debugging."""
         return {
-            "agent_info": {,
+            "agent_info": {
                 "id": self.id,
-                "config": {,
+                "config": {
                     "name": self.config.name,
                     "description": self.config.description,
                     "model": self.config.model,
                     "temperature": self.config.temperature,
                     "max_tokens": self.config.max_tokens,
                     "max_iterations": self.config.max_iterations,
-                    "metadata": self.config.metadata
-                }
-                "created_at": self.created_at.isoformat()
-            }
-            "execution_state": {,
+                    "metadata": self.config.metadata,
+                },
+                "created_at": self.created_at.isoformat(),
+            },
+            "execution_state": {
                 "state": self.state.value,
                 "current_iteration": self.current_iteration,
                 "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None,
                 "errors": self.errors,
-                "results": self.results
-            }
-            "memory": {,
-                "short_term": self.memory.short_term if self.memory else {}
+                "results": self.results,
+            },
+            "memory": {
+                "short_term": self.memory.short_term if self.memory else {},
                 "long_term": self.memory.long_term if self.memory else {},
                 "episodic": self.memory.episodic if self.memory else [],
                 "conversation": [
@@ -504,20 +504,20 @@ Thoughts:
                         "content": msg.content,
                         "message_type": msg.message_type,
                         "timestamp": msg.timestamp.isoformat(),
-                        "metadata": msg.metadata
+                        "metadata": msg.metadata,
                     }
                     for msg in (self.memory.conversation if self.memory else [])
-                ]
-            }
+                ],
+            },
             "tools": {
-                name: {,
+                name: {
                     "name": tool.name,
                     "description": tool.description,
                     "enabled": tool.enabled,
-                    "parameters": tool.parameters
+                    "parameters": tool.parameters,
                 }
                 for name, tool in self.tools.items()
-            }
+            },
         }
 
     async def close_async(self) -> None:
