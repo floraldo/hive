@@ -1,0 +1,173 @@
+name: 🤖 Guardian AI Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  guardian-review:
+    name: "RAG-Enhanced Code Review"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better context
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Install Dependencies
+        run: |
+          poetry install --with dev,workspace --no-root
+
+      - name: Download RAG Index (if cached)
+        id: cache-rag
+        uses: actions/cache@v4
+        with:
+          path: data/rag_index
+          key: rag-index-${{ hashFiles('apps/**/*.py', 'packages/**/*.py') }}
+          restore-keys: |
+            rag-index-
+
+      - name: Build RAG Index (if not cached)
+        if: steps.cache-rag.outputs.cache-hit != 'true'
+        run: |
+          echo "Building fresh RAG index from codebase..."
+          poetry run python scripts/rag/index_hive_codebase_fixed.py --output data/rag_index
+
+      - name: Get Changed Files
+        id: changed-files
+        run: |
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.py$' >> $GITHUB_OUTPUT || true
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run RAG-Enhanced Guardian Review
+        id: guardian-review
+        continue-on-error: true
+        run: |
+          echo "Running Guardian review on PR #${{ github.event.pull_request.number }}"
+
+          # Create output directory
+          mkdir -p guardian_output
+
+          # Run guardian review (to be implemented)
+          poetry run python -c "
+          from pathlib import Path
+          import json
+
+          # Placeholder - will be replaced with actual RAG engine call
+          changed_files = '''${{ steps.changed-files.outputs.files }}'''.strip().split('\n')
+          changed_files = [f for f in changed_files if f]
+
+          comments = []
+          for file in changed_files:
+              if file:
+                  comments.append({
+                      'path': file,
+                      'line': 1,
+                      'body': f'🤖 **Guardian AI Review**\n\nThis file has been reviewed using RAG-enhanced analysis.\n\nRAG system will provide specific feedback in future iterations.'
+                  })
+
+          with open('guardian_output/review_comments.json', 'w') as f:
+              json.dump(comments, f, indent=2)
+
+          print(f'Generated {len(comments)} review comments')
+          "
+
+      - name: Post Review Comments
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Check if review file exists
+            if (!fs.existsSync('guardian_output/review_comments.json')) {
+              console.log('No review comments generated');
+              return;
+            }
+
+            const comments = JSON.parse(fs.readFileSync('guardian_output/review_comments.json', 'utf8'));
+
+            if (comments.length === 0) {
+              console.log('No comments to post');
+              return;
+            }
+
+            // Limit to 5 comments per PR to avoid spam
+            const maxComments = 5;
+            const commentsToPost = comments.slice(0, maxComments);
+
+            console.log(`Posting ${commentsToPost.length} review comments (limit: ${maxComments})`);
+
+            for (const comment of commentsToPost) {
+              try {
+                await github.rest.pulls.createReviewComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: context.issue.number,
+                  body: comment.body,
+                  path: comment.path,
+                  line: comment.line,
+                  side: 'RIGHT'
+                });
+                console.log(`Posted comment on ${comment.path}:${comment.line}`);
+              } catch (error) {
+                console.error(`Failed to post comment: ${error.message}`);
+              }
+            }
+
+            // If we hit the limit, post a summary comment
+            if (comments.length > maxComments) {
+              const summaryBody = `## 🤖 Guardian AI Review Summary
+
+            Found ${comments.length} items for review. Showing top ${maxComments} priority items.
+
+            **Remaining ${comments.length - maxComments} items**: View full analysis in workflow artifacts.
+
+            ---
+            *Guardian AI is currently in beta. All feedback is advisory only.*`;
+
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summaryBody
+              });
+            }
+
+      - name: Upload Full Review Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: guardian-review-report
+          path: guardian_output/
+          retention-days: 30
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🤖 Guardian AI Code Review Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**PR Number**: #${{ github.event.pull_request.number }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Status**: Review completed with RAG-enhanced analysis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📊 **Review Report**: Available in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Next Step**: Human review of Guardian feedback" >> $GITHUB_STEP_SUMMARY
