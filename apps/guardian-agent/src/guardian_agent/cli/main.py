@@ -118,7 +118,7 @@ def review_dir(ctx: click.Context, directory: str, recursive: bool, summary: boo
         TextColumn("[progress.description]{task.description}"),
         console=console,
     ) as progress:
-        task = progress.add_task("Reviewing files...", total=None),
+        task = (progress.add_task("Reviewing files...", total=None),)
         results = asyncio.run(run_review())
         progress.remove_task(task)
 
@@ -246,7 +246,7 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
             with Progress(
                 SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
             ) as progress:
-                task = progress.add_task("Creating application...", total=None),
+                task = (progress.add_task("Creating application...", total=None),)
 
                 target_path = Path(path) if path else None
                 app_spec = await genesis_agent.create_app_async(name, description, target_path)
@@ -460,9 +460,9 @@ def insights(ctx: click.Context, hours: int, format: str) -> None:
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
-                task = progress.add_task("Analyzing platform data...", total=None),
+                task = (progress.add_task("Analyzing platform data...", total=None),)
 
-                insights = await oracle_service.get_strategic_insights_async(hours=hours),
+                insights = (await oracle_service.get_strategic_insights_async(hours=hours),)
                 recommendations = await oracle_service.get_recommendations_async()
 
                 progress.remove_task(task)
@@ -571,7 +571,7 @@ def analyze(ctx: click.Context) -> None:
                 TextColumn("[progress.description]{task.description}"),
                 console=console,
             ) as progress:
-                task = progress.add_task("Analyzing platform metrics...", total=None),
+                task = (progress.add_task("Analyzing platform metrics...", total=None),)
 
                 results = await oracle_service.force_analysis_async()
 
@@ -1153,28 +1153,28 @@ def architect(
     console.print("🌟 [bold blue]Oracle Unified Architectural Intelligence[/bold blue]")
 
     if wisdom_mode:
-        return asyncio.run(interactive_wisdom_mode())
+        return asyncio.run(interactive_wisdom_mode_async())
 
     if generate_pr and opportunity_id:
-        return asyncio.run(generate_unified_pr(opportunity_id))
+        return asyncio.run(generate_unified_pr_async(opportunity_id))
 
     if query:
-        return asyncio.run(process_wisdom_query(query))
+        return asyncio.run(process_wisdom_query_async(query))
 
     if full_cycle and design_doc and code_path:
-        return asyncio.run(perform_full_cycle_audit(design_doc, code_path))
+        return asyncio.run(perform_full_cycle_audit_async(design_doc, code_path))
 
     if design_doc:
-        return asyncio.run(perform_prophecy_analysis(design_doc))
+        return asyncio.run(perform_prophecy_analysis_async(design_doc))
 
     if code_path:
-        return asyncio.run(perform_symbiosis_analysis(code_path))
+        return asyncio.run(perform_symbiosis_analysis_async(code_path))
 
     # Default: Show unified status,
-    asyncio.run(show_unified_status())
+    asyncio.run(show_unified_status_async())
 
 
-async def interactive_wisdom_mode():
+async def interactive_wisdom_mode_async():
     """Enter interactive wisdom query mode."""
 
     console.print("🔮 [bold blue]Oracle Interactive Wisdom Mode[/bold blue]")
@@ -1200,7 +1200,7 @@ async def interactive_wisdom_mode():
             with Progress(
                 SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
             ) as progress:
-                task = progress.add_task("Oracle consulting unified intelligence...", total=None),
+                task = (progress.add_task("Oracle consulting unified intelligence...", total=None),)
 
                 wisdom_response = await oracle_service.query_oracle_wisdom_async(query)
 
@@ -1220,7 +1220,7 @@ async def interactive_wisdom_mode():
             console.print(f"❌ [bold red]Wisdom query error:[/bold red] {e}")
 
 
-async def generate_unified_pr(opportunity_id: str):
+async def generate_unified_pr_async(opportunity_id: str):
     """Generate unified PR with strategic context."""
 
     console.print("🌟 [bold blue]Oracle Unified PR Generation[/bold blue]")
@@ -1259,7 +1259,7 @@ async def generate_unified_pr(opportunity_id: str):
         console.print(f"❌ [bold red]Unified PR generation failed:[/bold red] {e}")
 
 
-async def process_wisdom_query(query: str):
+async def process_wisdom_query_async(query: str):
     """Process a natural language wisdom query."""
 
     console.print("🔮 [bold blue]Oracle Wisdom Query[/bold blue]")
@@ -1271,7 +1271,7 @@ async def process_wisdom_query(query: str):
         with Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
-            task = progress.add_task("Oracle processing unified wisdom...", total=None),
+            task = (progress.add_task("Oracle processing unified wisdom...", total=None),)
 
             wisdom_response = await oracle_service.query_oracle_wisdom_async(query)
 
@@ -1287,7 +1287,7 @@ async def process_wisdom_query(query: str):
         console.print(f"❌ [bold red]Wisdom query failed:[/bold red] {e}")
 
 
-async def perform_full_cycle_audit(design_doc: str, code_path: str):
+async def perform_full_cycle_audit_async(design_doc: str, code_path: str):
     """Perform full-cycle audit combining design and code analysis."""
 
     console.print("🔄 [bold blue]Oracle Full-Cycle Architectural Audit[/bold blue]")
@@ -1361,7 +1361,7 @@ async def perform_full_cycle_audit(design_doc: str, code_path: str):
         console.print(f"❌ [bold red]Full-cycle audit failed:[/bold red] {e}")
 
 
-async def perform_prophecy_analysis(design_doc: str):
+async def perform_prophecy_analysis_async(design_doc: str):
     """Perform prophecy analysis on design document."""
 
     console.print("🔮 [bold blue]Oracle Prophecy Analysis[/bold blue]")
@@ -1373,7 +1373,7 @@ async def perform_prophecy_analysis(design_doc: str):
         with Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
-            task = progress.add_task("Analyzing design intent and generating prophecies...", total=None),
+            task = (progress.add_task("Analyzing design intent and generating prophecies...", total=None),)
 
             prophecy_result = await oracle_service.analyze_design_intent_async(design_doc)
 
@@ -1396,7 +1396,7 @@ async def perform_prophecy_analysis(design_doc: str):
         console.print(f"❌ [bold red]Prophecy analysis failed:[/bold red] {e}")
 
 
-async def perform_symbiosis_analysis(code_path: str):
+async def perform_symbiosis_analysis_async(code_path: str):
     """Perform symbiosis analysis on code path."""
 
     console.print("🔄 [bold blue]Oracle Symbiosis Analysis[/bold blue]")
@@ -1408,7 +1408,7 @@ async def perform_symbiosis_analysis(code_path: str):
         with Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
         ) as progress:
-            task = progress.add_task("Analyzing ecosystem patterns and optimizations...", total=None),
+            task = (progress.add_task("Analyzing ecosystem patterns and optimizations...", total=None),)
 
             symbiosis_result = await oracle_service.analyze_ecosystem_optimization_async(force_refresh=True)
 
@@ -1432,7 +1432,7 @@ async def perform_symbiosis_analysis(code_path: str):
         console.print(f"❌ [bold red]Symbiosis analysis failed:[/bold red] {e}")
 
 
-async def show_unified_status():
+async def show_unified_status_async():
     """Show comprehensive unified intelligence status."""
 
     console.print("🌟 [bold blue]Oracle Unified Intelligence Status[/bold blue]")

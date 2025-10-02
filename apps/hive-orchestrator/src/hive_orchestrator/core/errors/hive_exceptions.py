@@ -37,14 +37,14 @@ class HiveError(BaseError):
         )
 
 
-# Task Management Errors,
-class TaskError(BaseError):
+# Task Management Errors
+class TaskError(HiveError):
     """Base class for task-related errors"""
 
     pass
 
 
-class TaskCreationError(BaseError):
+class TaskCreationError(TaskError):
     """Error during task creation"""
 
     def __init__(self, task_description: str, reason: str, **kwargs) -> None:
@@ -55,12 +55,12 @@ class TaskCreationError(BaseError):
                 "Check task description format",
                 "Verify required parameters",
                 "Check system resources",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
-class TaskExecutionError(BaseError):
+class TaskExecutionError(TaskError):
     """Error during task execution"""
 
     def __init__(self, task_id: str, worker_id: str, reason: str, **kwargs) -> None:
@@ -73,12 +73,12 @@ class TaskExecutionError(BaseError):
                 "Check worker health status",
                 "Reduce task complexity",
                 "Check system resources",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
-class TaskTimeoutError(BaseError):
+class TaskTimeoutError(TaskError):
     """Error when task exceeds time limit"""
 
     def __init__(self, task_id: str, timeout_seconds: int, **kwargs) -> None:
@@ -91,19 +91,19 @@ class TaskTimeoutError(BaseError):
                 "Break task into smaller parts",
                 "Check for infinite loops",
                 "Optimize task implementation",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
 # Worker Management Errors
-class WorkerError(BaseError):
+class WorkerError(HiveError):
     """Base class for worker-related errors"""
 
     pass
 
 
-class WorkerSpawnError(BaseError):
+class WorkerSpawnError(WorkerError):
     """Error spawning a new worker"""
 
     def __init__(self, worker_type: str, reason: str, **kwargs) -> None:
@@ -116,12 +116,12 @@ class WorkerSpawnError(BaseError):
                 "Verify worker configuration",
                 "Check network connectivity",
                 "Restart orchestrator service",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
-class WorkerCommunicationError(BaseError):
+class WorkerCommunicationError(WorkerError):
     """Error communicating with worker"""
 
     def __init__(self, worker_id: str, operation: str, reason: str, **kwargs) -> None:
@@ -134,12 +134,12 @@ class WorkerCommunicationError(BaseError):
                 "Retry communication",
                 "Restart worker",
                 "Check network connectivity",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
-class WorkerOverloadError(BaseError):
+class WorkerOverloadError(WorkerError):
     """Error when worker is overloaded"""
 
     def __init__(self, worker_id: str, current_load: int, max_load: int, **kwargs) -> None:
@@ -156,19 +156,19 @@ class WorkerOverloadError(BaseError):
                 "Redistribute tasks",
                 "Increase worker capacity",
                 "Implement load balancing",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
 # Event Bus Errors
-class EventBusError(BaseError):
+class EventBusError(HiveError):
     """Base class for event bus errors"""
 
     pass
 
 
-class EventPublishError(BaseError):
+class EventPublishError(EventBusError):
     """Error publishing event to bus"""
 
     def __init__(self, event_type: str, reason: str, **kwargs) -> None:
@@ -181,12 +181,12 @@ class EventPublishError(BaseError):
                 "Verify event format",
                 "Check database connectivity",
                 "Retry publishing",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
-class EventSubscribeError(BaseError):
+class EventSubscribeError(EventBusError):
     """Error subscribing to events"""
 
     def __init__(self, pattern: str, subscriber: str, reason: str, **kwargs) -> None:
@@ -199,19 +199,19 @@ class EventSubscribeError(BaseError):
                 "Verify subscriber callback",
                 "Check event bus health",
                 "Restart subscriber",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
 # Claude Integration Errors
-class ClaudeError(BaseError):
+class ClaudeError(HiveError):
     """Base class for Claude integration errors"""
 
     pass
 
 
-class ClaudeRateLimitError(BaseError):
+class ClaudeRateLimitError(ClaudeError):
     """Error when Claude API rate limit is exceeded"""
 
     def __init__(self, wait_time: float, **kwargs) -> None:
@@ -224,12 +224,12 @@ class ClaudeRateLimitError(BaseError):
                 "Implement exponential backoff",
                 "Reduce API call frequency",
                 "Check rate limit configuration",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )
 
 
-class ClaudeServiceError(BaseError):
+class ClaudeServiceError(ClaudeError):
     """General Claude service error"""
 
     def __init__(self, operation: str, reason: str, **kwargs) -> None:
@@ -241,6 +241,6 @@ class ClaudeServiceError(BaseError):
                 "Check Claude service health",
                 "Verify API credentials",
                 "Switch to backup service",
-            ]
-            ** kwargs,
+            ],
+            **kwargs,
         )

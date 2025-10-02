@@ -954,3 +954,9 @@ response = await pool.generate_async(
                     total_hours += 0.5
 
         return total_hours
+
+
+
+
+
+

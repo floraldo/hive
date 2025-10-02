@@ -58,7 +58,7 @@ from guardian_agent.intelligence.data_unification import (
 )
 
 
-async def demo_architectural_oracle():
+async def demo_architectural_oracle_async():
     """Demonstrate the Oracle's architectural intelligence capabilities."""
 
     console.rule("🔮 ORACLE'S ARCHITECTURAL INTELLIGENCE DEMO")
@@ -321,7 +321,7 @@ maintains architectural discipline and technical excellence.
 def main():
     """Run the architectural Oracle demonstration."""
     try:
-        asyncio.run(demo_architectural_oracle())
+        asyncio.run(demo_architectural_oracle_async())
     except KeyboardInterrupt:
         console.print("\n[yellow]Demo interrupted by user[/yellow]")
     except Exception as e:

@@ -41,7 +41,7 @@ def print_symbiosis_icon() -> None:
     print("  SYMBIOSIS")
 
 
-async def demonstrate_genesis_phase2():
+async def demonstrate_genesis_phase2_async():
     """Demonstrate the Genesis Mandate Phase 2 implementation."""
 
     print_header("GENESIS MANDATE - PHASE 2: ECOSYSTEM SYMBIOSIS")
@@ -418,7 +418,10 @@ async def demonstrate_genesis_phase2():
 
 
 if __name__ == "__main__":
-    asyncio.run(demonstrate_genesis_phase2())
+    asyncio.run(demonstrate_genesis_phase2_async())
+
+
+
 
 
 

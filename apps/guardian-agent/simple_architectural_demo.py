@@ -35,7 +35,7 @@ def print_recommendation(num, title, priority, effort, benefit):
     print(f"   Benefit: {benefit}")
 
 
-async def demo_architectural_oracle():
+async def demo_architectural_oracle_async():
     """Demonstrate the Oracle's architectural intelligence capabilities."""
 
     print_header("🔮 ORACLE'S ARCHITECTURAL INTELLIGENCE DEMO")
@@ -173,7 +173,7 @@ maintains architectural discipline and technical excellence.
 def main():
     """Run the architectural Oracle demonstration."""
     try:
-        asyncio.run(demo_architectural_oracle())
+        asyncio.run(demo_architectural_oracle_async())
     except KeyboardInterrupt:
         print("\nDemo interrupted by user")
     except Exception as e:

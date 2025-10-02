@@ -40,7 +40,7 @@ def print_unification_icon() -> None:
     print("    OF WISDOM")
 
 
-async def demonstrate_operation_unification():
+async def demonstrate_operation_unification_async():
     """Demonstrate the Operation Unification implementation."""
 
     print_header("OPERATION UNIFICATION - THE SYNTHESIS OF WISDOM")
@@ -581,7 +581,10 @@ async def demonstrate_operation_unification():
 
 
 if __name__ == "__main__":
-    asyncio.run(demonstrate_operation_unification())
+    asyncio.run(demonstrate_operation_unification_async())
+
+
+
 
 
 

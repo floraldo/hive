@@ -12,6 +12,8 @@ Extends generic error handling toolkit with Hive-specific error management:
 - Workflow error analysis
 """
 
+# Import from infrastructure package (Inherit-Extend pattern)
+from hive_errors import BaseError, BaseErrorReporter
 
 from .hive_error_reporter import HiveErrorReporter, get_hive_error_reporter, report_hive_error
 from .hive_exceptions import (

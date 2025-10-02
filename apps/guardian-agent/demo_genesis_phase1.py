@@ -42,7 +42,7 @@ def print_prophecy_icon() -> None:
     print("  PROPHECY")
 
 
-async def demonstrate_genesis_phase1():
+async def demonstrate_genesis_phase1_async():
     """Demonstrate the Genesis Mandate Phase 1 implementation."""
 
     print_header("GENESIS MANDATE - PHASE 1: ARCHITECTURAL PROPHECY")
@@ -292,11 +292,11 @@ Small business owners and their staff members.
 
         else:
             print("[DEMO MODE] Simulating prophecy analysis...")
-            await simulate_prophecy_analysis()
+            await simulate_prophecy_analysis_async()
 
     except Exception:
         print("[DEMO MODE] Simulating Prophecy Engine (actual system not available)")
-        await simulate_prophecy_analysis()
+        await simulate_prophecy_analysis_async()
 
     # Phase 1C: Pre-emptive Architectural Review
     print_header("PHASE 1C: PRE-EMPTIVE ARCHITECTURAL REVIEW SYSTEM")
@@ -398,7 +398,7 @@ Small business owners and their staff members.
     print("BEFORE THE FIRST LINE OF CODE IS WRITTEN.")
 
 
-async def simulate_prophecy_analysis():
+async def simulate_prophecy_analysis_async():
     """Simulate prophecy analysis for demo purposes."""
 
     print("\n*** PROPHECY ANALYSIS RESULTS ***")
@@ -465,5 +465,10 @@ async def simulate_prophecy_analysis():
 
 
 if __name__ == "__main__":
-    asyncio.run(demonstrate_genesis_phase1())
+    asyncio.run(demonstrate_genesis_phase1_async())
+
+
+
+
+
 

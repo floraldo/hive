@@ -12,6 +12,8 @@ Extends generic messaging toolkit with Hive-specific agent coordination:
 - Database-backed persistence
 """
 
+# Import from infrastructure package (Inherit-Extend pattern)
+from hive_bus import BaseBus, BaseEvent, BaseSubscriber
 
 from .event_bus import create_task_event, create_workflow_event, get_async_event_bus, get_event_bus, publish_event_async
 from .events import TaskEventType, WorkflowEventType

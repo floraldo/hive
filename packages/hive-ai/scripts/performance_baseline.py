@@ -62,11 +62,11 @@ class PerformanceBenchmark:
         start_time = time.time()
 
         benchmark_suites = [
-            ("security_benchmarks", self.run_security_benchmarks_async)
-            ("config_benchmarks", self.run_config_benchmarks_async)
-            ("embedding_benchmarks", self.run_embedding_benchmarks_async)
-            ("vector_benchmarks", self.run_vector_benchmarks_async)
-            ("model_benchmarks", self.run_model_benchmarks_async)
+            ("security_benchmarks", self.run_security_benchmarks_async),
+            ("config_benchmarks", self.run_config_benchmarks_async),
+            ("embedding_benchmarks", self.run_embedding_benchmarks_async),
+            ("vector_benchmarks", self.run_vector_benchmarks_async),
+            ("model_benchmarks", self.run_model_benchmarks_async),
         ]
 
         for suite_name, benchmark_func in benchmark_suites:
@@ -94,9 +94,9 @@ class PerformanceBenchmark:
 
         test_prompts = [
             "Simple test prompt",
-            "A" * 1000,  # Medium length,
-            "A" * 10000,  # Large prompt,
-            "javascript:alert('test')",  # Injection attempt,
+            "A" * 1000,  # Medium length
+            "A" * 10000,  # Large prompt
+            "javascript:alert('test')",  # Injection attempt
             "<script>console.log('test')</script>",  # XSS attempt
         ]
 
@@ -185,8 +185,8 @@ class PerformanceBenchmark:
             test_texts = [
                 "Short text",
                 "Medium length text that contains more words and complexity",
-                "Long text " * 100,  # Very long text,
-                "Technical documentation with complex terminology and detailed explanations"
+                "Long text " * 100,  # Very long text
+                "Technical documentation with complex terminology and detailed explanations",
             ]
 
             # Test individual embedding generation (simulated)
@@ -206,8 +206,8 @@ class PerformanceBenchmark:
 
             # Test batch embedding generation
             duration = await self._time_operation_async(
-                lambda: embedding_manager.generate_batch_embeddings_async(test_texts, use_cache=False)
-                "batch_embedding_generation"
+                lambda: embedding_manager.generate_batch_embeddings_async(test_texts, use_cache=False),
+                "batch_embedding_generation",
             )
 
             self.metrics.append(
@@ -438,11 +438,11 @@ class PerformanceBenchmark:
         """Generate performance insights from benchmark data."""
         insights = []
 
-        # Success rate insights,
+        # Success rate insights
         if overall_stats["overall_success_rate"] < 0.95:
             insights.append(f"Overall success rate ({overall_stats['overall_success_rate']:.1%}) below 95% threshold")
 
-        # Component performance insights,
+        # Component performance insights
         for component, stats in component_stats.items():
             if "avg_duration_ms" in stats:
                 avg_duration = stats["avg_duration_ms"]
@@ -452,7 +452,7 @@ class PerformanceBenchmark:
                 elif avg_duration < 10:
                     insights.append(f"{component} operations very fast: {avg_duration:.1f}ms average")
 
-                # Check for high variance,
+                # Check for high variance
                 if "max_duration_ms" in stats and "min_duration_ms" in stats:
                     variance_ratio = stats["max_duration_ms"] / stats["min_duration_ms"]
                     if variance_ratio > 10:

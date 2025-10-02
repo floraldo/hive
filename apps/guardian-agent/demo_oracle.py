@@ -84,7 +84,7 @@ from guardian_agent.intelligence.data_unification import MetricType, UnifiedMetr
 from guardian_agent.intelligence.oracle_service import OracleConfig, OracleService
 
 
-async def demo_oracle_intelligence():
+async def demo_oracle_intelligence_async():
     """Demonstrate the complete Oracle Intelligence system."""
 
     console.print(
@@ -110,19 +110,19 @@ async def demo_oracle_intelligence():
 
     try:
         # Demonstrate data ingestion
-        await demo_data_ingestion(oracle)
+        await demo_data_ingestion_async(oracle)
 
         # Demonstrate analytics
-        await demo_analytics_engine(oracle)
+        await demo_analytics_engine_async(oracle)
 
         # Demonstrate mission control dashboard
-        await demo_mission_control(oracle)
+        await demo_mission_control_async(oracle)
 
         # Demonstrate strategic recommendations
-        await demo_strategic_recommendations(oracle)
+        await demo_strategic_recommendations_async(oracle)
 
         # Demonstrate Oracle service
-        await demo_oracle_service(oracle)
+        await demo_oracle_service_async(oracle)
 
     except Exception as e:
         console.print(f"❌ [red]Demo error: {e}[/red]")
@@ -138,7 +138,7 @@ async def demo_oracle_intelligence():
     )
 
 
-async def demo_data_ingestion(oracle: OracleService):
+async def demo_data_ingestion_async(oracle: OracleService):
     """Demonstrate the Data Unification Layer."""
 
     console.print("\n📊 [bold blue]Phase 1: Data Unification Layer[/bold blue]")
@@ -202,7 +202,7 @@ async def demo_data_ingestion(oracle: OracleService):
     console.print(f"✅ Stored {len(sample_metrics)} sample metrics in unified warehouse")
 
 
-async def demo_analytics_engine(oracle: OracleService):
+async def demo_analytics_engine_async(oracle: OracleService):
     """Demonstrate the Analytics & Insight Engine."""
 
     console.print("\n🔍 [bold blue]Phase 2: Analytics & Insight Engine[/bold blue]")
@@ -238,7 +238,7 @@ async def demo_analytics_engine(oracle: OracleService):
         console.print("📊 Platform is operating normally - no critical insights detected")
 
 
-async def demo_mission_control(oracle: OracleService):
+async def demo_mission_control_async(oracle: OracleService):
     """Demonstrate the Mission Control Dashboard."""
 
     console.print("\n🎮 [bold blue]Phase 3: Mission Control Dashboard[/bold blue]")
@@ -295,7 +295,7 @@ async def demo_mission_control(oracle: OracleService):
     console.print(f"📊 Full dashboard saved to: [cyan]{dashboard_file}[/cyan]")
 
 
-async def demo_strategic_recommendations(oracle: OracleService):
+async def demo_strategic_recommendations_async(oracle: OracleService):
     """Demonstrate the Strategic Recommendation Engine."""
 
     console.print("\n🎯 [bold blue]Phase 4: Strategic Recommendation Engine (Oracle)[/bold blue]")
@@ -339,7 +339,7 @@ async def demo_strategic_recommendations(oracle: OracleService):
         console.print("✅ No critical recommendations - platform is optimally configured")
 
 
-async def demo_oracle_service(oracle: OracleService):
+async def demo_oracle_service_async(oracle: OracleService):
     """Demonstrate the complete Oracle Service."""
 
     console.print("\n🔮 [bold blue]Phase 5: Complete Oracle Service[/bold blue]")
@@ -377,4 +377,4 @@ async def demo_oracle_service(oracle: OracleService):
 
 if __name__ == "__main__":
     console.print("🔮 [bold blue]Starting Hive Oracle Intelligence Demo[/bold blue]")
-    asyncio.run(demo_oracle_intelligence())
+    asyncio.run(demo_oracle_intelligence_async())
