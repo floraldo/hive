@@ -54,7 +54,13 @@
       "Bash(ruff check:*)",
       "Bash(sed:*)",
       "Bash(/dev/null)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(rg:*)",
+      "Bash(paste:*)",
+      "Bash(sort:*)",
+      "Bash(where ruff)"
     ],
     "deny": [],
     "ask": []

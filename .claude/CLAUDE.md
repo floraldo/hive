@@ -126,6 +126,59 @@ class MyService:
 - API Docs: `packages/hive-config/README.md`
 - Migration Guide: `claudedocs/config_migration_guide_comprehensive.md`
 
+### Import Pattern Rules (CRITICAL)
+**Pattern**: Three-layer architecture - packages → app.core → app business logic
+
+**✅ ALWAYS ALLOWED**:
+```python
+# 1. Package imports (infrastructure layer)
+from hive_logging import get_logger
+from hive_config import create_config_from_sources
+from hive_db import get_sqlite_connection
+from hive_bus import BaseBus
+
+# 2. Same app imports (within app boundary)
+from ecosystemiser.core.bus import get_ecosystemiser_event_bus
+from ecosystemiser.services.solver import run_optimization
+
+# 3. App.core extensions (inherit→extend pattern)
+from hive_bus import BaseBus  # Inherit from package
+
+class MyAppEventBus(BaseBus):  # Extend in app.core
+    """Add app-specific event handling"""
+    pass
+```
+
+**✅ ORCHESTRATION PACKAGE** (Recommended):
+```python
+# hive-orchestration provides shared orchestration infrastructure
+# All apps may use this package
+from hive_orchestration import create_task, get_client, Task, TaskStatus
+
+# Or use client SDK (recommended)
+client = get_client()
+task_id = client.create_task("My Task", "analysis")
+
+# OLD DEPRECATED: hive_orchestrator.core.db (DO NOT USE)
+```
+
+**❌ NEVER ALLOWED**:
+```python
+# Cross-app business logic imports (FORBIDDEN)
+from ecosystemiser.services.solver import optimize  # ❌ FORBIDDEN
+from ai_planner.services.planning import create_plan  # ❌ FORBIDDEN
+from guardian_agent.core.cost import CostTracker  # ❌ FORBIDDEN (not platform app)
+```
+
+**Decision Tree**:
+- Need package utility? → ✅ Import from `hive_*` package
+- Need app-specific extension? → ✅ Import from `app.core`
+- Need same app logic? → ✅ Import from `app.services`
+- Need orchestration? → ✅ Import from `hive_orchestration` package
+- Need other app logic? → ❌ Use `hive-bus` events or extract to package
+
+**Full Documentation**: `.claude/ARCHITECTURE_PATTERNS.md`
+
 ## 🛠️ Standard Tools & Quality Gates
 
 ### Development Tools

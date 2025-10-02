@@ -1,0 +1,52 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hive-orchestration"
+version = "1.0.0"
+description = "Task orchestration and workflow management for Hive platform"
+authors = ["Hive Platform Team <hive@example.com>"]
+
+[[tool.poetry.packages]]
+include = "hive_orchestration"
+from = "src"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.0.0"
+
+[tool.poetry.dependencies.hive-logging]
+path = "../hive-logging"
+develop = true
+
+[tool.poetry.dependencies.hive-db]
+path = "../hive-db"
+develop = true
+
+[tool.poetry.dependencies.hive-bus]
+path = "../hive-bus"
+develop = true
+
+[tool.poetry.dependencies.hive-models]
+path = "../hive-models"
+develop = true
+
+[tool.poetry.dependencies.hive-async]
+path = "../hive-async"
+develop = true
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+mypy = "^1.8.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+pythonpath = ["src"]
+asyncio_mode = "auto"

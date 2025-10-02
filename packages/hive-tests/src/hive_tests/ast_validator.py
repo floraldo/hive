@@ -464,8 +464,15 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         """
         Check if this is an invalid app-to-app import.
 
-        Platform app exception: hive-orchestrator.core is allowed for ai-planner and ai-deployer.
+        DEPRECATED PATTERN: hive-orchestrator.core imports are deprecated.
+        Use hive-orchestration package instead.
+
+        Platform app exception (DEPRECATED - use hive-orchestration package):
+        - hive_orchestrator.core.db → hive_orchestration (task/worker operations)
+        - hive_orchestrator.core.bus → hive_orchestration (event bus integration)
+
         See: .claude/ARCHITECTURE_PATTERNS.md for full documentation.
+        Migration guide: claudedocs/hive_orchestration_migration_guide.md
         """
         if not module_name:
             return False
@@ -481,20 +488,22 @@ class GoldenRuleVisitor(ast.NodeVisitor):
             if module_name.startswith(app_name_normalized):
                 return False
 
-        # Platform app exceptions - documented in .claude/ARCHITECTURE_PATTERNS.md
-        # hive-orchestrator provides shared orchestration infrastructure
-        PLATFORM_APP_EXCEPTIONS = {
+        # Platform app exceptions (DEPRECATED - migrate to hive-orchestration)
+        # Documented in .claude/ARCHITECTURE_PATTERNS.md
+        # NOTE: These are still allowed but should be migrated to hive-orchestration package
+        DEPRECATED_PLATFORM_EXCEPTIONS = {
             "hive_orchestrator.core.db": ["ai_planner", "ai_deployer"],
             "hive_orchestrator.core.bus": ["ai_planner", "ai_deployer"],
         }
 
-        # Check if this is a platform app import from an allowed app
-        for platform_module, allowed_apps in PLATFORM_APP_EXCEPTIONS.items():
+        # Check if this is a deprecated platform app import from an allowed app
+        for platform_module, allowed_apps in DEPRECATED_PLATFORM_EXCEPTIONS.items():
             if module_name.startswith(platform_module):
                 if self.context.app_name and self.context.app_name in allowed_apps:
-                    return False  # Allowed exception
-                # Otherwise, importing platform core from non-allowed app is still invalid
-                # Fall through to general core check below
+                    # Still allowed but deprecated - apps should migrate to hive-orchestration
+                    # TODO: Add deprecation warning in future validator enhancement
+                    return False  # Allowed (but deprecated)
+                # Otherwise, importing platform core from non-allowed app is invalid
 
         # Allow imports from other apps' core modules (general pattern)
         # Note: Platform apps above are more specific and take precedence
