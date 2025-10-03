@@ -110,11 +110,11 @@ class CacheLatencyBenchmark:
             for size_name, data in self.test_data.items():
                 serialized_data = msgpack.packb(data)
 
-                async def set_operation():
-                    await redis.set(f"bench_{size_name}", serialized_data, ex=60)
+                async def set_operation(name=size_name, ser_data=serialized_data):
+                    await redis.set(f"bench_{name}", ser_data, ex=60)
 
-                async def get_operation():
-                    result = await redis.get(f"bench_{size_name}")
+                async def get_operation(name=size_name):
+                    result = await redis.get(f"bench_{name}")
                     if result:
                         msgpack.unpackb(result)
 
@@ -139,19 +139,19 @@ class CacheLatencyBenchmark:
 
         for size_name, data in self.test_data.items():
             # JSON serialization
-            async def json_serialize():
-                json.dumps(data)
+            async def json_serialize(d=data):
+                json.dumps(d)
 
-            async def json_deserialize():
-                serialized = json.dumps(data)
+            async def json_deserialize(d=data):
+                serialized = json.dumps(d)
                 json.loads(serialized)
 
             # msgpack serialization
-            async def msgpack_serialize():
-                msgpack.packb(data)
+            async def msgpack_serialize(d=data):
+                msgpack.packb(d)
 
-            async def msgpack_deserialize():
-                serialized = msgpack.packb(data)
+            async def msgpack_deserialize(d=data):
+                serialized = msgpack.packb(d)
                 msgpack.unpackb(serialized)
 
             # Benchmark each method
@@ -163,11 +163,11 @@ class CacheLatencyBenchmark:
             # orjson if available
             if HAS_ORJSON:
 
-                async def orjson_serialize():
-                    orjson.dumps(data)
+                async def orjson_serialize(d=data):
+                    orjson.dumps(d)
 
-                async def orjson_deserialize():
-                    serialized = orjson.dumps(data)
+                async def orjson_deserialize(d=data):
+                    serialized = orjson.dumps(d)
                     orjson.loads(serialized)
 
                 for operation in [orjson_serialize, orjson_deserialize]:
@@ -234,11 +234,11 @@ class CacheLatencyBenchmark:
             # Test different data sizes
             for size_name, data in self.test_data.items():
 
-                async def set_operation():
-                    await client.set_async(f"hive_bench_{size_name}", data, ttl_async=60)
+                async def set_operation(name=size_name, d=data):
+                    await client.set_async(f"hive_bench_{name}", d, ttl_async=60)
 
-                async def get_operation():
-                    await client.get_async(f"hive_bench_{size_name}")
+                async def get_operation(name=size_name):
+                    await client.get_async(f"hive_bench_{name}")
 
                 # Set operation
                 set_result = await benchmark_operation(set_operation)

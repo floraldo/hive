@@ -13,7 +13,7 @@ import threading
 from contextlib import contextmanager
 from pathlib import Path
 from queue import Empty, Full, Queue
-from typing import Any
+from typing import Any, Optional
 
 from hive_config.paths import ensure_directory
 from hive_logging import get_logger

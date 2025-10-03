@@ -19,7 +19,7 @@ Performance improvements:
 """
 
 import json
-from typing import Any
+from typing import Any, List
 
 from .connection_pool import get_pooled_connection
 from .database import get_connection

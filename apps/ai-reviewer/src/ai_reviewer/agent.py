@@ -130,35 +130,6 @@ class ReviewAgent:
             logger.warning(f"Failed to publish task event {event_type} for task {task_id}: {e}")
             return ""
 
-    async def run_async(self) -> None:
-        """Main autonomous loop"""
-        self.running = True
-        self.stats["start_time"] = datetime.now()
-
-        logger.info("AI Reviewer Agent started")
-        logger.info(
-            Panel.fit(
-                "[bold green]AI Reviewer Agent Active[/bold green]\n",
-                f"Polling interval: {self.polling_interval}s\n",
-                f"Mode: {'TEST' if self.test_mode else 'PRODUCTION'}",
-                title="AI Reviewer Status",
-            ),
-        )
-
-        # Setup signal handlers for graceful shutdown
-        signal.signal(signal.SIGINT, self._signal_handler)
-        signal.signal(signal.SIGTERM, self._signal_handler)
-
-        try:
-            while self.running:
-                await self._process_review_queue_async()
-                await self._report_status_async()
-                await asyncio.sleep(self.polling_interval)
-        except KeyboardInterrupt:
-            logger.info("Received interrupt signal")
-        finally:
-            await self._shutdown_async()
-
     async def _process_review_queue_async(self) -> None:
         """Process all pending review tasks"""
         try:

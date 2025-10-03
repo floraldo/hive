@@ -104,7 +104,7 @@ class PerformanceBenchmark:
 
         for i, prompt in enumerate(test_prompts):
             duration = await self._time_operation_async(
-                lambda: validator.validate_prompt(prompt), f"input_validation_prompt_{i}"
+                lambda p=prompt: validator.validate_prompt(p), f"input_validation_prompt_{i}"
             )
 
             self.metrics.append(
@@ -121,7 +121,7 @@ class PerformanceBenchmark:
         test_secrets = ["sk-1234567890abcdef", "api_key_very_long_secret_string"]
 
         for secret in test_secrets:
-            duration = await self._time_operation_async(lambda: secret_mgr.mask_secret(secret), "secret_masking")
+            duration = await self._time_operation_async(lambda s=secret: secret_mgr.mask_secret(s), "secret_masking")
 
             self.metrics.append(
                 PerformanceMetric(
@@ -194,7 +194,7 @@ class PerformanceBenchmark:
             # Test individual embedding generation (simulated)
             for i, text in enumerate(test_texts):
                 duration = await self._time_operation_async(
-                    lambda: embedding_manager._simulate_embedding_async(text), f"embedding_generation_{i}"
+                    lambda t=text: embedding_manager._simulate_embedding_async(t), f"embedding_generation_{i}"
                 )
 
                 self.metrics.append(

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from hive_errors import BaseErrorReporter
 from hive_logging import get_logger
