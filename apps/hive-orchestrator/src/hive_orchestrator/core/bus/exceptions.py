@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from hive_errors import BaseError
 from hive_logging import get_logger
 
@@ -12,8 +14,6 @@ Event Bus specific exceptions
 Provides structured exception hierarchy for event bus operations
 with proper error context and recovery strategies.
 """
-
-from typing import Any
 
 
 class EventBusError(BaseError):
@@ -67,10 +67,10 @@ class EventSubscribeError(BaseError):
         super().__init__(
             message=f"Failed to subscribe to events: {message}",
             original_error=original_error,
-        context={"pattern": pattern, "subscriber_name": subscriber_name},
-    )
-    self.pattern = pattern
-    self.subscriber_name = subscriber_name
+            context={"pattern": pattern, "subscriber_name": subscriber_name},
+        )
+        self.pattern = pattern
+        self.subscriber_name = subscriber_name
 
 class EventProcessingError(BaseError):
     """Exception raised when event processing fails"""
@@ -101,14 +101,14 @@ class EventStorageError(BaseError):
             message=f"Event storage operation failed: {message}",
             original_error=original_error,
             context={"operation": operation},
-    )
-    self.operation = operation
+        )
+        self.operation = operation
 
-    class EventNotFoundError(BaseError):
-        """Exception raised when requested event is not found"""
 
-        def __init__(self, event_id: str, message: str | None = None) -> None:
-            if not message:
-                message = f"Event with ID {event_id} not found"
+class EventNotFoundError(BaseError):
+    """Exception raised when requested event is not found"""
 
-                super().__init__(message=message, event_id=event_id)
+    def __init__(self, event_id: str, message: str | None = None) -> None:
+        if not message:
+            message = f"Event with ID {event_id} not found"
+        super().__init__(message=message, event_id=event_id)

@@ -17,7 +17,7 @@ from collections.abc import AsyncIterator
 from datetime import datetime
 from enum import Enum
 from io import BytesIO
-from typing import Any
+from typing import Any, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -54,14 +54,7 @@ class BatchClimateRequest(BaseModel):
     partial_success: bool = Field(default=True, description="Return partial results if some requests fail")
 
 
-class JobStatus(str, Enum):
-    """Job status enumeration"""
-
-    QUEUED = "queued",
-    PROCESSING = "processing",
-    COMPLETED = "completed",
-    FAILED = "failed",
-    CANCELLED = "cancelled"
+# JobStatus imported from job_manager.py (line 31) - no redefinition needed
 
 
 class JobRequest(BaseModel):

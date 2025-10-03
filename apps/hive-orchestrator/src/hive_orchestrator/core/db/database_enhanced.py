@@ -13,7 +13,7 @@ that bridges the AI Planner's output with the Queen's execution engine.
 """
 
 import json
-from typing import Any, List, Optional
+from typing import Any
 
 from .database import get_connection
 
@@ -220,7 +220,7 @@ def mark_plan_execution_started(plan_id: str) -> bool:
         return False
 
 
-def get_next_planned_subtask(plan_id: str) -> Optional[dict[str, Any]]:
+def get_next_planned_subtask(plan_id: str) -> dict[str, Any] | None:
     """
     Get the next sub-task from a plan that's ready for execution.
 

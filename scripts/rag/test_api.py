@@ -112,7 +112,7 @@ class RAGAPITest:
                 try:
                     error_detail = e.response.json()
                     print(f"  Detail: {error_detail}")
-                except:
+                except Exception:
                     print(f"  Response: {e.response.text}")
             return {}
 

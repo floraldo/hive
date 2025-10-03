@@ -67,7 +67,7 @@ class EnvironmentVerifier:
             if result.stdout:
                 lines = result.stdout.strip().split("\n")
                 # Filter out this script and legitimate uses
-                bad_lines = [l for l in lines if "verify_environment.py" not in l]
+                bad_lines = [line for line in lines if "verify_environment.py" not in line]
                 if bad_lines:
                     self.errors.append(f"[ERROR] Found {len(bad_lines)} sys.path hacks")
                     for line in bad_lines[:3]:  # Show first 3
@@ -127,7 +127,7 @@ class EnvironmentVerifier:
 
             result = subprocess.run(cmd, capture_output=True, text=True)
             if result.stdout:
-                lines = [l for l in result.stdout.strip().split("\n") if "hive_env.py" not in l]
+                lines = [line for line in result.stdout.strip().split("\n") if "hive_env.py" not in line]
                 if lines:
                     self.warnings.append(f"[WARN] {len(lines)} files use direct env vars")
                 else:

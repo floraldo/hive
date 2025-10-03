@@ -45,7 +45,7 @@ async def demo_dry_run():
 
     print("\nConfiguration:")
     print(f"  Dry run: {config.dry_run}")
-    print(f"  Enabled levels: {[l.name for l in config.enabled_levels]}")
+    print(f"  Enabled levels: {[level.name for level in config.enabled_levels]}")
     print(f"  Require approval: {config.require_approval}")
 
     # Simulate PR analysis
@@ -103,7 +103,7 @@ async def demo_level_1():
 
     print("\nConfiguration:")
     print(f"  Dry run: {config.dry_run}")
-    print(f"  Enabled levels: {[l.name for l in config.enabled_levels]}")
+    print(f"  Enabled levels: {[level.name for level in config.enabled_levels]}")
     print(f"  Require approval: {config.require_approval}")
     print(f"  Auto commit: {config.auto_commit}")
 
