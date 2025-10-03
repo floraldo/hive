@@ -96,6 +96,54 @@ split-on-trailing-comma = false  # CRITICAL: Prevents syntax errors
 - **Sprint cleanup**: `--level WARNING` (~25s)
 - **Production**: `--level INFO` (~30s, all rules)
 
+## Golden Workflow: The Boy Scout Rule
+
+**Philosophy**: "Leave the code cleaner than you found it"
+
+### Core Workflow
+```bash
+# 1. Pay off linting debt FIRST (if inheriting dirty code)
+ruff check . --fix
+git commit -m "chore(lint): Pay off linting debt"
+
+# 2. Create feature branch
+git checkout -b feature/my-feature
+
+# 3. Develop with auto-formatting
+# - VSCode auto-formats on save (ruff configured)
+# - No manual formatting needed
+# - Focus on logic, not style
+
+# 4. Commit WITHOUT --no-verify
+git add modified_files.py
+git commit -m "feat: description"  # Pre-commit runs automatically
+```
+
+### NEVER Do This
+```bash
+git commit --no-verify  # ❌ FORBIDDEN - Bypasses quality gates
+```
+
+### IDE Auto-Formatting Setup
+**File**: `.vscode/settings.json` (already configured)
+- Ruff formats on save
+- Auto-fixes violations during development
+- Organizes imports automatically
+
+**Result**: Clean commits by default, zero manual formatting
+
+### When Pre-commit Fails
+```bash
+# Fix violations automatically
+ruff check . --fix
+
+# Re-commit (will pass)
+git add .
+git commit -m "feat: description"
+```
+
+**See**: `.claude/CLAUDE.md` → "Golden Workflow" for complete guide
+
 ## Architecture Patterns
 
 ### Three-Layer Architecture

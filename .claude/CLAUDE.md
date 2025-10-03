@@ -293,6 +293,63 @@ python scripts/validation/validate_golden_rules.py --level INFO
 
 See `claudedocs/golden_rules_tiered_compliance_system.md` for complete guide.
 
+## 🧹 Boy Scout Rule: Incremental Technical Debt Reduction
+
+**Philosophy**: "Always leave the code cleaner than you found it"
+
+### The Rule
+When editing ANY file for ANY reason:
+1. **Fix linting violations in that file** before committing
+2. **Run `ruff check --fix <file>`** to auto-correct safe violations
+3. **Address remaining violations** or add `# noqa` with justification
+4. **Never introduce new violations** - format-on-save prevents this
+
+### Why This Works
+- **No big-bang cleanup**: Avoid massive refactoring sprints
+- **Natural attrition**: ~1,700 violations → 0 over time through regular development
+- **Zero friction**: IDE integration makes fixes automatic
+- **Sustainable**: Technical debt reduces as code evolves
+
+### IDE Integration (Automatic Enforcement)
+`.vscode/settings.json` enables:
+- **Format on save**: Auto-applies ruff fixes
+- **Real-time linting**: See violations as you type
+- **Auto-organize imports**: Fixes E402 violations automatically
+- **Trailing whitespace removal**: Prevents style violations
+
+### Manual Process (When Needed)
+```bash
+# 1. Before editing, check current violations
+ruff check path/to/file.py
+
+# 2. Make your changes
+
+# 3. Auto-fix what you can
+ruff check path/to/file.py --fix
+
+# 4. Address remaining violations or add noqa
+# noqa: F401  # Imported for re-export in __init__.py
+
+# 5. Commit (pre-commit hooks will validate)
+git commit -m "feat: your feature + Boy Scout cleanup"
+```
+
+### Pre-Commit Integration
+Pre-commit hooks enforce Boy Scout Rule:
+- **Syntax check**: Blocks commits with syntax errors
+- **Ruff validation**: Auto-fixes safe violations, warns on complex ones
+- **Golden Rules**: Validates architecture compliance
+- **Bypass ONLY for infrastructure**: Use `--no-verify` only for meta-commits
+
+### Tracking Progress
+```bash
+# Current technical debt
+ruff check . 2>&1 | grep "Found" | tail -1
+
+# Before: Found 1733 errors
+# Goal: Found 0 errors (achieved incrementally)
+```
+
 ## 🏆 Golden Rules (24 Architectural Validators)
 
 Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/ast_validator.py` (AST-based validation, 100% coverage):
@@ -438,6 +495,99 @@ Multi-agent coordination in tmux panes:
 ```
 
 ## 🚀 Development Workflow
+
+### ✨ Golden Workflow: The Boy Scout Rule
+
+**Philosophy**: "Leave the code cleaner than you found it"
+
+#### Core Principles
+1. **Fix Before Feature**: Clean up linting violations before adding new code
+2. **No Bypass**: NEVER use `--no-verify` to skip pre-commit hooks
+3. **Format on Save**: IDE auto-fixes violations during development
+4. **Commit Clean**: All commits pass pre-commit hooks without manual intervention
+
+#### Standard Workflow
+```bash
+# 1. Start work (ensure clean baseline)
+git status && git checkout -b feature/my-feature
+ruff check . --fix  # Clean up existing violations
+
+# 2. Develop (with auto-formatting)
+# - VSCode auto-formats on save
+# - Ruff fixes violations automatically
+# - Focus on logic, not formatting
+
+# 3. Commit (Golden Workflow - NO --no-verify)
+git add modified_files.py
+git commit -m "feat: description"  # Pre-commit runs automatically
+
+# 4. If pre-commit fails
+ruff check . --fix  # Fix remaining issues
+git add .
+git commit -m "feat: description"  # Passes cleanly
+```
+
+#### Linting Debt Management
+When inheriting code with violations:
+```bash
+# Pay off debt FIRST (separate commit)
+ruff check . --fix
+git commit -m "chore(lint): Pay off linting debt - 185 violations fixed"
+
+# THEN add new features (clean slate)
+git checkout -b feature/my-feature
+# Work with clean baseline
+```
+
+#### Pre-commit Hook Configuration
+**File**: `.pre-commit-config.yaml`
+```yaml
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: Ruff linting
+        entry: ruff check --fix
+        language: system
+        types: [python]
+
+      - id: golden-rules-check
+        name: Validate Golden Rules compliance
+        entry: python scripts/validation/validate_golden_rules.py --level CRITICAL
+        language: system
+        pass_filenames: false
+```
+
+**Setup**:
+```bash
+pip install pre-commit
+pre-commit install  # One-time setup
+```
+
+#### IDE Configuration (VSCode)
+**File**: `.vscode/settings.json`
+```json
+{
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "ruff.lint.run": "onSave"
+}
+```
+
+**Result**: Violations fixed during development, not at commit time
+
+#### Quality Without Friction
+- **Development**: Ruff auto-fixes on save → zero manual formatting
+- **Commit**: Pre-commit validates → catches edge cases
+- **CI/CD**: Final gate → ensures nothing slipped through
+
+**Remember**: Format early, format often. Never bypass quality gates.
 
 ### Pre-Commit Checklist
 1. **Syntax check**: `python -m py_compile modified_file.py`
