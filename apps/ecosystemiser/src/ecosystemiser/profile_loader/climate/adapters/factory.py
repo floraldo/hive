@@ -25,16 +25,14 @@ _adapter_instances: dict[str, BaseAdapter] = {}
 
 
 def register_adapter(name: str) -> None:
-    (
-        """
+    """
     Decorator for registering adapters dynamically.
 
     Usage:
         @register_adapter("nasa_power")
         class NASAPowerAdapter(BaseAdapter):
             ...
-    """,
-    )
+    """
 
     def decorator(cls: type[BaseAdapter]):
         _adapter_registry[name] = cls

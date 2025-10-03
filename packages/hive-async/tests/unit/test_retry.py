@@ -29,7 +29,7 @@ class TestAsyncRetryConfig:
         assert config.min_wait == 1.0
         assert config.max_wait == 10.0
         assert config.multiplier == 2.0
-        assert config.retry_exceptions == Exception
+        assert config.retry_exceptions is Exception
         assert config.stop_on_exceptions == ()
         assert config.log_before_sleep is True
         assert config.log_after_attempt is True
@@ -51,7 +51,7 @@ class TestAsyncRetryConfig:
         assert config.min_wait == 0.5
         assert config.max_wait == 30.0
         assert config.multiplier == 3.0
-        assert config.retry_exceptions == ValueError
+        assert config.retry_exceptions is ValueError
         assert config.stop_on_exceptions == (TypeError,)
         assert config.log_before_sleep is False
         assert config.log_after_attempt is False

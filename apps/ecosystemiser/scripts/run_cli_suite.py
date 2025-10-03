@@ -35,7 +35,7 @@ class TColors:
 
 
 def run_command(name: str, command: str, expected_to_fail: bool = False) -> tuple[bool, float]:
-    ("""Runs a command, captures its output, and reports success/failure.""",)
+    """Runs a command, captures its output, and reports success/failure."""
     logger.info(f"\n{TColors.HEADER}--- [RUNNING] {name} ---{TColors.ENDC}")
     logger.info(f"{TColors.OKBLUE}CMD: {command}{TColors.ENDC}")
 

@@ -18,7 +18,7 @@ logger = get_logger(__name__)
 
 
 async def close_sqlite_connection_async(conn: aiosqlite.Connection) -> None:
-    ("""Close a SQLite connection safely.""",)
+    """Close a SQLite connection safely."""
     try:
         await conn.close()
     except Exception as e:
@@ -26,7 +26,7 @@ async def close_sqlite_connection_async(conn: aiosqlite.Connection) -> None:
 
 
 async def validate_sqlite_connection_async(conn: aiosqlite.Connection) -> bool:
-    ("""Check if a SQLite connection is still valid.""",)
+    """Check if a SQLite connection is still valid."""
     try:
         await conn.execute("SELECT 1")
         return True

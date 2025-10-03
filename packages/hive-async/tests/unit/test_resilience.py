@@ -39,7 +39,7 @@ class TestAsyncCircuitBreakerInitialization:
 
         assert cb.failure_threshold == 5
         assert cb.recovery_timeout == 60
-        assert cb.expected_exception == Exception
+        assert cb.expected_exception is Exception
         assert cb.name == "default"
         assert cb.failure_count == 0
         assert cb.last_failure_time is None
@@ -56,7 +56,7 @@ class TestAsyncCircuitBreakerInitialization:
 
         assert cb.failure_threshold == 3
         assert cb.recovery_timeout == 30
-        assert cb.expected_exception == ValueError
+        assert cb.expected_exception is ValueError
         assert cb.name == "test_breaker"
         assert cb.state == CircuitState.CLOSED
 

@@ -49,7 +49,7 @@ class TestAsyncCircuitBreaker:
 
         assert breaker.failure_threshold == 3
         assert breaker.recovery_timeout == 30
-        assert breaker.expected_exception == ValueError
+        assert breaker.expected_exception is ValueError
         assert breaker.failure_count == 0
         assert breaker.last_failure_time is None
         assert breaker.state == CircuitState.CLOSED

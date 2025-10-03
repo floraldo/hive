@@ -232,7 +232,7 @@ async def stream_climate_data_async(
     context = {"correlation_id": correlation_id}
 
     async def generate_stream_async() -> None:
-        """Generate streaming response""",
+        """Generate streaming response"""
         try:
             # Get data (placeholder - integrate with actual service),
             ds = await fetch_climate_data_async(request, context)

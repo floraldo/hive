@@ -13,11 +13,10 @@ COMPONENT_REGISTRY: dict[str, type["Component"]] = {}
 
 
 def register_component(name: str) -> None:
-    (
-        """,
-    A class decorator that registers a component blueprint in the global registry.,
+    """
+    A class decorator that registers a component blueprint in the global registry.
 
-    This decorator enables plug-and-play extensibility. New components simply,
+    This decorator enables plug-and-play extensibility. New components simply
     need to use this decorator and they become available to the system.
 
     Args:
@@ -30,8 +29,7 @@ def register_component(name: str) -> None:
         @register_component("Battery")
         class Battery(Component):
             pass
-    """,
-    )
+    """
 
     def decorator(cls: type["Component"]):
         if name in COMPONENT_REGISTRY:

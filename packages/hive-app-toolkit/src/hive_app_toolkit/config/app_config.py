@@ -247,13 +247,13 @@ class HiveAppConfig:
     @staticmethod
     def _convert_env_value(value: str, target_type: type) -> Any:
         """Convert environment variable string to target type."""
-        if target_type == bool:
+        if target_type is bool:
             return value.lower() in ("true", "1", "yes", "on")
-        elif target_type == int:
+        elif target_type is int:
             return int(value)
-        elif target_type == float:
+        elif target_type is float:
             return float(value)
-        elif target_type == list:
+        elif target_type is list:
             return [item.strip() for item in value.split(",")]
         else:
             return value
