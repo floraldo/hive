@@ -15,7 +15,6 @@ import ast
 import shutil
 import sys
 from pathlib import Path
-from typing import Optional
 
 
 class ASTSafeCommaFixer:
@@ -40,7 +39,7 @@ class ASTSafeCommaFixer:
         shutil.copy2(backup_path, filepath)
 
     def validate_structure_preservation(
-        self, original_ast: Optional[ast.Module], new_ast: ast.Module
+        self, original_ast: ast.Module | None, new_ast: ast.Module
     ) -> bool:
         """Verify AST structure hasn't changed unexpectedly."""
         if original_ast is None:

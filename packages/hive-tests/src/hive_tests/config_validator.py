@@ -6,6 +6,7 @@ Golden Rules 31-33: Configuration file consistency validation
 import sys
 from pathlib import Path
 
+
 def validate_config_consistency(project_root: Path | None = None) -> int:
     """Validate configuration consistency across all pyproject.toml files."""
     if project_root is None:

@@ -10,10 +10,10 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-import streamlit as st
-
 # Import using importlib to avoid import chain issues
 import importlib.util
+
+import streamlit as st
 
 spec = importlib.util.spec_from_file_location(
     "database_metadata_service",

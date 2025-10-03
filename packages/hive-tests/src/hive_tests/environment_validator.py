@@ -16,7 +16,6 @@ Severity Levels:
 - INFO: Best practice recommendations
 """
 
-import ast
 import re
 import subprocess
 from pathlib import Path

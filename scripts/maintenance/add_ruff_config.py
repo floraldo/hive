@@ -11,7 +11,6 @@ import argparse
 import sys
 from pathlib import Path
 
-
 RUFF_CONFIG_TEMPLATE = '''
 # ========================================
 # Ruff Configuration (Linter & Formatter)
