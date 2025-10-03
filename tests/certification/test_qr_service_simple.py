@@ -155,7 +155,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
             url = f"http://localhost:{self.port}/generate"
             payload = {"text": "Hive QR Service Test"}
 
-            response = requests.post(url, json=payload)
+            response = requests.post(url, json=payload, timeout=10)
             if response.status_code != 200:
                 log(f"QR generation failed: {response.status_code}")
                 return False
@@ -176,7 +176,7 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
                 return False
 
             # Test health endpoint
-            health_response = requests.get(f"http://localhost:{self.port}/health")
+            health_response = requests.get(f"http://localhost:{self.port}/health", timeout=10)
             if health_response.status_code != 200:
                 log(f"Health check failed: {health_response.status_code}")
                 return False

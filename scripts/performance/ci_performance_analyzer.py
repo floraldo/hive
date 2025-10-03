@@ -46,7 +46,7 @@ class CIPerfomanceAnalyzer:
 
         while True:
             params["page"] = page
-            response = requests.get(url, headers=self.headers, params=params)
+            response = requests.get(url, headers=self.headers, params=params, timeout=30)
 
             if response.status_code != 200:
                 print(f"Error fetching workflow runs: {response.status_code}")
@@ -71,7 +71,7 @@ class CIPerfomanceAnalyzer:
         """Get jobs for a specific workflow run"""
         url = f"{self.base_url}/repos/{self.repo_owner}/{self.repo_name}/actions/runs/{run_id}/jobs"
 
-        response = requests.get(url, headers=self.headers)
+        response = requests.get(url, headers=self.headers, timeout=30)
 
         if response.status_code == 200:
             return response.json().get("jobs", [])
