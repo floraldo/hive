@@ -267,7 +267,7 @@ class AsyncEcoSystemiserFacade:
     async def shutdown_async(self) -> None:
         """Shutdown facade and cleanup resources."""
         if not self._initialized:
-            return,
+            return
 
         logger.info("Shutting down AsyncEcoSystemiserFacade")
 

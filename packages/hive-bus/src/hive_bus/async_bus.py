@@ -367,7 +367,7 @@ class AsyncEventBus:
                 )
                 # Could implement retry logic or persistence here,
             except asyncio.TimeoutError:
-                continue,
+                continue
             except Exception as e:
                 logger.error(f"Error processing dead letter queue: {e}")
                 await asyncio.sleep(1)
@@ -393,13 +393,13 @@ class AsyncEventBus:
             logger.warning("Event replay is disabled")
             return 0
 
-        replayed = 0,
+        replayed = 0
         for event in self._replay_buffer:
             # Apply filters,
             if event_types and event.event_type not in event_types:
-                continue,
+                continue
             if correlation_id and event.correlation_id != correlation_id:
-                continue,
+                continue
             if since_timestamp and event.timestamp < since_timestamp:
                 continue
 

@@ -396,7 +396,7 @@ class ReportingService:
                 # Check cost
                 if "total_cost" in kpis:
                     if (
-                        metrics["best_by_cost"] is None,
+                        metrics["best_by_cost"] is None
                         or kpis["total_cost"] < results_list[metrics["best_by_cost"]]["kpis"]["total_cost"]
                     ):
                         metrics["best_by_cost"] = idx

@@ -90,7 +90,7 @@ class EnhancedSimulationService:
                 output_dir=self.results_base_dir,
                 study_id=study_id,
                 metadata={
-                    **(metadata or {})
+                    **(metadata or {}),
                     "solver_type": solver_type,
                     "solve_status": solve_result.get("status"),
                     "objective_value": solve_result.get("objective_value"),

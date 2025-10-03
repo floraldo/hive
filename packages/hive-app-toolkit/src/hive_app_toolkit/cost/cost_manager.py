@@ -90,7 +90,7 @@ class CostManager:
 
     def __init__(
         self,
-        limits: BudgetLimits | None = None
+        limits: BudgetLimits | None = None,
         cache_client: CacheClient | None = None
     ) -> None:
         """Initialize cost manager."""
@@ -118,7 +118,7 @@ class CostManager:
         self._load_from_cache()
 
         logger.info(
-            "CostManager initialized with limits: daily=$%.2f, monthly=$%.2f"
+            "CostManager initialized with limits: daily=$%.2f, monthly=$%.2f",
             self.limits.daily_limit,
             self.limits.monthly_limit,
         )
@@ -320,9 +320,9 @@ class CostManager:
 
         return {
             "hourly": UsageStats(
-                period="hourly"
-                usage=sum(self.hourly_usage.values())
-                limit=self.limits.hourly_limit
+                period="hourly",
+                usage=sum(self.hourly_usage.values()),
+                limit=self.limits.hourly_limit,
                 operations=len(
                     [
                         h
@@ -332,9 +332,9 @@ class CostManager:
                 ),
             ),
             "daily": UsageStats(
-                period="daily"
-                usage=sum(self.daily_usage.values())
-                limit=self.limits.daily_limit
+                period="daily",
+                usage=sum(self.daily_usage.values()),
+                limit=self.limits.daily_limit,
                 operations=len(
                     [
                         h
@@ -344,9 +344,9 @@ class CostManager:
                 ),
             ),
             "monthly": UsageStats(
-                period="monthly"
-                usage=sum(self.monthly_usage.values())
-                limit=self.limits.monthly_limit
+                period="monthly",
+                usage=sum(self.monthly_usage.values()),
+                limit=self.limits.monthly_limit,
                 operations=len(
                     [
                         h

@@ -222,7 +222,7 @@ class EnhancedResultsIO:
                             "timestep": t,
                             "flow_name": flow_name,
                             "source": flow_info["source"],
-                            "target": flow_info["target"]
+                            "target": flow_info["target"],
                             "type": flow_info["type"],
                             "value": value
                         }

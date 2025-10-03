@@ -133,20 +133,20 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
         # Add log level
         structlog.stdlib.add_log_level,
         # Handle positional arguments
-        structlog.processors.PositionalArgumentsFormatter()
+        structlog.processors.PositionalArgumentsFormatter(),
         # Add timestamp
-        structlog.processors.TimeStamper(fmt="iso")
+        structlog.processors.TimeStamper(fmt="iso"),
         # Add call site info for errors
         structlog.processors.CallsiteParameterAdder(
             parameters=[structlog.processors.CallsiteParameter.FILENAME, structlog.processors.CallsiteParameter.LINENO],
             levels=["warning", "error", "critical"]
-        )
+        ),
         # Add performance metrics
-        PerformanceProcessor()
+        PerformanceProcessor(),
         # Add enhanced error context
-        ErrorContextProcessor()
+        ErrorContextProcessor(),
         # Format stack traces
-        structlog.processors.StackInfoRenderer()
+        structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         # Decode unicode
         structlog.processors.UnicodeDecoder()
@@ -168,7 +168,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True
-    ),
+    )
 
 
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:

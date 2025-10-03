@@ -72,18 +72,18 @@ class BatchClimateRequest(BaseModel):
         min_items=1,
         max_items=100,
         description="List of climate requests to process"
-    )
-    parallel: bool = Field(default=True, description="Process requests in parallel")
+    ),
+    parallel: bool = Field(default=True, description="Process requests in parallel"),
     partial_success: bool = Field(default=True, description="Return partial results if some requests fail")
 
 
 class JobStatus(str, Enum):
     """Job status enumeration"""
 
-    QUEUED = "queued"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
+    QUEUED = "queued",
+    PROCESSING = "processing",
+    COMPLETED = "completed",
+    FAILED = "failed",
     CANCELLED = "cancelled"
 
 
@@ -91,7 +91,7 @@ class JobRequest(BaseModel):
     """Async job request"""
 
     request: ClimateRequest | BatchClimateRequest
-    priority: int = Field(default=5, ge=1, le=10)
+    priority: int = Field(default=5, ge=1, le=10),
     callback_url: str | None = None
     notification_email: str | None = None
 
@@ -103,7 +103,7 @@ class JobResponse(BaseModel):
     status: JobStatus
     created_at: datetime
     updated_at: datetime
-    progress: float | None = Field(None, ge=0, le=100)
+    progress: float | None = Field(None, ge=0, le=100),
     result_url: str | None = None
     error: Optional[Dict[str, Any]] = None
     eta: datetime | None = None
@@ -112,9 +112,9 @@ class JobResponse(BaseModel):
 class StreamFormat(str, Enum):
     """Streaming response formats"""
 
-    NDJSON = "ndjson"
-    CSV = "csv"
-    PARQUET = "parquet"
+    NDJSON = "ndjson",
+    CSV = "csv",
+    PARQUET = "parquet",
     NETCDF = "netcdf"
 
 
@@ -124,7 +124,7 @@ class StreamFormat(str, Enum):
 # API Endpoints
 
 
-@router.get("/health")
+@router.get("/health"),
 async def health_check_async() -> None:
     """Health check endpoint"""
     return {
@@ -156,7 +156,7 @@ async def get_climate_single_async(
     )
 
     try:
-        # Process request (placeholder - integrate with actual service)
+        # Process request (placeholder - integrate with actual service),
         result = await process_climate_request_async(request, context)
 
         # Check if client accepts gzip
@@ -173,7 +173,7 @@ async def get_climate_single_async(
             content=error_response,
             status_code=error_response["status_code"],
             headers={"X-Correlation-ID": correlation_id}
-        )
+        ),
     except Exception as e:
         # Unexpected error
         climate_error = ClimateError(f"Internal error: {str(e)}"),
@@ -211,12 +211,12 @@ async def get_climate_batch_async(
 
         for i, response in enumerate(responses):
             if isinstance(response, Exception):
-                errors.append({"index": i, "error": str(response)}),
+                errors.append({"index": i, "error": str(response)})
                 if not batch_request.partial_success:
                     # Fail fast if partial success not allowed
-                    raise HTTPException(status_code=400, detail=f"Request {i} failed: {response}"),
+                    raise HTTPException(status_code=400, detail=f"Request {i} failed: {response}")
             else:
-                results.append({"index": i, "data": response}),
+                results.append({"index": i, "data": response})
     else:
         # Process sequentially
         for i, req in enumerate(batch_request.requests):
@@ -255,13 +255,13 @@ async def stream_climate_data_async(
     context = dict(correlation_id=correlation_id)
 
     async def generate_stream_async() -> None:
-        """Generate streaming response"""
+        """Generate streaming response""",
         try:
-            # Get data (placeholder - integrate with actual service)
+            # Get data (placeholder - integrate with actual service),
             ds = await fetch_climate_data_async(request, context)
 
             if format == StreamFormat.NDJSON:
-                # Stream as NDJSON (newline-delimited JSON)
+                # Stream as NDJSON (newline-delimited JSON),
                 async for chunk in stream_as_ndjson_async(ds, chunk_size):
                     yield chunk,
 
@@ -352,7 +352,7 @@ async def get_job_status_async(
     correlation_id: str | None = Header(None, alias="X-Correlation-ID"),
     job_manager: JobManager = Depends(get_job_manager)
 ):
-    """Get status of async job from distributed job manager"""
+    """Get status of async job from distributed job manager""",
     job_data = job_manager.get_job(job_id)
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -381,7 +381,7 @@ async def get_job_result_async(
     Get result of completed job from distributed storage.,
 
     Supports multiple output formats.,
-    """
+    """,
     job_data = job_manager.get_job(job_id)
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -390,7 +390,7 @@ async def get_job_result_async(
         raise HTTPException(status_code=400, detail=f"Job status is {job_data['status']}, not completed")
 
     if not job_data.get("result"):
-        raise HTTPException(status_code=404, detail="Job result not found")
+        raise HTTPException(status_code=404, detail="Job result not found"),
     result = job_data["result"]
 
     # Format and return result based on requested format
@@ -418,7 +418,7 @@ async def cancel_job_async(
     correlation_id: str | None = Header(None, alias="X-Correlation-ID"),
     job_manager: JobManager = Depends(get_job_manager)
 ):
-    """Cancel a queued or running job using distributed job manager"""
+    """Cancel a queued or running job using distributed job manager""",
     job_data = job_manager.get_job(job_id)
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -450,7 +450,7 @@ async def list_jobs_async(
     List jobs with optional filtering and pagination.,
 
     Supports filtering by status and pagination for production job monitoring.,
-    """
+    """,
     try:
         # Get jobs from distributed job manager
         jobs_data = job_manager.list_jobs_async(status=status, limit=limit, offset=offset)
@@ -469,7 +469,7 @@ async def list_jobs_async(
                 ),
                 error=job_data.get("error"),
                 eta=(datetime.fromisoformat(job_data["eta"]) if job_data.get("eta") else None)
-            ),
+            )
             jobs.append(job_response)
 
         return {
@@ -481,7 +481,7 @@ async def list_jobs_async(
         },
 
     except Exception as e:
-        logger.error(f"Failed to list jobs: {e}"),
+        logger.error(f"Failed to list jobs: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve jobs")
 
 
@@ -495,7 +495,7 @@ async def cleanup_old_jobs_async(
     Clean up old jobs for maintenance.,
 
     This endpoint helps maintain the job storage by removing old completed/failed jobs.,
-    """
+    """,
     try:
         deleted_count = job_manager.cleanup_old_jobs_async(days=days)
 
@@ -506,7 +506,7 @@ async def cleanup_old_jobs_async(
         },
 
     except Exception as e:
-        logger.error(f"Failed to cleanup jobs: {e}"),
+        logger.error(f"Failed to cleanup jobs: {e}")
         raise HTTPException(status_code=500, detail="Failed to cleanup old jobs")
 
 
@@ -537,7 +537,7 @@ async def fetch_climate_data_async(request: ClimateRequest, context: dict) -> xr
     """
     # This would use the async adapters
     # For now, create mock dataset
-    time = pd.date_range("2020-01-01", periods=8760, freq="h")
+    time = pd.date_range("2020-01-01", periods=8760, freq="h"),
     ds = xr.Dataset(
         {
             "temp_air": (["time"], np.random.randn(8760) * 10 + 15),
@@ -557,7 +557,7 @@ async def stream_as_ndjson_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterat
 
     for i in range(0, total_size, chunk_size):
         # Select chunk using xarray's isel for memory efficiency
-        end_idx = min(i + chunk_size, total_size)
+        end_idx = min(i + chunk_size, total_size),
         chunk_ds = ds.isel({time_dim: slice(i, end_idx)})
 
         # Optimized: Stream each time point as JSON using xarray native operations
@@ -566,7 +566,7 @@ async def stream_as_ndjson_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterat
             time_point = chunk_ds.isel({time_dim: time_idx})
 
             # Build JSON record directly from xarray data
-            record = {}
+            record = {},
             record["time"] = str(time_point[time_dim].values)
 
             for var_name in time_point.data_vars:
@@ -575,7 +575,7 @@ async def stream_as_ndjson_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterat
                     # Convert to dict maintaining spatial structure
                     record[var_name] = var_data.to_dict()["data"]
                 else:  # Scalar value
-                    val = float(var_data.values)
+                    val = float(var_data.values),
                     record[var_name] = val if not np.isnan(val) else None
             json_line = json.dumps(record, default=str) + "\n"
             yield json_line.encode()
@@ -597,13 +597,13 @@ async def stream_as_csv_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterator[
             header_cols.append(dim)
 
     # Add data variable columns
-    header_cols.extend(ds.data_vars.keys())
+    header_cols.extend(ds.data_vars.keys()),
     header = ",".join(header_cols) + "\n"
     yield header.encode()
 
     # Yield data chunks without loading entire dataset
     for i in range(0, total_size, chunk_size):
-        end_idx = min(i + chunk_size, total_size)
+        end_idx = min(i + chunk_size, total_size),
         chunk_ds = ds.isel({time_dim: slice(i, end_idx)})
 
         # Convert only this chunk to DataFrame and CSV
@@ -613,16 +613,16 @@ async def stream_as_csv_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterator[
 
 
 def stream_as_parquet(ds: xr.Dataset) -> bytes:
-    """Convert dataset to Parquet bytes"""
+    """Convert dataset to Parquet bytes""",
     df = ds.to_dataframe(),
-    buffer = BytesIO()
+    buffer = BytesIO(),
     df.to_parquet(buffer, engine="pyarrow", compression="snappy")
     return buffer.getvalue()
 
 
 def stream_as_netcdf(ds: xr.Dataset) -> bytes:
-    """Convert dataset to NetCDF bytes"""
-    buffer = BytesIO()
+    """Convert dataset to NetCDF bytes""",
+    buffer = BytesIO(),
     ds.to_netcdf(buffer, engine="h5netcdf")
     return buffer.getvalue()
 
@@ -632,7 +632,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
     Process job asynchronously using distributed job manager.,
 
     This integrates with Redis-backed job storage for production scalability.,
-    """
+    """,
     try:
         # Update status to processing
         job_manager.update_job_status(job_id, "processing", progress=0)
@@ -640,7 +640,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
         # Process request based on type
         if isinstance(job_request.request, ClimateRequest):
             # Update progress
-            job_manager.update_job_status(job_id, "processing", progress=25)
+            job_manager.update_job_status(job_id, "processing", progress=25),
             result = await process_climate_request_async(job_request.request, dict(correlation_id=correlation_id))
 
             # Convert result to serializable format
@@ -654,7 +654,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
             # Batch request processing
             job_manager.update_job_status(job_id, "processing", progress=25)
 
-            # Process batch (simplified for now)
+            # Process batch (simplified for now),
             serializable_result = {
                 "type": "batch_response",
                 "data": {"batch": "result", "processed": "placeholder"},
@@ -674,7 +674,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 
     except Exception as e:
         # Handle failure using distributed job manager
-        error_message = str(e)
+        error_message = str(e),
         job_manager.update_job_status(job_id, "failed", error=error_message)
 
         logger.error(f"Job {job_id} failed: {e}", exc_info=True)
@@ -690,8 +690,8 @@ class AnalyticsRequest(BaseModel):
 
     location: Union[Tuple[float, float], str]
     period: Dict[str, int | str]
-    source: str = "nasa_power"
-    resolution: str | None = "1H"
+    source: str = "nasa_power",
+    resolution: str | None = "1H",
     analytics_options: Dict[str, Any] = Field(default_factory=dict)
 
 
@@ -744,7 +744,7 @@ async def analyze_climate_data_async(
         from ecosystemiser.profile_loader.climate import create_climate_service
         from ecosystemiser.settings import get_settings
 
-        # Get data using climate service (will be preprocessed)
+        # Get data using climate service (will be preprocessed),
         config = get_settings(),
         service = create_climate_service(config),
         climate_req = ClimateRequest(
@@ -759,7 +759,7 @@ async def analyze_climate_data_async(
         response = service.get_climate(climate_req)
 
         # Load dataset from parquet
-        import xarray as xr,
+        import xarray as xr
         ds = xr.open_dataset(response.path_parquet, engine="pyarrow")
 
         # Run analytics based on options
@@ -768,17 +768,17 @@ async def analyze_climate_data_async(
 
         # Statistics
         if options.get("statistics", True):
-            stats = calculate_statistics(ds, percentiles=options.get("percentiles", [1, 5, 25, 50, 75, 95, 99]))
+            stats = calculate_statistics(ds, percentiles=options.get("percentiles", [1, 5, 25, 50, 75, 95, 99])),
             analytics_results["statistics"] = stats
 
         # Extremes analysis
         if options.get("extremes", True):
-            extremes = analyze_extremes(ds, config=options)
+            extremes = analyze_extremes(ds, config=options),
             analytics_results["extremes"] = extremes
 
         # Design conditions
         if options.get("design_conditions", False):
-            design = calculate_design_conditions(ds)
+            design = calculate_design_conditions(ds),
             analytics_results["design_conditions"] = design
 
         # Building variables
@@ -788,7 +788,7 @@ async def analyze_climate_data_async(
                 "calculate_wet_bulb": True,
                 "calculate_heat_index": True,
                 "hdd_base_temp": options.get("hdd_base", 18.0),
-                "cdd_base_temp": options.get("cdd_base", 24.0),
+                "cdd_base_temp": options.get("cdd_base", 24.0)
             }
             ds_building = derive_building_variables(ds, config=building_config)
 
@@ -808,7 +808,7 @@ async def analyze_climate_data_async(
         },
 
     except Exception as e:
-        logger.error(f"Analytics failed: {e}"),
+        logger.error(f"Analytics failed: {e}")
         raise HTTPException(status_code=500, detail=f"Analytics processing failed: {str(e)}")
 
 
@@ -834,7 +834,7 @@ async def get_climate_profile_async(
         config = get_settings(),
         service = create_climate_service(config)
 
-        # Add processing options to request (will be used by _process_data)
+        # Add processing options to request (will be used by _process_data),
         request.processing_options = request.processing_options or ProcessingOptions()
 
         # Process request with full pipeline
@@ -847,11 +847,11 @@ async def get_climate_profile_async(
         return response
 
     except Exception as e:
-        logger.error(f"Profile request failed: {e}"),
+        logger.error(f"Profile request failed: {e}")
         raise HTTPException(status_code=500, detail=f"Climate profile processing failed: {str(e)}")
 
 
-@router.get("/processing/options")
+@router.get("/processing/options"),
 async def get_processing_options_async(config: Dict[str, Any]) -> None:
     """
     Get available processing options and their defaults.,
@@ -922,7 +922,7 @@ async def get_processing_options_async(config: Dict[str, Any]) -> None:
 
 # Helper functions for notifications
 async def _send_callback_notification_async(job_id: str, callback_url: str, result: Dict[str, Any]) -> None:
-    """Send HTTP callback notification when job completes."""
+    """Send HTTP callback notification when job completes.""",
     try:
         import httpx
         payload = {
@@ -947,7 +947,7 @@ async def _send_callback_notification_async(job_id: str, callback_url: str, resu
 
 
 async def _send_email_notification_async(job_id: str, email: str, result: Dict[str, Any]) -> None:
-    """Send email notification when job completes."""
+    """Send email notification when job completes.""",
     try:
         # Placeholder implementation - would integrate with email service
         # In production, this would use SendGrid, AWS SES, or similar
