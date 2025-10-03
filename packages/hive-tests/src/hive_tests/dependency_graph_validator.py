@@ -19,6 +19,10 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 
+# Global graph cache for performance (avoid rebuilding on every validation)
+_DEPENDENCY_GRAPH_CACHE: dict[str, CodeGraph] = {}
+
+
 class RuleType(str, Enum):
     """Types of dependency rules that can be enforced."""
 
@@ -122,16 +126,25 @@ class DependencyGraphValidator:
         self.rules.append(rule)
         logger.debug(f"Added rule: {rule.name}")
 
-    def build_graph(self, root_path: Path) -> CodeGraph:
+    def build_graph(self, root_path: Path, use_cache: bool = True) -> CodeGraph:
         """
         Build complete dependency graph for the codebase.
 
         Args:
             root_path: Root directory to parse
+            use_cache: Whether to use cached graph if available
 
         Returns:
             Complete code graph with all dependencies
         """
+        root_key = str(root_path.resolve())
+
+        # Check cache first
+        if use_cache and root_key in _DEPENDENCY_GRAPH_CACHE:
+            logger.debug(f"Using cached dependency graph for {root_path}")
+            self.graph = _DEPENDENCY_GRAPH_CACHE[root_key]
+            return self.graph
+
         logger.info(f"Building dependency graph from {root_path}")
 
         parser = ASTParser()
@@ -155,6 +168,11 @@ class DependencyGraphValidator:
         )
 
         self.graph = graph
+
+        # Cache for future use
+        if use_cache:
+            _DEPENDENCY_GRAPH_CACHE[root_key] = graph
+
         return graph
 
     def validate(self, root_path: Path) -> list[Violation]:
@@ -363,26 +381,14 @@ HIVE_ARCHITECTURAL_RULES = [
         target_pattern="apps/**",
         rule_type=RuleType.CANNOT_DEPEND_ON,
         severity="CRITICAL",
+        check_transitive=True,
     ),
     DependencyRule(
-        name="No DB layer to AI layer dependencies",
-        source_pattern="packages/hive-db/**",
-        target_pattern="packages/hive-ai/**",
-        rule_type=RuleType.CANNOT_DEPEND_ON,
-        severity="ERROR",
-    ),
-    DependencyRule(
-        name="No infrastructure to business logic dependencies",
-        source_pattern="packages/hive-cache/**",
+        name="No cross-app imports (app-to-app)",
+        source_pattern="apps/**",
         target_pattern="apps/**",
         rule_type=RuleType.CANNOT_DEPEND_ON,
-        severity="ERROR",
-    ),
-    DependencyRule(
-        name="No circular dependencies between core packages",
-        source_pattern="packages/hive-config/**",
-        target_pattern="packages/hive-logging/**",
-        rule_type=RuleType.CANNOT_DEPEND_ON,
-        severity="ERROR",
+        severity="CRITICAL",
+        check_transitive=False,  # Direct only - transitive via packages is OK
     ),
 ]

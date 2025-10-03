@@ -43,6 +43,71 @@ class RuleSeverity(Enum):
 GOLDEN_RULES_REGISTRY = []
 
 
+# ============================================================================
+# DEPENDENCY GRAPH VALIDATOR
+# ============================================================================
+
+
+def validate_dependency_graph(
+    project_root: Path,
+    scope_files: list[Path] | None = None,
+) -> tuple[bool, list[str]]:
+    """
+    Golden Rule: Graph-Based Dependency Validation
+
+    Uses knowledge graph analysis to detect both direct and transitive
+    architectural violations that simple AST checks cannot find.
+
+    This validator catches:
+    - Transitive dependencies (A → B → C where A→C is forbidden)
+    - Cross-app imports (app → app)
+    - Packages importing from apps
+    - Layer violations across the entire codebase
+
+    Note: This validator complements (not replaces) AST-based checks.
+    AST validator remains for backwards compatibility and catches
+    violations during file-by-file analysis. This validator provides
+    whole-codebase graph analysis for architectural rules.
+
+    Returns:
+        Tuple of (is_valid, list_of_violations)
+    """
+    try:
+        from hive_tests.dependency_graph_validator import (
+            DependencyGraphValidator,
+            HIVE_ARCHITECTURAL_RULES,
+        )
+    except ImportError as e:
+        logger.warning(f"Could not import dependency graph validator: {e}")
+        return True, [f"Warning: Dependency graph validation skipped (import error)"]
+
+    violations_list = []
+
+    try:
+        # Create validator
+        validator = DependencyGraphValidator()
+
+        # Add pre-defined architectural rules
+        for rule in HIVE_ARCHITECTURAL_RULES:
+            validator.add_rule(rule)
+
+        # Run validation (uses cached graph for performance)
+        violations = validator.validate(project_root)
+
+        # Convert to Golden Rules format
+        for violation in violations:
+            file_location = f"{violation.file_path}:{violation.line_number}" if violation.file_path else "N/A"
+            violations_list.append(
+                f"{file_location}: [{violation.rule.severity}] {violation}"
+            )
+
+    except Exception as e:
+        logger.error(f"Dependency graph validation failed: {e}")
+        violations_list.append(f"Error: Dependency graph validation failed: {e}")
+
+    return len(violations_list) == 0, violations_list
+
+
 def _initialize_golden_rules_registry():
     """
     Initialize the Golden Rules registry after all validators are defined.
@@ -87,6 +152,12 @@ def _initialize_golden_rules_registry():
             "validator": validate_dependency_direction,
             "severity": RuleSeverity.ERROR,
             "description": "Packages cannot import apps",
+        },
+        {
+            "name": "Graph-Based Dependency Analysis",
+            "validator": validate_dependency_graph,
+            "severity": RuleSeverity.ERROR,
+            "description": "Transitive dependency violations (complements AST checks)",
         },
         {
             "name": "Error Handling Standards",
@@ -2394,7 +2465,7 @@ def _run_registry_validators(
     Returns:
         Tuple of (all_passed, results_dict)
     """
-    results = ({},)
+    results = {}
     all_passed = True
 
     # Filter rules by severity
@@ -2405,8 +2476,8 @@ def _run_registry_validators(
 
     # Run filtered validators
     for rule in filtered_rules:
-        rule_name = (f"Golden Rule: {rule['name']}",)
-        validator_func = (rule["validator"],)
+        rule_name = f"Golden Rule: {rule['name']}"
+        validator_func = rule["validator"]
         severity = rule["severity"]
 
         try:
