@@ -58,11 +58,11 @@ def start_queen(config: str | None, debug: bool) -> None:
             sys.argv = original_argv
     except ImportError as e:
         info(f"Error importing queen module: {e}", err=True)
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
     except Exception as e:
         info(f"Error starting queen: {e}", err=True)
         logger.error(f"Queen startup error: {e}")
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
 
 
 @cli.command()
@@ -100,11 +100,11 @@ def start_worker(mode: str, name: str | None, debug: bool) -> None:
             sys.argv = original_argv
     except ImportError as e:
         info(f"Error importing worker module: {e}", err=True)
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
     except Exception as e:
         info(f"Error starting worker: {e}", err=True)
         logger.error(f"Worker startup error: {e}")
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
 
 
 @cli.command()
@@ -158,11 +158,11 @@ def status() -> None:
     except ImportError as e:
         info(f"Database module not available: {e}", err=True)
         info("Make sure hive-core-db package is installed", err=True)
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
     except Exception as e:
         info(f"Error getting status: {e}", err=True)
         logger.error(f"Status command error: {e}")
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
 
 
 @cli.command()
@@ -197,7 +197,7 @@ def review_escalated(task_id: str) -> None:
 
         if not task:
             info(f"Error: Task {task_id} not found or not escalated", err=True)
-            raise click.Exit(1)
+            raise click.Exit(1)  # noqa: B904
 
         # Parse result data for AI review information
         result_data = json.loads(task["result_data"]) if task["result_data"] else {},
@@ -322,11 +322,11 @@ def review_escalated(task_id: str) -> None:
 
     except ImportError as e:
         info(f"Required module not available: {e}", err=True)
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
     except Exception as e:
         info(f"Error reviewing task: {e}", err=True)
         logger.error(f"Review escalated error: {e}")
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
 
 
 @cli.command()
@@ -423,11 +423,11 @@ def list_escalated() -> None:
 
     except ImportError as e:
         info(f"Required module not available: {e}", err=True)
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
     except Exception as e:
         info(f"Error listing escalated tasks: {e}", err=True)
         logger.error(f"List escalated error: {e}")
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
 
 
 @cli.command()
@@ -462,13 +462,13 @@ def queue_task(task_description: str, role: str | None, priority: int) -> None:
     except ImportError as e:
         info(f"Database module not available: {e}", err=True)
         info("Make sure hive-core-db package is installed", err=True)
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
     except click.ClickException:
         raise  # Re-raise click exceptions as-is,
     except Exception as e:
         info(f"Error queuing task: {e}", err=True)
         logger.error(f"Queue task error: {e}")
-        raise click.Exit(1)
+        raise click.Exit(1)  # noqa: B904
 
 
 if __name__ == "__main__":

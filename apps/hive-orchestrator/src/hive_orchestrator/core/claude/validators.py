@@ -80,15 +80,15 @@ class PydanticValidator(BaseResponseValidator):
                     continue
                 else:
                     # Provide sensible defaults for required fields
-                    if field.annotation == str:
+                    if field.annotation is str:
                         defaults[field_name] = ""
-                    elif field.annotation == int:
+                    elif field.annotation is int:
                         defaults[field_name] = 0
-                    elif field.annotation == bool:
+                    elif field.annotation is bool:
                         defaults[field_name] = False
-                    elif field.annotation == list:
+                    elif field.annotation is list:
                         defaults[field_name] = []
-                    elif field.annotation == dict:
+                    elif field.annotation is dict:
                         defaults[field_name] = {}
                     else:
                         defaults[field_name] = None
