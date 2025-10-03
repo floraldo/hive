@@ -87,13 +87,15 @@ class GoldenRuleVisitor(ast.NodeVisitor):
 
     def visit_Import(self, node: ast.Import) -> None:
         """Validate import statements"""
-        self._validate_dependency_direction(node)
+        # NOTE: Dependency direction validation moved to graph-based validator
+        # self._validate_dependency_direction(node)  # DEPRECATED - use graph validator
         self._validate_no_unsafe_imports(node)
         self.generic_visit(node)
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         """Validate from imports"""
-        self._validate_dependency_direction_from(node)
+        # NOTE: Dependency direction validation moved to graph-based validator
+        # self._validate_dependency_direction_from(node)  # DEPRECATED - use graph validator
         self._validate_no_unsafe_imports_from(node)
         self._validate_no_deprecated_config_imports(node)
         self.generic_visit(node)
@@ -132,47 +134,10 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         self.generic_visit(node)
 
     # Rule implementations
-    def _validate_dependency_direction(self, node: ast.Import) -> None:
-        """Golden Rule 6: Dependency Direction - Import statements"""
-        for alias in node.names:
-            if self._is_invalid_app_import(alias.name):
-                self.add_violation(
-                    "rule-6",
-                    "Dependency Direction",
-                    node.lineno,
-                    f"Invalid app import: {alias.name}. Apps should only import from packages or other apps' core/ modules.",
-                )
-
-    def _validate_dependency_direction_from(self, node: ast.ImportFrom) -> None:
-        """Golden Rule 6: Dependency Direction - From imports"""
-        # Allow test files to import from their own app more freely
-        if self.context.is_test_file or "/tests/" in str(self.context.path):
-            return  # Test files can import from their parent app
-
-        # Allow demo/run files to import from their own app
-        if self.context.path.name.startswith(("demo_", "run_")):
-            return  # Demo and run files can import from their app
-
-        # Golden Rule 5: Package-App Discipline - Packages cannot import from apps
-        if "/packages/" in str(self.context.path) and node.module:
-            if node.module.startswith("apps.") or any(
-                app_name in node.module for app_name in ["ai_", "hive_orchestrator", "ecosystemiser", "qr_service"]
-            ):
-                self.add_violation(
-                    "rule-5",
-                    "Package-App Discipline",
-                    node.lineno,
-                    f"Package cannot import from app: {node.module}. Packages are infrastructure, apps extend packages.",
-                )
-                return
-
-        if node.module and self._is_invalid_app_import(node.module):
-            self.add_violation(
-                "rule-6",
-                "Dependency Direction",
-                node.lineno,
-                f"Invalid app import: from {node.module}. Use service layer (core/) or shared packages.",
-            )
+    # NOTE: _validate_dependency_direction and _validate_dependency_direction_from
+    # have been DEPRECATED and removed. Dependency validation is now handled by
+    # the graph-based validator which can detect both direct and transitive violations.
+    # See: packages/hive-tests/src/hive_tests/dependency_graph_validator.py
 
     def _validate_no_unsafe_calls(self, node: ast.Call) -> None:
         """Golden Rule 17: No Unsafe Function Calls"""
@@ -472,41 +437,9 @@ class GoldenRuleVisitor(ast.NodeVisitor):
             )
 
     # Helper methods
-    def _is_invalid_app_import(self, module_name: str) -> bool:
-        """
-        Check if this is an invalid app-to-app import.
-
-        DEPRECATED PATTERN: hive-orchestrator.core imports are deprecated.
-        Use hive-orchestration package instead.
-
-        Platform app exception (DEPRECATED - use hive-orchestration package):
-        - hive_orchestrator.core.db → hive_orchestration (task/worker operations)
-        - hive_orchestrator.core.bus → hive_orchestration (event bus integration)
-
-        See: .claude/ARCHITECTURE_PATTERNS.md for full documentation.
-        Migration guide: claudedocs/hive_orchestration_migration_guide.md
-        """
-        if not module_name:
-            return False
-
-        # Skip if importing from packages
-        if module_name.startswith("hive_"):
-            return False
-
-        # Skip if importing from current app (more lenient matching)
-        if self.context.app_name:
-            # Replace underscores with hyphens for matching
-            app_name_normalized = self.context.app_name.replace("-", "_")
-            if module_name.startswith(app_name_normalized):
-                return False
-
-        # Allow imports from other apps' core modules (general pattern)
-        if ".core." in module_name or module_name.endswith(".core"):
-            return False
-
-        # Check if this looks like an app import
-        app_indicators = ["ai_", "hive_orchestrator", "ecosystemiser"]
-        return any(module_name.startswith(indicator) for indicator in app_indicators)
+    # NOTE: _is_invalid_app_import helper method DEPRECATED and removed.
+    # App import validation is now handled by the graph-based validator.
+    # See: packages/hive-tests/src/hive_tests/dependency_graph_validator.py
 
     def _in_async_function(self) -> bool:
         """Check if current context is inside an async function"""

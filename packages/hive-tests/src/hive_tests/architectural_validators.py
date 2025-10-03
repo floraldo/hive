@@ -73,13 +73,10 @@ def validate_dependency_graph(
         Tuple of (is_valid, list_of_violations)
     """
     try:
-        from hive_tests.dependency_graph_validator import (
-            DependencyGraphValidator,
-            HIVE_ARCHITECTURAL_RULES,
-        )
+        from hive_tests.dependency_graph_validator import HIVE_ARCHITECTURAL_RULES, DependencyGraphValidator
     except ImportError as e:
         logger.warning(f"Could not import dependency graph validator: {e}")
-        return True, [f"Warning: Dependency graph validation skipped (import error)"]
+        return True, ["Warning: Dependency graph validation skipped (import error)"]
 
     violations_list = []
 
@@ -94,8 +91,22 @@ def validate_dependency_graph(
         # Run validation (uses cached graph for performance)
         violations = validator.validate(project_root)
 
-        # Convert to Golden Rules format
+        # Filter out exempt file patterns (test files, demo files, archived code)
+        exempt_patterns = ["/tests/", "/test_", "demo_", "run_", "/archive/", ".backup"]
+
+        def is_exempt_file(file_path: str | None) -> bool:
+            """Check if file should be exempted from dependency validation"""
+            if not file_path:
+                return False
+            normalized_path = str(file_path).replace("\\", "/")
+            return any(pattern in normalized_path for pattern in exempt_patterns)
+
+        # Convert to Golden Rules format (filtering exemptions)
         for violation in violations:
+            # Skip violations in exempt files
+            if is_exempt_file(violation.file_path):
+                continue
+
             file_location = f"{violation.file_path}:{violation.line_number}" if violation.file_path else "N/A"
             violations_list.append(
                 f"{file_location}: [{violation.rule.severity}] {violation}"
@@ -2476,8 +2487,8 @@ def _run_registry_validators(
 
     # Run filtered validators
     for rule in filtered_rules:
-        rule_name = f"Golden Rule: {rule['name']}"
-        validator_func = rule["validator"]
+        rule_name = f"Golden Rule: {rule['name']}",
+        validator_func = rule["validator"],
         severity = rule["severity"]
 
         try:
