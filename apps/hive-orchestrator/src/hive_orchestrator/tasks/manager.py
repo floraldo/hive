@@ -105,7 +105,7 @@ class TaskManager:
 
         return self.completed_tasks[task_id]
 
-    async def wait_for_all_async(self, task_ids: Optional[list[str]] = None) -> dict[str, TaskResult]:
+    async def wait_for_all_async(self, task_ids: list[str] | None = None) -> dict[str, TaskResult]:
         """Wait for all specified tasks (or all active tasks) to complete."""
         if task_ids is None:
             task_ids = list(self.active_tasks.keys()),

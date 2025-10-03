@@ -473,22 +473,34 @@ Multi-agent coordination in tmux panes:
 ```bash
 # 1. Start work (ensure clean baseline)
 git status && git checkout -b feature/my-feature
-ruff check . --fix  # Clean up existing violations
 
 # 2. Develop (with auto-formatting)
 # - VSCode auto-formats on save
 # - Ruff fixes violations automatically
 # - Focus on logic, not formatting
 
-# 3. Commit (Golden Workflow - NO --no-verify)
+# 3. Stage your changes
 git add modified_files.py
+
+# 4. Apply Boy Scout Rule (INTENTIONAL auto-fix)
+bash scripts/maintenance/fix-staged-files.sh
+# This runs ruff --fix ONLY on staged files
+# Makes cleanup visible and intentional
+
+# 5. Review the fixes (optional but recommended)
+git diff --cached
+
+# 6. Commit (Golden Workflow - NO --no-verify)
 git commit -m "feat: description"  # Pre-commit runs automatically
 
-# 4. If pre-commit fails
-ruff check . --fix  # Fix remaining issues
-git add .
-git commit -m "feat: description"  # Passes cleanly
+# Result: Commit passes cleanly, codebase improved incrementally
 ```
+
+#### Why This Workflow Works
+- **Pre-commit runs on staged files only** - Fast and targeted
+- **fix-staged-files.sh makes auto-fix intentional** - No surprises
+- **Incremental cleanup** - Each commit leaves code cleaner
+- **--no-verify is unnecessary** - Workflow handles all cases
 
 #### Linting Debt Management
 When inheriting code with violations:

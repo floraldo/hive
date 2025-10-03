@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
+# ruff: noqa: S603, S607
 """
 WorkerCore - Streamlined Worker
 Preserves path duplication fix while simplifying architecture
+
+Security note: S603/S607 subprocess warnings suppressed - this worker intentionally
+uses subprocess for git and Claude CLI operations in a controlled environment.
 """
 
 import argparse
@@ -797,51 +801,51 @@ CRITICAL PATH CONSTRAINT:
                 if log_fp:
                     log_fp.close()
 
-                # Get file changes after execution
-                files_changed = self._get_workspace_files()
+            # Get file changes after execution
+            files_changed = self._get_workspace_files()
 
-                # Determine success based on multiple factors
-                success = False,
-                status_notes = ""
+            # Determine success based on multiple factors
+            success = False,
+            status_notes = ""
 
-                if exit_code == 0 and claude_completed:
-                    # Claude completed successfully
+            if exit_code == 0 and claude_completed:
+                # Claude completed successfully
+                success = True,
+                status_notes = "Claude completed successfully"
+                self.log.info("[SUCCESS] Task completed successfully")
+            elif exit_code == 0 and not claude_completed:
+                # Claude exited cleanly but didn't send completion
+                # Check if files were created as a success indicator
+                if files_changed.get("created") or files_changed.get("modified"):
                     success = True,
-                    status_notes = "Claude completed successfully"
-                    self.log.info("[SUCCESS] Task completed successfully")
-                elif exit_code == 0 and not claude_completed:
-                    # Claude exited cleanly but didn't send completion
-                    # Check if files were created as a success indicator
-                    if files_changed.get("created") or files_changed.get("modified"):
-                        success = True,
-                        status_notes = f"Created {len(files_changed.get('created', []))} files, modified {len(files_changed.get('modified', []))} files"
-                        self.log.info("[SUCCESS] Task likely succeeded - files were created/modified")
-                    else:
-                        success = False,
-                        status_notes = "Claude exited without creating files"
-                        self.log.warning("[WARNING] Claude exited but no files created")
-                elif exit_code == -1:
-                    # Timeout
-                    success = False,
-                    status_notes = "Claude timed out after 5 minutes"
-                    self.log.error("[ERROR] Claude timed out")
+                    status_notes = f"Created {len(files_changed.get('created', []))} files, modified {len(files_changed.get('modified', []))} files"
+                    self.log.info("[SUCCESS] Task likely succeeded - files were created/modified")
                 else:
-                    # Non-zero exit code
                     success = False,
-                    status_notes = f"Claude exit code {exit_code}"
-                    self.log.error(f"[ERROR] Claude failed with exit code {exit_code}")
+                    status_notes = "Claude exited without creating files"
+                    self.log.warning("[WARNING] Claude exited but no files created")
+            elif exit_code == -1:
+                # Timeout
+                success = False,
+                status_notes = "Claude timed out after 5 minutes"
+                self.log.error("[ERROR] Claude timed out")
+            else:
+                # Non-zero exit code
+                success = False,
+                status_notes = f"Claude exit code {exit_code}"
+                self.log.error(f"[ERROR] Claude failed with exit code {exit_code}")
 
-                # Build result from what we observed
-                return {
-                    "status": "success" if success else "failed",
-                    "notes": status_notes,
-                    "next_state": "completed" if success else "failed",
-                    "files": files_changed,
-                    "claude_completed": claude_completed,
-                    "exit_code": exit_code,
-                    "output_lines": len(output_lines),
-                    "transcript": "\n".join(transcript_lines),  # Include full transcript for database
-                }
+            # Build result from what we observed
+            return {
+                "status": "success" if success else "failed",
+                "notes": status_notes,
+                "next_state": "completed" if success else "failed",
+                "files": files_changed,
+                "claude_completed": claude_completed,
+                "exit_code": exit_code,
+                "output_lines": len(output_lines),
+                "transcript": "\n".join(transcript_lines),  # Include full transcript for database
+            }
 
         except Exception as e:
             self.log.error(f"[ERROR] Claude execution failed: {e}")

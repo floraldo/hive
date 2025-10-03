@@ -5,8 +5,12 @@ from hive_logging import get_logger
 logger = get_logger(__name__)
 
 #!/usr/bin/env python3
+# ruff: noqa: S608
 """
 Optimized Enhanced Database Functions for AI Planner Integration
+
+Security note: S608 SQL injection warnings suppressed - all queries use
+parameterized placeholders (?) for safe SQL construction.
 
 This version includes performance optimizations while maintaining
 the neural connection between AI Planner and Queen.
@@ -29,7 +33,7 @@ def get_queued_tasks_with_planning_optimized(
     limit: int = 10,
     task_type: str | None = None,
     use_pool: bool = True,
-) -> List[dict[str, Any]]:
+) -> list[dict[str, Any]]:
     """
     Optimized task selection with single query and dependency pre-fetching.
 
@@ -145,7 +149,7 @@ def get_queued_tasks_with_planning_optimized(
     return tasks
 
 
-def _batch_check_dependencies(conn, tasks: List[dict[str, Any]]) -> None:
+def _batch_check_dependencies(conn, tasks: list[dict[str, Any]]) -> None:
     """
     Batch check dependencies for multiple tasks in a single query.
 
@@ -186,7 +190,7 @@ def _batch_check_dependencies(conn, tasks: List[dict[str, Any]]) -> None:
             task["dependencies_met"] = True
 
 
-def check_subtask_dependencies_batch(task_ids: List[str]) -> dict[str, bool]:
+def check_subtask_dependencies_batch(task_ids: list[str]) -> dict[str, bool]:
     """
     Batch check dependencies for multiple tasks.
 

@@ -53,17 +53,17 @@ class MetricsCollectorInterface(ABC):
     """Abstract interface for metrics collection"""
 
     @abstractmethod
-    def record_metric(self, metric_name: str, value: float, tags: Optional[dict[str, str]] = None) -> None:
+    def record_metric(self, metric_name: str, value: float, tags: dict[str, str] | None = None) -> None:
         """Record a metric value"""
         pass
 
     @abstractmethod
-    def increment_counter(self, counter_name: str, value: int = 1, tags: Optional[dict[str, str]] = None) -> None:
+    def increment_counter(self, counter_name: str, value: int = 1, tags: dict[str, str] | None = None) -> None:
         """Increment a counter metric"""
         pass
 
     @abstractmethod
-    def record_histogram(self, histogram_name: str, value: float, tags: Optional[dict[str, str]] = None) -> None:
+    def record_histogram(self, histogram_name: str, value: float, tags: dict[str, str] | None = None) -> None:
         """Record a histogram value"""
         pass
 

@@ -1101,39 +1101,6 @@ def generate(study_file: str, output: str, study_type: str) -> None:
             logger.exception("Failed to generate report")
         sys.exit(1)
 
-        # Generate plots
-        plot_factory = PlotFactory(),
-        plots = {},
-        analyses = analysis_results.get("analyses", {})
-
-        # Generate relevant plots
-        if "technical_kpi" in analyses:
-            plots["kpi_gauges"] = plot_factory.create_technical_kpi_gauges(analyses["technical_kpi"])
-
-        if "economic" in analyses:
-            plots["economic_summary"] = plot_factory.create_economic_summary_plot(analyses["economic"])
-
-        # Create HTML report using centralized generator
-        html_content = create_standalone_html_report(analysis_results, plots)
-
-        # Save report
-        output_path = Path(output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with open(output_path, "w") as f:
-            f.write(html_content)
-
-        info(f"HTML report generated: {output_path}")
-
-        # Print summary
-        summary = analysis_results.get("summary", {})
-        (info(f"Report includes {summary.get('successful_analyses', 0)} successful analyses"),)
-
-    except Exception as e:
-        logger.error(f"Report generation failed: {e}")
-        info(f"Error: {e}", err=True)
-        sys.exit(1)
-
 
 if __name__ == "__main__":
     cli()

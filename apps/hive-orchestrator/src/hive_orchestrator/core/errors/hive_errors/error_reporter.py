@@ -5,6 +5,7 @@ Centralized error logging and metrics collection
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
@@ -27,7 +28,7 @@ class ErrorContext:
     session_id: str | None = None
     request_id: str | None = None
     environment: str = "production"
-    additional_data: Optional[dict[str, Any]] = None
+    additional_data: dict[str, Any] | None = None
 
 
 class ErrorReporter:
@@ -137,7 +138,7 @@ class ErrorReporter:
         self,
         error: Exception,
         context: ErrorContext | None = None,
-        additional_info: Optional[dict[str, Any]] = None
+        additional_info: dict[str, Any] | None = None
     ) -> str:
         """
         Report an error with context
@@ -178,7 +179,7 @@ class ErrorReporter:
         self,
         error: Exception,
         context: ErrorContext | None,
-        additional_info: Optional[dict[str, Any]]
+        additional_info: dict[str, Any] | None
     ) -> dict[str, Any]:
         """Build structured error record"""
         record = {

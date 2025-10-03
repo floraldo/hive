@@ -18,7 +18,6 @@ from fastapi.middleware.gzip import GZipMiddleware
 from ecosystemiser.observability import init_observability, shutdown_observability
 from ecosystemiser.profile_loader.logging_config import get_logger, setup_logging
 from ecosystemiser.settings import get_settings
-from hive_logging import get_logger
 
 # Initialize logging first
 setup_logging()

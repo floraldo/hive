@@ -38,7 +38,7 @@ class HiveErrorReporter(BaseErrorReporter):
         log_to_db: bool = True,
         error_log_path: Path | None = None,
         error_db_path: Path | None = None,
-        config: Optional[dict[str, Any]] = None
+        config: dict[str, Any] | None = None
     ):
         """Initialize Hive error reporter with DI support
 
@@ -119,8 +119,8 @@ class HiveErrorReporter(BaseErrorReporter):
     def report_error(
         self,
         error: Exception,
-        context: Optional[dict[str, Any]] = None,
-        additional_info: Optional[dict[str, Any]] = None
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None
     ) -> str:
         """
         Report an error with Hive orchestration context.
@@ -157,8 +157,8 @@ class HiveErrorReporter(BaseErrorReporter):
     def _build_hive_error_record(
         self,
         error: Exception,
-        context: Optional[dict[str, Any]],
-        additional_info: Optional[dict[str, Any]]
+        context: dict[str, Any] | None,
+        additional_info: dict[str, Any] | None
     ) -> dict[str, Any]:
         """Build error record with Hive-specific fields"""
         # Start with base error record,

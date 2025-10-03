@@ -13,7 +13,7 @@ packages = [{include = "hive_service_discovery", from = "src"}]
 [tool.poetry.dependencies]
 python = "^3.11"
 aioredis = "^2.0.1"
-consul = "^1.1.0"
+python-consul = "^1.1.0"
 pydantic = "^2.5.0"
 asyncio-mqtt = "^0.16.1"
 httpx = "^0.25.0"

@@ -192,7 +192,7 @@ class SharedDatabaseService:
     while maintaining connection pooling and proper resource management.
     """
 
-    def __init__(self, config: Optional[dict[str, Any]] = None) -> None:
+    def __init__(self, config: dict[str, Any] | None = None) -> None:
         """Initialize the shared database service with DI support.
 
         Args:
@@ -283,7 +283,7 @@ _shared_service: SharedDatabaseService | None = None
 _service_lock = threading.Lock()
 
 
-def get_shared_database_service(config: Optional[dict[str, Any]] = None) -> SharedDatabaseService:
+def get_shared_database_service(config: dict[str, Any] | None = None) -> SharedDatabaseService:
     """Get or create the global shared database service with DI support.
 
     Args:

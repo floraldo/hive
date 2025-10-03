@@ -498,10 +498,10 @@ def with_adaptive_timeout(
             return await manager.execute_with_timeout_async(
                 func,
                 operation_name,
+                *args,
                 timeout=timeout,
                 timeout_type=timeout_type,
                 retry_attempt=kwargs.pop("_retry_attempt", 0),
-                *args,
                 **kwargs,
             )
 

@@ -86,8 +86,8 @@ async def test_circuit_breaker():
         for i in range(5):
             try:
 
-                async def failing_function():
-                    raise ValueError(f"Test failure {i}")
+                async def failing_function(iteration=i):
+                    raise ValueError(f"Test failure {iteration}")
 
                 await breaker.call_async(failing_function)
             except Exception:

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
+# ruff: noqa: S108, S603
 """
 Deployment Utilities for Hive Applications
 Adapted from SmartHoodsOptimisationTool Apper project
+
+Security note: S108/S603 warnings suppressed - this deployment utility
+intentionally uses temp directories and subprocess for remote deployment.
 """
 
 import os

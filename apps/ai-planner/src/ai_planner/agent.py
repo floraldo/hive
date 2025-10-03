@@ -1064,7 +1064,8 @@ class AIPlanner:
                     logger.info("Database connection closed")
 
                 logger.info("AI Planner Agent async shutdown complete")
-                return 0
+
+            return 0
 
 
 # Mock event bus functionality (to be replaced with proper implementation)
