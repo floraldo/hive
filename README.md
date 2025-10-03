@@ -98,14 +98,44 @@ hive/
 └── .github/workflows/            # CI/CD pipelines
 ```
 
+## 🤖 **For AI Coding Agents**
+
+**New to Hive?** Start here for a 5-minute guided onboarding:
+
+👉 **[AI_AGENT_START_HERE.md](AI_AGENT_START_HERE.md)** - Essential guide for AI agents
+
+Key resources for AI agents:
+- **[.claude/CLAUDE.md](.claude/CLAUDE.md)** - Complete development guide with 33 golden rules
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** - Platform architecture deep dive
+- **[claudedocs/INDEX.md](claudedocs/INDEX.md)** - Documentation navigation
+
+Quick validation commands:
+```bash
+# Validate environment
+bash scripts/validation/validate_environment.sh
+
+# Validate configuration
+python packages/hive-tests/src/hive_tests/config_validator.py
+
+# Validate golden rules (critical only)
+python scripts/validation/validate_golden_rules.py --level CRITICAL
+```
+
 ## 🛠️ **Quick Start**
 
 ### **Prerequisites**
 
-- Python 3.11+
-- Poetry (dependency management)
+**Multi-Language Platform**:
+- Python 3.11.13 (managed via conda)
+- Node.js 20 LTS (future frontend)
+- Rust 1.76, Julia 1.10, Go 1.22 (future services)
+- Poetry 2.2.0 (Python dependency management)
+- Conda (multi-language environment manager)
+
+**Infrastructure**:
 - Redis (for caching)
-- Git (for worktree isolation)
+- PostgreSQL (for orchestration)
+- Git (for version control)
 
 ### **Installation**
 
@@ -114,27 +144,35 @@ hive/
 git clone <repository-url>
 cd hive
 
-# Install dependencies
+# Create multi-language environment
+conda env create -f environment.yml
+conda activate hive
+
+# Install Python dependencies
 poetry install
 
-# Set up environment
-./setup.sh
-
-# Start the system
-./start_hive.sh
+# Validate setup
+bash scripts/validation/validate_environment.sh
+python packages/hive-tests/src/hive_tests/config_validator.py
 ```
 
 ### **Development Mode**
 
 ```bash
-# Start with development configuration
-poetry run python apps/hive-orchestrator/src/hive_orchestrator/queen.py --dev
+# Activate conda environment
+conda activate hive
 
 # Run tests
-poetry run pytest
+pytest
 
-# Validate architecture
-poetry run python -m pytest packages/hive-tests/tests/test_architecture.py
+# Validate golden rules (fast, critical only)
+python scripts/validation/validate_golden_rules.py --level CRITICAL
+
+# Validate golden rules (before PR)
+python scripts/validation/validate_golden_rules.py --level ERROR
+
+# Syntax validation
+python -m pytest --collect-only
 ```
 
 ## 📊 **Quality Metrics**
@@ -185,16 +223,24 @@ poetry run python -m pytest packages/hive-tests/tests/test_architecture.py
 
 ## 📚 **Documentation**
 
-- **[Architecture Guide](docs/ARCHITECTURE.md)**: System design and patterns
-- **[API Documentation](docs/api/)**: Service interfaces and contracts
-- **[Operations Guide](docs/operations/)**: Deployment and maintenance
-- **[Development Guide](docs/development/)**: Contributing and development workflow
+### **Essential Guides**
+- **[AI_AGENT_START_HERE.md](AI_AGENT_START_HERE.md)**: 5-minute AI agent onboarding
+- **[.claude/CLAUDE.md](.claude/CLAUDE.md)**: Complete development guide with golden rules
+- **[ARCHITECTURE.md](ARCHITECTURE.md)**: Platform architecture and component structure
+- **[ENVIRONMENT_HARDENING_COMPLETE.md](ENVIRONMENT_HARDENING_COMPLETE.md)**: Multi-language setup
+- **[CONFIGURATION_HARDENING_COMPLETE.md](CONFIGURATION_HARDENING_COMPLETE.md)**: Configuration standards
 
-## 📋 **Reports & Status**
+### **Organized Documentation**
+- **[claudedocs/INDEX.md](claudedocs/INDEX.md)**: Master documentation index
+- **[claudedocs/active/config/](claudedocs/active/config/)**: Configuration and standards
+- **[claudedocs/active/architecture/](claudedocs/active/architecture/)**: Architecture patterns
+- **[claudedocs/active/golden-rules/](claudedocs/active/golden-rules/)**: Validation and compliance
+- **[claudedocs/active/workflows/](claudedocs/active/workflows/)**: Deployment and guides
 
-- **[Golden Rules Reports](docs/reports/golden-rules/)**: Architectural compliance
-- **[Campaign Reports](docs/reports/campaigns/)**: Major improvement initiatives
-- **[Certification Reports](docs/reports/certifications/)**: Quality certifications
+### **Archived Documentation**
+- **[claudedocs/archive/2025-10/](claudedocs/archive/2025-10/)**: Completed sessions and milestones
+- **[claudedocs/archive/ecosystemiser/](claudedocs/archive/ecosystemiser/)**: EcoSystemiser projects
+- **[claudedocs/archive/syntax-fixes/](claudedocs/archive/syntax-fixes/)**: Emergency syntax fixes
 
 ## 🎯 **Roadmap**
 

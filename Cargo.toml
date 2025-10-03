@@ -1,0 +1,89 @@
+# Hive Platform Rust Workspace
+# Cargo workspace for Rust-based performance-critical services
+
+[workspace]
+members = [
+    "services/rust/*",
+    # Add Rust service crates here as they are created
+    # Example:
+    # "services/rust/optimizer",
+    # "services/rust/data-processor",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "1.0.0"
+edition = "2021"
+rust-version = "1.76.0"
+authors = ["Hive Platform Team <hive@example.com>"]
+license = "MIT"
+repository = "https://github.com/your-org/hive"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.36", features = ["full"] }
+async-trait = "0.1"
+
+# Web frameworks
+axum = "0.7"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["trace", "cors"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# Database
+sqlx = { version = "0.7", features = ["postgres", "runtime-tokio-native-tls"] }
+redis = { version = "0.24", features = ["tokio-comp"] }
+
+# Logging and tracing
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+
+# Testing
+mockall = "0.12"
+
+# Python interop (for calling Rust from Python)
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+# Performance
+rayon = "1.8"  # Parallel iterators
+dashmap = "5.5"  # Concurrent hashmap
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"
+
+[profile.bench]
+inherits = "release"
+strip = false
+
+# Example Rust service structure (create these as needed):
+#
+# services/rust/optimizer/
+# ├── Cargo.toml
+# ├── src/
+# │   ├── lib.rs       # Library interface for Python
+# │   ├── main.rs      # Standalone service binary
+# │   └── ...
+# └── tests/
+#     └── ...
+#
+# Integration with Python:
+# 1. Build Python extension: maturin develop
+# 2. Import in Python: from hive_rust_optimizer import optimize
+# 3. Call Rust functions from Python with native performance

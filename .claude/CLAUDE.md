@@ -53,6 +53,59 @@ data = {
 - **Automated check**: `python -m ruff check` (zero syntax errors)
 - **Agent validation**: Always run syntax check after multi-line edits
 
+### Automated Code-Fixing Scripts (CRITICAL)
+**Context**: Emergency syntax fixer corrupted codebase (2025-10-03)
+
+**⚠️ BANNED: Regex-Based Code Modification**
+
+NEVER use broad regex patterns for structural code changes:
+```python
+# ❌ CATASTROPHIC - These patterns DESTROYED the codebase:
+pattern = r"([^,\n]+)\n(\s+[^,\n]+)"  # Matches EVERYTHING
+pattern = r"(\w+)\n(\s+)(\w+)"         # No context awareness
+pattern = r"([a-zA-Z_][a-zA-Z0-9_]*)\n(\s+[a-zA-Z_])"  # Overly broad
+```
+
+**✅ REQUIRED: AST-Based Approach**
+
+```python
+import ast
+
+def fix_with_ast(filepath: Path) -> bool:
+    """Safe code fixing with structure validation."""
+    with open(filepath) as f:
+        content = f.read()
+
+    # Parse original structure
+    try:
+        original_tree = ast.parse(content)
+    except SyntaxError:
+        pass  # OK if already broken
+
+    # Apply fixes using AST visitors (context-aware)
+    # ... (specific pattern fixes)
+
+    # Validate result
+    try:
+        new_tree = ast.parse(fixed_content)
+        # Compare structure - fail if unexpected changes
+        if original_tree and structure_changed(original_tree, new_tree):
+            return False  # ABORT
+    except SyntaxError:
+        return False  # ABORT - introduced errors
+
+    return True
+```
+
+**MANDATORY Pre-Flight Checklist**:
+1. Test on 5 sample files manually
+2. Validate AST structure preservation
+3. Run syntax check on results
+4. Create backups before bulk run
+5. Fail fast on any unexpected changes
+
+**See**: `claudedocs/emergency_fixer_root_cause_analysis.md`
+
 ### Unicode in Code (CRITICAL)
 - **NO Unicode symbols in code**: Use `# OK` not ✅, `# FAIL` not ❌
 - **Exception**: Documentation files (.md) can use Unicode
@@ -264,6 +317,66 @@ Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/as
     - Severity: WARNING (transitional enforcement)
     - Migration guide: `claudedocs/config_migration_guide_comprehensive.md`
     - Gold standard: EcoSystemiser config bridge pattern
+
+### Environment Isolation (NEW - 2025-10-03)
+25. **No conda references in production code** - Conda is development tool, not runtime dependency
+    - Severity: CRITICAL
+    - Code must be environment-agnostic
+    - Exception: environment.yml and setup scripts
+    
+26. **No hardcoded absolute paths** - Breaks Docker/Kubernetes deployment
+    - Severity: ERROR  
+    - Use environment variables or relative paths
+    - Bad: /c/git/hive/data/file.db or C:\Users\...
+    - Good: os.getenv("DATA_PATH", "/app/data/file.db")
+    
+27. **Consistent Python version** - All pyproject.toml must use python = "^3.11"
+    - Severity: ERROR
+    - Prevents dependency conflicts
+    - Validated automatically in pre-commit
+    
+28. **Poetry lockfile exists and up-to-date** - Ensures reproducible builds
+    - Severity: WARNING
+    - Run poetry lock to generate
+    - Run poetry lock --no-update to refresh
+    
+29. **Multi-language toolchain available** - Platform supports Python, Node.js, Rust, Julia, Go
+    - Severity: INFO
+    - Install via: conda env create -f environment.yml
+    - Validate via: bash scripts/validation/validate_environment.sh
+    
+30. **Use environment variables for configuration** - 12-factor app compatibility
+    - Severity: WARNING
+    - Bad: API_KEY = "sk-1234567890"
+    - Good: API_KEY = os.getenv("API_KEY")
+
+### Configuration Consistency (NEW - 2025-10-03)
+31. **All pyproject.toml must have [tool.ruff] section** - Ensures consistent linting
+    - Severity: ERROR
+    - Template: pyproject.base.toml
+    - Auto-add: python scripts/maintenance/add_ruff_config.py
+    
+32. **All pyproject.toml must specify python = "^3.11"** - Prevents dependency conflicts
+    - Severity: ERROR
+    - Validated automatically in pre-commit
+    - Part of configuration consistency validation
+    
+33. **Pytest configuration must use consistent format** - Code quality
+    - Severity: WARNING
+    - Prefer: ["value"] or ["value1", "value2"]
+    - Avoid: [ "value",] (trailing comma in list)
+
+**Validation Commands**:
+```bash
+# Environment isolation (Rules 25-30)
+python packages/hive-tests/src/hive_tests/environment_validator.py
+
+# Config consistency (Rules 31-33)
+python packages/hive-tests/src/hive_tests/config_validator.py
+
+# All golden rules
+python scripts/validation/validate_golden_rules.py --level ERROR
+```
 
 **Validation**: Run `python scripts/validation/validate_golden_rules.py` before any commit.
 

@@ -1,0 +1,114 @@
+# Hive Platform Poetry Configuration
+# Project-level Poetry settings for consistent behavior across all developers
+#
+# This file configures Poetry to work harmoniously with conda environment
+# while maintaining proper Python package isolation
+
+[virtualenvs]
+# Create virtual environments (Poetry manages Python packages separately from conda)
+create = true
+
+# Store venvs in Poetry cache directory, NOT in project
+# This keeps the project clean and works well with Docker builds
+in-project = false
+
+# Use Poetry's cache directory for venvs
+# Location: C:\Users\{user}\AppData\Local\pypoetry\Cache\virtualenvs (Windows)
+#           ~/.cache/pypoetry/virtualenvs (Linux/macOS)
+path = "{cache-dir}/virtualenvs"
+
+# Use the Python from conda environment as the base
+# When conda env is active, Poetry will use that Python
+prefer-active-python = true
+
+# Don't copy system site-packages into venv
+# This ensures clean isolation of Python dependencies
+options.system-site-packages = false
+
+# Always copy Python binaries instead of symlinking
+# More reliable on Windows and in Docker
+options.always-copy = true
+
+# Install pip in the virtual environment
+options.no-pip = false
+
+[installer]
+# Enable parallel installation of dependencies for faster setup
+parallel = true
+
+# Use up to 10 workers for parallel installation
+max-workers = 10
+
+# Don't use binary distributions for these packages (none currently)
+no-binary = []
+
+# Re-resolve dependencies on each install to catch updates
+# Set to false for faster installs if lockfile is stable
+re-resolve = false
+
+[solver]
+# Use lazy wheel to defer building wheels until necessary
+# Improves performance for large dependency trees
+lazy-wheel = true
+
+[keyring]
+# Enable keyring for credential management
+# Useful for private package repositories
+enabled = true
+
+[repositories]
+# Add private repositories here if needed
+# Example:
+# private-repo = "https://pypi.mycompany.com/simple"
+
+[cache]
+# Poetry cache directory (default is fine)
+# Windows: C:\Users\{user}\AppData\Local\pypoetry\Cache
+# Linux/macOS: ~/.cache/pypoetry
+
+[experimental]
+# Enable new installer (Poetry 2.x feature)
+new-installer = true
+
+# System-specific git client (faster on systems with modern git)
+system-git-client = false
+
+# ========================================
+# Integration with Conda Environment
+# ========================================
+#
+# How Poetry and Conda Work Together:
+#
+# 1. Conda provides:
+#    - Python 3.11.13 base interpreter
+#    - Node.js, Rust, Julia, Go runtimes
+#    - System libraries and compilers
+#    - Platform-level tools (git, docker, etc)
+#
+# 2. Poetry provides:
+#    - Python package dependency resolution
+#    - Virtual environment isolation
+#    - Lockfile for reproducible builds
+#    - Python package management
+#
+# 3. Workflow:
+#    Step 1: conda activate hive
+#    Step 2: poetry install --with dev
+#    Step 3: poetry shell (or use 'poetry run' prefix)
+#
+# 4. Environment Layers:
+#    - Conda env: /path/to/anaconda/envs/hive/
+#    - Poetry venv: ~/.cache/pypoetry/virtualenvs/hive-workspace-{hash}-py3.11/
+#    - Active: Poetry venv inherits from conda env
+#
+# ========================================
+# CI/CD and Docker Considerations
+# ========================================
+#
+# In CI/CD or Docker:
+# - Don't activate conda (overhead not needed)
+# - Use Poetry directly with system Python
+# - Set POETRY_VIRTUALENVS_CREATE=false in Docker
+# - Install dependencies globally in container
+#
+# See Dockerfiles for multi-language build examples

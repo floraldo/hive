@@ -1,0 +1,212 @@
+# Hive Platform Base Configuration Template
+# This file defines shared configuration standards for all packages and apps
+#
+# Usage:
+# 1. Copy relevant sections to your package/app pyproject.toml
+# 2. Customize only what's specific to your package
+# 3. Keep tool configurations consistent with these standards
+#
+# Do NOT import this file directly - Poetry doesn't support TOML inheritance
+# This is a reference template for manual configuration
+
+# ========================================
+# Python Version Standard
+# ========================================
+# ALL packages and apps MUST use Python ^3.11
+# [tool.poetry.dependencies]
+# python = "^3.11"
+
+# ========================================
+# Ruff Configuration (Linter & Formatter)
+# ========================================
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [
+    ".git",
+    "__pycache__",
+    "dist",
+    "build",
+    ".venv",
+    "archive",
+    "templates",
+]
+
+[tool.ruff.lint]
+# Enable linting rules
+select = [
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "F",    # pyflakes
+    "I",    # isort
+    "B",    # flake8-bugbear
+    "C4",   # flake8-comprehensions
+    "UP",   # pyupgrade
+    "S",    # flake8-bandit (security)
+]
+
+# Ignore specific rules
+ignore = [
+    "E501",    # line too long (handled by formatter)
+    "B008",    # do not perform function calls in argument defaults
+    "C901",    # too complex
+    "COM812",  # missing trailing comma (conflicts with formatter)
+    "COM818",  # trailing comma on bare tuple (conflicts with formatter)
+    "COM819",  # prohibited trailing comma (conflicts with formatter)
+]
+
+[tool.ruff.format]
+# Formatter settings (black-compatible)
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = true  # CRITICAL: Prevent automatic trailing comma addition
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+# Import sorting configuration
+known-first-party = [
+    "hive_logging",
+    "hive_config",
+    "hive_db",
+    "hive_cache",
+    "hive_errors",
+    "hive_bus",
+    "hive_async",
+    "hive_performance",
+    "hive_ai",
+    "hive_deployment",
+    "hive_service_discovery",
+    "hive_tests",
+    "hive_models",
+    "hive_algorithms",
+    "hive_cli",
+    "hive_app_toolkit",
+    "hive_orchestration",
+    "hive_graph",
+]
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+split-on-trailing-comma = false  # CRITICAL: Prevent conflict with skip-magic-trailing-comma
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore certain rules in specific directories
+"tests/**" = ["S101", "S602", "S604"]  # Allow assert, subprocess in tests
+"scripts/**" = ["S602", "S604"]        # Allow subprocess in scripts
+"archive/**" = ["S"]                   # Ignore security in archive
+
+# ========================================
+# Black Configuration (Code Formatter)
+# ========================================
+# Note: Ruff format is now preferred, but black config kept for compatibility
+[tool.black]
+line-length = 120
+target-version = ["py311"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+  | archive
+)/
+'''
+
+# ========================================
+# Mypy Configuration (Type Checking)
+# ========================================
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false  # Gradually enable as codebase matures
+ignore_missing_imports = true  # Allow imports without stubs
+exclude = ["archive/", "legacy/", "tests/"]
+
+# ========================================
+# Pytest Configuration (Testing)
+# ========================================
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",              # Verbose output
+    "--tb=short",      # Short traceback format
+    "--strict-markers", # Strict marker validation
+]
+pythonpath = ["src"]
+asyncio_mode = "auto"  # Automatically detect async tests
+
+# Test markers (customize per package)
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "slow: Slow-running tests",
+    "asyncio: Async tests",
+]
+
+# ========================================
+# Coverage Configuration (Test Coverage)
+# ========================================
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/archive/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+# ========================================
+# Package-Specific Customization Examples
+# ========================================
+
+# Example: Add package-specific dependencies
+# [tool.poetry.dependencies.package-name]
+# path = "../package-name"
+# develop = true
+
+# Example: Add package-specific scripts
+# [tool.poetry.scripts]
+# my-command = "my_package.module:function"
+
+# Example: Package source location
+# [[tool.poetry.packages]]
+# include = "package_name"
+# from = "src"
+
+# ========================================
+# Development Dependencies (Standard Set)
+# ========================================
+# [tool.poetry.group.dev.dependencies]
+# pytest = "^8.3.2"
+# pytest-asyncio = "^0.21.0"
+# pytest-cov = "^4.1.0"
+# mypy = "^1.8.0"
+# black = "^24.8.0"
+# isort = "^5.13.0"
+# ruff = "^0.13.2"
+
+# ========================================
+# Build System (Standard)
+# ========================================
+# [build-system]
+# requires = ["poetry-core"]
+# build-backend = "poetry.core.masonry.api"

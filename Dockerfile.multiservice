@@ -1,0 +1,154 @@
+# Hive Platform Multi-Language Base Image
+# Production-ready base image supporting Python, Node.js, and Rust
+#
+# This Dockerfile creates a multi-stage build supporting:
+# - Python 3.11 with Poetry
+# - Node.js 20 LTS with npm
+# - Rust 1.76 with Cargo
+#
+# Usage:
+#   docker build -f Dockerfile.multiservice -t hive-base:latest .
+#   docker build -f apps/{service}/Dockerfile --build-arg BASE_IMAGE=hive-base:latest .
+
+# ========================================
+# Stage 1: Rust Builder
+# ========================================
+FROM rust:1.76-slim AS rust-builder
+
+WORKDIR /build/rust
+
+# Install Rust build dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Rust workspace
+COPY Cargo.toml Cargo.lock* ./
+COPY services/rust/ ./services/rust/
+
+# Build Rust services (if any exist)
+RUN if [ -d "services/rust" ] && [ -n "$(ls -A services/rust)" ]; then \
+        cargo build --release --workspace; \
+    fi
+
+# ========================================
+# Stage 2: Node.js Builder
+# ========================================
+FROM node:20-slim AS node-builder
+
+WORKDIR /build/node
+
+# Copy package files
+COPY package.json package-lock.json* ./
+COPY apps/*/frontend/package.json apps/*/frontend/
+COPY packages/*/frontend/package.json packages/*/frontend/
+
+# Install Node.js dependencies
+RUN npm ci --only=production
+
+# Copy frontend source code
+COPY apps/*/frontend/ apps/*/frontend/
+COPY packages/*/frontend/ packages/*/frontend/
+
+# Build frontend applications
+RUN npm run build || echo "No frontend build configured"
+
+# ========================================
+# Stage 3: Python Builder
+# ========================================
+FROM python:3.11-slim AS python-builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /build/python
+
+# Install Poetry
+RUN pip install --no-cache-dir poetry==2.2.0
+
+# Copy Poetry configuration
+COPY pyproject.toml poetry.lock poetry.toml* ./
+
+# Configure Poetry for Docker (no venv, install globally)
+RUN poetry config virtualenvs.create false
+
+# Copy Python packages
+COPY packages/ ./packages/
+COPY apps/ ./apps/
+
+# Install Python dependencies
+RUN poetry install --no-dev --no-interaction --no-ansi
+
+# ========================================
+# Stage 4: Runtime Base
+# ========================================
+FROM python:3.11-slim AS runtime-base
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd -m -u 1000 hive && \
+    mkdir -p /app /data /logs /cache && \
+    chown -R hive:hive /app /data /logs /cache
+
+WORKDIR /app
+
+# Copy Node.js runtime (for services that need it)
+COPY --from=node:20-slim /usr/local/bin/node /usr/local/bin/
+COPY --from=node:20-slim /usr/local/lib/node_modules /usr/local/lib/node_modules
+RUN ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
+
+# Copy Python packages from builder
+COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=python-builder /usr/local/bin /usr/local/bin
+
+# Copy Rust binaries from builder (if any)
+COPY --from=rust-builder /build/rust/target/release/ /usr/local/bin/ || true
+
+# Copy Node.js build artifacts
+COPY --from=node-builder /build/node/dist/ /app/static/ || true
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH="/app/packages:/app/apps:${PYTHONPATH}" \
+    PATH="/app/bin:${PATH}" \
+    NODE_ENV=production \
+    HIVE_ENV=production
+
+# Switch to non-root user
+USER hive
+
+# Health check (override in service-specific Dockerfile)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command (override in service-specific Dockerfile)
+CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+# ========================================
+# Service-Specific Dockerfile Example
+# ========================================
+#
+# FROM hive-base:latest
+#
+# # Copy specific service code
+# COPY --chown=hive:hive apps/my-service/ /app/apps/my-service/
+#
+# # Set service-specific environment
+# ENV SERVICE_NAME=my-service
+#
+# # Expose service port
+# EXPOSE 8000
+#
+# # Service-specific command
+# CMD ["python", "-m", "my_service.main"]

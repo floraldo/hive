@@ -1,0 +1,310 @@
+# Hive Platform Docker Compose
+# Complete multi-service orchestration for local development and testing
+#
+# Usage:
+#   docker-compose -f docker-compose.platform.yml up
+#   docker-compose -f docker-compose.platform.yml up -d  # Detached mode
+#   docker-compose -f docker-compose.platform.yml logs -f service-name
+#   docker-compose -f docker-compose.platform.yml down
+
+version: '3.8'
+
+# ========================================
+# Networks
+# ========================================
+networks:
+  hive-network:
+    driver: bridge
+
+# ========================================
+# Volumes
+# ========================================
+volumes:
+  postgres-data:
+  redis-data:
+  rabbitmq-data:
+  minio-data:
+
+# ========================================
+# Shared Infrastructure Services
+# ========================================
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: hive-postgres
+    environment:
+      POSTGRES_DB: hive
+      POSTGRES_USER: hive
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hive_dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - hive-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hive"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: hive-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - hive-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # RabbitMQ Message Bus
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: hive-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: hive
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-hive_dev_password}
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - hive-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # MinIO Object Storage (S3-compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: hive-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-hive}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-hive_dev_password}
+    ports:
+      - "9000:9000"   # API
+      - "9001:9001"   # Console
+    volumes:
+      - minio-data:/data
+    networks:
+      - hive-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # Hive Core Services
+  # ========================================
+
+  # Hive Orchestrator (Queen)
+  hive-orchestrator:
+    build:
+      context: .
+      dockerfile: apps/hive-orchestrator/Dockerfile
+    container_name: hive-orchestrator
+    environment:
+      - HIVE_ENV=production
+      - DATABASE_URL=postgresql://hive:${POSTGRES_PASSWORD:-hive_dev_password}@postgres:5432/hive
+      - REDIS_URL=redis://redis:6379/0
+      - RABBITMQ_URL=amqp://hive:${RABBITMQ_PASSWORD:-hive_dev_password}@rabbitmq:5672/
+    ports:
+      - "8001:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - hive-network
+    restart: unless-stopped
+
+  # EcoSystemiser (Energy Optimization)
+  ecosystemiser:
+    build:
+      context: .
+      dockerfile: apps/ecosystemiser/Dockerfile
+    container_name: hive-ecosystemiser
+    environment:
+      - ECOSYS_ENV=production
+      - DATABASE_URL=postgresql://hive:${POSTGRES_PASSWORD:-hive_dev_password}@postgres:5432/hive
+      - REDIS_URL=redis://redis:6379/1
+      - RABBITMQ_URL=amqp://hive:${RABBITMQ_PASSWORD:-hive_dev_password}@rabbitmq:5672/
+    ports:
+      - "8002:8000"
+      - "5002:5000"  # Reporting
+    volumes:
+      - ./data/ecosystemiser:/app/data
+      - ./results:/app/results
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - hive-network
+    restart: unless-stopped
+
+  # AI Planner
+  ai-planner:
+    build:
+      context: .
+      dockerfile: apps/ai-planner/Dockerfile
+    container_name: hive-ai-planner
+    environment:
+      - HIVE_ENV=production
+      - DATABASE_URL=postgresql://hive:${POSTGRES_PASSWORD:-hive_dev_password}@postgres:5432/hive
+      - REDIS_URL=redis://redis:6379/2
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    ports:
+      - "8003:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - hive-network
+    restart: unless-stopped
+
+  # AI Reviewer
+  ai-reviewer:
+    build:
+      context: .
+      dockerfile: apps/ai-reviewer/Dockerfile
+    container_name: hive-ai-reviewer
+    environment:
+      - HIVE_ENV=production
+      - DATABASE_URL=postgresql://hive:${POSTGRES_PASSWORD:-hive_dev_password}@postgres:5432/hive
+      - REDIS_URL=redis://redis:6379/3
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    ports:
+      - "8004:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - hive-network
+    restart: unless-stopped
+
+  # Guardian Agent
+  guardian-agent:
+    build:
+      context: .
+      dockerfile: apps/guardian-agent/Dockerfile
+    container_name: hive-guardian
+    environment:
+      - HIVE_ENV=production
+      - DATABASE_URL=postgresql://hive:${POSTGRES_PASSWORD:-hive_dev_password}@postgres:5432/hive
+      - REDIS_URL=redis://redis:6379/4
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    ports:
+      - "8005:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - hive-network
+    restart: unless-stopped
+
+  # Notification Service
+  notification-service:
+    build:
+      context: .
+      dockerfile: apps/notification-service/Dockerfile
+    container_name: hive-notifications
+    environment:
+      - HIVE_ENV=production
+      - REDIS_URL=redis://redis:6379/5
+      - RABBITMQ_URL=amqp://hive:${RABBITMQ_PASSWORD:-hive_dev_password}@rabbitmq:5672/
+    ports:
+      - "8006:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - hive-network
+    restart: unless-stopped
+
+  # ========================================
+  # Frontend Services (Future)
+  # ========================================
+
+  # Frontend (React/Vue Dashboard)
+  # frontend:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/frontend/Dockerfile
+  #   container_name: hive-frontend
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NODE_ENV=production
+  #     - API_URL=http://hive-orchestrator:8000
+  #   depends_on:
+  #     - hive-orchestrator
+  #   networks:
+  #     - hive-network
+  #   restart: unless-stopped
+
+  # ========================================
+  # Monitoring & Observability (Future)
+  # ========================================
+
+  # Prometheus (Metrics)
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: hive-prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   networks:
+  #     - hive-network
+
+  # Grafana (Dashboards)
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: hive-grafana
+  #   ports:
+  #     - "3001:3000"
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+  #   networks:
+  #     - hive-network
+
+# ========================================
+# Environment Variables
+# ========================================
+# Create a .env file with:
+#
+# POSTGRES_PASSWORD=your_secure_password
+# RABBITMQ_PASSWORD=your_secure_password
+# MINIO_ROOT_USER=hive
+# MINIO_ROOT_PASSWORD=your_secure_password
+# ANTHROPIC_API_KEY=your_anthropic_api_key
+# GRAFANA_PASSWORD=your_secure_password

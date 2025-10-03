@@ -68,7 +68,21 @@
       "Bash(for:*)",
       "Bash(do echo \"=== $file ===\")",
       "Bash(done)",
-      "Bash(python3.11:*)"
+      "Bash(python3.11:*)",
+      "Bash(echo $CONDA_DEFAULT_ENV)",
+      "Bash(where conda)",
+      "Bash(echo $SHELL)",
+      "Bash(echo $0)",
+      "Bash(where bash)",
+      "Bash('/c/Users/flori/Anaconda/Scripts/conda.exe' 'shell.bash' 'hook')",
+      "Bash(conda info:*)",
+      "Bash(echo $HIVE_SESSION_MANAGER_LOADED)",
+      "Bash(env)",
+      "Bash(ps:*)",
+      "Bash(echo:*)",
+      "Bash(bash:*)",
+      "Bash(git log:*)",
+      "Bash(conda:*)"
     ],
     "deny": [],
     "ask": []

@@ -31,12 +31,12 @@ repos:
       # Golden Rules architectural validation
       - id: golden-rules-check
         name: Validate Golden Rules compliance
-        entry: python scripts/validation/validate_golden_rules.py --incremental
+        entry: python scripts/validation/validate_golden_rules.py --level CRITICAL --incremental
         language: system
         types: [python]
         pass_filenames: false
         verbose: true
-        # ENABLED: Automatic validation on commit
+        # ENABLED: Fast CRITICAL-level validation on commit (~5s)
         # Use SKIP=golden-rules-check git commit to bypass if needed
 
       # Autofix validation (async naming, code quality)

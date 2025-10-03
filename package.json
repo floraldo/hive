@@ -1,0 +1,66 @@
+{
+  "name": "hive-platform",
+  "version": "1.0.0",
+  "description": "Hive multi-language orchestration platform",
+  "private": true,
+  "workspaces": [
+    "apps/*/frontend",
+    "packages/*/frontend",
+    "frontend/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:frontend\"",
+    "dev:api": "echo 'Start Python API servers'",
+    "dev:frontend": "echo 'Start frontend dev servers'",
+    "build": "npm run build:frontend && npm run build:rust",
+    "build:frontend": "echo 'Build all frontend packages'",
+    "build:rust": "echo 'Build all Rust services'",
+    "test": "npm run test:js && npm run test:rust",
+    "test:js": "jest",
+    "test:rust": "cargo test --workspace",
+    "lint": "npm run lint:js && npm run lint:rust",
+    "lint:js": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:rust": "cargo clippy --workspace -- -D warnings",
+    "format": "npm run format:js && npm run format:rust",
+    "format:js": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "format:rust": "cargo fmt --all",
+    "typecheck": "tsc --noEmit",
+    "clean": "npm run clean:deps && npm run clean:build",
+    "clean:deps": "rm -rf node_modules package-lock.json",
+    "clean:build": "rm -rf dist build .next out"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.1",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "vue": "^3.4.15"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/hive.git"
+  },
+  "keywords": [
+    "hive",
+    "orchestration",
+    "multi-language",
+    "energy-systems",
+    "optimization"
+  ],
+  "license": "MIT"
+}

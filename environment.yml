@@ -1,0 +1,160 @@
+# Hive Platform Multi-Language Environment
+# Conda environment specification for all platform languages and tools
+#
+# Languages Supported:
+# - Python 3.11 (primary)
+# - Node.js 20 LTS (frontend, tooling)
+# - Rust (performance-critical services)
+# - Julia (data science, optimization)
+# - Go (microservices, CLI tools)
+#
+# Usage:
+#   conda env create -f environment.yml
+#   conda activate hive
+
+name: hive
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # ========================================
+  # Python Ecosystem
+  # ========================================
+  - python=3.11.13
+  - pip=24.0
+
+  # Poetry for Python dependency management (installed via pip after env creation)
+  # DO NOT install poetry via conda - use pip to get latest version
+
+  # Python system tools
+  - setuptools=69.0
+  - wheel=0.42
+
+  # ========================================
+  # Node.js Ecosystem
+  # ========================================
+  - nodejs=20.11.1  # LTS version
+  - npm=10.5.0
+  - yarn=1.22.19
+
+  # ========================================
+  # Rust Ecosystem
+  # ========================================
+  - rust=1.76.0
+  - cargo=1.76.0
+
+  # ========================================
+  # Julia Ecosystem
+  # ========================================
+  - julia=1.10.0
+
+  # ========================================
+  # Go Ecosystem
+  # ========================================
+  - go=1.22.0
+
+  # ========================================
+  # Build Tools & Compilers
+  # ========================================
+  - gcc=13.2.0
+  - gxx=13.2.0
+  - make=4.3
+  - cmake=3.28.0
+  - pkg-config=0.29.2
+
+  # ========================================
+  # Version Control & Collaboration
+  # ========================================
+  - git=2.43.0
+  - git-lfs=3.4.1
+
+  # ========================================
+  # Database Clients
+  # ========================================
+  - postgresql=16.2
+  - sqlite=3.45.0
+  - redis=7.2.4
+
+  # ========================================
+  # Container & Orchestration Tools
+  # ========================================
+  - docker-compose=2.24.5
+
+  # ========================================
+  # Performance & Profiling Tools
+  # ========================================
+  - perf=5.15.0
+  - valgrind=3.22.0
+
+  # ========================================
+  # Testing & Quality Tools
+  # ========================================
+  - pre-commit=3.6.0
+
+  # ========================================
+  # System Utilities
+  # ========================================
+  - curl=8.5.0
+  - wget=1.21.4
+  - jq=1.7.1
+  - htop=3.3.0
+
+  # ========================================
+  # Python Scientific Stack (for Julia interop)
+  # ========================================
+  - numpy=1.26.3
+  - scipy=1.12.0
+  - pandas=2.2.0
+
+  # ========================================
+  # pip-only dependencies (after conda env creation)
+  # ========================================
+  - pip:
+    # Poetry (latest version, not available on conda)
+    - poetry==2.2.0
+
+    # Python dev tools
+    - black==24.10.0
+    - ruff==0.13.2
+    - mypy==1.8.0
+    - pytest==8.3.2
+    - pytest-asyncio==0.21.0
+    - pytest-cov==4.1.0
+
+    # Hive platform packages (installed in develop mode via Poetry)
+    # These are NOT installed via pip, but listed for reference
+    # Use: poetry install --with dev
+    # - hive-logging
+    # - hive-config
+    # - hive-db
+    # (etc - all managed by Poetry)
+
+# ========================================
+# Environment Variables (set after activation)
+# ========================================
+# variables:
+#   HIVE_ENV: "development"
+#   POETRY_VIRTUALENVS_CREATE: "true"
+#   POETRY_VIRTUALENVS_IN_PROJECT: "false"
+#   NODE_ENV: "development"
+#   CARGO_HOME: "${CONDA_PREFIX}/.cargo"
+#   GOPATH: "${CONDA_PREFIX}/go"
+#   JULIA_DEPOT_PATH: "${CONDA_PREFIX}/julia"
+
+# ========================================
+# Post-Installation Steps
+# ========================================
+# 1. Activate environment: conda activate hive
+# 2. Verify installations:
+#    - python --version  # Should be 3.11.13
+#    - node --version    # Should be v20.11.1
+#    - cargo --version   # Should be 1.76.0
+#    - julia --version   # Should be 1.10.0
+#    - go version        # Should be 1.22.0
+#    - poetry --version  # Should be 2.2.0
+#
+# 3. Install Python packages: poetry install --with dev
+# 4. Install Node packages: npm install (if package.json exists)
+# 5. Build Rust projects: cargo build (in rust service directories)
+# 6. Install Julia packages: julia> using Pkg; Pkg.instantiate()
