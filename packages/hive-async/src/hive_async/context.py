@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import asynccontextmanager
-from typing import Any, AsyncContextManager
+from collections.abc import AsyncIterator
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -78,7 +79,7 @@ class AsyncResourceManager:
 
 
 @asynccontextmanager
-async def async_context_async(*resources: AsyncContextManager) -> None:
+async def async_context_async(*resources: AbstractAsyncContextManager) -> AsyncIterator[None]:
     """Context manager for handling multiple async resources."""
     entered_resources = []
     try:

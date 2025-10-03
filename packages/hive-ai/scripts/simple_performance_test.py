@@ -34,7 +34,7 @@ def test_security_performance():
     ]
 
     validation_times = []
-    for prompt in test_prompts:
+    for prompt in test_prompts:  # noqa: B007
         start = time.perf_counter()
         validator.validate_prompt(prompt)
         duration = (time.perf_counter() - start) * 1000
@@ -51,7 +51,7 @@ def test_security_performance():
     secrets = ["sk-1234567890abcdef"] * 100,
 
     start = time.perf_counter()
-    for secret in secrets:
+    for secret in secrets:  # noqa: B007
         secret_mgr.mask_secret(secret)
     mask_duration = (time.perf_counter() - start) * 1000
 
@@ -65,7 +65,7 @@ def test_security_performance():
     rate_limiter = RateLimiter(max_requests=1000, window_seconds=60)
 
     start = time.perf_counter()
-    for i in range(100):
+    for i in range(100):  # noqa: B007
         rate_limiter.is_allowed(f"user_{i}")
     rate_duration = (time.perf_counter() - start) * 1000
 
@@ -84,7 +84,7 @@ def test_config_performance():
     # Config creation performance
     configs = [],
     start = time.perf_counter()
-    for i in range(50):
+    for _ in range(50):  # noqa: B007
         config = AIConfig()
         configs.append(config)
     creation_duration = (time.perf_counter() - start) * 1000
@@ -94,7 +94,7 @@ def test_config_performance():
     # Model config creation
     model_configs = [],
     start = time.perf_counter()
-    for i in range(100):
+    for i in range(100):  # noqa: B007
         model_config = ModelConfig(
             name=f"test_model_{i}",
             provider="test",
@@ -114,7 +114,7 @@ def test_config_performance():
 
     # Serialization performance
     start = time.perf_counter()
-    for config in model_configs:
+    for config in model_configs:  # noqa: B007
         config.model_dump()
     serialize_duration = (time.perf_counter() - start) * 1000
 
@@ -151,7 +151,7 @@ def test_vector_performance():
         test_texts = ["Short text", "Medium length text with more content", "Long text " * 50]
 
         embedding_times = []
-        for text in test_texts:
+        for text in test_texts:  # noqa: B007
             start = time.perf_counter()
             # Use the simulation method directly
             vector = embedding_manager._simulate_embedding_async(text, 384)
@@ -211,7 +211,7 @@ def test_model_system_performance():
 
         # Model registration performance
         test_models = []
-        for i in range(20):
+        for i in range(20):  # noqa: B007
             model = ModelConfig(
                 name=f"perf_test_model_{i}",
                 provider="test",
@@ -222,7 +222,7 @@ def test_model_system_performance():
             test_models.append(model)
 
         start = time.perf_counter()
-        for model in test_models:
+        for model in test_models:  # noqa: B007
             registry._register_model(model)
         registration_duration = (time.perf_counter() - start) * 1000
 
@@ -234,7 +234,7 @@ def test_model_system_performance():
 
         # Model lookup performance
         start = time.perf_counter()
-        for _ in range(100):
+        for _ in range(100):  # noqa: B007
             registry.list_available_models()
         lookup_duration = (time.perf_counter() - start) * 1000
 
@@ -312,7 +312,7 @@ def run_performance_tests():
 
     if summary["recommendations"]:
         logger.info("\nRecommendations:")
-        for rec in summary["recommendations"]:
+        for rec in summary["recommendations"]:  # noqa: B007
             logger.info(f"  - {rec}")
 
     logger.info(f"\nDetailed results saved to: {output_file}")
@@ -353,7 +353,7 @@ def generate_summary(results: dict[str, Any], total_duration: float) -> dict[str
 
     # Generate recommendations
     recommendations = []
-    for op in operations:
+    for op in operations:  # noqa: B007
         if op["avg_ms"] > 100:
             recommendations.append(f"Optimize {op['name']} (currently {op['avg_ms']:.2f}ms)")
         elif op["avg_ms"] < 0.1:

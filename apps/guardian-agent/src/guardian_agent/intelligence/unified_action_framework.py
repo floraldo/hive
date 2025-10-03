@@ -305,7 +305,7 @@ class UnifiedActionFramework:
 
             # Calculate success rates by strategic context
             context_success_rates = {}
-            for feedback in self.feedback_history:
+            for feedback in self.feedback_history:  # noqa: B007
                 context = feedback.get("strategic_context", "unknown")
                 if context not in context_success_rates:
                     context_success_rates[context] = {"total": 0, "successful": 0}
@@ -315,7 +315,7 @@ class UnifiedActionFramework:
                     context_success_rates[context]["successful"] += 1
 
             # Calculate success rates
-            for context, data in context_success_rates.items():
+            for _context, data in context_success_rates.items():
                 data["success_rate"] = data["successful"] / data["total"] if data["total"] > 0 else 0
 
             # Identify top-performing patterns
@@ -880,7 +880,7 @@ class UnifiedActionFramework:
         """Calculate average cross-correlation strength."""
 
         correlations = []
-        for rationale in self.strategic_context_cache.values():
+        for rationale in self.strategic_context_cache.values():  # noqa: B007
             correlations.append(rationale.cross_correlation_strength)
 
         return sum(correlations) / len(correlations) if correlations else 0.0

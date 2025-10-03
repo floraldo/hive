@@ -808,7 +808,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                 """
             else:
                 # Multi-objective case
-                for obj_name, obj_stats in statistics.items():
+                for obj_name, obj_stats in statistics.items():  # noqa: B007
                     if isinstance(obj_stats, dict):
                         mean = obj_stats.get("mean", 0)
                         std = obj_stats.get("std", 0)

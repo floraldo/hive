@@ -18,9 +18,9 @@ def test_module_imports():
     """Test that core modules can be imported"""
     try:
         # Test individual module imports
-        import hive_orchestrator.clean_hive
-        import hive_orchestrator.cli
-        import hive_orchestrator.dashboard
+        import hive_orchestrator.clean_hive  # noqa: F401
+        import hive_orchestrator.cli  # noqa: F401
+        import hive_orchestrator.dashboard  # noqa: F401
 
         logger.info("✅ All core modules imported successfully")
         return True

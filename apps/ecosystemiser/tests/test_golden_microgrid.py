@@ -56,7 +56,7 @@ class GoldenMicrogridValidator:
             raise ValueError(f"Unknown domain: {domain}")
 
         # Calculate energy balance for each timestep
-        for t in range(system.N):
+        for t in range(system.N):  # noqa: B007
             sources = (0.0,)
             sinks = 0.0
 
@@ -110,7 +110,7 @@ class GoldenMicrogridValidator:
         for comp_name, comp in system.components.items():
             if comp.type == "storage" and hasattr(comp, "E"):
                 E_max = comp.E_max if hasattr(comp, "E_max") else comp.params.technical.capacity_nominal
-                for t in range(system.N):
+                for t in range(system.N):  # noqa: B007
                     soc = comp.E[t] / E_max
                     if soc < -self.tolerance or soc > 1.0 + self.tolerance:
                         physics_results["storage_bounds_violations"].append(
@@ -119,7 +119,7 @@ class GoldenMicrogridValidator:
 
         # Check non-negative flows
         for flow_key, flow_data in system.flows.items():
-            for t in range(system.N):
+            for t in range(system.N):  # noqa: B007
                 flow_value = flow_data["value"][t] if hasattr(flow_data["value"], "__getitem__") else 0.0
                 if flow_value < -self.tolerance:
                     physics_results["flow_negative_violations"].append(
@@ -183,7 +183,7 @@ class GoldenMicrogridValidator:
         heat_pump_electrical = (0,)
         heat_pump_thermal = 0
 
-        for flow_key, flow_data in system.flows.items():
+        for _flow_key, flow_data in system.flows.items():
             if "HEAT_PUMP" in flow_data["target"] and flow_data.get("type") == "electricity":
                 heat_pump_electrical += np.sum(flow_data["value"])
             elif "HEAT_PUMP" in flow_data["source"] and flow_data.get("type") == "thermal":

@@ -33,8 +33,8 @@ from .connection_pool import close_pool, get_pooled_connection
 
 # Import async functionality for Phase 4.1
 try:
-    from .async_compat import async_database_enabled, get_sync_async_connection, sync_wrapper
-    from .async_connection_pool import close_async_pool, get_async_connection, get_async_pool_stats
+    from .async_compat import async_database_enabled, get_sync_async_connection, sync_wrapper  # noqa: F401
+    from .async_connection_pool import close_async_pool, get_async_connection, get_async_pool_stats  # noqa: F401
 
     ASYNC_AVAILABLE = True
 except ImportError:

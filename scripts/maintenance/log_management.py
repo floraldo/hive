@@ -55,9 +55,9 @@ class LogOrganizer:
 
         logger.info("Scanning for log files...")
 
-        for log_file in self.hive_root.rglob("*.log"):
+        for log_file in self.hive_root.rglob("*.log"):  # noqa: B007
             # Skip excluded patterns
-            if any(re.search(pattern, str(log_file)) for pattern in exclude_patterns):
+            if any(re.search(pattern, str(log_file)) for pattern in exclude_patterns):  # noqa: B007
                 continue
 
             try:
@@ -99,7 +99,7 @@ class LogOrganizer:
             component = "ecosystemiser"
         elif "dashboard" in name:
             component = "dashboard"
-        elif any(app in path_str for app in ["ai-reviewer", "ai-planner"]):
+        elif any(app in path_str for app in ["ai-reviewer", "ai-planner"]):  # noqa: B007
             component = "apps"
         elif "test" in path_str:
             component = "tests"
@@ -113,7 +113,7 @@ class LogOrganizer:
             category = "stdout"
         elif "archive" in path_str:
             category = "archive"
-        elif any(test_indicator in path_str for test_indicator in ["test", "benchmark"]):
+        elif any(test_indicator in path_str for test_indicator in ["test", "benchmark"]):  # noqa: B007
             category = "tests"
         else:
             category = "application"
@@ -129,12 +129,12 @@ class LogOrganizer:
 
         # Create directories
         if not dry_run:
-            for dir_path in self.directories.values():
+            for dir_path in self.directories.values():  # noqa: B007
                 dir_path.mkdir(parents=True, exist_ok=True)
 
         logger.info(f"Organizing {len(log_files)} log files (dry_run={dry_run})")
 
-        for log_file in log_files:
+        for log_file in log_files:  # noqa: B007
             try:
                 target_path = self._get_target_path(log_file)
 
@@ -185,7 +185,7 @@ class LogOrganizer:
 
         logger.info(f"Cleaning up logs older than {days_old} days (dry_run={dry_run})")
 
-        for log_file in self.scan_log_files():
+        for log_file in self.scan_log_files():  # noqa: B007
             if log_file.modified < cutoff_date:
                 try:
                     logger.info(
@@ -212,7 +212,7 @@ class LogOrganizer:
 
         # Group by name and component
         file_groups = {}
-        for log_file in log_files:
+        for log_file in log_files:  # noqa: B007
             key = (log_file.component, log_file.path.stem.split("-")[0])  # Base name without IDs
             if key not in file_groups:
                 file_groups[key] = []
@@ -222,7 +222,7 @@ class LogOrganizer:
 
         logger.info(f"Consolidating duplicate logs (dry_run={dry_run})")
 
-        for key, files in file_groups.items():
+        for _key, files in file_groups.items():
             if len(files) > 1:
                 # Keep the newest file, remove others
                 files.sort(key=lambda f: f.modified, reverse=True)
@@ -257,7 +257,7 @@ class LogOrganizer:
         by_category = {}
         by_component = {}
 
-        for log_file in log_files:
+        for log_file in log_files:  # noqa: B007
             by_category[log_file.category] = by_category.get(log_file.category, 0) + 1
             by_component[log_file.component] = by_component.get(log_file.component, 0) + 1
 

@@ -75,7 +75,7 @@ from .shared_connection_service import (
 
 # Import async support if available
 try:
-    from .async_connection_pool import (
+    from .async_connection_pool import (  # noqa: F401
         create_run_async,
         create_task_async,
         get_async_connection,

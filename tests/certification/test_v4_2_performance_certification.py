@@ -150,7 +150,7 @@ class V4PerformanceCertification:
         try:
             # Test service registration performance
             registration_times = []
-            for i in range(100):
+            for i in range(100):  # noqa: B007
                 start_time = time.perf_counter()
                 await registry.register_service(
                     service_name=f"test-service-{i}",
@@ -167,7 +167,7 @@ class V4PerformanceCertification:
             await discovery_client.initialize()
 
             lookup_times = []
-            for i in range(100):
+            for _ in range(100):  # noqa: B007
                 start_time = time.perf_counter()
                 await discovery_client.discover_service("test-service-1")
                 lookup_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
@@ -215,18 +215,18 @@ class V4PerformanceCertification:
             get_times = []
 
             # Warm up
-            for i in range(10):
+            for i in range(10):  # noqa: B007
                 await cache_client.set(f"warmup_{i}", f"value_{i}")
 
             # Test SET operations
-            for i in range(1000):
+            for i in range(1000):  # noqa: B007
                 start_time = time.perf_counter()
                 await cache_client.set(f"test_key_{i}", f"test_value_{i}")
                 set_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
                 set_times.append(set_time)
 
             # Test GET operations
-            for i in range(1000):
+            for i in range(1000):  # noqa: B007
                 start_time = time.perf_counter()
                 value = await cache_client.get(f"test_key_{i}")
                 get_time = (time.perf_counter() - start_time) * 1000  # Convert to ms
@@ -238,7 +238,7 @@ class V4PerformanceCertification:
 
             # Test cache hit rate
             hit_count = 0
-            for i in range(100):
+            for i in range(100):  # noqa: B007
                 value = await cache_client.get(f"test_key_{i}")
                 if value is not None:
                     hit_count += 1
@@ -293,7 +293,7 @@ class V4PerformanceCertification:
 
         # Test monitoring accuracy by generating known metrics
         start_time = time.perf_counter()
-        for _i in range(100):
+        for _i in range(100):  # noqa: B007
             await asyncio.sleep(0.01)  # Simulate work
         actual_duration = time.perf_counter() - start_time
 
@@ -355,7 +355,7 @@ class V4PerformanceCertification:
 
         # Test AI Reviewer response time
         reviewer_times = []
-        for _i in range(20):
+        for _i in range(20):  # noqa: B007
             start_time = time.perf_counter()
             await mock_ai_review_operation()
             response_time = time.perf_counter() - start_time
@@ -414,7 +414,7 @@ class V4PerformanceCertification:
 
         # Test simulation performance
         simulation_times = []
-        for _i in range(10):
+        for _i in range(10):  # noqa: B007
             start_time = time.perf_counter()
             await mock_simulation_operation()
             simulation_time = time.perf_counter() - start_time
@@ -473,7 +473,7 @@ class V4PerformanceCertification:
                 raise Exception("Simulated failure")
             return "success"
 
-        for _i in range(10):
+        for _i in range(10):  # noqa: B007
             start_time = time.perf_counter()
             try:
                 result = await failing_operation()
@@ -529,7 +529,7 @@ class V4PerformanceCertification:
         timeout_improvements = []
         initial_timeout = timeout_manager.get_timeout("test_operation")
 
-        for i in range(5):
+        for i in range(5):  # noqa: B007
             duration = 0.1 * (i + 1)  # 0.1s, 0.2s, 0.3s, etc.
             try:
                 await timeout_manager.execute_with_timeout(
@@ -719,7 +719,7 @@ async def test_v4_2_certification_suite():
     ), f"Performance improvement {report.performance_improvement:.1f}x below minimum 3.0x"
 
     # Log detailed results
-    for result in report.results:
+    for result in report.results:  # noqa: B007
         if not result.passed:
             print(f"FAILED: {result.test_name} - Expected: {result.target_value}, Actual: {result.actual_value}")
         else:
@@ -742,7 +742,7 @@ if __name__ == "__main__":
         print(f"Performance Improvement: {report.performance_improvement:.1f}x")
         print("\nDetailed Results:")
 
-        for result in report.results:
+        for result in report.results:  # noqa: B007
             status = "PASS" if result.passed else "FAIL"
             improvement = f" ({result.improvement_factor:.1f}x)" if result.improvement_factor else ""
             print(

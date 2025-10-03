@@ -303,7 +303,7 @@ execute_transaction_sync = AsyncToSyncAdapter.execute_transaction
 def async_database_enabled() -> bool:
     """Check if async database operations are available."""
     try:
-        import aiosqlite
+        import aiosqlite  # noqa: F401
 
         return True
     except ImportError:

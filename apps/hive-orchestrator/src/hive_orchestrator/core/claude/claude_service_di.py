@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 try:
-    from hive_di.interfaces import IClaudeService, IConfigurationService, IErrorReportingService
+    from hive_di.interfaces import IClaudeService, IConfigurationService, IErrorReportingService  # noqa: F401
 
     DI_AVAILABLE = True
 except ImportError:
