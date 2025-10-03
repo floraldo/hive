@@ -5,12 +5,13 @@ Centralized error logging and metrics collection
 from __future__ import annotations
 
 import json
+import logging
 import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from hive_logging import get_logger
 

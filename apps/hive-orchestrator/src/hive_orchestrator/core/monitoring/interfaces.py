@@ -11,7 +11,7 @@ No business logic, only interface definitions.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 
 
 class PipelineMonitorInterface(ABC):

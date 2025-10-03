@@ -19,7 +19,6 @@ import structlog
 from structlog.types import EventDict
 
 from ecosystemiser.settings import get_settings
-from hive_logging import get_logger
 
 # Context variable for correlation ID
 correlation_id_var: ContextVar[str | None] = ContextVar("correlation_id", default=None)

@@ -312,7 +312,7 @@ class TestDatabaseResilience:
 
         # Make requests until circuit breaker opens
         for _i in range(6):  # More than circuit_breaker_threshold (5)
-            with pytest.raises(Exception):
+            with pytest.raises(Exception, match=".*"):
                 await resilient_service.execute_with_resilience("SELECT 1")
 
         # Circuit breaker should be open
@@ -413,7 +413,7 @@ class TestDatabaseResilience:
 
         # Trigger circuit breaker to open
         for _i in range(6):
-            with pytest.raises(Exception):
+            with pytest.raises(Exception, match=".*"):
                 await resilient_service.execute_with_resilience("SELECT 1")
 
         assert resilient_service.circuit_breaker_open
