@@ -104,7 +104,15 @@ def fix_with_ast(filepath: Path) -> bool:
 4. Create backups before bulk run
 5. Fail fast on any unexpected changes
 
-**See**: `claudedocs/emergency_fixer_root_cause_analysis.md`
+**🚫 BANNED SCRIPTS** (Quarantined in `scripts/archive/DANGEROUS_FIXERS/`):
+- `modernize_type_hints.py` - Regex-based type hint conversion (caused ListTuple typo, misplaced imports)
+- `emergency_syntax_fix_consolidated.py` - Regex-based comma fixer (added commas everywhere)
+- `code_fixers.py` - Regex-based general fixer (unsafe patterns)
+
+**See**:
+- `scripts/archive/DANGEROUS_FIXERS/WARNING.md` - Complete danger documentation
+- `claudedocs/archive/syntax-fixes/emergency_fixer_root_cause_analysis.md` - Trailing comma incident
+- `claudedocs/active/incidents/type_hint_modernizer_incident.md` - Type hint incident
 
 ### Unicode in Code (CRITICAL)
 - **NO Unicode symbols in code**: Use `# OK` not ✅, `# FAIL` not ❌

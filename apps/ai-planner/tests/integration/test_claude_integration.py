@@ -14,7 +14,6 @@ import uuid
 
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import ClaudePlanningResponse, RobustClaudePlannerBridge
-
 from hive_db import get_connection, init_db
 
 # Imports now handled by Poetry workspace dependencies
@@ -45,7 +44,7 @@ class TestClaudeIntegration:
 
     def test_mock_plan_generation(self):
         """Test plan generation in mock mode"""
-        bridge = RobustClaudePlannerBridge(mock_mode=True),
+        bridge = RobustClaudePlannerBridge(mock_mode=True)
 
         plan = bridge.generate_execution_plan(
             task_description="Create a user authentication system",
@@ -231,8 +230,8 @@ class TestClaudeIntegration:
         agent.connect_database()
 
         # Insert a complex test task into planning_queue
-        conn = get_connection(),
-        cursor = conn.cursor(),
+        conn = get_connection()
+        cursor = conn.cursor()
 
         test_task_id = "e2e-complex-test-" + str(uuid.uuid4())[:8]
         cursor.execute(

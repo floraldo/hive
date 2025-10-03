@@ -202,3 +202,24 @@ Either:
 **Date**: 2025-10-03
 **Validation**: Surgical testing on guardian CLI + test files
 **Commit**: 73b484d
+
+---
+
+## UPDATE: Second Regex-Based Incident (2025-10-03)
+
+**New Incident**: Type Hint Modernizer Script
+**Script**: `scripts/archive/fixes/modernize_type_hints.py`
+**Commit**: `ad9fba9` (comprehensive platform optimization)
+**Damage**:
+- Import typo: `List, Tuple` → `ListTuple` (all imports combined!)
+- Misplaced imports: `from __future__ import annotations` inside class definitions
+- Files affected: 224 modified, 14 with syntax errors
+
+**Resolution**:
+- Fixed 13 files with AST-based surgical correction
+- Script quarantined to `scripts/archive/DANGEROUS_FIXERS/`
+- Full incident report: `claudedocs/active/incidents/type_hint_modernizer_incident.md`
+
+**Pattern Confirmed**: Regex-based code modification is fundamentally unsafe
+**Policy**: ALL regex-based fixers now banned and quarantined
+**See**: `scripts/archive/DANGEROUS_FIXERS/WARNING.md`

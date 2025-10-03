@@ -1,5 +1,7 @@
 """Heat pump component with MILP optimization support and hierarchical fidelity."""
 
+from __future__ import annotations
+
 from typing import Any
 
 import cvxpy as cp
@@ -20,7 +22,6 @@ logger = get_logger(__name__)
 
 class HeatPumpTechnicalParams(GenerationTechnicalParams):
     """Heat pump-specific technical parameters extending generation archetype.
-    from __future__ import annotations
 
 
         This model inherits from GenerationTechnicalParams and adds heat pump-specific,

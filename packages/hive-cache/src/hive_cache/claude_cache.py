@@ -1,5 +1,7 @@
 """Specialized caching for Claude API responses with intelligent TTL management."""
 
+from __future__ import annotations
+
 import hashlib
 import time
 from collections.abc import Callable
@@ -15,7 +17,6 @@ logger = get_logger(__name__)
 
 class ClaudeAPICache:
     """
-    from __future__ import annotations
 
         Specialized cache for Claude API responses with intelligent TTL and optimization.
 
@@ -42,7 +43,7 @@ class ClaudeAPICache:
         }
 
     @classmethod
-    async def create_async(cls, config: CacheConfig | None = None) -> "ClaudeAPICache":
+    async def create_async(cls, config: CacheConfig | None = None) -> ClaudeAPICache:
         """Create Claude API cache instance.
 
         Args:

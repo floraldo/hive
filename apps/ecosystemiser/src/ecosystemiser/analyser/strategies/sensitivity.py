@@ -1,5 +1,7 @@
 """Sensitivity analysis strategy implementation."""
 
+from __future__ import annotations
+
 from typing import Any
 
 import numpy as np
@@ -12,7 +14,6 @@ logger = get_logger(__name__)
 
 class SensitivityAnalysis(BaseAnalysis):
     """Analyze parameter sensitivity and system robustness.
-    from __future__ import annotations
 
 
         This strategy evaluates how system performance changes with

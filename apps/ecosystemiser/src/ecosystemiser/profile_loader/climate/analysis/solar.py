@@ -1,5 +1,7 @@
 """Solar-specific derived variables for postprocessing - PV and solar energy metrics"""
 
+from __future__ import annotations
+
 import numpy as np
 import pandas as pd
 import xarray as xr
@@ -16,7 +18,6 @@ def calculate_clearness_index(
     longitude: float | None = None,
 ) -> xr.DataArray:
     """
-    from __future__ import annotations
 
         Calculate clearness index (ratio of GHI to extraterrestrial radiation).,
         Useful for PV system sizing and solar resource assessment.

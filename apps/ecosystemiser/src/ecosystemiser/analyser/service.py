@@ -1,5 +1,7 @@
 """Analyser Service - Orchestrator for analysis strategies."""
 
+from __future__ import annotations
+
 import json
 import uuid
 from datetime import datetime
@@ -17,7 +19,6 @@ logger = get_logger(__name__)
 
 class AnalyserService:
     """Orchestrator for executing analysis strategies on simulation results.,
-    from __future__ import annotations
 
 
         This service coordinates the execution of various analysis strategies

@@ -1,5 +1,7 @@
 """Heat demand component with MILP optimization support and hierarchical fidelity."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -21,7 +23,6 @@ logger = get_logger(__name__)
 
 class HeatDemandTechnicalParams(DemandTechnicalParams):
     """Heat demand-specific technical parameters extending demand archetype.,
-    from __future__ import annotations
 
 
         This model inherits from DemandTechnicalParams and adds thermal demand-specific,

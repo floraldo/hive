@@ -1,5 +1,7 @@
 """Rainwater harvesting source component with MILP optimization support and hierarchical fidelity."""
 
+from __future__ import annotations
+
 from typing import Any
 
 import cvxpy as cp
@@ -20,7 +22,6 @@ logger = get_logger(__name__)
 
 class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
     """Rainwater source-specific technical parameters extending generation archetype.
-    from __future__ import annotations
 
 
         This model inherits from GenerationTechnicalParams and adds rainwater harvesting-specific,

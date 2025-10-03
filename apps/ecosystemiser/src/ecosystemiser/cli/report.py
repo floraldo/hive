@@ -6,9 +6,9 @@ import json
 from pathlib import Path
 
 import click
+
 from ecosystemiser.analyser import AnalyserService
 from ecosystemiser.reporting import run_server
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

@@ -1,5 +1,7 @@
 """Water grid component with MILP optimization support and hierarchical fidelity."""
 
+from __future__ import annotations
+
 from typing import Any
 
 import cvxpy as cp
@@ -20,7 +22,6 @@ logger = get_logger(__name__)
 
 class WaterGridTechnicalParams(TransmissionTechnicalParams):
     """Water grid-specific technical parameters extending transmission archetype.
-    from __future__ import annotations
 
 
         This model inherits from TransmissionTechnicalParams and adds water grid-specific,

@@ -27,13 +27,7 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace import Status, StatusCode
-from prometheus_client import (
-    CollectorRegistry,
-    Counter,
-    Gauge,
-    Histogram,
-    generate_latest,
-)
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, generate_latest
 
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger

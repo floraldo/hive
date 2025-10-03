@@ -1,5 +1,7 @@
 """Heat buffer (thermal storage) component with MILP optimization support and hierarchical fidelity."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -21,7 +23,6 @@ logger = get_logger(__name__)
 
 class HeatBufferTechnicalParams(StorageTechnicalParams):
     """Heat buffer-specific technical parameters extending storage archetype.,
-    from __future__ import annotations
 
 
         This model inherits from StorageTechnicalParams and adds thermal storage-specific,

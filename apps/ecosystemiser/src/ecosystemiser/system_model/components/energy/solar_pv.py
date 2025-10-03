@@ -1,5 +1,7 @@
 """Solar PV component with MILP optimization support and hierarchical fidelity."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -21,7 +23,6 @@ logger = get_logger(__name__)
 
 class SolarPVTechnicalParams(GenerationTechnicalParams):
     """Solar PV-specific technical parameters extending generation archetype.,
-    from __future__ import annotations
 
 
         This model inherits from GenerationTechnicalParams and adds solar-specific,

@@ -1,5 +1,7 @@
 """Water storage component with MILP optimization support and hierarchical fidelity."""
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
@@ -22,7 +24,6 @@ logger = get_logger(__name__)
 
 class WaterStorageTechnicalParams(StorageTechnicalParams):
     """Water storage-specific technical parameters extending storage archetype.
-    from __future__ import annotations
 
 
         This model inherits from StorageTechnicalParams and adds water storage-specific,

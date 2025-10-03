@@ -1,5 +1,7 @@
 """Performance-focused caching for expensive computations and I/O operations."""
 
+from __future__ import annotations
+
 import asyncio
 import hashlib
 import time
@@ -16,7 +18,6 @@ logger = get_logger(__name__)
 
 class PerformanceCache:
     """
-    from __future__ import annotations
 
         High-performance cache for expensive computations and I/O operations.
 
@@ -45,7 +46,7 @@ class PerformanceCache:
         }
 
     @classmethod
-    async def create_async(cls, config: CacheConfig | None = None) -> "PerformanceCache":
+    async def create_async(cls, config: CacheConfig | None = None) -> PerformanceCache:
         """Create performance cache instance.
 
         Args:

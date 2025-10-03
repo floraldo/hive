@@ -1,5 +1,7 @@
 """Core Redis cache client with async operations and circuit breaker."""
 
+from __future__ import annotations
+
 import asyncio
 import gzip
 import json
@@ -32,7 +34,6 @@ logger = get_logger(__name__)
 
 class HiveCacheClient:
     """
-    from __future__ import annotations
 
         High-performance async Redis cache client with circuit breaker protection.
 
