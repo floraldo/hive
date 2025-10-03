@@ -276,11 +276,11 @@ def create_task(
     title: str,
     task_type: str,
     description: str = "",
-    workflow: Optional[dict[str, Any]] = None,
-    payload: Optional[dict[str, Any]] = None,
+    workflow: dict[str, Any] | None = None,
+    payload: dict[str, Any] | None = None,
     priority: int = 1,
     max_retries: int = 3,
-    tags: Optional[List[str]] = None,
+    tags: list[str] | None = None,
     current_phase: str = "start",
 ) -> str:
     """
@@ -326,7 +326,7 @@ def create_task(
     return task_id
 
 
-def get_task(task_id: str) -> Optional[dict[str, Any]]:
+def get_task(task_id: str) -> dict[str, Any] | None:
     """Get task by ID."""
     with get_connection() as conn:
         cursor = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
@@ -342,7 +342,7 @@ def get_task(task_id: str) -> Optional[dict[str, Any]]:
         return None
 
 
-def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[dict[str, Any]]:
+def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> list[dict[str, Any]]:
     """
     Get queued tasks ordered by priority.
 
@@ -386,7 +386,7 @@ def get_queued_tasks(limit: int = 10, task_type: str | None = None) -> List[dict
         return tasks
 
 
-def update_task_status(task_id: str, status: str, metadata: Optional[dict[str, Any]] = None) -> bool:
+def update_task_status(task_id: str, status: str, metadata: dict[str, Any] | None = None) -> bool:
     """Update task status and optional metadata fields."""
     with transaction() as conn:
         # Start with base fields
@@ -496,7 +496,7 @@ def update_run_status(
     run_id: str,
     status: str,
     phase: str | None = None,
-    result_data: Optional[dict[str, Any]] = None,
+    result_data: dict[str, Any] | None = None,
     error_message: str | None = None,
     output_log: str | None = None,
     transcript: str | None = None,
@@ -547,7 +547,7 @@ def update_run_status(
         return success
 
 
-def get_run(run_id: str) -> Optional[dict[str, Any]]:
+def get_run(run_id: str) -> dict[str, Any] | None:
     """Get run by ID."""
     with get_connection() as conn:
         cursor = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,))
@@ -570,7 +570,7 @@ def get_run(run_id: str) -> Optional[dict[str, Any]]:
         return None
 
 
-def get_task_runs(task_id: str) -> List[dict[str, Any]]:
+def get_task_runs(task_id: str) -> list[dict[str, Any]]:
     """Get all runs for a task, ordered by run number."""
     with get_connection() as conn:
         cursor = conn.execute(
@@ -591,45 +591,14 @@ def get_task_runs(task_id: str) -> List[dict[str, Any]]:
         return runs
 
 
-def get_tasks_by_status(status: str) -> List[dict[str, Any]]:
-    """
-    Get all tasks with a specific status.
-
-    Args:
-        status: Task status to filter by (e.g., 'in_progress', 'queued', 'completed')
-
-    Returns:
-        List of task dictionaries with the specified status
-    """
-    with get_connection() as conn:
-        cursor = conn.execute(
-            """,
-            SELECT * FROM tasks,
-            WHERE status = ?,
-            ORDER BY created_at ASC,
-        """,
-            (status,),
-        )
-
-        tasks = []
-        for row in cursor.fetchall():
-            task = dict(row)
-            task["payload"] = json.loads(task["payload"]) if task["payload"] else {}
-            task["workflow"] = json.loads(task["workflow"]) if task["workflow"] else None
-            task["tags"] = json.loads(task["tags"]) if task["tags"] else []
-            tasks.append(task)
-
-        return tasks
-
-
 # Worker Management Functions
 
 
 def register_worker(
     worker_id: str,
     role: str,
-    capabilities: Optional[List[str]] = None,
-    metadata: Optional[dict[str, Any]] = None,
+    capabilities: list[str] | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> bool:
     """Register a new worker or update existing worker registration."""
     with transaction() as conn:
@@ -675,7 +644,7 @@ def update_worker_heartbeat(worker_id: str, status: str | None = None) -> bool:
         return cursor.rowcount > 0
 
 
-def get_active_workers(role: str | None = None) -> List[dict[str, Any]]:
+def get_active_workers(role: str | None = None) -> list[dict[str, Any]]:
     """Get active workers, optionally filtered by role."""
     with get_connection() as conn:
         if role:
@@ -749,7 +718,7 @@ def log_run_result(
         return False
 
 
-def get_tasks_by_status(status: str) -> List[dict[str, Any]]:
+def get_tasks_by_status(status: str) -> list[dict[str, Any]]:
     """
     Get all tasks with a specific status.
 
@@ -794,9 +763,9 @@ if ASYNC_AVAILABLE:
         title: str = None,
         assignee: str = None,
         priority: int = None,
-        tags: List[str] = None,
+        tags: list[str] = None,
         context_data: dict[str, Any] = None,
-        depends_on: List[str] = None,
+        depends_on: list[str] = None,
         workspace: str = "repo",
         task_type: str = "user_request",
         requestor: str = "unknown",
@@ -865,7 +834,7 @@ if ASYNC_AVAILABLE:
         logger.info(f"Created async task {task_id}: {description[:100]}...")
         return task_id
 
-    async def get_task_async(task_id: str) -> Optional[dict[str, Any]]:
+    async def get_task_async(task_id: str) -> dict[str, Any] | None:
         """Async version of get_task."""
         async with get_async_connection() as conn:
             cursor = await conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
@@ -886,7 +855,7 @@ if ASYNC_AVAILABLE:
 
             return None
 
-    async def get_queued_tasks_async(limit: int = 10, task_type: str | None = None) -> List[dict[str, Any]]:
+    async def get_queued_tasks_async(limit: int = 10, task_type: str | None = None) -> list[dict[str, Any]]:
         """
         Async version of get_queued_tasks for high-performance task retrieval.
 
@@ -937,7 +906,7 @@ if ASYNC_AVAILABLE:
 
             return tasks
 
-    async def update_task_status_async(task_id: str, status: str, metadata: Optional[dict[str, Any]] = None) -> bool:
+    async def update_task_status_async(task_id: str, status: str, metadata: dict[str, Any] | None = None) -> bool:
         """
         Async version of update_task_status for non-blocking updates.
 
@@ -992,7 +961,7 @@ if ASYNC_AVAILABLE:
             logger.error(f"Error updating async task {task_id} status: {e}")
             return False
 
-    async def get_tasks_by_status_async(status: str) -> List[dict[str, Any]]:
+    async def get_tasks_by_status_async(status: str) -> list[dict[str, Any]]:
         """Async version of get_tasks_by_status."""
         try:
             async with get_async_connection() as conn:
@@ -1053,11 +1022,11 @@ if ASYNC_AVAILABLE:
         """Sync wrapper for async create_task."""
         return sync_wrapper(create_task_async)(*args, **kwargs)
 
-    def get_task_sync_wrapper(*args, **kwargs) -> Optional[dict[str, Any]]:
+    def get_task_sync_wrapper(*args, **kwargs) -> dict[str, Any] | None:
         """Sync wrapper for async get_task."""
         return sync_wrapper(get_task_async)(*args, **kwargs)
 
-    def get_queued_tasks_sync_wrapper(*args, **kwargs) -> List[dict[str, Any]]:
+    def get_queued_tasks_sync_wrapper(*args, **kwargs) -> list[dict[str, Any]]:
         """Sync wrapper for async get_queued_tasks."""
         return sync_wrapper(get_queued_tasks_async)(*args, **kwargs)
 

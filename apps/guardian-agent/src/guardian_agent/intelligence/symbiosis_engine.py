@@ -815,7 +815,7 @@ class PatternAnalyzer:
         return patterns
 
     def _detect_async_patterns(self, content: str, file_path: Path, package_name: str) -> list[CodePattern]:
-        """Detect async patterns.""",
+        """Detect async patterns."""
         patterns = []
 
         # Look for manual async implementations,
@@ -871,7 +871,7 @@ class OptimizationDetector:
         return None
 
     async def analyze_pattern_async(self, pattern: CodePattern) -> list[OptimizationOpportunity]:
-        """Analyze a single pattern for optimization opportunities.""",
+        """Analyze a single pattern for optimization opportunities."""
         optimizations = []
 
         if pattern.pattern_type == "error_handling":
@@ -1055,7 +1055,7 @@ class PullRequestGenerator:
 +
 -    print("Debug message")
 +    logger.info("Debug message")
-""",
+"""
                 code_changes[original_file_path] = diff
 
             elif pattern.pattern_type == "error_handling":
@@ -1075,7 +1075,7 @@ class PullRequestGenerator:
 +        risky_operation()
 +    except Exception as e:
 +        handle_error(e, context="risky_operation")
-""",
+"""
                 code_changes[original_file_path] = diff
 
         return code_changes

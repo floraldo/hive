@@ -149,14 +149,14 @@ class BaseClaludeBridge(ABC):
 
             return result.stdout.strip()
 
-        except subprocess.TimeoutExpired:
+        except subprocess.TimeoutExpired as e:
             error_msg = f"Claude CLI timed out after {self.config.timeout} seconds"
             logger.error(error_msg)
-            raise ClaudeTimeoutError(error_msg)
+            raise ClaudeTimeoutError(error_msg) from e
         except Exception as e:
             error_msg = f"Unexpected error executing Claude: {str(e)}"
             logger.error(error_msg)
-            raise ClaudeResponseError(error_msg)
+            raise ClaudeResponseError(error_msg) from e
 
     def call_claude(
         self,

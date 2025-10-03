@@ -13,7 +13,7 @@ that bridges the AI Planner's output with the Queen's execution engine.
 """
 
 import json
-from typing import Any
+from typing import Any, List, Optional
 
 from .database import get_connection
 

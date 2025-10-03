@@ -498,7 +498,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
 
 
 class EnhancedValidator:
-    """,
+    """
     Enhanced single-pass validator system with suppression support,
     """
 
@@ -508,12 +508,12 @@ class EnhancedValidator:
 
     def validate_all(self) -> tuple[bool, dict[str, list[str]]]:
         (
-            """,
+            """
         Run all Golden Rules validation in a single pass
 
         Returns:
             Tuple of (all_passed, violations_by_rule)
-        """,
+        """
         )
         self.violations = []
 

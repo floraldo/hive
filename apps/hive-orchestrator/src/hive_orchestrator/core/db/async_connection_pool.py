@@ -95,7 +95,7 @@ async def create_task_async(
     return task_id
 
 
-async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> Optional[dict[str, Any]]:
+async def get_task_async(task_id: str, db_manager: AsyncDatabaseManager) -> dict[str, Any] | None:
     """Get a task by ID asynchronously using dependency injection."""
     async with get_async_connection_async(db_manager) as conn:
         cursor = await conn.execute("SELECT * FROM tasks WHERE task_id = ?", (task_id,))
@@ -181,7 +181,7 @@ async def update_task_status_async(
     status: str,
     db_manager: AsyncDatabaseManager,
     worker_id: str | None = None,
-    result_data: Optional[dict[str, Any]] = None,
+    result_data: dict[str, Any] | None = None,
 ) -> bool:
     """Update task status asynchronously using dependency injection."""
     updated_at = (datetime.now(UTC).isoformat(),)

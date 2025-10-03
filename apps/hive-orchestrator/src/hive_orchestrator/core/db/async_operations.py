@@ -110,7 +110,7 @@ class AsyncDatabaseOperations:
         task_type: str,
         description: str,
         priority: int = 5,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Create a new task asynchronously
@@ -147,7 +147,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to create task: {e}")
             raise
 
-    async def get_task_async(self, task_id: str) -> Optional[dict[str, Any]]:
+    async def get_task_async(self, task_id: str) -> dict[str, Any] | None:
         """Get task by ID asynchronously"""
         await self._check_circuit_breaker_async()
 
@@ -170,7 +170,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to get task {task_id}: {e}")
             raise
 
-    async def get_queued_tasks_async(self, limit: int = 10) -> List[dict[str, Any]]:
+    async def get_queued_tasks_async(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get queued tasks asynchronously"""
         await self._check_circuit_breaker_async()
 
@@ -211,7 +211,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to update task {task_id} status: {e}")
             raise
 
-    async def get_tasks_by_status_async(self, status: str) -> List[dict[str, Any]]:
+    async def get_tasks_by_status_async(self, status: str) -> list[dict[str, Any]]:
         """Get all tasks with a specific status"""
         await self._check_circuit_breaker_async()
 
@@ -236,7 +236,7 @@ class AsyncDatabaseOperations:
 
     # Batch Operations for Performance
 
-    async def batch_create_tasks_async(self, tasks: List[dict[str, Any]]) -> List[str]:
+    async def batch_create_tasks_async(self, tasks: list[dict[str, Any]]) -> list[str]:
         """
         Create multiple tasks in a single batch operation
 
@@ -284,7 +284,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to batch create tasks: {e}")
             raise
 
-    async def batch_update_status_async(self, task_ids: List[str], status: str) -> bool:
+    async def batch_update_status_async(self, task_ids: list[str], status: str) -> bool:
         """
         Update status for multiple tasks in a single operation
 
@@ -319,7 +319,7 @@ class AsyncDatabaseOperations:
 
     # Concurrent Operations
 
-    async def get_tasks_concurrent_async(self, task_ids: List[str]) -> List[Optional[dict[str, Any]]]:
+    async def get_tasks_concurrent_async(self, task_ids: list[str]) -> list[dict[str, Any] | None]:
         """
         Get multiple tasks concurrently
 

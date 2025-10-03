@@ -391,7 +391,7 @@ def migrate_database(conn: sqlite3.Connection, migrations_dir: Path, target_vers
 
 # Async versions of utility functions
 async def table_exists_async(conn, table_name: str) -> bool:
-    ("""Async version of table_exists.""",)
+    """Async version of table_exists."""
     try:
         cursor = await conn.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", (table_name,))
         result = await cursor.fetchone()
@@ -402,7 +402,7 @@ async def table_exists_async(conn, table_name: str) -> bool:
 
 
 async def get_database_info_async(conn) -> dict[str, Any]:
-    ("""Async version of get_database_info.""",)
+    """Async version of get_database_info."""
     try:
         info = {}
 

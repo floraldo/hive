@@ -329,7 +329,7 @@ async def get_job_status_async(
     correlation_id: str | None = Header(None, alias="X-Correlation-ID"),
     job_manager: JobManager = Depends(get_job_manager)
 ):
-    """Get status of async job from distributed job manager""",
+    """Get status of async job from distributed job manager"""
     job_data = job_manager.get_job(job_id)
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -358,7 +358,7 @@ async def get_job_result_async(
     Get result of completed job from distributed storage.,
 
     Supports multiple output formats.,
-    """,
+    """
     job_data = job_manager.get_job(job_id)
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -395,7 +395,7 @@ async def cancel_job_async(
     correlation_id: str | None = Header(None, alias="X-Correlation-ID"),
     job_manager: JobManager = Depends(get_job_manager)
 ):
-    """Cancel a queued or running job using distributed job manager""",
+    """Cancel a queued or running job using distributed job manager"""
     job_data = job_manager.get_job(job_id)
     if not job_data:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -427,7 +427,7 @@ async def list_jobs_async(
     List jobs with optional filtering and pagination.,
 
     Supports filtering by status and pagination for production job monitoring.,
-    """,
+    """
     try:
         # Get jobs from distributed job manager
         jobs_data = job_manager.list_jobs_async(status=status, limit=limit, offset=offset)
@@ -472,7 +472,7 @@ async def cleanup_old_jobs_async(
     Clean up old jobs for maintenance.,
 
     This endpoint helps maintain the job storage by removing old completed/failed jobs.,
-    """,
+    """
     try:
         deleted_count = job_manager.cleanup_old_jobs_async(days=days)
 
@@ -590,7 +590,7 @@ async def stream_as_csv_async(ds: xr.Dataset, chunk_size: int) -> AsyncIterator[
 
 
 def stream_as_parquet(ds: xr.Dataset) -> bytes:
-    """Convert dataset to Parquet bytes""",
+    """Convert dataset to Parquet bytes"""
     df = ds.to_dataframe(),
     buffer = BytesIO(),
     df.to_parquet(buffer, engine="pyarrow", compression="snappy")
@@ -598,7 +598,7 @@ def stream_as_parquet(ds: xr.Dataset) -> bytes:
 
 
 def stream_as_netcdf(ds: xr.Dataset) -> bytes:
-    """Convert dataset to NetCDF bytes""",
+    """Convert dataset to NetCDF bytes"""
     buffer = BytesIO(),
     ds.to_netcdf(buffer, engine="h5netcdf")
     return buffer.getvalue()
@@ -609,7 +609,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
     Process job asynchronously using distributed job manager.,
 
     This integrates with Redis-backed job storage for production scalability.,
-    """,
+    """
     try:
         # Update status to processing
         job_manager.update_job_status(job_id, "processing", progress=0)
@@ -897,7 +897,7 @@ async def get_processing_options_async(config: dict[str, Any]) -> None:
 
 # Helper functions for notifications
 async def _send_callback_notification_async(job_id: str, callback_url: str, result: dict[str, Any]) -> None:
-    """Send HTTP callback notification when job completes.""",
+    """Send HTTP callback notification when job completes."""
     try:
         import httpx
         payload = {
@@ -922,7 +922,7 @@ async def _send_callback_notification_async(job_id: str, callback_url: str, resu
 
 
 async def _send_email_notification_async(job_id: str, email: str, result: dict[str, Any]) -> None:
-    """Send email notification when job completes.""",
+    """Send email notification when job completes."""
     try:
         # Placeholder implementation - would integrate with email service
         # In production, this would use SendGrid, AWS SES, or similar
