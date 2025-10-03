@@ -297,58 +297,21 @@ See `claudedocs/golden_rules_tiered_compliance_system.md` for complete guide.
 
 **Philosophy**: "Always leave the code cleaner than you found it"
 
-### The Rule
-When editing ANY file for ANY reason:
-1. **Fix linting violations in that file** before committing
-2. **Run `ruff check --fix <file>`** to auto-correct safe violations
-3. **Address remaining violations** or add `# noqa` with justification
-4. **Never introduce new violations** - format-on-save prevents this
+**The Rule**: When editing ANY file, fix its linting violations before committing.
 
-### Why This Works
-- **No big-bang cleanup**: Avoid massive refactoring sprints
-- **Natural attrition**: ~1,700 violations → 0 over time through regular development
-- **Zero friction**: IDE integration makes fixes automatic
-- **Sustainable**: Technical debt reduces as code evolves
+**Enforcement**: `packages/hive-tests/tests/unit/test_boy_scout_rule.py`
+- Tracks total violation count (baseline: 1733 as of 2025-10-04)
+- **Test fails if violations increase** ❌
+- Test celebrates when violations decrease ✅
 
-### IDE Integration (Automatic Enforcement)
-`.vscode/settings.json` enables:
-- **Format on save**: Auto-applies ruff fixes
-- **Real-time linting**: See violations as you type
-- **Auto-organize imports**: Fixes E402 violations automatically
-- **Trailing whitespace removal**: Prevents style violations
-
-### Manual Process (When Needed)
+**Workflow**:
 ```bash
-# 1. Before editing, check current violations
-ruff check path/to/file.py
-
-# 2. Make your changes
-
-# 3. Auto-fix what you can
-ruff check path/to/file.py --fix
-
-# 4. Address remaining violations or add noqa
-# noqa: F401  # Imported for re-export in __init__.py
-
-# 5. Commit (pre-commit hooks will validate)
-git commit -m "feat: your feature + Boy Scout cleanup"
+# Auto-fix on save (via .vscode/settings.json)
+# OR manually: ruff check <file> --fix
+git commit  # Pre-commit hooks validate
 ```
 
-### Pre-Commit Integration
-Pre-commit hooks enforce Boy Scout Rule:
-- **Syntax check**: Blocks commits with syntax errors
-- **Ruff validation**: Auto-fixes safe violations, warns on complex ones
-- **Golden Rules**: Validates architecture compliance
-- **Bypass ONLY for infrastructure**: Use `--no-verify` only for meta-commits
-
-### Tracking Progress
-```bash
-# Current technical debt
-ruff check . 2>&1 | grep "Found" | tail -1
-
-# Before: Found 1733 errors
-# Goal: Found 0 errors (achieved incrementally)
-```
+**Progress**: ~1,700 violations → 0 (achieved incrementally via natural development)
 
 ## 🏆 Golden Rules (24 Architectural Validators)
 

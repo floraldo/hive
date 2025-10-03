@@ -21,6 +21,11 @@ from .hive_bus import HiveEventBus, get_hive_event_bus
 from .hive_events import AgentEvent, AgentStatus, TaskEvent, TaskStatus, WorkflowEvent
 
 __all__ = [
+    # Infrastructure base classes (re-exported)
+    "BaseBus",
+    "BaseEvent",
+    "BaseSubscriber",
+    # Hive-specific events
     "TaskEvent",
     "AgentEvent",
     "WorkflowEvent",
@@ -28,11 +33,14 @@ __all__ = [
     "AgentStatus",
     "TaskEventType",
     "WorkflowEventType",
+    # Event bus instances
     "HiveEventBus",
     "get_hive_event_bus",
     "get_event_bus",
+    # Event creation helpers
     "create_task_event",
     "create_workflow_event",
+    # Async operations
     "get_async_event_bus",
     "publish_event_async",
 ]

@@ -27,7 +27,7 @@ def __init__(
     event_type: str | None = None,
     source_agent: str | None = None,
     original_error: Exception | None = None,
-    context: Optional[dict[str, Any]] = None,
+    context: dict[str, Any] | None = None,
 ):
     super().__init__(message, original_error=original_error, context=context)
     self.event_id = event_id

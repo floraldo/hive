@@ -171,7 +171,7 @@ class ClaudeService:
         config: ClaudeBridgeConfig | None = None,
         rate_config: RateLimitConfig | None = None,
         cache_ttl: int | None = None,
-        claude_config: Optional[dict[str, Any]] = None,
+        claude_config: dict[str, Any] | None = None,
     ):
         """Initialize Claude service
 
@@ -365,7 +365,7 @@ class ClaudeService:
     def generate_execution_plan(
         self,
         task_description: str,
-        context_data: Optional[dict[str, Any]] = None,
+        context_data: dict[str, Any] | None = None,
         priority: int = 1,
         requestor: str | None = None,
         use_cache: bool = True,
@@ -399,8 +399,8 @@ class ClaudeService:
         task_id: str,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]] = None,
-        objective_analysis: Optional[dict[str, Any]] = None,
+        test_results: dict[str, Any] | None = None,
+        objective_analysis: dict[str, Any] | None = None,
         transcript: str | None = None,
         use_cache: bool = False,  # Don't cache reviews by default
     ) -> dict[str, Any]:
@@ -435,7 +435,7 @@ class ClaudeService:
     async def generate_execution_plan_async(
         self,
         task_description: str,
-        context_data: Optional[dict[str, Any]] = None,
+        context_data: dict[str, Any] | None = None,
         priority: int = 1,
         requestor: str | None = None,
         use_cache: bool = True,
@@ -457,8 +457,8 @@ class ClaudeService:
         task_id: str,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]] = None,
-        objective_analysis: Optional[dict[str, Any]] = None,
+        test_results: dict[str, Any] | None = None,
+        objective_analysis: dict[str, Any] | None = None,
         transcript: str | None = None,
         use_cache: bool = False,
     ) -> dict[str, Any]:

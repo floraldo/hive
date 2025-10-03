@@ -200,7 +200,7 @@ class AsyncQueen:
         task: dict[str, Any],
         worker: str,
         phase: Phase,
-    ) -> Optional[tuple[asyncio.subprocess.Process, str]]:
+    ) -> tuple[asyncio.subprocess.Process, str] | None:
         """Spawn worker process asynchronously for non-blocking execution"""
         task_id = (task["id"],)
         run_id = f"{task_id}-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}-{phase.value}"

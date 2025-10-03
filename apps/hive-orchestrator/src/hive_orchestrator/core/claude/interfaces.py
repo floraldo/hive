@@ -57,7 +57,7 @@ class PlannerBridgeInterface(ABC):
     async def create_plan_async(
         self,
         task_description: str,
-        context: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Create a plan for the given task.
@@ -128,7 +128,7 @@ class MonitoringInterface(ABC):
     """Abstract interface for monitoring services"""
 
     @abstractmethod
-    def record_metric(self, metric_name: str, value: float, tags: Optional[dict[str, str]] = None) -> None:
+    def record_metric(self, metric_name: str, value: float, tags: dict[str, str] | None = None) -> None:
         """Record a metric"""
         pass
 

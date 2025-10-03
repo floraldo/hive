@@ -19,6 +19,8 @@ from hive_config.paths import HIVE_DIR, LOGS_DIR, PROJECT_ROOT, WORKTREES_DIR
 # Hive logging system
 from hive_logging import get_logger
 
+logger = get_logger(__name__)
+
 from .core import db as hive_core_db
 
 # Hive database system - use internal core database layer
@@ -27,7 +29,7 @@ from .core import db as hive_core_db
 class HiveCore:
     """Central SDK for all Hive system operations - the shared 'Hive Mind'"""
 
-    def __init__(self, root_dir: Path | None = None, config: Optional[dict[str, Any]] = None) -> None:
+    def __init__(self, root_dir: Path | None = None, config: dict[str, Any] | None = None) -> None:
         # Use authoritative paths from singleton
         self.root = PROJECT_ROOT
         self.hive_dir = HIVE_DIR
@@ -199,7 +201,7 @@ class HiveCore:
         # Database manages queue state through task status - no explicit queue file needed
         pass
 
-    def load_task(self, task_id: str) -> Optional[dict[str, Any]]:
+    def load_task(self, task_id: str) -> dict[str, Any] | None:
         """Load task data by ID from database"""
         try:
             return hive_core_db.get_task(task_id)

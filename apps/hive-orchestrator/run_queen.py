@@ -1,6 +1,3 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 #!/usr/bin/env python3
 """
 Run the Queen orchestrator as a module with proper Python paths.
@@ -9,9 +6,12 @@ This is the recommended way to run Queen on Windows.
 
 import sys
 
-# Now import HiveCore and Queen
+from hive_config.paths import PROJECT_ROOT
+from hive_logging import get_logger
 from hive_orchestrator.hive_core import HiveCore
 from hive_orchestrator.queen import QueenLite
+
+logger = get_logger(__name__)
 
 
 def main():
@@ -25,7 +25,7 @@ def main():
     logger.info("=" * 70)
     logger.info("Starting Hive Queen Orchestrator")
     logger.info("=" * 70)
-    logger.info(f"Project root: {project_root}")
+    logger.info(f"Project root: {PROJECT_ROOT}")
     logger.info(f"Python: {sys.executable}")
     logger.info(f"Live output: {args.live}")
     logger.info("=" * 70)

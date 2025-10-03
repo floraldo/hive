@@ -73,8 +73,8 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         task_id: str,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]] = None,
-        objective_analysis: Optional[dict[str, Any]] = None,
+        test_results: dict[str, Any] | None = None,
+        objective_analysis: dict[str, Any] | None = None,
         transcript: str | None = None
     ) -> dict[str, Any]:
         """
@@ -106,8 +106,8 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         self,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]],
-        objective_analysis: Optional[dict[str, Any]],
+        test_results: dict[str, Any] | None,
+        objective_analysis: dict[str, Any] | None,
         transcript: str | None
     ) -> str:
         """Create comprehensive review prompt for Claude"""
@@ -235,7 +235,7 @@ Respond with ONLY the JSON object, no other text."""
         )
         return json.dumps(mock_review.dict())
 
-    def _create_fallback_response(self, error_message: str, context: Optional[dict[str, Any]]) -> dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: dict[str, Any] | None) -> dict[str, Any]:
         """Create a fallback response when Claude is unavailable"""
         fallback = self.validator.create_fallback(error_message, context or {})
         result = fallback.dict()

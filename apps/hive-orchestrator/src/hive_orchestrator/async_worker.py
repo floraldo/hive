@@ -47,7 +47,7 @@ class AsyncWorker:
         phase: str = "apply",
         mode: str = "fresh",
         live_output: bool = False,
-        config: Optional[dict[str, Any]] = None,
+        config: dict[str, Any] | None = None,
     ):
         """Initialize AsyncWorker with async-first architecture"""
         self.worker_id = (worker_id,)
@@ -171,7 +171,7 @@ class AsyncWorker:
 
         return shutil.which(cmd) is not None
 
-    async def execute_claude_async(self, prompt: str, context_files: Optional[list[str]] = None) -> dict[str, Any]:
+    async def execute_claude_async(self, prompt: str, context_files: list[str] | None = None) -> dict[str, Any]:
         """Execute Claude CLI asynchronously with non-blocking I/O"""
         if not self.claude_cmd:
             self.log.info("Claude not available - simulating response")

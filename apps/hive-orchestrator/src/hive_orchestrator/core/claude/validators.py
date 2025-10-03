@@ -17,12 +17,12 @@ class BaseResponseValidator(ABC):
     """Base class for response validators"""
 
     @abstractmethod
-    def validate(self, data: Dict[str, Any]) -> BaseModel | None:
+    def validate(self, data: dict[str, Any]) -> BaseModel | None:
         """Validate response data against a schema"""
         pass
 
     @abstractmethod
-    def create_fallback(self, error_message: str, context: Dict[str, Any]) -> BaseModel:
+    def create_fallback(self, error_message: str, context: dict[str, Any]) -> BaseModel:
         """Create a fallback response when validation fails"""
         pass
 
@@ -30,7 +30,7 @@ class BaseResponseValidator(ABC):
 class PydanticValidator(BaseResponseValidator):
     """Validator using Pydantic models"""
 
-    def __init__(self, model_class: Type[BaseModel]) -> None:
+    def __init__(self, model_class: type[BaseModel]) -> None:
         """
         Initialize with a Pydantic model class
 
@@ -39,7 +39,7 @@ class PydanticValidator(BaseResponseValidator):
         """
         self.model_class = model_class
 
-    def validate(self, data: Dict[str, Any]) -> BaseModel | None:
+    def validate(self, data: dict[str, Any]) -> BaseModel | None:
         """
         Validate data against the Pydantic model
 
@@ -55,7 +55,7 @@ class PydanticValidator(BaseResponseValidator):
             logger.error(f"Validation failed: {e}")
             return None
 
-    def create_fallback(self, error_message: str, context: Dict[str, Any]) -> BaseModel:
+    def create_fallback(self, error_message: str, context: dict[str, Any]) -> BaseModel:
         """
         Create a fallback response with default values
 
@@ -110,8 +110,8 @@ class ResponseValidator:
 
     def validate_response(
         self,
-        data: Dict[str, Any],
-        context: Optional[Dict[str, Any]] = None,
+        data: dict[str, Any],
+        context: dict[str, Any] | None = None,
         use_fallback: bool = True
     ) -> BaseModel | None:
         """

@@ -35,6 +35,9 @@ from .hive_exceptions import (
 )
 
 __all__ = [
+    # Infrastructure base classes (re-exported)
+    "BaseError",
+    "BaseErrorReporter",
     # Base Hive error
     "HiveError",
     # Task errors

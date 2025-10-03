@@ -304,7 +304,7 @@ Generate the execution plan now:"""
         )
         return json.dumps(mock_plan.dict())
 
-    def _create_fallback_response(self, error_message: str, context: Optional[dict[str, Any]]) -> dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: dict[str, Any] | None) -> dict[str, Any]:
         """Create a fallback response when Claude is unavailable"""
         fallback = self.validator.create_fallback(error_message, context or {})
         return fallback.dict()

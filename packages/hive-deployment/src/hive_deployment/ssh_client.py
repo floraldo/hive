@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import os
 import time
-from typing import Any, Dict, Tuple
+from typing import Any
 
 import paramiko
 
@@ -20,7 +20,7 @@ class SSHClient:
     Compatible with deployment utilities and remote operations.
     """
 
-    def __init__(self, config: Dict[str, Any]) -> None:
+    def __init__(self, config: dict[str, Any]) -> None:
         """
         Initialize an SSH client from a configuration dictionary.
 
@@ -105,7 +105,7 @@ class SSHClient:
         self.client = None
         self.sftp = None
 
-    def execute_command(self, command: str, sudo: bool = False) -> Tuple[int, str, str]:
+    def execute_command(self, command: str, sudo: bool = False) -> tuple[int, str, str]:
         """
         Execute a command on the remote server.
 
@@ -205,7 +205,7 @@ class SSHClient:
 
 
 # Function to create an SSH client from a config dictionary
-def create_ssh_client_from_config(config: Dict[str, Any]) -> SSHClient:
+def create_ssh_client_from_config(config: dict[str, Any]) -> SSHClient:
     """
     Create an SSH client from a configuration dictionary.
 

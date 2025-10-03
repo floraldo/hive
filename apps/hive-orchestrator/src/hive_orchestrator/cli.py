@@ -1,27 +1,26 @@
-from __future__ import annotations
-
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 """
 Command-line interface for Hive Orchestrator.
 
 Provides commands to manage the Queen coordinator and Worker agents.
 """
 
+from __future__ import annotations
+
 import json
 from datetime import datetime
 from pathlib import Path
+
+import click
 
 from hive_cli import create_cli
 from hive_cli.decorators import option
 from hive_cli.output import info
 from hive_logging import get_logger
 
-logger = get_logger(__name__)
-
 from .queen import main as queen_main
 from .worker import main as worker_main
+
+logger = get_logger(__name__)
 
 
 @create_cli()
