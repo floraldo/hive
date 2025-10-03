@@ -199,7 +199,7 @@ class SimpleResultsIO:
             "simulation_id": getattr(system, "system_id", "unknown"),
             "timestamp": datetime.now().isoformat(),
             "timesteps": system.N,
-            "solver": getattr(system, "solver_type", "unknown")
+            "solver": getattr(system, "solver_type", "unknown"),
             "metadata": metadata or {}
         }
 

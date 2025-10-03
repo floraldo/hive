@@ -78,8 +78,8 @@ class BaseClaludeBridge(ABC):
             Path.home() / "AppData" / "Roaming" / "npm" / "claude.cmd",  # Windows npm global,
             Path.home() / "AppData" / "Roaming" / "npm" / "claude",
             Path("/usr/local/bin/claude"),  # macOS/Linux system install,
-            Path("/usr/bin/claude")
-            Path("claude.cmd")
+            Path("/usr/bin/claude"),
+            Path("claude.cmd"),
             Path("claude")
         ]
 
@@ -250,7 +250,7 @@ class BaseClaludeBridge(ABC):
 
         raise last_error
 
-    @abstractmethod,
+    @abstractmethod
     def _create_mock_response(self, prompt: str) -> str:
         """
         Create a mock response for testing

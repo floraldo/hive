@@ -334,19 +334,19 @@ class UnifiedActionFramework:
 
             # Generate strategic insights,
             strategic_analysis = {
-                "overall_performance": {,
+                "overall_performance": {
                     "total_strategic_actions": total_actions,
                     "successful_actions": successful_actions,
                     "overall_success_rate": successful_actions / total_actions if total_actions > 0 else 0,
                     "analysis_date": datetime.utcnow().isoformat(),
                 },
                 "context_performance": {
-                    context: {,
+                    context: {
                         "success_rate": data["success_rate"],
                         "total_actions": data["total"],
                         "confidence_level": (
-                            "high",
-                            if data["success_rate"] > 0.8,
+                            "high"
+                            if data["success_rate"] > 0.8
                             else "moderate" if data["success_rate"] > 0.6 else "low"
                         ),
                     }
@@ -354,10 +354,10 @@ class UnifiedActionFramework:
                 },
                 "top_performing_patterns": [
                     {"pattern": pattern, "success_rate": data["success_rate"], "total_actions": data["total"]}
-                    for pattern, data in top_patterns,
+                    for pattern, data in top_patterns
                 ],
                 "strategic_recommendations": self._generate_pattern_recommendations(context_success_rates),
-                "learning_evolution": {,
+                "learning_evolution": {
                     "models_updated": len(self.strategic_learning_models),
                     "prophecy_validation_rate": self._calculate_prophecy_validation_rate(),
                     "cross_correlation_strength": self._calculate_avg_correlation_strength(),
@@ -447,7 +447,7 @@ class UnifiedActionFramework:
                     "relationship": edge.edge_type.value,
                     "confidence": edge.confidence,
                 }
-                for edge in result.edges,
+                for edge in result.edges
             ]
 
             # Extract solution precedents,
@@ -459,7 +459,7 @@ class UnifiedActionFramework:
                     "success_rate": node.success_rate,
                     "confidence": node.confidence,
                 }
-                for node in solution_nodes,
+                for node in solution_nodes
             ]
 
             # Calculate strategic alignment,
@@ -532,7 +532,7 @@ class UnifiedActionFramework:
                     "",
                     "### 🔮 Related Prophecies",
                     "\n".join(
-                        f"- Prophecy {pid}: Validates strategic approach",
+                        f"- Prophecy {pid}: Validates strategic approach"
                         for pid in strategic_rationale.related_prophecies[:3]
                     ),
                 ]
@@ -802,7 +802,7 @@ class UnifiedActionFramework:
 
         # Update success rates for strategic contexts
         if strategic_context not in self.strategic_learning_models:
-            self.strategic_learning_models[strategic_context] = {,
+            self.strategic_learning_models[strategic_context] = {
                 "total_actions": 0,
                 "successful_actions": 0,
                 "success_rate": 0.0,

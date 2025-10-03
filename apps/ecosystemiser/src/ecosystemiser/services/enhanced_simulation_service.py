@@ -180,7 +180,7 @@ class EnhancedSimulationService:
 
                 # Add variation info to metadata
                 run_metadata = {
-                    **(metadata or {})
+                    **(metadata or {}),
                     "variation_index": i,
                     "parameter_variation": variation,
                 }
@@ -382,7 +382,7 @@ class EnhancedSimulationService:
         """
         summary = {
             "solver_count": len(results),
-            "successful_solvers": [s for s, r in results.items() if r["status"] == "completed"]
+            "successful_solvers": [s for s, r in results.items() if r["status"] == "completed"],
             "failed_solvers": [s for s, r in results.items() if r["status"] != "completed"],
             "performance_comparison": {}
         }

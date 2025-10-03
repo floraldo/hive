@@ -328,9 +328,9 @@ class ResultsIO:
                             "category": "Flow",
                             "name": flow_name,
                             "source": flow_info["source"],
-                            "target": flow_info["target"]
+                            "target": flow_info["target"],
                             "mean": np.mean(values),
-                            "max": np.max(values)
+                            "max": np.max(values),
                             "total": np.sum(values)
                         }
                     )
@@ -347,7 +347,7 @@ class ResultsIO:
                             "source": "-",
                             "target": "-",
                             "mean": np.mean(levels),
-                            "max": np.max(levels)
+                            "max": np.max(levels),
                             "total": "-"
                         }
                     ),

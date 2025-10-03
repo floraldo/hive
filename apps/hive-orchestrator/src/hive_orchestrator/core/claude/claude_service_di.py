@@ -142,8 +142,8 @@ class ClaudeServiceDI:
                     context={
                         "component": "claude_service_di",
                         "operation": "send_message",
-                        "additional_data": {,
-                            "message_length": len(message)
+                        "additional_data": {
+                            "message_length": len(message),
                             "model": model
                         }
                     },
@@ -183,8 +183,8 @@ class ClaudeServiceDI:
                 context={
                     "component": "claude_service_di",
                     "operation": "send_message",
-                    "additional_data": {,
-                        "message_length": len(message)
+                    "additional_data": {
+                        "message_length": len(message),
                         "model": model,
                         "max_tokens": max_tokens
                     }
@@ -247,7 +247,7 @@ class ClaudeServiceDI:
             content=f"Mock response to: {message[:50]}...",
             usage={
                 "input_tokens": len(message.split()),
-                "output_tokens": min(50, max_tokens)
+                "output_tokens": min(50, max_tokens),
                 "total_tokens": len(message.split()) + min(50, max_tokens)
             },
             model=model,
@@ -269,13 +269,13 @@ class ClaudeServiceDI:
 
         import time
 
-        await asyncio.sleep(0.1)  # Simulate API call delay
+        time.sleep(0.1)  # Simulate API call delay
 
         return ClaudeResponse(
             content=f"Processed message: {message[:50]}...",
             usage={
                 "input_tokens": len(message.split()),
-                "output_tokens": min(100, max_tokens)
+                "output_tokens": min(100, max_tokens),
                 "total_tokens": len(message.split()) + min(100, max_tokens)
             },
             model=model,
@@ -286,7 +286,7 @@ class ClaudeServiceDI:
     def get_service_status(self) -> Dict[str, Any]:
         """Get Claude service status"""
         with self._lock:
-            return {,
+            return {
                 "initialized": self._initialized,
                 "mock_mode": self.config.mock_mode,
                 "total_requests": self._total_requests,
@@ -294,7 +294,7 @@ class ClaudeServiceDI:
                 "failed_requests": self._failed_requests,
                 "cached_requests": self._cached_requests,
                 "cache_size": len(self._cache),
-                "rate_limiter_status": self._rate_limiter.get_status()
+                "rate_limiter_status": self._rate_limiter.get_status(),
                 "success_rate": (self._successful_requests / self._total_requests if self._total_requests > 0 else 0.0)
             }
 
@@ -363,7 +363,7 @@ class RateLimiter:
 
             return {
                 "requests_this_minute": len(self._minute_requests),
-                "requests_this_hour": len(self._hour_requests)
+                "requests_this_hour": len(self._hour_requests),
                 "max_per_minute": self.config.max_calls_per_minute,
                 "max_per_hour": self.config.max_calls_per_hour,
                 "can_make_request": self.can_make_request()

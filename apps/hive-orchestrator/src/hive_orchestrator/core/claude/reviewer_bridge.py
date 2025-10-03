@@ -72,7 +72,7 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str]
+        code_files: Dict[str, str],
         test_results: Optional[Dict[str, Any]] = None,
         objective_analysis: Optional[Dict[str, Any]] = None,
         transcript: str | None = None
@@ -105,9 +105,9 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
     def _create_review_prompt(
         self,
         task_description: str,
-        code_files: Dict[str, str]
-        test_results: Optional[Dict[str, Any]]
-        objective_analysis: Optional[Dict[str, Any]]
+        code_files: Dict[str, str],
+        test_results: Optional[Dict[str, Any]],
+        objective_analysis: Optional[Dict[str, Any]],
         transcript: str | None
     ) -> str:
         """Create comprehensive review prompt for Claude"""

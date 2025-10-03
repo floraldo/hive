@@ -153,7 +153,7 @@ class SSHClient:
                 exit_code = stdout.channel.recv_exit_status()
                 return (
                     exit_code,
-                    stdout.read().decode().strip()
+                    stdout.read().decode().strip(),
                     stderr.read().decode().strip()
                 )
         except Exception as e:

@@ -1,9 +1,11 @@
 """Task management and coordination utilities for async operations."""
 
+from __future__ import annotations
+
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, ListTypeVar
+from typing import Any, Awaitable, Callable, Dict, List, TypeVar
 
 from hive_logging import get_logger
 
@@ -15,8 +17,6 @@ T = TypeVar("T")
 @dataclass
 class TaskResult:
     """Result of a task execution."""
-from __future__ import annotations
-
 
     task_id: str
     success: bool
@@ -37,7 +37,7 @@ class TaskManager:
 
     async def submit_task_async(
         self,
-        coro: Awaitable[T]
+        coro: Awaitable[T],
         task_id: str | None = None,
         timeout: float | None = None
     ) -> str:
@@ -147,7 +147,7 @@ class TaskManager:
         """Get current status of all tasks."""
         return {
             "active_count": len(self.active_tasks),
-            "completed_count": len(self.completed_tasks)
+            "completed_count": len(self.completed_tasks),
             "max_concurrent": self.max_concurrent,
             "active_tasks": list(self.active_tasks.keys()),
             "success_rate": self._calculate_success_rate()
@@ -203,7 +203,7 @@ async def gather_with_concurrency_async(
 
 
 async def run_with_timeout_and_retry_async(
-    coro: Awaitable[T]
+    coro: Awaitable[T],
     timeout: float,
     max_retries: int = 3,
     backoff_factor: float = 1.0

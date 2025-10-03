@@ -281,7 +281,7 @@ class OracleService:
                 # Cache critical insights
                 await self.cache.set_async(
                     "critical_insights",
-                    [insight.__dict__ for insight in critical_insights]
+                    [insight.__dict__ for insight in critical_insights],
                     ttl=self.config.cache_ttl_seconds
                 )
 
@@ -396,14 +396,14 @@ class OracleService:
             "title": report.title,
             "summary": report.summary,
             "generated_at": report.generated_at.isoformat(),
-            "critical_recommendations": [serialize_recommendation(r) for r in report.critical_recommendations]
+            "critical_recommendations": [serialize_recommendation(r) for r in report.critical_recommendations],
             "high_priority_recommendations": [
                 serialize_recommendation(r) for r in report.high_priority_recommendations
             ],
             "medium_priority_recommendations": [
                 serialize_recommendation(r) for r in report.medium_priority_recommendations
             ],
-            "low_priority_recommendations": [serialize_recommendation(r) for r in report.low_priority_recommendations]
+            "low_priority_recommendations": [serialize_recommendation(r) for r in report.low_priority_recommendations],
             "total_potential_savings": report.total_potential_savings,
             "recommended_immediate_actions": report.recommended_immediate_actions,
         }
@@ -490,8 +490,8 @@ class OracleService:
         """Get Oracle Service status."""
         return {
             "running": self._running,
-            "last_analysis": self._last_analysis.isoformat() if self._last_analysis else None
-            "last_report": self._last_report.isoformat() if self._last_report else None
+            "last_analysis": self._last_analysis.isoformat() if self._last_analysis else None,
+            "last_report": self._last_report.isoformat() if self._last_report else None,
             "active_tasks": len(self._tasks),
             "config": {
                 "analysis_interval": self.config.analysis_interval,
@@ -823,8 +823,8 @@ class OracleService:
             response = {
                 "autonomous_prs": {
                     "total_generated": len(generated_prs),
-                    "auto_submitted": len([pr for pr in generated_prs if pr.submitted_at])
-                    "pending_approval": len([pr for pr in generated_prs if not pr.submitted_at])
+                    "auto_submitted": len([pr for pr in generated_prs if pr.submitted_at]),
+                    "pending_approval": len([pr for pr in generated_prs if not pr.submitted_at]),
                     "generation_timestamp": datetime.utcnow().isoformat(),
                 },
                 "pull_requests": [
@@ -840,7 +840,7 @@ class OracleService:
                         "validation_passed": pr.validation_passed,
                         "tests_passing": pr.tests_passing,
                         "created_at": pr.created_at.isoformat(),
-                        "submitted_at": pr.submitted_at.isoformat() if pr.submitted_at else None
+                        "submitted_at": pr.submitted_at.isoformat() if pr.submitted_at else None,
                         "github_pr_url": pr.github_pr_url,
                         "labels": pr.labels,
                     }
@@ -893,7 +893,7 @@ class OracleService:
                 "oracle_assessment": {
                     "success_probability": validation_results["oracle_confidence"],
                     "recommendation": (
-                        "Continue with similar optimizations",
+                        "Continue with similar optimizations"
                         if validation_results["overall_status"] == "passed"
                         else "Review optimization strategy"
                     ),
@@ -903,7 +903,7 @@ class OracleService:
                     "Monitor optimization impact over next 7 days",
                     "Update optimization confidence models based on results",
                     (
-                        "Consider similar optimizations in other packages",
+                        "Consider similar optimizations in other packages"
                         if validation_results["overall_status"] == "passed"
                         else "Review and adjust optimization criteria"
                     ),
@@ -1120,7 +1120,7 @@ class OracleService:
                 ],
                 "actionable_recommendations": self._extract_actionable_recommendations(result),
                 "oracle_assessment": {
-                    "complexity": "high" if result.total_nodes > 20 else "medium" if result.total_nodes > 10 else "low"
+                    "complexity": "high" if result.total_nodes > 20 else "medium" if result.total_nodes > 10 else "low",
                     "certainty": (
                         "high"
                         if result.confidence_score > 0.8

@@ -108,7 +108,7 @@ class PlanningResponseValidator(PydanticValidator):
                     workflow_phase="analysis",
                     required_skills=["analysis"],
                     deliverables=["requirements.md"]
-                )
+                ),
                 SubTask(
                     id="fallback-002",
                     title="Implement Solution",
@@ -120,7 +120,7 @@ class PlanningResponseValidator(PydanticValidator):
                     workflow_phase="implementation",
                     required_skills=["programming"],
                     deliverables=["implementation.py"]
-                )
+                ),
                 SubTask(
                     id="fallback-003",
                     title="Test and Validate",
@@ -214,7 +214,7 @@ class ClaudePlannerBridge(BaseClaludeBridge):
     def _create_planning_prompt(
         self,
         task_description: str,
-        context_data: Dict[str, Any]
+        context_data: Dict[str, Any],
         priority: int,
         requestor: str
     ) -> str:

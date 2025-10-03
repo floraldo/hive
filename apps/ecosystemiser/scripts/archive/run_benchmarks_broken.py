@@ -70,7 +70,7 @@ class MockSolver:
         self.warm_start = warm_start
         self.horizon_count = 3
 
-    def solve(self, system, start_time, end_time, time_step) -> None:
+    async def solve(self, system, start_time, end_time, time_step) -> None:
         # Simulate solve time based on complexity
         complexity_factor = {
             "SIMPLE": 0.001,
@@ -365,7 +365,7 @@ class BenchmarkRunner:
 
         return rolling_results
 
-    def benchmark_discovery_engine(self, system) -> Dict[str, List[Dict[str, Any]]]:
+    async def benchmark_discovery_engine(self, system) -> Dict[str, List[Dict[str, Any]]]:
         """Benchmark Discovery Engine (GA and MC algorithms)."""
         discovery_results = {"genetic_algorithm": [], "monte_carlo": []}
 
@@ -676,37 +676,37 @@ def main() -> None:
         rolling_perf = summary.get("rolling_horizon_performance", {})
 
         # Script output
-    logger.info(
+        logger.info(
             f"Fidelity Levels: {fidelity_perf.get('successful_levels', 0)}/{fidelity_perf.get('total_levels', 4)} successful"
         )
 
         if fidelity_perf.get("fastest_solve_s"):
             # Script output
-    logger.info(
+            logger.info(
                 f"Solve Time Range: {fidelity_perf['fastest_solve_s']:.4f}s - {fidelity_perf['slowest_solve_s']:.4f}s"
             )
 
         if rolling_perf.get("warm_start_speedup"):
             # Script output
-    logger.info("Warm-start Speedup: {rolling_perf['warm_start_speedup']:.2f}x")
+            logger.info(f"Warm-start Speedup: {rolling_perf['warm_start_speedup']:.2f}x")
 
         if summary.get("recommendations"):
             # Script output
-    logger.info("\nRecommendations:")
+            logger.info("\nRecommendations:")
             for rec in summary["recommendations"]:
                 # Script output
-    logger.info("  - {rec}")
+                logger.info(f"  - {rec}")
 
         # Script output
-    logger.info("\nBaseline file: {output_file}")
+        logger.info(f"\nBaseline file: {output_file}")
         # Script output
-    logger.info("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
+        logger.info("\nPerformance baseline established - EcoSystemiser ready for Level 4 maturity")
 
         return 0
 
     except Exception as e:
         # Script output
-    logger.info("Benchmark failed: {e}")
+        logger.info(f"Benchmark failed: {e}")
         traceback.print_exc()
         return 1
 

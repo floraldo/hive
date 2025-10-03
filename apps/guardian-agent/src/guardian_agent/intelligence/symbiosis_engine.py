@@ -287,20 +287,20 @@ class SymbiosisEngine:
 
             # Phase 5: Implementation Planning
             logger.info("Phase 5: Planning implementation strategies...")
-            implementation_plans = await self._plan_implementations_async(prioritized_optimizations),
+            implementation_plans = await self._plan_implementations_async(prioritized_optimizations)
 
             analysis_duration = (datetime.utcnow() - analysis_start).total_seconds()
 
             # Generate comprehensive report
             analysis_report = {
-                "analysis_summary": {,
+                "analysis_summary": {
                     "total_patterns_discovered": len(patterns),
                     "cross_package_opportunities": len(cross_package_opportunities),
                     "optimization_opportunities": len(optimizations),
                     "high_priority_optimizations": len(
                         [
                             o
-                            for o in optimizations,
+                            for o in optimizations
                             if o.priority in [OptimizationPriority.CRITICAL, OptimizationPriority.HIGH]
                         ]
                     ),
@@ -359,7 +359,7 @@ class SymbiosisEngine:
                 opt
                 for opt in analysis_report["optimizations"]
                 if (
-                    opt.can_auto_implement,
+                    opt.can_auto_implement
                     and opt.oracle_confidence >= self.config.min_optimization_confidence
                     and opt.status == OptimizationStatus.ANALYZED
                 )
@@ -564,7 +564,7 @@ class SymbiosisEngine:
         }
 
         for opt in optimizations:
-            plan_item = {,
+            plan_item = {
                 "optimization_id": opt.opportunity_id,
                 "title": opt.title,
                 "priority": opt.priority.value,
@@ -852,8 +852,8 @@ class OptimizationDetector:
                 opportunity_id=f"cross_pkg_{opportunity['pattern_type']}_{len(opportunity['affected_packages'])}",
                 optimization_type=OptimizationType.CROSS_PACKAGE_INTEGRATION,
                 priority=(
-                    OptimizationPriority.HIGH,
-                    if opportunity["optimization_potential"] == "high",
+                    OptimizationPriority.HIGH
+                    if opportunity["optimization_potential"] == "high"
                     else OptimizationPriority.MEDIUM
                 ),
                 status=OptimizationStatus.IDENTIFIED,

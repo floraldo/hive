@@ -192,8 +192,8 @@ class ScenarioManager:
                     (run_id, scenario_id, solver_type, status, started_at,
                      completed_at, results_path, config_snapshot)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """ (run_id, scenario_id, solver_type, "completed", started_at,
-                      datetime.now().isoformat(), str(result_dir)
+                """, (run_id, scenario_id, solver_type, "completed", started_at,
+                      datetime.now().isoformat(), str(result_dir),
                       json.dumps(metadata or {})))
 
                 # Insert KPI records

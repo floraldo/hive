@@ -110,7 +110,7 @@ class ResponseValidator:
 
     def validate_response(
         self,
-        data: Dict[str, Any]
+        data: Dict[str, Any],
         context: Optional[Dict[str, Any]] = None,
         use_fallback: bool = True
     ) -> BaseModel | None:

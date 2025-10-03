@@ -435,10 +435,10 @@ def optimize_async_patterns():
         # Add async to functions that use await (DISABLED - causes false positives)
         # content = re.sub(
         #     r"def (\w+)\(([^)]*)\):\s*\n([^}]+)await",
-            r"async def \1_async(\2):\n\3await",
-            content,
-            flags=re.MULTILINE | re.DOTALL,
-        )
+        #     r"async def \1_async(\2):\n\3await",
+        #     content,
+        #     flags=re.MULTILINE | re.DOTALL,
+        # )
 
         if content != original_content:
             # Add asyncio import if needed

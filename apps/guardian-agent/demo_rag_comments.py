@@ -14,8 +14,7 @@ from pathlib import Path
 MOCK_PR_FILES = [
     (
         "packages/hive-db/src/hive_db/new_feature.py",
-        """
-@@ -0,0 +1,15 @@
+        '''@@ -0,0 +1,15 @@
 +def execute_query(query: str):
 +    """Execute database query."""
 +    connection = sqlite3.connect("database.db")
@@ -24,7 +23,7 @@ MOCK_PR_FILES = [
 +    data = result.fetchall()
 +    connection.close()
 +    return data
-""",
+''',
     ),
     (
         "packages/hive-api/src/hive_api/endpoint.py",

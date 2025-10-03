@@ -158,7 +158,7 @@ class HiveErrorReporter(BaseErrorReporter):
     def _build_hive_error_record(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]]
+        context: Optional[Dict[str, Any]],
         additional_info: Optional[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """Build error record with Hive-specific fields"""
@@ -197,17 +197,17 @@ class HiveErrorReporter(BaseErrorReporter):
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
-                    error_record["timestamp"]
-                    error_record["error_type"]
-                    error_record.get("component", "unknown")
-                    error_record.get("operation")
-                    error_record["message"]
-                    str(error_record.get("details", {}))
-                    str(error_record.get("context", {}))
-                    str(error_record.get("recovery_suggestions", []))
-                    error_record.get("agent_id")
-                    error_record.get("worker_id")
-                    error_record.get("task_id")
+                    error_record["timestamp"],
+                    error_record["error_type"],
+                    error_record.get("component", "unknown"),
+                    error_record.get("operation"),
+                    error_record["message"],
+                    str(error_record.get("details", {})),
+                    str(error_record.get("context", {})),
+                    str(error_record.get("recovery_suggestions", [])),
+                    error_record.get("agent_id"),
+                    error_record.get("worker_id"),
+                    error_record.get("task_id"),
                     error_record.get("workflow_id")
                 )
             )

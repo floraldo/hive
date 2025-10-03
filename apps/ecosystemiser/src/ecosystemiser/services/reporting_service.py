@@ -404,7 +404,7 @@ class ReportingService:
                 # Check renewable fraction
                 if "renewable_fraction" in kpis:
                     if (
-                        metrics["best_by_renewable"] is None,
+                        metrics["best_by_renewable"] is None
                         or kpis["renewable_fraction"]
                         > results_list[metrics["best_by_renewable"]]["kpis"]["renewable_fraction"]
                     ):
@@ -413,7 +413,7 @@ class ReportingService:
                 # Check emissions
                 if "total_emissions" in kpis:
                     if (
-                        metrics["best_by_emissions"] is None,
+                        metrics["best_by_emissions"] is None
                         or kpis["total_emissions"]
                         < results_list[metrics["best_by_emissions"]]["kpis"]["total_emissions"]
                     ):

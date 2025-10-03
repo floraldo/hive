@@ -253,7 +253,7 @@ class EnhancedResultsIO:
                             "timestep": t,
                             "component_name": comp_name,
                             "type": comp_data["type"],
-                            "medium": comp_data["medium"]
+                            "medium": comp_data["medium"],
                             "variable": "energy_level",
                             "value": energy,
                             "unit": "kWh"
@@ -268,7 +268,7 @@ class EnhancedResultsIO:
                             "timestep": t,
                             "component_name": comp_name,
                             "type": comp_data["type"],
-                            "medium": comp_data["medium"]
+                            "medium": comp_data["medium"],
                             "variable": "generation",
                             "value": generation,
                             "unit": "kW"
@@ -394,9 +394,9 @@ class EnhancedResultsIO:
                     summary.update(
                         {
                             "run_id": config.get("run_id"),
-                            "study_id": config.get("study_id")
+                            "study_id": config.get("study_id"),
                             "system_id": config.get("system_id"),
-                            "timesteps": config.get("timesteps")
+                            "timesteps": config.get("timesteps"),
                             "timestamp": config.get("timestamp"),
                             "solver_type": config.get("solver_type", "unknown")
                         }
@@ -413,13 +413,13 @@ class EnhancedResultsIO:
                     summary.update(
                         {
                             "total_cost": kpis.get("total_cost"),
-                            "total_co2": kpis.get("total_co2")
+                            "total_co2": kpis.get("total_co2"),
                             "self_consumption_rate": kpis.get("self_consumption_rate"),
-                            "self_sufficiency_rate": kpis.get("self_sufficiency_rate")
+                            "self_sufficiency_rate": kpis.get("self_sufficiency_rate"),
                             "renewable_fraction": kpis.get("renewable_fraction"),
-                            "total_generation_kwh": kpis.get("total_generation_kwh")
+                            "total_generation_kwh": kpis.get("total_generation_kwh"),
                             "total_demand_kwh": kpis.get("total_demand_kwh"),
-                            "net_grid_usage_kwh": kpis.get("net_grid_usage_kwh")
+                            "net_grid_usage_kwh": kpis.get("net_grid_usage_kwh"),
                             "simulation_status": kpi_data.get("summary", {}).get("simulation_status", "unknown")
                         }
                     )

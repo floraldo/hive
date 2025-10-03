@@ -293,11 +293,11 @@ class CitadelGuardian:
         violations = []
 
         try:
-            # Import architectural validators,
-            import sys,
+            # Import architectural validators
+            import sys
             from pathlib import Path
 
-            project_root = Path(__file__).parent.parent.parent.parent.parent,
+            project_root = Path(__file__).parent.parent.parent.parent.parent
             hive_tests_path = project_root / "packages" / "hive-tests" / "src"
 
             if hive_tests_path.exists():
@@ -954,13 +954,13 @@ Excellent work! This PR meets all architectural standards.
             if not self.oracle:
                 return {"error": "Oracle service not available"}
 
-            dashboard_data = await self.oracle.get_dashboard_data_async(),
+            dashboard_data = await self.oracle.get_dashboard_data_async()
             cert_readiness = dashboard_data.certification_readiness
 
             # Identify components needing immediate attention
             critical_components = [
-                scorecard,
-                for scorecard in cert_readiness.component_scorecards,
+                scorecard
+                for scorecard in cert_readiness.component_scorecards
                 if scorecard.urgency == "high" or scorecard.overall_score < 70
             ]
 

@@ -183,7 +183,7 @@ class ErrorReporter:
     ) -> Dict[str, Any]:
         """Build structured error record"""
         record = {
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
             "error_type": error.__class__.__name__,
             "message": str(error)
         }
@@ -203,7 +203,7 @@ class ErrorReporter:
                 {
                     "component": "unknown",
                     "operation": "unknown",
-                    "details": {}
+                    "details": {},
                     "recovery_suggestions": []
                 }
             )
@@ -260,13 +260,13 @@ class ErrorReporter:
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
-                    error_record["timestamp"]
-                    error_record["error_type"]
-                    error_record.get("component", "unknown")
-                    error_record.get("operation")
-                    error_record["message"]
-                    json.dumps(error_record.get("details", {}))
-                    json.dumps(error_record.get("context", {}))
+                    error_record["timestamp"],
+                    error_record["error_type"],
+                    error_record.get("component", "unknown"),
+                    error_record.get("operation"),
+                    error_record["message"],
+                    json.dumps(error_record.get("details", {})),
+                    json.dumps(error_record.get("context", {})),
                     json.dumps(error_record.get("recovery_suggestions", []))
                 )
             )
@@ -299,7 +299,7 @@ class ErrorReporter:
                 )
             """,
                 (
-                    datetime.now().isoformat()
+                    datetime.now().isoformat(),
                     resolution_notes,
                     f"%{error_id.split('_')[1]}%"
                 )
@@ -321,10 +321,10 @@ class ErrorReporter:
             Dictionary of error statistics
         """
         stats = {
-            "total_errors": self.error_counts["total"]
-            "errors_by_type": {}
-            "errors_by_component": {}
-            "recent_errors": []
+            "total_errors": self.error_counts["total"],
+            "errors_by_type": {},
+            "errors_by_component": {},
+            "recent_errors": [],
             "top_errors": []
         }
 

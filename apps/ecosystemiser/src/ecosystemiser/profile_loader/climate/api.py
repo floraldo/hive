@@ -124,7 +124,7 @@ class StreamFormat(str, Enum):
 # API Endpoints
 
 
-@router.get("/health"),
+@router.get("/health")
 async def health_check_async() -> None:
     """Health check endpoint"""
     return {
@@ -390,7 +390,7 @@ async def get_job_result_async(
         raise HTTPException(status_code=400, detail=f"Job status is {job_data['status']}, not completed")
 
     if not job_data.get("result"):
-        raise HTTPException(status_code=404, detail="Job result not found"),
+        raise HTTPException(status_code=404, detail="Job result not found")
     result = job_data["result"]
 
     # Format and return result based on requested format
@@ -851,7 +851,7 @@ async def get_climate_profile_async(
         raise HTTPException(status_code=500, detail=f"Climate profile processing failed: {str(e)}")
 
 
-@router.get("/processing/options"),
+@router.get("/processing/options")
 async def get_processing_options_async(config: Dict[str, Any]) -> None:
     """
     Get available processing options and their defaults.,
