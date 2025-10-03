@@ -98,12 +98,12 @@ class RunInspector:
                 with open(path, encoding="utf-8") as f:
                     lines = f.readlines()
                     analysis["lines"] = len(lines)
-                    analysis["non_empty_lines"] = len([l for l in lines if l.strip()])
+                    analysis["non_empty_lines"] = len([line for line in lines if line.strip()])
 
                     # Check for common patterns
                     content = "".join(lines)
                     analysis["has_todo"] = "TODO" in content or "FIXME" in content
-                    analysis["has_imports"] = any("import " in l or "from " in l for l in lines[:20])
+                    analysis["has_imports"] = any("import " in line or "from " in line for line in lines[:20])
 
                     # Python-specific checks
                     if path.suffix == ".py":

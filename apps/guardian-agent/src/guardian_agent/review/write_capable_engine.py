@@ -68,7 +68,7 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
         self.proposals_rejected = 0
 
         logger.info(f"Write mode initialized: dry_run={self.write_config.dry_run}")
-        logger.info(f"Enabled levels: {[l.name for l in self.write_config.enabled_levels]}")
+        logger.info(f"Enabled levels: {[level.name for level in self.write_config.enabled_levels]}")
 
     async def analyze_pr_with_proposals(
         self,

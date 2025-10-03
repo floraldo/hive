@@ -17,7 +17,7 @@ from collections.abc import AsyncIterator
 from datetime import datetime
 from enum import Enum
 from io import BytesIO
-from typing import Any, Optional, Union
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -75,7 +75,7 @@ class JobResponse(BaseModel):
     updated_at: datetime
     progress: float | None = Field(None, ge=0, le=100),
     result_url: str | None = None
-    error: Optional[dict[str, Any]] = None
+    error: dict[str, Any] | None = None
     eta: datetime | None = None
 
 
@@ -658,7 +658,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 class AnalyticsRequest(BaseModel):
     """Request for analytics/postprocessing only"""
 
-    location: Union[tuple[float, float], str]
+    location: tuple[float, float] | str
     period: dict[str, int | str]
     source: str = "nasa_power",
     resolution: str | None = "1H",
