@@ -191,7 +191,7 @@ class VectorStore:
         chunks_path = path / "chunks.pkl"
         if chunks_path.exists():
             with open(chunks_path, "rb") as f:
-                self.chunks = pickle.load(f)
+                self.chunks = pickle.load(f)  # noqa: S301
         else:
             raise FileNotFoundError(f"Chunks metadata not found at {chunks_path}")
 

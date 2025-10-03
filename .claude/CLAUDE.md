@@ -459,13 +459,44 @@ Multi-agent coordination in tmux panes:
 
 ## 🚀 Development Workflow
 
+### 🎯 Master Agent Git Workflow (CRITICAL)
+
+**Rule**: Master Agent (orchestrator/lead engineer) **ALWAYS commits directly to `main`**
+
+**Rationale**:
+- Master Agent coordinates quality infrastructure and strategic work
+- Creates checkpoints for parallel agents to build upon
+- Maintains platform stability through controlled, validated commits
+- Feature branches used only for testing CI/CD workflows (like Golden Gates validation)
+
+**Standard Pattern**:
+```bash
+# Master Agent standard workflow (ON MAIN BRANCH)
+git checkout main
+git pull origin main
+
+# Make changes (infrastructure, quality gates, coordination)
+# ...
+
+# Commit directly to main
+git add <files>
+git commit -m "feat(ci): description"  # Pre-commit validates
+git push origin main  # Triggers CI/CD for validation
+```
+
+**When to Use Branches** (Master Agent):
+- **Testing CI/CD workflows only**: `git checkout -b test-ci-pipeline`
+- **NOT for regular development work**
+
+---
+
 ### ✨ Golden Workflow: The Boy Scout Rule
 
 **Philosophy**: "Leave the code cleaner than you found it"
 
 #### Core Principles
 1. **Fix Before Feature**: Clean up linting violations before adding new code
-2. **No Bypass**: NEVER use `--no-verify` to skip pre-commit hooks
+2. **No Bypass**: NEVER use `--no-verify` to skip pre-commit hooks (except infrastructure commits)
 3. **Format on Save**: IDE auto-fixes violations during development
 4. **Commit Clean**: All commits pass pre-commit hooks without manual intervention
 

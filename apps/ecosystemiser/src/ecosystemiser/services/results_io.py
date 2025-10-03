@@ -260,7 +260,7 @@ class ResultsIO:
     def _load_pickle(self, path: Path) -> dict:
         """Load results from pickle."""
         with open(path, "rb") as f:
-            return pickle.load(f)
+            return pickle.load(f)  # noqa: S301
 
     def _flows_to_dataframe(self, flows: dict) -> pd.DataFrame:
         """Convert flows dictionary to DataFrame format.
