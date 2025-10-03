@@ -3,18 +3,19 @@
 Simple test for AI Planner Claude integration without emoji symbols
 """
 
+import sys
+import uuid
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-import sys
-import uuid
 
 # Imports now handled by Poetry workspace dependencies
 
 try:
     from ai_planner.agent import AIPlanner
     from ai_planner.claude_bridge import RobustClaudePlannerBridge
-    from hive_db import get_connection, init_db
+    from hive_db import init_db
 
     def test_basic_functionality():
         """Test basic AI Planner functionality"""
@@ -41,7 +42,7 @@ try:
         logger.info("SUCCESS: Plan generation working")
 
         # Test AI Planner integration
-        agent = AIPlanner(mock_mode=True),
+        agent = AIPlanner(mock_mode=True)
         success = agent.connect_database()
         assert success
         logger.info("SUCCESS: AI Planner database connection")

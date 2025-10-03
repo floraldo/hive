@@ -5,16 +5,15 @@ Tests the complete Phase 2 Claude-powered planning workflow
 """
 
 import json
-
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 import sys
 import uuid
 
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import ClaudePlanningResponse, RobustClaudePlannerBridge
 from hive_db import get_connection, init_db
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 # Imports now handled by Poetry workspace dependencies
 
@@ -173,8 +172,8 @@ class TestClaudeIntegration:
         # This satisfies the foreign key constraint: planning_task_id REFERENCES planning_queue(id)
         cursor = agent.db_connection.cursor()
         cursor.execute(
-            """,
-            INSERT INTO planning_queue,
+            """
+            INSERT INTO planning_queue
             (id, task_description, priority, requestor, context_data, status)
             VALUES (?, ?, ?, ?, ?, ?)
         """,
@@ -235,8 +234,8 @@ class TestClaudeIntegration:
 
         test_task_id = "e2e-complex-test-" + str(uuid.uuid4())[:8]
         cursor.execute(
-            """,
-            INSERT INTO planning_queue,
+            """
+            INSERT INTO planning_queue
             (id, task_description, priority, requestor, context_data, status)
             VALUES (?, ?, ?, ?, ?, ?)
         """,
@@ -277,7 +276,7 @@ class TestClaudeIntegration:
         assert (
             plan_result is not None
         ), f"No execution plan found for task {test_task_id}. Check if plan was saved properly."
-        plan_json = plan_result[0],
+        plan_json = plan_result[0]
         plan_data = json.loads(plan_json)
 
         # Validate complex plan structure
@@ -331,9 +330,9 @@ class TestClaudeIntegration:
         bridge = RobustClaudePlannerBridge(mock_mode=True)
 
         # Measure plan generation time
-        start_time = time.time(),
+        start_time = time.time()
         plan = bridge.generate_execution_plan("Create a high-performance web application", {"files_affected": 15})
-        end_time = time.time(),
+        end_time = time.time()
 
         generation_time = end_time - start_time
 
@@ -364,7 +363,7 @@ def run_tests():
         test_suite.test_performance_metrics,
     ]
 
-    passed = 0,
+    passed = 0
     failed = 0
 
     for test_method in test_methods:
