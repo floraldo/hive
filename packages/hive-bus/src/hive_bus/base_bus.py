@@ -114,6 +114,7 @@ class BaseBus(ABC):
             return True
         return False
 
+    @abstractmethod
     def _handle_subscriber_error(self, subscriber: BaseSubscriber, event: BaseEvent) -> None:
         """Handle subscriber callback errors. Override in subclasses."""
         pass
