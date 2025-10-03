@@ -1,5 +1,7 @@
 # 🏗️ Hive - Multi-Agent Orchestration Platform
 
+<!-- Testing Golden Gates CI/CD workflow - 4 mandatory quality gates -->
+
 A production-ready, enterprise-grade multi-agent development system with Queen-Worker architecture, featuring advanced AI agents, comprehensive testing, and unassailable security standards.
 
 ## 🎯 **Platform Status: SECURE AND WELL-ARCHITECTED**
