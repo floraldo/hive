@@ -127,7 +127,11 @@ class QueenLite:
 
         try:
             # Import validation functions (we already have hive-config path setup)
-            from hive_config import ValidationError, format_validation_report, run_comprehensive_validation  # noqa: F401
+            from hive_config import (  # noqa: F401
+                ValidationError,
+                format_validation_report,
+                run_comprehensive_validation,
+            )
 
             # Run validation
             validation_passed, results = run_comprehensive_validation()

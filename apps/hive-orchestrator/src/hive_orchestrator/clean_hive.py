@@ -1,11 +1,12 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 #!/usr/bin/env python3
+# ruff: noqa: S603, S607
 """
 Hive Cleanup Script v2.0 - Database Edition
 Clears all database tasks, runs, workers, logs, and results for a fresh start.
 Updated for database-driven architecture.
+
+Security note: S603/S607 subprocess warnings suppressed - this is an administrative
+utility script that intentionally uses git/tasklist/wmic commands for cleanup.
 """
 
 import argparse
@@ -14,8 +15,12 @@ import shutil
 import subprocess
 from pathlib import Path
 
+from hive_logging import get_logger
+
 # Import database functions from the orchestrator's core
 from hive_orchestrator.core.db import close_connection, get_connection, transaction
+
+logger = get_logger(__name__)
 
 
 def run_command(cmd, description) -> None:
@@ -26,7 +31,7 @@ def run_command(cmd, description) -> None:
         import shlex
 
         cmd_args = shlex.split(cmd) if isinstance(cmd, str) else cmd
-        result = subprocess.run(cmd_args, capture_output=True, text=True)
+        result = subprocess.run(cmd_args, capture_output=True, text=True)  # noqa: S603
         if result.returncode == 0:
             logger.info(f"[OK] {description} completed")
         else:

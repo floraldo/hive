@@ -4,12 +4,13 @@ Simple integration tests for Hive Orchestrator components.
 Tests basic functionality without unicode characters.
 """
 
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 import sys
 from pathlib import Path
 from unittest.mock import patch
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 # Add the source path for testing
 # No sys.path manipulation needed - use Poetry workspace imports
@@ -19,9 +20,9 @@ def test_module_imports():
     """Test that core modules can be imported"""
     try:
         # Test individual module imports
-        import hive_orchestrator.clean_hive
-        import hive_orchestrator.cli
-        import hive_orchestrator.dashboard
+        import hive_orchestrator.clean_hive  # noqa: F401
+        import hive_orchestrator.cli  # noqa: F401
+        import hive_orchestrator.dashboard  # noqa: F401
 
         logger.info("[OK] All core modules imported successfully")
         return True
