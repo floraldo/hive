@@ -1,0 +1,332 @@
+name: 🚪 Golden Gates - Mandatory Quality Enforcement
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ==============================================
+  # GATE 1: Syntax Integrity (Layer 1)
+  # Fast-fail on syntax errors - ZERO TOLERANCE
+  # ==============================================
+  syntax-gate:
+    name: ⚡ Gate 1 - Syntax Integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: ⚡ Validate Zero Syntax Errors
+        run: |
+          echo "⚡ GATE 1: Syntax Integrity Check"
+          echo "========================================="
+          echo "Layer 1 achieved ZERO syntax errors."
+          echo "This gate ensures we NEVER regress."
+          echo ""
+
+          # Count syntax errors
+          ERROR_COUNT=$(python -m compileall -q . 2>&1 | grep -c "Error compiling" || true)
+
+          echo "Syntax errors found: $ERROR_COUNT"
+          echo ""
+
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "❌ GATE 1 FAILED: Syntax errors detected!"
+            echo ""
+            echo "Layer 1 regression - platform has syntax errors."
+            echo "Run locally: python -m compileall -q . 2>&1 | grep 'Error compiling'"
+            echo ""
+            exit 1
+          else
+            echo "✅ GATE 1 PASSED: Zero syntax errors maintained"
+            echo "Platform remains syntactically valid."
+          fi
+
+  # ==============================================
+  # GATE 2: Test Collection (Layer 2)
+  # All tests must be importable - no broken imports
+  # ==============================================
+  test-collection-gate:
+    name: 📋 Gate 2 - Test Collection
+    runs-on: ubuntu-latest
+    needs: syntax-gate
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install All Hive Packages
+        run: |
+          echo "📦 Installing Hive platform packages..."
+          python -m pip install --upgrade pip
+
+          # Install all packages in dependency order
+          for pkg in hive-logging hive-config hive-cache hive-db hive-errors \
+                     hive-async hive-bus hive-ai hive-performance \
+                     hive-service-discovery hive-deployment hive-tests \
+                     hive-orchestration; do
+            if [ -d "packages/$pkg" ]; then
+              echo "Installing $pkg..."
+              pip install -e "packages/$pkg"
+            fi
+          done
+
+          # Install apps for testing
+          for app in ecosystemiser ai-planner ai-reviewer hive-orchestrator; do
+            if [ -d "apps/$app" ]; then
+              echo "Installing $app..."
+              pip install -e "apps/$app" || echo "Warning: $app install had issues, continuing..."
+            fi
+          done
+
+      - name: 📋 Validate Test Collection
+        run: |
+          echo "📋 GATE 2: Test Collection Validation"
+          echo "========================================="
+          echo "All tests must be importable (no ModuleNotFoundError)."
+          echo ""
+
+          # Run pytest collection
+          pytest --collect-only > collection_output.log 2>&1 || true
+
+          # Extract stats
+          TESTS_COLLECTED=$(grep -oP '\d+(?= tests? collected)' collection_output.log | tail -1 || echo "0")
+          ERRORS=$(grep -oP '\d+(?= errors?)' collection_output.log | tail -1 || echo "0")
+
+          echo "Tests collected: $TESTS_COLLECTED"
+          echo "Collection errors: $ERRORS"
+          echo ""
+
+          if [ "$ERRORS" -gt 0 ]; then
+            echo "❌ GATE 2 FAILED: Test collection errors detected!"
+            echo ""
+            echo "Found $ERRORS import/collection errors."
+            echo ""
+            echo "Sample errors:"
+            grep -E "ModuleNotFoundError|ImportError" collection_output.log | head -10 || true
+            echo ""
+            echo "Run locally: pytest --collect-only"
+            exit 1
+          else
+            echo "✅ GATE 2 PASSED: All $TESTS_COLLECTED tests collected successfully"
+            echo "No import errors detected."
+          fi
+
+  # ==============================================
+  # GATE 3: Boy Scout Rule (Layer 3 - Our Innovation!)
+  # Linting violations CANNOT increase
+  # ==============================================
+  boy-scout-gate:
+    name: 🧹 Gate 3 - Boy Scout Rule
+    runs-on: ubuntu-latest
+    needs: test-collection-gate
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest
+          pip install -e packages/hive-tests/
+          pip install -e packages/hive-logging/
+
+      - name: 🧹 Enforce Boy Scout Rule
+        run: |
+          echo "🧹 GATE 3: Boy Scout Rule Enforcement"
+          echo "========================================="
+          echo "Rule: Always leave code cleaner than you found it."
+          echo "Linting violations CANNOT increase."
+          echo ""
+
+          # Run the Boy Scout Rule test
+          pytest packages/hive-tests/tests/unit/test_boy_scout_rule.py::TestBoyScoutRule::test_linting_violations_do_not_increase -v
+
+          EXIT_CODE=$?
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo ""
+            echo "✅ GATE 3 PASSED: Boy Scout Rule maintained"
+            echo "No new linting violations introduced."
+            echo "Technical debt is stable or decreasing."
+          else
+            echo ""
+            echo "❌ GATE 3 FAILED: Boy Scout Rule violated!"
+            echo ""
+            echo "This PR increases linting violations."
+            echo "Run locally: ruff check . --fix"
+            echo "Fix violations in files you touched."
+            exit 1
+          fi
+
+      - name: 🧹 Syntax Error Regression Check
+        run: |
+          echo ""
+          echo "🔍 Additional check: Syntax error regression"
+
+          # Also run the syntax error test from Boy Scout Rule
+          pytest packages/hive-tests/tests/unit/test_boy_scout_rule.py::TestBoyScoutRule::test_syntax_errors_remain_zero -v
+
+  # ==============================================
+  # GATE 4: Golden Rules (Architecture)
+  # Architectural integrity at ERROR level
+  # ==============================================
+  golden-rules-gate:
+    name: 🏆 Gate 4 - Golden Rules
+    runs-on: ubuntu-latest
+    needs: boy-scout-gate
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e packages/hive-tests/
+          pip install -e packages/hive-logging/
+
+      - name: 🏆 Validate Golden Rules
+        run: |
+          echo "🏆 GATE 4: Golden Rules Architectural Validation"
+          echo "========================================="
+          echo "Enforcing architectural integrity at ERROR level."
+          echo "CRITICAL and ERROR rules are non-negotiable."
+          echo ""
+
+          # Run Golden Rules at ERROR level
+          python scripts/validation/validate_golden_rules.py --level ERROR
+
+          EXIT_CODE=$?
+
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo ""
+            echo "✅ GATE 4 PASSED: All Golden Rules satisfied"
+            echo "Architectural integrity maintained."
+          else
+            echo ""
+            echo "❌ GATE 4 FAILED: Golden Rules violations detected!"
+            echo ""
+            echo "This PR violates architectural constraints."
+            echo "Run locally: python scripts/validation/validate_golden_rules.py --level ERROR"
+            exit 1
+          fi
+
+  # ==============================================
+  # SUMMARY: All Gates Status
+  # ==============================================
+  gates-summary:
+    name: ✅ Golden Gates Summary
+    runs-on: ubuntu-latest
+    needs: [syntax-gate, test-collection-gate, boy-scout-gate, golden-rules-gate]
+    if: always()
+
+    steps:
+      - name: ✅ Gates Status Report
+        run: |
+          echo "======================================"
+          echo "🚪 GOLDEN GATES - QUALITY ENFORCEMENT"
+          echo "======================================"
+          echo ""
+          echo "All 4 mandatory gates have been evaluated:"
+          echo ""
+          echo "⚡ Gate 1 - Syntax Integrity:      ${{ needs.syntax-gate.result }}"
+          echo "📋 Gate 2 - Test Collection:      ${{ needs.test-collection-gate.result }}"
+          echo "🧹 Gate 3 - Boy Scout Rule:       ${{ needs.boy-scout-gate.result }}"
+          echo "🏆 Gate 4 - Golden Rules:         ${{ needs.golden-rules-gate.result }}"
+          echo ""
+
+          # Check if all gates passed
+          if [ "${{ needs.syntax-gate.result }}" == "success" ] && \
+             [ "${{ needs.test-collection-gate.result }}" == "success" ] && \
+             [ "${{ needs.boy-scout-gate.result }}" == "success" ] && \
+             [ "${{ needs.golden-rules-gate.result }}" == "success" ]; then
+            echo "✅ ALL GATES PASSED!"
+            echo ""
+            echo "This PR maintains all quality standards:"
+            echo "  • Zero syntax errors (Layer 1)"
+            echo "  • All tests importable (Layer 2)"
+            echo "  • No new linting violations (Boy Scout Rule)"
+            echo "  • Architectural integrity (Golden Rules)"
+            echo ""
+            echo "🎉 Excellent work! The foundation remains strong."
+            exit 0
+          else
+            echo "❌ ONE OR MORE GATES FAILED!"
+            echo ""
+            echo "This PR cannot be merged until all gates pass."
+            echo "Review the failed gates above and fix the issues."
+            echo ""
+            echo "🏰 The Golden Gates protect the platform's quality foundation."
+            exit 1
+          fi
+
+  # ==============================================
+  # OPTIONAL: Full Test Suite (Non-Blocking)
+  # Runs after gates pass for deeper validation
+  # ==============================================
+  full-test-suite:
+    name: 🧪 Full Test Suite (Optional)
+    runs-on: ubuntu-latest
+    needs: [syntax-gate, test-collection-gate, boy-scout-gate, golden-rules-gate]
+    continue-on-error: true
+    if: github.event.pull_request.draft == false
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          # Install all packages
+          for pkg in packages/*/; do
+            if [ -f "$pkg/pyproject.toml" ]; then
+              pip install -e "$pkg" || echo "Warning: $pkg install had issues"
+            fi
+          done
+
+      - name: 🧪 Run Full Test Suite
+        run: |
+          echo "🧪 Running full test suite..."
+          echo "This is optional and non-blocking."
+          echo ""
+
+          pytest -v --tb=short || echo "Some tests failed (non-blocking)"
