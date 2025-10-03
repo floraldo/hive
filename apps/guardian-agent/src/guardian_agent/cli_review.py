@@ -127,7 +127,7 @@ async def review_files_with_rag(
 
         logger.info(f"Initializing RAG engine for {len(files)} files")
 
-        engine = RAGCommentEngine()
+        engine = RAGCommentEngine(),
         all_comments = []
 
         # Prepare PR files format: list of (file_path, content) tuples

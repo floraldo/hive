@@ -229,6 +229,14 @@ class DependencyGraphValidator:
                 if rule.rule_type == RuleType.CANNOT_DEPEND_ON:
                     # Check direct dependency
                     if self._matches_pattern(target_module, rule.target_pattern):
+                        # Special case: Allow same-app imports for app-to-app rule
+                        if (
+                            rule.name == "No cross-app imports (app-to-app)"
+                            and self._is_same_app_import(source_module, target_module)
+                        ):
+                            # Same app import - allowed
+                            continue
+
                         violation = Violation(
                             rule=rule,
                             source_module=source_module,
@@ -246,6 +254,47 @@ class DependencyGraphValidator:
                         violations.extend(transitive_violations)
 
         return violations
+
+    def _is_same_app_import(self, source_module: str, target_module: str) -> bool:
+        """
+        Check if source and target are in the same app.
+
+        Same-app imports are allowed (e.g., ecosystemiser.core -> ecosystemiser.services).
+        Cross-app imports are forbidden (e.g., ecosystemiser -> ai_planner).
+
+        Args:
+            source_module: Source module path
+            target_module: Target module path
+
+        Returns:
+            True if both modules are in the same app directory
+        """
+        source_file = self._module_to_file.get(source_module, "")
+        target_file = self._module_to_file.get(target_module, "")
+
+        if not source_file or not target_file:
+            return False
+
+        # Normalize paths
+        source_file = source_file.replace("\\", "/")
+        target_file = target_file.replace("\\", "/")
+
+        # Extract app name from paths (apps/<app_name>/...)
+        def extract_app_name(file_path: str) -> str | None:
+            """Extract app name from file path"""
+            if "apps/" not in file_path:
+                return None
+            parts = file_path.split("apps/")[1].split("/")
+            return parts[0] if parts else None
+
+        source_app = extract_app_name(source_file)
+        target_app = extract_app_name(target_file)
+
+        # If both are in apps/ and same app, allow it
+        if source_app and target_app and source_app == target_app:
+            return True
+
+        return False
 
     def _check_transitive_dependencies(
         self, source_module: str, rule: DependencyRule
@@ -270,6 +319,14 @@ class DependencyGraphValidator:
 
         for target_module, path in reachable.items():
             if self._matches_pattern(target_module, rule.target_pattern):
+                # Special case: Allow same-app imports for app-to-app rule
+                if (
+                    rule.name == "No cross-app imports (app-to-app)"
+                    and self._is_same_app_import(source_module, target_module)
+                ):
+                    # Same app import (even transitive) - allowed
+                    continue
+
                 # Found transitive violation
                 violation = Violation(
                     rule=rule,
