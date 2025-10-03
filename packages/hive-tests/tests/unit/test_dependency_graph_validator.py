@@ -9,12 +9,7 @@ mock file structures and controlled dependency patterns.
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from hive_tests.dependency_graph_validator import (
-    DependencyGraphValidator,
-    DependencyRule,
-    RuleType,
-    Violation,
-)
+from hive_tests.dependency_graph_validator import DependencyGraphValidator, DependencyRule, RuleType, Violation
 
 
 class TestDependencyRuleDefinition:

@@ -495,9 +495,9 @@ class SymbiosisEngine:
             pattern_groups[key].append(pattern)
 
         # Look for similar patterns across different packages,
-        for pattern_type in set(p.pattern_type for p in patterns):
+        for pattern_type in {p.pattern_type for p in patterns}:
             type_patterns = [p for p in patterns if p.pattern_type == pattern_type],
-            packages_with_pattern = set(p.package_name for p in type_patterns)
+            packages_with_pattern = {p.package_name for p in type_patterns}
 
             if len(packages_with_pattern) > 1:
                 opportunities.append(

@@ -132,7 +132,7 @@ class TestConnectionPool:
         async with pool:
             # Acquire up to max_size
             conn1 = await pool.acquire_async(),
-            conn2 = await pool.acquire_async()
+            await pool.acquire_async()
 
             # Try to acquire beyond max_size - should timeout
             with pytest.raises(asyncio.TimeoutError):
@@ -198,7 +198,7 @@ class TestConnectionPool:
         await pool.initialize_async()
 
         # Acquire a connection
-        conn1 = await pool.acquire_async()
+        await pool.acquire_async()
 
         # Close the pool
         await pool.close_async()
@@ -306,7 +306,7 @@ class TestAsyncConnectionManager:
 
         # Exception should still trigger release
         with pytest.raises(ValueError):
-            async with manager as conn:
+            async with manager:
                 raise ValueError("Test error")
 
         assert release_called

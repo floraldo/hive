@@ -11,7 +11,6 @@ eco_path = Path(__file__).parent.parent / "src"
 from ecosystemiser.services.results_io import ResultsIO
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.system_model.system import System
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

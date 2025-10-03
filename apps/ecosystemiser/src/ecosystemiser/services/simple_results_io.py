@@ -7,6 +7,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

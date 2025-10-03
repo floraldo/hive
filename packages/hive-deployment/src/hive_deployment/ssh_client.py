@@ -5,13 +5,12 @@ Adapted from SmartHoodsOptimisationTool Apper project.
 """
 from __future__ import annotations
 
-
+import logging
 import os
 import time
-from typing import Any, DictTuple
+from typing import Any, Dict, Tuple
 
 import paramiko
-from hive_logging import get_logger
 
 
 class SSHClient:

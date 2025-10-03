@@ -213,7 +213,7 @@ def calculate_peak_periods(ds: xr.Dataset, window: str = "1D", variables: Option
 
             # Calculate typical peak timing (mode of peak hours)
             if window == "1D":
-                daily_max = (data.resample(time="1D").max(),)
+                (data.resample(time="1D").max(),)
                 daily_max_time = data.resample(time="1D").apply(
                     lambda x: x.time[x.argmax()].values if len(x) > 0 else pd.NaT
                 )

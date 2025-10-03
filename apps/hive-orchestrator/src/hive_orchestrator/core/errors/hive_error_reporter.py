@@ -9,10 +9,9 @@ Extends the generic error handling toolkit with Hive orchestration error reporti
 """
 from __future__ import annotations
 
-
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_errors import BaseErrorReporter
 from hive_logging import get_logger
@@ -39,7 +38,7 @@ class HiveErrorReporter(BaseErrorReporter):
         log_to_db: bool = True,
         error_log_path: Path | None = None,
         error_db_path: Path | None = None,
-        config: Optional[Dict[str, Any]] = None
+        config: Optional[dict[str, Any]] = None
     ):
         """Initialize Hive error reporter with DI support
 
@@ -120,8 +119,8 @@ class HiveErrorReporter(BaseErrorReporter):
     def report_error(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]] = None,
-        additional_info: Optional[Dict[str, Any]] = None
+        context: Optional[dict[str, Any]] = None,
+        additional_info: Optional[dict[str, Any]] = None
     ) -> str:
         """
         Report an error with Hive orchestration context.
@@ -158,9 +157,9 @@ class HiveErrorReporter(BaseErrorReporter):
     def _build_hive_error_record(
         self,
         error: Exception,
-        context: Optional[Dict[str, Any]],
-        additional_info: Optional[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        context: Optional[dict[str, Any]],
+        additional_info: Optional[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Build error record with Hive-specific fields"""
         # Start with base error record,
         record = self._build_error_record(error, context, additional_info)
@@ -182,7 +181,7 @@ class HiveErrorReporter(BaseErrorReporter):
 
         return record
 
-    def _log_to_hive_database(self, error_record: Dict[str, Any]) -> None:
+    def _log_to_hive_database(self, error_record: dict[str, Any]) -> None:
         """Log error to Hive database with orchestration fields"""
         try:
             conn = sqlite3.connect(str(self.error_db_path)),
@@ -218,15 +217,15 @@ class HiveErrorReporter(BaseErrorReporter):
         except Exception as e:
             logger.warning(f"Failed to write error to Hive database: {e}")
 
-    def get_agent_errors(self, agent_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_agent_errors(self, agent_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """Get errors for a specific agent"""
         return self._get_hive_errors(agent_id=agent_id, limit=limit)
 
-    def get_task_errors(self, task_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_task_errors(self, task_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """Get errors for a specific task"""
         return self._get_hive_errors(task_id=task_id, limit=limit)
 
-    def get_workflow_errors(self, workflow_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_workflow_errors(self, workflow_id: str, limit: int = 50) -> list[dict[str, Any]]:
         """Get errors for a specific workflow"""
         return self._get_hive_errors(workflow_id=workflow_id, limit=limit)
 
@@ -236,7 +235,7 @@ class HiveErrorReporter(BaseErrorReporter):
         task_id: str | None = None,
         workflow_id: str | None = None,
         limit: int = 50
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Query Hive errors with orchestration filters"""
         if not self.log_to_db:
             return []
@@ -271,7 +270,7 @@ class HiveErrorReporter(BaseErrorReporter):
 
             # Convert rows to dicts,
             columns = [desc[0] for desc in cursor.description]
-            return [dict(zip(columns, row)) for row in rows]
+            return [dict(zip(columns, row, strict=False)) for row in rows]
 
         except Exception as e:
             logger.warning(f"Failed to query Hive errors: {e}")

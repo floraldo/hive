@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import faiss
-import numpy as np
 from sentence_transformers import SentenceTransformer
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -26,12 +25,12 @@ def validate_index():
     print(f"  FAISS index: {index.ntotal} vectors, {index.d} dimensions")
 
     # Load chunks
-    with open(index_dir / "chunks.json", 'r', encoding='utf-8') as f:
+    with open(index_dir / "chunks.json", encoding='utf-8') as f:
         chunks = json.load(f)
     print(f"  Chunks: {len(chunks)}")
 
     # Load metadata
-    with open(index_dir / "metadata.json", 'r', encoding='utf-8') as f:
+    with open(index_dir / "metadata.json", encoding='utf-8') as f:
         metadata = json.load(f)
     print(f"  Model: {metadata['embedding_model']}")
     print(f"  Files indexed: {metadata['total_files']}")
@@ -73,8 +72,8 @@ def validate_index():
         distances, indices = index.search(query_embedding.astype('float32'), k=5)
 
         # Show results
-        print(f"  Top 5 Results:")
-        for rank, (dist, idx) in enumerate(zip(distances[0], indices[0]), 1):
+        print("  Top 5 Results:")
+        for rank, (dist, idx) in enumerate(zip(distances[0], indices[0], strict=False), 1):
             chunk = chunks[idx]
             score = 1 / (1 + dist)
             print(f"    {rank}. [{score:.3f}] {chunk['file']}")
@@ -114,7 +113,7 @@ def validate_index():
     index_size_mb = (index_dir / "faiss.index").stat().st_size / 1024 / 1024
     chunks_size_mb = (index_dir / "chunks.json").stat().st_size / 1024 / 1024
 
-    print(f"\nStorage:")
+    print("\nStorage:")
     print(f"  FAISS index: {index_size_mb:.1f} MB")
     print(f"  Chunks metadata: {chunks_size_mb:.1f} MB")
     print(f"  Total: {index_size_mb + chunks_size_mb:.1f} MB")
@@ -124,7 +123,7 @@ def validate_index():
     print("=" * 80)
     print("\nStatus: OK - Index operational and returning relevant results")
     print(f"Coverage: {len(chunks)} chunks from {metadata['total_files']} files")
-    print(f"Ready for: Integration tests and API deployment")
+    print("Ready for: Integration tests and API deployment")
 
 if __name__ == "__main__":
     validate_index()

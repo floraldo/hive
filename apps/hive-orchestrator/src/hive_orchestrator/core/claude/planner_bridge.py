@@ -10,7 +10,7 @@ Specialized Claude Bridge for AI Planning
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -28,22 +28,22 @@ class SubTask(BaseModel):
     assignee: str = Field(description="Target assignee (worker:backend, app:ecosystemiser, etc.)")
     estimated_duration: int = Field(ge=1, le=480, description="Estimated duration in minutes")
     complexity: Literal["simple", "medium", "complex"] = Field(description="Task complexity level")
-    dependencies: List[str] = Field(default_factory=list, description="List of sub-task IDs this depends on")
+    dependencies: list[str] = Field(default_factory=list, description="List of sub-task IDs this depends on")
     workflow_phase: Literal["analysis", "design", "implementation", "testing", "validation"] = Field(
         description="Primary workflow phase for this sub-task"
     )
-    required_skills: List[str] = Field(default_factory=list, description="Required skills/technologies")
-    deliverables: List[str] = Field(default_factory=list, description="Expected outputs/deliverables")
+    required_skills: list[str] = Field(default_factory=list, description="Required skills/technologies")
+    deliverables: list[str] = Field(default_factory=list, description="Expected outputs/deliverables")
 
 
 class DependencyMap(BaseModel):
     """Dependency relationships between sub-tasks"""
 
-    critical_path: List[str] = Field(description="Ordered list of sub-task IDs on critical path")
-    parallel_groups: List[List[str]] = Field(
+    critical_path: list[str] = Field(description="Ordered list of sub-task IDs on critical path")
+    parallel_groups: list[list[str]] = Field(
         default_factory=list, description="Groups of tasks that can run in parallel"
     )
-    blocking_dependencies: Dict[str, List[str]] = Field(
+    blocking_dependencies: dict[str, list[str]] = Field(
         default_factory=dict, description="Map of task_id -> blocking_task_ids"
     )
 
@@ -51,9 +51,9 @@ class DependencyMap(BaseModel):
 class WorkflowDefinition(BaseModel):
     """Complete workflow definition for the execution plan"""
 
-    lifecycle_phases: List[str] = Field(description="Ordered list of lifecycle phases")
-    phase_transitions: Dict[str, str] = Field(description="Map of phase -> next_phase")
-    validation_gates: Dict[str, List[str]] = Field(description="Map of phase -> validation criteria")
+    lifecycle_phases: list[str] = Field(description="Ordered list of lifecycle phases")
+    phase_transitions: dict[str, str] = Field(description="Map of phase -> next_phase")
+    validation_gates: dict[str, list[str]] = Field(description="Map of phase -> validation criteria")
     rollback_strategy: str = Field(description="Strategy for handling failures and rollbacks")
 
 
@@ -62,10 +62,10 @@ class PlanningMetrics(BaseModel):
 
     total_estimated_duration: int = Field(ge=1, description="Total estimated duration in minutes")
     critical_path_duration: int = Field(ge=1, description="Critical path duration in minutes")
-    complexity_breakdown: Dict[str, int] = Field(description="Count of tasks by complexity level")
-    skill_requirements: Dict[str, int] = Field(description="Count of tasks requiring each skill")
+    complexity_breakdown: dict[str, int] = Field(description="Count of tasks by complexity level")
+    skill_requirements: dict[str, int] = Field(description="Count of tasks requiring each skill")
     confidence_score: float = Field(ge=0.0, le=1.0, description="Confidence in the plan accuracy")
-    risk_factors: List[str] = Field(default_factory=list, description="Identified risk factors")
+    risk_factors: list[str] = Field(default_factory=list, description="Identified risk factors")
 
 
 class ClaudePlanningResponse(BaseModel):
@@ -74,12 +74,12 @@ class ClaudePlanningResponse(BaseModel):
     plan_id: str = Field(description="Unique identifier for the execution plan")
     plan_name: str = Field(max_length=100, description="Human-readable plan name")
     plan_summary: str = Field(max_length=500, description="Executive summary of the plan")
-    sub_tasks: List[SubTask] = Field(description="List of decomposed sub-tasks")
+    sub_tasks: list[SubTask] = Field(description="List of decomposed sub-tasks")
     dependencies: DependencyMap = Field(description="Dependency relationships between tasks")
     workflow: WorkflowDefinition = Field(description="Complete workflow definition")
     metrics: PlanningMetrics = Field(description="Planning metrics and estimates")
-    recommendations: List[str] = Field(default_factory=list, description="Strategic recommendations")
-    considerations: List[str] = Field(default_factory=list, description="Important considerations and constraints")
+    recommendations: list[str] = Field(default_factory=list, description="Strategic recommendations")
+    considerations: list[str] = Field(default_factory=list, description="Important considerations and constraints")
 
 
 class PlanningResponseValidator(PydanticValidator):
@@ -88,7 +88,7 @@ class PlanningResponseValidator(PydanticValidator):
     def __init__(self) -> None:
         super().__init__(ClaudePlanningResponse)
 
-    def create_fallback(self, error_message: str, context: Dict[str, Any]) -> ClaudePlanningResponse:
+    def create_fallback(self, error_message: str, context: dict[str, Any]) -> ClaudePlanningResponse:
         """Create a fallback planning response"""
         task_description = context.get("task_description", "Unknown task")
 
@@ -184,10 +184,10 @@ class ClaudePlannerBridge(BaseClaludeBridge):
     def generate_execution_plan(
         self,
         task_description: str,
-        context_data: Dict[str, Any] = None,
+        context_data: dict[str, Any] = None,
         priority: int = 50,
         requestor: str = "system"
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Generate intelligent execution plan using Claude API
 
@@ -214,7 +214,7 @@ class ClaudePlannerBridge(BaseClaludeBridge):
     def _create_planning_prompt(
         self,
         task_description: str,
-        context_data: Dict[str, Any],
+        context_data: dict[str, Any],
         priority: int,
         requestor: str
     ) -> str:
@@ -304,7 +304,7 @@ Generate the execution plan now:"""
         )
         return json.dumps(mock_plan.dict())
 
-    def _create_fallback_response(self, error_message: str, context: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: Optional[dict[str, Any]]) -> dict[str, Any]:
         """Create a fallback response when Claude is unavailable"""
         fallback = self.validator.create_fallback(error_message, context or {})
         return fallback.dict()

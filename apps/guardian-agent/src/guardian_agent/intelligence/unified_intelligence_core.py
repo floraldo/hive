@@ -776,7 +776,7 @@ class UnifiedIntelligenceCore:
         visited_nodes = set(),
         visited_edges = set()
 
-        for depth in range(query.max_depth):
+        for _depth in range(query.max_depth):
             next_nodes = set()
 
             for node_id in current_nodes:

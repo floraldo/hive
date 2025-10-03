@@ -71,7 +71,7 @@ def test_database_basic_operations():
         }
 
         db_service.log_simulation_run(update_data)
-        print(f"[OK] Updated simulation run with KPIs")
+        print("[OK] Updated simulation run with KPIs")
 
         # Test 3: Query runs
         runs = db_service.query_simulation_runs(filters={"study_id": "test_study"})

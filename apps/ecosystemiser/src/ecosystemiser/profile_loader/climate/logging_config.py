@@ -16,9 +16,10 @@ from contextvars import ContextVar
 from typing import Any
 
 import structlog
+from structlog.types import EventDict
+
 from ecosystemiser.settings import get_settings
 from hive_logging import get_logger
-from structlog.types import EventDict
 
 # Context variable for correlation ID
 correlation_id_var: ContextVar[str | None] = ContextVar("correlation_id", default=None)

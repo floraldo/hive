@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 
 import faiss
-import numpy as np
 import pytest
 from sentence_transformers import SentenceTransformer
 
@@ -27,10 +26,10 @@ class TestRAGCoreFunctionality:
         # Load index components
         self.index = faiss.read_index(str(self.rag_index_path / "faiss.index"))
 
-        with open(self.rag_index_path / "chunks.json", 'r', encoding='utf-8') as f:
+        with open(self.rag_index_path / "chunks.json", encoding='utf-8') as f:
             self.chunks = json.load(f)
 
-        with open(self.rag_index_path / "metadata.json", 'r', encoding='utf-8') as f:
+        with open(self.rag_index_path / "metadata.json", encoding='utf-8') as f:
             self.metadata = json.load(f)
 
         self.model = SentenceTransformer(self.metadata['embedding_model'])

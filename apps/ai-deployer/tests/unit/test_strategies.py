@@ -5,6 +5,7 @@ Tests for deployment strategies
 from unittest.mock import Mock, patch
 
 import pytest
+
 from ai_deployer.deployer import DeploymentStrategy
 from ai_deployer.strategies.docker import DockerDeploymentStrategy
 from ai_deployer.strategies.kubernetes import KubernetesDeploymentStrategy

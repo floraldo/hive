@@ -15,10 +15,7 @@ from typing import Any
 from hive_logging import get_logger
 
 from .core import db as hive_core_db
-from .core.db.planning_integration import (
-    async_planning_integration,
-    planning_integration,
-)
+from .core.db.planning_integration import async_planning_integration, planning_integration
 from .queen import QueenLite  # Import base QueenLite
 
 logger = get_logger(__name__)

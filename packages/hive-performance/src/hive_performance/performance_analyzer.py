@@ -2,16 +2,15 @@
 
 import asyncio
 import statistics
-from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from hive_logging import get_logger
 
-from .async_profiler import AsyncProfiler, ProfileReport
-from .metrics_collector import MetricsCollector, PerformanceMetrics
-from .system_monitor import SystemMetrics, SystemMonitor
+from .async_profiler import AsyncProfiler
+from .metrics_collector import MetricsCollector
+from .system_monitor import SystemMonitor
 
 logger = get_logger(__name__)
 
@@ -26,8 +25,8 @@ class PerformanceInsight:
     description: str
     impact: str
     recommendation: str
-    metric_value: Optional[float] = None
-    threshold: Optional[float] = None
+    metric_value: float | None = None
+    threshold: float | None = None
     confidence: float = 1.0  # 0.0-1.0
 
 
@@ -46,18 +45,18 @@ class AnalysisReport:
     resource_efficiency: float = 0.0
 
     # Insights and recommendations
-    insights: List[PerformanceInsight] = field(default_factory=list)
-    critical_issues: List[PerformanceInsight] = field(default_factory=list)
-    optimization_opportunities: List[PerformanceInsight] = field(default_factory=list)
+    insights: list[PerformanceInsight] = field(default_factory=list)
+    critical_issues: list[PerformanceInsight] = field(default_factory=list)
+    optimization_opportunities: list[PerformanceInsight] = field(default_factory=list)
 
     # Detailed analysis
-    system_health: Dict[str, Any] = field(default_factory=dict)
-    async_performance: Dict[str, Any] = field(default_factory=dict)
-    operation_analysis: Dict[str, Any] = field(default_factory=dict)
+    system_health: dict[str, Any] = field(default_factory=dict)
+    async_performance: dict[str, Any] = field(default_factory=dict)
+    operation_analysis: dict[str, Any] = field(default_factory=dict)
 
     # Trends and predictions
-    performance_trends: Dict[str, float] = field(default_factory=dict)
-    capacity_predictions: Dict[str, Any] = field(default_factory=dict)
+    performance_trends: dict[str, float] = field(default_factory=dict)
+    capacity_predictions: dict[str, Any] = field(default_factory=dict)
 
     # Metadata
     analysis_timestamp: datetime = field(default_factory=datetime.utcnow)
@@ -152,7 +151,7 @@ class PerformanceAnalyzer:
         logger.info(f"Analysis complete: Grade {report.performance_grade}, Score {report.overall_score:.1f}")
         return report
 
-    async def _collect_metrics_data_async(self, period: timedelta) -> Dict[str, Any]:
+    async def _collect_metrics_data_async(self, period: timedelta) -> dict[str, Any]:
         """Collect and analyze metrics data."""
         all_metrics = self.metrics_collector.get_metrics(time_window=period)
 
@@ -183,10 +182,10 @@ class PerformanceAnalyzer:
             "total_operations": total_ops,
             "error_rate": total_errors / total_ops if total_ops > 0 else 0.0,
             "total_bytes_processed": total_bytes,
-            "operation_types": len(set(m.operation_name for m in all_metrics)),
+            "operation_types": len({m.operation_name for m in all_metrics}),
         }
 
-    async def _collect_system_data_async(self, period: timedelta) -> Dict[str, Any]:
+    async def _collect_system_data_async(self, period: timedelta) -> dict[str, Any]:
         """Collect and analyze system data."""
         system_history = self.system_monitor.get_metrics_history(period)
         current_metrics = self.system_monitor.get_current_metrics()
@@ -213,7 +212,7 @@ class PerformanceAnalyzer:
             "python_memory_mb": current_metrics.python_memory_rss // (1024 * 1024) if current_metrics else 0,
         }
 
-    async def _collect_async_data_async(self, period: timedelta) -> Dict[str, Any]:
+    async def _collect_async_data_async(self, period: timedelta) -> dict[str, Any]:
         """Collect and analyze async profiling data."""
         if not self.async_profiler._profiling:
             return {}
@@ -237,8 +236,8 @@ class PerformanceAnalyzer:
         }
 
     async def _generate_insights_async(
-        self, metrics_data: Dict[str, Any], system_data: Dict[str, Any], async_data: Dict[str, Any]
-    ) -> List[PerformanceInsight]:
+        self, metrics_data: dict[str, Any], system_data: dict[str, Any], async_data: dict[str, Any]
+    ) -> list[PerformanceInsight]:
         """Generate performance insights and recommendations."""
         insights = []
 
@@ -318,7 +317,7 @@ class PerformanceAnalyzer:
             )
 
         # Memory analysis
-        avg_memory = system_data.get("avg_memory_percent", 0.0)
+        system_data.get("avg_memory_percent", 0.0)
         peak_memory = system_data.get("peak_memory_percent", 0.0)
         if peak_memory > self.thresholds["memory_critical"]:
             insights.append(
@@ -384,8 +383,8 @@ class PerformanceAnalyzer:
         return insights
 
     async def _calculate_performance_scores_async(
-        self, metrics_data: Dict[str, Any], system_data: Dict[str, Any], async_data: Dict[str, Any]
-    ) -> Dict[str, float]:
+        self, metrics_data: dict[str, Any], system_data: dict[str, Any], async_data: dict[str, Any]
+    ) -> dict[str, float]:
         """Calculate performance scores (0-100)."""
         scores = {}
 
@@ -449,7 +448,7 @@ class PerformanceAnalyzer:
         else:
             return "F"
 
-    async def _analyze_trends_async(self, period: timedelta) -> Dict[str, float]:
+    async def _analyze_trends_async(self, period: timedelta) -> dict[str, float]:
         """Analyze performance trends."""
         # Get system trends
         system_trends = self.system_monitor.analyze_trends(period)
@@ -462,7 +461,7 @@ class PerformanceAnalyzer:
 
     async def benchmark_operation_async(
         self, operation_func, iterations: int = 100, concurrency: int = 10, warmup_iterations: int = 10
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Benchmark a specific operation."""
         logger.info(f"Benchmarking operation with {iterations} iterations, concurrency {concurrency}")
 

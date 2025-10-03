@@ -989,8 +989,8 @@ class ProphecyEngine:
 
             return {
                 "architecture": ". ".join(architecture_recommendations[:3]),
-                "packages": sorted(list(package_recommendations)),
-                "patterns": sorted(list(pattern_recommendations)),
+                "packages": sorted(package_recommendations),
+                "patterns": sorted(pattern_recommendations),
                 "dev_time": dev_time,
                 "op_cost": op_cost,
                 "roi": "Positive ROI expected within 12-18 months" if len(high_severity_prophecies) < 3 else None,

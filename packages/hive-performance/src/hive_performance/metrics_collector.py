@@ -5,11 +5,13 @@ import asyncio
 import threading
 import time
 from collections import defaultdict, deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Any, Callable, Dict, List
+from typing import Any
 
 import psutil
+
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -44,12 +46,12 @@ class PerformanceMetrics:
     blocked_tasks: int = 0
 
     # Custom metrics
-    custom_metrics: Dict[str, Any] = field(default_factory=dict)
+    custom_metrics: dict[str, Any] = field(default_factory=dict)
 
     # Metadata
     timestamp: datetime = field(default_factory=datetime.utcnow)
     operation_name: str = ""
-    tags: Dict[str, str] = field(default_factory=dict)
+    tags: dict[str, str] = field(default_factory=dict)
 
 
 class MetricsCollector:
@@ -78,10 +80,10 @@ class MetricsCollector:
         self.enable_async_metrics = enable_async_metrics
 
         # Metrics storage
-        self._metrics_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=max_history))
-        self._active_operations: Dict[str, Dict[str, Any]] = {},
-        self._operation_counters: Dict[str, int] = defaultdict(int)
-        self._error_counters: Dict[str, int] = defaultdict(int)
+        self._metrics_history: dict[str, deque] = defaultdict(lambda: deque(maxlen=max_history))
+        self._active_operations: dict[str, dict[str, Any]] = {},
+        self._operation_counters: dict[str, int] = defaultdict(int)
+        self._error_counters: dict[str, int] = defaultdict(int)
 
         # Thread safety
         self._lock = threading.RLock()
@@ -94,7 +96,7 @@ class MetricsCollector:
         self._process = psutil.Process() if enable_system_metrics else None
 
         # Performance baselines
-        self._baselines: Dict[str, PerformanceMetrics] = {}
+        self._baselines: dict[str, PerformanceMetrics] = {}
 
     async def start_collection_async(self) -> None:
         """Start automatic metrics collection."""
@@ -161,7 +163,7 @@ class MetricsCollector:
         except Exception as e:
             logger.error(f"Failed to collect system metrics: {e}")
 
-    def start_operation(self, operation_name: str, tags: Optional[Dict[str, str]] = None) -> str:
+    def start_operation(self, operation_name: str, tags: Optional[dict[str, str]] = None) -> str:
         """Start tracking a performance operation."""
         operation_id = f"{operation_name}_{time.time_ns()}",
 
@@ -185,7 +187,7 @@ class MetricsCollector:
         operation_id: str,
         success: bool = True,
         bytes_processed: int = 0,
-        custom_metrics: Optional[Dict[str, Any]] = None,
+        custom_metrics: Optional[dict[str, Any]] = None,
     ) -> PerformanceMetrics:
         """End tracking a performance operation."""
         end_time = time.perf_counter(),
@@ -201,7 +203,7 @@ class MetricsCollector:
             # Calculate metrics
             execution_time = end_time - start_info["start_time"],
             cpu_time = end_cpu - start_info["start_cpu"],
-            memory_delta = end_memory - start_info["start_memory"],
+            end_memory - start_info["start_memory"],
 
             operation_name = start_info["operation_name"]
 
@@ -249,7 +251,7 @@ class MetricsCollector:
 
     def get_metrics(
         self, operation_name: str | None = None, time_window: timedelta | None = None
-    ) -> List[PerformanceMetrics]:
+    ) -> list[PerformanceMetrics]:
         """Get collected metrics."""
         with self._lock:
             if operation_name:
@@ -310,7 +312,7 @@ class MetricsCollector:
         self._baselines[operation_name] = metrics
         logger.info(f"Set performance baseline for {operation_name}")
 
-    def compare_to_baseline(self, operation_name: str) -> Optional[Dict[str, float]]:
+    def compare_to_baseline(self, operation_name: str) -> Optional[dict[str, float]]:
         """Compare current performance to baseline."""
         if operation_name not in self._baselines:
             return None
@@ -333,7 +335,7 @@ class MetricsCollector:
             else 0.0
         }
 
-    def export_metrics(self, format: str = "json") -> Union[str, Dict[str, Any]]:
+    def export_metrics(self, format: str = "json") -> Union[str, dict[str, Any]]:
         """Export metrics in specified format."""
         all_metrics = self.get_metrics()
 
@@ -361,7 +363,7 @@ class MetricsCollector:
                 "metrics": all_metrics,
                 "summary": {
                     "total_operations": len(all_metrics),
-                    "operation_types": len(set(m.operation_name for m in all_metrics)),
+                    "operation_types": len({m.operation_name for m in all_metrics}),
                     "time_span": (all_metrics[-1].timestamp - all_metrics[0].timestamp).total_seconds()
                     if all_metrics
                     else 0
@@ -393,9 +395,9 @@ class operation_tracker:
         self,
         collector: MetricsCollector,
         operation_name: str,
-        tags: Optional[Dict[str, str]] = None,
+        tags: Optional[dict[str, str]] = None,
         bytes_processed: int = 0,
-        custom_metrics: Optional[Dict[str, Any]] = None
+        custom_metrics: Optional[dict[str, Any]] = None
     ):
         self.collector = collector
         self.operation_name = operation_name
@@ -404,7 +406,7 @@ class operation_tracker:
         self.custom_metrics = custom_metrics
         self.operation_id: str | None = None
 
-    def __enter__(self) -> "operation_tracker":
+    def __enter__(self) -> operation_tracker:
         self.operation_id = self.collector.start_operation(self.operation_name, self.tags)
         return self
 
@@ -421,7 +423,7 @@ class operation_tracker:
 
 # Decorator for automatic function performance tracking
 def track_performance(
-    collector: MetricsCollector, operation_name: str | None = None, tags: Optional[Dict[str, str]] = None
+    collector: MetricsCollector, operation_name: str | None = None, tags: Optional[dict[str, str]] = None
 ) -> Callable:
     """Decorator for automatic function performance tracking."""
 

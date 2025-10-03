@@ -32,6 +32,7 @@ def run_server() -> None:
 
         # Get configuration using simplified settings
         from ecosystemiser.hive_env import get_app_config, get_app_settings
+
         from ecosystemiser.main import app
 
         settings = (get_app_settings(),)

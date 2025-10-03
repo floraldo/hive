@@ -15,13 +15,7 @@ from hive_logging import get_logger
 
 from .embeddings import EmbeddingGenerator
 from .keyword_search import BM25KeywordSearch
-from .models import (
-    CodeChunk,
-    RetrievalQuery,
-    RetrievalResult,
-    RuleContext,
-    StructuredContext,
-)
+from .models import CodeChunk, RetrievalQuery, RetrievalResult, RuleContext, StructuredContext
 from .vector_store import VectorStore
 
 logger = get_logger(__name__)

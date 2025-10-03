@@ -18,12 +18,10 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
-# Use hive-orchestration package for task management
-from hive_orchestration import (
-    create_task,
-)
-
 from hive_logging import get_logger
+
+# Use hive-orchestration package for task management
+from hive_orchestration import create_task
 
 # Async operations not yet available in hive-orchestration
 ASYNC_AVAILABLE = False

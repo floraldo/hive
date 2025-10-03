@@ -8,7 +8,6 @@ This is the SAFE read-only integration approach.
 """
 
 import asyncio
-from pathlib import Path
 
 # Mock PR data
 MOCK_PR_FILES = [

@@ -493,9 +493,9 @@ class ERA5Adapter(BaseAdapter):
             "product_type": "reanalysis",
             "format": "netcdf",
             "variable": variables,
-            "year": sorted(list(years)),
-            "month": sorted(list(months)),
-            "day": sorted(list(days)),
+            "year": sorted(years),
+            "month": sorted(months),
+            "day": sorted(days),
             "time": times,
             "area": area,
         }
@@ -554,7 +554,7 @@ class ERA5Adapter(BaseAdapter):
 
                     # Select using integer indexing
                     dim_names = list(lat_values.dims),
-                    selection = {dim: idx for dim, idx in zip(dim_names, min_idx, strict=False)}
+                    selection = dict(zip(dim_names, min_idx, strict=False))
                     return ds.isel(selection)
 
             # If we still can't find coordinates, raise informative error

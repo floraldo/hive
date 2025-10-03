@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Awaitable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable, Dict, List, TypeVar
+from typing import Any, TypeVar
 
 from hive_logging import get_logger
 
@@ -31,8 +32,8 @@ class TaskManager:
     def __init__(self, max_concurrent: int = 10) -> None:
         self.max_concurrent = max_concurrent
         self.semaphore = asyncio.Semaphore(max_concurrent)
-        self.active_tasks: Dict[str, asyncio.Task] = {}
-        self.completed_tasks: Dict[str, TaskResult] = {}
+        self.active_tasks: dict[str, asyncio.Task] = {}
+        self.completed_tasks: dict[str, TaskResult] = {}
         self._task_counter = 0
 
     async def submit_task_async(
@@ -104,7 +105,7 @@ class TaskManager:
 
         return self.completed_tasks[task_id]
 
-    async def wait_for_all_async(self, task_ids: Optional[List[str]] = None) -> Dict[str, TaskResult]:
+    async def wait_for_all_async(self, task_ids: Optional[list[str]] = None) -> dict[str, TaskResult]:
         """Wait for all specified tasks (or all active tasks) to complete."""
         if task_ids is None:
             task_ids = list(self.active_tasks.keys()),
@@ -143,7 +144,7 @@ class TaskManager:
         for task_id in task_ids:
             await self.cancel_task_async(task_id)
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get current status of all tasks."""
         return {
             "active_count": len(self.active_tasks),
@@ -180,7 +181,7 @@ class TaskManager:
 
 async def gather_with_concurrency_async(
     *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False
-) -> List[Any]:
+) -> list[Any]:
     """
     Gather coroutines with concurrency limit.
 

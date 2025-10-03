@@ -9,7 +9,7 @@ Specialized Claude Bridge for AI Code Review
 """
 
 import json
-from typing import Any, Dict, List, Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -33,8 +33,8 @@ class ClaudeReviewResponse(BaseModel):
 
     decision: Literal["approve", "reject", "rework", "escalate"] = Field(description="Review decision")
     summary: str = Field(max_length=500, description="Brief summary of the review")
-    issues: List[str] = Field(default_factory=list, description="List of issues found")
-    suggestions: List[str] = Field(default_factory=list, description="Improvement suggestions")
+    issues: list[str] = Field(default_factory=list, description="List of issues found")
+    suggestions: list[str] = Field(default_factory=list, description="Improvement suggestions")
     quality_score: int = Field(ge=0, le=100, description="Overall quality score")
     metrics: ReviewMetrics = Field(description="Detailed quality metrics")
     confidence: float = Field(ge=0.0, le=1.0, description="Confidence in the review")
@@ -46,9 +46,9 @@ class ReviewResponseValidator(PydanticValidator):
     def __init__(self) -> None:
         super().__init__(ClaudeReviewResponse)
 
-    def create_fallback(self, error_message: str, context: Dict[str, Any]) -> ClaudeReviewResponse:
+    def create_fallback(self, error_message: str, context: dict[str, Any]) -> ClaudeReviewResponse:
         """Create a fallback review response"""
-        task_description = context.get("task_description", "Unknown task")
+        context.get("task_description", "Unknown task")
 
         return ClaudeReviewResponse(
             decision="escalate",
@@ -72,11 +72,11 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         self,
         task_id: str,
         task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]] = None,
-        objective_analysis: Optional[Dict[str, Any]] = None,
+        code_files: dict[str, str],
+        test_results: Optional[dict[str, Any]] = None,
+        objective_analysis: Optional[dict[str, Any]] = None,
         transcript: str | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Perform robust code review with drift-resilient JSON contract
 
@@ -105,9 +105,9 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
     def _create_review_prompt(
         self,
         task_description: str,
-        code_files: Dict[str, str],
-        test_results: Optional[Dict[str, Any]],
-        objective_analysis: Optional[Dict[str, Any]],
+        code_files: dict[str, str],
+        test_results: Optional[dict[str, Any]],
+        objective_analysis: Optional[dict[str, Any]],
         transcript: str | None
     ) -> str:
         """Create comprehensive review prompt for Claude"""
@@ -235,7 +235,7 @@ Respond with ONLY the JSON object, no other text."""
         )
         return json.dumps(mock_review.dict())
 
-    def _create_fallback_response(self, error_message: str, context: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: Optional[dict[str, Any]]) -> dict[str, Any]:
         """Create a fallback response when Claude is unavailable"""
         fallback = self.validator.create_fallback(error_message, context or {})
         result = fallback.dict()

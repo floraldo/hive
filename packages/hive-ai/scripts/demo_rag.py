@@ -15,11 +15,7 @@ from pathlib import Path
 # Add hive-ai to path for demo
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from hive_ai.rag import (
-    EnhancedRAGRetriever,
-    HierarchicalChunker,
-    RetrievalQuery,
-)
+from hive_ai.rag import EnhancedRAGRetriever, HierarchicalChunker, RetrievalQuery
 
 
 def main():
@@ -37,7 +33,7 @@ def main():
     chunks = chunker.chunk_directory(rag_dir, recursive=False)
 
     print(f"  ✅ Chunked {len(chunks)} code units")
-    print(f"  📊 Chunk types: {set(c.chunk_type.value for c in chunks)}")
+    print(f"  📊 Chunk types: { {c.chunk_type.value for c in chunks} }")
 
     # Step 2: Initialize retriever and index
     print("\n[2/5] Initializing RAG retriever...")

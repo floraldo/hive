@@ -1227,7 +1227,7 @@ async def generate_unified_pr_async(opportunity_id: str):
     console.print(f"Opportunity ID: [bold]{opportunity_id}[/bold]")
 
     try:
-        oracle_service = OracleService()
+        OracleService()
 
         with Progress(
             SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console

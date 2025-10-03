@@ -3,6 +3,7 @@
 from pathlib import Path
 
 import pytest
+
 from guardian_agent.analyzers.code_analyzer import CodeAnalyzer
 from guardian_agent.core.config import GuardianConfig
 from guardian_agent.core.interfaces import Severity, ViolationType

@@ -4,14 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from hive_ai.core.exceptions import (
-    AIError,
-    CostLimitError,
-    ModelError,
-    ModelUnavailableError,
-    PromptError,
-    VectorError,
-)
+from hive_ai.core.exceptions import AIError, CostLimitError, ModelError, ModelUnavailableError, PromptError, VectorError
 
 
 class TestAIError:

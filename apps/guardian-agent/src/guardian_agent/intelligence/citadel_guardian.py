@@ -204,7 +204,7 @@ class CitadelGuardian:
                 suggested_fixes.extend(oracle_recommendations.get("fixes", []))
 
             # Extract affected components
-            components_affected = list(set(v.component_affected for v in violations if v.component_affected))
+            components_affected = list({v.component_affected for v in violations if v.component_affected})
 
             # Generate report
             report = CitadelReport(

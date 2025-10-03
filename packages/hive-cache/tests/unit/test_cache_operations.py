@@ -389,7 +389,7 @@ class TestCacheInvalidation:
         cache_client.delete = AsyncMock(return_value=True)
 
         # Invalidate specific call
-        result = await perf_cache.invalidate_function_cache_async(test_function, args=(5,))
+        await perf_cache.invalidate_function_cache_async(test_function, args=(5,))
 
         # Should call delete with generated key
         assert cache_client.delete.called

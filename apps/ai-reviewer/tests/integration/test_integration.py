@@ -6,9 +6,9 @@ from datetime import datetime
 from unittest.mock import MagicMock, Mock
 
 import pytest
+
 from ai_reviewer import ReviewAgent, ReviewEngine
 from ai_reviewer.database_adapter import DatabaseAdapter
-
 from hive_db import Task, TaskStatus
 from hive_logging import get_logger
 

@@ -87,7 +87,7 @@ class TestCircuitBreakerStates:
             raise ValueError("Test error")
 
         # Fail threshold times
-        for i in range(3):
+        for _i in range(3):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
 

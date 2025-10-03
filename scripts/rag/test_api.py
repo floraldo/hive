@@ -173,7 +173,7 @@ class RAGAPITest:
             print("  ⚠ Cache not hit (may be expected)")
 
         # Test stats
-        stats = self.test_stats()
+        self.test_stats()
 
         print("\n" + "=" * 70)
         print("✅ All tests completed successfully!")

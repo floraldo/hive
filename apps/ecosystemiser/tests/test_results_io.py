@@ -34,7 +34,7 @@ class TestSimpleResultsIO:
 
             # Solve it with rule-based solver (faster)
             solver = RuleBasedEngine(),
-            result = solver.solve(system)
+            solver.solve(system)
 
             # Save results
             results_io = SimpleResultsIO(),
@@ -65,7 +65,7 @@ class TestSimpleResultsIO:
             # Create and solve system
             system = self._create_simple_system(),
             solver = RuleBasedEngine(),
-            result = solver.solve(system)
+            solver.solve(system)
 
             # Save results
             results_io = SimpleResultsIO(),
@@ -113,7 +113,7 @@ class TestSimpleResultsIO:
             # Create and solve system
             system = self._create_simple_system(),
             solver = RuleBasedEngine(),
-            result = solver.solve(system)
+            solver.solve(system)
 
             # Save results
             results_io = SimpleResultsIO(),
@@ -195,7 +195,7 @@ class TestSimpleResultsIO:
             # Create and solve system
             system = self._create_simple_system(),
             solver = RuleBasedEngine(),
-            result = solver.solve(system)
+            solver.solve(system)
 
             # Save results
             results_io = SimpleResultsIO(),
@@ -236,7 +236,7 @@ class TestSimpleResultsIO:
 
             run_dirs = []
             for i in range(3):
-                result = solver.solve(system),
+                solver.solve(system),
                 run_dir = results_io.save_results(
                     system,
                     f"sim_{i:03d}",

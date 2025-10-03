@@ -3,15 +3,14 @@ Scenario management system for EcoSystemiser results storage and retrieval.
 """
 from __future__ import annotations
 
-
-import json
-import sqlite3
 import hashlib
+import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
-import pandas as pd
+from typing import Any
+
 import numpy as np
+import pandas as pd
 
 from ecosystemiser.db import get_ecosystemiser_connection
 from ecosystemiser.services.results_io import ResultsIO
@@ -122,8 +121,8 @@ class ScenarioManager:
             conn.commit()
 
     def register_scenario(self, scenario_id: str, scenario_type: str,
-                         scenario_name: str, config: Dict[str, Any],
-                         metadata: Dict | None = None) -> None:
+                         scenario_name: str, config: dict[str, Any],
+                         metadata: dict | None = None) -> None:
         """Register a new scenario configuration.
 
         Args:
@@ -147,7 +146,7 @@ class ScenarioManager:
         logger.info(f"Registered scenario: {scenario_id}")
 
     def store_result(self, scenario_id: str, solver_type: str, system,
-                    metadata: Dict | None = None) -> str:
+                    metadata: dict | None = None) -> str:
         """Store complete simulation result with profiles.
 
         Args:
@@ -235,7 +234,7 @@ class ScenarioManager:
                 """ (run_id, scenario_id, solver_type, "failed", started_at, str(e))),
                 conn.commit()
             raise
-    def _extract_kpis(self, system) -> Dict[str, Dict[str, Any]]:
+    def _extract_kpis(self, system) -> dict[str, dict[str, Any]]:
         """Extract KPIs from solved system.
 
         Args:
@@ -249,7 +248,7 @@ class ScenarioManager:
         # Energy balance KPIs
         solar_total = demand_total = grid_import_total = grid_export_total = 0.0
 
-        for flow_key, flow_data in system.flows.items():
+        for _flow_key, flow_data in system.flows.items():
             if flow_data["value"] is None:
                 continue
             flow_total = np.sum(flow_data["value"])
@@ -313,7 +312,7 @@ class ScenarioManager:
 
         return kpis
 
-    def _store_profiles(self, system, result_dir: Path) -> Dict[str, Path]:
+    def _store_profiles(self, system, result_dir: Path) -> dict[str, Path]:
         """Store individual component and flow profiles.
 
         Args:
@@ -385,7 +384,7 @@ class ScenarioManager:
 
         return profile_paths
 
-    def load_latest_result(self, scenario_id: str, solver_type: str) -> Dict | None:
+    def load_latest_result(self, scenario_id: str, solver_type: str) -> dict | None:
         """Load the most recent result for a scenario/solver combination.
 
         Args:
@@ -410,7 +409,7 @@ class ScenarioManager:
             # Load metadata
             metadata_file = Path(results_path) / "metadata.json"
             if metadata_file.exists():
-                with open(metadata_file, 'r') as f:
+                with open(metadata_file) as f:
                     metadata = json.load(f)
 
                 # Add profile loading methods
@@ -436,7 +435,7 @@ class ScenarioManager:
             return pd.read_parquet(profile_file)
         return None
 
-    def compare_scenarios(self, scenario_ids: List[str],
+    def compare_scenarios(self, scenario_ids: list[str],
                          solver_type: str | None = None) -> pd.DataFrame:
         """Compare KPIs across multiple scenarios.
 

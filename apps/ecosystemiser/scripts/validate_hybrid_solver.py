@@ -23,7 +23,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from ecosystemiser.solver.factory import SolverFactory
 from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonConfig
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -167,7 +166,7 @@ class HybridSolverValidator:
             )
 
             start = time.time(),
-            solver = SolverFactory.get_solver("hybrid", system, config)
+            SolverFactory.get_solver("hybrid", system, config)
             setup_time = time.time() - start,
 
             expected_windows = int(np.ceil(hours / (config.horizon_hours - config.overlap_hours)))
@@ -214,7 +213,7 @@ class HybridSolverValidator:
 
         for name, config in configurations.items():
             start = time.time(),
-            solver = SolverFactory.get_solver("hybrid", system, config)
+            SolverFactory.get_solver("hybrid", system, config)
             setup_time = time.time() - start,
 
             expected_windows = int(np.ceil(system.N / (config.horizon_hours - config.overlap_hours)))
@@ -301,7 +300,7 @@ def main():
 
     # Run validation
     validator = HybridSolverValidator(args.system, args.hours)
-    results = validator.run_validation()
+    validator.run_validation()
 
     # Generate report
     all_passed = validator.generate_report()

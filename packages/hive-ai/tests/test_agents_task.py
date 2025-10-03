@@ -477,7 +477,7 @@ class TestBaseTask:
 
     def test_base_task_can_execute_dependency_met(self, basic_task_config):
         """Test task can execute when dependencies are met."""
-        dep_config = TaskConfig(
+        TaskConfig(
             name="dep_task",
             description="Dependency task",
         )

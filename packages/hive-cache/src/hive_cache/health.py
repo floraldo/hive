@@ -331,7 +331,7 @@ class CacheHealthMonitor:
 
             # Calculate performance metrics,
             total_ops = client_metrics.get("total_operations", 0)
-            hits = client_metrics.get("hits", 0)
+            client_metrics.get("hits", 0)
             errors = client_metrics.get("errors", 0)
 
             return PerformanceMetrics(

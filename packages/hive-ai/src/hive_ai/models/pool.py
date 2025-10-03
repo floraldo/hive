@@ -60,7 +60,7 @@ class ModelPool:
 
     def _initialize_pools(self) -> None:
         """Initialize connection pools for all configured providers."""
-        providers = set(model.provider for model in self.config.models.values())
+        providers = {model.provider for model in self.config.models.values()}
 
         for provider in providers:
             self._create_pool(provider)

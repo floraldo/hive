@@ -20,7 +20,6 @@ from ecosystemiser.system_model.components.energy.power_demand import (
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

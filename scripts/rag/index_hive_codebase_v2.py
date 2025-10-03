@@ -19,17 +19,16 @@ Features:
 """
 
 import json
-import sys
 import time
 from pathlib import Path
 from typing import Any
 
+import faiss
 import numpy as np
-from tqdm import tqdm
 
 # Simple imports to avoid complex dependencies
 from sentence_transformers import SentenceTransformer
-import faiss
+from tqdm import tqdm
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 
@@ -59,7 +58,7 @@ def chunk_python(file_path: Path) -> list[dict[str, Any]]:
     import ast
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -91,13 +90,13 @@ def chunk_python(file_path: Path) -> list[dict[str, Any]]:
             })
 
         return chunks
-    except Exception as e:
+    except Exception:
         return []
 
 def chunk_markdown(file_path: Path) -> list[dict[str, Any]]:
     """Chunk Markdown by sections."""
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             content = f.read()
 
         chunks = []
@@ -127,13 +126,13 @@ def chunk_markdown(file_path: Path) -> list[dict[str, Any]]:
             })
 
         return chunks
-    except Exception as e:
+    except Exception:
         return []
 
 def chunk_yaml(file_path: Path) -> list[dict[str, Any]]:
     """Chunk YAML by top-level keys."""
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             content = f.read()
 
         chunks = []
@@ -163,7 +162,7 @@ def chunk_yaml(file_path: Path) -> list[dict[str, Any]]:
             })
 
         return chunks
-    except Exception as e:
+    except Exception:
         return []
 
 def chunk_toml(file_path: Path) -> list[dict[str, Any]]:
@@ -177,7 +176,7 @@ def chunk_toml(file_path: Path) -> list[dict[str, Any]]:
             return []
 
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, encoding='utf-8') as f:
             content = f.read()
 
         data = tomli.loads(content)
@@ -199,7 +198,7 @@ def chunk_toml(file_path: Path) -> list[dict[str, Any]]:
             })
 
         return chunks
-    except Exception as e:
+    except Exception:
         return []
 
 def stage1_chunking(output_path: Path) -> Path:
@@ -274,7 +273,7 @@ def stage1_chunking(output_path: Path) -> Path:
 
     stats["stage1"]["time_sec"] = time.time() - start_time
 
-    print(f"\nStage 1 Complete:")
+    print("\nStage 1 Complete:")
     print(f"  Files processed: {stats['stage1']['files_scanned']}")
     print(f"    - Python: {stats['stage1']['python_files']}")
     print(f"    - Markdown: {stats['stage1']['markdown_files']}")
@@ -308,7 +307,7 @@ def stage2_embedding(chunks_file: Path, output_path: Path) -> None:
     # Load chunks from JSONL
     print("\nLoading chunks from intermediate file...")
     chunks = []
-    with open(chunks_file, 'r', encoding='utf-8') as f:
+    with open(chunks_file, encoding='utf-8') as f:
         for line in f:
             chunks.append(json.loads(line))
 
@@ -377,7 +376,7 @@ def stage2_embedding(chunks_file: Path, output_path: Path) -> None:
 
     stats["stage2"]["time_sec"] = time.time() - start_time
 
-    print(f"\nStage 2 Complete:")
+    print("\nStage 2 Complete:")
     print(f"  Chunks embedded: {stats['stage2']['embeddings_created']}")
     print(f"  Batches processed: {stats['stage2']['batches_processed']}")
     print(f"  FAISS index: {output_path / 'faiss.index'}")
@@ -413,8 +412,8 @@ def print_summary():
     output_path = PROJECT_ROOT / "data" / "rag_index"
     print(f"  {output_path}")
     print(f"  - faiss.index ({(output_path / 'faiss.index').stat().st_size / 1024 / 1024:.1f} MB)")
-    print(f"  - chunks.json")
-    print(f"  - metadata.json")
+    print("  - chunks.json")
+    print("  - metadata.json")
 
     print("\n" + "=" * 80)
 

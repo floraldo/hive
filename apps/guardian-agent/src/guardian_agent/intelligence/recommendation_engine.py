@@ -803,7 +803,7 @@ class RecommendationEngine:
                 limit=50,
             )
 
-            debt_metrics = await self.warehouse.query_metrics_async(
+            await self.warehouse.query_metrics_async(
                 metric_types=[MetricType.TECHNICAL_DEBT], start_time=datetime.utcnow() - timedelta(hours=24), limit=10
             )
 

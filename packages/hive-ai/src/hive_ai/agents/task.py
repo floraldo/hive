@@ -595,7 +595,7 @@ class TaskBuilder:
             task_deps = [TaskDependency(task_id=dep_id) for dep_id in dependencies]
 
         # Extract required tools,
-        required_tools = list(set(call["tool"] for call in tool_sequence)),
+        required_tools = list({call["tool"] for call in tool_sequence}),
 
         config = TaskConfig(
             name=name,

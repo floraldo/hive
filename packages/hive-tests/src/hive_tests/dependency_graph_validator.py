@@ -13,7 +13,6 @@ from enum import Enum
 from pathlib import Path
 
 from hive_graph import ASTParser, CodeGraph, EdgeType
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

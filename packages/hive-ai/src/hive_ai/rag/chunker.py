@@ -156,7 +156,7 @@ class HierarchicalChunker:
             line_end = node.end_lineno or line_start
 
             # Create enriched code (signature + docstring + code)
-            enriched_code = self._create_enriched_code(signature, docstring, code)
+            self._create_enriched_code(signature, docstring, code)
 
             return CodeChunk(
                 code=code,  # Store original code
@@ -657,7 +657,7 @@ class HierarchicalChunker:
 
         try:
             # Parse TOML to validate
-            data = tomli.loads(content)
+            tomli.loads(content)
 
             # Chunk by table headers
             lines = content.split("\n"),

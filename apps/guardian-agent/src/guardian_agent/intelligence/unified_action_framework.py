@@ -25,17 +25,8 @@ from pydantic import BaseModel, Field
 
 from hive_logging import get_logger
 
-from .symbiosis_engine import (
-    OptimizationOpportunity,
-    OptimizationPriority,
-    OptimizationType,
-)
-from .unified_intelligence_core import (
-    EdgeType,
-    KnowledgeQuery,
-    NodeType,
-    UnifiedIntelligenceCore,
-)
+from .symbiosis_engine import OptimizationOpportunity, OptimizationPriority, OptimizationType
+from .unified_intelligence_core import EdgeType, KnowledgeQuery, NodeType, UnifiedIntelligenceCore
 
 logger = get_logger(__name__)
 

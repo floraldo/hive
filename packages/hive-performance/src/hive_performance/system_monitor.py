@@ -190,13 +190,11 @@ class SystemMonitor:
         disk_io = psutil.disk_io_counters()
 
         # Calculate disk rates
-        disk_read_rate = 0
-        disk_write_rate = 0
         if self._prev_disk_io and self._prev_timestamp:
             time_delta = current_time - self._prev_timestamp
             if time_delta > 0:
-                disk_read_rate = (disk_io.read_bytes - self._prev_disk_io.read_bytes) / time_delta
-                disk_write_rate = (disk_io.write_bytes - self._prev_disk_io.write_bytes) / time_delta
+                (disk_io.read_bytes - self._prev_disk_io.read_bytes) / time_delta
+                (disk_io.write_bytes - self._prev_disk_io.write_bytes) / time_delta
 
         # Network metrics
         network_io = psutil.net_io_counters()

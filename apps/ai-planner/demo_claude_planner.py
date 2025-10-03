@@ -15,7 +15,6 @@ import sys
 from datetime import datetime
 
 from ai_planner.agent import AIPlanner
-
 from hive_db import get_connection, init_db
 
 

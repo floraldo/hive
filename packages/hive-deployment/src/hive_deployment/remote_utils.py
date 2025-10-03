@@ -7,6 +7,7 @@ Adapted from SmartHoodsOptimisationTool Apper project.
 from __future__ import annotations
 
 import fnmatch
+import logging
 import os
 import re
 from pathlib import Path
@@ -15,7 +16,7 @@ from typing import Any
 from .ssh_client import SSHClient
 
 
-def parse_deployignore(local_dir: str) -> List[str]:
+def parse_deployignore(local_dir: str) -> list[str]:
     """
     Parse .deployignore file and return list of patterns to exclude.
 
@@ -42,7 +43,7 @@ def parse_deployignore(local_dir: str) -> List[str]:
     return ignore_patterns
 
 
-def should_ignore_path(path: str, ignore_patterns: List[str], base_dir: str = "") -> bool:
+def should_ignore_path(path: str, ignore_patterns: list[str], base_dir: str = "") -> bool:
     """
     Check if a path should be ignored based on .deployignore patterns.
 
@@ -123,7 +124,7 @@ def run_remote_command(
     sudo: bool = False,
     check: bool = True,
     log_output: bool = True,
-) -> Tuple[int, str, str]:
+) -> tuple[int, str, str]:
     """
     Executes a command on the remote server using the provided SSH client.
 

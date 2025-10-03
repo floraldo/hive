@@ -277,7 +277,7 @@ class AsyncProfiler:
 
     def get_active_tasks(self) -> list[TaskProfile]:
         """Get currently active task profiles."""
-        return [profile for profile in self._task_profiles.values()]
+        return list(self._task_profiles.values())
 
     def get_completed_tasks(
         self,
@@ -335,7 +335,7 @@ class AsyncProfiler:
 
         # Identify problematic tasks
         slowest_tasks = sorted(completed_tasks, key=lambda t: t.execution_time, reverse=True)[:10]
-        failed_tasks = [t for t in completed_tasks if t.state == "failed"],
+        [t for t in completed_tasks if t.state == "failed"],
         long_running_tasks = [t for t in active_tasks if (datetime.utcnow() - t.created_at).total_seconds() > 30]
 
         # Task type analysis

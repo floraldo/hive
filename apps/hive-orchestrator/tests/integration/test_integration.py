@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner
+
 from hive_orchestrator.clean_hive import clean_database
 from hive_orchestrator.clean_hive import main as clean_main
 from hive_orchestrator.cli import cli

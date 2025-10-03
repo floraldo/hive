@@ -23,12 +23,12 @@ def test_db():
     # Override default path for testing
     os.environ["HIVE_ORCHESTRATION_DB"] = db_path
 
-    with get_connection(db_path) as conn:
+    with get_connection(db_path):
         # Initialize directly on this connection
         from hive_orchestration.database import transaction
         from hive_orchestration.database.schema import init_db
 
-        with transaction(db_path) as conn:
+        with transaction(db_path):
             # Just ensure connection works
             pass
 
@@ -94,12 +94,7 @@ def test_full_task_workflow(test_db):
 
 def test_worker_registration_and_heartbeat(test_db):
     """Test worker registration and heartbeat."""
-    from hive_orchestration.operations import (
-        get_active_workers,
-        get_worker,
-        register_worker,
-        update_worker_heartbeat,
-    )
+    from hive_orchestration.operations import get_active_workers, get_worker, register_worker, update_worker_heartbeat
 
     # Register a worker
     success = register_worker(

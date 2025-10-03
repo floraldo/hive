@@ -506,7 +506,7 @@ class RAGEnhancedReviewEngine:
         # Build prompt with instructional priming
         if rag_context and rag_context.code_patterns:
             # RAG-enhanced prompt with instructional priming
-            prompt = self._build_instructional_prompt(
+            self._build_instructional_prompt(
                 file_path=file_path,
                 content=content,
                 analysis_results=analysis_results,
@@ -515,7 +515,7 @@ class RAGEnhancedReviewEngine:
             operating_mode = "rag_enhanced"
         else:
             # Fallback to standard prompt (graceful degradation)
-            prompt = self.prompt_builder.build_review_prompt(
+            self.prompt_builder.build_review_prompt(
                 file_path=file_path,
                 content=content,
                 analysis_results=analysis_results,

@@ -4,7 +4,6 @@ Smoke tests for hive-graph package.
 Validates that the package can be imported and all main exports are accessible.
 """
 
-import pytest
 
 
 def test_package_import() -> None:

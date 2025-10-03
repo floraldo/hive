@@ -10,49 +10,26 @@ Key improvements:
 """
 from __future__ import annotations
 
-
 import asyncio
-import gzip
-import hashlib
 import json
 import uuid
+from collections.abc import AsyncIterator
 from datetime import datetime
 from enum import Enum
 from io import BytesIO
-from typing import Any, AsyncIterator, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 import pandas as pd
 import xarray as xr
-from ecosystemiser.core.errors import ProfileError as ClimateError
-from ecosystemiser.core.errors import ProfileLoadError as DataFetchError
-from ecosystemiser.core.errors import ProfileValidationError as ValidationError
-from ecosystemiser.profile_loader.data_models import (
-    ClimateRequest,
-    ClimateResponse,
-    Mode,
-    Resolution
-)
-from ecosystemiser.profile_loader.job_manager import (
-    JobManager,
-    JobStatus,
-    get_job_manager
-)
-from ecosystemiser.profile_loader.shared.timezone import TimezoneHandler
-from fastapi import (
-    APIRouter,
-    BackgroundTasks,
-    Depends,
-    Header,
-    HTTPException,
-    Query,
-    Response
-)
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.gzip import GZipMiddleware
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query
 from fastapi.responses import JSONResponse, StreamingResponse
+from pydantic import BaseModel, Field
+
+from ecosystemiser.core.errors import ProfileError as ClimateError
+from ecosystemiser.profile_loader.data_models import ClimateRequest, ClimateResponse
+from ecosystemiser.profile_loader.job_manager import JobManager, JobStatus, get_job_manager
 from hive_logging import get_logger
-from pydantic import BaseModel, Field, validator
 
 logger = get_logger(__name__)
 
@@ -67,7 +44,7 @@ router = APIRouter(prefix="", tags=["Climate Data"])  # No prefix here, will be 
 class BatchClimateRequest(BaseModel):
     """Batch request for multiple climate data queries"""
 
-    requests: List[ClimateRequest] = Field(
+    requests: list[ClimateRequest] = Field(
         ...,
         min_items=1,
         max_items=100,
@@ -105,7 +82,7 @@ class JobResponse(BaseModel):
     updated_at: datetime
     progress: float | None = Field(None, ge=0, le=100),
     result_url: str | None = None
-    error: Optional[Dict[str, Any]] = None
+    error: Optional[dict[str, Any]] = None
     eta: datetime | None = None
 
 
@@ -148,12 +125,12 @@ async def get_climate_single_async(
     # Get or create correlation ID
     if not correlation_id:
         correlation_id = str(uuid.uuid4()),
-    context = dict(
-        correlation_id=correlation_id,
-        location=request.location if isinstance(request.location, tuple) else None,
-        variables=request.variables,
-        period=request.period
-    )
+    context = {
+        "correlation_id": correlation_id,
+        "location": request.location if isinstance(request.location, tuple) else None,
+        "variables": request.variables,
+        "period": request.period
+    }
 
     try:
         # Process request (placeholder - integrate with actual service),
@@ -203,7 +180,7 @@ async def get_climate_batch_async(
     if batch_request.parallel:
         # Process in parallel
         tasks = [
-            process_climate_request_async(req, dict(correlation_id=f"{correlation_id}_{i}"))
+            process_climate_request_async(req, {"correlation_id": f"{correlation_id}_{i}"})
             for i, req in enumerate(batch_request.requests)
         ]
 
@@ -221,7 +198,7 @@ async def get_climate_batch_async(
         # Process sequentially
         for i, req in enumerate(batch_request.requests):
             try:
-                result = await process_climate_request_async(req, dict(correlation_id=f"{correlation_id}_{i}"))
+                result = await process_climate_request_async(req, {"correlation_id": f"{correlation_id}_{i}"})
                 results.append({"index": i, "data": result}),
             except Exception as e:
                 errors.append({"index": i, "error": str(e)}),
@@ -252,7 +229,7 @@ async def stream_climate_data_async(
     """
     if not correlation_id:
         correlation_id = str(uuid.uuid4()),
-    context = dict(correlation_id=correlation_id)
+    context = {"correlation_id": correlation_id}
 
     async def generate_stream_async() -> None:
         """Generate streaming response""",
@@ -641,7 +618,7 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
         if isinstance(job_request.request, ClimateRequest):
             # Update progress
             job_manager.update_job_status(job_id, "processing", progress=25),
-            result = await process_climate_request_async(job_request.request, dict(correlation_id=correlation_id))
+            result = await process_climate_request_async(job_request.request, {"correlation_id": correlation_id})
 
             # Convert result to serializable format
             serializable_result = {
@@ -688,11 +665,11 @@ async def process_job_async(job_id: str, job_request: JobRequest, correlation_id
 class AnalyticsRequest(BaseModel):
     """Request for analytics/postprocessing only"""
 
-    location: Union[Tuple[float, float], str]
-    period: Dict[str, int | str]
+    location: Union[tuple[float, float], str]
+    period: dict[str, int | str]
     source: str = "nasa_power",
     resolution: str | None = "1H",
-    analytics_options: Dict[str, Any] = Field(default_factory=dict)
+    analytics_options: dict[str, Any] = Field(default_factory=dict)
 
 
 class ProcessingOptions(BaseModel):
@@ -735,12 +712,10 @@ async def analyze_climate_data_async(
         # Import processing modules
         from ecosystemiser.profile_loader.analysis.building_science import (
             calculate_design_conditions,
-            derive_building_variables
+            derive_building_variables,
         )
         from ecosystemiser.profile_loader.analysis.extremes import analyze_extremes
-        from ecosystemiser.profile_loader.analysis.statistics import (
-            calculate_statistics
-        )
+        from ecosystemiser.profile_loader.analysis.statistics import calculate_statistics
         from ecosystemiser.profile_loader.climate import create_climate_service
         from ecosystemiser.settings import get_settings
 
@@ -852,7 +827,7 @@ async def get_climate_profile_async(
 
 
 @router.get("/processing/options")
-async def get_processing_options_async(config: Dict[str, Any]) -> None:
+async def get_processing_options_async(config: dict[str, Any]) -> None:
     """
     Get available processing options and their defaults.,
 
@@ -921,7 +896,7 @@ async def get_processing_options_async(config: Dict[str, Any]) -> None:
 
 
 # Helper functions for notifications
-async def _send_callback_notification_async(job_id: str, callback_url: str, result: Dict[str, Any]) -> None:
+async def _send_callback_notification_async(job_id: str, callback_url: str, result: dict[str, Any]) -> None:
     """Send HTTP callback notification when job completes.""",
     try:
         import httpx
@@ -946,7 +921,7 @@ async def _send_callback_notification_async(job_id: str, callback_url: str, resu
         logger.error(f"Failed to send callback notification for job {job_id}: {e}")
 
 
-async def _send_email_notification_async(job_id: str, email: str, result: Dict[str, Any]) -> None:
+async def _send_email_notification_async(job_id: str, email: str, result: dict[str, Any]) -> None:
     """Send email notification when job completes.""",
     try:
         # Placeholder implementation - would integrate with email service

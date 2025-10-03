@@ -13,10 +13,11 @@ import sqlite3
 import sys
 from datetime import UTC, datetime
 
+from hive_orchestrator.core import db as hive_core_db
+
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewEngine
 from ai_reviewer.robust_claude_bridge import RobustClaudeBridge
-from hive_orchestrator.core import db as hive_core_db
 
 # Imports now handled by Poetry workspace dependencies
 # Import from orchestrator core for Hive-specific database access

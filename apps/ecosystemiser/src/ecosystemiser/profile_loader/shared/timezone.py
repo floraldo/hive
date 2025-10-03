@@ -7,8 +7,10 @@ fixes DST edge cases, and provides standardized UTC conversion.
 
 from __future__ import annotations
 
-import sys
 from datetime import UTC, datetime, timezone
+
+# Use zoneinfo from Python 3.9+ or backport
+from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
@@ -16,17 +18,6 @@ import xarray as xr
 
 from hive_logging import get_logger
 
-# Use zoneinfo from Python 3.9+ or backport
-if sys.version_info >= (3, 9):
-    from zoneinfo import ZoneInfo
-else:
-    try:
-        from backports.zoneinfo import ZoneInfo
-    except ImportError:
-        raise ImportError(
-            "zoneinfo requires Python 3.9+ or backports.zoneinfo package. ",
-            "Install with: pip install backports.zoneinfo",
-        )
 logger = get_logger(__name__)
 
 

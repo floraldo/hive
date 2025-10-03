@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import asyncio
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -16,15 +14,11 @@ pattern and uses proper dependency injection.
 import threading
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List
+from datetime import UTC, datetime
+from typing import Any
 
 try:
-    from hive_di.interfaces import (
-        IClaudeService,
-        IConfigurationService,
-        IErrorReportingService
-    )
+    from hive_di.interfaces import IClaudeService, IConfigurationService, IErrorReportingService
 
     DI_AVAILABLE = True
 except ImportError:
@@ -39,7 +33,7 @@ class ClaudeResponse:
     """Response from Claude service"""
 
     content: str
-    usage: Dict[str, int]
+    usage: dict[str, int]
     model: str
     timestamp: datetime
     success: bool
@@ -55,8 +49,8 @@ class ClaudeServiceDI:
 
     def __init__(
         self,
-        configuration_service: "IConfigurationService",
-        error_reporting_service: "IErrorReportingService",
+        configuration_service: IConfigurationService,
+        error_reporting_service: IErrorReportingService,
         config: ClaudeBridgeConfig | None = None,
         rate_config: RateLimitConfig | None = None,
         cache_ttl: int | None = None
@@ -98,8 +92,8 @@ class ClaudeServiceDI:
 
         # Service state,
         self._rate_limiter = RateLimiter(rate_config)
-        self._cache: Dict[str, Any] = {}
-        self._cache_timestamps: Dict[str, float] = {}
+        self._cache: dict[str, Any] = {}
+        self._cache_timestamps: dict[str, float] = {}
         self._lock = threading.RLock()
         self._initialized = True
 
@@ -251,7 +245,7 @@ class ClaudeServiceDI:
                 "total_tokens": len(message.split()) + min(50, max_tokens)
             },
             model=model,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             success=True
         )
 
@@ -279,11 +273,11 @@ class ClaudeServiceDI:
                 "total_tokens": len(message.split()) + min(100, max_tokens)
             },
             model=model,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             success=True
         )
 
-    def get_service_status(self) -> Dict[str, Any]:
+    def get_service_status(self) -> dict[str, Any]:
         """Get Claude service status"""
         with self._lock:
             return {
@@ -306,7 +300,7 @@ class ClaudeServiceDI:
             self._cache_timestamps.clear()
             return cache_size
 
-    def get_rate_limit_status(self) -> Dict[str, Any]:
+    def get_rate_limit_status(self) -> dict[str, Any]:
         """Get rate limiting status"""
         return self._rate_limiter.get_status()
 
@@ -355,7 +349,7 @@ class RateLimiter:
         hour_cutoff = current_time - 3600
         self._hour_requests = [t for t in self._hour_requests if t > hour_cutoff]
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get rate limiter status"""
         with self._lock:
             current_time = time.time()
@@ -377,7 +371,7 @@ class RateLimiter:
 
 
 # Migration helper function
-def create_di_claude_service() -> "ClaudeServiceDI":
+def create_di_claude_service() -> ClaudeServiceDI:
     """
     Create a DI-enabled Claude service
 
@@ -397,7 +391,7 @@ def create_di_claude_service() -> "ClaudeServiceDI":
 
 
 # Backward compatibility wrapper
-def get_claude_service_di() -> "ClaudeServiceDI":
+def get_claude_service_di() -> ClaudeServiceDI:
     """
     Get Claude service using dependency injection
 

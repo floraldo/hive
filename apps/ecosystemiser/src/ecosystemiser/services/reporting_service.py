@@ -5,14 +5,14 @@ eliminating duplication between CLI and web interfaces.
 """
 from __future__ import annotations
 
-
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from hive_logging import get_logger
-from pydantic import BaseModel, Field
 
 logger = get_logger(__name__)
 
@@ -27,7 +27,7 @@ class ReportConfig(BaseModel):
     include_plots: bool = Field(default=True, description="Whether to include visualizations in the report")
     output_format: str = Field(default="html", description="Output format: html, json, or both")
     save_path: Path | None = Field(default=None, description="Optional path to save the report")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata for report customization")
+    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional metadata for report customization")
 
 
 class ReportResult(BaseModel):
@@ -36,11 +36,11 @@ class ReportResult(BaseModel):
     report_id: str
     report_type: str
     html_content: str | None = None
-    json_content: Optional[Dict[str, Any]] = None
-    plots: Optional[Dict[str, Any]] = None
+    json_content: Optional[dict[str, Any]] = None
+    plots: Optional[dict[str, Any]] = None
     generation_time: datetime
     save_path: Path | None = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReportingService:
@@ -53,7 +53,7 @@ class ReportingService:
         self._html_generator = None
         logger.info("ReportingService initialized")
 
-    def generate_report(self, analysis_results: Dict[str, Any], config: ReportConfig | None = None) -> ReportResult:
+    def generate_report(self, analysis_results: dict[str, Any], config: ReportConfig | None = None) -> ReportResult:
         """Generate a report from analysis results.,
 
         This is the main entry point for all report generation.
@@ -113,7 +113,7 @@ class ReportingService:
         logger.info(f"Report generated successfully: {result.report_id}")
         return result
 
-    def _generate_plots(self, analysis_results: Dict[str, Any], config: ReportConfig) -> Dict[str, Any]:
+    def _generate_plots(self, analysis_results: dict[str, Any], config: ReportConfig) -> dict[str, Any]:
         """Generate plots for the report.
 
         Args:
@@ -144,7 +144,7 @@ class ReportingService:
 
         return plots
 
-    def _generate_standard_plots(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_standard_plots(self, results: dict[str, Any]) -> dict[str, Any]:
         """Generate plots for standard reports."""
         plots = {}
 
@@ -166,7 +166,7 @@ class ReportingService:
 
         return plots
 
-    def _generate_ga_plots(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_ga_plots(self, results: dict[str, Any]) -> dict[str, Any]:
         """Generate plots for genetic algorithm reports."""
         plots = {}
 
@@ -188,7 +188,7 @@ class ReportingService:
 
         return plots
 
-    def _generate_mc_plots(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_mc_plots(self, results: dict[str, Any]) -> dict[str, Any]:
         """Generate plots for Monte Carlo reports."""
         plots = {}
 
@@ -210,7 +210,7 @@ class ReportingService:
 
         return plots
 
-    def _generate_study_plots(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _generate_study_plots(self, results: dict[str, Any]) -> dict[str, Any]:
         """Generate plots for study reports."""
         plots = {}
 
@@ -229,7 +229,7 @@ class ReportingService:
         return plots
 
     def _generate_html(
-        self, analysis_results: Dict[str, Any], plots: Optional[Dict[str, Any]], config: ReportConfig
+        self, analysis_results: dict[str, Any], plots: Optional[dict[str, Any]], config: ReportConfig
     ) -> str:
         """Generate HTML report content.
 
@@ -248,7 +248,7 @@ class ReportingService:
 
         return html_content
 
-    def _prepare_json_content(self, analysis_results: Dict[str, Any], config: ReportConfig) -> Dict[str, Any]:
+    def _prepare_json_content(self, analysis_results: dict[str, Any], config: ReportConfig) -> dict[str, Any]:
         """Prepare JSON content for the report.
 
         Args:
@@ -279,7 +279,7 @@ class ReportingService:
 
         return json_content
 
-    def _extract_ga_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_ga_summary(self, results: dict[str, Any]) -> dict[str, Any]:
         """Extract summary information from GA results."""
         summary = {}
 
@@ -294,7 +294,7 @@ class ReportingService:
 
         return summary
 
-    def _extract_mc_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_mc_summary(self, results: dict[str, Any]) -> dict[str, Any]:
         """Extract summary information from Monte Carlo results."""
         summary = {}
 
@@ -308,7 +308,7 @@ class ReportingService:
 
         return summary
 
-    def _extract_study_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
+    def _extract_study_summary(self, results: dict[str, Any]) -> dict[str, Any]:
         """Extract summary information from study results."""
         summary = {}
 
@@ -325,7 +325,7 @@ class ReportingService:
         return summary
 
     def _save_report(
-        self, html_content: str | None, json_content: Optional[Dict[str, Any]], save_path: Path
+        self, html_content: str | None, json_content: Optional[dict[str, Any]], save_path: Path
     ) -> None:
         """Save report content to disk.
 
@@ -354,7 +354,7 @@ class ReportingService:
             logger.error(f"Error saving report: {e}"),
             raise
     def generate_comparison_report(
-        self, results_list: List[Dict[str, Any]], config: ReportConfig | None = None
+        self, results_list: list[dict[str, Any]], config: ReportConfig | None = None
     ) -> ReportResult:
         """Generate a comparison report for multiple results.
 
@@ -377,7 +377,7 @@ class ReportingService:
         # Generate report using the main method
         return self.generate_report(comparison_data, config)
 
-    def _calculate_comparison_metrics(self, results_list: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _calculate_comparison_metrics(self, results_list: list[dict[str, Any]]) -> dict[str, Any]:
         """Calculate metrics for comparing multiple results.
 
         Args:

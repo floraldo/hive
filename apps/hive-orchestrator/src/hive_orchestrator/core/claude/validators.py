@@ -3,12 +3,12 @@ Response validation utilities for Claude outputs
 """
 from __future__ import annotations
 
-
 from abc import ABC, abstractmethod
-from typing import Any, DictType
+from typing import Any
+
+from pydantic import BaseModel, ValidationError
 
 from hive_logging import get_logger
-from pydantic import BaseModel, ValidationError
 
 logger = get_logger(__name__)
 

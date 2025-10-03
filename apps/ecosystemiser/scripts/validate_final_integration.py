@@ -67,8 +67,8 @@ def test_core_architecture() -> None:
         from ecosystemiser.hive_error_handling import BaseError, ValidationError
 
         # Test legacy error creation
-        legacy_error = BaseError("Legacy test error"),
-        validation_error = ValidationError("Field validation failed", field="capacity")
+        BaseError("Legacy test error"),
+        ValidationError("Field validation failed", field="capacity")
 
         logger.info("SUCCESS: Legacy aliases working")
         logger.info(f"   - BaseError -> {BaseError.__name__}")

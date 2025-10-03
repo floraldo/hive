@@ -22,13 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from .rag_comment_engine import RAGEnhancedCommentEngine
-from .write_mode import (
-    STANDARD_SAFETY_GATES,
-    ChangeCategory,
-    ChangeProposal,
-    SafetyGate,
-    WriteModeConfig,
-)
+from .write_mode import STANDARD_SAFETY_GATES, ChangeCategory, ChangeProposal, SafetyGate, WriteModeConfig
 
 logger = logging.getLogger(__name__)
 
@@ -348,7 +342,7 @@ Generated with Guardian Write Mode
 Proposal ID: {proposal.proposal_id}
 """
 
-            result = subprocess.run(
+            subprocess.run(
                 ["git", "commit", "-m", commit_msg],
                 check=True,
                 capture_output=True,

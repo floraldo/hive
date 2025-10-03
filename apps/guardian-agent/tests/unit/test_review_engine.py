@@ -5,10 +5,10 @@ from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+
 from guardian_agent.core.config import GuardianConfig
 from guardian_agent.core.interfaces import AnalysisResult, ReviewResult, Severity, Violation, ViolationType
 from guardian_agent.review.engine import ReviewEngine
-
 from hive_ai import ModelClient, VectorStore
 from hive_cache import CacheClient
 

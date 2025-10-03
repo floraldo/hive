@@ -6,10 +6,9 @@ backward compatibility with synchronous interfaces.
 """
 from __future__ import annotations
 
-
 import asyncio
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from ecosystemiser.profile_loader import ClimateRequest
 from ecosystemiser.profile_loader.climate import create_climate_service
@@ -35,7 +34,7 @@ class AsyncEcoSystemiserFacade:
         self._climate_service = None
         self._initialized = False
 
-    async def initialize_async(self, config: Optional[Dict[str, Any]] = None) -> None:
+    async def initialize_async(self, config: Optional[dict[str, Any]] = None) -> None:
         """Initialize async services.
 
         Args:
@@ -67,7 +66,7 @@ class AsyncEcoSystemiserFacade:
         if not self._initialized:
             # Run initialization in current event loop
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # Create a task to initialize
                 import concurrent.futures
 
@@ -112,7 +111,7 @@ class AsyncEcoSystemiserFacade:
         try:
             # Get or create event loop
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # If we're in an event loop, run in thread pool
                 import concurrent.futures
 
@@ -147,7 +146,7 @@ class AsyncEcoSystemiserFacade:
         except Exception as e:
             logger.error(f"Async simulation failed: {e}")
             raise
-    async def run_batch_simulations_async(self, configs: List[SimulationConfig], max_concurrent: int | None = None):
+    async def run_batch_simulations_async(self, configs: list[SimulationConfig], max_concurrent: int | None = None):
         """Run multiple simulations concurrently.
 
         Args:
@@ -184,7 +183,7 @@ class AsyncEcoSystemiserFacade:
         try:
             # Get or create event loop
             try:
-                loop = asyncio.get_running_loop()
+                asyncio.get_running_loop()
                 # If we're in an event loop, run in thread pool
                 import concurrent.futures
 
@@ -198,7 +197,7 @@ class AsyncEcoSystemiserFacade:
         except Exception as e:
             logger.error(f"Sync simulation failed: {e}")
             raise
-    async def validate_system_config_async(self, config_path: Path) -> Dict[str, Any]:
+    async def validate_system_config_async(self, config_path: Path) -> dict[str, Any]:
         """Validate system configuration asynchronously.
 
         Args:
@@ -219,13 +218,13 @@ class AsyncEcoSystemiserFacade:
         except Exception as e:
             logger.error(f"Async config validation failed: {e}")
             raise
-    def _validate_config_sync(self, config_path: Path) -> Dict[str, Any]:
+    def _validate_config_sync(self, config_path: Path) -> dict[str, Any]:
         """Synchronous config validation for thread pool execution."""
         from ecosystemiser.services.simulation_service import SimulationService
         service = SimulationService()
         return service.validate_system_config(config_path)
 
-    async def get_performance_metrics_async(self) -> Dict[str, Any]:
+    async def get_performance_metrics_async(self) -> dict[str, Any]:
         """Get performance metrics asynchronously.
 
         Returns:
@@ -250,7 +249,7 @@ class AsyncEcoSystemiserFacade:
 
         return await self._async_simulation_service.cancel_simulation_async(simulation_id)
 
-    async def get_simulation_status_async(self, simulation_id: str) -> Optional[Dict[str, Any]]:
+    async def get_simulation_status_async(self, simulation_id: str) -> Optional[dict[str, Any]]:
         """Get status of a running simulation.
 
         Args:
@@ -343,7 +342,7 @@ def get_facade_sync() -> AsyncEcoSystemiserFacade:
 
 async def run_simulation_with_async_io_async(
     config_path: Path, solver_type: str = "milp", timeout: float | None = None
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Run a single simulation with async I/O optimizations.
 
     Args:
@@ -373,8 +372,8 @@ async def run_simulation_with_async_io_async(
 
 
 async def fetch_climate_data_async(
-    location: str, year: int, variables: List[str], source: str = "nasa_power"
-) -> Dict[str, Any]:
+    location: str, year: int, variables: list[str], source: str = "nasa_power"
+) -> dict[str, Any]:
     """Fetch climate data with async I/O optimizations.
 
     Args:

@@ -7,19 +7,12 @@ extracting semantic information to populate a CodeGraph.
 
 from __future__ import annotations
 
-import ast
 from pathlib import Path
 from typing import Any
 
 from hive_logging import get_logger
 from .models import (
-    ClassDefinition,
-    CodeFile,
     Edge,
-    EdgeType,
-    FunctionDefinition,
-    ImportStatement,
-    ModuleDefinition,
 )
 
 logger = get_logger(__name__)

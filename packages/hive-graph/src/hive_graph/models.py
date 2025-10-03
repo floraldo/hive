@@ -8,7 +8,6 @@ that form a semantic graph of the codebase.
 from __future__ import annotations
 
 from enum import Enum
-from pathlib import Path
 from typing import Any
 
 from pydantic import Field

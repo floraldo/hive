@@ -4,22 +4,16 @@ Central implementation for all Claude API interactions
 """
 from __future__ import annotations
 
-
 import os
 import subprocess
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_logging import get_logger
 
-from .exceptions import (
-    ClaudeNotFoundError,
-    ClaudeResponseError,
-    ClaudeTimeoutError,
-    ClaudeValidationError
-)
+from .exceptions import ClaudeNotFoundError, ClaudeResponseError, ClaudeTimeoutError, ClaudeValidationError
 from .json_parser import JsonExtractionStrategy, JsonExtractor
 from .validators import BaseResponseValidator
 
@@ -168,9 +162,9 @@ class BaseClaludeBridge(ABC):
         self,
         prompt: str,
         validator: BaseResponseValidator | None = None,
-        extraction_strategies: Optional[List[JsonExtractionStrategy]] = None,
-        context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        extraction_strategies: Optional[list[JsonExtractionStrategy]] = None,
+        context: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """
         Call Claude and get validated response
 
@@ -216,8 +210,8 @@ class BaseClaludeBridge(ABC):
         self,
         prompt: str,
         validator: BaseResponseValidator | None = None,
-        context: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        context: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """
         Call Claude with retry logic
 
@@ -264,7 +258,7 @@ class BaseClaludeBridge(ABC):
         pass
 
     @abstractmethod
-    def _create_fallback_response(self, error_message: str, context: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    def _create_fallback_response(self, error_message: str, context: Optional[dict[str, Any]]) -> dict[str, Any]:
         """
         Create a fallback response when Claude is unavailable
 

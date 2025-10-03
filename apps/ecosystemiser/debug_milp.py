@@ -9,7 +9,6 @@ from ecosystemiser.system_model.components.energy.battery import Battery, Batter
 from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

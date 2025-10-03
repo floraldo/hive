@@ -346,7 +346,7 @@ class AnalyserWorkerPool:
         """Start all workers in the pool."""
         logger.info(f"Starting Analyser Worker Pool with {self.pool_size} workers")
 
-        for i in range(self.pool_size):
+        for _i in range(self.pool_size):
             worker = AnalyserWorker(
                 event_bus=self.event_bus, auto_analysis_strategies=["technical_kpi", "economic", "sensitivity"]
             )

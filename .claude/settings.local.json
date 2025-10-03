@@ -84,7 +84,11 @@
       "Bash(git log:*)",
       "Bash(conda:*)",
       "Read(//c/tmp/**)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(while read pkg)",
+      "Bash(do if [ ! -d \"packages/$pkg/src\" ])",
+      "Bash(then echo \"Missing src/: packages/$pkg\")",
+      "Bash(fi)"
     ],
     "deny": [],
     "ask": []

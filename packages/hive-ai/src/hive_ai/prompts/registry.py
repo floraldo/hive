@@ -268,15 +268,15 @@ class PromptRegistry:
 
             template_names = set(filtered_names)
 
-        return sorted(list(template_names))
+        return sorted(template_names)
 
     def get_categories(self) -> list[str]:
         """Get list of all categories."""
-        return sorted(list(self._categories.keys()))
+        return sorted(self._categories.keys())
 
     def get_tags(self) -> list[str]:
         """Get list of all tags."""
-        return sorted(list(self._tags.keys()))
+        return sorted(self._tags.keys())
 
     async def delete_template_async(self, name: str) -> bool:
         """
@@ -306,7 +306,7 @@ class PromptRegistry:
                         if not self._tags[tag]:
                             del self._tags[tag]
 
-            for category, templates in self._categories.items():
+            for _category, templates in self._categories.items():
                 templates.discard(name)
             # Clean empty categories
             self._categories = {k: v for k, v in self._categories.items() if v}

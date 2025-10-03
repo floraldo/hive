@@ -21,7 +21,6 @@ from ecosystemiser.system_model.components.energy.grid import Grid
 from ecosystemiser.system_model.components.energy.power_demand import PowerDemand
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV
 from ecosystemiser.system_model.system import System
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

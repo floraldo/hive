@@ -81,7 +81,7 @@ def test_ragas_comprehensive_evaluation(retriever, golden_set):
     for query_spec in golden_set:
         query = query_spec["query"]
         expected_answer = query_spec["expected_answer"]
-        expected_file = query_spec["expected_file"]
+        query_spec["expected_file"]
 
         # Retrieve context
         context = retriever.retrieve_with_context(query, k=5, include_golden_rules=False)

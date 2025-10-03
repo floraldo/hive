@@ -24,10 +24,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from guardian_agent.review.write_capable_engine import WriteCapableEngine
-from guardian_agent.review.write_mode import (
-    ChangeLevel,
-    WriteModeConfig,
-)
+from guardian_agent.review.write_mode import ChangeLevel, WriteModeConfig
 
 
 async def demo_dry_run():
@@ -99,7 +96,7 @@ async def demo_level_1():
         dry_run=False,
     )
 
-    engine = WriteCapableEngine(
+    WriteCapableEngine(
         rag_index_dir="data/rag_index",
         write_config=config,
     )

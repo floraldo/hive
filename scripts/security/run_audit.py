@@ -141,7 +141,7 @@ class SecurityAuditor:
         env_vars = dict(os.environ)
         suspicious_vars = []
 
-        for var_name, var_value in env_vars.items():
+        for var_name, _var_value in env_vars.items():
             var_name_lower = var_name.lower()
 
             if any(pattern in var_name_lower for pattern in ["password", "secret", "key", "token"]):

@@ -16,12 +16,7 @@ from pathlib import Path
 from typing import Any
 
 # Hive utilities
-from hive_config.paths import (
-    LOGS_DIR,
-    PROJECT_ROOT,
-    WORKTREES_DIR,
-    get_worker_workspace_dir,
-)
+from hive_config.paths import LOGS_DIR, PROJECT_ROOT, WORKTREES_DIR, get_worker_workspace_dir
 from hive_logging import get_logger, setup_logging
 
 # Async event bus from Phase 1

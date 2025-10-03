@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import yaml
+
 from ecosystemiser.db import ecosystemiser_transaction, get_ecosystemiser_db_path
 from hive_logging import get_logger
 
@@ -27,7 +28,7 @@ class ComponentRepository:
         self.loaders = {"file": FileLoader(base_path), "database": SQLiteLoader()}
         self._cache = {}
 
-    def get_component_data(self, component_id: str) -> Dict[str, Any]:
+    def get_component_data(self, component_id: str) -> dict[str, Any]:
         """Retrieve component data by ID.
 
         Args:
@@ -50,7 +51,7 @@ class ComponentRepository:
         logger.debug(f"Loaded component data: {component_id}")
         return data
 
-    def list_available_components(self, category: str | None = None) -> List[str]:
+    def list_available_components(self, category: str | None = None) -> list[str]:
         """List all available component IDs.
 
         Args:
@@ -83,7 +84,7 @@ class FileLoader:
             base_path = Path(__file__).parent / "library"
         self.base_path = Path(base_path)
 
-    def load(self, component_id: str) -> Dict[str, Any]:
+    def load(self, component_id: str) -> dict[str, Any]:
         """Load component data from YAML file.
 
         Args:
@@ -101,7 +102,7 @@ class FileLoader:
             file_path = self.base_path / category / f"{component_id}.yml"
             if file_path.exists():
                 try:
-                    with open(file_path, "r") as f:
+                    with open(file_path) as f:
                         data = yaml.safe_load(f)
 
                     # Validate basic structure
@@ -121,7 +122,7 @@ class FileLoader:
 
         raise FileNotFoundError(f"Component data not found: {component_id}")
 
-    def list_components(self, category: str | None = None) -> List[str]:
+    def list_components(self, category: str | None = None) -> list[str]:
         """List available component YAML files.
 
         Args:
@@ -187,7 +188,7 @@ class SQLiteLoader:
             logger.error(f"Failed to ensure database tables: {e}")
             raise
 
-    def load(self, component_id: str) -> Dict[str, Any]:
+    def load(self, component_id: str) -> dict[str, Any]:
         """Load component data from SQLite database.
 
         Args:
@@ -234,7 +235,7 @@ class SQLiteLoader:
         except Exception as e:
             logger.error(f"Failed to load component {component_id} from database: {e}")
             raise
-    def list_components(self, category: str | None = None) -> List[str]:
+    def list_components(self, category: str | None = None) -> list[str]:
         """List available components in the database.
 
         Args:
@@ -260,7 +261,7 @@ class SQLiteLoader:
             logger.error(f"Failed to list components from database: {e}")
             return []
 
-    def save_component(self, component_id: str, data: Dict[str, Any]) -> None:
+    def save_component(self, component_id: str, data: dict[str, Any]) -> None:
         """Save component data to SQLite database.
 
         Args:
@@ -273,9 +274,9 @@ class SQLiteLoader:
         try:
             # Validate required fields
             if "component_class" not in data:
-                raise ValueError(f"Missing 'component_class' in component data")
+                raise ValueError("Missing 'component_class' in component data")
             if "technical" not in data:
-                raise ValueError(f"Missing 'technical' parameters in component data")
+                raise ValueError("Missing 'technical' parameters in component data")
 
             # Extract and serialize data
             component_class = data["component_class"],
@@ -314,7 +315,7 @@ class SQLiteLoader:
         except Exception as e:
             logger.error(f"Failed to save component {component_id} to database: {e}")
             raise
-    def migrate_from_files(self, file_loader: "FileLoader") -> int:
+    def migrate_from_files(self, file_loader: FileLoader) -> int:
         """Migrate component data from YAML files to SQLite database.
 
         Args:

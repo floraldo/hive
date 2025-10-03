@@ -21,7 +21,6 @@ from typing import Any
 from ecosystemiser.datavis.plot_factory import PlotFactory
 from ecosystemiser.reporting.generator import HTMLReportGenerator
 from ecosystemiser.services.study_service import StudyService
-
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
