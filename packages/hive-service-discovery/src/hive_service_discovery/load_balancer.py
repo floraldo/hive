@@ -394,13 +394,13 @@ class LoadBalancer:
             try:
                 # Select service (excluding already attempted services if possible)
                 available_services = [
-                    s,
-                    for s in services,
+                    s
+                    for s in services
                     if s.service_id not in attempted_services or len(attempted_services) >= len(services)
                 ]
 
                 if not available_services:
-                    available_services = services,
+                    available_services = services
 
                 selected_service = await self.select_service_async(available_services, session_id)
 

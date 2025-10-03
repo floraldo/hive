@@ -13,8 +13,8 @@ to build any event-driven system.
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any, Dict
+from datetime import UTC, datetime
+from typing import Any
 
 
 @dataclass
@@ -33,13 +33,13 @@ class BaseEvent:
 
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: str = ""
-    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     source: str = ""
-    payload: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    payload: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     correlation_id: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert event to dictionary for serialization"""
         return {
             "event_id": self.event_id,
@@ -52,7 +52,7 @@ class BaseEvent:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "BaseEvent":
+    def from_dict(cls, data: dict[str, Any]) -> BaseEvent:
         """Create event from dictionary"""
         timestamp = datetime.fromisoformat(data["timestamp"])
 
@@ -62,6 +62,6 @@ class BaseEvent:
             timestamp=timestamp,
             source=data["source"],
             payload=data.get("payload", {}),
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
             correlation_id=data.get("correlation_id")
         )

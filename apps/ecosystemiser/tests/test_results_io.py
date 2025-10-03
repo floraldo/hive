@@ -2,6 +2,8 @@
 """Real integration tests for SimpleResultsIO - validates Single Artifact, Two Formats pattern."""
 
 import json
+
+# Additional imports
 import tempfile
 from pathlib import Path
 
@@ -9,18 +11,15 @@ import numpy as np
 import pandas as pd
 import pytest
 
- for imports
-import sys
-import os
-
 from ecosystemiser.services.simple_results_io import SimpleResultsIO
-from ecosystemiser.system_model.system import System
+from ecosystemiser.solver.milp_solver import MILPSolver
+from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
+from ecosystemiser.system_model.components.energy.battery import Battery
 from ecosystemiser.system_model.components.energy.grid import Grid
 from ecosystemiser.system_model.components.energy.power_demand import PowerDemand
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV
-from ecosystemiser.system_model.components.energy.battery import Battery
-from ecosystemiser.solver.milp_solver import MILPSolver
-from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
+from ecosystemiser.system_model.system import System
+
 
 class TestSimpleResultsIO:
     """Integration tests for SimpleResultsIO persistence pattern."""
@@ -79,7 +78,7 @@ class TestSimpleResultsIO:
 
             # Load and validate summary.json
             summary_path = run_dir / "summary.json"
-            with open(summary_path, 'r') as f:
+            with open(summary_path) as f:
                 summary = json.load(f)
 
             # Check required fields

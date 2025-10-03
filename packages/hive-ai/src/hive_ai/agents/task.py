@@ -6,19 +6,19 @@ and coordination mechanisms for complex workflows.
 """
 from __future__ import annotations
 
-
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, ListType
+from typing import Any
 
 from hive_logging import get_logger
 
 from ..core.exceptions import AIError
-from .agent import AgentConfig, AgentState, BaseAgent
+from .agent import BaseAgent
 
 logger = get_logger(__name__)
 
@@ -54,7 +54,7 @@ class TaskResult:
     start_time: datetime | None = None
     end_time: datetime | None = None
     duration_seconds: float | None = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -78,7 +78,7 @@ class TaskConfig:
     retry_delay_seconds: int = 5
     dependencies: List[TaskDependency] = field(default_factory=list)
     required_tools: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class BaseTask(ABC):
@@ -102,7 +102,7 @@ class BaseTask(ABC):
         self.result: TaskResult | None = None
 
         # Dependencies and outputs
-        self.dependency_results: Dict[str, TaskResult] = {}
+        self.dependency_results: dict[str, TaskResult] = {}
         self.output_data: Any | None = None
 
     @abstractmethod
@@ -110,7 +110,7 @@ class BaseTask(ABC):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None
+        dependency_results: Optional[dict[str, TaskResult]] = None
     ) -> TaskResult:
         """
         Execute the task using the provided agent.
@@ -128,7 +128,7 @@ class BaseTask(ABC):
         """
         pass
 
-    def can_execute(self, completed_tasks: Dict[str, TaskResult]) -> bool:
+    def can_execute(self, completed_tasks: dict[str, TaskResult]) -> bool:
         """
         Check if task dependencies are satisfied.
 
@@ -155,7 +155,7 @@ class BaseTask(ABC):
 
         return True
 
-    def get_dependency_results(self, completed_tasks: Dict[str, TaskResult]) -> Dict[str, TaskResult]:
+    def get_dependency_results(self, completed_tasks: dict[str, TaskResult]) -> dict[str, TaskResult]:
         """Get results from dependency tasks."""
         dependency_results = {}
         for dependency in self.config.dependencies:
@@ -167,7 +167,7 @@ class BaseTask(ABC):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None
+        dependency_results: Optional[dict[str, TaskResult]] = None
     ) -> TaskResult:
         """Execute task with retry logic."""
         last_error = None
@@ -215,7 +215,7 @@ class BaseTask(ABC):
 
         return self.result
 
-    def get_status_info(self) -> Dict[str, Any]:
+    def get_status_info(self) -> dict[str, Any]:
         """Get detailed status information."""
         duration = None
         if self.start_time:
@@ -254,7 +254,7 @@ class PromptTask(BaseTask):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None
+        dependency_results: Optional[dict[str, TaskResult]] = None
     ) -> TaskResult:
         """Execute the prompt task."""
         try:
@@ -297,7 +297,7 @@ class PromptTask(BaseTask):
                 duration_seconds=duration
             )
 
-    def _build_prompt(self, input_data: Any | None, dependency_results: Optional[Dict[str, TaskResult]]) -> str:
+    def _build_prompt(self, input_data: Any | None, dependency_results: Optional[dict[str, TaskResult]]) -> str:
         """Build the final prompt with input data and dependency results."""
         prompt_parts = [self.prompt]
 
@@ -350,7 +350,7 @@ class ToolTask(BaseTask):
     Allows for more complex operations using the agent's toolkit.
     """
 
-    def __init__(self, config: TaskConfig, tool_sequence: List[Dict[str, Any]]) -> None:
+    def __init__(self, config: TaskConfig, tool_sequence: List[dict[str, Any]]) -> None:
         super().__init__(config)
         self.tool_sequence = tool_sequence
 
@@ -358,7 +358,7 @@ class ToolTask(BaseTask):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[Dict[str, TaskResult]] = None
+        dependency_results: Optional[dict[str, TaskResult]] = None
     ) -> TaskResult:
         """Execute the tool sequence."""
         try:
@@ -406,7 +406,7 @@ class ToolTask(BaseTask):
                 duration_seconds=duration
             )
 
-    def _process_parameters(self, parameters: Dict[str, Any], context: Dict[str, Any]) -> Dict[str, Any]:
+    def _process_parameters(self, parameters: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
         """Process parameters with context substitution."""
         processed = {}
 
@@ -436,7 +436,7 @@ class TaskSequence:
         self.id = str(uuid.uuid4())
         self.tasks = {task.id: task for task in tasks}
         self.execution_order: List[str] = []
-        self.completed_tasks: Dict[str, TaskResult] = {}
+        self.completed_tasks: dict[str, TaskResult] = {}
 
         # Calculate execution order based on dependencies
         self._calculate_execution_order()
@@ -444,7 +444,7 @@ class TaskSequence:
     def _calculate_execution_order(self) -> None:
         """Calculate the order in which tasks should be executed."""
         # Topological sort based on dependencies
-        in_degree = {task_id: 0 for task_id in self.tasks},
+        in_degree = dict.fromkeys(self.tasks, 0),
         graph = {task_id: [] for task_id in self.tasks}
 
         # Build dependency graph
@@ -475,7 +475,7 @@ class TaskSequence:
         self.execution_order = execution_order
         logger.info(f"Task sequence {self.name}: execution order calculated")
 
-    async def execute_async(self, agent: BaseAgent, input_data: Any | None = None) -> Dict[str, TaskResult]:
+    async def execute_async(self, agent: BaseAgent, input_data: Any | None = None) -> dict[str, TaskResult]:
         """
         Execute all tasks in the sequence.
 
@@ -518,7 +518,7 @@ class TaskSequence:
                     # For now, we'll stop on any failure
                     break
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 timeout_result = TaskResult(
                     task_id=task_id,
                     status=TaskStatus.FAILED,
@@ -534,7 +534,7 @@ class TaskSequence:
         logger.info(f"Task sequence {self.name} completed: {len(self.completed_tasks)} tasks")
         return self.completed_tasks
 
-    def get_status_summary(self) -> Dict[str, Any]:
+    def get_status_summary(self) -> dict[str, Any]:
         """Get summary of sequence execution status."""
         completed_count = sum(1 for result in self.completed_tasks.values() if result.status == TaskStatus.COMPLETED),
         failed_count = sum(1 for result in self.completed_tasks.values() if result.status == TaskStatus.FAILED)
@@ -581,10 +581,10 @@ class TaskBuilder:
 
         return PromptTask(config, prompt, expected_output_type)
 
-    @staticmethod,
+    @staticmethod
     def create_tool_task(
         name: str,
-        tool_sequence: List[Dict[str, Any]],
+        tool_sequence: List[dict[str, Any]],
         description: str = "",
         priority: TaskPriority = TaskPriority.NORMAL,
         dependencies: Optional[List[str]] = None
@@ -607,7 +607,7 @@ class TaskBuilder:
 
         return ToolTask(config, tool_sequence)
 
-    @staticmethod,
+    @staticmethod
     def create_analysis_task(
         name: str, analysis_prompt: str, data_source: str, dependencies: Optional[List[str]] = None
     ) -> PromptTask:

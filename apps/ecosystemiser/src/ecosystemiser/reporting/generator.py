@@ -430,12 +430,12 @@ class HTMLReportGenerator:
         key_metrics = summary.get("key_metrics", {})
         metric_formatters = {
             "grid_self_sufficiency": ("Grid Self-Sufficiency", lambda x: f"{x:.1%}"),
-            "renewable_fraction": ("Renewable Fraction", lambda x: f"{x:.1%}")
+            "renewable_fraction": ("Renewable Fraction", lambda x: f"{x:.1%}"),
             "total_cost": ("Total Cost", lambda x: f"${x:,.0f}"),
-            "emissions_reduction": ("Emissions Reduction", lambda x: f"{x:.1%}")
+            "emissions_reduction": ("Emissions Reduction", lambda x: f"{x:.1%}"),
             "peak_demand_reduction": ("Peak Demand Reduction", lambda x: f"{x:.1%}"),
             "storage_utilization": ("Storage Utilization", lambda x: f"{x:.1%}")
-        },
+        }
 
         for key, (label, formatter) in metric_formatters.items():
             if key in key_metrics:

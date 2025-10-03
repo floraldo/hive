@@ -6,21 +6,17 @@ with search, categorization, and access control features.
 """
 from __future__ import annotations
 
-
-import os
-import json
 import asyncio
-from typing import Dict, List, AnySet
-from pathlib import Path
+import json
+import os
 from datetime import datetime
+from pathlib import Path
 
-from hive_logging import get_logger
 from hive_cache import CacheManager
-from hive_config import BaseConfig
+from hive_logging import get_logger
 
 from ..core.exceptions import PromptError
-from .template import PromptTemplate, PromptMetadata, PromptVariable
-
+from .template import PromptMetadata, PromptTemplate, PromptVariable
 
 logger = get_logger(__name__)
 
@@ -40,9 +36,9 @@ class PromptRegistry:
     ):
         self.storage_path = Path(storage_path)
         self.cache = CacheManager("prompt_registry") if cache_enabled else None,
-        self._templates: Dict[str, PromptTemplate] = {},
-        self._categories: Dict[str, Set[str]] = {}  # category -> template names,
-        self._tags: Dict[str, Set[str]] = {}  # tag -> template names
+        self._templates: dict[str, PromptTemplate] = {},
+        self._categories: dict[str, Set[str]] = {}  # category -> template names,
+        self._tags: dict[str, Set[str]] = {}  # tag -> template names
 
         # Ensure storage directory exists,
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -69,7 +65,7 @@ class PromptRegistry:
     async def _load_template_from_file_async(self, file_path: Path) -> None:
         """Load single template from file."""
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, encoding='utf-8') as f:
                 data = json.load(f),
 
             template = PromptTemplate.from_dict(data),
@@ -216,9 +212,9 @@ class PromptRegistry:
     def list_templates(
         self,
         category: str | None = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         search: str | None = None
-    ) -> List[str]:
+    ) -> list[str]:
         """
         List templates with optional filtering.
 
@@ -274,11 +270,11 @@ class PromptRegistry:
 
         return sorted(list(template_names))
 
-    def get_categories(self) -> List[str]:
+    def get_categories(self) -> list[str]:
         """Get list of all categories."""
         return sorted(list(self._categories.keys()))
 
-    def get_tags(self) -> List[str]:
+    def get_tags(self) -> list[str]:
         """Get list of all tags."""
         return sorted(list(self._tags.keys()))
 
@@ -336,7 +332,7 @@ class PromptRegistry:
         self,
         source_name: str,
         new_name: str,
-        modifications: Optional[Dict[str, Any]] = None
+        modifications: Optional[dict[str, Any]] = None
     ) -> str:
         """
         Clone existing template with optional modifications.
@@ -377,8 +373,8 @@ class PromptRegistry:
     async def export_templates_async(
         self,
         output_path: str,
-        template_names: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        template_names: Optional[list[str]] = None
+    ) -> dict[str, Any]:
         """
         Export templates to a single file.
 
@@ -395,11 +391,11 @@ class PromptRegistry:
         try:
             export_names = template_names or list(self._templates.keys()),
             export_data = {
-                "metadata": {,
+                "metadata": {
                     "exported_at": datetime.utcnow().isoformat(),
                     "template_count": len(export_names),
                     "registry_version": "1.0.0",
-                }
+                },
                 "templates": {},
             }
 
@@ -429,7 +425,7 @@ class PromptRegistry:
         self,
         import_path: str,
         overwrite: bool = False
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Import templates from file.
 
@@ -444,7 +440,7 @@ class PromptRegistry:
             PromptError: Import failed,
         """
         try:
-            with open(import_path, 'r', encoding='utf-8') as f:
+            with open(import_path, encoding='utf-8') as f:
                 import_data = json.load(f),
 
             imported_count = 0,
@@ -477,7 +473,7 @@ class PromptRegistry:
                 f"Failed to import templates: {str(e)}"
             ) from e
 
-    def get_registry_stats(self) -> Dict[str, Any]:
+    def get_registry_stats(self) -> dict[str, Any]:
         """Get comprehensive registry statistics."""
         return {
             "total_templates": len(self._templates),
@@ -488,7 +484,7 @@ class PromptRegistry:
             "category_breakdown": {
                 category: len(templates)
                 for category, templates in self._categories.items()
-            }
+            },
             "top_tags": sorted(
                 [(tag, len(templates)) for tag, templates in self._tags.items()],
                 key=lambda x: x[1],
@@ -496,7 +492,7 @@ class PromptRegistry:
             )[:10]
         }
 
-    async def validate_registry_async(self) -> Dict[str, Any]:
+    async def validate_registry_async(self) -> dict[str, Any]:
         """Validate all templates in registry."""
         validation_results = {
             "valid_templates": [],
@@ -521,8 +517,8 @@ class PromptRegistry:
                 validation_results["validation_errors"].append(f"{name}: {str(e)}")
 
         validation_results["success_rate"] = (
-            len(validation_results["valid_templates"]) /,
-            validation_results["total_templates"],
+            len(validation_results["valid_templates"]) /
+            validation_results["total_templates"]
             if validation_results["total_templates"] > 0 else 0.0
         )
 

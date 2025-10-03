@@ -21,12 +21,7 @@ from pathlib import Path
 try:
     from ecosystemiser.datavis.plot_factory import PlotFactory
     from ecosystemiser.reporting.generator import HTMLReportGenerator
-    from ecosystemiser.services.study_service import (
-        SimulationConfig,
-        StudyConfig,
-        StudyService,
-    )
-
+    from ecosystemiser.services.study_service import SimulationConfig, StudyConfig, StudyService
     from hive_logging import get_logger
 
     logger = get_logger(__name__)
@@ -353,7 +348,7 @@ try:
             "comparison_report": comparison_report_path,
         }
 
-    def main() -> None:
+    async def main() -> None:
         """Main demonstration function."""
         logger.info("EcoSystemiser Advanced Capabilities Demonstration")
         logger.info("=" * 60)

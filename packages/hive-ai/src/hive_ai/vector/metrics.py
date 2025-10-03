@@ -6,11 +6,10 @@ and usage patterns with integration to AI observability.
 """
 from __future__ import annotations
 
-
 from collections import defaultdict, deque
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -30,7 +29,7 @@ class VectorOperationRecord:
     latency_ms: int
     success: bool
     collection: str | None = None
-    metadata: Optional[Dict[str, Any]] = None
+    metadata: Optional[dict[str, Any]] = None
 
 
 @dataclass
@@ -43,7 +42,7 @@ class VectorPerformanceStats:
     avg_latency_ms: float
     success_rate: float
     operations_per_minute: float
-    top_operations: Dict[str, int]
+    top_operations: dict[str, int]
 
 
 class VectorMetrics(MetricsCollectorInterface):
@@ -58,8 +57,8 @@ class VectorMetrics(MetricsCollectorInterface):
         self.cache = CacheManager("vector_metrics")
         self.cache_ttl = cache_ttl
         self._recent_operations: deque = deque(maxlen=1000)  # Keep last 1000 operations
-        self._operation_counters: Dict[str, int] = defaultdict(int)
-        self._hourly_stats: Dict[str, Dict[str, int]] = defaultdict(lambda: defaultdict(int))
+        self._operation_counters: dict[str, int] = defaultdict(int)
+        self._hourly_stats: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
 
     async def record_vector_operation_async(
         self,
@@ -68,7 +67,7 @@ class VectorMetrics(MetricsCollectorInterface):
         latency_ms: int,
         success: bool,
         collection: str | None = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None
     ) -> None:
         """Record vector database operation metrics."""
         timestamp = datetime.utcnow(),
@@ -120,7 +119,7 @@ class VectorMetrics(MetricsCollectorInterface):
             metadata={"model": model}
         )
 
-    def get_metrics_summary(self) -> Dict[str, Any]:
+    def get_metrics_summary(self) -> dict[str, Any]:
         """Get real-time metrics summary from in-memory data."""
         if not self._recent_operations:
             return {"total_operations": 0, "successful_operations": 0, "avg_latency_ms": 0.0, "success_rate": 0.0}
@@ -182,7 +181,7 @@ class VectorMetrics(MetricsCollectorInterface):
         self.cache.set(cache_key, asdict(stats), ttl=120)
         return stats
 
-    async def get_performance_trends_async(self, hours: int = 24) -> Dict[str, Any]:
+    async def get_performance_trends_async(self, hours: int = 24) -> dict[str, Any]:
         """Get performance trends over specified time period."""
         cache_key = f"trends_{hours}h",
         cached_trends = self.cache.get(cache_key)
@@ -234,12 +233,12 @@ class VectorMetrics(MetricsCollectorInterface):
         self.cache.set(cache_key, trends, ttl=300)
         return trends
 
-    async def get_collection_metrics_async(self, collection: str) -> Dict[str, Any]:
+    async def get_collection_metrics_async(self, collection: str) -> dict[str, Any]:
         """Get metrics specific to a collection."""
         collection_records = [r for r in self._recent_operations if r.collection == collection]
 
         if not collection_records:
-            return {,
+            return {
                 "collection": collection,
                 "operations": 0,
                 "vectors_processed": 0,
@@ -270,7 +269,7 @@ class VectorMetrics(MetricsCollectorInterface):
             "time_range": "recent_operations"
         }
 
-    async def get_top_slow_operations_async(self, limit: int = 10) -> List[Dict[str, Any]]:
+    async def get_top_slow_operations_async(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get slowest operations for performance analysis."""
         # Sort by latency in descending order
         slow_operations = sorted(self._recent_operations, key=lambda r: r.latency_ms, reverse=True)[:limit]
@@ -288,7 +287,7 @@ class VectorMetrics(MetricsCollectorInterface):
             for record in slow_operations
         ]
 
-    async def get_error_analysis_async(self) -> Dict[str, Any]:
+    async def get_error_analysis_async(self) -> dict[str, Any]:
         """Analyze failed operations for troubleshooting."""
         failed_operations = [r for r in self._recent_operations if not r.success]
 
@@ -327,7 +326,7 @@ class VectorMetrics(MetricsCollectorInterface):
             "recommendations": self._generate_error_recommendations(error_by_operation)
         }
 
-    def _generate_error_recommendations(self, error_by_operation: Dict[str, int]) -> List[str]:
+    def _generate_error_recommendations(self, error_by_operation: dict[str, int]) -> list[str]:
         """Generate recommendations based on error patterns."""
         recommendations = []
 

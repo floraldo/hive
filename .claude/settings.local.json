@@ -82,7 +82,9 @@
       "Bash(echo:*)",
       "Bash(bash:*)",
       "Bash(git log:*)",
-      "Bash(conda:*)"
+      "Bash(conda:*)",
+      "Read(//c/tmp/**)",
+      "Bash(tee:*)"
     ],
     "deny": [],
     "ask": []

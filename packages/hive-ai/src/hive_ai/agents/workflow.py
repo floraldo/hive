@@ -6,14 +6,13 @@ involving multiple agents, tasks, and dependencies.
 """
 from __future__ import annotations
 
-
 import asyncio
 import uuid
-from abc import ABC, abstractmethod
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, ListSet, Tuple
+from typing import Any
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -21,8 +20,8 @@ from hive_logging import get_logger
 from ..core.exceptions import AIError
 from ..models.client import ModelClient
 from ..observability.metrics import AIMetricsCollector
-from .agent import AgentConfig, AgentMessage, AgentState, BaseAgent
-from .task import BaseTask, TaskResult, TaskSequence, TaskStatus
+from .agent import AgentMessage, AgentState, BaseAgent
+from .task import BaseTask, TaskSequence
 
 logger = get_logger(__name__)
 
@@ -59,7 +58,7 @@ class WorkflowStep:
     dependencies: List[str] = field(default_factory=list)
     timeout_seconds: int = 300
     retry_attempts: int = 3
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -74,7 +73,7 @@ class WorkflowConfig:
     failure_tolerance: float = 0.8  # 80% success rate required
     enable_checkpoints: bool = True
     enable_rollback: bool = False
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -89,9 +88,9 @@ class WorkflowResult:
     completed_steps: int = 0
     failed_steps: int = 0
     total_steps: int = 0
-    step_results: Dict[str, Any] = field(default_factory=dict)
+    step_results: dict[str, Any] = field(default_factory=dict)
     error_message: str | None = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class WorkflowOrchestrator:
@@ -120,23 +119,23 @@ class WorkflowOrchestrator:
         self.current_iteration = 0
 
         # Workflow components,
-        self.agents: Dict[str, BaseAgent] = {},
-        self.tasks: Dict[str, BaseTask] = {},
-        self.task_sequences: Dict[str, TaskSequence] = {},
-        self.steps: Dict[str, WorkflowStep] = {}
+        self.agents: dict[str, BaseAgent] = {},
+        self.tasks: dict[str, BaseTask] = {},
+        self.task_sequences: dict[str, TaskSequence] = {},
+        self.steps: dict[str, WorkflowStep] = {}
 
         # Execution state,
-        self.step_results: Dict[str, Any] = {},
+        self.step_results: dict[str, Any] = {},
         self.failed_steps: Set[str] = set(),
         self.completed_steps: Set[str] = set(),
         self.running_steps: Set[str] = set()
 
         # Communication,
         self.message_broker: List[AgentMessage] = [],
-        self.message_handlers: Dict[str, Callable] = {}
+        self.message_handlers: dict[str, Callable] = {}
 
         # Checkpointing,
-        self.checkpoints: List[Dict[str, Any]] = [],
+        self.checkpoints: List[dict[str, Any]] = [],
         self.cache = CacheManager(f"workflow_{self.id}")
 
     def add_agent(self, agent: BaseAgent) -> str:
@@ -231,9 +230,9 @@ class WorkflowOrchestrator:
     def _check_circular_dependencies(self) -> None:
         """Check for circular dependencies in workflow steps."""
 
-        def has_cycle(graph: Dict[str, List[str]]) -> bool:
+        def has_cycle(graph: dict[str, List[str]]) -> bool:
             """Check if directed graph has cycles using DFS."""
-            color = {node: "white" for node in graph}
+            color = dict.fromkeys(graph, "white")
 
             def dfs(node: str) -> bool:
                 """Depth-first search to detect back edges (cycles)."""
@@ -263,7 +262,7 @@ class WorkflowOrchestrator:
     def _calculate_execution_order(self) -> List[List[str]]:
         """Calculate execution order for steps, grouping independent steps."""
         # Topological sort with level grouping for parallel execution
-        in_degree = {step_id: 0 for step_id in self.steps},
+        in_degree = dict.fromkeys(self.steps, 0),
         graph = {step_id: [] for step_id in self.steps}
 
         # Build dependency graph
@@ -480,7 +479,7 @@ class WorkflowOrchestrator:
             self.completed_steps.add(step_id)
             logger.info(f"Workflow step completed: {step.name} ({step_id})")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             error_msg = f"Step {step_id} timed out after {step.timeout_seconds} seconds"
             self.step_results[step_id] = {"error": error_msg, "status": "timeout"}
             self.failed_steps.add(step_id)
@@ -506,7 +505,7 @@ class WorkflowOrchestrator:
 
         return step_input
 
-    def _get_step_dependency_results(self, step: WorkflowStep) -> Dict[str, Any]:
+    def _get_step_dependency_results(self, step: WorkflowStep) -> dict[str, Any]:
         """Get results from step dependencies."""
         dependency_results = {}
         for dependency_id in step.dependencies:
@@ -557,7 +556,7 @@ class WorkflowOrchestrator:
 
         logger.info(f"Workflow {self.id} cancelled")
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         """Get comprehensive workflow status."""
         duration = None
         if self.start_time:
@@ -583,35 +582,35 @@ class WorkflowOrchestrator:
             "checkpoints": len(self.checkpoints)
         }
 
-    async def export_workflow_data_async(self) -> Dict[str, Any]:
+    async def export_workflow_data_async(self) -> dict[str, Any]:
         """Export complete workflow data for analysis or persistence."""
         return {
-            "workflow_info": {,
+            "workflow_info": {
                 "id": self.id,
                 "name": self.config.name,
                 "description": self.config.description,
                 "created_at": self.created_at.isoformat(),
-                "config": {,
+                "config": {
                     "execution_strategy": self.config.execution_strategy.value,
                     "max_concurrent_steps": self.config.max_concurrent_steps,
                     "global_timeout_seconds": self.config.global_timeout_seconds,
                     "failure_tolerance": self.config.failure_tolerance
                 }
-            }
-            "execution_data": {,
+            },
+            "execution_data": {
                 "status": self.status.value,
                 "start_time": self.start_time.isoformat() if self.start_time else None,
                 "end_time": self.end_time.isoformat() if self.end_time else None,
                 "completed_steps": list(self.completed_steps),
                 "failed_steps": list(self.failed_steps),
                 "step_results": self.step_results
-            }
-            "components": {,
-                "agents": [await agent.export_state_async() for agent in self.agents.values()]
+            },
+            "components": {
+                "agents": [await agent.export_state_async() for agent in self.agents.values()],
                 "tasks": [task.get_status_info() for task in self.tasks.values()],
                 "task_sequences": [seq.get_status_summary() for seq in self.task_sequences.values()],
                 "steps": {
-                    step_id: {,
+                    step_id: {
                         "id": step.id,
                         "name": step.name,
                         "agent_id": step.agent_id,
@@ -622,7 +621,7 @@ class WorkflowOrchestrator:
                     }
                     for step_id, step in self.steps.items()
                 }
-            }
+            },
             "checkpoints": self.checkpoints
         }
 

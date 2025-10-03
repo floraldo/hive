@@ -123,9 +123,9 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     # Configure processors
     processors = [
         # Add correlation ID
-        CorrelationIDProcessor()
+        CorrelationIDProcessor(),
         # Add adapter context
-        AdapterContextProcessor()
+        AdapterContextProcessor(),
         # Filter by level
         structlog.stdlib.filter_by_level,
         # Add logger name

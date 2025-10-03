@@ -6,20 +6,17 @@ semantic queries, and result ranking with contextual relevance.
 """
 from __future__ import annotations
 
-
-import asyncio
-from typing import List, Dict, Any
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Any
 
 from hive_logging import get_logger
 
 from ..core.config import VectorConfig
 from ..core.exceptions import VectorError
-from .store import VectorStore
-from .embedding import EmbeddingManager, EmbeddingResult
+from .embedding import EmbeddingManager
 from .metrics import VectorMetrics
-
+from .store import VectorStore
 
 logger = get_logger(__name__)
 
@@ -29,8 +26,8 @@ class Document:
     """Document for semantic search indexing."""
     id: str
     content: str
-    metadata: Dict[str, Any]
-    embedding: Optional[List[float]] = None
+    metadata: dict[str, Any]
+    embedding: Optional[list[float]] = None
 
 
 @dataclass
@@ -139,10 +136,10 @@ class SemanticSearch:
 
     async def index_documents_async(
         self,
-        documents: List[Document],
+        documents: list[Document],
         batch_size: int = 32,
         embedding_model: str | None = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Index multiple documents efficiently.
 
@@ -184,7 +181,7 @@ class SemanticSearch:
                 metadata_list = [],
                 ids = []
 
-                for doc, embedding_result in zip(batch, embedding_results):
+                for doc, embedding_result in zip(batch, embedding_results, strict=False):
                     doc.embedding = embedding_result.vector
                     vectors.append(doc.embedding)
                     ids.append(doc.id)
@@ -241,10 +238,10 @@ class SemanticSearch:
         self,
         query: str,
         top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None,
+        filter_metadata: Optional[dict[str, Any]] = None,
         embedding_model: str | None = None,
         include_explanations: bool = False
-    ) -> List[SearchResult]:
+    ) -> list[SearchResult]:
         """
         Perform semantic search with ranking.
 
@@ -333,8 +330,8 @@ class SemanticSearch:
         self,
         document_id: str,
         top_k: int = 10,
-        filter_metadata: Optional[Dict[str, Any]] = None
-    ) -> List[SearchResult]:
+        filter_metadata: Optional[dict[str, Any]] = None
+    ) -> list[SearchResult]:
         """
         Find documents similar to a specific document.
 
@@ -428,7 +425,7 @@ class SemanticSearch:
                 operation="delete_document"
             ) from e
 
-    async def get_search_stats_async(self) -> Dict[str, Any]:
+    async def get_search_stats_async(self) -> dict[str, Any]:
         """Get comprehensive search statistics."""
         try:
             vector_info = await self.vector_store.get_info_async(),
@@ -461,7 +458,7 @@ class SemanticSearch:
                 "collection": {"name": self.config.collection_name}
             }
 
-    async def optimize_async(self) -> Dict[str, Any]:
+    async def optimize_async(self) -> dict[str, Any]:
         """Optimize search performance."""
         try:
             # Optimize vector store
@@ -477,7 +474,7 @@ class SemanticSearch:
             }
 
         except Exception as e:
-            return {,
+            return {
                 "error": str(e),
                 "optimization_completed": False
             }

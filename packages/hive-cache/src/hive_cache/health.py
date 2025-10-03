@@ -4,14 +4,13 @@ from __future__ import annotations
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from datetime import datetime
+from typing import Any
 
 from hive_logging import get_logger
 
 from .cache_client import HiveCacheClient
 from .config import CacheConfig
-from .exceptions import CacheConnectionError, CacheError
 
 logger = get_logger(__name__)
 
@@ -23,8 +22,8 @@ class HealthCheckResult:
     healthy: bool
     timestamp: datetime
     response_time_ms: float
-    details: Dict[str, Any] = field(default_factory=dict)
-    errors: List[str] = field(default_factory=list)
+    details: dict[str, Any] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -56,7 +55,7 @@ class CacheHealthMonitor:
         self.cache_client = cache_client
         self.config = config
         self._monitoring_active = False
-        self._health_history: List[HealthCheckResult] = []
+        self._health_history: list[HealthCheckResult] = []
         self._max_history_size = 100
         self._alert_thresholds = {
             "response_time_ms": 1000,  # Alert if response time > 1s,
@@ -128,8 +127,8 @@ class CacheHealthMonitor:
 
         # Check error rate over recent history
         if len(self._health_history) >= 10:
-            recent_checks = self._health_history[-10:],
-            failed_checks = sum(1 for check in recent_checks if not check.healthy),
+            recent_checks = self._health_history[-10:]
+            failed_checks = sum(1 for check in recent_checks if not check.healthy)
             error_rate = (failed_checks / len(recent_checks)) * 100
 
             if error_rate > self._alert_thresholds["error_rate_percent"]:
@@ -145,8 +144,8 @@ class CacheHealthMonitor:
         Returns:
             HealthCheckResult with detailed status
         """
-        start_time = time.time(),
-        errors = [],
+        start_time = time.time()
+        errors = []
         details = {}
 
         try:
@@ -200,13 +199,13 @@ class CacheHealthMonitor:
                 errors=errors
             )
 
-    async def _test_ping_async(self) -> Dict[str, Any]:
+    async def _test_ping_async(self) -> dict[str, Any]:
         """Test Redis ping operation."""
         try:
-            import aioredis,
+            import aioredis
             async with aioredis.Redis(connection_pool=self.cache_client._redis_pool) as redis:
-                start_time = time.time(),
-                result = await redis.ping(),
+                start_time = time.time()
+                result = await redis.ping()
                 ping_time = (time.time() - start_time) * 1000
 
                 return {
@@ -221,10 +220,10 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _test_set_get_async(self) -> Dict[str, Any]:
+    async def _test_set_get_async(self) -> dict[str, Any]:
         """Test set/get operations."""
         try:
-            test_key = f"health_check_{int(time.time())}",
+            test_key = f"health_check_{int(time.time())}"
             test_value = {"test": True, "timestamp": time.time()}
 
             # Test set,
@@ -252,7 +251,7 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _test_pattern_operations_async(self) -> Dict[str, Any]:
+    async def _test_pattern_operations_async(self) -> dict[str, Any]:
         """Test pattern-based operations."""
         try:
             # Create test keys,
@@ -277,10 +276,10 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _get_redis_info_async(self) -> Dict[str, Any]:
+    async def _get_redis_info_async(self) -> dict[str, Any]:
         """Get Redis server information."""
         try:
-            import aioredis,
+            import aioredis
             async with aioredis.Redis(connection_pool=self.cache_client._redis_pool) as redis:
                 info = await redis.info()
 
@@ -303,7 +302,7 @@ class CacheHealthMonitor:
                 "error": str(e)
             }
 
-    async def _get_connection_pool_stats_async(self) -> Dict[str, Any]:
+    async def _get_connection_pool_stats_async(self) -> dict[str, Any]:
         """Get connection pool statistics."""
         try:
             pool = self.cache_client._redis_pool
@@ -349,7 +348,7 @@ class CacheHealthMonitor:
             logger.error(f"Failed to get performance metrics: {e}")
             return PerformanceMetrics()
 
-    def get_health_history(self, limit: int | None = None) -> List[HealthCheckResult]:
+    def get_health_history(self, limit: int | None = None) -> list[HealthCheckResult]:
         """Get health check history.
 
         Args:
@@ -363,7 +362,7 @@ class CacheHealthMonitor:
         else:
             return self._health_history[-limit:]
 
-    def get_health_summary(self) -> Dict[str, Any]:
+    def get_health_summary(self) -> dict[str, Any]:
         """Get summary of health status.
 
         Returns:
@@ -376,11 +375,11 @@ class CacheHealthMonitor:
             }
 
         recent_checks = self._health_history[-10:] if len(self._health_history) >= 10 else self._health_history,
-        healthy_count = sum(1 for check in recent_checks if check.healthy),
-        health_rate = (healthy_count / len(recent_checks)) * 100,
+        healthy_count = sum(1 for check in recent_checks if check.healthy)
+        health_rate = (healthy_count / len(recent_checks)) * 100
 
-        latest_check = self._health_history[-1],
-        avg_response_time = sum(check.response_time_ms for check in recent_checks) / len(recent_checks),
+        latest_check = self._health_history[-1]
+        avg_response_time = sum(check.response_time_ms for check in recent_checks) / len(recent_checks)
 
         status = "healthy"
         if health_rate < 50:
@@ -390,7 +389,7 @@ class CacheHealthMonitor:
 
         return {
             "status": status,
-            "health_rate_percent": round(health_rate, 1)
+            "health_rate_percent": round(health_rate, 1),
             "average_response_time_ms": round(avg_response_time, 2),
             "last_check": latest_check.timestamp.isoformat(),
             "consecutive_failures": self._consecutive_failures,
@@ -398,18 +397,18 @@ class CacheHealthMonitor:
             "monitoring_active": self._monitoring_active
         }
 
-    async def diagnose_issues_async(self) -> Dict[str, Any]:
+    async def diagnose_issues_async(self) -> dict[str, Any]:
         """Perform diagnostic analysis of cache issues.
 
         Returns:
             Diagnostic report
         """
-        issues = [],
+        issues = []
         recommendations = []
 
         # Analyze health history
         if len(self._health_history) >= 5:
-            recent_checks = self._health_history[-5:],
+            recent_checks = self._health_history[-5:]
             failed_checks = [check for check in recent_checks if not check.healthy]
 
             if len(failed_checks) > 2:
@@ -417,7 +416,7 @@ class CacheHealthMonitor:
                 recommendations.append("Check Redis server status and network connectivity")
 
             # Check response times
-            response_times = [check.response_time_ms for check in recent_checks],
+            response_times = [check.response_time_ms for check in recent_checks]
             avg_response_time = sum(response_times) / len(response_times)
 
             if avg_response_time > 500:
@@ -425,7 +424,7 @@ class CacheHealthMonitor:
                 recommendations.append("Consider optimizing queries or checking Redis server performance")
 
         # Check client metrics
-        client_metrics = self.cache_client.get_metrics(),
+        client_metrics = self.cache_client.get_metrics()
         hit_rate = client_metrics.get("hit_rate_percent", 0)
 
         if hit_rate < 50:

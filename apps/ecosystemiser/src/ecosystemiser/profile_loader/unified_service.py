@@ -112,7 +112,7 @@ class UnifiedProfileService:
         """
         service = self.get_service_for_request(request)
         if not service:
-            raise ValueError(f"No service available for request type: {type(request)}"),
+            raise ValueError(f"No service available for request type: {type(request)}")
 
         dataset, response = await service.process_request_async(request)
         return response

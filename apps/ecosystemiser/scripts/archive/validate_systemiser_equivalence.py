@@ -16,7 +16,6 @@ from pathlib import Path
 import numpy as np
 
 # golden-rule-ignore: no-syspath-hacks - Legacy archive script for validation
- for imports
 eco_path = Path(__file__).parent.parent / "src"
 
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine

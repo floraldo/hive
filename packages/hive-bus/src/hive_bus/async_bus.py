@@ -76,7 +76,7 @@ class AsyncEvent:
             event_type=data["event_type"],
             data=data["data"],
             priority=EventPriority(data.get("priority", EventPriority.NORMAL.value)),
-            event_id=data.get("event_id", str(uuid4()))
+            event_id=data.get("event_id", str(uuid4())),
             timestamp=data.get("timestamp", time.time()),
             correlation_id=data.get("correlation_id"),
             retry_count=data.get("retry_count", 0),
@@ -251,10 +251,10 @@ class AsyncEventBus:
             try:
                 # Use priority value for queue ordering (lower value = higher priority)
                 await asyncio.wait_for(
-                    self._queues[event_type].put((event.priority.value, event.timestamp, event))
+                    self._queues[event_type].put((event.priority.value, event.timestamp, event)),
                     timeout=timeout or self._default_timeout
                 )
-                self._stats["events_published"] += 1,
+                self._stats["events_published"] += 1
                 logger.debug(f"Published event {event.event_id} of type {event_type}")
             except asyncio.TimeoutError:
                 logger.error(f"Timeout publishing event {event.event_id}")
@@ -310,10 +310,10 @@ class AsyncEventBus:
                 for handler_priority, handler in self._handlers.get(event_type, []):
                     try:
                         await asyncio.wait_for(
-                            handler_async(event)
+                            handler_async(event),
                             timeout=self._default_timeout
                         )
-                        self._stats["events_processed"] += 1,
+                        self._stats["events_processed"] += 1
                     except asyncio.TimeoutError:
                         logger.error(f"Handler {handler.__name__} timed out for event {event.event_id}")
                         self._stats["events_timeout"] += 1,
@@ -348,7 +348,7 @@ class AsyncEventBus:
                             await self._dead_letter_queue.put(event)
 
             except asyncio.CancelledError:
-                break,
+                break
             except Exception as e:
                 logger.error(f"Error processing events for {event_type}: {e}")
                 await asyncio.sleep(1)  # Brief pause before retrying
@@ -358,7 +358,7 @@ class AsyncEventBus:
         while self._running:
             try:
                 event = await asyncio.wait_for(
-                    self._dead_letter_queue.get()
+                    self._dead_letter_queue.get(),
                     timeout=5.0
                 )
                 logger.warning(

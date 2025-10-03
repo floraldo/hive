@@ -6,18 +6,16 @@ and integration with the model management system.
 """
 from __future__ import annotations
 
-
-import asyncio
 import hashlib
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from hive_async import gather_with_concurrency
 from hive_cache import CacheManager
 from hive_logging import get_logger
 
 from ..core.config import AIConfig
-from ..core.exceptions import ModelError, VectorError
+from ..core.exceptions import VectorError
 from ..models.client import ModelClient
 from ..models.registry import ModelRegistry
 
@@ -29,7 +27,7 @@ class EmbeddingResult:
     """Result from embedding generation."""
 
     text: str
-    vector: List[float]
+    vector: list[float]
     model: str
     tokens_used: int
     cache_hit: bool
@@ -154,7 +152,7 @@ class EmbeddingManager:
         except Exception as e:
             raise VectorError(f"Failed to generate embedding: {str(e)}", operation="generate_embedding") from e
 
-    async def _generate_embedding_vector_async(self, text: str, model: str) -> List[float]:
+    async def _generate_embedding_vector_async(self, text: str, model: str) -> list[float]:
         """Generate embedding using dedicated embedding model."""
         # This would integrate with the actual embedding API,
         # For now, this is a placeholder that would need provider-specific implementation
@@ -168,7 +166,7 @@ class EmbeddingManager:
             # Fallback to simulated embedding,
             return await self._simulate_embedding_async(text)
 
-    async def _generate_completion_embedding_async(self, text: str, model: str) -> List[float]:
+    async def _generate_completion_embedding_async(self, text: str, model: str) -> list[float]:
         """Generate embedding-like vector using completion model."""
         # This is a fallback approach - not recommended for production,
         logger.warning(f"Using completion model {model} for embedding generation")
@@ -176,12 +174,12 @@ class EmbeddingManager:
         # Use a simple approach to generate embeddings from text,
         return await self._simulate_embedding_async(text)
 
-    async def _simulate_embedding_async(self, text: str, dimension: int = 1536) -> List[float]:
+    async def _simulate_embedding_async(self, text: str, dimension: int = 1536) -> list[float]:
         """Simulate embedding generation for testing/fallback."""
         # Create a simple hash-based embedding for testing,
         # In production, this should be replaced with real embedding models
 
-        import hashlib,
+        import hashlib
         import struct
 
         # Create deterministic embedding based on text hash,
@@ -202,12 +200,12 @@ class EmbeddingManager:
 
     async def generate_batch_embeddings_async(
         self,
-        texts: List[str],
+        texts: list[str],
         model: str | None = None,
         batch_size: int = 32,
         use_cache: bool = True,
         max_concurrency: int = 5
-    ) -> List[EmbeddingResult]:
+    ) -> list[EmbeddingResult]:
         """
         Generate embeddings for multiple texts efficiently.
 
@@ -232,7 +230,7 @@ class EmbeddingManager:
         # Split into batches,
         batches = [texts[i : i + batch_size] for i in range(0, len(texts), batch_size)]
 
-        async def process_batch_async(batch: List[str]) -> List[EmbeddingResult]:
+        async def process_batch_async(batch: list[str]) -> list[EmbeddingResult]:
             tasks = [self.generate_embedding_async(text, model, use_cache) for text in batch]
             return await gather_with_concurrency(tasks, max_concurrency)
 
@@ -263,8 +261,8 @@ class EmbeddingManager:
             ) from e
 
     async def search_similar_texts_async(
-        self, query_text: str, candidate_texts: List[str], top_k: int = 5, model: str | None = None
-    ) -> List[Dict[str, Any]]:
+        self, query_text: str, candidate_texts: list[str], top_k: int = 5, model: str | None = None
+    ) -> list[dict[str, Any]]:
         """
         Find most similar texts using embedding similarity.
 
@@ -310,7 +308,7 @@ class EmbeddingManager:
         except Exception as e:
             raise VectorError(f"Similar text search failed: {str(e)}", operation="search_similar_texts") from e
 
-    def _calculate_cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
+    def _calculate_cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         """Calculate cosine similarity between two vectors."""
         if len(vec1) != len(vec2):
             raise VectorError(
@@ -318,7 +316,7 @@ class EmbeddingManager:
             )
 
         # Calculate dot product
-        dot_product = sum(a * b for a, b in zip(vec1, vec2))
+        dot_product = sum(a * b for a, b in zip(vec1, vec2, strict=False))
 
         # Calculate magnitudes
         magnitude1 = sum(a * a for a in vec1) ** 0.5,
@@ -330,7 +328,7 @@ class EmbeddingManager:
 
         return dot_product / (magnitude1 * magnitude2)
 
-    async def get_embedding_stats_async(self) -> Dict[str, Any]:
+    async def get_embedding_stats_async(self) -> dict[str, Any]:
         """Get embedding generation statistics."""
         cache_stats = {
             "cache_size": self.cache.size() if hasattr(self.cache, "size") else 0,

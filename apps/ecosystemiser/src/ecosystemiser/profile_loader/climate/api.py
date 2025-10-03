@@ -68,7 +68,7 @@ class BatchClimateRequest(BaseModel):
     """Batch request for multiple climate data queries"""
 
     requests: List[ClimateRequest] = Field(
-        ...
+        ...,
         min_items=1,
         max_items=100,
         description="List of climate requests to process"

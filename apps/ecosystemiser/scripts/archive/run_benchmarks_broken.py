@@ -661,15 +661,15 @@ def main() -> None:
             json.dump(results, f, indent=2)
 
         # Script output
-    logger.info("\nBenchmark results saved to: {output_file}")
+        logger.info("\nBenchmark results saved to: {output_file}")
 
         # Print summary
         # Script output
-    logger.info("\n" + "=" * 60)
+        logger.info("\n" + "=" * 60)
         # Script output
-    logger.info("ECOSYSTEMISER V3.0 PERFORMANCE BASELINE")
+        logger.info("ECOSYSTEMISER V3.0 PERFORMANCE BASELINE")
         # Script output
-    logger.info("=" * 60)
+        logger.info("=" * 60)
 
         summary = results["summary"]
         fidelity_perf = summary.get("fidelity_performance", {})

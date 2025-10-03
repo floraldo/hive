@@ -298,12 +298,12 @@ stats.total_connections > 0
                             "reason": f"efficiency: {stats.pool_efficiency:.2f}",
                         }
                     else:
-                        optimization_results[provider] = {,
+                        optimization_results[provider] = {
                             "action": "no_change",
                             "reason": "optimal_size",
                         }
                 else:
-                    optimization_results[provider] = {,
+                    optimization_results[provider] = {
                         "action": "insufficient_data",
                         "requests": stats.total_requests,
                     }

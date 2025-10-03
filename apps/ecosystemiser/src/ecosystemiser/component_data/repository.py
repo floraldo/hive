@@ -211,7 +211,7 @@ class SQLiteLoader:
                 # Reconstruct component data structure
                 data = {
                     "component_class": row["component_class"],
-                    "technical": json.loads(row["technical_data"])
+                    "technical": json.loads(row["technical_data"]),
                     "category": row["category"]
                 }
 

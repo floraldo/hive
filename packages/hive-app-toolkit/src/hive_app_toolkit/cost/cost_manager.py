@@ -90,8 +90,8 @@ class CostManager:
 
     def __init__(
         self,
-        limits: BudgetLimits | None = None,
-        cache_client: CacheClient | None = None,
+        limits: BudgetLimits | None = None
+        cache_client: CacheClient | None = None
     ) -> None:
         """Initialize cost manager."""
         self.limits = limits or BudgetLimits()
@@ -118,7 +118,7 @@ class CostManager:
         self._load_from_cache()
 
         logger.info(
-            "CostManager initialized with limits: daily=$%.2f, monthly=$%.2f",
+            "CostManager initialized with limits: daily=$%.2f, monthly=$%.2f"
             self.limits.daily_limit,
             self.limits.monthly_limit,
         )
@@ -145,7 +145,7 @@ class CostManager:
     def _save_to_cache(self) -> None:
         """Save usage data to cache."""
         try:
-            cache_data = {,
+            cache_data = {
                 "daily_usage": dict(self.daily_usage),
                 "monthly_usage": dict(self.monthly_usage),
                 "last_reset": {period: ts.isoformat() for period, ts in self._last_reset.items()},
@@ -179,7 +179,7 @@ class CostManager:
     async def estimate_cost(
         self,
         operation: str,
-        parameters: dict[str, Any] | None = None,
+        parameters: dict[str, Any] | None = None
     ) -> ResourceCost:
         """
         Estimate cost for an operation before execution.
@@ -220,7 +220,7 @@ class CostManager:
     async def check_budget(
         self,
         estimated_cost: ResourceCost,
-        operation: str | None = None,
+        operation: str | None = None
     ) -> tuple[bool, str]:
         """
         Check if operation can proceed within budget limits.
@@ -234,7 +234,7 @@ class CostManager:
         """
         self._check_and_reset_periods()
 
-        cost = estimated_cost.total_cost,
+        cost = estimated_cost.total_cost
         operation = operation or "unknown"
 
         # Check per-operation limit,
@@ -272,7 +272,7 @@ class CostManager:
         self,
         actual_cost: ResourceCost,
         operation: str,
-        metadata: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None
     ) -> None:
         """
         Record actual resource usage.
@@ -282,7 +282,7 @@ class CostManager:
             operation: Operation that incurred the cost,
             metadata: Additional metadata for tracking,
         """
-        cost = actual_cost.total_cost,
+        cost = actual_cost.total_cost
         resource_key = f"{operation}_{actual_cost.resource_type.value}"
 
         # Update usage tracking,
@@ -320,44 +320,44 @@ class CostManager:
 
         return {
             "hourly": UsageStats(
-                period="hourly",
-                usage=sum(self.hourly_usage.values()),
-                limit=self.limits.hourly_limit,
+                period="hourly"
+                usage=sum(self.hourly_usage.values())
+                limit=self.limits.hourly_limit
                 operations=len(
                     [
                         h
-                        for h in self.usage_history,
+                        for h in self.usage_history
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(hours=1)
                     ]
                 ),
             ),
             "daily": UsageStats(
-                period="daily",
-                usage=sum(self.daily_usage.values()),
-                limit=self.limits.daily_limit,
+                period="daily"
+                usage=sum(self.daily_usage.values())
+                limit=self.limits.daily_limit
                 operations=len(
                     [
                         h
-                        for h in self.usage_history,
+                        for h in self.usage_history
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=1)
                     ]
                 ),
             ),
             "monthly": UsageStats(
-                period="monthly",
-                usage=sum(self.monthly_usage.values()),
-                limit=self.limits.monthly_limit,
+                period="monthly"
+                usage=sum(self.monthly_usage.values())
+                limit=self.limits.monthly_limit
                 operations=len(
                     [
                         h
-                        for h in self.usage_history,
+                        for h in self.usage_history
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=30)
                     ]
                 ),
             ),
             "recent_operations": list(self.usage_history)[-10:],
             "usage_by_operation": self._get_usage_by_operation(),
-            "limits": {,
+            "limits": {
                 "hourly": self.limits.hourly_limit,
                 "daily": self.limits.daily_limit,
                 "monthly": self.limits.monthly_limit,
@@ -370,7 +370,7 @@ class CostManager:
         usage_by_op = defaultdict(float)
 
         for usage_record in list(self.usage_history)[-100:]:  # Last 100 operations
-            operation = usage_record["operation"],
+            operation = usage_record["operation"]
             cost = usage_record["total_cost"]
             usage_by_op[operation] += cost
 
@@ -405,8 +405,8 @@ class CostManager:
 
         # Execute operation
         try:
-            start_time = datetime.now(),
-            result = await operation_func(**kwargs),
+            start_time = datetime.now()
+            result = await operation_func(**kwargs)
             execution_time = (datetime.now() - start_time).total_seconds()
 
             # Record actual usage (could be different from estimate)

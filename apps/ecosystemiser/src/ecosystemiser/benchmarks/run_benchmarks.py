@@ -124,7 +124,7 @@ class PerformanceBenchmark:
 
                 simulation_results[fidelity.value] = {
                     "solve_time_seconds": round(solve_time, 3),
-                    "memory_delta_mb": round(end_memory - start_memory, 2)
+                    "memory_delta_mb": round(end_memory - start_memory, 2),
                     "peak_memory_mb": round(peak_memory, 2),
                     "success": True,
                     "objective_value": getattr(result, "objective_value", None)
@@ -211,7 +211,7 @@ class PerformanceBenchmark:
 
                 milp_results[scenario_name] = {
                     "total_time_seconds": round(total_time, 3),
-                    "total_solve_time_seconds": round(total_solve_time, 3)
+                    "total_solve_time_seconds": round(total_solve_time, 3),
                     "average_window_solve_time_seconds": round(avg_window_time, 3),
                     "window_count": window_count,
                     "peak_memory_mb": round(peak_memory, 2),
@@ -295,9 +295,9 @@ class PerformanceBenchmark:
 
                 memory_results[scenario_name] = {
                     "initial_memory_mb": round(initial_memory, 2),
-                    "peak_memory_mb": round(peak_memory, 2)
+                    "peak_memory_mb": round(peak_memory, 2),
                     "final_memory_mb": round(final_memory, 2),
-                    "memory_delta_mb": round(final_memory - initial_memory, 2)
+                    "memory_delta_mb": round(final_memory - initial_memory, 2),
                     "scenario_config": config,
                     "success": True
                 },
