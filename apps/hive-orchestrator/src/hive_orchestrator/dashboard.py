@@ -4,6 +4,7 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 Hive Real-Time Dashboard
 Interactive terminal dashboard for monitoring the entire Hive system.

@@ -100,8 +100,8 @@ class TaskManager:
 
         try:
             await self.active_tasks[task_id]
-        except Exception:
-            pass  # Error is stored in TaskResult
+        except Exception:  # noqa: S110 - Error is stored in TaskResult
+            pass
 
         return self.completed_tasks[task_id]
 

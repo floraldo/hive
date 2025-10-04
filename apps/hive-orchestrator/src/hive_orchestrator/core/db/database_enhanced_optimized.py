@@ -22,11 +22,11 @@ Performance improvements:
 - Connection pooling support
 """
 
-import json
-from typing import Any
+import json  # noqa: E402
+from typing import Any  # noqa: E402
 
-from .connection_pool import get_pooled_connection
-from .database import get_connection
+from .connection_pool import get_pooled_connection  # noqa: E402
+from .database import get_connection  # noqa: E402
 
 
 def get_queued_tasks_with_planning_optimized(

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: S603, S607
 """
 Comprehensive End-to-End Test for Hive V2.0 Platform
 
@@ -9,18 +10,20 @@ This test validates the complete workflow:
 4. Results are validated in database and filesystem
 
 This is the definitive test that proves the entire system works!
+
+Note: Subprocess usage for git/pytest is intentional in E2E tests (S603/S607).
 """
 
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-import shutil
-import sqlite3
-import subprocess
-import sys
-import time
-from datetime import datetime
-from pathlib import Path
+import shutil  # noqa: E402
+import sqlite3  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+import time  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 # Add project root to path
 project_root = Path(__file__).parent.parent

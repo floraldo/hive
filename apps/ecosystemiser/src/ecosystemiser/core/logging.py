@@ -14,7 +14,7 @@ from hive_logging import setup_logging as setup_hive_logging
 
 # Re-export structlog logger for EcoSystemiser components that need it
 try:
-    import structlog
+    import structlog  # noqa: F401
 
     from ecosystemiser.profile_loader.climate.logging_config import get_logger as get_structlog_logger
 

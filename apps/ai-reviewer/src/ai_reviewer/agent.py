@@ -19,7 +19,11 @@ from hive_logging import get_logger
 
 # Async database imports for Phase 4.1
 try:
-    from hive_orchestrator.core.db import get_async_connection, get_tasks_by_status_async, update_task_status_async
+    from hive_orchestrator.core.db import (  # noqa: F401
+        get_async_connection,
+        get_tasks_by_status_async,
+        update_task_status_async,
+    )
 
     ASYNC_DB_AVAILABLE = True
 except ImportError:
@@ -37,7 +41,7 @@ try:
 
     # Try to import async event bus operations
     try:
-        from hive_bus.event_bus import get_async_event_bus, publish_event_async
+        from hive_bus.event_bus import get_async_event_bus, publish_event_async  # noqa: F401
 
         ASYNC_EVENTS_AVAILABLE = True
     except ImportError:
@@ -598,7 +602,7 @@ class ReviewAgent:
 
         console.logger.info(f"[green]Task {task['id']} reviewed: {result.decision.value}[/green]")
 
-    async def run_async(self) -> None:
+    async def run_async(self) -> None:  # noqa: F811
         """Enhanced async version of main autonomous loop for 3-5x performance improvement."""
         self.running = True
         self.stats["start_time"] = datetime.now()

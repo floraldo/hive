@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607
+# ruff: noqa: S603, S607, E402
 """
 WorkerCore - Streamlined Worker
 Preserves path duplication fix while simplifying architecture

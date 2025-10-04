@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
+# ruff: noqa: S603
 """
 Comprehensive test suite for Hive V2.0 Windows integration.
 Consolidates all test scenarios into a single, organized test runner.
+
+Note: Subprocess usage for integration testing is intentional (S603).
 """
 
 import json
@@ -9,22 +12,22 @@ import json
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-import os
-import sqlite3
-import subprocess
-import sys
-import time
-import uuid
-from datetime import UTC, datetime
-from pathlib import Path
+import os  # noqa: E402
+import sqlite3  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+import time  # noqa: E402
+import uuid  # noqa: E402
+from datetime import UTC, datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 # No sys.path manipulation needed - use Poetry workspace imports
 project_root = Path(__file__).parent.parent.parent.parent
 # All packages available through Poetry workspace imports
 
-from hive_config.paths import DB_PATH
-from hive_orchestrator.core import db as hive_core_db
-from hive_orchestrator.hive_core import HiveCore
+from hive_config.paths import DB_PATH  # noqa: E402
+from hive_orchestrator.core import db as hive_core_db  # noqa: E402
+from hive_orchestrator.hive_core import HiveCore  # noqa: E402
 
 
 class HiveTestSuite:

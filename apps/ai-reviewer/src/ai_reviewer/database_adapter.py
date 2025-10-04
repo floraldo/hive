@@ -6,9 +6,10 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 import hive_db as hive_core_db
+from hive_db.models import Task, TaskStatus
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -24,7 +25,7 @@ class DatabaseAdapter:
         # Initialize the database
         hive_core_db.init_db()
 
-    def _parse_task_payload(self, task: dict[str, Any]) -> Optional[dict[str, Any]]:
+    def _parse_task_payload(self, task: dict[str, Any]) -> dict[str, Any] | None:
         """
         Safely parse task payload from string or dict format.
 
@@ -110,7 +111,7 @@ class DatabaseAdapter:
             logger.error(f"Error fetching code files for task {task_id}: {e}")
             return {}
 
-    def get_test_results(self, task_id: str) -> Optional[dict[str, Any]]:
+    def get_test_results(self, task_id: str) -> dict[str, Any] | None:
         """
         Retrieve test results for a task
 

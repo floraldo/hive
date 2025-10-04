@@ -9,7 +9,7 @@ from typing import Any
 
 from hive_logging import get_logger
 
-from .cache_client import HiveCacheClient, get_cache_client
+from .cache_client import HiveCacheClient, get_cache_client_async
 from .config import CacheConfig
 
 logger = get_logger(__name__)
@@ -52,7 +52,7 @@ class ClaudeAPICache:
         Returns:
             ClaudeAPICache instance
         """
-        cache_client = await get_cache_client(config)
+        cache_client = await get_cache_client_async(config)
         if config is None:
             config = CacheConfig.from_env()
 

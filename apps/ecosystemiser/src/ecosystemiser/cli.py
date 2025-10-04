@@ -10,7 +10,6 @@ from pathlib import Path
 import yaml
 
 from ecosystemiser.profile_loader.climate import ClimateRequest, get_profile_sync
-from ecosystemiser.reporting.generator import create_standalone_html_report
 from hive_cli import create_cli
 from hive_cli.decorators import option
 from hive_cli.output import info

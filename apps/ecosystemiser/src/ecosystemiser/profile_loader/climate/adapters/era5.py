@@ -154,7 +154,7 @@ class ERA5Adapter(BaseAdapter):
     def _check_cdsapi(self) -> bool:
         """Check if cdsapi library is available"""
         try:
-            import cdsapi
+            import cdsapi  # noqa: F401
 
             # Check for API key in environment or config file,
             if not os.path.exists(os.path.expanduser("~/.cdsapirc")):

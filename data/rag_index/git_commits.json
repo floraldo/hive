@@ -1,1 +1,42 @@
-[]
+[
+  {
+    "hash": "d12f9d63",
+    "full_hash": "d12f9d634e0c8e621c976ad8c9b9a79d76537255",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T02:32:45",
+    "subject": "refactor(testing): Rename tests/ \u2192 integration_tests/ to fix namespace collision",
+    "body": "PROBLEM ANALYSIS:\nPytest configuration had conflicting 'tests' module namespaces:\n- Root tests/ directory (cross-cutting integration tests)\n- Package tests/ dirs (hive-async/tests/, hive-db/tests/, etc.)\n- App tests/ dirs (ai-planner/tests/, ecosystemiser/tests/, etc.)",
+    "searchable_text": "refactor(testing): Rename tests/ \u2192 integration_tests/ to fix namespace collision PROBLEM ANALYSIS:\nPytest configuration had conflicting 'tests' module namespaces:\n- Root tests/ directory (cross-cutting integration tests)\n- Package tests/ dirs (hive-async/tests/, hive-db/tests/, etc.)\n- App tests/ dirs (ai-planner/tests/, ecosystemiser/tests/, etc.)"
+  },
+  {
+    "hash": "5d8e7abf",
+    "full_hash": "5d8e7abfca3c807e1efdc4794317c73277a3a9f1",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T02:26:01",
+    "subject": "fix(lint): S608 - Add file-level noqa for controlled SQL",
+    "body": "database_metadata_service.py uses dynamic SQL with column names from controlled\ndicts combined with parameterized queries (?). All values go through placeholders.",
+    "searchable_text": "fix(lint): S608 - Add file-level noqa for controlled SQL database_metadata_service.py uses dynamic SQL with column names from controlled\ndicts combined with parameterized queries (?). All values go through placeholders."
+  },
+  {
+    "hash": "de807b2b",
+    "full_hash": "de807b2b0cf8f597661f940f96698331972b4d4e",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T02:25:49",
+    "subject": "fix(ecosystemiser): Add missing imports to ecosystemiser.db",
+    "body": "Import ecosystemiser_transaction and other funcs from core.db.",
+    "searchable_text": "fix(ecosystemiser): Add missing imports to ecosystemiser.db Import ecosystemiser_transaction and other funcs from core.db."
+  },
+  {
+    "hash": "bd09a56f",
+    "full_hash": "bd09a56fe4968d76b90cc7e8aafdfe66e9c662e0",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T02:22:00",
+    "subject": "fix(lint): F822 - Fix malformed __all__ exports",
+    "body": "Fixed missing commas in __all__ lists that caused string concatenation:\n- logging.py: Only export functions that actually exist (setup_logging, get_logger)\n- hive_bus.py: Separate EcoSystemiserEventBus and get_ecosystemiser_event_bus",
+    "searchable_text": "fix(lint): F822 - Fix malformed __all__ exports Fixed missing commas in __all__ lists that caused string concatenation:\n- logging.py: Only export functions that actually exist (setup_logging, get_logger)\n- hive_bus.py: Separate EcoSystemiserEventBus and get_ecosystemiser_event_bus"
+  }
+]

@@ -12,7 +12,10 @@ This package provides intelligent caching solutions optimized for:
 - Circuit breaker patterns for resilience
 """
 
-from .cache_client import HiveCacheClient, get_cache_client
+from .cache_client import HiveCacheClient, get_cache_client_async
+
+# Alias for backward compatibility
+get_cache_client = get_cache_client_async
 from .claude_cache import ClaudeAPICache
 from .config import CacheConfig
 from .exceptions import (

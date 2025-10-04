@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
-# ruff: noqa: S108, S603
+# ruff: noqa: S108, S603, E402
 """
 Deployment Utilities for Hive Applications
 Adapted from SmartHoodsOptimisationTool Apper project

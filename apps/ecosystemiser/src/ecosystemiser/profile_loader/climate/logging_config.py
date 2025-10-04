@@ -172,7 +172,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     )
 
 
-def get_logger(name: str) -> structlog.stdlib.BoundLogger:
+def get_logger(name: str) -> structlog.stdlib.BoundLogger:  # noqa: F811
     """
     Get a configured logger instance.
 

@@ -16,7 +16,7 @@ from hive_config import load_config_for_app
 from hive_logging import get_logger
 
 try:
-    import redis
+    import redis  # noqa: F401
     from redis import Redis
 
     REDIS_AVAILABLE = True

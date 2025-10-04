@@ -1,11 +1,15 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 #!/usr/bin/env python3
+# ruff: noqa: E402, S603
 """
 Test runner for Hive Orchestrator
 Runs integration tests and provides a simple test report.
+
+Note: Logger initialization before imports (E402).
+Subprocess for pytest execution (S603).
 """
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 import subprocess
 import sys

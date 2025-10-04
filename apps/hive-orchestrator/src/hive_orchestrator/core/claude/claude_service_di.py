@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from __future__ import annotations
 
 from hive_logging import get_logger
@@ -187,7 +188,7 @@ class ClaudeServiceDI:
             )
 
             # Re-raise with error ID
-            raise RuntimeError(f"Claude service error (ID: {error_id}): {str(e)}")
+            raise RuntimeError(f"Claude service error (ID: {error_id}): {str(e)}") from e
 
     async def send_message_async(
         self,
@@ -214,7 +215,7 @@ class ClaudeServiceDI:
         import hashlib
 
         key_data = f"{message}:{model}:{max_tokens}:{temperature}:{system_prompt or ''}",
-        return hashlib.md5(key_data.encode()).hexdigest()
+        return hashlib.md5(key_data.encode()).hexdigest()  # noqa: S324 - MD5 used for cache key, not security
 
     def _get_cached_response(self, cache_key: str) -> ClaudeResponse | None:
         """Get cached response if available and not expired"""

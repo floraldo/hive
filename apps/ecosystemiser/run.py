@@ -31,7 +31,7 @@ def run_server() -> None:
         import uvicorn
 
         # Get configuration using simplified settings
-        from ecosystemiser.hive_env import get_app_config, get_app_settings
+        from ecosystemiser.hive_env import get_app_config, get_app_settings  # noqa: F401
 
         from ecosystemiser.main import app
 

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 Basic integration tests for Hive Orchestrator components.
 Tests basic functionality without complex import dependencies.

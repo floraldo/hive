@@ -111,11 +111,11 @@ def load_config(base_config: dict | None = None) -> AIReviewerConfig:
 # Convenience functions for getting specific configs
 def get_review_config() -> ReviewConfig:
     """Get review-specific configuration"""
-
+    config = load_config()
     return config.review
 
 
 def get_claude_config() -> ClaudeReviewConfig:
     """Get Claude integration configuration"""
-
+    config = load_config()
     return config.claude

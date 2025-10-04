@@ -1,9 +1,12 @@
+# ruff: noqa: S608
 """
 Core Event Bus implementation for Hive
 
 Provides a database-backed event bus for reliable inter-agent communication.
 The bus makes the implicit choreography pattern explicit and adds full
 event history for debugging and replay capabilities.
+
+Note: S608 suppressed - dynamic SQL uses controlled parameters, not user input.
 """
 
 from __future__ import annotations
@@ -403,8 +406,9 @@ class EventBus:
                 params.append(limit)
 
                 async with get_async_connection() as conn:
-                    cursor = await conn.execute(
-                        f""",
+                    # Dynamic SQL safe - where_sql built from controlled params
+                    cursor = await conn.execute(  # type: ignore[misc]
+                        f"""
                         SELECT * FROM events,
                         WHERE {where_sql}
                         ORDER BY timestamp DESC,

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 HiveCore - Streamlined Hive Manager
 Unified task management with built-in cleanup and configuration

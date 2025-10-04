@@ -17,7 +17,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 try:
-    from hive_orchestrator.core.bus import EventSubscriber, get_event_bus
+    from hive_orchestrator.core.bus import EventSubscriber, get_event_bus  # noqa: F401
 
     from hive_logging import get_logger
 except ImportError as e:

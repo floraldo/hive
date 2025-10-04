@@ -1,6 +1,9 @@
+# ruff: noqa: S603
 """
 Unified Claude CLI Bridge
 Central implementation for all Claude API interactions
+
+Note: Subprocess usage for Claude CLI is intentional (S603).
 """
 from __future__ import annotations
 

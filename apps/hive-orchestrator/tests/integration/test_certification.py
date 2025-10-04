@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
+# ruff: noqa: S603
 """
 Hive V2.0 Automated Certification Test Conductor
 
 This script orchestrates the complete V2.0 certification test automatically,
 running all services in the background and monitoring their behavior.
+
+Note: Subprocess usage for service orchestration is intentional (S603).
 """
 
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-import os
-import signal
-import sqlite3
-import subprocess
-import sys
-import time
-from datetime import datetime
-from pathlib import Path
+import os  # noqa: E402
+import signal  # noqa: E402
+import sqlite3  # noqa: E402
+import subprocess  # noqa: E402
+import sys  # noqa: E402
+import time  # noqa: E402
+from datetime import datetime  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 # No sys.path manipulation needed - use Poetry workspace imports
 

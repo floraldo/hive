@@ -882,7 +882,7 @@ class ClimateService(BaseProfileService):
         """Get list of available data sources"""
         return get_enabled_adapters()
 
-    def process_request(self, request: BaseProfileRequest) -> tuple[xr.Dataset, ClimateResponse]:
+    def process_request(self, request: BaseProfileRequest) -> tuple[xr.Dataset, ClimateResponse]:  # noqa: F811
         """
         Process climate request synchronously (unified interface).
 

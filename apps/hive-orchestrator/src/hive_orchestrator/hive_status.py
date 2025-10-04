@@ -2,6 +2,7 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 Hive Status Dashboard - Read-only viewer for new architecture
 Shows tasks, active workers, results, and events without any scheduling logic
@@ -20,7 +21,7 @@ from typing import Any
 # Windows console color support
 if sys.platform == "win32":
     # Use subprocess instead of os.system for security
-    subprocess.run(["cmd", "/c", "color"], check=False)
+    subprocess.run(["cmd", "/c", "color"], check=False)  # noqa: S607
 
 
 class HiveStatus:

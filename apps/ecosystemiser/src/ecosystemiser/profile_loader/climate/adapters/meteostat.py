@@ -120,7 +120,7 @@ class MeteostatAdapter(BaseAdapter):
     def _check_meteostat(self) -> bool:
         """Check if meteostat library is available"""
         try:
-            import meteostat
+            import meteostat  # noqa: F401
 
             return True
         except ImportError:

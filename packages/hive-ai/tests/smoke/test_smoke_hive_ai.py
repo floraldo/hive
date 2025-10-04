@@ -99,8 +99,8 @@ def test_health_imports():
     assert HealthStatus is not None
 
 
-def test_metrics_imports():
-    """Smoke test: metrics module imports successfully."""
+def test_observability_metrics_imports():
+    """Smoke test: observability metrics module imports successfully."""
     from hive_ai.observability.metrics import MetricType
 
     assert MetricType is not None
@@ -120,8 +120,8 @@ def test_optimizer_imports():
     assert OptimizationStrategy is not None
 
 
-def test_registry_imports():
-    """Smoke test: registry module imports successfully."""
+def test_prompts_registry_imports():
+    """Smoke test: prompts registry module imports successfully."""
     import hive_ai.prompts.registry
 
     assert hive_ai.prompts.registry is not None
@@ -141,8 +141,8 @@ def test_embedding_imports():
     assert hive_ai.vector.embedding is not None
 
 
-def test_metrics_imports():
-    """Smoke test: metrics module imports successfully."""
+def test_vector_metrics_imports():
+    """Smoke test: vector metrics module imports successfully."""
     import hive_ai.vector.metrics
 
     assert hive_ai.vector.metrics is not None

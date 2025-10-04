@@ -100,11 +100,11 @@ def load_config(base_config: dict | None = None) -> AIPlannerConfig:
 # Convenience functions for getting specific configs
 def get_planning_config() -> PlanningConfig:
     """Get planning-specific configuration"""
-
+    config = load_config()
     return config.planning
 
 
 def get_claude_config() -> ClaudeIntegrationConfig:
     """Get Claude integration configuration"""
-
+    config = load_config()
     return config.claude

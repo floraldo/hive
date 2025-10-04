@@ -189,7 +189,7 @@ class SSHClient:
 
             if sudo:
                 # Upload to /tmp then move with sudo
-                temp_path = f"/tmp/temp_file_{int(time.time())}"
+                temp_path = f"/tmp/temp_file_{int(time.time())}"  # noqa: S108
                 with self.sftp.file(temp_path, "wb") as f:
                     f.write(content)
                 self.execute_command(f"mv {temp_path} {remote_path}", sudo=True)

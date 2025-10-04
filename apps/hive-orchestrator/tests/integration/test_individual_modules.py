@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 Individual module tests for Hive Orchestrator components.
 Tests modules individually to avoid import dependency issues.

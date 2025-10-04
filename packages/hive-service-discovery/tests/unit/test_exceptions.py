@@ -36,7 +36,7 @@ class TestServiceDiscoveryExceptions:
     def test_discovery_exceptions(self):
         """Test service discovery exceptions."""
         try:
-            from hive_service_discovery.exceptions import ServiceDiscoveryError, ServiceNotFoundError
+            from hive_service_discovery.exceptions import ServiceDiscoveryError, ServiceNotFoundError  # noqa: F401
 
             # Test service not found error
             if "ServiceNotFoundError" in locals():

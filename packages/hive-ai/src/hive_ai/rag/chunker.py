@@ -505,7 +505,7 @@ class HierarchicalChunker:
             return []
 
         try:
-            import yaml
+            import yaml  # noqa: F401
         except ImportError:
             logger.error("PyYAML not installed. Run: pip install pyyaml")
             return []
@@ -637,7 +637,7 @@ class HierarchicalChunker:
             return []
 
         try:
-            import tomli
+            import tomli  # noqa: F401
         except ImportError:
             logger.error("tomli not installed. Run: pip install tomli")
             return []

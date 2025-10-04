@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 V3.0 Platform Certification Test
 Comprehensive integration test for all V3.0 improvements
@@ -189,9 +190,8 @@ class V3CertificationTest:
                     # This should work fine
                     cursor = conn.cursor()
                     cursor.execute("SELECT 1")
-            except Exception:
-                # Specific exceptions should be caught properly
-                pass
+            except Exception:  # noqa: S110 - Test validates exception handling exists
+                pass  # Specific exceptions should be caught properly
             finally:
                 pool.close_all()
 

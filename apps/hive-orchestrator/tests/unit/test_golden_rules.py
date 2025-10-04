@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: S112
 """
 Local Golden Rules Test for hive-orchestrator
 
@@ -7,6 +8,8 @@ while working on this specific app. It runs a subset of golden rules
 relevant to the current app context.
 
 Run with: pytest tests/test_golden_rules.py -v
+
+Note: Try-except-continue used to collect all violations (S112).
 """
 
 from pathlib import Path
@@ -15,10 +18,10 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-import pytest
+import pytest  # noqa: E402
 
 # Import the validators from hive-testing-utils
-from hive_tests.architectural_validators import validate_single_config_source
+from hive_tests.architectural_validators import validate_single_config_source  # noqa: E402
 
 
 class TestLocalGoldenRules:

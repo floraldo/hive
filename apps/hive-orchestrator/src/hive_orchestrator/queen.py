@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 QueenLite - Streamlined Queen Orchestrator
 Preserves ALL hardening while removing complexity

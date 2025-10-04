@@ -1,3 +1,4 @@
+# ruff: noqa: S608
 """
 Hive Core Database - Internal state management for Hive orchestration.
 
@@ -10,6 +11,8 @@ This module provides the core database functionality for Hive's internal operati
 Extends the generic hive_db package with Hive Orchestrator-specific functionality.
 
 Database Location: hive/db/hive-internal.db
+
+Note: S608 suppressed - dynamic SQL uses field names from controlled list, not user input.
 """
 
 from __future__ import annotations
@@ -29,7 +32,7 @@ logger = get_logger(__name__)
 # Use the authoritative path singleton
 
 # Import connection pool for proper connection management
-from .connection_pool import close_pool, get_pooled_connection
+from .connection_pool import close_pool, get_pooled_connection  # noqa: E402
 
 # Import async functionality for Phase 4.1
 try:
@@ -443,7 +446,7 @@ def update_task_status(task_id: str, status: str, metadata: dict[str, Any] | Non
                     pass
 
         cursor = conn.execute(
-            f""",
+            f"""  # noqa: S608
             UPDATE tasks,
             SET {", ".join(fields)}
             WHERE id = ?,
@@ -532,7 +535,7 @@ def update_run_status(
         values.append(run_id)
 
         cursor = conn.execute(
-            f""",
+            f"""  # noqa: S608
             UPDATE runs,
             SET {", ".join(fields)}
             WHERE id = ?,

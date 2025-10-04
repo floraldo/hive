@@ -158,7 +158,7 @@ def validate_worker_requirements() -> dict[str, any]:
 
     # Check if worker module can be imported
     try:
-        import hive_orchestrator.worker
+        import hive_orchestrator.worker  # noqa: F401
 
         results["modules_importable"] = True
     except ImportError as e:

@@ -103,5 +103,5 @@ def load_config(base_config: dict | None = None) -> AIDeployerConfig:
 # Convenience function for getting specific deployment config
 def get_deployment_config() -> DeploymentConfig:
     """Get deployment-specific configuration"""
-
+    config = load_config()
     return config.deployment

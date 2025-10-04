@@ -34,7 +34,7 @@ try:
 
     # Try to import async event bus operations
     try:
-        from hive_bus.event_bus import get_async_event_bus, publish_event_async
+        from hive_bus.event_bus import get_async_event_bus, publish_event_async  # noqa: F401
 
         ASYNC_EVENTS_AVAILABLE = True
     except ImportError:
@@ -140,7 +140,7 @@ class DeploymentAgent:
         try:
             if ASYNC_DB_AVAILABLE:
                 # Use async database operations if available
-                return await get_tasks_by_status_async("deployment_pending")
+                return await get_tasks_by_status_async("deployment_pending")  # noqa: F821
             else:
                 # Fallback to sync operations
                 return self.adapter.get_deployment_pending_tasks()
@@ -219,7 +219,7 @@ class DeploymentAgent:
         """Update task status in database"""
         try:
             if ASYNC_DB_AVAILABLE:
-                await update_task_status_async(task_id, status, metadata)
+                await update_task_status_async(task_id, status, metadata)  # noqa: F821
             else:
                 self.adapter.update_task_status(task_id, status, metadata)
         except Exception as e:

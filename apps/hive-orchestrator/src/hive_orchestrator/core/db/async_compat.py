@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E402
 """
 Async Compatibility Layer for Phase 4.1 Migration
 

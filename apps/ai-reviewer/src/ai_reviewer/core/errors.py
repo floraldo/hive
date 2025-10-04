@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Optional
 
 from hive_errors import BaseError, BaseErrorReporter
 from hive_logging import get_logger
@@ -36,8 +36,8 @@ class ReviewerError(BaseError):
         review_id: str | None = None,
         file_path: str | None = None,
         review_phase: str | None = None,
-        details: Optional[dict[str, Any]] = None,
-        recovery_suggestions: Optional[list[str]] = None,
+        details: dict[str, Any] | None = None,
+        recovery_suggestions: list[str] | None = None,
         original_error: Exception | None = None,
     ):
         """
@@ -119,7 +119,7 @@ class FileAccessError(BaseError):
 class SyntaxAnalysisError(BaseError):
     """Error parsing or analyzing code syntax"""
 
-    def __init__(self, message: str, syntax_errors: Optional[list[str]] = None, **kwargs) -> None:
+    def __init__(self, message: str, syntax_errors: list[str] | None = None, **kwargs) -> None:
         details = kwargs.get("details", {})
         if syntax_errors:
             details["syntax_errors"] = syntax_errors
@@ -158,7 +158,7 @@ class ClaudeServiceError(BaseError):
         message: str,
         api_status_code: int | None = None,
         api_response: str | None = None,
-        rate_limit_info: Optional[dict[str, Any]] = None,
+        rate_limit_info: dict[str, Any] | None = None,
         **kwargs,
     ):
         details = kwargs.get("details", {})
@@ -204,8 +204,8 @@ class ReviewValidationError(BaseError):
     def __init__(
         self,
         message: str,
-        validation_issues: Optional[list[str]] = None,
-        missing_sections: Optional[list[str]] = None,
+        validation_issues: list[str] | None = None,
+        missing_sections: list[str] | None = None,
         **kwargs,
     ):
         details = kwargs.get("details", {})
@@ -281,8 +281,8 @@ class ReviewerErrorReporter(BaseErrorReporter):
     def report_error(
         self,
         error: Exception,
-        context: Optional[dict[str, Any]] = None,
-        additional_info: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
+        additional_info: dict[str, Any] | None = None,
     ) -> str:
         """
         Report an error with AI Reviewer-specific handling.
