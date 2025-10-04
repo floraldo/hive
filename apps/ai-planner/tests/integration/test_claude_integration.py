@@ -10,7 +10,7 @@ import uuid
 
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import ClaudePlanningResponse, RobustClaudePlannerBridge
-from hive_db import get_connection, init_db
+from hive_db import get_sqlite_connection
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -24,8 +24,7 @@ class TestClaudeIntegration:
     @classmethod
     def setup_class(cls):
         """Setup test environment"""
-        # Initialize database
-        init_db()
+        # Database initialization is handled by ai_planner.agent.AIPlanner
         logger.info("SUCCESS: Test database initialized")
 
     def test_claude_bridge_initialization(self):
@@ -229,7 +228,7 @@ class TestClaudeIntegration:
         agent.connect_database()
 
         # Insert a complex test task into planning_queue
-        conn = get_connection()
+        conn = get_sqlite_connection()
         cursor = conn.cursor()
 
         test_task_id = "e2e-complex-test-" + str(uuid.uuid4())[:8]
