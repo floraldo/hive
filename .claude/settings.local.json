@@ -100,7 +100,8 @@
       "Bash(_init_session_paths)",
       "Bash(while read f)",
       "Bash(do echo \"$f:0:8\")",
-      "Bash(stat:*)"
+      "Bash(stat:*)",
+      "Bash(declare:*)"
     ],
     "deny": [],
     "ask": []

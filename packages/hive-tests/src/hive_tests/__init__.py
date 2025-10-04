@@ -33,6 +33,18 @@ from .architectural_validators import (
 from .ast_validator import EnhancedValidator, GoldenRuleVisitor, Violation
 from .safe_autofix import AutofixResult, SafeGoldenRulesAutoFixer
 
+# Test intelligence module (merged from hive-test-intelligence)
+from .intelligence import (
+    FailurePattern,
+    FlakyTestResult,
+    PackageHealthReport,
+    TestIntelligenceStorage,
+    TestResult,
+    TestRun,
+    TestStatus,
+    TestType,
+)
+
 __all__ = [
     # Original validators
     "validate_app_contracts",
@@ -61,4 +73,13 @@ __all__ = [
     # Safe autofix (AST-ONLY, no regex)
     "SafeGoldenRulesAutoFixer",
     "AutofixResult",
+    # Test intelligence (merged from hive-test-intelligence)
+    "TestIntelligenceStorage",
+    "TestRun",
+    "TestResult",
+    "TestStatus",
+    "TestType",
+    "FlakyTestResult",
+    "PackageHealthReport",
+    "FailurePattern",
 ]

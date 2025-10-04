@@ -1,3 +1,8 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this test file use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess. This is safe for
+# internal testing infrastructure.
+
 """
 Factory Acceptance Test 04: Failure and Rework Test
 

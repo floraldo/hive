@@ -1,3 +1,8 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this script use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess. This is safe for
+# internal RAG indexing tooling.
+
 """
 Git-Aware Incremental RAG Indexing for Hive Codebase.
 
