@@ -13,12 +13,12 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from hive_logging import get_logger
 
-from ..core.exceptions import AIError
-from .agent import BaseAgent
+from hive_ai.core.exceptions import AIError
+from hive_agent_runtime.agent import BaseAgent
 
 logger = get_logger(__name__)
 

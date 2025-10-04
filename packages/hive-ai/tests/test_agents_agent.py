@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from hive_ai.agents.agent import (
+from hive_agent_runtime.agent import (
     AgentConfig,
     AgentMemory,
     AgentMessage,

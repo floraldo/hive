@@ -12,9 +12,9 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from hive_ai.agents.agent import AgentConfig, AgentState, BaseAgent, SimpleTaskAgent
-from hive_ai.agents.task import PromptTask, TaskConfig
-from hive_ai.agents.workflow import ExecutionStrategy, WorkflowConfig, WorkflowOrchestrator, WorkflowStatus
+from hive_agent_runtime.agent import AgentConfig, AgentState, BaseAgent, SimpleTaskAgent
+from hive_agent_runtime.task import PromptTask, TaskConfig
+from hive_agent_runtime.workflow import ExecutionStrategy, WorkflowConfig, WorkflowOrchestrator, WorkflowStatus
 from hive_ai.core.exceptions import AIError, PromptError
 from hive_ai.prompts.optimizer import OptimizationResult, OptimizationStrategy, PromptOptimizer
 from hive_ai.prompts.registry import PromptRegistry

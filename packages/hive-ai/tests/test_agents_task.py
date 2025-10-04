@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from hive_ai.agents.agent import SimpleTaskAgent
-from hive_ai.agents.task import (
+from hive_agent_runtime.agent import SimpleTaskAgent
+from hive_agent_runtime.task import (
     PromptTask,
     TaskBuilder,
     TaskConfig,

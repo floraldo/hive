@@ -19,10 +19,10 @@ from typing import Any
 from hive_cache import CacheManager
 from hive_logging import get_logger
 
-from ..core.exceptions import AIError
-from ..models.client import ModelClient
-from ..observability.metrics import AIMetricsCollector
-from ..prompts.template import PromptTemplate
+from hive_ai.core.exceptions import AIError
+from hive_ai.models.client import ModelClient
+from hive_ai.observability.metrics import AIMetricsCollector
+from hive_ai.prompts.template import PromptTemplate
 
 logger = get_logger(__name__)
 

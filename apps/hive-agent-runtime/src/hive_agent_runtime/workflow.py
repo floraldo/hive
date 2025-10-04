@@ -12,16 +12,16 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import Any, Optional
 
 from hive_cache import CacheManager
 from hive_logging import get_logger
 
-from ..core.exceptions import AIError
-from ..models.client import ModelClient
-from ..observability.metrics import AIMetricsCollector
-from .agent import AgentMessage, AgentState, BaseAgent
-from .task import BaseTask, TaskSequence
+from hive_ai.core.exceptions import AIError
+from hive_ai.models.client import ModelClient
+from hive_ai.observability.metrics import AIMetricsCollector
+from hive_agent_runtime.agent import AgentMessage, AgentState, BaseAgent
+from hive_agent_runtime.task import BaseTask, TaskSequence
 
 logger = get_logger(__name__)
 
