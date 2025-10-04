@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: S607  # subprocess with partial path - safe for our development tools
 """Platform Health Metrics Dashboard for QA Agent
 
 Purpose: Generate comprehensive health metrics for technical debt management
