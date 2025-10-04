@@ -1,3 +1,0 @@
-"""
-Hive Orchestration Tests
-"""

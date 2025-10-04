@@ -1,42 +1,72 @@
 [
   {
-    "hash": "d12f9d63",
-    "full_hash": "d12f9d634e0c8e621c976ad8c9b9a79d76537255",
+    "hash": "eaaea1f4",
+    "full_hash": "eaaea1f405156bb5d915e0cb61b5370463ffd44a",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:32:45",
-    "subject": "refactor(testing): Rename tests/ \u2192 integration_tests/ to fix namespace collision",
-    "body": "PROBLEM ANALYSIS:\nPytest configuration had conflicting 'tests' module namespaces:\n- Root tests/ directory (cross-cutting integration tests)\n- Package tests/ dirs (hive-async/tests/, hive-db/tests/, etc.)\n- App tests/ dirs (ai-planner/tests/, ecosystemiser/tests/, etc.)",
-    "searchable_text": "refactor(testing): Rename tests/ \u2192 integration_tests/ to fix namespace collision PROBLEM ANALYSIS:\nPytest configuration had conflicting 'tests' module namespaces:\n- Root tests/ directory (cross-cutting integration tests)\n- Package tests/ dirs (hive-async/tests/, hive-db/tests/, etc.)\n- App tests/ dirs (ai-planner/tests/, ecosystemiser/tests/, etc.)"
+    "date": "2025-10-04T02:48:14",
+    "subject": "fix(lint): S608 - Add noqa for safe SQL with parameterized queries",
+    "body": "All 8 violations use parameterized queries (?  placeholders) or validate inputs:\n- era5.py: Not SQL, xarray dataset selection\n- scenario_manager.py: Parameterized placeholders for IN clause\n- data_unification.py: Controlled WHERE clause with parameterized queries\n- test_end_to_end: Mock Python script generation (not SQL)\n- hive_db/utils.py (2x): Validated column names + parameterized queries\n- hive_orchestration/tasks.py: Controlled field updates with parameterized queries",
+    "searchable_text": "fix(lint): S608 - Add noqa for safe SQL with parameterized queries All 8 violations use parameterized queries (?  placeholders) or validate inputs:\n- era5.py: Not SQL, xarray dataset selection\n- scenario_manager.py: Parameterized placeholders for IN clause\n- data_unification.py: Controlled WHERE clause with parameterized queries\n- test_end_to_end: Mock Python script generation (not SQL)\n- hive_db/utils.py (2x): Validated column names + parameterized queries\n- hive_orchestration/tasks.py: Controlled field updates with parameterized queries"
   },
   {
-    "hash": "5d8e7abf",
-    "full_hash": "5d8e7abfca3c807e1efdc4794317c73277a3a9f1",
+    "hash": "ab4ea126",
+    "full_hash": "ab4ea126a9055faaaa06d48699daca5fcd749071",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:26:01",
-    "subject": "fix(lint): S608 - Add file-level noqa for controlled SQL",
-    "body": "database_metadata_service.py uses dynamic SQL with column names from controlled\ndicts combined with parameterized queries (?). All values go through placeholders.",
-    "searchable_text": "fix(lint): S608 - Add file-level noqa for controlled SQL database_metadata_service.py uses dynamic SQL with column names from controlled\ndicts combined with parameterized queries (?). All values go through placeholders."
+    "date": "2025-10-04T02:44:56",
+    "subject": "fix(hive-cache): Fix missing get_cache_client export",
+    "body": "- Updated cache_client.py imports to use get_cache_client_async\n- Added backward compatibility alias in __init__.py\n- Fixed imports in claude_cache.py and performance_cache.py\n- Fixed E402 import order violations in __init__.py\n- Fixed F821 undefined Optional type hint in claude_cache.py\n- Resolves 'cannot import name get_cache_client' errors across platform",
+    "searchable_text": "fix(hive-cache): Fix missing get_cache_client export - Updated cache_client.py imports to use get_cache_client_async\n- Added backward compatibility alias in __init__.py\n- Fixed imports in claude_cache.py and performance_cache.py\n- Fixed E402 import order violations in __init__.py\n- Fixed F821 undefined Optional type hint in claude_cache.py\n- Resolves 'cannot import name get_cache_client' errors across platform"
   },
   {
-    "hash": "de807b2b",
-    "full_hash": "de807b2b0cf8f597661f940f96698331972b4d4e",
+    "hash": "3dd6ba66",
+    "full_hash": "3dd6ba66947e46d9a7adce2ce05cf17e531a93d1",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:25:49",
-    "subject": "fix(ecosystemiser): Add missing imports to ecosystemiser.db",
-    "body": "Import ecosystemiser_transaction and other funcs from core.db.",
-    "searchable_text": "fix(ecosystemiser): Add missing imports to ecosystemiser.db Import ecosystemiser_transaction and other funcs from core.db."
+    "date": "2025-10-04T02:44:38",
+    "subject": "fix(lint): F811 - Fix redefined imports and duplicate test names",
+    "body": "- ai_reviewer/agent.py: Add noqa for intentional run_async override\n- ecosystemiser/hive_error_handling.py: Add noqa for legacy BaseError alias\n- ecosystemiser/.../logging_config.py: Add noqa for custom get_logger override\n- ecosystemiser/.../service.py: Add noqa for process_request method overload\n- hive-ai/tests/smoke: Rename duplicate test functions:\n  - test_metrics_imports \u2192 test_observability_metrics_imports\n  - test_registry_imports \u2192 test_prompts_registry_imports\n  - test_metrics_imports \u2192 test_vector_metrics_imports",
+    "searchable_text": "fix(lint): F811 - Fix redefined imports and duplicate test names - ai_reviewer/agent.py: Add noqa for intentional run_async override\n- ecosystemiser/hive_error_handling.py: Add noqa for legacy BaseError alias\n- ecosystemiser/.../logging_config.py: Add noqa for custom get_logger override\n- ecosystemiser/.../service.py: Add noqa for process_request method overload\n- hive-ai/tests/smoke: Rename duplicate test functions:\n  - test_metrics_imports \u2192 test_observability_metrics_imports\n  - test_registry_imports \u2192 test_prompts_registry_imports\n  - test_metrics_imports \u2192 test_vector_metrics_imports"
   },
   {
-    "hash": "bd09a56f",
-    "full_hash": "bd09a56fe4968d76b90cc7e8aafdfe66e9c662e0",
+    "hash": "a959a3c0",
+    "full_hash": "a959a3c0015e2552672b78c64793250d9835aa0d",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:22:00",
-    "subject": "fix(lint): F822 - Fix malformed __all__ exports",
-    "body": "Fixed missing commas in __all__ lists that caused string concatenation:\n- logging.py: Only export functions that actually exist (setup_logging, get_logger)\n- hive_bus.py: Separate EcoSystemiserEventBus and get_ecosystemiser_event_bus",
-    "searchable_text": "fix(lint): F822 - Fix malformed __all__ exports Fixed missing commas in __all__ lists that caused string concatenation:\n- logging.py: Only export functions that actually exist (setup_logging, get_logger)\n- hive_bus.py: Separate EcoSystemiserEventBus and get_ecosystemiser_event_bus"
+    "date": "2025-10-04T02:40:02",
+    "subject": "fix(lint): S104 - Add noqa for intentional 0.0.0.0 bindings in FAT test apps",
+    "body": "All three violations are in Factory Acceptance Test apps where binding to\nall interfaces (0.0.0.0) is intentional for local testing environments.",
+    "searchable_text": "fix(lint): S104 - Add noqa for intentional 0.0.0.0 bindings in FAT test apps All three violations are in Factory Acceptance Test apps where binding to\nall interfaces (0.0.0.0) is intentional for local testing environments."
+  },
+  {
+    "hash": "0843234b",
+    "full_hash": "0843234be12768d92ccca881f767c4cf472fdfab",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T02:38:07",
+    "subject": "fix(lint): Resolve double violations (B024, F401)",
+    "body": "- B024: Add @abstractmethod to RecoveryStrategy.attempt_recovery\n- F401: Remove unused MetricType import from test_monitoring_integration",
+    "searchable_text": "fix(lint): Resolve double violations (B024, F401) - B024: Add @abstractmethod to RecoveryStrategy.attempt_recovery\n- F401: Remove unused MetricType import from test_monitoring_integration"
+  },
+  {
+    "hash": "db07317a",
+    "full_hash": "db07317a1ad56d21fc5cf93e9d844a39fa885625",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T02:35:39",
+    "subject": "fix(ecosystemiser): Fix profile_loader __all__ and add missing imports",
+    "body": "Fixed concatenated string exports (F822 pattern):\n- Split 'get_unified_profile_serviceget_climate_service' etc.\n- Add actual imports from climate and shared.models modules\n- Remove non-existent exports (DataFrequency, LocationInfo)\n- Add function aliases for API compatibility",
+    "searchable_text": "fix(ecosystemiser): Fix profile_loader __all__ and add missing imports Fixed concatenated string exports (F822 pattern):\n- Split 'get_unified_profile_serviceget_climate_service' etc.\n- Add actual imports from climate and shared.models modules\n- Remove non-existent exports (DataFrequency, LocationInfo)\n- Add function aliases for API compatibility"
+  },
+  {
+    "hash": "d2100e25",
+    "full_hash": "d2100e25d6a7307c99d2da0566eef5a3358aec99",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T02:35:33",
+    "subject": "fix(lint): Resolve single violations (S106, B027, B007, F841)",
+    "body": "- S106: Add noqa for test password in guardian-agent\n- B027: Add @abstractmethod decorator to BaseErrorReporter.report_error\n- B007: Change unused loop variable j to _ in FAT framework\n- F841: Change unused result variable to _ in FAT framework",
+    "searchable_text": "fix(lint): Resolve single violations (S106, B027, B007, F841) - S106: Add noqa for test password in guardian-agent\n- B027: Add @abstractmethod decorator to BaseErrorReporter.report_error\n- B007: Change unused loop variable j to _ in FAT framework\n- F841: Change unused result variable to _ in FAT framework"
   }
 ]

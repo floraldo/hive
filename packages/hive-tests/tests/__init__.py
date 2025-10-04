@@ -1,1 +1,0 @@
-# Tests for hive-testing-utils package

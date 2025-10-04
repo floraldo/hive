@@ -1,1 +1,0 @@
-# hive-service-discovery tests
