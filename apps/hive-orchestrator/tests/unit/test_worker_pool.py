@@ -1,5 +1,4 @@
-"""
-Unit Tests for WorkerPoolManager
+"""Unit Tests for WorkerPoolManager
 
 Tests worker pool auto-scaling:
 - Worker registration and tracking
@@ -34,7 +33,7 @@ class TestWorkerInfo:
         """Test uptime calculation"""
         registered_at = datetime.now(UTC) - timedelta(seconds=100)
         worker = WorkerInfo(
-            worker_id="test-1", worker_type="qa", registered_at=registered_at
+            worker_id="test-1", worker_type="qa", registered_at=registered_at,
         )
 
         uptime = worker.uptime_seconds
@@ -86,14 +85,18 @@ class TestWorkerPoolManager:
     @pytest.fixture
     def pool_manager(self):
         """Create worker pool manager instance"""
-        return WorkerPoolManager(min_workers=1, max_workers=5, target_queue_per_worker=5)
+        with patch("hive_orchestrator.worker_pool.get_async_event_bus", return_value=AsyncMock()):
+            pool = WorkerPoolManager(min_workers=1, max_workers=5, target_queue_per_worker=5)
+            pool.event_bus = AsyncMock()
+            pool.event_bus.publish = AsyncMock()
+            return pool
 
     @pytest.mark.asyncio
     async def test_register_worker(self, pool_manager):
         """Test worker registration"""
         with patch.object(pool_manager.event_bus, "publish", new=AsyncMock()):
             success = await pool_manager.register_worker(
-                "worker-1", "qa", {"version": "1.0"}
+                "worker-1", "qa", {"version": "1.0"},
             )
 
             assert success is True
@@ -163,7 +166,7 @@ class TestWorkerPoolManager:
         with patch.object(pool_manager.event_bus, "publish", new=AsyncMock()):
             await pool_manager.register_worker("worker-1", "qa")
             await pool_manager.update_heartbeat(
-                "worker-1", "idle", 0, 0, 0
+                "worker-1", "idle", 0, 0, 0,
             )
 
             worker_id = await pool_manager.get_available_worker()
@@ -178,7 +181,7 @@ class TestWorkerPoolManager:
         with patch.object(pool_manager.event_bus, "publish", new=AsyncMock()):
             await pool_manager.register_worker("worker-1", "qa")
             await pool_manager.update_heartbeat(
-                "worker-1", "working", 0, 0, 0
+                "worker-1", "working", 0, 0, 0,
             )
 
             worker_id = await pool_manager.get_available_worker()

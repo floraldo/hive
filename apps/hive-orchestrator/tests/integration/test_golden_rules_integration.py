@@ -25,12 +25,20 @@ class TestGoldenRulesFleetIntegration:
     @pytest.fixture
     def worker_pool(self):
         """Create worker pool manager"""
-        return WorkerPoolManager(min_workers=1, max_workers=5, target_queue_per_worker=5)
+        with patch("hive_orchestrator.worker_pool.get_async_event_bus", return_value=AsyncMock()):
+            pool = WorkerPoolManager(min_workers=1, max_workers=5, target_queue_per_worker=5)
+            pool.event_bus = AsyncMock()
+            pool.event_bus.publish = AsyncMock()
+            return pool
 
     @pytest.fixture
     def task_queue(self):
         """Create task queue manager"""
-        return TaskQueueManager()
+        with patch("hive_orchestrator.task_queue.get_async_event_bus", return_value=AsyncMock()):
+            queue = TaskQueueManager()
+            queue.event_bus = AsyncMock()
+            queue.event_bus.publish = AsyncMock()
+            return queue
 
     @pytest.fixture
     def golden_rules_worker(self, tmp_path):
@@ -104,6 +112,9 @@ class TestGoldenRulesFleetIntegration:
         # Register worker
         await golden_rules_worker.register_with_pool(worker_pool)
 
+        # Emit heartbeat to make worker available (sets status to IDLE)
+        await golden_rules_worker.emit_heartbeat(pool_manager=worker_pool)
+
         # Create and enqueue task
         task = create_golden_rules_task(file_paths=["test.py"])
         await task_queue.enqueue(task, TaskPriority.HIGH)
@@ -149,28 +160,40 @@ requests = "^2.31.0"
         queued_task = await task_queue.dequeue("gr-integration-test-1")
         await task_queue.mark_in_progress(queued_task.task.id)
 
-        # Worker processes task (with mocked registry)
-        mock_results = {
-            "Ruff Config Consistency": {
-                "passed": False,
-                "violations": [f"{pyproject}: Missing [tool.ruff]"],
+        # Worker processes task (with mocked auto-fix violations)
+        # Mock violations that are auto-fixable (rules 31, 32)
+        mock_violations = [
+            {
+                "rule_id": "31",
+                "rule_name": "Ruff Config Consistency",
+                "file": str(pyproject),
+                "message": f"{pyproject}: Missing [tool.ruff]",
                 "severity": "WARNING",
+                "can_autofix": True,
             },
-            "Python Version Specification": {
-                "passed": False,
-                "violations": [f"{pyproject}: Missing python version"],
+            {
+                "rule_id": "32",
+                "rule_name": "Python Version Specification",
+                "file": str(pyproject),
+                "message": f"{pyproject}: Missing python version",
                 "severity": "INFO",
+                "can_autofix": True,
             },
-        }
+        ]
 
-        with patch("hive_orchestrator.golden_rules_worker.run_all_golden_rules") as mock_validate:
-            mock_validate.return_value = (False, mock_results)
+        with patch.object(golden_rules_worker, "detect_golden_rules_violations") as mock_detect:
+            mock_detect.return_value = {
+                "violations": mock_violations,
+                "total_count": 2,
+                "auto_fixable_count": 2,
+                "escalation_count": 0,
+            }
 
             result = await golden_rules_worker.process_golden_rules_task(queued_task.task)
 
-        # Verify task completed successfully
+        # Verify task completed successfully with auto-fixes
         assert result["status"] == "success"
-        assert result["violations_fixed"] >= 2
+        assert result["violations_fixed"] == 2
 
         # Mark task completed
         await task_queue.mark_completed(queued_task.task.id, result)
@@ -203,29 +226,37 @@ requests = "^2.31.0"
         queued_task = await task_queue.dequeue("gr-integration-test-1")
         await task_queue.mark_in_progress(queued_task.task.id)
 
-        # Mock complex rule violation (Rule 37 - requires escalation)
-        mock_results = {
-            "Unified Config Enforcement": {
-                "passed": False,
-                "violations": [f"{config_file}: Direct os.getenv() usage"],
+        # Mock complex rule violation (requires escalation - not auto-fixable)
+        mock_violations = [
+            {
+                "rule_id": "15",  # Unified Config Enforcement - NOT auto-fixable
+                "rule_name": "Unified Config Enforcement",
+                "file": str(config_file),
+                "message": f"{config_file}: Direct os.getenv() usage",
                 "severity": "ERROR",
+                "can_autofix": False,
             },
-        }
+        ]
 
-        with patch("hive_orchestrator.golden_rules_worker.run_all_golden_rules") as mock_validate:
-            mock_validate.return_value = (False, mock_results)
+        with patch.object(golden_rules_worker, "detect_golden_rules_violations") as mock_detect:
+            mock_detect.return_value = {
+                "violations": mock_violations,
+                "total_count": 1,
+                "auto_fixable_count": 0,
+                "escalation_count": 1,
+            }
 
             result = await golden_rules_worker.process_golden_rules_task(queued_task.task)
 
         # Verify escalation occurred
         assert result["status"] == "escalated"
-        assert len(result["escalations"]) > 0
+        assert len(result["escalations"]) == 1
 
         # Mark task completed with escalations
         await task_queue.mark_completed(queued_task.task.id, result)
 
         # Verify worker escalation metrics
-        assert golden_rules_worker.escalations > 0
+        assert golden_rules_worker.escalations == 1
 
     @pytest.mark.asyncio
     async def test_worker_pool_health_monitoring(self, worker_pool, golden_rules_worker):
