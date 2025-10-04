@@ -10,30 +10,13 @@ of the platform's architectural integrity.
 Enhanced with single-pass AST-based validation for superior performance
 and accuracy, plus suppression support for controlled exceptions.
 """
-
 from hive_logging import get_logger
-
 logger = get_logger(__name__)
-
 import pytest
-
-from hive_tests.architectural_validators import (
-    validate_app_contracts,
-    validate_colocated_tests,
-    validate_communication_patterns,
-    validate_dependency_direction,
-    validate_error_handling_standards,
-    validate_interface_contracts,
-    validate_logging_standards,
-    validate_no_hardcoded_env_values,
-    validate_no_syspath_hacks,
-    validate_package_app_discipline,
-    validate_service_layer_discipline,
-    validate_single_config_source,
-)
+from hive_tests.architectural_validators import validate_app_contracts, validate_colocated_tests, validate_communication_patterns, validate_dependency_direction, validate_error_handling_standards, validate_interface_contracts, validate_logging_standards, validate_no_hardcoded_env_values, validate_no_syspath_hacks, validate_package_app_discipline, validate_service_layer_discipline, validate_single_config_source
 from hive_tests.ast_validator import EnhancedValidator
 
-
+@pytest.mark.core
 class TestArchitecturalCompliance:
     """
     Golden Tests for platform-wide architectural compliance.
@@ -42,6 +25,7 @@ class TestArchitecturalCompliance:
     the entire Hive ecosystem aligned with best practices.
     """
 
+    @pytest.mark.core
     def test_app_contract_compliance(self, project_root):
         """
         🏛️ GOLDEN TEST 1: App Contract Compliance
@@ -57,25 +41,14 @@ class TestArchitecturalCompliance:
            citizen of the Hive ecosystem with proper contracts.
         """
         is_valid, violations = validate_app_contracts(project_root)
-
         if not is_valid:
-            failure_message = (
-                "❌ App Contract Compliance FAILED\n\nThe following apps violate the Hive app contract standard:\n\n"
-            )
+            failure_message = '❌ App Contract Compliance FAILED\n\nThe following apps violate the Hive app contract standard:\n\n'
             for violation in violations:
-                failure_message += f"  • {violation}\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n  1. Create hive-app.toml in each missing app directory\n",
-                "  2. Add required [app] section with name field\n",
-                "  3. Add at least one service section: [daemons], [tasks], or [endpoints]\n",
-                "  4. See existing apps for examples\n\n",
-                "📖 This enforces that every app properly declares its capabilities\n"
-                "   and integration points with the Hive platform.",
-            )
-
+                failure_message += f'  • {violation}\n'
+            failure_message += ('\n🔧 To fix this:\n  1. Create hive-app.toml in each missing app directory\n', '  2. Add required [app] section with name field\n', '  3. Add at least one service section: [daemons], [tasks], or [endpoints]\n', '  4. See existing apps for examples\n\n', '📖 This enforces that every app properly declares its capabilities\n   and integration points with the Hive platform.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_service_layer_discipline(self, project_root):
         """
         🏗️ GOLDEN TEST 10: Service Layer Discipline
@@ -91,27 +64,16 @@ class TestArchitecturalCompliance:
            service interfaces and business logic implementation.
         """
         is_valid, violations = validate_service_layer_discipline(project_root)
-
         if not is_valid:
-            failure_message = "Service Layer Discipline FAILED\n\nThe following violations were found:\n\n"
+            failure_message = 'Service Layer Discipline FAILED\n\nThe following violations were found:\n\n'
             for violation in violations[:15]:
-                failure_message += f"  - {violation}\n"
-
+                failure_message += f'  - {violation}\n'
             if len(violations) > 15:
-                failure_message += f"  ... and {len(violations) - 15} more violations\n"
+                failure_message += f'  ... and {len(violations) - 15} more violations\n'
+            failure_message += ('\nTo fix this:\n', '  1. Move business logic from core/ to app implementation\n', '  2. Keep only service interfaces in core/\n', '  3. Add docstrings to all service classes\n', '  4. Follow the service layer pattern documented in ARCHITECTURE.md\n\n', 'This maintains clean separation between interfaces and implementation.')
+            logger.info(f'Warning: {len(violations)} service layer violations found')
 
-            failure_message += (
-                "\nTo fix this:\n",
-                "  1. Move business logic from core/ to app implementation\n",
-                "  2. Keep only service interfaces in core/\n",
-                "  3. Add docstrings to all service classes\n",
-                "  4. Follow the service layer pattern documented in ARCHITECTURE.md\n\n",
-                "This maintains clean separation between interfaces and implementation.",
-            )
-
-            # Warning for now as this is a new rule
-            logger.info(f"Warning: {len(violations)} service layer violations found")
-
+    @pytest.mark.core
     def test_communication_patterns(self, project_root):
         """
         📡 GOLDEN TEST 11: Communication Patterns
@@ -127,27 +89,16 @@ class TestArchitecturalCompliance:
            communication between system components.
         """
         is_valid, violations = validate_communication_patterns(project_root)
-
         if not is_valid:
-            failure_message = "Communication Patterns FAILED\n\nThe following violations were found:\n\n"
+            failure_message = 'Communication Patterns FAILED\n\nThe following violations were found:\n\n'
             for violation in violations[:15]:
-                failure_message += f"  - {violation}\n"
-
+                failure_message += f'  - {violation}\n'
             if len(violations) > 15:
-                failure_message += f"  ... and {len(violations) - 15} more violations\n"
+                failure_message += f'  ... and {len(violations) - 15} more violations\n'
+            failure_message += ('\nTo fix this:\n', '  1. Use approved communication patterns (DB queues, event bus, REST)\n', '  2. Remove direct socket or shared memory usage\n', '  3. Configure daemons properly in hive-app.toml\n', '  4. Follow communication patterns in ARCHITECTURE.md\n\n', 'This ensures clean, scalable inter-app communication.')
+            logger.info(f'Warning: {len(violations)} communication pattern violations found')
 
-            failure_message += (
-                "\nTo fix this:\n",
-                "  1. Use approved communication patterns (DB queues, event bus, REST)\n",
-                "  2. Remove direct socket or shared memory usage\n",
-                "  3. Configure daemons properly in hive-app.toml\n",
-                "  4. Follow communication patterns in ARCHITECTURE.md\n\n",
-                "This ensures clean, scalable inter-app communication.",
-            )
-
-            # Warning for now as this is a new rule
-            logger.info(f"Warning: {len(violations)} communication pattern violations found")
-
+    @pytest.mark.core
     def test_colocated_tests_pattern(self, project_root):
         """
         🧪 GOLDEN TEST 2: Co-located Tests Pattern
@@ -163,24 +114,14 @@ class TestArchitecturalCompliance:
            proper test structure, maintaining quality standards.
         """
         is_valid, violations = validate_colocated_tests(project_root)
-
         if not is_valid:
-            failure_message = (
-                "❌ Co-located Tests Pattern FAILED\n\nThe following components lack proper test structure:\n\n"
-            )
+            failure_message = '❌ Co-located Tests Pattern FAILED\n\nThe following components lack proper test structure:\n\n'
             for violation in violations:
-                failure_message += f"  • {violation}\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n  1. Create tests/ directory in each component\n",
-                "  2. Add tests/__init__.py file for pytest discovery\n",
-                "  3. Follow the pattern: component/tests/test_*.py\n\n",
-                "📖 This enforces that tests live next to the code they test,\n",
-                "   making the codebase more maintainable and testable.",
-            )
-
+                failure_message += f'  • {violation}\n'
+            failure_message += ('\n🔧 To fix this:\n  1. Create tests/ directory in each component\n', '  2. Add tests/__init__.py file for pytest discovery\n', '  3. Follow the pattern: component/tests/test_*.py\n\n', '📖 This enforces that tests live next to the code they test,\n', '   making the codebase more maintainable and testable.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_no_syspath_hacks(self, project_root):
         """
         🚫 GOLDEN TEST 3: Perfect Import Purity
@@ -196,29 +137,16 @@ class TestArchitecturalCompliance:
            preventing path-related bugs and import chaos.
         """
         is_valid, violations = validate_no_syspath_hacks(project_root)
-
         if not is_valid:
-            failure_message = (
-                "❌ Path Import Violations FAILED\n\nThe following files contain path import manipulations:\n\n"
-            )
-            for violation in violations[:10]:  # Show first 10
-                failure_message += f"  • {violation}\n"
-
+            failure_message = '❌ Path Import Violations FAILED\n\nThe following files contain path import manipulations:\n\n'
+            for violation in violations[:10]:
+                failure_message += f'  • {violation}\n'
             if len(violations) > 10:
-                failure_message += f"  ... and {len(violations) - 10} more files\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Remove all path manipulation calls\n",
-                "  2. Use Poetry workspace imports instead\n",
-                "  3. Rely on pyproject.toml script entrypoints\n",
-                "  4. Ensure packages are properly installed in development mode\n\n",
-                "📖 This enforces clean import practices and prevents the\n"
-                "   'sys.path hell' that makes codebases unmaintainable.",
-            )
-
+                failure_message += f'  ... and {len(violations) - 10} more files\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Remove all path manipulation calls\n', '  2. Use Poetry workspace imports instead\n', '  3. Rely on pyproject.toml script entrypoints\n', '  4. Ensure packages are properly installed in development mode\n\n', "📖 This enforces clean import practices and prevents the\n   'sys.path hell' that makes codebases unmaintainable.")
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_single_config_source(self, project_root):
         """
         📋 GOLDEN TEST 4: Single Config Source
@@ -234,24 +162,14 @@ class TestArchitecturalCompliance:
            a single, authoritative source for all project metadata.
         """
         is_valid, violations = validate_single_config_source(project_root)
-
         if not is_valid:
-            failure_message = "❌ Single Config Source FAILED\n\nConfiguration violations found:\n\n"
+            failure_message = '❌ Single Config Source FAILED\n\nConfiguration violations found:\n\n'
             for violation in violations:
-                failure_message += f"  • {violation}\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Remove any setup.py files - use pyproject.toml instead\n",
-                "  2. Ensure root pyproject.toml has [tool.poetry.group.workspace]\n",
-                "  3. Use Poetry for all dependency and package management\n",
-                "  4. Convert any setuptools configurations to Poetry format\n\n",
-                "📖 This enforces modern Python packaging standards and\n"
-                "   prevents the confusion of multiple config systems.",
-            )
-
+                failure_message += f'  • {violation}\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Remove any setup.py files - use pyproject.toml instead\n', '  2. Ensure root pyproject.toml has [tool.poetry.group.workspace]\n', '  3. Use Poetry for all dependency and package management\n', '  4. Convert any setuptools configurations to Poetry format\n\n', '📖 This enforces modern Python packaging standards and\n   prevents the confusion of multiple config systems.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_no_hardcoded_env_values(self, project_root):
         """
         🔒 GOLDEN TEST 4.5: No Hardcoded Environment Values
@@ -268,27 +186,16 @@ class TestArchitecturalCompliance:
            generic packages, enabling true portability and reusability.
         """
         is_valid, violations = validate_no_hardcoded_env_values(project_root)
-
         if not is_valid:
-            failure_message = "❌ Hardcoded Environment Values FOUND\n\nEnvironment coupling violations found:\n\n"
+            failure_message = '❌ Hardcoded Environment Values FOUND\n\nEnvironment coupling violations found:\n\n'
             for violation in violations[:10]:
-                failure_message += f"  • {violation}\n"
-
+                failure_message += f'  • {violation}\n'
             if len(violations) > 10:
-                failure_message += f"  ... and {len(violations) - 10} more violations\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Replace hardcoded paths with environment variables\n",
-                "  2. Use get_deployment_config() in hive-deployment\n",
-                "  3. Pass deployment_config to functions instead of constants\n",
-                "  4. Make packages configurable, not environment-specific\n\n",
-                "📖 This enforces portability and prevents coupling between\n"
-                "   generic infrastructure and specific deployment environments.",
-            )
-
+                failure_message += f'  ... and {len(violations) - 10} more violations\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Replace hardcoded paths with environment variables\n', '  2. Use get_deployment_config() in hive-deployment\n', '  3. Pass deployment_config to functions instead of constants\n', '  4. Make packages configurable, not environment-specific\n\n', '📖 This enforces portability and prevents coupling between\n   generic infrastructure and specific deployment environments.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_package_app_discipline(self, project_root):
         """
         🏗️ GOLDEN TEST 5: Package vs App Discipline
@@ -304,27 +211,16 @@ class TestArchitecturalCompliance:
            generic packages, maintaining reusability.
         """
         is_valid, violations = validate_package_app_discipline(project_root)
-
         if not is_valid:
-            failure_message = "❌ Package vs App Discipline FAILED\n\nThe following violations were found:\n\n"
+            failure_message = '❌ Package vs App Discipline FAILED\n\nThe following violations were found:\n\n'
             for violation in violations[:10]:
-                failure_message += f"  • {violation}\n"
-
+                failure_message += f'  • {violation}\n'
             if len(violations) > 10:
-                failure_message += f"  ... and {len(violations) - 10} more violations\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Move business logic from packages to apps\n",
-                "  2. Keep packages generic and reusable\n",
-                "  3. Apps should extend package functionality\n",
-                "  4. Follow the inherit → extend pattern\n\n",
-                "📖 This enforces clean architecture where packages\n"
-                "   provide tools and apps use them for business needs.",
-            )
-
+                failure_message += f'  ... and {len(violations) - 10} more violations\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Move business logic from packages to apps\n', '  2. Keep packages generic and reusable\n', '  3. Apps should extend package functionality\n', '  4. Follow the inherit → extend pattern\n\n', '📖 This enforces clean architecture where packages\n   provide tools and apps use them for business needs.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_dependency_direction(self, project_root):
         """
         🔄 GOLDEN TEST 6: Dependency Direction
@@ -340,26 +236,16 @@ class TestArchitecturalCompliance:
            maintains clean architecture layers.
         """
         is_valid, violations = validate_dependency_direction(project_root)
-
         if not is_valid:
-            failure_message = "❌ Dependency Direction FAILED\n\nInvalid dependencies detected:\n\n"
+            failure_message = '❌ Dependency Direction FAILED\n\nInvalid dependencies detected:\n\n'
             for violation in violations[:10]:
-                failure_message += f"  • {violation}\n"
-
+                failure_message += f'  • {violation}\n'
             if len(violations) > 10:
-                failure_message += f"  ... and {len(violations) - 10} more violations\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Remove package imports from apps\n",
-                "  2. Use shared packages for app-to-app communication\n",
-                "  3. Consider hive-orchestrator.core for shared app logic\n",
-                "  4. Refactor to eliminate circular dependencies\n\n",
-                "📖 This maintains clean architectural layers and\n   prevents dependency hell.",
-            )
-
+                failure_message += f'  ... and {len(violations) - 10} more violations\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Remove package imports from apps\n', '  2. Use shared packages for app-to-app communication\n', '  3. Consider hive-orchestrator.core for shared app logic\n', '  4. Refactor to eliminate circular dependencies\n\n', '📖 This maintains clean architectural layers and\n   prevents dependency hell.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_interface_contracts(self, project_root):
         """
         📝 GOLDEN TEST 7: Interface Contracts
@@ -375,29 +261,16 @@ class TestArchitecturalCompliance:
            type-safe, improving maintainability.
         """
         is_valid, violations = validate_interface_contracts(project_root)
-
-        # This is a strict rule but we'll start with warnings
-        if not is_valid and len(violations) < 100:  # Only fail if reasonable number
-            failure_message = "❌ Interface Contracts FAILED\n\nMissing type hints or documentation:\n\n"
-            for violation in violations[:20]:  # Show more for this rule
-                failure_message += f"  • {violation}\n"
-
+        if not is_valid and len(violations) < 100:
+            failure_message = '❌ Interface Contracts FAILED\n\nMissing type hints or documentation:\n\n'
+            for violation in violations[:20]:
+                failure_message += f'  • {violation}\n'
             if len(violations) > 20:
-                failure_message += f"  ... and {len(violations) - 20} more violations\n"
+                failure_message += f'  ... and {len(violations) - 20} more violations\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Add type hints to all public function parameters\n', '  2. Add return type hints to all functions\n', '  3. Add docstrings to all public functions\n', '  4. Rename async functions to end with _async\n\n', '📖 This ensures APIs are self-documenting and type-safe.')
+            logger.info(f'⚠️ WARNING: {len(violations)} interface contract violations found')
 
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Add type hints to all public function parameters\n",
-                "  2. Add return type hints to all functions\n",
-                "  3. Add docstrings to all public functions\n",
-                "  4. Rename async functions to end with _async\n\n",
-                "📖 This ensures APIs are self-documenting and type-safe.",
-            )
-
-            # For now, just warn instead of fail for this rule
-            # pytest.fail(failure_message)
-            logger.info(f"⚠️ WARNING: {len(violations)} interface contract violations found")
-
+    @pytest.mark.core
     def test_error_handling_standards(self, project_root):
         """
         🛡️ GOLDEN TEST 8: Error Handling Standards
@@ -413,26 +286,16 @@ class TestArchitecturalCompliance:
            improves system reliability.
         """
         is_valid, violations = validate_error_handling_standards(project_root)
-
         if not is_valid:
-            failure_message = "❌ Error Handling Standards FAILED\n\nPoor error handling detected:\n\n"
+            failure_message = '❌ Error Handling Standards FAILED\n\nPoor error handling detected:\n\n'
             for violation in violations[:15]:
-                failure_message += f"  • {violation}\n"
-
+                failure_message += f'  • {violation}\n'
             if len(violations) > 15:
-                failure_message += f"  ... and {len(violations) - 15} more violations\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Replace bare except with specific exception types\n",
-                "  2. Use hive-error-handling base classes\n",
-                "  3. Include context in error messages\n",
-                "  4. Consider error recovery strategies\n\n",
-                "📖 This prevents silent failures and makes debugging easier.",
-            )
-
+                failure_message += f'  ... and {len(violations) - 15} more violations\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Replace bare except with specific exception types\n', '  2. Use hive-error-handling base classes\n', '  3. Include context in error messages\n', '  4. Consider error recovery strategies\n\n', '📖 This prevents silent failures and makes debugging easier.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_logging_standards(self, project_root):
         """
         📊 GOLDEN TEST 9: Logging Standards
@@ -448,26 +311,16 @@ class TestArchitecturalCompliance:
            professional logging practices.
         """
         is_valid, violations = validate_logging_standards(project_root)
-
         if not is_valid:
-            failure_message = "❌ Logging Standards FAILED\n\nLogging violations found:\n\n"
+            failure_message = '❌ Logging Standards FAILED\n\nLogging violations found:\n\n'
             for violation in violations[:15]:
-                failure_message += f"  • {violation}\n"
-
+                failure_message += f'  • {violation}\n'
             if len(violations) > 15:
-                failure_message += f"  ... and {len(violations) - 15} more violations\n"
-
-            failure_message += (
-                "\n🔧 To fix this:\n",
-                "  1. Replace print() with proper logging calls\n",
-                "  2. Import and use hive_logging\n",
-                "  3. Use appropriate log levels (DEBUG, INFO, WARNING, ERROR)\n",
-                "  4. Include structured context in log messages\n\n",
-                "📖 This ensures professional logging and observability.",
-            )
-
+                failure_message += f'  ... and {len(violations) - 15} more violations\n'
+            failure_message += ('\n🔧 To fix this:\n', '  1. Replace print() with proper logging calls\n', '  2. Import and use hive_logging\n', '  3. Use appropriate log levels (DEBUG, INFO, WARNING, ERROR)\n', '  4. Include structured context in log messages\n\n', '📖 This ensures professional logging and observability.')
             pytest.fail(failure_message)
 
+    @pytest.mark.core
     def test_enhanced_golden_rules(self, project_root):
         """
         🚀 ENHANCED GOLDEN RULES: Single-Pass AST-Based Validation
@@ -491,83 +344,56 @@ class TestArchitecturalCompliance:
         """
         validator = EnhancedValidator(project_root)
         is_valid, violations_by_rule = validator.validate_all()
-
         if not is_valid:
-            failure_message = (
-                "🚀 Enhanced Golden Rules FAILED\n\nThe next-generation validation framework found violations:\n\n"
-            )
-
+            failure_message = '🚀 Enhanced Golden Rules FAILED\n\nThe next-generation validation framework found violations:\n\n'
             for rule_name, rule_violations in violations_by_rule.items():
-                failure_message += f"📋 {rule_name}:\n"
-                for violation in rule_violations[:10]:  # Limit to first 10 per rule
-                    failure_message += f"  • {violation}\n"
+                failure_message += f'📋 {rule_name}:\n'
+                for violation in rule_violations[:10]:
+                    failure_message += f'  • {violation}\n'
                 if len(rule_violations) > 10:
-                    failure_message += f"  ... and {len(rule_violations) - 10} more violations\n"
-                failure_message += "\n"
-
-            failure_message += (
-                "🔧 To fix violations:\n",
-                "  1. Review each violation message for specific guidance\n",
-                "  2. Use suppression comments for valid exceptions:\n",
-                "     # golden-rule-ignore: rule-17 - Legacy system integration\n",
-                "  3. Run tests frequently to catch violations early\n",
-                "  4. Consider the architectural intent behind each rule\n\n"
-                "📖 This enhanced framework provides superior accuracy and performance\n"
-                "   while maintaining the architectural integrity of your platform.",
-            )
-
+                    failure_message += f'  ... and {len(rule_violations) - 10} more violations\n'
+                failure_message += '\n'
+            failure_message += ('🔧 To fix violations:\n', '  1. Review each violation message for specific guidance\n', '  2. Use suppression comments for valid exceptions:\n', '     # golden-rule-ignore: rule-17 - Legacy system integration\n', '  3. Run tests frequently to catch violations early\n', '  4. Consider the architectural intent behind each rule\n\n📖 This enhanced framework provides superior accuracy and performance\n   while maintaining the architectural integrity of your platform.')
             pytest.fail(failure_message)
 
-
+@pytest.mark.core
 class TestPlatformStandards:
     """
     Additional tests for Hive platform standards and patterns.
     """
 
+    @pytest.mark.core
     def test_no_root_python_files(self, project_root):
         """
         Ensure no Python files exist in the project root.
         All code should be in apps/ or packages/.
         """
-        root_py_files = [f for f in project_root.glob("*.py") if f.name not in ["conftest.py"]]  # Allow conftest.py
+        root_py_files = [f for f in project_root.glob('*.py') if f.name not in ['conftest.py']]
+        assert not root_py_files, (f'Found Python files in project root: {root_py_files}\n', 'Move these to appropriate apps/ or packages/ directories.')
 
-        assert not root_py_files, (
-            f"Found Python files in project root: {root_py_files}\n",
-            "Move these to appropriate apps/ or packages/ directories.",
-        )
-
+    @pytest.mark.core
     def test_proper_package_structure(self, packages_dir):
         """
         Ensure all packages follow the standard structure.
         """
         if not packages_dir.exists():
-            pytest.skip("No packages directory found")
-
+            pytest.skip('No packages directory found')
         for package_dir in packages_dir.iterdir():
-            if package_dir.is_dir() and not package_dir.name.startswith("."):
-                # Each package should have pyproject.toml and src/
-                assert (package_dir / "pyproject.toml").exists(), f"Package {package_dir.name} missing pyproject.toml"
-                assert (package_dir / "src").exists(), f"Package {package_dir.name} missing src/ directory"
+            if package_dir.is_dir() and (not package_dir.name.startswith('.')):
+                assert (package_dir / 'pyproject.toml').exists(), f'Package {package_dir.name} missing pyproject.toml'
+                assert (package_dir / 'src').exists(), f'Package {package_dir.name} missing src/ directory'
 
+    @pytest.mark.core
     def test_proper_app_structure(self, apps_dir):
         """
         Ensure all apps follow the standard structure.
         """
         if not apps_dir.exists():
-            pytest.skip("No apps directory found")
-
+            pytest.skip('No apps directory found')
         for app_dir in apps_dir.iterdir():
-            if app_dir.is_dir() and not app_dir.name.startswith("."):
-                # Each app should have either src/ or be self-contained
-                has_src = ((app_dir / "src").exists(),)
-                has_python_files = any(app_dir.glob("*.py"))
-
-                assert has_src or has_python_files, f"App {app_dir.name} has no Python code (no src/ or *.py files)"
-
-
-if __name__ == "__main__":
-    # Allow running this file directly for quick validation
-
-    # No sys.path manipulation needed - use Poetry workspace imports
-
-    pytest.main([__file__, "-v"])
+            if app_dir.is_dir() and (not app_dir.name.startswith('.')):
+                has_src = ((app_dir / 'src').exists(),)
+                has_python_files = any(app_dir.glob('*.py'))
+                assert has_src or has_python_files, f'App {app_dir.name} has no Python code (no src/ or *.py files)'
+if __name__ == '__main__':
+    pytest.main([__file__, '-v'])

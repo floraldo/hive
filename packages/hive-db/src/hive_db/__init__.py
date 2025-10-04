@@ -9,7 +9,9 @@ from hive_logging import get_logger
 
 from .async_pool import AsyncDatabaseManager, create_async_sqlite_pool
 from .async_pool import create_async_database_manager_async as create_async_database_manager
-from .pool import ConnectionPool, DatabaseManager, create_database_manager
+
+# DEPRECATED: pool module removed - use SQLiteConnectionFactory instead
+# from .pool import ConnectionPool, DatabaseManager, create_database_manager
 from .postgres_connector import create_connection_pool, get_postgres_connection, get_postgres_info, postgres_transaction
 from .sqlite_connector import get_sqlite_connection, sqlite_transaction
 from .sqlite_factory import SQLiteConnectionFactory, SQLiteConnectionManager, create_sqlite_manager
@@ -87,10 +89,10 @@ __all__ = [
     "create_connection_pool",
     "get_postgres_info",
     "connect_postgres",
-    # Connection pooling (legacy - prefer SQLiteConnectionFactory)
-    "ConnectionPool",
-    "DatabaseManager",
-    "create_database_manager",
+    # Connection pooling (legacy - DEPRECATED, removed)
+    # "ConnectionPool",  # Use SQLiteConnectionFactory instead
+    # "DatabaseManager",  # Use SQLiteConnectionManager instead
+    # "create_database_manager",  # Use create_sqlite_manager instead
     # Async connection pooling
     "AsyncDatabaseManager",
     "create_async_database_manager",

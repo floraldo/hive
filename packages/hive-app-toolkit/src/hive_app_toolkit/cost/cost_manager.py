@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Protocol
 
-from hive_cache import CacheClient
+from hive_cache import HiveCacheClient
 from hive_logging import get_logger
 from hive_performance import MetricsCollector
 
@@ -91,11 +91,11 @@ class CostManager:
     def __init__(
         self,
         limits: BudgetLimits | None = None,
-        cache_client: CacheClient | None = None
+        cache_client: HiveCacheClient | None = None
     ) -> None:
         """Initialize cost manager."""
         self.limits = limits or BudgetLimits()
-        self.cache = cache_client or CacheClient(ttl_seconds=86400)
+        self.cache = cache_client or HiveCacheClient(ttl_seconds=86400)
 
         # Usage tracking,
         self.hourly_usage = defaultdict(float)

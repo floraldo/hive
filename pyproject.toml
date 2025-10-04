@@ -66,9 +66,29 @@ section-order = [ "future", "standard-library", "third-party", "first-party", "l
 split-on-trailing-comma = false  # CRITICAL: Prevent conflict with skip-magic-trailing-comma
 
 [tool.ruff.lint.per-file-ignores]
-"integration_tests/**" = [ "S101", "S602", "S604",]  # Integration tests: allow asserts and subprocess usage
-"scripts/**" = [ "S602", "S604",]
-"archive/**" = [ "S",]
+# CORE packages (strict - minimal ignores)
+# Core infrastructure held to highest standards
+"packages/**/tests/**" = [ "S101",]  # Allow asserts in tests only
+"packages/**/__init__.py" = [ "F401",]  # Allow unused imports in __init__ (public API exports)
+
+# CRUST apps and integration_tests (lenient - pragmatic ignores)
+# Enable rapid iteration on business logic
+"apps/**" = [
+    "S603", "S607",  # subprocess security (dev tools, deployment scripts)
+    "B904",          # raise-without-from (pragmatic error handling)
+    "E402",          # module-import-not-at-top (CLI scripts with early setup)
+    "F821",          # undefined-name (allow some dynamic imports)
+]
+"integration_tests/**" = [
+    "S101", "S602", "S604",  # Integration tests: allow asserts and subprocess usage
+    "B904",                   # raise-without-from
+    "E402",                   # module-import-not-at-top
+    "F821",                   # undefined-name
+]
+
+# Utility areas (pragmatic ignores)
+"scripts/**" = [ "S602", "S604", "E402",]  # Dev scripts
+"archive/**" = [ "S",]  # Archived code - don't enforce
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"

@@ -9,8 +9,11 @@ from hive_logging import get_logger
 
 from ..config.app_config import HiveAppConfig
 from .health import add_health_endpoints
-from .metrics import add_metrics_endpoints
-from .middleware import add_error_handling_middleware, add_logging_middleware, add_performance_middleware
+
+# DEPRECATED: metrics module removed
+# from .metrics import add_metrics_endpoints
+# DEPRECATED: middleware module removed
+# from .middleware import add_error_handling_middleware, add_logging_middleware, add_performance_middleware
 
 logger = get_logger(__name__)
 
@@ -64,19 +67,19 @@ class HiveApp:
                 allow_headers=self.config.api.cors_headers,
             )
 
-        # Custom middleware (order matters - last added runs first)
-        add_performance_middleware(self.app, self.config)
-        add_error_handling_middleware(self.app, self.config)
-        add_logging_middleware(self.app, self.config)
+        # Custom middleware (order matters - last added runs first) - DEPRECATED (middleware module removed)
+        # add_performance_middleware(self.app, self.config)
+        # add_error_handling_middleware(self.app, self.config)
+        # add_logging_middleware(self.app, self.config)
 
     def _setup_endpoints(self) -> None:
         """Setup standard endpoints."""
         # Health endpoints for Kubernetes
         add_health_endpoints(self.app, self.config)
 
-        # Metrics endpoints for Prometheus
-        if self.config.monitoring.enable_metrics:
-            add_metrics_endpoints(self.app, self.config)
+        # Metrics endpoints for Prometheus - DEPRECATED (metrics module removed)
+        # if self.config.monitoring.enable_metrics:
+        #     add_metrics_endpoints(self.app, self.config)
 
     def get_app(self) -> FastAPI:
         """Get the underlying FastAPI application."""

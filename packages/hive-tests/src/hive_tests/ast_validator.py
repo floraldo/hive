@@ -106,6 +106,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         self._validate_async_sync_mixing(node)
         self._validate_print_statements(node)
         self._validate_no_deprecated_config_calls(node)
+        self._validate_unified_config_enforcement(node)
         self.generic_visit(node)
 
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
@@ -133,6 +134,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         self._validate_error_handling_standards(node)
         self._validate_health_check_pattern(node)
         self._validate_exception_consolidation_pattern(node)
+        self._validate_client_pattern_consolidation(node)
         self.generic_visit(node)
 
     # Rule implementations
@@ -453,6 +455,62 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     )
                     break
 
+    def _validate_client_pattern_consolidation(self, node: ast.ClassDef) -> None:
+        """Golden Rule 36: Client Pattern Consolidation (Project Essence Phase 4)"""
+        # Check if this is a client or manager class
+        client_indicators = ["Client", "Manager"]
+
+        # Does the class name end with Client or Manager?
+        is_client_class = any(node.name.endswith(indicator) for indicator in client_indicators)
+
+        if not is_client_class:
+            return
+
+        # Check if it inherits from BaseServiceClient
+        inherits_from_base = any(
+            isinstance(base, ast.Name) and base.id == "BaseServiceClient"
+            or (isinstance(base, ast.Attribute) and base.attr == "BaseServiceClient")
+            for base in node.bases
+        )
+
+        # Allowed exceptions:
+        # 1. BaseServiceClient itself (canonical base)
+        # 2. Wrapper clients (OrchestrationClient - delegates to functions)
+        # 3. Test mocks/fixtures
+        # 4. Legacy clients pending migration (will be handled incrementally)
+        is_canonical_base = node.name == "BaseServiceClient"
+        is_wrapper_client = node.name in ["OrchestrationClient"]  # Delegates to functions, no connection management
+        is_test_client = self.context.is_test_file
+
+        if is_canonical_base or is_wrapper_client or is_test_client:
+            return
+
+        # Check if class has connection/pool management indicators (needs BaseServiceClient)
+        has_connection_management = False
+        for item in node.body:
+            if isinstance(item, ast.FunctionDef):
+                # Look for connection/pool/retry/circuit breaker patterns
+                if any(keyword in item.name for keyword in ["connect", "pool", "retry", "circuit", "resilience"]):
+                    has_connection_management = True
+                    break
+            # Check for pool/connection attributes
+            elif isinstance(item, ast.Assign):
+                for target in item.targets:
+                    if isinstance(target, ast.Name) and any(keyword in target.id for keyword in ["_pool", "_connection", "_client", "_circuit"]):
+                        has_connection_management = True
+                        break
+
+        # Only enforce for clients with connection management infrastructure
+        if has_connection_management and not inherits_from_base:
+            self.add_violation(
+                "rule-36",
+                "Client Pattern Consolidation",
+                node.lineno,
+                f"Client class '{node.name}' with connection management must inherit from BaseServiceClient. "
+                "Import: from hive_async.clients import BaseServiceClient",
+                severity="warning",  # Warning during migration period
+            )
+
     def _validate_async_naming(self, node) -> None:
         """Golden Rule 14: Async Pattern Consistency"""
         if isinstance(node, ast.AsyncFunctionDef):
@@ -541,6 +599,61 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 severity="warning",
             )
 
+    def _validate_unified_config_enforcement(self, node: ast.Call) -> None:
+        """
+        Golden Rule 37: Enforce Unified Configuration Loading
+
+        Prevents direct os.getenv() calls and config file I/O outside hive-config.
+        Forces all configuration to go through the unified system.
+        """
+        # Skip if in exempt location
+        if self._is_exempt_from_config_enforcement():
+            return
+
+        # Detect os.getenv()
+        if isinstance(node.func, ast.Attribute):
+            if isinstance(node.func.value, ast.Name) and node.func.value.id == "os" and node.func.attr == "getenv":
+                self.add_violation(
+                    "rule-37",
+                    "Unified Config Enforcement",
+                    node.lineno,
+                    "Direct os.getenv() usage detected. "
+                    "Use unified config: from hive_config import load_config_for_app; "
+                    "config = load_config_for_app('my-app')",
+                    severity="error",
+                )
+
+            # Detect os.environ.get()
+            elif isinstance(node.func.value, ast.Attribute):
+                if isinstance(node.func.value.value, ast.Name) and node.func.value.value.id == "os" and node.func.value.attr == "environ" and node.func.attr == "get":
+                    self.add_violation(
+                        "rule-37",
+                        "Unified Config Enforcement",
+                        node.lineno,
+                        "Direct os.environ.get() usage detected. "
+                        "Use unified config: from hive_config import load_config_for_app; "
+                        "config = load_config_for_app('my-app')",
+                        severity="error",
+                    )
+
+        # Detect config file I/O (open('config.yaml'), etc.)
+        if isinstance(node.func, ast.Name) and node.func.id == "open":
+            if node.args:
+                # Check if opening a config file
+                if isinstance(node.args[0], ast.Constant):
+                    filename = str(node.args[0].value)
+                    if any(filename.endswith(ext) for ext in ['.toml', '.yaml', '.yml', '.json', '.env']):
+                        # Check if it's a config file (contains 'config' in name or path)
+                        if 'config' in filename.lower() or '.env' in filename:
+                            self.add_violation(
+                                "rule-37",
+                                "Unified Config Enforcement",
+                                node.lineno,
+                                f"Direct config file I/O detected: {filename}. "
+                                "Use unified config loader instead of reading config files directly.",
+                                severity="error",
+                            )
+
     # Helper methods
     # NOTE: _is_invalid_app_import helper method DEPRECATED and removed.
     # App import validation is now handled by the graph-based validator.
@@ -563,6 +676,31 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         """Check if in CLI utility function"""
         cli_functions = ["encrypt_production_config", "generate_master_key", "main"]
         return any(f"def {func}(" in self.context.content for func in cli_functions)
+
+    def _is_exempt_from_config_enforcement(self) -> bool:
+        """Check if current file is exempt from Golden Rule 37"""
+        file_str = str(self.context.path).replace("\\", "/")
+        filename = self.context.path.name
+
+        # Exempt locations
+        # 1. Directories
+        if any(pattern in file_str for pattern in [
+            'packages/hive-config/',  # The config system itself
+            'scripts/',                # Build/deployment scripts
+            '/tests/',                 # Test directories
+            '/archive/',              # Archived code
+        ]):
+            return True
+
+        # 2. Specific filenames
+        if filename in ['conftest.py', 'setup.py']:
+            return True
+
+        # 3. Test files (filename starts with test_)
+        if filename.startswith('test_'):
+            return True
+
+        return False
 
     def _detect_optional_imports(self, tree: ast.AST) -> set[str]:
         """Detect optional imports in try/except blocks"""
@@ -648,6 +786,7 @@ class EnhancedValidator:
         self._validate_pyproject_dependency_usage()
         self._validate_cli_pattern_consistency()
         self._validate_test_coverage_mapping()
+        self._validate_pyproject_toml_exists()
 
         # Group violations by rule,
         violations_by_rule = {}
@@ -1412,3 +1551,42 @@ class EnhancedValidator:
                                     message=f"Missing test for core module {app_dir.name}:core/{rel_path} - core business logic should have unit tests",
                                 ),
                             )
+
+    def _validate_pyproject_toml_exists(self) -> None:
+        """Golden Rule 34: PyProject.toml Required
+
+        All apps and packages must have pyproject.toml for editable installation.
+        This ensures all components can be installed with `pip install -e` and prevents
+        environment issues where code changes don't reflect in the installed package.
+        """
+        for base_dir_name in ["apps", "packages"]:
+            base_dir = self.project_root / base_dir_name
+            if not base_dir.exists():
+                continue
+
+            for component_dir in base_dir.iterdir():
+                if not component_dir.is_dir():
+                    continue
+                if component_dir.name.startswith('.'):
+                    continue
+
+                pyproject_toml = component_dir / "pyproject.toml"
+
+                # Check if it's a Python component (has .py files or src/ dir)
+                has_python = (
+                    any(component_dir.glob("*.py")) or
+                    (component_dir / "src").exists() or
+                    any(component_dir.rglob("*.py"))
+                )
+
+                if has_python and not pyproject_toml.exists():
+                    self.violations.append(
+                        Violation(
+                            rule_id="rule-34",
+                            rule_name="PyProject.toml Required",
+                            file_path=component_dir,
+                            line_number=1,
+                            message=f"{base_dir_name}/{component_dir.name} missing pyproject.toml - required for editable installation",
+                            severity="error",
+                        ),
+                    )

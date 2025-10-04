@@ -7,7 +7,9 @@ from typing import Any
 
 from guardian_agent.core.config import GuardianConfig
 from guardian_agent.review.engine import ReviewEngine
-from hive_async import AsyncExecutor
+
+# DEPRECATED: AsyncExecutor removed from hive-async
+# from hive_async import AsyncExecutor
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -33,7 +35,8 @@ class GitHubWebhookHandler:
         self.webhook_secret = webhook_secret
 
         self.review_engine = ReviewEngine(self.config)
-        self.async_executor = AsyncExecutor(max_workers=2)
+        # DEPRECATED: AsyncExecutor removed from hive-async
+        # self.async_executor = AsyncExecutor(max_workers=2)
 
         logger.info("GitHubWebhookHandler initialized")
 
@@ -66,7 +69,7 @@ class GitHubWebhookHandler:
             logger.info("Ignoring event type: %s", event_type)
             return {"message": f"Event type {event_type} not handled"}, 200
 
-    async def _handle_pull_request(self, payload: dict[str, Any]) -> Tuple[dict[str, Any], int]:
+    async def _handle_pull_request(self, payload: dict[str, Any]) -> tuple[dict[str, Any], int]:
         """Handle pull request events."""
         action = payload.get("action", "")
         pr = payload.get("pull_request", {})
@@ -99,7 +102,7 @@ class GitHubWebhookHandler:
 
         return {"message": f"Reviewed {len(review_results)} files"}, 200
 
-    async def _handle_review_comment(self, payload: dict[str, Any]) -> Tuple[dict[str, Any], int]:
+    async def _handle_review_comment(self, payload: dict[str, Any]) -> tuple[dict[str, Any], int]:
         """Handle review comment events for learning."""
         action = payload.get("action", "")
         if action != "created":
@@ -116,7 +119,7 @@ class GitHubWebhookHandler:
 
         return {"message": "Feedback processed"}, 200
 
-    async def _handle_issue_comment(self, payload: dict[str, Any]) -> Tuple[dict[str, Any], int]:
+    async def _handle_issue_comment(self, payload: dict[str, Any]) -> tuple[dict[str, Any], int]:
         """Handle issue comments that might trigger reviews."""
         comment = payload.get("comment", {})
         issue = payload.get("issue", {})

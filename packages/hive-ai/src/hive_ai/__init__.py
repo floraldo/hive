@@ -12,13 +12,10 @@ Built on the Hive platform's unassailable architecture for maximum
 reliability, performance, and maintainability.
 """
 
-from hive_logging import get_logger
-
 # Resilience - use canonical hive-async patterns
 from hive_async.resilience import AsyncCircuitBreaker as AICircuitBreaker
 from hive_async.resilience import AsyncTimeoutManager as AITimeoutManager
-
-logger = get_logger(__name__)
+from hive_logging import get_logger
 
 from .core.config import AIConfig, ModelConfig, PromptConfig, VectorConfig
 from .core.exceptions import AIError, CostLimitError, ModelError, ModelUnavailableError, PromptError, VectorError
@@ -44,6 +41,8 @@ from .vector.search import SemanticSearch
 
 # Vector Database
 from .vector.store import VectorStore
+
+logger = get_logger(__name__)
 
 __version__ = ("1.0.0",)
 

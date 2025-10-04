@@ -1,32 +1,25 @@
-#!/usr/bin/env python3
 """
 Quick debug test for V3.0 certification
 """
-
+import pytest
 from hive_logging import get_logger
-
 logger = get_logger(__name__)
 
-# No sys.path manipulation needed - use Poetry workspace imports
-
-
+@pytest.mark.crust
 def test_config():
     """Test configuration system"""
     try:
         from hive_config import create_config_from_sources
-
         config = create_config_from_sources()
-        logger.info(f"Environment: {config.environment}")
-        logger.info(f"Debug mode: {config.debug_mode}")
-        logger.info(f"Database config: {config.database}")
-        logger.info("Configuration test: PASSED")
+        logger.info(f'Environment: {config.environment}')
+        logger.info(f'Debug mode: {config.debug_mode}')
+        logger.info(f'Database config: {config.database}')
+        logger.info('Configuration test: PASSED')
         return True
     except Exception as e:
-        logger.info(f"Configuration test failed: {e}")
+        logger.info(f'Configuration test failed: {e}')
         return False
-
-
-if __name__ == "__main__":
-    logger.info("Debug test starting...")
+if __name__ == '__main__':
+    logger.info('Debug test starting...')
     result = test_config()
-    logger.info(f"Result: {'PASSED' if result else 'FAILED'}")
+    logger.info(f"Result: {('PASSED' if result else 'FAILED')}")

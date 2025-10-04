@@ -2,15 +2,17 @@
 
 from .base_app import HiveApp, create_hive_app
 from .health import BaseHealthMonitor, HealthCheckResult, HealthStatusLevel, add_health_endpoints
-from .metrics import add_metrics_endpoints
-from .middleware import setup_middleware
+
+# TODO: metrics and middleware modules not yet implemented
+# from .metrics import add_metrics_endpoints
+# from .middleware import setup_middleware
 
 __all__ = [
     "create_hive_app",
     "HiveApp",
     "add_health_endpoints",
-    "add_metrics_endpoints",
-    "setup_middleware",
+    # "add_metrics_endpoints",  # TODO: implement metrics module
+    # "setup_middleware",  # TODO: implement middleware module
     "BaseHealthMonitor",
     "HealthCheckResult",
     "HealthStatusLevel",
