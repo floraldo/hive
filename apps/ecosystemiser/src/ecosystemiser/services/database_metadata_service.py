@@ -1,4 +1,9 @@
-"""Database Metadata Service for simulation index management."""
+# ruff: noqa: S608
+"""
+Database Metadata Service for simulation index management.
+
+Note: S608 suppressed - dynamic SQL uses column names from controlled dicts with parameterized queries.
+"""
 
 import json
 from datetime import datetime
