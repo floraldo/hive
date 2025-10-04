@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from hive_errors import BaseError, BaseErrorReporter
 from hive_logging import get_logger

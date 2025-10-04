@@ -181,7 +181,7 @@ class ClaudeAPICache:
         temperature: float = 0.0,
         system: str | None = None,
         **kwargs,
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get cached Claude API response if available.
 
         Args:

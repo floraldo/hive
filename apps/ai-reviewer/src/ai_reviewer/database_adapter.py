@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import hive_db as hive_core_db
 from hive_db.models import Task, TaskStatus
