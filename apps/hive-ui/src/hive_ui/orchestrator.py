@@ -1,5 +1,4 @@
-"""
-Project Orchestrator for Colossus Pipeline.
+"""Project Orchestrator for Colossus Pipeline.
 
 Manages the complete autonomous development workflow:
 1. Architect Agent: NL requirement → ExecutionPlan
@@ -31,8 +30,7 @@ class ProjectStatus(str, Enum):
 
 
 class ProjectOrchestrator:
-    """
-    Orchestrates the complete Colossus autonomous development pipeline.
+    """Orchestrates the complete Colossus autonomous development pipeline.
 
     This is the command center that coordinates the three autonomous agents:
     - Architect (Brain): Natural language → ExecutionPlan
@@ -41,11 +39,11 @@ class ProjectOrchestrator:
     """
 
     def __init__(self, workspace_dir: Path | None = None):
-        """
-        Initialize Project Orchestrator.
+        """Initialize Project Orchestrator.
 
         Args:
             workspace_dir: Directory for project workspaces
+
         """
         self.config = create_config_from_sources()
         self.workspace_dir = workspace_dir or Path("./workspaces")
@@ -59,8 +57,7 @@ class ProjectOrchestrator:
         requirement: str,
         service_name: str | None = None,
     ) -> str:
-        """
-        Create new autonomous development project.
+        """Create new autonomous development project.
 
         Args:
             requirement: Natural language requirement description
@@ -68,6 +65,7 @@ class ProjectOrchestrator:
 
         Returns:
             project_id: Unique project identifier
+
         """
         project_id = str(uuid4())
         service_name = service_name or f"service-{project_id[:8]}"
@@ -93,8 +91,7 @@ class ProjectOrchestrator:
         return project_id
 
     async def execute_project(self, project_id: str) -> dict[str, Any]:
-        """
-        Execute complete autonomous development pipeline.
+        """Execute complete autonomous development pipeline.
 
         Pipeline stages:
         1. PLANNING: Architect generates ExecutionPlan
@@ -108,6 +105,7 @@ class ProjectOrchestrator:
 
         Returns:
             project_state: Final project state with results
+
         """
         if project_id not in self.projects:
             msg = f"Project {project_id} not found"
@@ -186,8 +184,7 @@ class ProjectOrchestrator:
         logger.info(f"Service generated for {project['id']}")
 
     async def _run_guardian(self, project: dict[str, Any]) -> bool:
-        """
-        Run Guardian Agent for validation and auto-fix.
+        """Run Guardian Agent for validation and auto-fix.
 
         Returns:
             validation_passed: True if service is deployment-ready
@@ -195,6 +192,7 @@ class ProjectOrchestrator:
         Note:
             For MVP Phase 1, Guardian integration is simplified.
             Full auto-fix loop will be enabled in Phase 2.
+
         """
         logger.info(f"Running Guardian for project {project['id']}")
 
@@ -203,13 +201,45 @@ class ProjectOrchestrator:
         service_path = Path(project["service_dir"])
 
         try:
-            # Basic syntax check on generated files
+            # Check 1: Service directory must not be empty
+            py_files = list(service_path.rglob("*.py"))
+            if not py_files:
+                project["logs"].append("Validation FAILED: No Python files generated")
+                logger.error(f"Empty service directory for {project['id']}")
+                return False
+
+            # Check 2: Find the actual service root (hive-toolkit creates apps/{name}/src/{name}/)
+            # Look for main.py at service level (not in api/ subdirectory)
+            main_py_files = [
+                p
+                for p in service_path.rglob("main.py")
+                if "__init__.py" in [f.name for f in p.parent.iterdir()]
+                and p.parent.name != "api"  # Exclude api/main.py
+            ]
+            if not main_py_files:
+                project["logs"].append("Validation FAILED: No service-level main.py found")
+                logger.error(f"No service-level main.py in service directory for {project['id']}")
+                return False
+
+            # Use the directory containing main.py as the service root
+            service_root = main_py_files[0].parent
+
+            # Check 3: Minimum viable structure at service root
+            required_files = ["__init__.py", "main.py"]
+            for required in required_files:
+                if not (service_root / required).exists():
+                    project["logs"].append(f"Validation FAILED: Missing {required}")
+                    logger.error(f"Missing required file {required} for {project['id']}")
+                    return False
+
+            # Check 4: Basic syntax check on all generated files
             import subprocess
             import sys
 
-            for py_file in service_path.rglob("*.py"):
+            for py_file in py_files:
                 result = subprocess.run(  # noqa: S603
                     [sys.executable, "-m", "py_compile", str(py_file)],
+                    check=False,
                     capture_output=True,
                     text=True,
                     timeout=10,
@@ -219,7 +249,7 @@ class ProjectOrchestrator:
                     logger.warning(f"Syntax error in {py_file}")
                     return False
 
-            project["logs"].append("Validation: PASS - Basic syntax checks passed")
+            project["logs"].append(f"Validation PASS: {len(py_files)} files validated")
             logger.info(f"Validation passed for {project['id']}")
             return True
 
