@@ -142,7 +142,7 @@ class PromptTemplate(PromptTemplateInterface):
         sorted_kwargs = json.dumps(kwargs, sort_keys=True)
         # Hash template + variables for cache key
         content = f"{self.template}|{sorted_kwargs}"
-        return hashlib.md5(content.encode("utf-8")).hexdigest()
+        return hashlib.md5(content.encode("utf-8")).hexdigest()  # noqa: S324
 
     def render(self, **kwargs) -> str:
         """

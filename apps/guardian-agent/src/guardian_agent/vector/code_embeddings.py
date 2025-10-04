@@ -227,7 +227,7 @@ class CodeEmbeddingGenerator:
 
     def _get_cache_key(self, content: str) -> str:
         """Generate cache key for content."""
-        return f"embedding:{hashlib.md5(content.encode()).hexdigest()}"
+        return f"embedding:{hashlib.md5(content.encode()).hexdigest()}"  # noqa: S324
 
     def _get_language(self, file_path: Path) -> str:
         """Determine language from file extension."""

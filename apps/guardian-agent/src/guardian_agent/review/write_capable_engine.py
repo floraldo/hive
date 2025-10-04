@@ -467,7 +467,7 @@ Proposal ID: {proposal.proposal_id}
     ) -> str:
         """Generate unique proposal ID."""
         content = f"{file_path}:{line_number}:{category.value}:{datetime.now().isoformat()}"
-        return hashlib.md5(content.encode()).hexdigest()[:12]
+        return hashlib.md5(content.encode()).hexdigest()[:12]  # noqa: S324
 
     def _save_proposal(self, proposal: ChangeProposal) -> None:
         """Save proposal to disk."""

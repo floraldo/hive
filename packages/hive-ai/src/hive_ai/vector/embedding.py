@@ -58,7 +58,7 @@ class EmbeddingManager:
         """Generate cache key for text and model combination."""
         # Create hash of text and model for consistent caching
         content = f"{text}|{model}"
-        return hashlib.md5(content.encode("utf-8")).hexdigest()
+        return hashlib.md5(content.encode("utf-8")).hexdigest()  # noqa: S324
 
     def _get_embedding_model(self, model: str | None = None) -> str:
         """Get appropriate embedding model."""

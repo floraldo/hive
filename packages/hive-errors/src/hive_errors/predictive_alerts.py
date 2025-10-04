@@ -400,7 +400,7 @@ class TrendAnalyzer:
 
         timestamp = (datetime.utcnow().isoformat(),)
         content = (f"{service_name}:{timestamp}",)
-        hash_value = hashlib.md5(content.encode("utf-8")).hexdigest()[:12]
+        hash_value = hashlib.md5(content.encode("utf-8")).hexdigest()[:12]  # noqa: S324
         return f"alert-{hash_value}"
 
     def detect_anomaly(self, metrics: list[MetricPoint], std_dev_threshold: float = 2.0) -> bool:

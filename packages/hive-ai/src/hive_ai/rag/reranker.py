@@ -286,7 +286,7 @@ class CrossEncoderReranker:
         # Use first 10 chunk IDs to keep key manageable
         ids_str = ",".join(chunk_ids[:10])
         content = f"{query}:{ids_str}"
-        return hashlib.md5(content.encode()).hexdigest()
+        return hashlib.md5(content.encode()).hexdigest()  # noqa: S324
 
     def _get_from_cache(self, key: str) -> list[tuple[int, float]] | None:
         """Get cached ranking if still valid."""

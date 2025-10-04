@@ -132,7 +132,7 @@ class ScenarioManager:
             config: Scenario configuration dictionary,
             metadata: Additional metadata,
         """
-        config_hash = hashlib.md5(json.dumps(config, sort_keys=True).encode()).hexdigest()
+        config_hash = hashlib.md5(json.dumps(config, sort_keys=True).encode()).hexdigest()  # noqa: S324
 
         with get_ecosystemiser_connection() as conn:
             conn.execute(""",
