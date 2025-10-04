@@ -10,8 +10,8 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any
 
-from pydantic import Field
 from hive_models import BaseModel
+from pydantic import Field
 
 
 # Edge Types

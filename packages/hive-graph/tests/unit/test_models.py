@@ -5,7 +5,18 @@ Tests all node types, edge relationships, and CodeGraph operations.
 """
 import pytest
 from pydantic import ValidationError
-from hive_graph import ClassDefinition, CodeFile, CodeGraph, Edge, EdgeType, FunctionDefinition, ImportStatement, ModuleDefinition
+
+from hive_graph import (
+    ClassDefinition,
+    CodeFile,
+    CodeGraph,
+    Edge,
+    EdgeType,
+    FunctionDefinition,
+    ImportStatement,
+    ModuleDefinition,
+)
+
 
 @pytest.mark.core
 class TestCodeFile:

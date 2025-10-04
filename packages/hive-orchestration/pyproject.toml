@@ -17,7 +17,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pydantic = "^2.0.0"
+pydantic = "^2.5.0"
 
 [tool.poetry.dependencies.hive-logging]
 path = "../hive-logging"
@@ -41,7 +41,7 @@ develop = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
-pytest-asyncio = "^0.21.0"
+pytest-asyncio = "^0.23.5"
 pytest-cov = "^4.1.0"
 mypy = "^1.8.0"
 

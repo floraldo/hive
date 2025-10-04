@@ -5,6 +5,7 @@ Validates that the package can be imported and all main exports are accessible.
 """
 import pytest
 
+
 @pytest.mark.core
 def test_package_import() -> None:
     """Test that hive_graph package can be imported."""
@@ -16,7 +17,16 @@ def test_package_import() -> None:
 @pytest.mark.core
 def test_models_import() -> None:
     """Test that all model classes can be imported."""
-    from hive_graph import ClassDefinition, CodeFile, CodeGraph, Edge, EdgeType, FunctionDefinition, ImportStatement, ModuleDefinition
+    from hive_graph import (
+        ClassDefinition,
+        CodeFile,
+        CodeGraph,
+        Edge,
+        EdgeType,
+        FunctionDefinition,
+        ImportStatement,
+        ModuleDefinition,
+    )
     assert CodeFile is not None
     assert ModuleDefinition is not None
     assert ClassDefinition is not None

@@ -23,7 +23,7 @@ zeroconf = "^0.119.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
-pytest-asyncio = "^0.23.0"
+pytest-asyncio = "^0.23.5"
 pytest-cov = "^4.1.0"
 black = "^24.8.0"
 mypy = "^1.8.0"

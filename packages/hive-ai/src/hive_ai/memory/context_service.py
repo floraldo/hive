@@ -105,10 +105,11 @@ class ContextRetrievalService:
         )
 
         # Query RAG with filters
-        filter_metadata = {
-            "exclude_archived": True,
-            "usage_context": task.get('task_type', 'general')
-        }
+        # TODO: Re-enable metadata filtering when RAG query_engine supports it
+        # filter_metadata = {
+        #     "exclude_archived": True,
+        #     "usage_context": task.get('task_type', 'general')
+        # }
 
         search_results = await self.vector_store.search_async(
             query_vector=query_embedding_result.vector,
@@ -245,6 +246,140 @@ class ContextRetrievalService:
         logger.debug(f"Knowledge search: '{query[:50]}...' → {len(search_results)} results")
 
         return compressed
+
+    async def get_augmented_context_for_task(
+        self,
+        task_id: str,
+        task_description: str,
+        include_knowledge_archive: bool = True,
+        include_test_intelligence: bool = True,
+        mode: str = "fast",
+        top_k: int = 5,
+    ) -> dict[str, Any]:
+        """
+        Retrieve task context with God Mode RAG synergy.
+
+        Combines multiple knowledge sources:
+        - Knowledge archive (thinking sessions, web searches)
+        - Test intelligence (historical test results, patterns)
+        - Code knowledge base (existing RAG)
+
+        Args:
+            task_id: Current task ID.
+            task_description: Description of the task.
+            include_knowledge_archive: Include archived thinking sessions and web searches.
+            include_test_intelligence: Include historical test patterns.
+            mode: Retrieval mode ('fast' or 'deep').
+            top_k: Number of results from each source.
+
+        Returns:
+            Dictionary with:
+            - 'combined_context': Formatted context string
+            - 'sources': Breakdown by source type
+            - 'metadata': Retrieval stats
+        """
+        from pathlib import Path
+
+        combined_context_parts = []
+        sources = {}
+
+        # 1. Get standard code knowledge base context
+        try:
+            code_context = await self.get_context_for_task(
+                task_id=task_id, task={"description": task_description}, mode=mode, top_k=top_k
+            )
+            if code_context:
+                combined_context_parts.append(f"## Code Knowledge\n{code_context}")
+                sources["code_knowledge"] = len(code_context)
+        except Exception as e:
+            logger.warning(f"Failed to retrieve code knowledge: {e}")
+
+        # 2. Query knowledge archive if enabled
+        if include_knowledge_archive:
+            try:
+                from ..rag.embeddings import EmbeddingGenerator
+                from ..rag.vector_store import VectorStore
+
+                archive_path = Path("data/knowledge_archive/knowledge.faiss")
+                if archive_path.exists():
+                    archive_store = VectorStore(embedding_dim=384)
+                    archive_store.load(str(archive_path))
+
+                    embedding_gen = EmbeddingGenerator()
+                    query_embedding = await embedding_gen.generate_async(task_description)
+
+                    archive_results = archive_store.search(query_embedding, k=top_k)
+
+                    if archive_results:
+                        archive_context = self._format_archive_results(archive_results)
+                        combined_context_parts.append(f"## Knowledge Archive\n{archive_context}")
+                        sources["knowledge_archive"] = len(archive_results)
+                else:
+                    logger.debug("Knowledge archive not found, skipping")
+            except Exception as e:
+                logger.warning(f"Failed to retrieve knowledge archive: {e}")
+
+        # 3. Query test intelligence if enabled
+        if include_test_intelligence:
+            try:
+                from hive_test_intelligence import TestIntelligenceStorage
+
+                ti_storage = TestIntelligenceStorage()
+                recent_runs = ti_storage.get_recent_runs(limit=5)
+
+                if recent_runs:
+                    test_context = self._format_test_intelligence(recent_runs)
+                    combined_context_parts.append(f"## Test Intelligence\n{test_context}")
+                    sources["test_intelligence"] = len(recent_runs)
+            except Exception as e:
+                logger.debug(f"Test intelligence not available: {e}")
+
+        # Combine all context parts
+        combined_context = "\n\n".join(combined_context_parts)
+
+        return {
+            "combined_context": combined_context,
+            "sources": sources,
+            "metadata": {
+                "task_id": task_id,
+                "mode": mode,
+                "top_k": top_k,
+                "total_length": len(combined_context),
+            },
+        }
+
+    def _format_archive_results(self, results: list) -> str:
+        """Format knowledge archive results for context."""
+        if not results:
+            return "No archived knowledge found."
+
+        formatted = []
+        for result in results:
+            chunk = result.chunk
+            score = result.score
+
+            formatted.append(
+                f"**{chunk.signature}** (score: {score:.2f})\n"
+                f"Type: {chunk.chunk_type.value} | Source: {chunk.file_path}\n"
+                f"{chunk.code[:200]}..."
+            )
+
+        return "\n\n".join(formatted)
+
+    def _format_test_intelligence(self, runs: list) -> str:
+        """Format test intelligence results for context."""
+        if not runs:
+            return "No test history found."
+
+        formatted = []
+        for run in runs:
+            formatted.append(
+                f"**Run {run.id[:8]}** ({run.start_time})\n"
+                f"Status: {run.status} | Tests: {run.passed}/{run.total}\n"
+                f"Package: {run.package_name}"
+            )
+
+        return "\n\n".join(formatted)
 
     async def get_stats_async(self) -> dict[str, Any]:
         """Get context service statistics."""

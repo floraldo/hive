@@ -8,13 +8,13 @@ packages = [{include = "hive_graph", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-pydantic = "^2.0.0"
+pydantic = "^2.5.0"
 hive-logging = {path = "../hive-logging", develop = true}
 hive-models = {path = "../hive-models", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
-pytest-asyncio = "^0.21.0"
+pytest-asyncio = "^0.23.5"
 networkx = "^3.0"  # For in-memory graph representation during testing
 mypy = "^1.8.0"
 ruff = "^0.1.15"

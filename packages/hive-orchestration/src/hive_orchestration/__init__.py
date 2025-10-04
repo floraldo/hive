@@ -1,7 +1,3 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
-
 """
 Hive Orchestration Package - Platform Infrastructure (v1.0.0)
 
@@ -115,10 +111,15 @@ Breaking changes require:
 
 ========================================================================
 """
+# ruff: noqa: E402
+# Module-level docstring must precede imports for package documentation
 
 # Import operations
 # Import client SDK
 from .client import OrchestrationClient, get_client
+
+# Import event bus and events
+from .events import AgentEvent, TaskEvent, WorkflowEvent, get_async_event_bus
 
 # Import models
 from .models import ExecutionPlan, PlanStatus, Run, RunStatus, SubTask, Task, TaskStatus, Worker, WorkerStatus
@@ -142,9 +143,6 @@ from .operations import (
     update_task_status,
     update_worker_heartbeat,
 )
-
-# TODO: Import event bus and events when implemented
-# from .events import get_async_event_bus, TaskEvent, WorkflowEvent, AgentEvent
 
 __all__ = [
     # Task operations
@@ -181,11 +179,11 @@ __all__ = [
     # Client SDK
     "OrchestrationClient",
     "get_client",
-    # Event bus (to be implemented)
-    # "get_async_event_bus",
-    # "TaskEvent",
-    # "WorkflowEvent",
-    # "AgentEvent",
+    # Event bus
+    "get_async_event_bus",
+    "TaskEvent",
+    "WorkflowEvent",
+    "AgentEvent",
 ]
 
 __version__ = "1.0.0"
