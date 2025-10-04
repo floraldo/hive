@@ -12,9 +12,10 @@ from typing import Any
 # from hive_claude_bridge import ClaudeBridgeConfig, RateLimitConfig, get_claude_service
 from pydantic import BaseModel, Field
 
-from hive_errors import ErrorReporter, ReviewError, ReviewValidationError
+from hive_errors import BaseErrorReporter
 from hive_logging import get_logger
 
+from .core.errors import ReviewerError, ReviewValidationError
 from .inspector_bridge import InspectorBridge
 
 logger = get_logger(__name__)
@@ -145,7 +146,7 @@ class ReviewEngine:
         try:
             objective_analysis = self.inspector.inspect_task_run(task_id)
         except Exception as e:
-            error = ReviewError(message=f"Failed to run objective analysis for task {task_id}", original_error=e)
+            error = ReviewerError(message=f"Failed to run objective analysis for task {task_id}", original_error=e)
             self.error_reporter.report_error(error)
             objective_analysis = None
 
@@ -161,7 +162,7 @@ class ReviewEngine:
                 use_cache=False,  # Don't cache reviews as code changes frequently
             )
         except Exception as e:
-            error = ReviewError(message=f"Failed to get Claude review for task {task_id}", original_error=e)
+            error = ReviewerError(message=f"Failed to get Claude review for task {task_id}", original_error=e)
             self.error_reporter.report_error(error)
             # Create fallback result,
             claude_result = {
