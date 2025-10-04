@@ -11,6 +11,8 @@ Human output: --pretty flag (rich tables)
 from __future__ import annotations
 
 import json
+import re
+from datetime import datetime, timedelta
 from typing import Any
 
 import click
@@ -19,6 +21,52 @@ from hive_logging import get_logger
 from hive_orchestration.operations import tasks as task_ops
 
 logger = get_logger(__name__)
+
+
+def parse_relative_time(time_str: str) -> datetime:
+    """
+    Parse relative time strings into absolute datetime objects.
+
+    Supports formats like:
+    - '2d' or '2days' for 2 days ago
+    - '1h' or '1hour' for 1 hour ago
+    - '30m' or '30min' for 30 minutes ago
+    - '1w' or '1week' for 1 week ago
+
+    Args:
+        time_str: Relative time string (e.g., '2d', '1h', '30m')
+
+    Returns:
+        datetime: Absolute datetime representing the parsed time
+
+    Raises:
+        ValueError: If time_str format is invalid
+    """
+    pattern = r'^(\d+)(d|day|days|h|hour|hours|m|min|minute|minutes|w|week|weeks)$'
+    match = re.match(pattern, time_str.lower())
+
+    if not match:
+        raise ValueError(
+            f"Invalid time format: '{time_str}'. "
+            "Expected formats: 2d, 1h, 30m, 1w"
+        )
+
+    amount = int(match.group(1))
+    unit = match.group(2)
+
+    # Map units to timedelta
+    if unit in ('d', 'day', 'days'):
+        delta = timedelta(days=amount)
+    elif unit in ('h', 'hour', 'hours'):
+        delta = timedelta(hours=amount)
+    elif unit in ('m', 'min', 'minute', 'minutes'):
+        delta = timedelta(minutes=amount)
+    elif unit in ('w', 'week', 'weeks'):
+        delta = timedelta(weeks=amount)
+    else:
+        raise ValueError(f"Unsupported time unit: {unit}")
+
+    return datetime.now() - delta
 
 
 @click.group(name="tasks")
@@ -46,6 +94,11 @@ def tasks_group():
     help="Maximum number of tasks to return"
 )
 @click.option(
+    "--since",
+    type=str,
+    help="Filter tasks created since relative time (e.g., 2d, 1h, 30m)"
+)
+@click.option(
     "--pretty",
     is_flag=True,
     help="Display human-readable table (default: JSON)"
@@ -54,6 +107,7 @@ def list_tasks(
     status: str | None,
     assigned_worker: str | None,
     limit: int,
+    since: str | None,
     pretty: bool
 ):
     """
@@ -66,6 +120,15 @@ def list_tasks(
         # Filter by status
         hive tasks list --status completed --limit 5
 
+        # Filter by creation time (relative)
+        hive tasks list --since 2d
+
+        # Combined filters with human-readable output
+        hive tasks list --since 1h --pretty
+
+        # Filter by time and status
+        hive tasks list --since 30m --status completed
+
         # Human-readable table
         hive tasks list --pretty
 
@@ -73,6 +136,19 @@ def list_tasks(
         hive tasks list --user worker-1 --pretty
     """
     try:
+        # Parse --since filter if provided
+        since_timestamp = None
+        if since:
+            try:
+                since_timestamp = parse_relative_time(since)
+            except ValueError as e:
+                error_msg = str(e)
+                if pretty:
+                    click.echo(f"Error: {error_msg}", err=True)
+                else:
+                    click.echo(json.dumps({"error": error_msg}), err=True)
+                raise click.Abort() from e
+
         # Fetch tasks based on filters
         if status:
             task_list = task_ops.get_tasks_by_status(status)
@@ -88,6 +164,14 @@ def list_tasks(
                 if t.get('assigned_worker') == assigned_worker
             ]
 
+        # Filter by creation time if --since specified
+        if since_timestamp:
+            task_list = [
+                t for t in task_list
+                if t.get('created_at') and
+                datetime.fromisoformat(str(t['created_at']).replace('Z', '+00:00')).replace(tzinfo=None) >= since_timestamp
+            ]
+
         # Output format decision: API-first (JSON default)
         if pretty:
             _render_pretty_table(task_list)
@@ -98,7 +182,7 @@ def list_tasks(
     except Exception as e:
         logger.error(f"Failed to list tasks: {e}")
         click.echo(json.dumps({"error": str(e)}), err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 @tasks_group.command(name="show")
@@ -138,7 +222,7 @@ def show_task(task_id: str, pretty: bool):
     except Exception as e:
         logger.error(f"Failed to show task {task_id}: {e}")
         click.echo(json.dumps({"error": str(e)}), err=True)
-        raise click.Abort()
+        raise click.Abort() from e
 
 
 def _render_pretty_table(task_list: list[dict[str, Any]]) -> None:
@@ -208,7 +292,6 @@ def _render_task_detail(task: dict[str, Any]) -> None:
     try:
         from rich.console import Console
         from rich.panel import Panel
-        from rich.syntax import Syntax
     except ImportError:
         click.echo("Error: rich library not installed. Use JSON output.", err=True)
         click.echo(json.dumps(task, indent=2, default=str))

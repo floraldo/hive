@@ -266,11 +266,11 @@ isort = "^5.13.0"           # Import sorting
 
 #### Severity Levels
 - **CRITICAL** (5 rules): System breaks, security, deployment - Always enforced
-- **ERROR** (9 rules): Technical debt, maintainability - Fix before PR
-- **WARNING** (7 rules): Quality issues, test coverage - Fix at sprint boundaries
-- **INFO** (3 rules): Best practices - Fix at major releases
+- **ERROR** (10 rules): Technical debt, maintainability - Fix before PR
+- **WARNING** (8 rules): Quality issues, test coverage - Fix at sprint boundaries
+- **INFO** (5 rules): Best practices - Fix at major releases
 
-**Total**: 24 Golden Rules actively enforced (all currently passing)
+**Total**: 28 Golden Rules registered (27 passing, 1 blocked by AST validator bugs)
 
 #### Usage
 ```bash
@@ -315,10 +315,10 @@ git commit  # Pre-commit hooks validate
 
 **Progress**: ~1,700 violations → 0 (achieved incrementally via natural development)
 
-## 🏆 Golden Rules (27 Architectural Validators)
+## 🏆 Golden Rules (28 Architectural Validators)
 
-**Status**: All 27 rules PASSING (100% compliance at INFO level)
-**Enforcement**: AST-based validation via `packages/hive-tests/src/hive_tests/architectural_validators.py`
+**Status**: All 28 rules registered (27 passing, 1 blocked by AST validator bugs)
+**Enforcement**: Registry-based validation via `packages/hive-tests/src/hive_tests/architectural_validators.py`
 
 ### CRITICAL Rules (5 rules - Always Enforced)
 1. **No sys.path Manipulation** - Use proper package imports
@@ -327,7 +327,7 @@ git commit  # Pre-commit hooks validate
 4. **Package vs. App Discipline** - Maintain layer separation
 5. **App Contracts** - Respect inter-app boundaries
 
-### ERROR Rules (9 rules - Fix Before PR)
+### ERROR Rules (10 rules - Fix Before PR)
 6. **Dependency Direction** - packages/ cannot import from apps/
 7. **Graph-Based Dependency Analysis** - Use hive-graph for dependency tracking
 8. **Error Handling Standards** - Proper try/catch blocks with hive_errors
@@ -337,20 +337,24 @@ git commit  # Pre-commit hooks validate
 12. **Interface Contracts** - Cross-component imports via interfaces
 13. **Communication Patterns** - Use hive-bus for inter-component messaging
 14. **Service Layer Discipline** - Maintain clean service boundaries
+15. **Unified Config Enforcement** - All config loading through hive-config (no os.getenv(), direct file I/O)
 
 ### WARNING Rules (8 rules - Fix at Sprint Boundaries)
-15. **Test Coverage Mapping** - Track test coverage for all modules
-16. **Test File Quality** - Tests follow platform conventions
-17. **Inherit-Extend Pattern** - Follow inherit from packages, extend in apps
-18. **Package Naming Consistency** - Use hive-* naming for all packages
-19. **Development Tools Consistency** - Consistent tooling across components
-20. **CLI Pattern Consistency** - Uniform CLI patterns for all apps
-21. **Pyproject Dependency Usage** - Use Poetry for dependency management
+16. **Test Coverage Mapping** - Track test coverage for all modules
+17. **Test File Quality** - Tests follow platform conventions
+18. **Inherit-Extend Pattern** - Follow inherit from packages, extend in apps
+19. **Package Naming Consistency** - Use hive-* naming for all packages
+20. **Development Tools Consistency** - Consistent tooling across components
+21. **CLI Pattern Consistency** - Uniform CLI patterns for all apps
+22. **Pyproject Dependency Usage** - Use Poetry for dependency management
+23. **Ruff Config Consistency** - [tool.ruff] in all pyproject.toml
 
 ### INFO Rules (5 rules - Fix at Major Releases)
-22. **Unified Tool Configuration** - Centralized tool config in pyproject.toml
-23. **Python Version Consistency** - All components use Python ^3.11
-24. **Colocated Tests** - Tests live near the code they test
+24. **Unified Tool Configuration** - Centralized tool config in pyproject.toml
+25. **Python Version Consistency** - All components use Python ^3.11
+26. **Python Version Specification** - Python ^3.11 in all packages
+27. **Environment Isolation** - No conda refs, hardcoded paths, or env conflicts
+28. **Colocated Tests** - Tests live near the code they test
 
 **Validation Commands**:
 ```bash

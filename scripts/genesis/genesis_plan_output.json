@@ -1,0 +1,206 @@
+{
+  "plan_id": "genesis_plan_20251004_211525",
+  "plan_name": "Genesis Feature: CLI --since Filter Implementation",
+  "task_id": "d0725d00-c319-4a4b-87f5-9f5fe1110b6f",
+  "created_at": "2025-10-04T21:15:25.354033",
+  "status": "generated",
+  "metadata": {
+    "generator": "genesis-planner-v1",
+    "method": "structured-decomposition",
+    "confidence_score": 0.95
+  },
+  "sub_tasks": [
+    {
+      "id": "genesis_subtask_001",
+      "title": "Implement time parsing utility function",
+      "description": "Create a utility function to parse relative time strings (2d, 1h, 30m) into datetime objects",
+      "assignee": "coder-agent",
+      "complexity": "medium",
+      "estimated_duration": 30,
+      "workflow_phase": "implementation",
+      "required_skills": [
+        "python",
+        "datetime-manipulation"
+      ],
+      "deliverables": [
+        "time_parser function",
+        "unit tests for time parsing"
+      ],
+      "dependencies": [],
+      "technical_notes": {
+        "file_location": "packages/hive-cli/src/hive_cli/commands/tasks.py",
+        "implementation_approach": "Use datetime.timedelta for relative calculations",
+        "edge_cases": [
+          "invalid format",
+          "zero time",
+          "future time"
+        ]
+      }
+    },
+    {
+      "id": "genesis_subtask_002",
+      "title": "Add --since click option to list_tasks command",
+      "description": "Add click.option decorator for --since parameter with proper validation",
+      "assignee": "coder-agent",
+      "complexity": "simple",
+      "estimated_duration": 15,
+      "workflow_phase": "implementation",
+      "required_skills": [
+        "python",
+        "click-framework"
+      ],
+      "deliverables": [
+        "--since click option",
+        "parameter validation"
+      ],
+      "dependencies": [
+        "genesis_subtask_001"
+      ],
+      "technical_notes": {
+        "file_location": "packages/hive-cli/src/hive_cli/commands/tasks.py",
+        "add_after_line": 47,
+        "implementation_approach": "Add option between --limit and function def"
+      }
+    },
+    {
+      "id": "genesis_subtask_003",
+      "title": "Implement database filtering logic",
+      "description": "Modify task retrieval to filter by created_at >= calculated timestamp",
+      "assignee": "coder-agent",
+      "complexity": "medium",
+      "estimated_duration": 20,
+      "workflow_phase": "implementation",
+      "required_skills": [
+        "python",
+        "sqlite",
+        "database-queries"
+      ],
+      "deliverables": [
+        "timestamp filter logic",
+        "SQL query modification"
+      ],
+      "dependencies": [
+        "genesis_subtask_001",
+        "genesis_subtask_002"
+      ],
+      "technical_notes": {
+        "file_location": "packages/hive-cli/src/hive_cli/commands/tasks.py",
+        "implementation_approach": "Add WHERE clause: created_at >= ?",
+        "maintain_compatibility": "Ensure existing filters still work"
+      }
+    },
+    {
+      "id": "genesis_subtask_004",
+      "title": "Create comprehensive unit tests",
+      "description": "Write unit tests for time parsing and filter functionality",
+      "assignee": "test-agent",
+      "complexity": "medium",
+      "estimated_duration": 40,
+      "workflow_phase": "testing",
+      "required_skills": [
+        "pytest",
+        "test-design"
+      ],
+      "deliverables": [
+        "time parser tests",
+        "integration tests",
+        "edge case tests"
+      ],
+      "dependencies": [
+        "genesis_subtask_003"
+      ],
+      "technical_notes": {
+        "file_location": "packages/hive-cli/tests/test_tasks_command.py",
+        "test_coverage": [
+          "valid formats",
+          "invalid formats",
+          "filter accuracy",
+          "combined filters"
+        ]
+      }
+    },
+    {
+      "id": "genesis_subtask_005",
+      "title": "Update documentation and examples",
+      "description": "Update command docstring with --since examples and usage",
+      "assignee": "doc-agent",
+      "complexity": "simple",
+      "estimated_duration": 10,
+      "workflow_phase": "documentation",
+      "required_skills": [
+        "technical-writing"
+      ],
+      "deliverables": [
+        "updated docstring",
+        "usage examples"
+      ],
+      "dependencies": [
+        "genesis_subtask_003"
+      ],
+      "technical_notes": {
+        "file_location": "packages/hive-cli/src/hive_cli/commands/tasks.py",
+        "examples_to_add": [
+          "hive tasks list --since 2d",
+          "hive tasks list --since 1h --pretty",
+          "hive tasks list --since 30m --status completed"
+        ]
+      }
+    },
+    {
+      "id": "genesis_subtask_006",
+      "title": "Validation and quality gates",
+      "description": "Run all quality gates: syntax, linting, Golden Rules, tests",
+      "assignee": "guardian-agent",
+      "complexity": "simple",
+      "estimated_duration": 15,
+      "workflow_phase": "validation",
+      "required_skills": [
+        "quality-assurance"
+      ],
+      "deliverables": [
+        "all tests passing",
+        "linting clean",
+        "Golden Rules passing"
+      ],
+      "dependencies": [
+        "genesis_subtask_004",
+        "genesis_subtask_005"
+      ],
+      "technical_notes": {
+        "validation_commands": [
+          "python -m py_compile (syntax)",
+          "ruff check --fix (linting)",
+          "pytest packages/hive-cli/tests/",
+          "python scripts/validation/validate_golden_rules.py"
+        ]
+      }
+    }
+  ],
+  "metrics": {
+    "total_estimated_duration": 130,
+    "complexity_breakdown": {
+      "simple": 3,
+      "medium": 3,
+      "complex": 0
+    },
+    "confidence_score": 0.95,
+    "total_subtasks": 6,
+    "critical_path_duration": 105
+  },
+  "execution_strategy": {
+    "approach": "sequential-with-parallel-opportunities",
+    "parallel_groups": [
+      [
+        "genesis_subtask_004",
+        "genesis_subtask_005"
+      ]
+    ],
+    "critical_path": [
+      "genesis_subtask_001",
+      "genesis_subtask_002",
+      "genesis_subtask_003",
+      "genesis_subtask_004",
+      "genesis_subtask_006"
+    ]
+  }
+}

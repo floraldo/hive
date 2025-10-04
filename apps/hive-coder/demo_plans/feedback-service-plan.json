@@ -1,0 +1,137 @@
+{
+  "plan_id": "05f39858-796b-4d4d-9eb9-80a74f913589",
+  "service_name": "feedback-service",
+  "service_type": "api",
+  "created_at": "2025-10-04T19:28:40.536947Z",
+  "tasks": [
+    {
+      "task_id": "T001",
+      "task_type": "scaffold",
+      "description": "Generate feedback-service using hive-app-toolkit",
+      "template": "api",
+      "parameters": {
+        "service_name": "feedback-service",
+        "service_type": "api",
+        "enable_database": true
+      },
+      "dependencies": [],
+      "estimated_duration_minutes": 2
+    },
+    {
+      "task_id": "T002",
+      "task_type": "database_model",
+      "description": "Define database models and schemas",
+      "template": null,
+      "parameters": {
+        "models": [
+          {
+            "name": "Feedback",
+            "fields": [
+              "id",
+              "content",
+              "user_id"
+            ]
+          },
+          {
+            "name": "User",
+            "fields": [
+              "id",
+              "name",
+              "email"
+            ]
+          }
+        ]
+      },
+      "dependencies": [
+        {
+          "task_id": "T001",
+          "dependency_type": "sequential"
+        }
+      ],
+      "estimated_duration_minutes": 5
+    },
+    {
+      "task_id": "T003",
+      "task_type": "api_endpoint",
+      "description": "Implement: Create a 'feedback-service' API",
+      "template": null,
+      "parameters": {
+        "feature_description": "Create a 'feedback-service' API",
+        "requires_database": true
+      },
+      "dependencies": [
+        {
+          "task_id": "T002",
+          "dependency_type": "sequential"
+        }
+      ],
+      "estimated_duration_minutes": 10
+    },
+    {
+      "task_id": "T004",
+      "task_type": "api_endpoint",
+      "description": "Implement: stores user feedback",
+      "template": null,
+      "parameters": {
+        "feature_description": "stores user feedback",
+        "requires_database": true
+      },
+      "dependencies": [
+        {
+          "task_id": "T002",
+          "dependency_type": "sequential"
+        }
+      ],
+      "estimated_duration_minutes": 10
+    },
+    {
+      "task_id": "T005",
+      "task_type": "test_suite",
+      "description": "Generate comprehensive test suite",
+      "template": null,
+      "parameters": {
+        "test_coverage_target": 80,
+        "include_integration_tests": true
+      },
+      "dependencies": [
+        {
+          "task_id": "T003",
+          "dependency_type": "sequential"
+        },
+        {
+          "task_id": "T004",
+          "dependency_type": "sequential"
+        }
+      ],
+      "estimated_duration_minutes": 8
+    },
+    {
+      "task_id": "T006",
+      "task_type": "documentation",
+      "description": "Generate API documentation and README",
+      "template": null,
+      "parameters": {
+        "include_api_docs": true,
+        "include_deployment_guide": true
+      },
+      "dependencies": [
+        {
+          "task_id": "T005",
+          "dependency_type": "sequential"
+        }
+      ],
+      "estimated_duration_minutes": 5
+    }
+  ],
+  "total_estimated_duration_minutes": 40,
+  "metadata": {
+    "confidence_score": 1.0,
+    "features": [
+      "Create a 'feedback-service' API",
+      "stores user feedback"
+    ],
+    "enable_database": true,
+    "enable_caching": false,
+    "enable_async": false
+  }
+}

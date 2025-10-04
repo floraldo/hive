@@ -240,6 +240,44 @@ def validate_environment_isolation_rules(project_root: Path, scope_files: list[P
         return False, [f"Environment validation error: {e}"]
 
 
+def validate_unified_config_enforcement(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
+    """
+    Golden Rule 37: Unified Config Enforcement
+
+    Ensures all configuration access goes through hive-config package:
+    - No os.getenv() or os.environ.get() calls (use hive_config instead)
+    - No direct config file I/O (*.toml, *.yaml, *.env files)
+    - Exempts: hive-config package itself, tests, scripts
+
+    Args:
+        project_root: Root of the project
+        scope_files: Optional file scope (not used for this rule)
+
+    Returns:
+        Tuple of (passed, violations)
+    """
+    from hive_tests.ast_validator import EnhancedValidator
+
+    try:
+        # Run AST validator to get all violations
+        validator = EnhancedValidator(project_root)
+        validator.validate_all()
+
+        # Extract Rule 37 violations
+        rule_37_violations = []
+        for violation in validator.violations:
+            if violation.rule_id == "rule-37":
+                # Format as string: file:line - message
+                rule_37_violations.append(
+                    f"{violation.file_path}:{violation.line_number} - {violation.message}"
+                )
+
+        passed = len(rule_37_violations) == 0
+        return passed, rule_37_violations
+
+    except Exception as e:
+        return False, [f"Unified config enforcement validation error: {e}"]
+
 
 def _initialize_golden_rules_registry():
     """
@@ -407,6 +445,12 @@ def _initialize_golden_rules_registry():
             "validator": validate_environment_isolation_rules,
             "severity": RuleSeverity.INFO,
             "description": "No conda refs, hardcoded paths, or env conflicts (Rules 25-30)",
+        },
+        {
+            "name": "Unified Config Enforcement",
+            "validator": validate_unified_config_enforcement,
+            "severity": RuleSeverity.ERROR,
+            "description": "All config loading through hive-config (no os.getenv, direct file I/O)",
         },
                 {
             "name": "Colocated Tests",
