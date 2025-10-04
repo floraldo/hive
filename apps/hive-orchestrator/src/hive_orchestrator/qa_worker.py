@@ -14,14 +14,13 @@ Architecture:
 from __future__ import annotations
 
 import asyncio
-import subprocess
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from hive_logging import get_logger
 from hive_orchestration.events import AgentEvent, TaskEvent, get_async_event_bus
-from hive_orchestration.models.task import Task, TaskStatus
+from hive_orchestration.models.task import Task
 from hive_orchestrator.async_worker import AsyncWorker
 
 logger = get_logger(__name__)

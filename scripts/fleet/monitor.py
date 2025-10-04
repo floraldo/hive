@@ -16,6 +16,13 @@ import asyncio
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from hive_orchestration.events import (
+    EscalationEvent,
+    QATaskEvent,
+    WorkerHeartbeat,
+    WorkerRegistration,
+    get_async_event_bus,
+)
 from rich.console import Console
 from rich.layout import Layout
 from rich.live import Live
@@ -24,13 +31,6 @@ from rich.table import Table
 from rich.text import Text
 
 from hive_logging import get_logger
-from hive_orchestration.events import (
-    EscalationEvent,
-    QATaskEvent,
-    WorkerHeartbeat,
-    WorkerRegistration,
-    get_async_event_bus,
-)
 
 logger = get_logger(__name__)
 
@@ -260,13 +260,13 @@ class WorkerFleetMonitor:
         uptime_str = f"{int(uptime // 60)}m {int(uptime % 60)}s"
 
         metrics_text = Text()
-        metrics_text.append(f"📊 Total Tasks: ", style="bold")
+        metrics_text.append("📊 Total Tasks: ", style="bold")
         metrics_text.append(f"{self.total_tasks}\n")
-        metrics_text.append(f"✅ Violations Fixed: ", style="bold green")
+        metrics_text.append("✅ Violations Fixed: ", style="bold green")
         metrics_text.append(f"{self.total_violations_fixed}\n")
-        metrics_text.append(f"🚨 Escalations: ", style="bold yellow")
+        metrics_text.append("🚨 Escalations: ", style="bold yellow")
         metrics_text.append(f"{self.total_escalations}\n")
-        metrics_text.append(f"⏱️  Monitor Uptime: ", style="bold")
+        metrics_text.append("⏱️  Monitor Uptime: ", style="bold")
         metrics_text.append(f"{uptime_str}\n")
 
         # Calculate success rate
@@ -274,7 +274,7 @@ class WorkerFleetMonitor:
             success_rate = (
                 (self.total_tasks - self.total_escalations) / self.total_tasks * 100
             )
-            metrics_text.append(f"📈 Auto-Fix Rate: ", style="bold")
+            metrics_text.append("📈 Auto-Fix Rate: ", style="bold")
             metrics_text.append(f"{success_rate:.1f}%\n")
 
         return Panel(metrics_text, title="Fleet Metrics", border_style="green")

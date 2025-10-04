@@ -11,7 +11,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from hive_logging import get_logger
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -19,6 +18,7 @@ from rich.table import Table
 from ai_reviewer.auto_fix import ErrorAnalyzer, EscalationLogic, FixGenerator, RetryManager
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
