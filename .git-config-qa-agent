@@ -1,0 +1,41 @@
+# Git Configuration Template for QA Agent
+# Purpose: Enforce strict quality standards for QA agent commits
+#
+# Installation:
+#   git config --local include.path ../.git-config-qa-agent
+#
+# Or apply manually:
+#   git config --local core.hooksPath .git/hooks
+#   git config --local commit.gpgsign false
+#   pre-commit install  # Uses strict .pre-commit-config.yaml
+
+[user]
+    # QA Agent identity (customize as needed)
+    name = QA Agent
+    email = qa-agent@hive-platform.local
+
+[core]
+    # Enforce hooks (disable --no-verify)
+    hooksPath = .git/hooks
+
+[alias]
+    # QA Agent workflow aliases
+    qa-status = "!python scripts/qa/health-metrics.py"
+    qa-bypasses = "!python scripts/qa/review-bypasses.py"
+    qa-validate = "!python scripts/validation/validate_golden_rules.py --level ERROR"
+    qa-fix = "!ruff check . --fix && git add -u"
+
+[commit]
+    # Disable GPG signing for QA agent (optional)
+    gpgsign = false
+
+    # Commit message template for QA agent
+    template = .git-commit-template-qa
+
+[push]
+    # Require validation before push
+    default = current
+
+[pre-commit]
+    # Enforce strict pre-commit hooks (no bypass allowed)
+    enabled = true

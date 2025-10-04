@@ -1,10 +1,32 @@
-name: 🚪 Golden Gates - Mandatory Quality Enforcement
+name: 🚪 Golden Gates - Asynchronous Quality Validation
+
+# Asynchronous Quality Workflow:
+# - Feature agents commit with minimal friction (fast pre-commit)
+# - QA agent triggered periodically or manually to consolidate quality
+# - CI failures create tasks for QA agent, don't block feature development
 
 on:
+  # Manual trigger: QA agent can run validation on-demand
+  workflow_dispatch:
+    inputs:
+      validation_level:
+        description: 'Validation strictness level'
+        required: false
+        default: 'ERROR'
+        type: choice
+        options:
+          - CRITICAL
+          - ERROR
+          - WARNING
+          - INFO
+
+  # Periodic trigger: Every 4 hours during business hours (8am-8pm UTC)
+  schedule:
+    - cron: '0 8,12,16,20 * * *'
+
+  # Optional: Still validate PRs to provide feedback before merge
   pull_request:
     branches: [main, develop]
-  push:
-    branches: [main]
 
 env:
   PYTHON_VERSION: "3.11"
@@ -413,12 +435,64 @@ jobs:
           else
             echo "❌ ONE OR MORE GATES FAILED!"
             echo ""
-            echo "This PR cannot be merged until all gates pass."
+            echo "Asynchronous Quality Workflow: Failures logged for QA agent."
             echo "Review the failed gates above and fix the issues."
             echo ""
             echo "🏰 The Golden Gates protect the platform's quality foundation."
             exit 1
           fi
+
+  # ==============================================
+  # QA AGENT TASK CREATION (On Failure)
+  # Create GitHub issue for QA agent when gates fail
+  # ==============================================
+  create-qa-task:
+    name: 📋 Create QA Agent Task
+    runs-on: ubuntu-latest
+    needs: gates-summary
+    if: always() && needs.gates-summary.result == 'failure' && github.event_name != 'pull_request'
+
+    steps:
+      - name: 📋 Create Technical Debt Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `[QA-AGENT] Quality Gate Failure - ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Quality Gate Failure Detected
+
+            **Workflow Run**: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            **Triggered**: ${new Date().toISOString()}
+            **Event**: ${{ github.event_name }}
+
+            ### Failed Gates
+            - ⚡ Gate 1 (Syntax): ${{ needs.syntax-gate.result }}
+            - 📋 Gate 2 (Test Collection): ${{ needs.test-collection-gate.result }}
+            - 🧹 Gate 3 (Boy Scout Rule): ${{ needs.boy-scout-gate.result }}
+            - 🏛️ Gate 4A (Core Validation): ${{ needs.core-validation-gate.result }}
+            - 🧩 Gate 4B (Crust Validation): ${{ needs.crust-validation-gate.result }}
+            - 🏆 Gate 4C (Golden Rules): ${{ needs.golden-rules-gate.result }}
+
+            ### QA Agent Action Required
+            1. Review the workflow run logs above
+            2. Run local validation: \`python scripts/validation/validate_golden_rules.py --level ERROR\`
+            3. Review bypass log: \`python scripts/qa/review-bypasses.py\`
+            4. Fix violations and commit with strict pre-commit hooks
+            5. Close this issue once codebase is clean
+
+            ### Priority
+            - **High**: Syntax errors, test collection failures
+            - **Medium**: Boy Scout Rule violations, Core/Crust validation
+            - **Low**: Golden Rules warnings (if not ERROR level)
+            `;
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['tech-debt', 'qa-agent', 'automated'],
+              assignees: []  // QA agent role - configure as needed
+            });
 
   # ==============================================
   # OPTIONAL: Full Test Suite (Non-Blocking)

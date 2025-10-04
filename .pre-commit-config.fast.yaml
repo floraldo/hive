@@ -1,0 +1,31 @@
+# Fast Pre-Commit Configuration for Feature Agents
+# Optimized for velocity - only checks for fatal syntax errors
+#
+# Purpose: Enable rapid feature development with minimal friction
+# Target: Feature agents (Agent 1, 2, 3) focused on delivery speed
+#
+# Installation:
+#   pre-commit install -c .pre-commit-config.fast.yaml
+#
+# Philosophy:
+#   - Block: Fatal syntax errors (build-breaking)
+#   - Allow: Linting violations, style issues, warnings
+#   - Trust: QA agent to consolidate and clean periodically
+#
+# For QA Agent, use the full profile instead:
+#   pre-commit install  # uses .pre-commit-config.yaml
+
+repos:
+  # Syntax-Only Validation (Fatal Errors Only)
+  - repo: local
+    hooks:
+      - id: python-syntax-check-fast
+        name: Fast Python syntax check (fatal errors only)
+        entry: python -m py_compile
+        language: system
+        types: [python]
+        pass_filenames: true
+        verbose: false
+
+      # Note: Ruff, Golden Rules, and all other quality checks DISABLED
+      # These will be enforced by the QA agent during periodic cleanup

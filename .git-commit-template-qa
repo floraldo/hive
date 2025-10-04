@@ -1,0 +1,16 @@
+# QA Agent Commit Template
+# Subject line (50 chars max): refactor(quality): Brief description
+#
+# Body: Explain what was cleaned up and why
+#
+# Quality Metrics:
+# - Linting violations fixed: X
+# - Syntax errors resolved: X
+# - Bypasses reviewed: X
+# - Health score improvement: X% -> Y%
+#
+# Validation:
+# [ ] Ran: python scripts/validation/validate_golden_rules.py --level ERROR
+# [ ] Ran: ruff check . (zero violations)
+# [ ] Ran: pytest --collect-only (zero syntax errors)
+#

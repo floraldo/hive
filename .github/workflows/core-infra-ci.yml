@@ -1,0 +1,202 @@
+name: 🏛️ Core Infrastructure Protection
+
+# Purpose: Ring-fence core infrastructure stability (packages/)
+# Philosophy: Core packages are the platform's DNA - 100% test success required
+# Enforcement: Required status check for PR merging
+
+on:
+  # Trigger on pushes to main affecting core packages
+  push:
+    branches: [main]
+    paths:
+      - 'packages/**'
+      - '.github/workflows/core-infra-ci.yml'
+
+  # Trigger on PRs affecting core packages
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'packages/**'
+
+  # Manual trigger for validation
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  # ==============================================
+  # CORE INFRASTRUCTURE TEST VALIDATION
+  # ==============================================
+  core-tests:
+    name: 🏛️ Core Infrastructure Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: 📦 Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio
+
+          # Install all core packages in editable mode
+          for package in packages/*/; do
+            if [ -f "$package/pyproject.toml" ]; then
+              echo "Installing $(basename $package)..."
+              pip install -e "$package"
+            fi
+          done
+
+      - name: 🧪 Run Core Infrastructure Tests
+        run: |
+          echo "=========================================="
+          echo "🏛️  CORE INFRASTRUCTURE TEST VALIDATION"
+          echo "=========================================="
+          echo ""
+          echo "Philosophy: Core packages are the platform's foundation."
+          echo "Standard: 100% test success rate - NO FAILURES ALLOWED"
+          echo ""
+          echo "Testing: packages/ directory only"
+          echo ""
+
+          # Run tests on packages/ only
+          pytest packages/ \
+            -v \
+            --tb=short \
+            --strict-markers \
+            -m "not integration and not slow" \
+            --junitxml=core-test-results.xml \
+            --cov=packages \
+            --cov-report=term-missing \
+            --cov-report=xml
+
+      - name: 📊 Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: core-test-results
+          path: |
+            core-test-results.xml
+            coverage.xml
+
+      - name: 💬 Comment test results on PR
+        if: github.event_name == 'pull_request' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            const comment = `## 🏛️ Core Infrastructure Tests Failed
+
+            **Critical**: Core package tests must achieve 100% success rate.
+
+            This PR modifies core infrastructure (packages/) and has failing tests.
+            Core packages are the platform's DNA and must be absolutely stable.
+
+            ### What to do:
+            1. Review the test failure logs above
+            2. Fix the failing tests locally: \`pytest packages/ -v\`
+            3. Ensure all core tests pass before pushing
+
+            ### Why this matters:
+            - Core packages are used by all applications
+            - Failures in core infrastructure cascade to all dependent code
+            - 100% core stability enables rapid application development
+
+            **This check is REQUIRED and cannot be bypassed.**
+            `;
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: comment
+            });
+
+  # ==============================================
+  # CORE PACKAGE LINTING (STRICT)
+  # ==============================================
+  core-linting:
+    name: 🏛️ Core Package Linting (Strict)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install ruff
+        run: pip install ruff
+
+      - name: 🧹 Run strict linting on core packages
+        run: |
+          echo "=========================================="
+          echo "🏛️  CORE PACKAGE STRICT LINTING"
+          echo "=========================================="
+          echo ""
+          echo "Standard: ALL ruff rules enforced on packages/"
+          echo "Baseline: Track violations, enforce Boy Scout Rule"
+          echo ""
+
+          # Run strict linting on packages/ only
+          ruff check packages/ --select ALL --statistics || true
+
+          echo ""
+          echo "Note: Core linting uses strict standards (ALL rules)."
+          echo "Violations are tracked but don't block (yet)."
+          echo "Goal: Incremental improvement via Boy Scout Rule."
+
+  # ==============================================
+  # PROJECT CORNERSTONE READINESS
+  # ==============================================
+  cornerstone-status:
+    name: 📊 Project Cornerstone Status
+    runs-on: ubuntu-latest
+    needs: core-tests
+    if: always()
+
+    steps:
+      - name: 📊 Report Cornerstone Status
+        run: |
+          echo "=========================================="
+          echo "📊 PROJECT CORNERSTONE STATUS"
+          echo "=========================================="
+          echo ""
+
+          if [ "${{ needs.core-tests.result }}" == "success" ]; then
+            echo "✅ PHASE 1 COMPLETE: Core Infrastructure is STABLE"
+            echo ""
+            echo "Core packages (packages/) have achieved 100% test success rate."
+            echo "Foundation is locked down and ready for application development."
+            echo ""
+            echo "Next Steps:"
+            echo "1. ✅ Core is protected by this required CI check"
+            echo "2. 🚀 Safe to proceed with Phase 3: Application stabilization"
+            echo "3. 🎯 Applications (apps/) can be built on proven foundation"
+          else
+            echo "⚠️  PHASE 1 IN PROGRESS: Core Infrastructure needs stabilization"
+            echo ""
+            echo "Core package tests are failing. Phase 1 of Project Cornerstone"
+            echo "requires 100% test success rate in packages/ directory."
+            echo ""
+            echo "Action Required:"
+            echo "1. Run locally: pytest packages/"
+            echo "2. Fix each failure with small, atomic commits"
+            echo "3. Do NOT proceed to Phase 3 until core is green"
+            echo ""
+            echo "Philosophy: Stabilize the Core, then address applications."
+          fi
