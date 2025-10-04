@@ -1,0 +1,114 @@
+"""{{ scenario.feature_name }} - E2E Test
+
+Auto-generated test for: {{ scenario.description }}
+Generated at: {{ generated_at }}
+Target URL: {{ scenario.target_url }}
+"""
+
+import pytest
+from hive_browser import BrowserClient
+
+
+class {{ page_object_class }}:
+    """Page object for {{ scenario.feature_name }}."""
+
+    def __init__(self, page):
+        self.page = page
+{%- for element_name, selector in scenario.page_elements.items() %}
+        self.{{ element_name.replace(' ', '_').replace('-', '_') }} = "{{ selector }}"
+{%- endfor %}
+
+    def navigate(self, url: str):
+        """Navigate to the target URL."""
+        self.page = self.page.goto(url)
+
+{%- for action in scenario.actions %}
+{%- if action.type == 'click' %}
+    def click_{{ action.target.replace(' ', '_').replace('-', '_') }}(self):
+        """Click the {{ action.target }}."""
+        self.page.click(self.{{ action.target.replace(' ', '_').replace('-', '_') }})
+{%- elif action.type == 'fill' %}
+    def fill_{{ action.target.replace(' ', '_').replace('-', '_') }}(self, text: str):
+        """Fill the {{ action.target }} field."""
+        self.page.fill(self.{{ action.target.replace(' ', '_').replace('-', '_') }}, text)
+{%- elif action.type == 'verify' %}
+    def is_{{ action.target.replace(' ', '_').replace('-', '_') }}_visible(self) -> bool:
+        """Check if {{ action.target }} is visible."""
+        return self.page.is_visible(self.{{ action.target.replace(' ', '_').replace('-', '_') }})
+{%- endif %}
+{%- endfor %}
+
+
+@pytest.fixture
+def browser():
+    """Fixture providing browser instance."""
+    client = BrowserClient(headless=True)
+    yield client
+    client.close()
+
+
+@pytest.fixture
+def {{ page_object_name }}(browser):
+    """Fixture providing {{ page_object_class }} instance."""
+    page = browser.goto_url("{{ scenario.target_url }}")
+    return {{ page_object_class }}(page)
+
+
+def test_{{ test_name }}_success(browser, {{ page_object_name }}):
+    """Test {{ scenario.feature_name }} - Success Path."""
+    # Navigate to target URL
+    page = browser.goto_url("{{ scenario.target_url }}")
+    {{ page_object_name }} = {{ page_object_class }}(page)
+
+{%- for action in scenario.actions %}
+{%- if action.type == 'click' %}
+    # Click {{ action.target }}
+    {{ page_object_name }}.click_{{ action.target.replace(' ', '_').replace('-', '_') }}()
+{%- elif action.type == 'fill' %}
+    # Fill {{ action.target }} with {{ action.value }}
+    {{ page_object_name }}.fill_{{ action.target.replace(' ', '_').replace('-', '_') }}("{{ action.value }}")
+{%- endif %}
+{%- endfor %}
+
+{%- for assertion in scenario.success_assertions %}
+{%- if assertion.type == 'visible' %}
+    # Verify {{ assertion.target }} is visible
+    assert {{ page_object_name }}.is_{{ assertion.target.replace(' ', '_').replace('-', '_') }}_visible(), "{{ assertion.message }}"
+{%- elif assertion.type == 'url_matches' %}
+    # Verify URL changed after success
+    assert "{{ assertion.target }}" in page.url, "{{ assertion.message }}"
+{%- endif %}
+{%- endfor %}
+
+    # Capture success screenshot
+    browser.take_screenshot(page, "screenshots/{{ test_name }}_success.png")
+
+
+{% if scenario.failure_assertions %}
+def test_{{ test_name }}_failure(browser, {{ page_object_name }}):
+    """Test {{ scenario.feature_name }} - Failure Path."""
+    # Navigate to target URL
+    page = browser.goto_url("{{ scenario.target_url }}")
+    {{ page_object_name }} = {{ page_object_class }}(page)
+
+    # Attempt invalid action (simulating failure)
+{%- for action in scenario.actions %}
+{%- if action.type == 'fill' %}
+    # Fill {{ action.target }} with invalid data
+    {{ page_object_name }}.fill_{{ action.target.replace(' ', '_').replace('-', '_') }}("invalid_data")
+{%- elif action.type == 'click' %}
+    # Click {{ action.target }}
+    {{ page_object_name }}.click_{{ action.target.replace(' ', '_').replace('-', '_') }}()
+{%- endif %}
+{%- endfor %}
+
+{%- for assertion in scenario.failure_assertions %}
+{%- if assertion.type == 'visible' %}
+    # Verify {{ assertion.target }} is displayed
+    assert {{ page_object_name }}.is_{{ assertion.target.replace(' ', '_').replace('-', '_') }}_visible(), "{{ assertion.message }}"
+{%- endif %}
+{%- endfor %}
+
+    # Capture failure screenshot
+    browser.take_screenshot(page, "screenshots/{{ test_name }}_failure.png")
+{% endif %}
