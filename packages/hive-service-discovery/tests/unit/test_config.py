@@ -1,6 +1,8 @@
 """Unit tests for hive_service_discovery.config module."""
 from unittest.mock import patch
+
 import pytest
+
 
 @pytest.mark.core
 class TestServiceDiscoveryConfig:

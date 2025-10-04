@@ -1,6 +1,7 @@
 """Unit tests for hive_service_discovery.service_registry module."""
 import pytest
 
+
 @pytest.mark.core
 class TestServiceRegistry:
     """Test cases for ServiceRegistry class."""

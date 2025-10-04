@@ -1,6 +1,7 @@
 """Tests for hive_ai.prompts.optimizer module."""
 import pytest
 
+
 @pytest.mark.core
 class TestPromptsOptimizer:
     """Test cases for prompts optimizer."""

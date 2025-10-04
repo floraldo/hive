@@ -3,10 +3,13 @@ Integration tests for the complete AI Reviewer system
 """
 from datetime import datetime
 from unittest.mock import MagicMock, Mock
+
 import pytest
+
 from ai_reviewer import ReviewAgent, ReviewEngine
 from ai_reviewer.database_adapter import DatabaseAdapter
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 @pytest.mark.crust
@@ -72,7 +75,7 @@ class TestIntegration:
         review = mock_task.result_data['review']
         assert review['decision'] == 'reject'
         assert len(review['issues']) > 0
-        assert any(('security' in str(issue).lower() for issue in review['issues']))
+        assert any('security' in str(issue).lower() for issue in review['issues'])
 
     @pytest.mark.crust
     def test_review_engine_standalone(self):

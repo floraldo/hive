@@ -11,7 +11,6 @@ This test suite validates the complete Hive platform functionality including:
 
 Designed to run in CI/CD to catch breaking changes and ensure platform reliability.
 """
-import pytest
 import asyncio
 import concurrent.futures
 import json
@@ -25,6 +24,9 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+import pytest
+
 test_root = Path(__file__).parent.parent
 sys.path.insert(0, str(test_root / 'apps' / 'hive-orchestrator' / 'src'))
 sys.path.insert(0, str(test_root / 'apps' / 'ai-planner' / 'src'))
@@ -148,7 +150,7 @@ class EndToEndWorkflowTests:
             plan_data = self._generate_complex_execution_plan(planning_task_id)
             subtasks = plan_data['sub_tasks']
             assert len(subtasks) >= 5, 'Should decompose into at least 5 subtasks'
-            dependencies_exist = any((sub_task.get('dependencies') for sub_task in subtasks))
+            dependencies_exist = any(sub_task.get('dependencies') for sub_task in subtasks)
             assert dependencies_exist, 'Should have dependency relationships'
             print(f'✅ Task decomposition test: PASSED ({len(subtasks)} subtasks created)')
             return True
@@ -221,7 +223,7 @@ class EndToEndWorkflowTests:
                     if subtask['id'] in completed_tasks:
                         continue
                     dependencies = subtask['payload'].get('dependencies', [])
-                    dependencies_met = all((any((completed_task['payload'].get('id') == dep for completed_task in [st for st in subtasks if st['id'] in completed_tasks])) for dep in dependencies)) if dependencies else True
+                    dependencies_met = all(any(completed_task['payload'].get('id') == dep for completed_task in [st for st in subtasks if st['id'] in completed_tasks]) for dep in dependencies) if dependencies else True
                     if dependencies_met:
                         ready_tasks.append(subtask)
                 if not ready_tasks:
@@ -508,7 +510,7 @@ class CrossAppCommunicationTests:
             return False
         results = json.loads(row[1]) if row[1] else {}
         required_fields = ['objective_value', 'solver_status', 'execution_time']
-        has_required_fields = all((field in results for field in required_fields))
+        has_required_fields = all(field in results for field in required_fields)
         conn.close()
         return has_required_fields
 
@@ -743,7 +745,7 @@ class GoldenRulesIntegrationTests:
                 if app_path.exists():
                     compliance = self._check_app_core_compliance(app_name, app_path)
                     compliance_results.append((app_name, compliance))
-            all_compliant = all((result[1] for result in compliance_results))
+            all_compliant = all(result[1] for result in compliance_results)
             print(f"✅ Core pattern compliance test: {('PASSED' if all_compliant else 'FAILED')}")
             for app_name, compliant in compliance_results:
                 status = '✅' if compliant else '❌'
@@ -804,7 +806,7 @@ class GoldenRulesIntegrationTests:
             return False
         required_core_dirs = ['db', 'bus', 'errors']
         existing_dirs = [d.name for d in core_path.iterdir() if d.is_dir()]
-        has_required_dirs = any((req_dir in existing_dirs for req_dir in required_core_dirs))
+        has_required_dirs = any(req_dir in existing_dirs for req_dir in required_core_dirs)
         return has_required_dirs
 
     def _test_import_patterns(self) -> bool:

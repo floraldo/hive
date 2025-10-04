@@ -5,6 +5,7 @@ Verifies that all models can be instantiated and have expected behavior.
 """
 import pytest
 
+
 @pytest.mark.core
 def test_task_status_enum():
     """Test TaskStatus enum values."""

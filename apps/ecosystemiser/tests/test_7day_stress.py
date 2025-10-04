@@ -1,20 +1,27 @@
 """7-day stress test for EcoSystemiser platform."""
-import pytest
 import json
 import os
 import time
 from pathlib import Path
+
 import numpy as np
 import psutil
+import pytest
+
 eco_path = Path(__file__).parent.parent / 'src'
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
 from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
-from ecosystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandParams, PowerDemandTechnicalParams
+from ecosystemiser.system_model.components.energy.power_demand import (
+    PowerDemand,
+    PowerDemandParams,
+    PowerDemandTechnicalParams,
+)
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 def create_7day_system():
@@ -125,7 +132,7 @@ def analyze_weekly_patterns(system):
                 daily_grid_export += daily_flow
         day_summary = {'day': day + 1, 'solar_generation': float(daily_solar), 'total_demand': float(daily_demand), 'grid_import': float(daily_grid_import), 'grid_export': float(daily_grid_export), 'net_grid': float(daily_grid_import - daily_grid_export)}
         analysis['daily_summaries'].append(day_summary)
-    analysis['weekly_totals'] = {'total_solar': float(sum((day['solar_generation'] for day in analysis['daily_summaries']))), 'total_demand': float(sum((day['total_demand'] for day in analysis['daily_summaries']))), 'total_import': float(sum((day['grid_import'] for day in analysis['daily_summaries']))), 'total_export': float(sum((day['grid_export'] for day in analysis['daily_summaries'])))}
+    analysis['weekly_totals'] = {'total_solar': float(sum(day['solar_generation'] for day in analysis['daily_summaries'])), 'total_demand': float(sum(day['total_demand'] for day in analysis['daily_summaries'])), 'total_import': float(sum(day['grid_import'] for day in analysis['daily_summaries'])), 'total_export': float(sum(day['grid_export'] for day in analysis['daily_summaries']))}
     battery_comp = system.components.get('Battery')
     if battery_comp and hasattr(battery_comp, 'E'):
         weekly_range = (np.max(battery_comp.E) - np.min(battery_comp.E),)

@@ -394,6 +394,12 @@ Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/as
     - Prefer: ["value"] or ["value1", "value2"]
     - Avoid: [ "value",] (trailing comma in list)
 
+34. **PyProject.toml Required** - All apps and packages must have pyproject.toml for editable installation
+    - Severity: ERROR
+    - Ensures all components can be installed with `pip install -e`
+    - Prevents environment issues where code changes don't reflect in installed packages
+    - Enforced via Golden Rules validator
+
 **Validation Commands**:
 ```bash
 # Environment isolation (Rules 25-30)

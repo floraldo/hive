@@ -1,6 +1,7 @@
 """Unit tests for hive_service_discovery.load_balancer module."""
 import pytest
 
+
 @pytest.mark.core
 class TestLoadBalancer:
     """Test cases for LoadBalancer class."""

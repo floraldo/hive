@@ -10,6 +10,7 @@ from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
 
+
 @composite
 def weighted_graphs(draw, min_nodes=2, max_nodes=10, min_weight=1, max_weight=100):
     """Generate random weighted graphs for testing"""

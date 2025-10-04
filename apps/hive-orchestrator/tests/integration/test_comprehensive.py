@@ -4,9 +4,12 @@ Consolidates all test scenarios into a single, organized test runner.
 
 Note: Subprocess usage for integration testing is intentional (S603).
 """
-import pytest
 import json
+
+import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import os
 import sqlite3
@@ -16,10 +19,12 @@ import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
+
 project_root = Path(__file__).parent.parent.parent.parent
 from hive_config.paths import DB_PATH
 from hive_orchestrator.core import db as hive_core_db
 from hive_orchestrator.hive_core import HiveCore
+
 
 class HiveTestSuite:
     """Comprehensive test suite for Hive V2.0"""

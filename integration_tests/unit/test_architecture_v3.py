@@ -10,7 +10,9 @@ These tests enforce the architectural principles established during the v3.0 ref
 """
 import ast
 from pathlib import Path
+
 import pytest
+
 PROJECT_ROOT = Path(__file__).parent.parent
 ECOSYSTEMISER_ROOT = PROJECT_ROOT / 'apps' / 'ecosystemiser'
 SRC_ROOT = ECOSYSTEMISER_ROOT / 'src' / 'ecosystemiser'

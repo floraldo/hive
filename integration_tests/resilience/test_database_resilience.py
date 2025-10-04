@@ -14,7 +14,9 @@ import sqlite3
 import tempfile
 import time
 from pathlib import Path
+
 import pytest
+
 try:
     from hive_async import AsyncExecutor, get_async_connection
     from hive_db.async_pool import AsyncConnectionPool

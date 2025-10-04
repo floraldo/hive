@@ -3,9 +3,12 @@ Integration tests for the complete AI Deployer system
 """
 import asyncio
 from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
+
 from ai_deployer import DatabaseAdapter, DeploymentAgent, DeploymentOrchestrator
 from ai_deployer.deployer import DeploymentResult, DeploymentStrategy
+
 
 @pytest.fixture
 def sample_integration_task():

@@ -6,7 +6,9 @@ import json
 import sqlite3
 import tempfile
 from pathlib import Path
+
 import pytest
+
 
 @pytest.mark.crust
 class TestCorePerformance:
@@ -131,7 +133,7 @@ class TestCorePerformance:
         def run_async_test():
             return asyncio.run(async_operations())
         result = benchmark(run_async_test)
-        expected = sum((i * 2 for i in range(50)))
+        expected = sum(i * 2 for i in range(50))
         assert result == expected
 
     @pytest.mark.crust

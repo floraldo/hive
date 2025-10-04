@@ -1,8 +1,11 @@
 """Comprehensive unit tests for CodeAnalyzer including edge cases."""
 from pathlib import Path
+
 import pytest
+
 from guardian_agent.analyzers.code_analyzer import CodeAnalyzer
 from guardian_agent.core.interfaces import Severity, ViolationType
+
 
 @pytest.mark.crust
 class TestCodeAnalyzer:
@@ -21,7 +24,7 @@ class TestCodeAnalyzer:
         result = await analyzer.analyze(Path('test.py'), complex_code)
         complexity_violations = [v for v in result.violations if 'complexity' in v.rule.lower()]
         assert len(complexity_violations) > 0
-        assert any((v.severity in [Severity.WARNING, Severity.ERROR] for v in complexity_violations))
+        assert any(v.severity in [Severity.WARNING, Severity.ERROR] for v in complexity_violations)
 
     @pytest.mark.crust
     @pytest.mark.asyncio

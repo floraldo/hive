@@ -4,9 +4,11 @@ Comprehensive tests for hive-ai model management components.
 Tests ModelRegistry, ModelClient, ModelPool, and ModelMetrics with property-based testing.
 """
 from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
+
 from hive_ai.core.config import AIConfig, ModelConfig
 from hive_ai.core.exceptions import CostLimitError, ModelUnavailableError
 from hive_ai.core.interfaces import ModelResponse, TokenUsage
@@ -14,6 +16,7 @@ from hive_ai.models.client import ModelClient
 from hive_ai.models.metrics import ModelMetrics
 from hive_ai.models.pool import ModelPool, PoolStats
 from hive_ai.models.registry import ModelRegistry
+
 
 @pytest.mark.core
 class TestModelRegistry:

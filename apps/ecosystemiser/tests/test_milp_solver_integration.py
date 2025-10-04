@@ -1,13 +1,16 @@
 """Real integration test for MILP solver - proves it produces valid flows."""
-import pytest
 import sys
 from pathlib import Path
+
 import numpy as np
+import pytest
+
 eco_path = Path(__file__).parent.parent / 'src'
 from ecosystemiser.services.results_io import ResultsIO
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 @pytest.mark.crust

@@ -8,7 +8,7 @@ import json
 import time
 from collections.abc import AsyncGenerator, Callable
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import msgpack
 import orjson
@@ -682,7 +682,7 @@ class HiveCacheClient:
         """Reset all metrics counters."""
         self._metrics = dict.fromkeys(self._metrics, 0)
 
-    def get_performance_metrics(self) -> Optional[dict[str, Any]]:
+    def get_performance_metrics(self) -> dict[str, Any] | None:
         """Get detailed performance metrics from the performance monitor.
 
         Returns:

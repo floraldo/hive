@@ -6,9 +6,11 @@ Tests configuration, exceptions, and interfaces with property-based testing.
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
+
 from hive_ai.core.config import AIConfig, ModelConfig, PromptConfig, VectorConfig
 from hive_ai.core.exceptions import AIError, CostLimitError, ModelError, ModelUnavailableError, PromptError, VectorError
 from hive_ai.core.interfaces import ModelResponse, ModelType, TokenUsage
+
 
 @pytest.mark.core
 class TestAIConfig:

@@ -3,10 +3,13 @@ Individual module tests for Hive Orchestrator components.
 Tests modules individually to avoid import dependency issues.
 """
 import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import sys
 from unittest.mock import MagicMock, patch
+
 
 @pytest.mark.crust
 def test_cli_module_direct():

@@ -4,14 +4,16 @@ Factory Acceptance Test 02: Multi-Component Application Test (Simplified)
 This test validates the autonomous platform's ability to generate and coordinate
 applications with multiple interacting components (frontend, backend, API, database).
 """
-import pytest
 import subprocess
 import sys
 import time
 from pathlib import Path
+
 import requests
+
 sys.path.insert(0, str(Path(__file__).parent))
 from fat_framework import FactoryAcceptanceTest
+
 
 def generate_simple_todo_app(test_case):
     """Generate a simple multi-component Todo application"""

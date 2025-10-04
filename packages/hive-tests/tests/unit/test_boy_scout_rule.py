@@ -10,7 +10,9 @@ Philosophy: Technical debt should only go DOWN, never UP.
 """
 import subprocess
 from pathlib import Path
+
 import pytest
+
 
 @pytest.mark.core
 class TestBoyScoutRule:

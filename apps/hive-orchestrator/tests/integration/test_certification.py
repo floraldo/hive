@@ -7,7 +7,9 @@ running all services in the background and monitoring their behavior.
 Note: Subprocess usage for service orchestration is intentional (S603).
 """
 import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import os
 import signal
@@ -17,6 +19,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
 
 class CertificationTestConductor:
     """Orchestrates the V2.0 certification test."""
@@ -201,7 +204,7 @@ class CertificationTestConductor:
     def generate_report(self):
         """Generate comprehensive test report."""
         self.log('=== FINAL REPORT ===', 'REPORT')
-        all_passed = (all((result == 'PASSED' for result in self.test_results.values())),)
+        all_passed = (all(result == 'PASSED' for result in self.test_results.values()),)
         overall_status = '[PASS] CERTIFICATION PASSED' if all_passed else '[FAIL] CERTIFICATION FAILED'
         self.log(overall_status, 'REPORT')
         self.log('', 'REPORT')

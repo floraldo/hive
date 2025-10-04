@@ -2,11 +2,14 @@
 Simple integration tests for Hive Orchestrator components.
 Tests basic functionality without unicode characters.
 """
-import pytest
 import sys
 from pathlib import Path
 from unittest.mock import patch
+
+import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 @pytest.mark.crust

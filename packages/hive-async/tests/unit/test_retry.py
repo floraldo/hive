@@ -9,9 +9,13 @@ Tests retry functionality using the tenacity library:
 - Exponential backoff (handled by tenacity)
 """
 from __future__ import annotations
+
 from unittest.mock import AsyncMock
+
 import pytest
+
 from hive_async.retry import AsyncRetryConfig, AsyncRetryError, run_async_with_retry_async
+
 
 @pytest.mark.core
 class TestAsyncRetryConfig:

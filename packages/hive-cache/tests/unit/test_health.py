@@ -1,6 +1,7 @@
 """Unit tests for hive_cache.health module."""
 import pytest
 
+
 @pytest.mark.core
 class TestCacheHealth:
     """Test cases for cache health monitoring."""

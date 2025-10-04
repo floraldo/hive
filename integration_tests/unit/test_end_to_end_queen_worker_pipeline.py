@@ -10,7 +10,6 @@ This test validates the complete task flow from creation through execution:
 
 Focuses specifically on the core Queen → Worker workflow.
 """
-import pytest
 import json
 import os
 import sqlite3
@@ -21,6 +20,9 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+import pytest
+
 
 @dataclass
 class TaskTestResult:

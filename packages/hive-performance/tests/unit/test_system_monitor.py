@@ -1,6 +1,7 @@
 """Unit tests for hive_performance.system_monitor module."""
 import pytest
 
+
 @pytest.mark.core
 class TestSystemMonitor:
     """Test cases for SystemMonitor class."""

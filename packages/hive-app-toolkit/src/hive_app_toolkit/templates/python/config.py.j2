@@ -1,0 +1,75 @@
+"""Configuration for {{ app_name }}."""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from pydantic import BaseModel, Field
+
+
+class {{ app_module | class_name }}Config(BaseModel):
+    """Configuration for {{ app_name }}."""
+
+    # Application settings
+    app_name: str = Field(default="{{ app_name }}", description="Application name")
+    version: str = Field(default="{{ version }}", description="Application version")
+    environment: str = Field(
+        default_factory=lambda: os.getenv("ENVIRONMENT", "development"),
+        description="Environment (development, staging, production)",
+    )
+    {% if service_type == 'api' or service_type == 'webhook' %}
+    # API settings
+    host: str = Field(
+        default_factory=lambda: os.getenv("HOST", "0.0.0.0"),
+        description="API host",
+    )
+    port: int = Field(
+        default_factory=lambda: int(os.getenv("PORT", "{{ port }}")),
+        description="API port",
+    )
+    {% endif %}
+    # Logging settings
+    log_level: str = Field(
+        default_factory=lambda: os.getenv("LOG_LEVEL", "INFO"),
+        description="Logging level",
+    )
+    {% if needs_database or enable_database %}
+    # Database settings
+    database_path: str = Field(
+        default_factory=lambda: os.getenv("DATABASE_PATH", "data/{{ app_name }}.db"),
+        description="Database file path",
+    )
+    {% endif %}
+    {% if needs_cache or enable_cache %}
+    # Cache settings
+    cache_enabled: bool = Field(
+        default_factory=lambda: os.getenv("CACHE_ENABLED", "true").lower() == "true",
+        description="Enable caching",
+    )
+    cache_ttl: int = Field(
+        default_factory=lambda: int(os.getenv("CACHE_TTL", "3600")),
+        description="Cache TTL in seconds",
+    )
+    {% endif %}
+    {% if cost_limits %}
+    # Cost limits
+    daily_cost_limit: float = Field(
+        default={{ cost_limits.daily }},
+        description="Daily cost limit in USD",
+    )
+    monthly_cost_limit: float = Field(
+        default={{ cost_limits.monthly }},
+        description="Monthly cost limit in USD",
+    )
+    per_operation_limit: float = Field(
+        default={{ cost_limits.per_operation }},
+        description="Per-operation cost limit in USD",
+    )
+    {% endif %}
+
+    class Config:
+        """Pydantic config."""
+
+        env_file = ".env"
+        env_file_encoding = "utf-8"

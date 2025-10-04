@@ -1,6 +1,7 @@
 """Unit tests for hive_service_discovery.discovery_client module."""
 import pytest
 
+
 @pytest.mark.core
 class TestDiscoveryClient:
     """Test cases for DiscoveryClient class."""

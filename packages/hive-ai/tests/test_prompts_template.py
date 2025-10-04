@@ -1,6 +1,7 @@
 """Tests for hive_ai.prompts.template module."""
 import pytest
 
+
 @pytest.mark.core
 class TestPromptsTemplate:
     """Test cases for prompts template."""

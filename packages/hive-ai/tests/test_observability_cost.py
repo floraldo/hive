@@ -1,6 +1,7 @@
 """Tests for hive_ai.observability.cost module."""
 import pytest
 
+
 @pytest.mark.core
 class TestObservabilityCost:
     """Test cases for cost tracking."""

@@ -14,6 +14,8 @@ from typing import Any
 
 from hive_logging import get_logger
 
+from ._baseline_retrieval import get_historical_baseline_async
+
 logger = get_logger(__name__)
 
 
@@ -91,7 +93,7 @@ class TrendAnalyzer:
     detection to identify potential failures before they occur.
     """
 
-    def __init__(self, window_size: int = 50, ema_alpha: float = 0.2, degradation_threshold: int = 3):
+    def __init__(self, window_size: int = 50, ema_alpha: float = 0.2, degradation_threshold: int = 3, historical_enricher=None):
         """
         Initialize trend analyzer.
 
@@ -99,10 +101,12 @@ class TrendAnalyzer:
             window_size: Number of data points to analyze
             ema_alpha: EMA smoothing factor (0.0-1.0, higher = more responsive)
             degradation_threshold: Consecutive increases to trigger alert
+            historical_enricher: Optional HistoricalContextEnricher for context-aware thresholding
         """
         self.window_size = window_size
         self.ema_alpha = ema_alpha
         self.degradation_threshold = degradation_threshold
+        self.historical_enricher = historical_enricher
 
     def calculate_ema(self, data: list[float], alpha: float | None = None) -> list[float]:
         """
@@ -118,7 +122,7 @@ class TrendAnalyzer:
         if not data:
             return []
 
-        alpha = (alpha or self.ema_alpha,)
+        alpha = alpha or self.ema_alpha
         ema = [data[0]]
 
         for value in data[1:]:
@@ -126,7 +130,7 @@ class TrendAnalyzer:
 
         return ema
 
-    def detect_degradation(self, metrics: list[MetricPoint], threshold: float) -> DegradationAlert | None:
+    async def detect_degradation(self, metrics: list[MetricPoint], threshold: float) -> DegradationAlert | None:
         """
         Detect if metrics show degradation pattern.
 
@@ -144,8 +148,41 @@ class TrendAnalyzer:
             logger.debug(f"Insufficient data points: {len(metrics)} < {self.degradation_threshold + 1}")
             return None
 
+        # PROJECT CHIMERA Phase 2: Retrieve historical baseline for dynamic thresholding
+        service_name = metrics[0].metadata.get("service", "unknown")
+        metric_type_str = metrics[0].metadata.get("metric_type", "unknown")
+
+        # Default thresholds (will be adjusted based on historical data)
+        dynamic_threshold = threshold
+        baseline_mean = None
+        baseline_std = None
+        volatility_factor = 1.0
+
+        if self.historical_enricher:
+            try:
+                # Retrieve historical context for dynamic thresholding
+                historical_stats = await get_historical_baseline_async(
+                    self.historical_enricher, service_name, metric_type_str
+                )
+
+                if historical_stats:
+                    baseline_mean = historical_stats.get("mean")
+                    baseline_std = historical_stats.get("std_dev")
+                    volatility_factor = historical_stats.get("volatility_factor", 1.0)
+
+                    # Adjust threshold based on volatility
+                    if volatility_factor > 1.5:
+                        dynamic_threshold = threshold * 1.2
+                        logger.info(f"High volatility service ({volatility_factor:.2f}x) - raised threshold to {dynamic_threshold:.2f}")
+                    elif volatility_factor < 0.5:
+                        dynamic_threshold = threshold * 0.8
+                        logger.info(f"Stable service ({volatility_factor:.2f}x) - lowered threshold to {dynamic_threshold:.2f}")
+
+            except Exception as e:
+                logger.warning(f"Failed to retrieve historical baseline: {e}")
+
         # Use recent window for analysis
-        recent_metrics = (metrics[-self.window_size :],)
+        recent_metrics = metrics[-self.window_size :]
         values = [m.value for m in recent_metrics]
 
         # Calculate EMA to smooth noise
@@ -158,7 +195,14 @@ class TrendAnalyzer:
                 increases += 1
                 if increases >= self.degradation_threshold:
                     logger.info(f"Degradation detected: {increases} consecutive increases")
-                    return self._create_degradation_alert(recent_metrics, ema, threshold)
+                    # Store baseline context in metrics metadata for alert creation
+                    if baseline_mean is not None:
+                        for metric in recent_metrics:
+                            metric.metadata["baseline_mean"] = baseline_mean
+                            metric.metadata["baseline_std"] = baseline_std
+                            metric.metadata["volatility_factor"] = volatility_factor
+
+                    return self._create_degradation_alert(recent_metrics, ema, dynamic_threshold)
             else:
                 increases = 0  # Reset on decrease
 
@@ -171,7 +215,7 @@ class TrendAnalyzer:
         threshold: float,
     ) -> DegradationAlert:
         """Create degradation alert from analysis results."""
-        current_value = (metrics[-1].value,)
+        current_value = metrics[-1].value
         ema_current = ema[-1]
 
         # Predict time to breach using linear regression
@@ -179,6 +223,20 @@ class TrendAnalyzer:
 
         # Calculate confidence based on trend consistency
         confidence = self._calculate_confidence(ema)
+
+        # PROJECT CHIMERA Phase 2: Calculate volatility-adjusted confidence
+        baseline_std = metrics[0].metadata.get("baseline_std")
+        volatility_factor = metrics[0].metadata.get("volatility_factor", 1.0)
+
+        if baseline_std is not None and baseline_std > 0:
+            current_value_clean = metrics[-1].value
+            baseline_mean = metrics[0].metadata.get("baseline_mean", current_value_clean)
+            z_score = abs(current_value_clean - baseline_mean) / baseline_std
+
+            z_score_boost = min(z_score / (volatility_factor + 1.0), 0.3)
+            confidence = min(confidence + z_score_boost, 1.0)
+
+            logger.debug(f"Volatility-adjusted confidence: base={confidence:.2f}, z-score={z_score:.2f}, boost={z_score_boost:.2f}")
 
         # Determine severity based on time to breach and confidence
         severity = self._determine_severity(time_to_breach, confidence)
@@ -200,7 +258,14 @@ class TrendAnalyzer:
             severity=severity,
             recommended_actions=recommended_actions,
             created_at=datetime.utcnow(),
-            metadata={"ema_value": ema_current, "trend_length": len(ema)},
+            metadata={
+                "ema_value": ema_current,
+                "trend_length": len(ema),
+                "volatility_factor": metrics[0].metadata.get("volatility_factor", 1.0),
+                "baseline_mean": metrics[0].metadata.get("baseline_mean"),
+                "baseline_std": metrics[0].metadata.get("baseline_std"),
+                "historical_context_used": self.historical_enricher is not None
+            },
         )
 
     def predict_time_to_breach(self, metrics: list[MetricPoint], threshold: float) -> timedelta | None:
@@ -218,14 +283,14 @@ class TrendAnalyzer:
             return None
 
         # Convert to arrays for regression
-        base_time = (metrics[0].timestamp,)
-        timestamps = ([(m.timestamp - base_time).total_seconds() for m in metrics],)
+        base_time = metrics[0].timestamp
+        timestamps = [(m.timestamp - base_time).total_seconds() for m in metrics]
         values = [m.value for m in metrics]
 
         # Calculate linear regression
         slope, intercept = self._linear_regression(timestamps, values)
 
-        current_value = (values[-1],)
+        current_value = values[-1]
         current_time = timestamps[-1]
 
         # Check if trending toward threshold
@@ -261,17 +326,17 @@ class TrendAnalyzer:
         if n == 0:
             return 0.0, 0.0
 
-        x_mean = (sum(x) / n,)
+        x_mean = sum(x) / n
         y_mean = sum(y) / n
 
         # Calculate slope
-        numerator = (sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n)),)
+        numerator = sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n))
         denominator = sum((x[i] - x_mean) ** 2 for i in range(n))
 
         if denominator == 0:
             return 0.0, y_mean
 
-        slope = (numerator / denominator,)
+        slope = numerator / denominator
         intercept = y_mean - slope * x_mean
 
         return slope, intercept
@@ -295,11 +360,11 @@ class TrendAnalyzer:
         changes = [ema[i + 1] - ema[i] for i in range(len(ema) - 1)]
 
         # Consistency: how many changes are in same direction
-        positive_changes = (sum(1 for c in changes if c > 0),)
+        positive_changes = sum(1 for c in changes if c > 0)
         consistency = positive_changes / len(changes)
 
         # Magnitude: average size of changes
-        avg_change = (sum(abs(c) for c in changes) / len(changes),)
+        avg_change = sum(abs(c) for c in changes) / len(changes)
         magnitude_score = min(avg_change / (ema[-1] * 0.1), 1.0)  # Cap at 1.0
 
         # Combine consistency and magnitude
@@ -398,8 +463,8 @@ class TrendAnalyzer:
         """Generate unique alert identifier."""
         import hashlib
 
-        timestamp = (datetime.utcnow().isoformat(),)
-        content = (f"{service_name}:{timestamp}",)
+        timestamp = datetime.utcnow().isoformat()
+        content = f"{service_name}:{timestamp}"
         hash_value = hashlib.md5(content.encode("utf-8")).hexdigest()[:12]  # noqa: S324
         return f"alert-{hash_value}"
 
@@ -421,12 +486,12 @@ class TrendAnalyzer:
         current_value = metrics[-1].value
 
         # Calculate mean and standard deviation
-        mean = (sum(values) / len(values),)
-        variance = (sum((x - mean) ** 2 for x in values) / len(values),)
+        mean = sum(values) / len(values)
+        variance = sum((x - mean) ** 2 for x in values) / len(values)
         std_dev = variance**0.5
 
         # Check if current value is beyond threshold
-        z_score = (abs(current_value - mean) / std_dev if std_dev > 0 else 0,)
+        z_score = abs(current_value - mean) / std_dev if std_dev > 0 else 0
         is_anomaly = z_score > std_dev_threshold
 
         if is_anomaly:

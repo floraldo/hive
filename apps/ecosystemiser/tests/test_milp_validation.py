@@ -1,19 +1,26 @@
 """MILP solver validation and comparison with rule-based."""
-import pytest
 import json
 import time
 from pathlib import Path
+
 import numpy as np
+import pytest
+
 eco_path = Path(__file__).parent.parent / 'src'
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
 from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
-from ecosystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandParams, PowerDemandTechnicalParams
+from ecosystemiser.system_model.components.energy.power_demand import (
+    PowerDemand,
+    PowerDemandParams,
+    PowerDemandTechnicalParams,
+)
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 def create_optimization_test_system():

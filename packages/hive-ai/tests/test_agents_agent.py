@@ -1,11 +1,23 @@
 """Tests for hive_ai.agents.agent module."""
 from __future__ import annotations
+
 import asyncio
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock
+
 import pytest
-from hive_ai.agents.agent import AgentConfig, AgentMemory, AgentMessage, AgentState, AgentTool, BaseAgent, SimpleTaskAgent
+
+from hive_ai.agents.agent import (
+    AgentConfig,
+    AgentMemory,
+    AgentMessage,
+    AgentState,
+    AgentTool,
+    BaseAgent,
+    SimpleTaskAgent,
+)
 from hive_ai.core.exceptions import AIError
+
 
 @pytest.mark.core
 class TestAgentMessage:

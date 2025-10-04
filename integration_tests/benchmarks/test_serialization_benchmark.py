@@ -4,12 +4,13 @@ Serialization performance benchmark to identify JSON vs msgpack vs orjson perfor
 This benchmark focuses on the serialization component that could be causing
 cache latency issues in the V4.2 performance certification.
 """
-import pytest
 import json
 import statistics
 import time
 from dataclasses import dataclass
+
 import msgpack
+
 try:
     import orjson
     HAS_ORJSON = True
@@ -215,13 +216,13 @@ class SerializationBenchmark:
         msgpack_ops = [r for r in all_results_flat if 'msgpack' in r.name.lower()]
         orjson_ops = [r for r in all_results_flat if 'orjson' in r.name.lower()]
         if orjson_ops and json_ops:
-            json_avg = sum((r.p95_ms for r in json_ops)) / len(json_ops)
-            orjson_avg = sum((r.p95_ms for r in orjson_ops)) / len(orjson_ops)
+            json_avg = sum(r.p95_ms for r in json_ops) / len(json_ops)
+            orjson_avg = sum(r.p95_ms for r in orjson_ops) / len(orjson_ops)
             improvement = json_avg / orjson_avg
             print(f'  - Switch from JSON to orjson: {improvement:.1f}x faster serialization')
         if msgpack_ops and json_ops:
-            json_avg = sum((r.p95_ms for r in json_ops)) / len(json_ops)
-            msgpack_avg = sum((r.p95_ms for r in msgpack_ops)) / len(msgpack_ops)
+            json_avg = sum(r.p95_ms for r in json_ops) / len(json_ops)
+            msgpack_avg = sum(r.p95_ms for r in msgpack_ops) / len(msgpack_ops)
             if msgpack_avg < json_avg:
                 improvement = json_avg / msgpack_avg
                 print(f'  - Switch from JSON to msgpack: {improvement:.1f}x faster serialization')

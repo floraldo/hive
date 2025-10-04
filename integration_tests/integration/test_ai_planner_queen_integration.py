@@ -16,11 +16,14 @@ import tempfile
 import uuid
 from datetime import UTC, datetime
 from unittest.mock import patch
+
 import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'apps', 'hive-orchestrator', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'apps', 'ai-planner', 'src'))
 from ai_planner.agent import AIPlanner
 from hive_orchestrator.core.db import database_enhanced_optimized as db_enhanced
+
 
 @pytest.mark.crust
 class TestAIPlannerQueenIntegration:

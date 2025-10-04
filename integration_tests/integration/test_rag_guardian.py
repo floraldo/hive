@@ -10,8 +10,11 @@ Tests the full end-to-end flow:
 This validates all four design decisions in a real-world scenario.
 """
 from pathlib import Path
+
 import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 MOCK_PR_DATABASE_VIOLATION = ('packages/hive-api/src/hive_api/new_endpoint.py', '\n@@ -0,0 +1,12 @@\n+import sqlite3\n+\n+def get_user_data(user_id: int):\n+    """Get user data from database."""\n+    conn = sqlite3.connect("app.db")\n+    cursor = conn.cursor()\n+    result = cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))\n+    data = result.fetchone()\n+    conn.close()\n+    return data\n')
 MOCK_PR_LOGGING_VIOLATION = ('packages/hive-service/src/hive_service/processor.py', '\n@@ -5,3 +5,6 @@\n def process_data(data: dict):\n-    logger.info(f"Processing {len(data)} items")\n+    print(f"Processing {len(data)} items")  # Violation: print() instead of logger\n     return transform(data)\n')

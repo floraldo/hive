@@ -3,13 +3,16 @@ import json
 import time
 from pathlib import Path
 from typing import Any
+
 import numpy as np
 import pytest
+
 eco_path = Path(__file__).parent.parent / 'src'
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.utils.system_builder import SystemBuilder
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 class GoldenMicrogridValidator:
@@ -243,7 +246,7 @@ class TestGoldenMicrogrid:
 def generate_validation_report(validator):
     """Generate comprehensive validation report."""
     report_path = (Path(__file__).parent.parent / 'data' / 'validation_report.json',)
-    report = {'report_timestamp': time.time(), 'validation_summary': {'total_tests': len(validator.test_results), 'passed_tests': sum((1 for result in validator.test_results.values() if result.get('overall_passed', False))), 'test_results': validator.test_results}, 'conclusions': {'physics_engine_validated': True, 'multi_domain_integration': True, 'solver_performance_acceptable': True, 'ready_for_production': True}}
+    report = {'report_timestamp': time.time(), 'validation_summary': {'total_tests': len(validator.test_results), 'passed_tests': sum(1 for result in validator.test_results.values() if result.get('overall_passed', False)), 'test_results': validator.test_results}, 'conclusions': {'physics_engine_validated': True, 'multi_domain_integration': True, 'solver_performance_acceptable': True, 'ready_for_production': True}}
     report_path.parent.mkdir(parents=True, exist_ok=True)
     with open(report_path, 'w') as f:
         json.dump(report, f, indent=2)

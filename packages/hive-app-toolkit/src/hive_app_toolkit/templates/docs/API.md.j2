@@ -1,0 +1,103 @@
+# {{ app_name }} API Documentation
+
+Version: {{ version }}
+
+## Base URL
+
+```
+http://localhost:{{ port }}
+```
+
+## Authentication
+
+*Add authentication documentation here*
+
+## Endpoints
+
+### Health Checks
+
+#### GET /health/live
+
+Liveness probe for Kubernetes health checks.
+
+**Response**
+
+```json
+{
+  "status": "alive",
+  "timestamp": "2025-10-04T12:00:00.000000",
+  "service": "{{ app_name }}"
+}
+```
+
+#### GET /health/ready
+
+Readiness probe for Kubernetes traffic routing.
+
+**Response**
+
+```json
+{
+  "status": "ready",
+  "timestamp": "2025-10-04T12:00:00.000000",
+  "service": "{{ app_name }}"
+}
+```
+
+### API Endpoints
+
+*Add your API endpoints documentation here*
+
+## Error Responses
+
+All endpoints return standard error responses:
+
+```json
+{
+  "detail": "Error message",
+  "error_code": "ERROR_CODE",
+  "timestamp": "2025-10-04T12:00:00.000000"
+}
+```
+
+## Rate Limiting
+
+{% if cost_limits -%}
+- Per-operation limit: ${{ cost_limits.per_operation }}
+- Daily limit: ${{ cost_limits.daily }}
+- Monthly limit: ${{ cost_limits.monthly }}
+{% else -%}
+*Add rate limiting documentation here*
+{% endif %}
+
+## Examples
+
+### cURL
+
+```bash
+# Liveness check
+curl http://localhost:{{ port }}/health/live
+
+# Readiness check
+curl http://localhost:{{ port }}/health/ready
+```
+
+### Python
+
+```python
+import requests
+
+# Liveness check
+response = requests.get("http://localhost:{{ port }}/health/live")
+print(response.json())
+
+# Readiness check
+response = requests.get("http://localhost:{{ port }}/health/ready")
+print(response.json())
+```
+
+## Interactive Documentation
+
+- **Swagger UI**: http://localhost:{{ port }}/api/docs
+- **ReDoc**: http://localhost:{{ port }}/api/redoc
+- **OpenAPI JSON**: http://localhost:{{ port }}/api/openapi.json

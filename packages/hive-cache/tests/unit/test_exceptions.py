@@ -1,6 +1,7 @@
 """Unit tests for hive_cache.exceptions module."""
 import pytest
 
+
 @pytest.mark.core
 class TestCacheExceptions:
     """Test cases for cache exception classes."""

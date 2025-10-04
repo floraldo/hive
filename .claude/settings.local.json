@@ -93,7 +93,13 @@
       "Bash(do echo \"=== $dir ===\")",
       "Bash(ls:*)",
       "Bash(set_terminal_title \"CC test\")",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "Bash(pip show:*)",
+      "Bash(do echo \"=== $pkg ===\")",
+      "Bash(where cc-list:*)",
+      "Bash(_init_session_paths)",
+      "Bash(while read f)",
+      "Bash(do echo \"$f:0:8\")"
     ],
     "deny": [],
     "ask": []

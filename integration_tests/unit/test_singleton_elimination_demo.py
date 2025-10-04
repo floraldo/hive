@@ -4,10 +4,12 @@ Demonstration of Singleton Elimination Benefits
 This test demonstrates the problems with singleton patterns and how the new
 dependency injection framework solves them.
 """
-import pytest
 import threading
 import time
 from unittest.mock import Mock
+
+import pytest
+
 
 class SingletonAntiPattern:
     """Example of problematic singleton pattern"""
@@ -125,7 +127,7 @@ class TestDependencyInjectionSolution:
         for thread in threads:
             thread.join()
         assert len(errors) == 0, f'Errors occurred: {errors}'
-        assert all((count == 1 for count in results)), 'All services initialized exactly once'
+        assert all(count == 1 for count in results), 'All services initialized exactly once'
         print(f'DI initialization counts: {results} (all exactly 1)')
 
     @pytest.mark.crust

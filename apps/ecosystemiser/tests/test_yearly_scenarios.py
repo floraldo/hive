@@ -1,23 +1,30 @@
 """Test both rule-based and MILP solvers on yearly 8760-hour scenarios."""
-import pytest
 import json
 import os
 import time
 from pathlib import Path
 from typing import Any
+
 import numpy as np
 import pandas as pd
 import psutil
+import pytest
+
 eco_path = Path(__file__).parent.parent / 'src'
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 from ecosystemiser.system_model.components.energy.battery import Battery, BatteryParams, BatteryTechnicalParams
 from ecosystemiser.system_model.components.energy.grid import Grid, GridParams, GridTechnicalParams
-from ecosystemiser.system_model.components.energy.power_demand import PowerDemand, PowerDemandParams, PowerDemandTechnicalParams
+from ecosystemiser.system_model.components.energy.power_demand import (
+    PowerDemand,
+    PowerDemandParams,
+    PowerDemandTechnicalParams,
+)
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV, SolarPVParams, SolarPVTechnicalParams
 from ecosystemiser.system_model.components.shared.archetypes import FidelityLevel
 from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 def load_yearly_profile(profile_name: str) -> np.ndarray:
@@ -95,7 +102,7 @@ def validate_energy_balance(system: System, tolerance: float=0.001) -> dict[str,
         max_imbalance = max(max_imbalance, imbalance)
     mean_imbalance = (np.mean(total_imbalances),)
     energy_balance_ok = max_imbalance < tolerance
-    return {'max_imbalance': max_imbalance, 'mean_imbalance': mean_imbalance, 'energy_balance_ok': energy_balance_ok, 'violation_count': sum((1 for imb in total_imbalances if imb > tolerance))}
+    return {'max_imbalance': max_imbalance, 'mean_imbalance': mean_imbalance, 'energy_balance_ok': energy_balance_ok, 'violation_count': sum(1 for imb in total_imbalances if imb > tolerance)}
 
 def analyze_yearly_performance(system: System) -> dict[str, Any]:
     """Analyze system performance over the full year."""

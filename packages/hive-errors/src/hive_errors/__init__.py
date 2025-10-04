@@ -22,12 +22,14 @@ from .async_error_handler import (
     handle_async_errors,
 )
 from .base_exceptions import (
+    APIError,
     AsyncTimeoutError,
     BaseError,
     CircuitBreakerOpenError,
     ConfigurationError,
     ConnectionError,
     PoolExhaustedError,
+    RateLimitError,
     ResourceError,
     RetryExhaustedError,
     TimeoutError,
@@ -47,6 +49,8 @@ __all__ = [
     "ValidationError",
     "TimeoutError",
     "ResourceError",
+    "APIError",
+    "RateLimitError",
     # Resilience pattern errors
     "CircuitBreakerOpenError",
     "AsyncTimeoutError",

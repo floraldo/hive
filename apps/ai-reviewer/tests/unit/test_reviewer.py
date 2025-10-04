@@ -2,9 +2,12 @@
 Tests for the AI Reviewer review engine
 """
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import pytest
+
 from ai_reviewer.reviewer import QualityMetrics, ReviewDecision, ReviewEngine, ReviewResult
+
 
 @pytest.mark.crust
 class TestQualityMetrics:
@@ -100,10 +103,10 @@ class TestReviewEngine:
         """Test issue detection"""
         problematic_code = {'problems.py': '\n# TODO: fix this later\ndef process():\n    try:\n        logger.info("debugging")\n        x = 1\n    except:\n        pass\n' + 'x' * 150}
         issues = engine._detect_issues(problematic_code, None)
-        assert any(('TODO' in issue for issue in issues))
-        assert any(('except' in issue for issue in issues))
-        assert any(('print' in issue for issue in issues))
-        assert any(('120 characters' in issue for issue in issues))
+        assert any('TODO' in issue for issue in issues)
+        assert any('except' in issue for issue in issues)
+        assert any('print' in issue for issue in issues)
+        assert any('120 characters' in issue for issue in issues)
 
     @pytest.mark.crust
     def test_make_decision(self, engine):
@@ -128,10 +131,10 @@ class TestReviewEngine:
         low_metrics = QualityMetrics(code_quality=50, test_coverage=40, documentation=30, security=60, architecture=70)
         issues = ['TODO comments found', 'print statements detected']
         suggestions = engine._generate_suggestions({}, issues, low_metrics)
-        assert any(('test coverage' in s.lower() for s in suggestions))
-        assert any(('docstring' in s.lower() for s in suggestions))
-        assert any(('TODO' in s for s in suggestions))
-        assert any(('logging' in s for s in suggestions))
+        assert any('test coverage' in s.lower() for s in suggestions)
+        assert any('docstring' in s.lower() for s in suggestions)
+        assert any('TODO' in s for s in suggestions)
+        assert any('logging' in s for s in suggestions)
 
     @pytest.mark.crust
     def test_review_result_to_dict(self, engine, sample_code):

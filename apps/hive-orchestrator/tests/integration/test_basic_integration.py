@@ -3,11 +3,14 @@ Basic integration tests for Hive Orchestrator components.
 Tests basic functionality without complex import dependencies.
 """
 import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import sys
 from pathlib import Path
 from unittest.mock import patch
+
 
 @pytest.mark.crust
 def test_module_imports():

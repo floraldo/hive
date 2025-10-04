@@ -4,12 +4,25 @@ Unit tests for unified_config module (HiveConfig and Pydantic models).
 Tests Pydantic validation, environment variable overrides, and configuration loading.
 """
 from __future__ import annotations
+
 import os
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
 from pydantic import ValidationError
-from hive_config.unified_config import AIConfig, ClaudeConfig, DatabaseConfig, HiveConfig, LoggingConfig, OrchestrationConfig, WorkerConfig, create_config_from_sources
+
+from hive_config.unified_config import (
+    AIConfig,
+    ClaudeConfig,
+    DatabaseConfig,
+    HiveConfig,
+    LoggingConfig,
+    OrchestrationConfig,
+    WorkerConfig,
+    create_config_from_sources,
+)
+
 
 @pytest.mark.core
 class TestDatabaseConfig:
@@ -248,7 +261,7 @@ class TestCreateConfigFromSources:
         config = HiveConfig(database=DatabaseConfig(connection_pool_min=20, connection_pool_max=10))
         errors = config.validate()
         assert len(errors) > 0
-        assert any(('min connections' in err.lower() for err in errors))
+        assert any('min connections' in err.lower() for err in errors)
 
 @pytest.mark.core
 class TestConfigSerialization:

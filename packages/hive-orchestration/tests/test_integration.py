@@ -5,7 +5,9 @@ Tests the full workflow of task and worker orchestration operations.
 """
 import os
 import tempfile
+
 import pytest
+
 
 @pytest.mark.core
 @pytest.fixture
@@ -29,7 +31,13 @@ def test_db():
 @pytest.mark.core
 def test_full_task_workflow(test_db):
     """Test complete task lifecycle."""
-    from hive_orchestration.operations import create_task, get_queued_tasks, get_task, get_tasks_by_status, update_task_status
+    from hive_orchestration.operations import (
+        create_task,
+        get_queued_tasks,
+        get_task,
+        get_tasks_by_status,
+        update_task_status,
+    )
     task_id = create_task(title='Test Task', task_type='test', description='Integration test task', payload={'data': 'test'}, priority=5)
     assert task_id is not None
     task = get_task(task_id)

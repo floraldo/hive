@@ -10,10 +10,14 @@ Run with: pytest tests/test_golden_rules.py -v
 Note: Try-except-continue used to collect all violations (S112).
 """
 from pathlib import Path
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import pytest
+
 from hive_tests.architectural_validators import validate_single_config_source
+
 
 @pytest.mark.crust
 class TestLocalGoldenRules:
@@ -42,7 +46,7 @@ class TestLocalGoldenRules:
         assert 'app' in contract, 'Missing [app] section in hive-app.toml'
         assert 'name' in contract['app'], 'Missing app.name in hive-app.toml'
         service_sections = ['daemons', 'tasks', 'endpoints']
-        has_service = any((section in contract for section in service_sections))
+        has_service = any(section in contract for section in service_sections)
         assert has_service, 'Missing service definitions (daemons/tasks/endpoints)'
 
     @pytest.mark.crust
@@ -87,7 +91,7 @@ class TestLocalGoldenRules:
                     for pattern in import_patterns:
                         if pattern in content:
                             shared_patterns = ['_core', '_shared']
-                            if not any((sp in pattern for sp in shared_patterns)):
+                            if not any(sp in pattern for sp in shared_patterns):
                                 violations.append(f'{py_file.relative_to(app_root)}: imports from {other_app}')
                                 break
             except Exception:

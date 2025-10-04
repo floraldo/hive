@@ -9,13 +9,24 @@ Tests the AsyncErrorHandler class and decorators:
 - Timeout handling
 """
 from __future__ import annotations
+
 import asyncio
 import time
 from datetime import datetime
 from unittest.mock import Mock
+
 import pytest
-from hive_errors.async_error_handler import AsyncErrorHandler, ErrorContext, ErrorStats, create_error_context, error_context, handle_async_errors
+
+from hive_errors.async_error_handler import (
+    AsyncErrorHandler,
+    ErrorContext,
+    ErrorStats,
+    create_error_context,
+    error_context,
+    handle_async_errors,
+)
 from hive_errors.base_exceptions import AsyncTimeoutError, BaseError, RetryExhaustedError
+
 
 @pytest.mark.core
 class TestErrorContext:

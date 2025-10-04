@@ -14,16 +14,35 @@ Usage:
     from hive_archivist import ArchivistService
 
     # Real-time mode (event-driven)
-    archivist = ArchivistService(mode='librarian')
-    await archivist.start()
+    archivist = ArchivistService(mode='librarian', bus=event_bus)
+    await archivist.start_async()
 
     # Curator mode (scheduled)
     archivist = ArchivistService(mode='curator')
-    await archivist.run_maintenance()
+    results = await archivist.run_maintenance_async()
+
+    # Dual mode (both)
+    archivist = ArchivistService(mode='both', bus=event_bus)
+    await archivist.start_async()  # Starts librarian
+    results = await archivist.run_maintenance_async()  # Run curator on demand
 """
 
 from __future__ import annotations
 
+from .archivist_service import ArchivistService
+from .indexing.fragment_parser import FragmentParser, KnowledgeFragment
+from .indexing.vector_indexer import VectorIndexer
+from .services.curator import CuratorService
+from .services.librarian import LibrarianService
+
 __version__ = "1.0.0"
 
-__all__ = ["__version__"]
+__all__ = [
+    "__version__",
+    "ArchivistService",
+    "LibrarianService",
+    "CuratorService",
+    "FragmentParser",
+    "KnowledgeFragment",
+    "VectorIndexer",
+]

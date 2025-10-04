@@ -1,6 +1,8 @@
 """Unit tests for hive_performance.async_profiler module."""
 import asyncio
+
 import pytest
+
 
 @pytest.mark.core
 class TestAsyncProfiler:

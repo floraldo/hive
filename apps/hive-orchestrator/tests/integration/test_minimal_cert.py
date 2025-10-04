@@ -1,9 +1,12 @@
 """
 Minimal V3.0 Platform Certification Test
 """
-import pytest
 import sys
+
+import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 @pytest.mark.crust

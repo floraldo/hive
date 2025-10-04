@@ -3,7 +3,9 @@ import asyncio
 import time
 from datetime import datetime
 from unittest.mock import patch
+
 import pytest
+
 
 class MockAsyncClaudeService:
     """Mock async Claude service for testing."""
@@ -285,8 +287,8 @@ class TestV42AsyncInfrastructureIntegration:
         assert avg_planning_time < 0.2
         avg_review_time = review_duration / review_tasks
         assert avg_review_time < 0.1
-        assert all((r['status'] == 'completed' for r in planning_results))
-        assert all((r['status'] == 'completed' for r in review_results))
+        assert all(r['status'] == 'completed' for r in planning_results)
+        assert all(r['status'] == 'completed' for r in review_results)
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -325,7 +327,7 @@ class TestV42PerformanceTargets:
         duration = time.time() - start_time
         throughput = task_count / (duration / 60)
         assert len(results) == task_count
-        assert all((r['status'] == 'completed' for r in results))
+        assert all(r['status'] == 'completed' for r in results)
         assert throughput >= 30
 
     @pytest.mark.crust
@@ -337,7 +339,7 @@ class TestV42PerformanceTargets:
         results = await asyncio.gather(*[async_reviewer.perform_review_async(req) for req in review_requests])
         duration = time.time() - start_time
         assert len(results) == 5
-        assert all((r['status'] == 'completed' for r in results))
+        assert all(r['status'] == 'completed' for r in results)
         avg_response_time = duration / len(results)
         assert avg_response_time < 15.0
         assert avg_response_time < 1.0
@@ -352,7 +354,7 @@ class TestV42PerformanceTargets:
         results = await asyncio.gather(*[async_planner.generate_plan_async(task) for task in tasks])
         duration = time.time() - start_time
         assert len(results) == concurrent_tasks
-        assert all((r['status'] == 'completed' for r in results))
+        assert all(r['status'] == 'completed' for r in results)
         assert duration < 5.0
         call_timestamps = async_planner.claude_service._call_timestamps
         assert len(call_timestamps) == concurrent_tasks

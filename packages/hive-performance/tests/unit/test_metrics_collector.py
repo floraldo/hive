@@ -1,6 +1,7 @@
 """Unit tests for hive_performance.metrics_collector module."""
 import pytest
 
+
 @pytest.mark.core
 class TestMetricsCollector:
     """Test cases for MetricsCollector class."""

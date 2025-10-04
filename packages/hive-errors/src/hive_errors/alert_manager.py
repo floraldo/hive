@@ -51,13 +51,19 @@ class PredictiveAlertManager:
     analyze trends and generate proactive alerts.
     """
 
-    def __init__(self, configs: list[AlertConfig] | None = None, routing_rules: list[AlertRoutingRule] | None = None):
+    def __init__(
+        self,
+        configs: list[AlertConfig] | None = None,
+        routing_rules: list[AlertRoutingRule] | None = None,
+        historical_enricher=None
+    ):
         """
         Initialize predictive alert manager.
 
         Args:
             configs: Alert configurations per service/metric
             routing_rules: Alert routing rules by severity
+            historical_enricher: HistoricalContextEnricher for PROJECT CHIMERA integration
         """
         self.configs: dict[tuple[str, MetricType], AlertConfig] = {}
         if configs:
@@ -71,7 +77,10 @@ class PredictiveAlertManager:
         else:
             self._setup_default_routing_rules()
 
-        self.trend_analyzer = TrendAnalyzer()
+        self.trend_analyzer = TrendAnalyzer(historical_enricher=historical_enricher)
+
+        # PROJECT CHIMERA: Memory + Foresight integration
+        self.historical_enricher = historical_enricher
         self.active_alerts: dict[str, DegradationAlert] = {}
         self.alert_history: list[DegradationAlert] = []
 
@@ -151,7 +160,7 @@ class PredictiveAlertManager:
             metric.metadata.update({"service": service_name, "metric_type": metric_type.value})
 
         # Detect degradation
-        alert = self.trend_analyzer.detect_degradation(metrics, config.threshold)
+        alert = await self.trend_analyzer.detect_degradation(metrics, config.threshold)
 
         if alert and alert.confidence >= config.confidence_threshold:
             # Check for duplicate alerts
@@ -328,6 +337,28 @@ class PredictiveAlertManager:
 
         for action in alert.recommended_actions:
             lines.append(f"- {action}")
+
+        # PROJECT CHIMERA: Add historical context if enricher available
+        if self.historical_enricher and hasattr(alert, 'metadata') and 'enriched_context' in alert.metadata:
+            context = alert.metadata['enriched_context']
+            lines.extend([
+                "",
+                "## Historical Context",
+                "",
+                f"**Similar Past Incidents**: {context.total_historical_occurrences}",
+                f"**Average Resolution Time**: {context.average_resolution_time_minutes:.0f} minutes" if context.average_resolution_time_minutes else "**Average Resolution Time**: Unknown",
+                ""
+            ])
+
+            if context.most_common_root_cause:
+                lines.append(f"**Most Common Root Cause**: {context.most_common_root_cause}")
+                lines.append("")
+
+            if context.similar_incidents:
+                lines.append("**Related Incidents**:")
+                for incident in context.similar_incidents[:3]:  # Top 3
+                    lines.append(f"- Task : {incident.summary[:80]}...")
+                lines.append("")
 
         lines.extend(
             [

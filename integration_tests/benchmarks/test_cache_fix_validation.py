@@ -6,12 +6,14 @@ This test validates that our key fixes resolved the 20ms cache latency issue:
 2. Optimized connection management
 3. Reduced timeout and circuit breaker overhead
 """
-import pytest
 import asyncio
 import os
 import statistics
 import sys
 import time
+
+import pytest
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'packages', 'hive-cache', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'packages', 'hive-logging', 'src'))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'packages', 'hive-async', 'src'))

@@ -10,10 +10,14 @@ Tests circuit breaker functionality:
 - Status reporting
 """
 from __future__ import annotations
+
 import asyncio
+
 import pytest
+
 from hive_async.resilience import AsyncCircuitBreaker, CircuitState
 from hive_errors import CircuitBreakerOpenError
+
 
 @pytest.mark.core
 class TestCircuitState:
@@ -280,7 +284,7 @@ class TestCircuitBreakerConcurrency:
         for _ in range(10):
             tasks.append(cb.call_async(failing_func))
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        assert all((isinstance(r, (ValueError, CircuitBreakerOpenError)) for r in results))
+        assert all(isinstance(r, (ValueError, CircuitBreakerOpenError)) for r in results)
         assert cb.state == CircuitState.OPEN
 
     @pytest.mark.core

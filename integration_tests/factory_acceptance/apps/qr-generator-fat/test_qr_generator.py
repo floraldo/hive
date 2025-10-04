@@ -2,12 +2,14 @@
 Test suite for QR Code Generator Service
 Tests external dependency integration and functionality
 """
-import pytest
 import base64
 import unittest
 from io import BytesIO
+
+import pytest
 import requests
 from PIL import Image
+
 
 @pytest.mark.crust
 class TestQRGenerator(unittest.TestCase):

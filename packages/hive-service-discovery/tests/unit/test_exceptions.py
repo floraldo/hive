@@ -1,6 +1,7 @@
 """Unit tests for hive_service_discovery.exceptions module."""
 import pytest
 
+
 @pytest.mark.core
 class TestServiceDiscoveryExceptions:
     """Test cases for service discovery exceptions."""
@@ -85,7 +86,11 @@ class TestServiceDiscoveryExceptions:
     def test_exception_hierarchy(self):
         """Test exception inheritance hierarchy."""
         try:
-            from hive_service_discovery.exceptions import ServiceDiscoveryError, ServiceNotFoundError, ServiceRegistrationError
+            from hive_service_discovery.exceptions import (
+                ServiceDiscoveryError,
+                ServiceNotFoundError,
+                ServiceRegistrationError,
+            )
             assert issubclass(ServiceDiscoveryError, Exception)
             if 'ServiceRegistrationError' in locals():
                 assert issubclass(ServiceRegistrationError, ServiceDiscoveryError)

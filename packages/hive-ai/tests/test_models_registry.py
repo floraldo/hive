@@ -1,6 +1,7 @@
 """Tests for hive_ai.models.registry module."""
 import pytest
 
+
 @pytest.mark.core
 class TestModelsRegistry:
     """Test cases for models registry."""

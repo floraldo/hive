@@ -2,7 +2,9 @@
 import asyncio
 import statistics
 import time
+
 import pytest
+
 
 class PerformanceBaseline:
     """Performance baseline metrics for regression testing."""
@@ -56,8 +58,8 @@ class StressTestRunner:
             tasks.append(task)
         worker_results = await asyncio.gather(*tasks, return_exceptions=True)
         total_duration = time.time() - start_time
-        total_operations = sum((r['operations'] for r in worker_results if isinstance(r, dict)))
-        total_errors = sum((r['errors'] for r in worker_results if isinstance(r, dict)))
+        total_operations = sum(r['operations'] for r in worker_results if isinstance(r, dict))
+        total_errors = sum(r['errors'] for r in worker_results if isinstance(r, dict))
         throughput = total_operations / total_duration if total_duration > 0 else 0
         error_rate = total_errors / (total_operations + total_errors) if total_operations + total_errors > 0 else 0
         return {'duration': total_duration, 'total_operations': total_operations, 'total_errors': total_errors, 'throughput': throughput, 'error_rate': error_rate, 'worker_results': worker_results}
@@ -347,7 +349,7 @@ class TestV42RegressionValidation:
         results = await stress_runner.run_stress_test(resource_operation, duration_seconds=15, concurrent_workers=20)
         assert results['total_operations'] > 0
         assert results['error_rate'] < 0.01
-        total_cpu_time = sum((m['cpu_time'] for m in efficiency_metrics))
+        total_cpu_time = sum(m['cpu_time'] for m in efficiency_metrics)
         avg_cpu_per_operation = total_cpu_time / len(efficiency_metrics)
         assert avg_cpu_per_operation < 0.01
 if __name__ == '__main__':

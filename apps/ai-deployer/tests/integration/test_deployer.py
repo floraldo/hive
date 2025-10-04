@@ -2,8 +2,11 @@
 Tests for the deployment orchestrator
 """
 from unittest.mock import AsyncMock, Mock
+
 import pytest
+
 from ai_deployer.deployer import DeploymentOrchestrator, DeploymentStrategy, HealthStatus
+
 
 @pytest.fixture
 def mock_strategies():

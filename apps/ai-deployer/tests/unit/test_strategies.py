@@ -2,11 +2,14 @@
 Tests for deployment strategies
 """
 from unittest.mock import Mock, patch
+
 import pytest
+
 from ai_deployer.deployer import DeploymentStrategy
 from ai_deployer.strategies.docker import DockerDeploymentStrategy
 from ai_deployer.strategies.kubernetes import KubernetesDeploymentStrategy
 from ai_deployer.strategies.ssh import SSHDeploymentStrategy
+
 
 @pytest.fixture
 def ssh_task():
@@ -41,7 +44,7 @@ class TestSSHDeploymentStrategy:
         strategy = (SSHDeploymentStrategy({}),)
         fields = (strategy.get_required_task_fields(),)
         expected_fields = ['ssh_config', 'app_name', 'source_path']
-        assert all((field in fields for field in expected_fields))
+        assert all(field in fields for field in expected_fields)
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -71,7 +74,7 @@ class TestSSHDeploymentStrategy:
         with patch.object(strategy, 'validate_configuration', return_value=True), patch.object(strategy, '_check_ssh_connectivity', return_value=False):
             result = await strategy.pre_deployment_checks(ssh_task)
             assert result['success'] is False
-            assert any(('SSH connectivity check failed' in error for error in result['errors']))
+            assert any('SSH connectivity check failed' in error for error in result['errors'])
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -81,7 +84,7 @@ class TestSSHDeploymentStrategy:
         with patch.object(strategy, 'validate_configuration', return_value=True), patch.object(strategy, '_check_ssh_connectivity', return_value=True), patch('pathlib.Path.exists', return_value=False):
             result = await strategy.pre_deployment_checks(ssh_task)
             assert result['success'] is False
-            assert any(('Source path does not exist' in error for error in result['errors']))
+            assert any('Source path does not exist' in error for error in result['errors'])
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -160,7 +163,7 @@ class TestDockerDeploymentStrategy:
         strategy = (DockerDeploymentStrategy({}),)
         fields = (strategy.get_required_task_fields(),)
         expected_fields = ['docker_image', 'container_config']
-        assert all((field in fields for field in expected_fields))
+        assert all(field in fields for field in expected_fields)
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -180,7 +183,7 @@ class TestDockerDeploymentStrategy:
         with patch.object(strategy, 'validate_configuration', return_value=True), patch.object(strategy, '_check_docker_daemon', return_value=False):
             result = await strategy.pre_deployment_checks(docker_task)
             assert result['success'] is False
-            assert any(('Docker daemon not accessible' in error for error in result['errors']))
+            assert any('Docker daemon not accessible' in error for error in result['errors'])
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -242,7 +245,7 @@ class TestKubernetesDeploymentStrategy:
         strategy = (KubernetesDeploymentStrategy({}),)
         fields = (strategy.get_required_task_fields(),)
         expected_fields = ['k8s_manifests', 'app_name']
-        assert all((field in fields for field in expected_fields))
+        assert all(field in fields for field in expected_fields)
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -262,7 +265,7 @@ class TestKubernetesDeploymentStrategy:
         with patch.object(strategy, 'validate_configuration', return_value=True), patch.object(strategy, '_check_cluster_connectivity', return_value=False):
             result = await strategy.pre_deployment_checks(k8s_task)
             assert result['success'] is False
-            assert any(('Kubernetes cluster not accessible' in error for error in result['errors']))
+            assert any('Kubernetes cluster not accessible' in error for error in result['errors'])
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -272,7 +275,7 @@ class TestKubernetesDeploymentStrategy:
         with patch.object(strategy, 'validate_configuration', return_value=True), patch.object(strategy, '_check_cluster_connectivity', return_value=True), patch.object(strategy, '_validate_manifests', return_value=True), patch.object(strategy, '_check_namespace_access', return_value=False):
             result = await strategy.pre_deployment_checks(k8s_task)
             assert result['success'] is False
-            assert any(('No access to namespace: production' in error for error in result['errors']))
+            assert any('No access to namespace: production' in error for error in result['errors'])
 
     @pytest.mark.crust
     @pytest.mark.asyncio

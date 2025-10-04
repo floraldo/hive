@@ -2,9 +2,11 @@
 import json
 import tempfile
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
+
 from ecosystemiser.services.simple_results_io import SimpleResultsIO
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
@@ -13,6 +15,7 @@ from ecosystemiser.system_model.components.energy.grid import Grid
 from ecosystemiser.system_model.components.energy.power_demand import PowerDemand
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV
 from ecosystemiser.system_model.system import System
+
 
 @pytest.mark.crust
 class TestSimpleResultsIO:

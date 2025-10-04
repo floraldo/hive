@@ -11,8 +11,10 @@ Part of the Production Shield Initiative for foundational chaos engineering.
 """
 import asyncio
 import time
+
 import aiohttp
 import pytest
+
 try:
     from hive_async.resilience import AsyncCircuitBreaker, CircuitState
     CircuitBreaker = AsyncCircuitBreaker
@@ -129,7 +131,7 @@ class TestCircuitBreakerResilience:
         for _i in range(6):
             response = await protected_service.get_data()
             responses.append(response)
-        assert all((r['status'] == 'fallback' for r in responses))
+        assert all(r['status'] == 'fallback' for r in responses)
         assert protected_service.circuit_breaker.state == CircuitBreakerState.OPEN
         assert protected_service.circuit_breaker.failure_count >= 3
         assert protected_service.fallback_responses == 6

@@ -2,9 +2,11 @@
 Test suite for Calculator Service
 Designed to catch bugs and validate fixes through iterations
 """
-import pytest
 import unittest
+
+import pytest
 import requests
+
 
 @pytest.mark.crust
 class TestCalculator(unittest.TestCase):

@@ -151,3 +151,21 @@ class ModelUnavailableError(BaseError):
         """
         super().__init__(message, model, provider, **kwargs)
         self.available_models = available_models or []
+
+
+class APIError(BaseError):
+    """Generic API-related error for AI operations.
+
+    Raised when external AI API calls fail or return errors.
+    """
+
+    pass
+
+
+class RateLimitError(BaseError):
+    """Rate limit exceeded error for AI API operations.
+
+    Raised when AI API rate limits are exceeded.
+    """
+
+    pass

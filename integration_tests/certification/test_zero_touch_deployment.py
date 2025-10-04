@@ -14,10 +14,13 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
 import pytest
 import requests
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from hive_logging import get_logger, setup_logging
+
 setup_logging(name='zero-touch-certification', log_to_file=True, log_file_path='logs/zero_touch_certification.log')
 logger = get_logger(__name__)
 
@@ -144,7 +147,7 @@ class HiveAutonomousAgency:
                 if current_status in ['failed', 'review_rejected', 'deployment_failed']:
                     logger.error(f'Task failed with status: {current_status}')
                     return False
-                completed_milestones = sum((1 for v in milestones.values() if v))
+                completed_milestones = sum(1 for v in milestones.values() if v)
                 logger.debug(f'Progress: {completed_milestones}/{len(milestones)} milestones')
             except Exception as e:
                 logger.error(f'Error monitoring workflow: {e}')

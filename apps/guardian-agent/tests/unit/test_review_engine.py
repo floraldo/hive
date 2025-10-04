@@ -2,12 +2,15 @@
 import asyncio
 from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
+
 from guardian_agent.core.config import GuardianConfig
 from guardian_agent.core.interfaces import AnalysisResult, ReviewResult, Severity, Violation, ViolationType
 from guardian_agent.review.engine import ReviewEngine
 from hive_ai import ModelClient, VectorStore
 from hive_cache import HiveCacheClient as CacheClient
+
 
 @pytest.mark.crust
 class TestReviewEngine:
@@ -100,7 +103,7 @@ class TestReviewEngine:
             engine.review_file = AsyncMock(side_effect=[ReviewResult(file_path=f, analysis_results=[], overall_score=90.0, summary=f'Review for {f}') for f in files])
             results = await engine.review_multiple_files(files)
             assert len(results) == len(files)
-            assert all((r.file_path in files for r in results))
+            assert all(r.file_path in files for r in results)
 
     @pytest.mark.crust
     @pytest.mark.asyncio

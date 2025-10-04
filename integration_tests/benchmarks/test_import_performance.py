@@ -1,9 +1,11 @@
 """
 Performance benchmarks for import operations and package loading.
 """
-import pytest
 import importlib
 import sys
+
+import pytest
+
 
 @pytest.mark.crust
 class TestImportPerformance:

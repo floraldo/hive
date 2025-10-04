@@ -8,8 +8,22 @@ Tests all custom exception classes to ensure they:
 - Inherit from BaseError properly
 """
 from __future__ import annotations
+
 import pytest
-from hive_errors.base_exceptions import AsyncTimeoutError, BaseError, CircuitBreakerOpenError, ConfigurationError, ConnectionError, PoolExhaustedError, ResourceError, RetryExhaustedError, TimeoutError, ValidationError
+
+from hive_errors.base_exceptions import (
+    AsyncTimeoutError,
+    BaseError,
+    CircuitBreakerOpenError,
+    ConfigurationError,
+    ConnectionError,
+    PoolExhaustedError,
+    ResourceError,
+    RetryExhaustedError,
+    TimeoutError,
+    ValidationError,
+)
+
 
 @pytest.mark.core
 class TestBaseError:

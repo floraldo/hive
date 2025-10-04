@@ -1,11 +1,25 @@
 """Tests for hive_ai.agents.task module."""
 from __future__ import annotations
+
 from datetime import datetime
 from unittest.mock import AsyncMock, Mock
+
 import pytest
+
 from hive_ai.agents.agent import SimpleTaskAgent
-from hive_ai.agents.task import PromptTask, TaskBuilder, TaskConfig, TaskDependency, TaskPriority, TaskResult, TaskSequence, TaskStatus, ToolTask
+from hive_ai.agents.task import (
+    PromptTask,
+    TaskBuilder,
+    TaskConfig,
+    TaskDependency,
+    TaskPriority,
+    TaskResult,
+    TaskSequence,
+    TaskStatus,
+    ToolTask,
+)
 from hive_ai.core.exceptions import AIError
+
 
 @pytest.mark.core
 class TestTaskStatus:
@@ -486,7 +500,7 @@ class TestTaskSequence:
         sequence = TaskSequence(name='sequence', tasks=[task1, task2])
         results = await sequence.execute_async(mock_agent)
         assert len(results) == 2
-        assert all((result.status == TaskStatus.COMPLETED for result in results.values()))
+        assert all(result.status == TaskStatus.COMPLETED for result in results.values())
 
     @pytest.mark.core
     def test_task_sequence_get_status_summary(self):

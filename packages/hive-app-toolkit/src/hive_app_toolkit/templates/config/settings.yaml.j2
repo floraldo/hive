@@ -1,0 +1,36 @@
+# {{ app_name }} Configuration
+
+application:
+  name: {{ app_name }}
+  version: {{ version }}
+  environment: development
+{% if service_type == 'api' or service_type == 'webhook' %}
+api:
+  host: 0.0.0.0
+  port: {{ port }}
+  workers: {{ workers }}
+  enable_docs: true
+{% endif %}
+
+logging:
+  level: INFO
+  format: json
+  output: stdout
+{% if needs_database or enable_database %}
+database:
+  path: data/{{ app_name }}.db
+  pool_size: 5
+  timeout: 30
+{% endif %}
+{% if needs_cache or enable_cache %}
+cache:
+  enabled: true
+  ttl: 3600
+  max_size: 1000
+{% endif %}
+{% if needs_performance_monitoring %}
+monitoring:
+  enabled: true
+  metrics_port: 9090
+  health_check_interval: 30
+{% endif %}

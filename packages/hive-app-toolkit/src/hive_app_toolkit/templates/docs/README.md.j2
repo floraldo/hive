@@ -1,0 +1,249 @@
+# {{ app_name }}
+
+{{ description }}
+
+## Overview
+
+**Service Type**: {{ service_type }}
+**Version**: {{ version }}
+**Environment**: {{ environment | default('development') }}
+
+## Features
+
+{% if service_type == 'api' or service_type == 'webhook' -%}
+- FastAPI-based REST API
+- Health check endpoints (liveness/readiness probes)
+- OpenAPI documentation
+- CORS middleware
+{% endif -%}
+{% if needs_database or enable_database -%}
+- Database integration (SQLite)
+{% endif -%}
+{% if needs_cache or enable_cache -%}
+- Caching layer
+{% endif -%}
+{% if needs_performance_monitoring -%}
+- Performance monitoring
+{% endif -%}
+- Structured logging (hive_logging)
+- Configuration management (DI pattern)
+- Golden Rules compliance
+- Production-ready Docker container
+- Kubernetes deployment manifests
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.11+
+- Poetry
+- Docker (optional)
+- Kubernetes (optional)
+
+### Installation
+
+```bash
+# Install dependencies
+poetry install
+
+# Activate virtual environment
+poetry shell
+```
+
+### Configuration
+
+Create a `.env` file from the example:
+
+```bash
+cp config/.env.example .env
+```
+
+Edit `.env` with your configuration:
+
+```bash
+{% if service_type == 'api' or service_type == 'webhook' -%}
+HOST=0.0.0.0
+PORT={{ port }}
+{% endif -%}
+LOG_LEVEL=INFO
+ENVIRONMENT=development
+{% if needs_database or enable_database -%}
+DATABASE_PATH=data/{{ app_name }}.db
+{% endif -%}
+```
+
+### Running
+
+{% if service_type == 'api' or service_type == 'webhook' -%}
+```bash
+# Development server
+poetry run python -m {{ app_module }}.main
+
+# Production server with uvicorn
+poetry run uvicorn {{ app_module }}.api.main:create_app --host 0.0.0.0 --port {{ port }}
+```
+
+The API will be available at:
+- API: http://localhost:{{ port }}
+- Docs: http://localhost:{{ port }}/api/docs
+- Health: http://localhost:{{ port }}/health/live
+{% else -%}
+```bash
+# Start service
+poetry run python -m {{ app_module }}.main
+```
+{% endif %}
+
+### Testing
+
+```bash
+# Run all tests
+poetry run pytest
+
+# Run with coverage
+poetry run pytest --cov={{ app_module }} --cov-report=html
+
+# Run Golden Rules compliance tests
+poetry run pytest tests/test_golden_rules.py -v
+```
+
+## Development
+
+### Project Structure
+
+```
+{{ app_name }}/
+├── src/
+│   └── {{ app_module }}/
+│       ├── __init__.py
+│       ├── main.py           # Entry point
+│       ├── config.py          # Configuration (DI pattern)
+{% if service_type == 'api' or service_type == 'webhook' -%}
+│       └── api/
+│           ├── __init__.py
+│           ├── main.py        # FastAPI app
+│           └── health.py      # Health endpoints
+{% endif -%}
+├── tests/
+│   ├── conftest.py           # Pytest fixtures
+│   ├── test_health.py        # Health tests
+│   └── test_golden_rules.py  # Compliance tests
+├── config/
+│   ├── .env.example          # Environment template
+│   └── settings.yaml         # Configuration file
+├── k8s/
+│   └── deployment.yaml       # Kubernetes manifests
+├── Dockerfile                # Docker build
+├── pyproject.toml            # Dependencies
+└── README.md                 # This file
+```
+
+### Code Quality
+
+```bash
+# Format code
+poetry run black src/ tests/
+
+# Lint code
+poetry run ruff check src/ tests/
+
+# Type check
+poetry run mypy src/
+```
+
+## Deployment
+
+### Docker
+
+```bash
+# Build image
+docker build -t {{ app_name }}:{{ version }} .
+
+# Run container
+docker run -p {{ port }}:{{ port }} {{ app_name }}:{{ version }}
+```
+
+### Kubernetes
+
+```bash
+# Apply manifests
+kubectl apply -f k8s/deployment.yaml
+
+# Check status
+kubectl get pods -l app={{ app_name }}
+
+# View logs
+kubectl logs -l app={{ app_name }} -f
+```
+
+## API Documentation
+
+{% if service_type == 'api' or service_type == 'webhook' -%}
+See [API.md](API.md) for detailed API documentation.
+
+### Health Endpoints
+
+- `GET /health/live` - Liveness probe
+- `GET /health/ready` - Readiness probe
+
+### API Endpoints
+
+*Add your API endpoints here*
+{% else -%}
+*Service-specific documentation here*
+{% endif %}
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+{% if service_type == 'api' or service_type == 'webhook' -%}
+| `HOST` | API host | `0.0.0.0` |
+| `PORT` | API port | `{{ port }}` |
+{% endif -%}
+| `LOG_LEVEL` | Logging level | `INFO` |
+| `ENVIRONMENT` | Environment | `development` |
+{% if needs_database or enable_database -%}
+| `DATABASE_PATH` | Database file path | `data/{{ app_name }}.db` |
+{% endif -%}
+{% if needs_cache or enable_cache -%}
+| `CACHE_ENABLED` | Enable caching | `true` |
+| `CACHE_TTL` | Cache TTL (seconds) | `3600` |
+{% endif -%}
+
+## Monitoring
+
+{% if needs_performance_monitoring -%}
+### Metrics
+
+Prometheus metrics are exposed at `/metrics`
+
+### Logging
+
+Structured JSON logging with hive_logging
+{% else -%}
+### Logging
+
+Structured JSON logging with hive_logging
+
+### Health Checks
+
+- Liveness: `/health/live`
+- Readiness: `/health/ready`
+{% endif %}
+
+## Contributing
+
+This service follows Hive platform standards:
+
+- **Architecture**: Modular monolith with inherit→extend pattern
+- **Configuration**: Dependency Injection (no global state)
+- **Logging**: hive_logging (no print statements)
+- **Quality**: Golden Rules compliance
+- **Testing**: Comprehensive test coverage
+
+## License
+
+Hive Platform - Internal Use Only

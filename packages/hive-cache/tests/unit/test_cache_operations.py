@@ -5,8 +5,11 @@ Tests focus on critical cache client and performance cache functionality
 without requiring real Redis (uses mocking for isolation).
 """
 from __future__ import annotations
+
 from unittest.mock import AsyncMock, Mock
+
 import pytest
+
 pytest_plugins = ('pytest_asyncio',)
 
 @pytest.mark.core
@@ -223,7 +226,13 @@ class TestCacheExceptions:
     @pytest.mark.core
     def test_cache_exception_hierarchy(self):
         """Test cache exception hierarchy."""
-        from hive_cache.exceptions import CacheCircuitBreakerError, CacheConnectionError, CacheError, CacheSerializationError, CacheTimeoutError
+        from hive_cache.exceptions import (
+            CacheCircuitBreakerError,
+            CacheConnectionError,
+            CacheError,
+            CacheSerializationError,
+            CacheTimeoutError,
+        )
         assert issubclass(CacheConnectionError, CacheError)
         assert issubclass(CacheTimeoutError, CacheError)
         assert issubclass(CacheSerializationError, CacheError)

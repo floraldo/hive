@@ -1,12 +1,14 @@
 """
 Performance benchmarks for Golden Rules validation.
 """
-import pytest
 import os
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+import pytest
+
 
 @pytest.mark.crust
 class TestGoldenRulesPerformance:

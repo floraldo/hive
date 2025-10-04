@@ -2,14 +2,17 @@
 Comprehensive test suite for AI Planner Claude integration
 Tests the complete Phase 2 Claude-powered planning workflow
 """
-import pytest
 import json
 import sys
 import uuid
+
+import pytest
+
 from ai_planner.agent import AIPlanner
 from ai_planner.claude_bridge import ClaudePlanningResponse, RobustClaudePlannerBridge
 from hive_db import get_sqlite_connection
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 @pytest.mark.crust

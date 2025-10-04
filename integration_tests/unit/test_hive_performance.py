@@ -3,9 +3,17 @@ import asyncio
 import time
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
+
 import pytest
-from hive_performance.metrics_collector import MetricsCollector, PerformanceMetrics, operation_tracker, track_performance
+
+from hive_performance.metrics_collector import (
+    MetricsCollector,
+    PerformanceMetrics,
+    operation_tracker,
+    track_performance,
+)
 from hive_performance.system_monitor import SystemMetrics, SystemMonitor
+
 
 @pytest.fixture
 def metrics_collector():
@@ -114,7 +122,7 @@ class TestMetricsCollector:
             metrics = metrics_collector.end_operation(op_id, success=True)
             results.append(metrics)
         assert len(results) == 3
-        assert all((m.execution_time >= 0 for m in results))
+        assert all(m.execution_time >= 0 for m in results)
 
     @pytest.mark.crust
     def test_get_metrics_empty(self, metrics_collector):
@@ -410,8 +418,8 @@ class TestSystemMonitor:
         high_cpu_metrics = SystemMetrics(cpu_percent=90.0, memory_percent=90.0, disk_percent=95.0, swap_percent=60.0)
         await system_monitor._check_alerts(high_cpu_metrics)
         assert len(alert_triggered) == 4
-        assert any(('High CPU usage: 90.0%' in alert for alert in alert_triggered))
-        assert any(('High memory usage: 90.0%' in alert for alert in alert_triggered))
+        assert any('High CPU usage: 90.0%' in alert for alert in alert_triggered)
+        assert any('High memory usage: 90.0%' in alert for alert in alert_triggered)
 
     @pytest.mark.crust
     @pytest.mark.asyncio

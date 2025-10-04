@@ -5,7 +5,6 @@ This test suite specifically validates the 5x performance improvement claims
 for the async infrastructure implementation. It runs realistic workloads and
 measures actual performance gains.
 """
-import pytest
 import asyncio
 import concurrent.futures
 import json
@@ -16,6 +15,9 @@ import tempfile
 import time
 from dataclasses import dataclass
 from pathlib import Path
+
+import pytest
+
 
 @dataclass
 class PerformanceMetrics:

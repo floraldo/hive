@@ -2,8 +2,11 @@
 Tests for the database adapter
 """
 from unittest.mock import Mock, patch
+
 import pytest
+
 from ai_deployer.database_adapter import DatabaseAdapter, DeploymentDatabaseError
+
 
 @pytest.fixture
 def mock_connection():

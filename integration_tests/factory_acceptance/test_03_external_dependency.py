@@ -10,14 +10,16 @@ Test Implementation: QR Code Generator Service
 - Image processing with Pillow
 - Base64 encoding for response
 """
-import pytest
 import subprocess
 import sys
 import time
 from pathlib import Path
+
 import requests
+
 sys.path.insert(0, str(Path(__file__).parent))
 from fat_framework import FactoryAcceptanceTest
+
 
 def generate_qr_code_service(test_case):
     """Generate a QR code generator service with external dependencies"""

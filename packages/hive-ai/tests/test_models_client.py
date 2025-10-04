@@ -1,6 +1,7 @@
 """Tests for hive_ai.models.client module."""
 import pytest
 
+
 @pytest.mark.core
 class TestModelsClient:
     """Test cases for models client."""

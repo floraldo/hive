@@ -3,11 +3,14 @@ V3.0 Platform Certification Test
 Comprehensive integration test for all V3.0 improvements
 """
 import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import sys
 import time
 from datetime import datetime
+
 
 class V3CertificationTest:
     """V3.0 Platform Certification Test Suite"""
@@ -166,6 +169,7 @@ class V3CertificationTest:
         """Test integration between all components"""
         try:
             from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
+
             from hive_config import create_config_from_sources
             from hive_db import get_pooled_connection
             config = create_config_from_sources()
@@ -191,6 +195,7 @@ class V3CertificationTest:
         """Test environment-specific configuration"""
         try:
             import os
+
             from hive_config import create_config_from_sources
             config = create_config_from_sources()
             env = config.environment

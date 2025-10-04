@@ -4,7 +4,6 @@ End-to-End Integration Test for AI Planner → Queen → Worker Pipeline
 Tests the complete autonomous task execution flow in a simulated environment
 to validate that all components work together correctly.
 """
-import pytest
 import json
 import os
 import sqlite3
@@ -15,6 +14,9 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+import pytest
+
 test_root = Path(__file__).parent.parent
 sys.path.insert(0, str(test_root / 'apps' / 'hive-orchestrator' / 'src'))
 sys.path.insert(0, str(test_root / 'apps' / 'ai-planner' / 'src'))
@@ -138,9 +140,9 @@ class EndToEndIntegrationTest:
         if total_tasks == 0:
             conn.close()
             return {'complete': False, 'progress': 0, 'total_tasks': 0}
-        completed_tasks = sum((1 for s in statuses if s == 'completed'))
-        failed_tasks = sum((1 for s in statuses if s == 'failed'))
-        in_progress_tasks = sum((1 for s in statuses if s in ['assigned', 'in_progress']))
+        completed_tasks = sum(1 for s in statuses if s == 'completed')
+        failed_tasks = sum(1 for s in statuses if s == 'failed')
+        in_progress_tasks = sum(1 for s in statuses if s in ['assigned', 'in_progress'])
         progress = completed_tasks / total_tasks * 100
         is_complete = completed_tasks == total_tasks
         conn.close()
@@ -210,7 +212,7 @@ class EndToEndIntegrationTest:
         assert 'Design Authentication Schema' in ready_titles, 'Design task should be ready (no dependencies)'
         assert 'Implement Authentication Service' not in ready_titles, 'Implementation should not be ready (has dependencies)'
         assert 'Create Login UI' not in ready_titles, 'Frontend should not be ready (has dependencies)'
-        design_task = next((task for task in ready_subtasks if 'Design' in task['title']))
+        design_task = next(task for task in ready_subtasks if 'Design' in task['title'])
         self.simulate_queen_processing()
         self.simulate_worker_completion(design_task['id'], f'run_{uuid.uuid4()}', success=True)
         ready_subtasks = self.get_ready_subtasks()

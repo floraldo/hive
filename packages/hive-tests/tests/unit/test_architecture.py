@@ -11,10 +11,26 @@ Enhanced with single-pass AST-based validation for superior performance
 and accuracy, plus suppression support for controlled exceptions.
 """
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import pytest
-from hive_tests.architectural_validators import validate_app_contracts, validate_colocated_tests, validate_communication_patterns, validate_dependency_direction, validate_error_handling_standards, validate_interface_contracts, validate_logging_standards, validate_no_hardcoded_env_values, validate_no_syspath_hacks, validate_package_app_discipline, validate_service_layer_discipline, validate_single_config_source
+
+from hive_tests.architectural_validators import (
+    validate_app_contracts,
+    validate_colocated_tests,
+    validate_communication_patterns,
+    validate_dependency_direction,
+    validate_error_handling_standards,
+    validate_interface_contracts,
+    validate_logging_standards,
+    validate_no_hardcoded_env_values,
+    validate_no_syspath_hacks,
+    validate_package_app_discipline,
+    validate_service_layer_discipline,
+    validate_single_config_source,
+)
 from hive_tests.ast_validator import EnhancedValidator
+
 
 @pytest.mark.core
 class TestArchitecturalCompliance:

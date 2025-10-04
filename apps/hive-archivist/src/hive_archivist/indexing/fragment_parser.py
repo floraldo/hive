@@ -68,6 +68,9 @@ class FragmentParser:
         status = task.get('status', 'completed')
         timestamp = task.get('updated_at', task.get('created_at', ''))
 
+        # PROJECT CHIMERA Phase 3: Check if this task resolved an alert
+        resolution_metadata = self._extract_resolution_metadata(task)
+
         # 1. SUMMARY FRAGMENT
         summary = self._generate_summary(task)
         if summary:
@@ -82,7 +85,8 @@ class FragmentParser:
                     metadata={
                         'title': task.get('title', ''),
                         'priority': task.get('priority', 1),
-                        'assigned_worker': task.get('assigned_worker', '')
+                        'assigned_worker': task.get('assigned_worker', ''),
+                        **resolution_metadata  # Include resolution info if present
                     }
                 )
             )
@@ -301,6 +305,43 @@ class FragmentParser:
                 pass
 
         return fragments
+
+    def _extract_resolution_metadata(self, task: dict[str, Any]) -> dict[str, Any]:
+        """
+        Extract resolution action metadata if task resolved an alert.
+
+        PROJECT CHIMERA Phase 3: Track "what worked before" for automated recovery.
+
+        Args:
+            task: Task dictionary
+
+        Returns:
+            Dictionary with resolution metadata
+        """
+        metadata = {}
+
+        # Check task metadata for resolution markers
+        task_metadata = task.get("metadata", {})
+
+        if isinstance(task_metadata, str):
+            try:
+                import json
+                task_metadata = json.loads(task_metadata)
+            except (json.JSONDecodeError, TypeError):
+                task_metadata = {}
+
+        # Check if task was a resolution
+        if "resolution_for_alert" in task_metadata:
+            metadata["is_resolution"] = True
+            metadata["resolved_alert_id"] = task_metadata["resolution_for_alert"]
+            metadata["resolution_action"] = task_metadata.get("action_taken", "manual")
+            metadata["resolution_success"] = task.get("status") == "completed"
+        elif "automated_recovery" in task_metadata:
+            metadata["is_resolution"] = True
+            metadata["resolution_action"] = task_metadata.get("playbook_id", "unknown")
+            metadata["resolution_success"] = task.get("status") == "completed"
+
+        return metadata
 
 
 __all__ = ["FragmentParser", "KnowledgeFragment"]

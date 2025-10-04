@@ -1,6 +1,7 @@
 """Tests for hive_ai.prompts.registry module."""
 import pytest
 
+
 @pytest.mark.core
 class TestPromptsRegistry:
     """Test cases for prompts registry."""

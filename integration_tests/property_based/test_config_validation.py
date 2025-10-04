@@ -7,10 +7,12 @@ a wide range of input scenarios that might occur in real deployments.
 import json
 import os
 import tempfile
+
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 from hypothesis.strategies import composite
+
 
 @composite
 def env_file_content(draw):
@@ -172,13 +174,13 @@ class TestConfigurationProperties:
 
     def _normalize_config_key(self, key: str) -> str:
         """Normalize configuration key"""
-        normalized = ''.join((c if c.isalnum() else '_' for c in key.lower()))
-        normalized = '_'.join((part for part in normalized.split('_') if part))
+        normalized = ''.join(c if c.isalnum() else '_' for c in key.lower())
+        normalized = '_'.join(part for part in normalized.split('_') if part)
         return normalized or 'default_key'
 
     def _sanitize_config_value(self, value: str) -> str:
         """Sanitize configuration value"""
-        sanitized = ''.join((c for c in value if ord(c) >= 32 or c in '\t\n\r'))
+        sanitized = ''.join(c for c in value if ord(c) >= 32 or c in '\t\n\r')
         return sanitized
 
 @pytest.mark.crust
@@ -215,13 +217,13 @@ class TestConfigSecurityProperties:
         """Check if a value appears to contain sensitive data"""
         sensitive_indicators = ['password', 'secret', 'token', 'key']
         value_lower = value.lower()
-        return any((indicator in value_lower for indicator in sensitive_indicators))
+        return any(indicator in value_lower for indicator in sensitive_indicators)
 
     def _is_sensitive_key(self, key: str) -> bool:
         """Check if a configuration key typically contains sensitive data"""
         sensitive_keys = ['password', 'secret', 'token', 'key', 'credential']
         key_lower = key.lower()
-        return any((sensitive_key in key_lower for sensitive_key in sensitive_keys))
+        return any(sensitive_key in key_lower for sensitive_key in sensitive_keys)
 
     def _mask_sensitive_values(self, config: dict[str, str]) -> dict[str, str]:
         """Mask sensitive values in configuration"""

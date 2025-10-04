@@ -193,11 +193,133 @@ jobs:
           pytest packages/hive-tests/tests/unit/test_boy_scout_rule.py::TestBoyScoutRule::test_syntax_errors_remain_zero -v
 
   # ==============================================
-  # GATE 4: Golden Rules (Architecture)
+  # GATE 4A: Core Validation (STRICT)
+  # Core packages held to highest standards
+  # ==============================================
+  core-validation-gate:
+    name: 🏛️ Gate 4A - Core Validation (STRICT)
+    runs-on: ubuntu-latest
+    needs: boy-scout-gate
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest
+          pip install -e packages/hive-tests/
+          pip install -e packages/hive-logging/
+
+      - name: 🏛️ Core Test Validation (STRICT)
+        run: |
+          echo "🏛️ GATE 4A: Core Validation - Strict Quality Standards"
+          echo "========================================="
+          echo "Core infrastructure held to highest standards."
+          echo ""
+
+          # Run only Core tests with strict markers
+          pytest -m core --strict-markers -v || {
+            echo ""
+            echo "❌ Core tests failed!"
+            echo "Core infrastructure tests must pass."
+            exit 1
+          }
+
+          echo ""
+          echo "✅ Core tests passed"
+
+      - name: 🏛️ Core Linting (ALL rules enforced)
+        run: |
+          echo ""
+          echo "🔍 Core Linting - All rules enforced"
+          echo "========================================="
+
+          # Strict linting on packages/ with minimal ignores
+          ruff check packages/ --select ALL || {
+            echo ""
+            echo "❌ Core linting failed!"
+            echo "Run locally: ruff check packages/ --select ALL --fix"
+            exit 1
+          }
+
+          echo ""
+          echo "✅ Core linting passed"
+
+  # ==============================================
+  # GATE 4B: Crust Validation (PRAGMATIC)
+  # Apps held to pragmatic standards
+  # ==============================================
+  crust-validation-gate:
+    name: 🧩 Gate 4B - Crust Validation (PRAGMATIC)
+    runs-on: ubuntu-latest
+    needs: boy-scout-gate
+    timeout-minutes: 10
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: 📦 Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff pytest
+          pip install -e packages/hive-tests/
+          pip install -e packages/hive-logging/
+
+      - name: 🧩 Crust Test Discovery
+        run: |
+          echo "🧩 GATE 4B: Crust Validation - Pragmatic Standards"
+          echo "========================================="
+          echo "Business logic tests - pragmatic quality."
+          echo ""
+
+          # Verify crust tests are discoverable
+          pytest -m crust --collect-only || {
+            echo ""
+            echo "❌ Crust test collection failed!"
+            echo "Tests must be importable."
+            exit 1
+          }
+
+          echo ""
+          echo "✅ Crust tests discoverable"
+
+      - name: 🧩 Crust Linting (Pragmatic ignores)
+        run: |
+          echo ""
+          echo "🔍 Crust Linting - Pragmatic rules"
+          echo "========================================="
+
+          # Pragmatic linting on apps/ and integration_tests/ with configured ignores
+          ruff check apps/ integration_tests/ || {
+            echo ""
+            echo "❌ Crust linting failed!"
+            echo "Run locally: ruff check apps/ integration_tests/ --fix"
+            exit 1
+          }
+
+          echo ""
+          echo "✅ Crust linting passed"
+
+  # ==============================================
+  # GATE 4C: Golden Rules (Architecture)
   # Architectural integrity at ERROR level
   # ==============================================
   golden-rules-gate:
-    name: 🏆 Gate 4 - Golden Rules
+    name: 🏆 Gate 4C - Golden Rules
     runs-on: ubuntu-latest
     needs: boy-scout-gate
     timeout-minutes: 10
@@ -219,7 +341,7 @@ jobs:
 
       - name: 🏆 Validate Golden Rules
         run: |
-          echo "🏆 GATE 4: Golden Rules Architectural Validation"
+          echo "🏆 GATE 4C: Golden Rules Architectural Validation"
           echo "========================================="
           echo "Enforcing architectural integrity at ERROR level."
           echo "CRITICAL and ERROR rules are non-negotiable."
@@ -232,11 +354,11 @@ jobs:
 
           if [ $EXIT_CODE -eq 0 ]; then
             echo ""
-            echo "✅ GATE 4 PASSED: All Golden Rules satisfied"
+            echo "✅ GATE 4C PASSED: All Golden Rules satisfied"
             echo "Architectural integrity maintained."
           else
             echo ""
-            echo "❌ GATE 4 FAILED: Golden Rules violations detected!"
+            echo "❌ GATE 4C FAILED: Golden Rules violations detected!"
             echo ""
             echo "This PR violates architectural constraints."
             echo "Run locally: python scripts/validation/validate_golden_rules.py --level ERROR"
@@ -249,7 +371,7 @@ jobs:
   gates-summary:
     name: ✅ Golden Gates Summary
     runs-on: ubuntu-latest
-    needs: [syntax-gate, test-collection-gate, boy-scout-gate, golden-rules-gate]
+    needs: [syntax-gate, test-collection-gate, boy-scout-gate, core-validation-gate, crust-validation-gate, golden-rules-gate]
     if: always()
 
     steps:
@@ -259,18 +381,22 @@ jobs:
           echo "🚪 GOLDEN GATES - QUALITY ENFORCEMENT"
           echo "======================================"
           echo ""
-          echo "All 4 mandatory gates have been evaluated:"
+          echo "All 6 mandatory gates have been evaluated:"
           echo ""
-          echo "⚡ Gate 1 - Syntax Integrity:      ${{ needs.syntax-gate.result }}"
-          echo "📋 Gate 2 - Test Collection:      ${{ needs.test-collection-gate.result }}"
-          echo "🧹 Gate 3 - Boy Scout Rule:       ${{ needs.boy-scout-gate.result }}"
-          echo "🏆 Gate 4 - Golden Rules:         ${{ needs.golden-rules-gate.result }}"
+          echo "⚡ Gate 1  - Syntax Integrity:      ${{ needs.syntax-gate.result }}"
+          echo "📋 Gate 2  - Test Collection:      ${{ needs.test-collection-gate.result }}"
+          echo "🧹 Gate 3  - Boy Scout Rule:       ${{ needs.boy-scout-gate.result }}"
+          echo "🏛️ Gate 4A - Core Validation:      ${{ needs.core-validation-gate.result }}"
+          echo "🧩 Gate 4B - Crust Validation:     ${{ needs.crust-validation-gate.result }}"
+          echo "🏆 Gate 4C - Golden Rules:         ${{ needs.golden-rules-gate.result }}"
           echo ""
 
           # Check if all gates passed
           if [ "${{ needs.syntax-gate.result }}" == "success" ] && \
              [ "${{ needs.test-collection-gate.result }}" == "success" ] && \
              [ "${{ needs.boy-scout-gate.result }}" == "success" ] && \
+             [ "${{ needs.core-validation-gate.result }}" == "success" ] && \
+             [ "${{ needs.crust-validation-gate.result }}" == "success" ] && \
              [ "${{ needs.golden-rules-gate.result }}" == "success" ]; then
             echo "✅ ALL GATES PASSED!"
             echo ""
@@ -278,7 +404,9 @@ jobs:
             echo "  • Zero syntax errors (Layer 1)"
             echo "  • All tests importable (Layer 2)"
             echo "  • No new linting violations (Boy Scout Rule)"
-            echo "  • Architectural integrity (Golden Rules)"
+            echo "  • Core infrastructure strict validation (Gate 4A)"
+            echo "  • Crust business logic pragmatic validation (Gate 4B)"
+            echo "  • Architectural integrity (Gate 4C - Golden Rules)"
             echo ""
             echo "🎉 Excellent work! The foundation remains strong."
             exit 0

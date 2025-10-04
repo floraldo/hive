@@ -12,7 +12,9 @@ This is the definitive test that proves the entire system works!
 Note: Subprocess usage for git/pytest is intentional in E2E tests (S603/S607).
 """
 import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import shutil
 import sqlite3
@@ -21,6 +23,7 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
 project_root = Path(__file__).parent.parent
 DB_PATH = project_root / 'hive' / 'db' / 'hive-internal.db'
 WORKTREES_DIR = project_root / '.worktrees'
@@ -186,7 +189,7 @@ class E2ETestRunner:
                     else:
                         self.test_results[name] = 'FAILED'
                         self.log(f'{name}: Expected completed, got {status}', 'ERROR')
-            return all((r == 'PASSED' for r in self.test_results.values()))
+            return all(r == 'PASSED' for r in self.test_results.values())
         except Exception as e:
             self.log(f'Database validation error: {e}', 'ERROR')
             return False
@@ -229,7 +232,7 @@ class E2ETestRunner:
     def generate_report(self):
         """Generate final test report"""
         self.log('=== FINAL REPORT ===', 'TEST')
-        all_passed = (all((r == 'PASSED' for r in self.test_results.values())),)
+        all_passed = (all(r == 'PASSED' for r in self.test_results.values()),)
         overall = '[PASS] ALL TESTS PASSED' if all_passed else '[FAIL] SOME TESTS FAILED'
         self.log('')
         self.log(overall, 'SUCCESS' if all_passed else 'ERROR')

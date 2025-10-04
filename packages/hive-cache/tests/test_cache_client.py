@@ -1,8 +1,11 @@
 """Tests for HiveCacheClient."""
 import time
+
 import pytest
+
 from hive_cache import CacheConfig, HiveCacheClient
 from hive_cache.exceptions import CacheConnectionError
+
 
 @pytest.fixture
 def cache_config():
@@ -133,7 +136,7 @@ async def test_scan_keys_async(cache_client_async):
     async for key in cache_client_async.scan_keys('scan_test_*'):
         found_keys.append(key)
     assert len(found_keys) == len(test_keys)
-    assert all((key in test_keys for key in found_keys))
+    assert all(key in test_keys for key in found_keys)
     await cache_client_async.delete_pattern('scan_test_*')
 
 @pytest.mark.core

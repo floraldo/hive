@@ -4,10 +4,13 @@ Tests for graph-based dependency validator.
 Tests both direct and transitive dependency violation detection using
 mock file structures and controlled dependency patterns.
 """
-import pytest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+
+import pytest
+
 from hive_tests.dependency_graph_validator import DependencyGraphValidator, DependencyRule, RuleType, Violation
+
 
 @pytest.mark.core
 class TestDependencyRuleDefinition:

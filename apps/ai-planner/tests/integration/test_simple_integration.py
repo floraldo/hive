@@ -1,10 +1,13 @@
 """
 Simple test for AI Planner Claude integration without emoji symbols
 """
-import pytest
 import sys
 import uuid
+
+import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 try:
     from ai_planner.agent import AIPlanner

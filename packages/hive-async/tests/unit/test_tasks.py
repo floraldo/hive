@@ -6,10 +6,14 @@ Tests async task utilities:
 - run_with_timeout_async (timeout handling)
 """
 from __future__ import annotations
+
 import asyncio
 import time
+
 import pytest
+
 from hive_async.tasks import gather_with_concurrency_async, run_with_timeout_async
+
 
 @pytest.mark.core
 class TestGatherWithConcurrency:

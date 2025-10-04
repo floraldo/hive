@@ -82,6 +82,9 @@ testpaths = ["tests"]
 python_files = "test_*.py"
 python_functions = "test_*"
 asyncio_mode = "auto"
+markers = [
+    "crust: Critical user-story tests",
+]
 
 [tool.coverage.run]
 source = ["src"]

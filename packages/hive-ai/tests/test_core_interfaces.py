@@ -1,7 +1,18 @@
 """Tests for hive_ai.core.interfaces module."""
 from __future__ import annotations
+
 import pytest
-from hive_ai.core.interfaces import MetricsCollectorInterface, ModelProviderInterface, ModelResponse, ModelType, PromptTemplateInterface, TokenUsage, VectorStoreInterface
+
+from hive_ai.core.interfaces import (
+    MetricsCollectorInterface,
+    ModelProviderInterface,
+    ModelResponse,
+    ModelType,
+    PromptTemplateInterface,
+    TokenUsage,
+    VectorStoreInterface,
+)
+
 
 @pytest.mark.core
 class TestModelType:

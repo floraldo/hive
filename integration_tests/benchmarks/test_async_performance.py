@@ -4,8 +4,10 @@ Performance benchmarks for async operations.
 import asyncio
 import tempfile
 from pathlib import Path
+
 import aiofiles
 import pytest
+
 
 @pytest.mark.crust
 class TestAsyncPerformance:

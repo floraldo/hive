@@ -1,8 +1,11 @@
 """Tests for hive_ai.core.config module."""
 from __future__ import annotations
+
 import pytest
 from pydantic import ValidationError
+
 from hive_ai.core.config import AIConfig, ModelConfig, PromptConfig, VectorConfig
+
 
 @pytest.mark.core
 class TestModelConfig:

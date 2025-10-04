@@ -2,17 +2,23 @@
 End-to-end test for autonomous AI reviewer with drift simulation
 Tests the complete review loop including drift resilience
 """
-import pytest
 import json
+
+import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 import sqlite3
 import sys
 from datetime import UTC, datetime
+
 from hive_orchestrator.core import db as hive_core_db
+
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewEngine
 from ai_reviewer.robust_claude_bridge import RobustClaudeBridge
+
 
 def create_test_task(task_type: str='good') -> str:
     """Create a test task in review_pending status"""

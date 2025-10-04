@@ -12,7 +12,6 @@ This suite validates the entire Hive platform works correctly after all fixes an
 
 Designed to catch breaking changes and ensure platform reliability.
 """
-import pytest
 import asyncio
 import concurrent.futures
 import json
@@ -25,6 +24,9 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
+
+import pytest
+
 test_root = Path(__file__).parent.parent
 sys.path.insert(0, str(test_root / 'apps' / 'hive-orchestrator' / 'src'))
 sys.path.insert(0, str(test_root / 'apps' / 'ai-planner' / 'src'))
@@ -360,7 +362,7 @@ class AIPlannerIntegrationTests:
             return {'completed_count': 0, 'total_count': 0}
         plan_data = json.loads(row[0])
         total_count = len(plan_data['subtasks'])
-        completed_count = sum((1 for task in plan_data['subtasks'] if task.get('status') == 'completed'))
+        completed_count = sum(1 for task in plan_data['subtasks'] if task.get('status') == 'completed')
         return {'completed_count': completed_count, 'total_count': total_count}
 
     def _get_planning_task_status(self, planning_task_id: int) -> str:

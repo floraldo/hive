@@ -1,14 +1,24 @@
 """Unit tests for hive-async package V4.2."""
 import asyncio
 import time
+
 import pytest
+
 from hive_async import async_retry, gather_with_concurrency, timeout_context
 from hive_async import run_with_timeout_async as run_with_timeout
 from hive_async.advanced_timeout import AdvancedTimeoutManager, TimeoutConfig, TimeoutMetrics, with_adaptive_timeout
 from hive_async.context import AsyncResourceManager, async_context
-from hive_async.resilience import AsyncCircuitBreaker, AsyncTimeoutManager, CircuitState, async_circuit_breaker, async_resilient, async_timeout
+from hive_async.resilience import (
+    AsyncCircuitBreaker,
+    AsyncTimeoutManager,
+    CircuitState,
+    async_circuit_breaker,
+    async_resilient,
+    async_timeout,
+)
 from hive_async.retry import AsyncRetryConfig, create_retry_decorator, retry_on_connection_error
 from hive_errors import AsyncTimeoutError, CircuitBreakerOpenError
+
 
 @pytest.mark.crust
 class TestCircuitState:
@@ -510,7 +520,7 @@ class TestTaskUtilities:
         tasks = [tracked_task(i) for i in range(5)]
         results = await gather_with_concurrency(tasks, max_concurrency=2)
         assert len(results) == 5
-        assert all((f'task_{i}' in results for i in range(5)))
+        assert all(f'task_{i}' in results for i in range(5))
         start_times = [t[1] for t in call_times]
         time_span = max(start_times) - min(start_times)
         assert time_span > 0
@@ -686,7 +696,7 @@ class TestAsyncIntegration:
         tasks = [concurrent_operation(i, 0.01) for i in range(10)]
         results = await asyncio.gather(*tasks)
         assert len(results) == 10
-        assert all((f'concurrent_{i}' in results for i in range(10)))
+        assert all(f'concurrent_{i}' in results for i in range(10))
 
     @pytest.mark.crust
     @pytest.mark.asyncio

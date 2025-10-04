@@ -5,15 +5,18 @@ Tests VectorStore, EmbeddingManager, SemanticSearch, and VectorMetrics
 with property-based testing.
 """
 from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
+
 from hive_ai.core.config import AIConfig, VectorConfig
 from hive_ai.core.exceptions import VectorError
 from hive_ai.vector.embedding import EmbeddingManager, EmbeddingResult
 from hive_ai.vector.metrics import VectorMetrics
 from hive_ai.vector.search import Document, SearchResult, SemanticSearch
 from hive_ai.vector.store import VectorStore
+
 
 @st.composite
 def vector_data(draw, dimension=None):
@@ -220,8 +223,8 @@ class TestEmbeddingManager:
             mock_simulate.side_effect = mock_embedding
             results = await embedding_manager.search_similar_texts_async(query_text, candidate_texts, top_k=2)
             assert len(results) <= 2
-            assert all(('similarity' in result for result in results))
-            assert all((0 <= result['similarity'] <= 1 for result in results))
+            assert all('similarity' in result for result in results)
+            assert all(0 <= result['similarity'] <= 1 for result in results)
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -254,7 +257,7 @@ class TestEmbeddingManager:
             result = await manager.generate_embedding_async(text)
             assert result.text == text
             assert len(result.vector) > 0
-            assert all((isinstance(val, (int, float)) for val in result.vector))
+            assert all(isinstance(val, (int, float)) for val in result.vector)
             assert -1.0 <= max(result.vector) <= 1.0
             assert -1.0 <= min(result.vector) <= 1.0
         except VectorError:

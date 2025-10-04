@@ -1,0 +1,67 @@
+"""{{ app_name }} - {{ description }}"""
+
+from __future__ import annotations
+
+import asyncio
+
+from hive_logging import get_logger
+
+from .config import {{ app_module | class_name }}Config
+{% if service_type == 'api' or service_type == 'webhook' -%}
+from .api.main import create_app
+{% endif %}
+
+logger = get_logger(__name__)
+
+
+async def main_async() -> None:
+    """Main entry point for {{ app_name }}."""
+    # Initialize configuration (DI pattern - Golden Rule compliant)
+    config = {{ app_module | class_name }}Config()
+
+    logger.info(f"Starting {{ app_name }}...")
+    {% if needs_database or enable_database %}
+    # Initialize database connection
+    from hive_db import get_sqlite_connection
+
+    db = await get_sqlite_connection(config.database_path)
+    logger.info(f"Connected to database: {config.database_path}")
+    {% endif %}
+    {% if needs_cache or enable_cache %}
+    # Initialize cache client
+    from hive_cache import get_cache_client
+
+    cache = await get_cache_client()
+    logger.info("Connected to cache")
+    {% endif %}
+    {% if service_type == 'api' or service_type == 'webhook' %}
+    # Create FastAPI application
+    app = create_app(config)
+
+    # Start uvicorn server
+    import uvicorn
+
+    uvicorn.run(
+        app,
+        host=config.host,
+        port=config.port,
+        log_level=config.log_level.lower(),
+    )
+    {% elif service_type == 'worker' %}
+    # Start event worker
+    logger.info("Starting event worker...")
+
+    # TODO: Implement worker logic
+    while True:
+        await asyncio.sleep(1)
+    {% elif service_type == 'batch' %}
+    # Start batch processor
+    logger.info("Starting batch processor...")
+
+    # TODO: Implement batch processing logic
+    await asyncio.sleep(1)
+    {% endif %}
+
+
+if __name__ == "__main__":
+    asyncio.run(main_async())

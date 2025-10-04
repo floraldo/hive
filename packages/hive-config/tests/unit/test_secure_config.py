@@ -5,8 +5,11 @@ import os
 import tempfile
 from pathlib import Path
 from unittest.mock import patch
+
 import pytest
+
 from hive_config.secure_config import SecureConfigLoader, generate_master_key
+
 
 @pytest.mark.core
 class TestSecureConfigLoader:
@@ -157,7 +160,7 @@ class TestSecureConfigLoader:
         key = generate_master_key()
         assert isinstance(key, str)
         assert len(key) > 20
-        assert all((c.isalnum() or c in '-_' for c in key))
+        assert all(c.isalnum() or c in '-_' for c in key)
 
     @pytest.mark.core
     def test_invalid_master_key(self):

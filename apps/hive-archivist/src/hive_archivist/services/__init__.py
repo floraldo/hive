@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from .curator import CuratorService
 from .librarian import LibrarianService
 
-__all__ = ["LibrarianService"]
+__all__ = ["LibrarianService", "CuratorService"]

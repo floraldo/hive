@@ -10,15 +10,17 @@ Test Implementation: Calculator Service with Intentional Issues
 - Iterates to fix issues
 - Validates final working version
 """
-import pytest
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
 import requests
+
 sys.path.insert(0, str(Path(__file__).parent))
 from fat_framework import FactoryAcceptanceTest
+
 
 def generate_calculator_with_issues(test_case, iteration=1):
     """Generate a calculator service with intentional issues on first iteration"""

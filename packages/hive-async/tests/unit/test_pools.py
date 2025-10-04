@@ -10,9 +10,13 @@ Tests connection pooling functionality:
 - Timeout handling
 """
 from __future__ import annotations
+
 import asyncio
+
 import pytest
+
 from hive_async.pools import AsyncConnectionManager, ConnectionPool, PoolConfig
+
 
 class MockConnection:
     """Mock connection for testing."""
@@ -185,7 +189,7 @@ class TestConnectionPool:
             tasks = ([pool.acquire_async() for _ in range(3)],)
             conns = await asyncio.gather(*tasks)
             assert len(conns) == 3
-            assert all((isinstance(c, MockConnection) for c in conns))
+            assert all(isinstance(c, MockConnection) for c in conns)
             ids = [c.conn_id for c in conns]
             assert len(set(ids)) == 3
 

@@ -5,7 +5,9 @@ Tests end-to-end scenarios across multiple components.
 """
 import asyncio
 from unittest.mock import Mock
+
 import pytest
+
 from hive_ai.agents.agent import AgentConfig, BaseAgent
 from hive_ai.agents.workflow import WorkflowConfig, WorkflowOrchestrator
 from hive_ai.core.config import AIConfig, VectorConfig
@@ -13,6 +15,7 @@ from hive_ai.models.client import ModelClient
 from hive_ai.models.registry import ModelRegistry
 from hive_ai.prompts.template import PromptMetadata, PromptTemplate, PromptVariable
 from hive_ai.vector.embedding import EmbeddingManager
+
 
 @pytest.mark.core
 class TestAIWorkflowIntegration:
@@ -118,7 +121,7 @@ class TestAIWorkflowIntegration:
         for step in pipeline_steps:
             results[step] = f'completed_{step}'
         assert len(results) == len(pipeline_steps)
-        assert all((step in results for step in pipeline_steps))
+        assert all(step in results for step in pipeline_steps)
 
     @pytest.mark.core
     @pytest.mark.asyncio

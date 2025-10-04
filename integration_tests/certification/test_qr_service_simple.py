@@ -4,12 +4,12 @@ Simplified QR Code Service Certification Test
 This test verifies that we can create and deploy a QR code service.
 Since the full autonomous platform has import errors, this is a simplified version.
 """
-import pytest
 import subprocess
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
 
 def log(msg):
     print(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}")

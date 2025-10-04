@@ -1,6 +1,7 @@
 """Unit tests for hive_performance.performance_analyzer module."""
 import pytest
 
+
 @pytest.mark.core
 class TestPerformanceAnalyzer:
     """Test cases for PerformanceAnalyzer class."""

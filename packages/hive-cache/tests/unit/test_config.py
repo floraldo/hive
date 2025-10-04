@@ -1,6 +1,7 @@
 """Unit tests for hive_cache.config module."""
 import pytest
 
+
 @pytest.mark.core
 class TestCacheConfig:
     """Test cases for cache configuration."""

@@ -1,7 +1,9 @@
 """Unit tests for hive_performance.monitoring_service module."""
 import asyncio
 from unittest.mock import Mock
+
 import pytest
+
 
 @pytest.mark.core
 class TestMonitoringService:

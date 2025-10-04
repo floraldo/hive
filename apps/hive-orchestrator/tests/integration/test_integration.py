@@ -5,12 +5,15 @@ Tests the interaction between CLI, database, and core functionality.
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
+
 import pytest
 from click.testing import CliRunner
+
 from hive_orchestrator.clean_hive import clean_database
 from hive_orchestrator.clean_hive import main as clean_main
 from hive_orchestrator.cli import cli
 from hive_orchestrator.dashboard import HiveDashboard
+
 
 @pytest.mark.crust
 class TestHiveOrchestratorIntegration:
@@ -98,8 +101,8 @@ class TestHiveOrchestratorIntegration:
         with patch.object(dashboard, 'get_connection', side_effect=Exception('DB Error')):
             stats = (dashboard.get_task_stats(),)
             expected_keys = ['queued', 'assigned', 'in_progress', 'completed', 'failed', 'cancelled']
-            assert all((key in stats for key in expected_keys))
-            assert all((stats[key] == 0 for key in expected_keys))
+            assert all(key in stats for key in expected_keys)
+            assert all(stats[key] == 0 for key in expected_keys)
 
     @pytest.mark.crust
     def test_clean_database_function(self):
@@ -179,7 +182,7 @@ class TestHiveOrchestratorIntegration:
             for _ in range(5):
                 result = self.runner.invoke(cli, ['status'])
                 results.append(result.exit_code)
-            assert all((code == 0 for code in results))
+            assert all(code == 0 for code in results)
 
 @pytest.mark.crust
 class TestHiveOrchestratorPerformance:
@@ -205,6 +208,6 @@ class TestHiveOrchestratorPerformance:
             mock_cursor.fetchone.return_value = None
             mock_get_conn.return_value = mock_conn
             stats = dashboard.get_task_stats()
-            assert all((isinstance(value, int) for value in stats.values()))
+            assert all(isinstance(value, int) for value in stats.values())
 if __name__ == '__main__':
     pytest.main([__file__, '-v'])

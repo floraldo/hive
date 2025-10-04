@@ -24,6 +24,9 @@ ai-reviewer-daemon = "ai_reviewer.agent:run_daemon"
 [tool.pytest.ini_options]
 addopts = "-v --cov=ai_reviewer --cov-report=html --cov-report=term"
 testpaths = [ "tests",]
+markers = [
+    "crust: Critical user-story tests",
+]
 
 [tool.poetry.dependencies.hive-config]
 path = "../../packages/hive-config"

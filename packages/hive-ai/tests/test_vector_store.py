@@ -1,6 +1,7 @@
 """Tests for hive_ai.vector.store module."""
 import pytest
 
+
 @pytest.mark.core
 class TestVectorStore:
     """Test cases for vector store."""

@@ -6,6 +6,7 @@ These tests ensure all modules can be imported without errors.
 """
 import pytest
 
+
 @pytest.mark.core
 def test_base_imports():
     """Smoke test: base module imports successfully."""

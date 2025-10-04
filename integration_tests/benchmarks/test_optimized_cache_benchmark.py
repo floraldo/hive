@@ -6,11 +6,11 @@ This benchmark tests the HiveCacheClient after our optimizations:
 2. Optimized connection management (reusable Redis client)
 3. Reduced circuit breaker overhead
 """
-import pytest
 import asyncio
 import statistics
 import time
 from dataclasses import dataclass
+
 try:
     from hive_cache import CacheConfig, HiveCacheClient
     HAS_HIVE_CACHE = True

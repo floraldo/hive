@@ -1,7 +1,10 @@
 """Unit tests for hive_cache.claude_cache module."""
 from unittest.mock import Mock, patch
+
 import pytest
+
 from hive_cache.claude_cache import ClaudeAPICache
+
 
 @pytest.mark.core
 class TestClaudeCache:

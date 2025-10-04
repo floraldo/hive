@@ -1,6 +1,7 @@
 """Tests for hive_ai.agents.workflow module."""
 import pytest
 
+
 @pytest.mark.core
 class TestWorkflow:
     """Test cases for Workflow class."""

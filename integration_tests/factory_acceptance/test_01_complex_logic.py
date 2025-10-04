@@ -4,11 +4,12 @@ FAT Test Case 1: Complex Logic Test - Dijkstra's Algorithm
 Tests the autonomous platform's ability to implement algorithmically complex code
 with proper data structures, edge case handling, and comprehensive testing.
 """
-import pytest
 import subprocess
 import sys
 from pathlib import Path
+
 from fat_framework import FactoryAcceptanceTest
+
 
 def generate_dijkstra_algorithm(test_case):
     """Generate a complete Dijkstra's algorithm implementation"""

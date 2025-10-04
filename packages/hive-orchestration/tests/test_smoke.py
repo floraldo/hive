@@ -5,6 +5,7 @@ Verifies basic package structure and imports.
 """
 import pytest
 
+
 @pytest.mark.core
 def test_package_import():
     """Test that hive_orchestration package can be imported."""

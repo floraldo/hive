@@ -2,7 +2,9 @@
 Quick debug test for V3.0 certification
 """
 import pytest
+
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 @pytest.mark.crust

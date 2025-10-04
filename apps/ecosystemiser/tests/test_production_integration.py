@@ -3,9 +3,11 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 from ecosystemiser.services.simple_results_io import SimpleResultsIO
 from ecosystemiser.solver.rolling_horizon_milp import RollingHorizonMILPSolver
@@ -16,6 +18,7 @@ from ecosystemiser.system_model.components.energy.power_demand import PowerDeman
 from ecosystemiser.system_model.components.energy.solar_pv import SolarPV
 from ecosystemiser.system_model.system import System
 from hive_logging import get_logger
+
 logger = get_logger(__name__)
 
 @pytest.mark.crust

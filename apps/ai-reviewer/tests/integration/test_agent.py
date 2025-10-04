@@ -3,10 +3,13 @@ Tests for the AI Reviewer autonomous agent
 """
 from datetime import datetime
 from unittest.mock import MagicMock, Mock
+
 import pytest
+
 from ai_reviewer.agent import ReviewAgent
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import QualityMetrics, ReviewDecision, ReviewEngine, ReviewResult
+
 
 @pytest.fixture
 def mock_db():

@@ -16,7 +16,9 @@ import time
 import uuid
 from datetime import UTC, datetime
 from pathlib import Path
+
 import pytest
+
 test_root = Path(__file__).parent.parent
 sys.path.insert(0, str(test_root / 'apps' / 'hive-orchestrator' / 'src'))
 
@@ -184,7 +186,7 @@ class PlatformValidationTests:
         assert orchestrator_core.exists(), 'Orchestrator should have core/ directory'
         expected_core_dirs = ['bus', 'db', 'errors']
         existing_dirs = [d.name for d in orchestrator_core.iterdir() if d.is_dir()]
-        compliance_score = sum((1 for dir_name in expected_core_dirs if dir_name in existing_dirs))
+        compliance_score = sum(1 for dir_name in expected_core_dirs if dir_name in existing_dirs)
         assert compliance_score > 0, f'Should have some core directories, found: {existing_dirs}'
 
     @pytest.mark.crust

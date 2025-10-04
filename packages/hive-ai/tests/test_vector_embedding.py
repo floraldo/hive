@@ -1,6 +1,7 @@
 """Tests for hive_ai.vector.embedding module."""
 import pytest
 
+
 @pytest.mark.core
 class TestVectorEmbedding:
     """Test cases for vector embedding."""

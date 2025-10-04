@@ -4,14 +4,15 @@ Official Certification Test: Full Autonomous Lifecycle (Unicode-safe)
 This test validates the complete autonomous workflow from task creation to live deployment.
 It serves as the definitive proof that the Hive platform can autonomously deliver applications.
 """
-import pytest
 import json
 import sqlite3
 import subprocess
 import time
 from datetime import datetime
 from pathlib import Path
+
 import requests
+
 
 def run_certification_test():
     """Run the complete autonomous lifecycle certification test"""

@@ -204,3 +204,23 @@ class PoolExhaustedError(BaseError):
         result = super().to_dict()
         result.update({"pool_size": self.pool_size, "active_connections": self.active_connections})
         return result
+
+
+class APIError(BaseError):
+    """
+    Generic API-related error.
+
+    Raised when external API calls fail or return errors.
+    """
+
+    pass
+
+
+class RateLimitError(BaseError):
+    """
+    Rate limit exceeded error.
+
+    Raised when API rate limits are exceeded.
+    """
+
+    pass
