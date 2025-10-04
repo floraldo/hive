@@ -318,7 +318,7 @@ class AsyncResilienceManager:
 
     async def _update_operation_stats_async(self, operation_name: str) -> None:
         """Update operation statistics."""
-        metrics = (self._operation_metrics[operation_name],)
+        metrics = self._operation_metrics[operation_name]
         durations = list(metrics.durations)
 
         if not durations:
@@ -330,7 +330,7 @@ class AsyncResilienceManager:
         # Calculate percentiles
         sorted_durations = sorted(durations)
         if len(sorted_durations) >= 20:  # Need reasonable sample size
-            p95_index = (int(len(sorted_durations) * 0.95),)
+            p95_index = int(len(sorted_durations) * 0.95)
             p99_index = int(len(sorted_durations) * 0.99)
             metrics.p95_duration = sorted_durations[p95_index]
             metrics.p99_duration = sorted_durations[p99_index]
@@ -365,7 +365,7 @@ class AsyncResilienceManager:
         current_timeout = self._adaptive_timeouts.get(operation_name, self.config.default_timeout)
 
         # Increase timeout more aggressively
-        new_timeout = (current_timeout * (self.config.adaptation_factor * 1.5),)
+        new_timeout = current_timeout * (self.config.adaptation_factor * 1.5)
         new_timeout = min(self.config.max_adaptive_timeout, new_timeout)
 
         self._adaptive_timeouts[operation_name] = new_timeout
@@ -720,7 +720,7 @@ class AsyncResilienceManager:
 
             # Highly variable performance
             if len(metrics.durations) > 20:
-                durations = (list(metrics.durations),)
+                durations = list(metrics.durations)
                 variance = max(durations) - min(durations)
                 if variance > metrics.average_duration * 2:
                     recommendations.append(
