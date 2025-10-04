@@ -1,0 +1,41 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "hive-browser"
+version = "0.1.0"
+description = "Browser automation toolkit using Playwright for E2E testing"
+authors = ["Hive System <hive@example.com>"]
+packages = [{include = "hive_browser", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+playwright = "^1.40.0"
+hive-logging = {path = "../hive-logging", develop = true}
+hive-errors = {path = "../hive-errors", develop = true}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.2"
+pytest-asyncio = "^0.21.0"
+pytest-playwright = "^0.4.3"
+mypy = "^1.8.0"
+ruff = "^0.1.15"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "S"]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]  # Allow asserts in tests
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+asyncio_mode = "auto"
