@@ -1,5 +1,4 @@
-"""
-Full Hive Codebase Indexing for RAG System.
+"""Full Hive Codebase Indexing for RAG System.
 
 This script indexes all Python files and architectural memory (markdown docs)
 across the entire Hive platform for RAG-enhanced code review.
@@ -58,11 +57,11 @@ class CodebaseIndexer:
     """Full codebase indexing orchestrator."""
 
     def __init__(self, project_root: Path):
-        """
-        Initialize indexer.
+        """Initialize indexer.
 
         Args:
             project_root: Root directory of Hive project
+
         """
         self.project_root = project_root
         self.chunker = HierarchicalChunker()
@@ -79,14 +78,14 @@ class CodebaseIndexer:
         }
 
     def index_full_codebase(self, output_path: Path) -> dict:
-        """
-        Index entire Hive codebase.
+        """Index entire Hive codebase.
 
         Args:
             output_path: Directory to save index
 
         Returns:
             Statistics dictionary
+
         """
         start_time = time.time()
 
@@ -204,11 +203,11 @@ class CodebaseIndexer:
         return all_chunks
 
     def spot_check_quality(self, num_samples: int = 5) -> None:
-        """
-        Perform spot-check on indexed content.
+        """Perform spot-check on indexed content.
 
         Args:
             num_samples: Number of random samples to check
+
         """
         logger.info("Performing post-indexing spot-check...")
 

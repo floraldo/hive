@@ -1,5 +1,4 @@
-"""
-SQLite-based component data loader for the Component Library.,
+"""SQLite-based component data loader for the Component Library.,
 
 This module provides a SQLite backend for storing and retrieving component
 specifications, replacing the YAML-based system with a proper database.
@@ -22,11 +21,11 @@ class SQLiteLoader:
     """SQLite-based loader for component specifications."""
 
     def __init__(self, db_path: Path | None = None) -> None:
-        """
-        Initialize the SQLite loader.
+        """Initialize the SQLite loader.
 
         Args:
             db_path: Path to the SQLite database file. If None, uses default location.,
+
         """
         if db_path is None:
             db_path = Path(__file__).parent / "components.db"
@@ -118,8 +117,7 @@ class SQLiteLoader:
             logger.info(f"Database initialized at {self.db_path}")
 
     def add_component_type(self, name: str, category: str, description: str | None = None) -> int:
-        """
-        Add a new component type.
+        """Add a new component type.
 
         Args:
             name: Component type name (e.g., 'battery', 'solar_pv')
@@ -128,6 +126,7 @@ class SQLiteLoader:
 
         Returns:
             The ID of the created component type,
+
         """
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -157,8 +156,7 @@ class SQLiteLoader:
         version: str = "1.0.0",
         is_default: bool = False,
     ) -> int:
-        """
-        Add a component specification.
+        """Add a component specification.
 
         Args:
             component_type: Type of component (e.g., 'battery'),
@@ -172,6 +170,7 @@ class SQLiteLoader:
 
         Returns:
             The ID of the created specification,
+
         """
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -228,8 +227,7 @@ class SQLiteLoader:
         name: str | None = None,
         version: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Get a component specification.
+        """Get a component specification.
 
         Args:
             component_type: Type of component,
@@ -238,6 +236,7 @@ class SQLiteLoader:
 
         Returns:
             Component specification as dict,
+
         """
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -290,11 +289,11 @@ class SQLiteLoader:
             return spec
 
     def list_component_types(self) -> list[dict[str, Any]]:
-        """
-        List all available component types.
+        """List all available component types.
 
         Returns:
             List of component type dictionaries,
+
         """
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -321,14 +320,14 @@ class SQLiteLoader:
             return types
 
     def list_component_specs(self, component_type: str | None = None) -> list[dict[str, Any]]:
-        """
-        List available component specifications.
+        """List available component specifications.
 
         Args:
             component_type: Optional filter by component type
 
         Returns:
             List of component specification summaries,
+
         """
         with self._get_connection() as conn:
             cursor = (conn.cursor(),)
@@ -364,11 +363,11 @@ class SQLiteLoader:
             return specs
 
     def export_to_yaml(self, output_dir: Path) -> None:
-        """
-        Export all component specs to YAML files for backup/migration.
+        """Export all component specs to YAML files for backup/migration.
 
         Args:
             output_dir: Directory to write YAML files to,
+
         """
         import yaml
 
@@ -391,11 +390,11 @@ class SQLiteLoader:
             logger.info(f"Exported {spec['type']}/{spec['name']} to {file_path}")
 
     def import_from_yaml(self, yaml_dir: Path) -> None:
-        """
-        Import component specs from YAML files.
+        """Import component specs from YAML files.
 
         Args:
             yaml_dir: Directory containing YAML files,
+
         """
         import yaml
 

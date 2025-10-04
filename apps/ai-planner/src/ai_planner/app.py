@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AI Planner Application - BaseApplication Implementation
+"""AI Planner Application - BaseApplication Implementation
 
 Migrated to use BaseApplication from hive-app-toolkit for:
 - Automatic configuration loading (Project Unify V2)
@@ -25,8 +24,7 @@ logger = get_logger("ai-planner.app")
 
 
 class AIPlannerApp(BaseApplication):
-    """
-    AI Planner Application
+    """AI Planner Application
 
     Autonomous task planning and workflow generation service that:
     - Monitors planning_queue for new tasks
@@ -38,20 +36,19 @@ class AIPlannerApp(BaseApplication):
     app_name = "ai-planner"
 
     def __init__(self, config=None, mock_mode: bool = False):
-        """
-        Initialize AI Planner application.
+        """Initialize AI Planner application.
 
         Args:
             config: Optional pre-loaded configuration (for testing)
             mock_mode: Run in mock mode for testing (no actual Claude API calls)
+
         """
         super().__init__(config=config)
         self.mock_mode = mock_mode
         self.planner_agent = None
 
     async def initialize_services(self):
-        """
-        Initialize AI Planner agent.
+        """Initialize AI Planner agent.
 
         Resources (db, cache, event_bus) are already initialized by BaseApplication.
         We just need to create the AIPlanner instance and pass resources to it.
@@ -70,8 +67,7 @@ class AIPlannerApp(BaseApplication):
         self.logger.info("AI Planner services initialized successfully")
 
     async def run(self):
-        """
-        Main application logic - run the planner agent loop.
+        """Main application logic - run the planner agent loop.
 
         Polls for tasks and generates plans until shutdown requested.
         """
@@ -105,8 +101,7 @@ class AIPlannerApp(BaseApplication):
         self.logger.info("AI Planner main loop stopped")
 
     async def cleanup_services(self):
-        """
-        Optional cleanup for AI Planner services.
+        """Optional cleanup for AI Planner services.
 
         BaseApplication already handles db, cache, bus cleanup.
         We only need to clean up planner-specific resources.
@@ -128,13 +123,13 @@ class AIPlannerApp(BaseApplication):
 
 
 def main() -> int:
-    """
-    Entry point for AI Planner application.
+    """Entry point for AI Planner application.
 
     Supports command-line arguments for backward compatibility.
 
     Returns:
         Exit code (0 for success, 1 for failure)
+
     """
     import argparse
 

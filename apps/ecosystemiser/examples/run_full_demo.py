@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-EcoSystemiser v3.0 - Full End-to-End Demonstration
+"""EcoSystemiser v3.0 - Full End-to-End Demonstration
 
 This script demonstrates the complete power of the EcoSystemiser platform
 through a real-world microgrid design optimization workflow.
@@ -37,8 +36,7 @@ class MicrogridDemoRunner:
         self.results_dir.mkdir(exist_ok=True)
 
     def create_design_problem(self) -> dict[str, Any]:
-        """
-        Step 1: Define the Berlin microgrid design problem.
+        """Step 1: Define the Berlin microgrid design problem.
         """
         logger.info("=" * 70)
         logger.info("🏗️  STEP 1: DEFINING THE DESIGN PROBLEM")
@@ -104,8 +102,7 @@ class MicrogridDemoRunner:
         return config
 
     def run_ga_optimization(self, config: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-        """
-        Step 2: Run Genetic Algorithm optimization to find Pareto-optimal designs.
+        """Step 2: Run Genetic Algorithm optimization to find Pareto-optimal designs.
         """
         logger.info("\n" + "=" * 70)
         logger.info("🧬  STEP 2: RUNNING GENETIC ALGORITHM OPTIMIZATION")
@@ -181,8 +178,7 @@ class MicrogridDemoRunner:
         return study_id, results
 
     def extract_best_design(self, ga_results: dict[str, Any]) -> dict[str, Any]:
-        """
-        Step 3: Extract the best balanced design from the Pareto front.
+        """Step 3: Extract the best balanced design from the Pareto front.
         """
         logger.info("\n" + "=" * 70)
         logger.info("🎯  STEP 3: SELECTING BEST DESIGN FROM PARETO FRONT")
@@ -216,8 +212,7 @@ class MicrogridDemoRunner:
         return best_design
 
     def run_uncertainty_analysis(self, design: dict[str, Any]) -> tuple[str, dict[str, Any]]:
-        """
-        Step 4: Run Monte Carlo uncertainty analysis on the selected design.
+        """Step 4: Run Monte Carlo uncertainty analysis on the selected design.
         """
         logger.info("\n" + "=" * 70)
         logger.info("🎲  STEP 4: RUNNING MONTE CARLO UNCERTAINTY ANALYSIS")
@@ -283,8 +278,7 @@ class MicrogridDemoRunner:
         return study_id, results
 
     def generate_reports(self, ga_study_id: str, mc_study_id: str) -> None:
-        """
-        Step 5: Generate interactive HTML reports for both studies.
+        """Step 5: Generate interactive HTML reports for both studies.
         """
         logger.info("\n" + "=" * 70)
         logger.info("📊  STEP 5: GENERATING INTERACTIVE HTML REPORTS")
@@ -345,8 +339,7 @@ class MicrogridDemoRunner:
         return reports_generated
 
     def print_summary(self, ga_results: dict[str, Any], mc_results: dict[str, Any], reports: list[Path]):
-        """
-        Print final summary and recommendations.
+        """Print final summary and recommendations.
         """
         logger.info("\n" + "=" * 70)
         logger.info("🎉  DEMONSTRATION COMPLETE - SUMMARY & RECOMMENDATIONS")

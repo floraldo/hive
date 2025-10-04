@@ -1,5 +1,4 @@
-"""
-Historical Context Enricher
+"""Historical Context Enricher
 
 Bridges predictive alerts with RAG-based historical incident data.
 Part of PROJECT CHIMERA - Fusion of Memory (Aegis) and Foresight (Vanguard).
@@ -56,19 +55,18 @@ class EnrichedAlertContext:
 
 
 class HistoricalContextEnricher:
-    """
-    Enrich predictive alerts with historical context from RAG.
+    """Enrich predictive alerts with historical context from RAG.
 
     Integrates PROJECT AEGIS (Memory Nexus) with PROJECT VANGUARD (Predictive Alerts)
     to create context-aware, actionable alerts.
     """
 
     def __init__(self, context_service=None):
-        """
-        Initialize historical context enricher.
+        """Initialize historical context enricher.
 
         Args:
             context_service: ContextRetrievalService from hive-ai/memory
+
         """
         self.context_service = context_service
         self._stats = {
@@ -80,10 +78,9 @@ class HistoricalContextEnricher:
     async def enrich_alert_with_history_async(
         self,
         alert: DegradationAlert,
-        top_k: int = 3
+        top_k: int = 3,
     ) -> EnrichedAlertContext:
-        """
-        Enrich alert with historical incident context from RAG.
+        """Enrich alert with historical incident context from RAG.
 
         Args:
             alert: Predictive alert to enrich
@@ -97,6 +94,7 @@ class HistoricalContextEnricher:
             >>> context = await enricher.enrich_alert_with_history_async(alert)
             >>> print(f"Found {len(context.similar_incidents)} similar incidents")
             >>> print(f"Average resolution: {context.average_resolution_time_minutes} min")
+
         """
         start_time = datetime.utcnow()
         self._stats["total_enrichments"] += 1
@@ -114,7 +112,7 @@ class HistoricalContextEnricher:
             search_results = await self.context_service.search_knowledge_async(
                 query=query,
                 top_k=top_k,
-                filter_by_type=alert.service_name  # Filter by service
+                filter_by_type=alert.service_name,  # Filter by service
             )
 
             # Parse RAG results into structured incidents
@@ -131,7 +129,7 @@ class HistoricalContextEnricher:
                 average_resolution_time_minutes=stats.get("avg_resolution_time"),
                 most_common_root_cause=stats.get("common_root_cause"),
                 confidence=self._calculate_confidence(incidents),
-                retrieval_timestamp=start_time
+                retrieval_timestamp=start_time,
             )
 
             self._stats["successful_enrichments"] += 1
@@ -139,7 +137,7 @@ class HistoricalContextEnricher:
 
             logger.info(
                 f"Enriched alert {alert.alert_id[:8]} with {len(incidents)} "
-                f"historical incidents (confidence: {enriched.confidence:.2%})"
+                f"historical incidents (confidence: {enriched.confidence:.2%})",
             )
 
             return enriched
@@ -149,8 +147,7 @@ class HistoricalContextEnricher:
             return self._empty_context(alert.alert_id)
 
     def _build_query_from_alert(self, alert: DegradationAlert) -> str:
-        """
-        Build RAG search query from alert metadata.
+        """Build RAG search query from alert metadata.
 
         Combines service name, metric type, and alert context for optimal retrieval.
         """
@@ -171,10 +168,9 @@ class HistoricalContextEnricher:
     def _parse_search_results(
         self,
         search_results: str,
-        alert: DegradationAlert
+        alert: DegradationAlert,
     ) -> list[HistoricalIncident]:
-        """
-        Parse RAG search results into structured HistoricalIncident objects.
+        """Parse RAG search results into structured HistoricalIncident objects.
 
         RAG returns compressed text with symbols - parse into structured data.
         """
@@ -215,7 +211,7 @@ class HistoricalContextEnricher:
                         metric_type=alert.metric_type.value,
                         timestamp="",  # Extract from block if present
                         similarity_score=0.8,  # RAG handles similarity ranking
-                        metadata={}
+                        metadata={},
                     )
 
                     incidents.append(incident)
@@ -228,13 +224,13 @@ class HistoricalContextEnricher:
 
     def _compute_statistics(
         self,
-        incidents: list[HistoricalIncident]
+        incidents: list[HistoricalIncident],
     ) -> dict[str, Any]:
-        """
-        Compute aggregate statistics from historical incidents.
+        """Compute aggregate statistics from historical incidents.
 
         Returns:
             Dictionary with avg_resolution_time, common_root_cause, etc.
+
         """
         if not incidents:
             return {
@@ -254,8 +250,7 @@ class HistoricalContextEnricher:
         }
 
     def _calculate_confidence(self, incidents: list[HistoricalIncident]) -> float:
-        """
-        Calculate confidence score for enriched context.
+        """Calculate confidence score for enriched context.
 
         Based on number of similar incidents and their similarity scores.
         """
@@ -282,7 +277,7 @@ class HistoricalContextEnricher:
             average_resolution_time_minutes=None,
             most_common_root_cause=None,
             confidence=0.0,
-            retrieval_timestamp=datetime.utcnow()
+            retrieval_timestamp=datetime.utcnow(),
         )
 
     def _update_avg_incidents(self, count: int) -> None:
@@ -302,8 +297,8 @@ class HistoricalContextEnricher:
                 self._stats["successful_enrichments"] / self._stats["total_enrichments"]
                 if self._stats["total_enrichments"] > 0
                 else 0.0
-            )
+            ),
         }
 
 
-__all__ = ["HistoricalContextEnricher", "EnrichedAlertContext", "HistoricalIncident"]
+__all__ = ["EnrichedAlertContext", "HistoricalContextEnricher", "HistoricalIncident"]

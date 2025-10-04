@@ -1,5 +1,4 @@
-"""
-Agent tools for knowledge retrieval and augmentation.
+"""Agent tools for knowledge retrieval and augmentation.
 
 Provides tools for web search, RAG retrieval, and other capabilities
 that enhance agent intelligence.

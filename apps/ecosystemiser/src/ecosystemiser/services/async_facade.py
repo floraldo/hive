@@ -1,5 +1,4 @@
-"""
-Async facade for EcoSystemiser services to enable high-performance I/O operations.,
+"""Async facade for EcoSystemiser services to enable high-performance I/O operations.,
 
 This facade provides async wrappers for existing services while maintaining
 backward compatibility with synchronous interfaces.
@@ -21,8 +20,7 @@ logger = get_logger(__name__)
 
 
 class AsyncEcoSystemiserFacade:
-    """
-    High-performance async facade for EcoSystemiser operations.,
+    """High-performance async facade for EcoSystemiser operations.,
 
     This facade enables async I/O operations while maintaining compatibility,
     with existing synchronous interfaces, providing significant performance
@@ -39,6 +37,7 @@ class AsyncEcoSystemiserFacade:
 
         Args:
             config: Optional configuration override,
+
         """
         if self._initialized:
             return
@@ -85,6 +84,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             Climate profile response,
+
         """
         if not self._initialized:
             await self.initialize_async()
@@ -105,6 +105,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             Climate profile response,
+
         """
         self.ensure_initialized()
 
@@ -134,6 +135,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             Simulation result,
+
         """
         if not self._initialized:
             await self.initialize_async()
@@ -155,6 +157,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             List of simulation results,
+
         """
         if not self._initialized:
             await self.initialize_async()
@@ -177,6 +180,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             Simulation result,
+
         """
         self.ensure_initialized()
 
@@ -205,6 +209,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             Validation result,
+
         """
         if not self._initialized:
             await self.initialize_async()
@@ -229,6 +234,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             Performance metrics dictionary,
+
         """
         if not self._initialized:
             await self.initialize_async()
@@ -243,6 +249,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             True if cancellation was successful,
+
         """
         if not self._initialized:
             await self.initialize_async()
@@ -257,6 +264,7 @@ class AsyncEcoSystemiserFacade:
 
         Returns:
             Status dictionary or None if not found,
+
         """
         if not self._initialized:
             await self.initialize_async()
@@ -294,6 +302,7 @@ class AsyncFacadeFactory:
 
         Returns:
             AsyncEcoSystemiserFacade instance
+
         """
         if self._instance is None:
             self._instance = AsyncEcoSystemiserFacade()
@@ -317,6 +326,7 @@ async def get_async_facade_async() -> AsyncEcoSystemiserFacade:
 
     Returns:
         AsyncEcoSystemiserFacade instance
+
     """
     return await _default_factory.get_facade_async()
 
@@ -326,6 +336,7 @@ def get_facade_sync() -> AsyncEcoSystemiserFacade:
 
     Returns:
         AsyncEcoSystemiserFacade instance,
+
     """
     global _global_facade
 
@@ -341,7 +352,7 @@ def get_facade_sync() -> AsyncEcoSystemiserFacade:
 
 
 async def run_simulation_with_async_io_async(
-    config_path: Path, solver_type: str = "milp", timeout: float | None = None
+    config_path: Path, solver_type: str = "milp", timeout: float | None = None,
 ) -> dict[str, Any]:
     """Run a single simulation with async I/O optimizations.
 
@@ -352,6 +363,7 @@ async def run_simulation_with_async_io_async(
 
     Returns:
         Simulation result dictionary,
+
     """
     facade = await get_async_facade_async()
 
@@ -365,14 +377,14 @@ async def run_simulation_with_async_io_async(
         system_config_path=str(config_path),
         solver_type=solver_type,
         solver_config=SolverConfig(verbose=False, solver_type=solver_type),
-        output_config={"save_results": True}
+        output_config={"save_results": True},
     )
     result = await facade.run_simulation_async(sim_config, timeout)
     return result.dict() if hasattr(result, "dict") else result.__dict__
 
 
 async def fetch_climate_data_async(
-    location: str, year: int, variables: list[str], source: str = "nasa_power"
+    location: str, year: int, variables: list[str], source: str = "nasa_power",
 ) -> dict[str, Any]:
     """Fetch climate data with async I/O optimizations.
 
@@ -384,6 +396,7 @@ async def fetch_climate_data_async(
 
     Returns:
         Climate data response,
+
     """
     facade = await get_async_facade_async()
 
@@ -394,7 +407,7 @@ async def fetch_climate_data_async(
         source=source,
         period={"year": year},
         mode="observed",
-        resolution="1H"
+        resolution="1H",
     )
 
     ds, response = await facade.get_climate_profile_async(request)

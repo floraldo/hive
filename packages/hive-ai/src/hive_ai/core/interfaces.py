@@ -77,8 +77,8 @@ class ModelProviderInterface(ABC):
 
         Returns:
             ModelResponse containing generated content and metadata.
+
         """
-        pass
 
     @abstractmethod
     async def generate_stream_async(self, prompt: str, model: str, **kwargs) -> AsyncIterable[str]:
@@ -91,8 +91,8 @@ class ModelProviderInterface(ABC):
 
         Yields:
             str: Incremental completion chunks as they become available.
+
         """
-        pass
 
     @abstractmethod
     def get_available_models(self) -> list[str]:
@@ -100,8 +100,8 @@ class ModelProviderInterface(ABC):
 
         Returns:
             List of model identifiers available from this provider.
+
         """
-        pass
 
     @abstractmethod
     def validate_connection(self) -> bool:
@@ -109,8 +109,8 @@ class ModelProviderInterface(ABC):
 
         Returns:
             True if connection is healthy, False otherwise.
+
         """
-        pass
 
 
 class VectorStoreInterface(ABC):
@@ -136,8 +136,8 @@ class VectorStoreInterface(ABC):
 
         Returns:
             List of vector IDs that were assigned.
+
         """
-        pass
 
     @abstractmethod
     async def search_async(
@@ -155,8 +155,8 @@ class VectorStoreInterface(ABC):
 
         Returns:
             List of search results with vectors, metadata, and similarity scores.
+
         """
-        pass
 
     @abstractmethod
     async def delete_async(self, ids: list[str]) -> bool:
@@ -167,8 +167,8 @@ class VectorStoreInterface(ABC):
 
         Returns:
             True if deletion was successful, False otherwise.
+
         """
-        pass
 
 
 class PromptTemplateInterface(ABC):
@@ -187,8 +187,8 @@ class PromptTemplateInterface(ABC):
 
         Returns:
             Rendered template string with variables substituted.
+
         """
-        pass
 
     @abstractmethod
     def validate_variables(self, **kwargs) -> bool:
@@ -199,8 +199,8 @@ class PromptTemplateInterface(ABC):
 
         Returns:
             True if all required variables are provided with correct types.
+
         """
-        pass
 
     @abstractmethod
     def get_required_variables(self) -> list[str]:
@@ -208,8 +208,8 @@ class PromptTemplateInterface(ABC):
 
         Returns:
             List of variable names that must be provided for rendering.
+
         """
-        pass
 
 
 class MetricsCollectorInterface(ABC):
@@ -228,8 +228,8 @@ class MetricsCollectorInterface(ABC):
             tokens: Token usage details for the operation.
             latency_ms: Operation latency in milliseconds.
             success: Whether the operation completed successfully.
+
         """
-        pass
 
     @abstractmethod
     async def record_vector_operation_async(self, operation: str, count: int, latency_ms: int, success: bool) -> None:
@@ -240,8 +240,8 @@ class MetricsCollectorInterface(ABC):
             count: Number of vectors processed.
             latency_ms: Operation latency in milliseconds.
             success: Whether the operation completed successfully.
+
         """
-        pass
 
     @abstractmethod
     def get_metrics_summary(self) -> dict[str, Any]:
@@ -249,5 +249,5 @@ class MetricsCollectorInterface(ABC):
 
         Returns:
             Dictionary containing aggregated metrics and performance statistics.
+
         """
-        pass

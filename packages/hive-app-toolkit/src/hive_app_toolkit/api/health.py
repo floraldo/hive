@@ -1,5 +1,4 @@
-"""
-Health check endpoints and canonical base health monitoring.
+"""Health check endpoints and canonical base health monitoring.
 
 CANONICAL BASE: BaseHealthMonitor
 All health monitoring implementations across the platform should inherit
@@ -57,8 +56,7 @@ class HealthCheckResult:
 
 
 class BaseHealthMonitor(ABC):
-    """
-    Canonical base class for all health monitoring implementations.
+    """Canonical base class for all health monitoring implementations.
 
     Provides common functionality:
     - Health check execution with timing
@@ -77,13 +75,13 @@ class BaseHealthMonitor(ABC):
         max_history_size: int = 100,
         alert_thresholds: dict[str, Any] | None = None,
     ):
-        """
-        Initialize base health monitor.
+        """Initialize base health monitor.
 
         Args:
             check_interval: Seconds between health checks
             max_history_size: Maximum health check results to store
             alert_thresholds: Custom alert thresholds
+
         """
         self.check_interval = check_interval
         self._max_history_size = max_history_size
@@ -101,20 +99,18 @@ class BaseHealthMonitor(ABC):
 
     @abstractmethod
     async def _perform_component_health_check_async(self) -> HealthCheckResult:
-        """
-        Perform component-specific health check.
+        """Perform component-specific health check.
 
         Override this method with component-specific logic (e.g., Redis ping,
         database connection test, AI model availability check).
 
         Returns:
             HealthCheckResult with component-specific details
+
         """
-        pass
 
     async def perform_health_check_async(self) -> HealthCheckResult:
-        """
-        Perform health check with timing and error handling.
+        """Perform health check with timing and error handling.
 
         This wraps the component-specific check with common functionality.
         """
@@ -227,26 +223,25 @@ class BaseHealthMonitor(ABC):
                 await asyncio.sleep(self.check_interval)
 
     def get_health_history(self, limit: int | None = None) -> list[HealthCheckResult]:
-        """
-        Get health check history.
+        """Get health check history.
 
         Args:
             limit: Maximum number of results to return
 
         Returns:
             List of health check results
+
         """
         if limit is None:
             return self._health_history.copy()
-        else:
-            return self._health_history[-limit:]
+        return self._health_history[-limit:]
 
     def get_health_summary(self) -> dict[str, Any]:
-        """
-        Get summary of health status.
+        """Get summary of health status.
 
         Returns:
             Health summary dictionary
+
         """
         if not self._health_history:
             return {"status": "unknown", "message": "No health checks performed yet"}
@@ -359,8 +354,7 @@ def get_health_manager() -> HealthManager:
 
 
 def add_health_endpoints(app: FastAPI, config: HiveAppConfig) -> None:
-    """
-    Add health check endpoints to the application.
+    """Add health check endpoints to the application.
 
     Adds three endpoints:
     - /health: Detailed health check with component status
@@ -370,8 +364,7 @@ def add_health_endpoints(app: FastAPI, config: HiveAppConfig) -> None:
 
     @app.get("/health", response_model=HealthStatus)
     async def health_check():
-        """
-        Comprehensive health check endpoint.
+        """Comprehensive health check endpoint.
 
         Returns detailed status including:
         - Overall application health
@@ -390,12 +383,11 @@ def add_health_endpoints(app: FastAPI, config: HiveAppConfig) -> None:
         except HTTPException:
             raise
         except Exception as e:
-            raise HTTPException(status_code=503, detail=f"Health check failed: {str(e)}")
+            raise HTTPException(status_code=503, detail=f"Health check failed: {e!s}")
 
     @app.get("/health/live")
     async def liveness_probe():
-        """
-        Kubernetes liveness probe endpoint.
+        """Kubernetes liveness probe endpoint.
 
         Simple endpoint that returns 200 OK if the application is running.
         Kubernetes will restart the pod if this fails.
@@ -404,8 +396,7 @@ def add_health_endpoints(app: FastAPI, config: HiveAppConfig) -> None:
 
     @app.get("/health/ready")
     async def readiness_probe():
-        """
-        Kubernetes readiness probe endpoint.
+        """Kubernetes readiness probe endpoint.
 
         Returns 200 OK if the application is ready to serve traffic.
         Kubernetes will route traffic only when this succeeds.
@@ -421,7 +412,7 @@ def add_health_endpoints(app: FastAPI, config: HiveAppConfig) -> None:
         except HTTPException:
             raise
         except Exception as e:
-            raise HTTPException(status_code=503, detail=f"Readiness check failed: {str(e)}")
+            raise HTTPException(status_code=503, detail=f"Readiness check failed: {e!s}")
 
     # Add default component checks
     if config.database.enabled:

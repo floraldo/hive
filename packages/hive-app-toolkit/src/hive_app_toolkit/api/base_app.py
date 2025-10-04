@@ -19,8 +19,7 @@ logger = get_logger(__name__)
 
 
 class HiveApp:
-    """
-    Enhanced FastAPI application with Hive platform standards.
+    """Enhanced FastAPI application with Hive platform standards.
 
     Provides production-grade foundation with:
     - Health monitoring endpoints
@@ -99,8 +98,7 @@ def create_hive_app(
     enable_metrics: bool = True,
     **kwargs: Any,
 ) -> FastAPI:
-    """
-    Create a production-ready FastAPI application with Hive standards.
+    """Create a production-ready FastAPI application with Hive standards.
 
     Args:
         title: Application title (required),
@@ -138,6 +136,7 @@ def create_hive_app(
         async def hello():
             return {"message": "Hello, Hive!"}
         ```
+
     """
     # Input validation
     if not title or not isinstance(title, str):

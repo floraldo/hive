@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AI Deployer Application - BaseApplication Implementation
+"""AI Deployer Application - BaseApplication Implementation
 
 Migrated to use BaseApplication from hive-app-toolkit for:
 - Automatic configuration loading (Project Unify V2)
@@ -25,8 +24,7 @@ logger = get_logger("ai-deployer.app")
 
 
 class AIDeployerApp(BaseApplication):
-    """
-    AI Deployer Application
+    """AI Deployer Application
 
     Autonomous deployment service that:
     - Monitors deployment_pending tasks in database
@@ -38,13 +36,13 @@ class AIDeployerApp(BaseApplication):
     app_name = "ai-deployer"
 
     def __init__(self, config=None, test_mode: bool = False, polling_interval: int = 30):
-        """
-        Initialize AI Deployer application.
+        """Initialize AI Deployer application.
 
         Args:
             config: Optional pre-loaded configuration (for testing)
             test_mode: Run in test/mock mode
             polling_interval: Seconds between queue polls
+
         """
         super().__init__(config=config)
         self.test_mode = test_mode
@@ -53,14 +51,13 @@ class AIDeployerApp(BaseApplication):
         self.orchestrator = None
 
     async def initialize_services(self):
-        """
-        Initialize AI Deployer services.
+        """Initialize AI Deployer services.
 
         Resources (db, cache, event_bus) are already initialized by BaseApplication.
         """
         self.logger.info(
             f"Initializing AI Deployer services "
-            f"(test_mode={self.test_mode}, poll_interval={self.polling_interval}s)..."
+            f"(test_mode={self.test_mode}, poll_interval={self.polling_interval}s)...",
         )
 
         # Create deployment orchestrator
@@ -69,14 +66,13 @@ class AIDeployerApp(BaseApplication):
         # Create deployment agent
         # Future: Pass self.db instead of DatabaseAdapter
         self.deployment_agent = DeploymentAgent(
-            orchestrator=self.orchestrator, polling_interval=self.polling_interval, test_mode=self.test_mode
+            orchestrator=self.orchestrator, polling_interval=self.polling_interval, test_mode=self.test_mode,
         )
 
         self.logger.info("AI Deployer services initialized successfully")
 
     async def run(self):
-        """
-        Main application logic - run the deployment agent loop.
+        """Main application logic - run the deployment agent loop.
 
         Polls for deployment tasks and processes them until shutdown.
         """
@@ -127,8 +123,7 @@ class AIDeployerApp(BaseApplication):
         return result
 
     async def cleanup_services(self):
-        """
-        Cleanup AI Deployer services.
+        """Cleanup AI Deployer services.
 
         BaseApplication handles db, cache, bus cleanup.
         We only clean deployer-specific resources.
@@ -141,13 +136,13 @@ class AIDeployerApp(BaseApplication):
 
 
 def main() -> int:
-    """
-    Entry point for AI Deployer application.
+    """Entry point for AI Deployer application.
 
     Supports command-line arguments for backward compatibility.
 
     Returns:
         Exit code (0 for success, 1 for failure)
+
     """
     import argparse
 

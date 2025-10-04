@@ -1,5 +1,4 @@
-"""
-Demonstration of RAG-Enhanced PR Comment Engine.
+"""Demonstration of RAG-Enhanced PR Comment Engine.
 
 This shows how the Guardian Agent uses RAG to post intelligent,
 contextual comments on pull requests WITHOUT modifying code.
@@ -57,7 +56,7 @@ async def demo_rag_comments():
     print()
     print(
         "Similar database operations in the codebase use async context managers "
-        "with proper error handling. Consider adding similar error handling here for resilience."
+        "with proper error handling. Consider adding similar error handling here for resilience.",
     )
     print()
     print("**Example Pattern:**")
@@ -75,7 +74,7 @@ async def demo_rag_comments():
     print()
     print("---")
     print(
-        "*Guardian Agent with RAG • Confidence: 92% • Retrieved: 2 patterns in 87ms*"
+        "*Guardian Agent with RAG • Confidence: 92% • Retrieved: 2 patterns in 87ms*",
     )
     print()
     print()
@@ -87,7 +86,7 @@ async def demo_rag_comments():
     print()
     print(
         "The codebase uses `hive_logging.get_logger(__name__)` for all logging. "
-        "Avoid using `print()` statements. Use structured logging instead."
+        "Avoid using `print()` statements. Use structured logging instead.",
     )
     print()
     print("**Example Pattern:**")
@@ -103,7 +102,7 @@ async def demo_rag_comments():
     print()
     print("---")
     print(
-        "*Guardian Agent with RAG • Confidence: 95% • Retrieved: 3 patterns in 45ms*"
+        "*Guardian Agent with RAG • Confidence: 95% • Retrieved: 3 patterns in 45ms*",
     )
     print()
     print()
@@ -118,7 +117,7 @@ async def demo_rag_comments():
     print("=" * 60)
     print()
     print(
-        "✅ Comments posted to PR #123. No code was modified (read-only operation)."
+        "✅ Comments posted to PR #123. No code was modified (read-only operation).",
     )
     print()
 

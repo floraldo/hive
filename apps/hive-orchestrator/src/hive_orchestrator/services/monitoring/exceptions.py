@@ -1,5 +1,4 @@
-"""
-Monitoring Service Exceptions
+"""Monitoring Service Exceptions
 
 Service-specific exceptions for monitoring operations.
 """

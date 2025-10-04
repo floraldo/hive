@@ -1,5 +1,4 @@
-"""
-Shared base adapter with unified HTTP client, caching, and retry logic.,
+"""Shared base adapter with unified HTTP client, caching, and retry logic.,
 
 This module provides the foundation for all climate data adapters with:
 - Async HTTP client with connection pooling
@@ -133,10 +132,9 @@ class LayeredCache:
                 self._cache_order.append(key)
                 logger.debug(f"Memory cache hit: {key[:8]}...")
                 return value
-            else:
-                # Expired, remove it
-                del self._memory_cache[key]
-                self._cache_order.remove(key)
+            # Expired, remove it
+            del self._memory_cache[key]
+            self._cache_order.remove(key)
 
         # Check disk cache
         if self._disk_cache:
@@ -278,8 +276,7 @@ class SharedHTTPClient:
 
 
 class BaseAdapter(ABC):
-    """
-    Base adapter with shared functionality for all climate data sources.,
+    """Base adapter with shared functionality for all climate data sources.,
 
     This class provides:
     - Unified async HTTP client with pooling and retry
@@ -320,8 +317,7 @@ class BaseAdapter(ABC):
         period: dict[str, Any],
         **kwargs,
     ) -> xr.Dataset | None:
-        """
-        Main entry point for fetching climate data.,
+        """Main entry point for fetching climate data.,
 
         Implements the unified pipeline:
         1. Check cache
@@ -373,7 +369,6 @@ class BaseAdapter(ABC):
         **kwargs,
     ) -> Any | None:
         """Fetch raw data from the specific source"""
-        pass
 
     @abstractmethod
     async def _transform_data_async(
@@ -383,11 +378,9 @@ class BaseAdapter(ABC):
         variables: list[str],
     ) -> xr.Dataset:
         """Transform raw data to xarray Dataset"""
-        pass
 
     async def _validate_data_async(self, ds: xr.Dataset) -> xr.Dataset:
-        """
-        Common validation applicable to all sources.,
+        """Common validation applicable to all sources.,
 
         Can be overridden for source-specific validation.,
         """

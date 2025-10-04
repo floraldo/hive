@@ -12,4 +12,4 @@ with the Analyser and DataVis modules to provide comprehensive reporting.
 from ecosystemiser.reporting.app import create_app
 from ecosystemiser.reporting.generator import HTMLReportGenerator, create_standalone_html_report
 
-__all__ = ["create_app", "HTMLReportGenerator", "create_standalone_html_report"]
+__all__ = ["HTMLReportGenerator", "create_app", "create_standalone_html_report"]

@@ -1,5 +1,4 @@
-"""
-Hive Logging package - Structured logging utilities for Hive applications
+"""Hive Logging package - Structured logging utilities for Hive applications
 """
 
 from .logger import get_logger, setup_logging

@@ -1,5 +1,4 @@
-"""
-Scenario management system for EcoSystemiser results storage and retrieval.
+"""Scenario management system for EcoSystemiser results storage and retrieval.
 """
 from __future__ import annotations
 
@@ -27,6 +26,7 @@ class ScenarioManager:
 
         Args:
             base_path: Base directory for scenario storage,
+
         """
         self.base_path = base_path or Path(__file__).parent.parent.parent.parent / "data"
         self.results_io = ResultsIO()
@@ -47,7 +47,7 @@ class ScenarioManager:
             "results",
             "cache/preprocessed_profiles",
             "cache/kpi_aggregations",
-            "cache/visualization_data"
+            "cache/visualization_data",
         ],
 
         for directory in directories:
@@ -131,8 +131,9 @@ class ScenarioManager:
             scenario_name: Human-readable name,
             config: Scenario configuration dictionary,
             metadata: Additional metadata,
+
         """
-        config_hash = hashlib.md5(json.dumps(config, sort_keys=True).encode()).hexdigest()  # noqa: S324
+        config_hash = hashlib.md5(json.dumps(config, sort_keys=True).encode()).hexdigest()
 
         with get_ecosystemiser_connection() as conn:
             conn.execute(""",
@@ -157,6 +158,7 @@ class ScenarioManager:
 
         Returns:
             Generated run_id,
+
         """
         run_id = f"{scenario_id}_{solver_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
         started_at = datetime.now().isoformat()
@@ -169,7 +171,7 @@ class ScenarioManager:
             # Store metadata and KPIs
             kpis = self._extract_kpis(system),
             metadata_file = result_dir / "metadata.json",
-            with open(metadata_file, 'w') as f:
+            with open(metadata_file, "w") as f:
                 json.dump({
                     "run_id": run_id,
                     "scenario_id": scenario_id,
@@ -242,6 +244,7 @@ class ScenarioManager:
 
         Returns:
             Dictionary of KPI values with metadata,
+
         """
         kpis = {}
 
@@ -276,38 +279,38 @@ class ScenarioManager:
         # Calculate derived KPIs
         kpis.update({
             "solar_generation_mwh": {
-                "value": solar_total / 1000, "unit": "MWh", "category": "energy"
+                "value": solar_total / 1000, "unit": "MWh", "category": "energy",
             },
             "total_demand_mwh": {
-                "value": demand_total / 1000, "unit": "MWh", "category": "energy"
+                "value": demand_total / 1000, "unit": "MWh", "category": "energy",
             },
             "grid_import_mwh": {
-                "value": grid_import_total / 1000, "unit": "MWh", "category": "energy"
+                "value": grid_import_total / 1000, "unit": "MWh", "category": "energy",
             },
             "grid_export_mwh": {
-                "value": grid_export_total / 1000, "unit": "MWh", "category": "energy"
+                "value": grid_export_total / 1000, "unit": "MWh", "category": "energy",
             },
             "net_grid_mwh": {
                 "value": (grid_import_total - grid_export_total) / 1000,
-                "unit": "MWh", "category": "energy"
+                "unit": "MWh", "category": "energy",
             },
             "self_consumption_ratio": {
                 "value": min(1.0, demand_total / solar_total) if solar_total > 0 else 0,
-                "unit": "ratio", "category": "performance"
+                "unit": "ratio", "category": "performance",
             },
             "self_sufficiency_ratio": {
                 "value": min(1.0, (solar_total - grid_export_total) / demand_total) if demand_total > 0 else 0,
-                "unit": "ratio", "category": "performance"
+                "unit": "ratio", "category": "performance",
             },
             "battery_cycles": {
-                "value": battery_cycles, "unit": "cycles", "category": "storage"
+                "value": battery_cycles, "unit": "cycles", "category": "storage",
             },
             "battery_avg_soc": {
-                "value": battery_avg_soc, "unit": "ratio", "category": "storage"
+                "value": battery_avg_soc, "unit": "ratio", "category": "storage",
             },
             "battery_range_kwh": {
-                "value": battery_range_kwh, "unit": "kWh", "category": "storage"
-            }
+                "value": battery_range_kwh, "unit": "kWh", "category": "storage",
+            },
         }),
 
         return kpis
@@ -321,6 +324,7 @@ class ScenarioManager:
 
         Returns:
             Dictionary mapping profile types to file paths,
+
         """
         profile_paths = {}
 
@@ -336,7 +340,7 @@ class ScenarioManager:
                         "source": flow_data["source"],
                         "target": flow_data["target"],
                         "type": flow_data["type"],
-                        "value": value
+                        "value": value,
                     })
 
         if flows_data:
@@ -359,7 +363,7 @@ class ScenarioManager:
                             "medium": component.medium,
                             "variable": "E",
                             "value": energy,
-                            "unit": "kWh"
+                            "unit": "kWh",
                         })
 
             # Generation profiles
@@ -373,7 +377,7 @@ class ScenarioManager:
                             "medium": component.medium,
                             "variable": "profile",
                             "value": power,
-                            "unit": "kW"
+                            "unit": "kW",
                         })
 
         if components_data:
@@ -393,6 +397,7 @@ class ScenarioManager:
 
         Returns:
             Result dictionary or None if not found,
+
         """
         with get_ecosystemiser_connection() as conn:
             cursor = conn.execute(""",
@@ -429,6 +434,7 @@ class ScenarioManager:
 
         Returns:
             DataFrame with profile data or None,
+
         """
         profile_file = Path(results_path) / f"{profile_type}.parquet"
         if profile_file.exists():
@@ -445,6 +451,7 @@ class ScenarioManager:
 
         Returns:
             DataFrame with comparison results,
+
         """
         with get_ecosystemiser_connection() as conn:
             placeholders = ",".join(["?"] * len(scenario_ids))

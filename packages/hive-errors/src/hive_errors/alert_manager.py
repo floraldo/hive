@@ -1,5 +1,4 @@
-"""
-Predictive alert management system.
+"""Predictive alert management system.
 
 Manages the lifecycle of predictive alerts, including creation,
 routing, deduplication, and resolution.
@@ -44,8 +43,7 @@ class AlertRoutingRule:
 
 
 class PredictiveAlertManager:
-    """
-    Manage predictive alerts based on monitoring data.
+    """Manage predictive alerts based on monitoring data.
 
     Integrates with MonitoringErrorReporter and HealthMonitor to
     analyze trends and generate proactive alerts.
@@ -55,15 +53,15 @@ class PredictiveAlertManager:
         self,
         configs: list[AlertConfig] | None = None,
         routing_rules: list[AlertRoutingRule] | None = None,
-        historical_enricher=None
+        historical_enricher=None,
     ):
-        """
-        Initialize predictive alert manager.
+        """Initialize predictive alert manager.
 
         Args:
             configs: Alert configurations per service/metric
             routing_rules: Alert routing rules by severity
             historical_enricher: HistoricalContextEnricher for PROJECT CHIMERA integration
+
         """
         self.configs: dict[tuple[str, MetricType], AlertConfig] = {}
         if configs:
@@ -138,8 +136,7 @@ class PredictiveAlertManager:
         metric_type: MetricType,
         metrics: list[MetricPoint],
     ) -> DegradationAlert | None:
-        """
-        Analyze metric trend and generate alert if degradation detected.
+        """Analyze metric trend and generate alert if degradation detected.
 
         Args:
             service_name: Name of service being monitored
@@ -148,6 +145,7 @@ class PredictiveAlertManager:
 
         Returns:
             DegradationAlert if degradation detected, None otherwise
+
         """
         # Get configuration
         config = self.get_config(service_name, metric_type)
@@ -190,14 +188,14 @@ class PredictiveAlertManager:
         return None
 
     def _is_duplicate_alert(self, alert: DegradationAlert) -> bool:
-        """
-        Check if alert is duplicate of existing active alert.
+        """Check if alert is duplicate of existing active alert.
 
         Args:
             alert: Alert to check
 
         Returns:
             True if duplicate exists
+
         """
         for active_alert in self.active_alerts.values():
             if (
@@ -213,11 +211,11 @@ class PredictiveAlertManager:
         return False
 
     async def _route_alert_async(self, alert: DegradationAlert) -> None:
-        """
-        Route alert to configured channels based on severity.
+        """Route alert to configured channels based on severity.
 
         Args:
             alert: Alert to route
+
         """
         routing_rule = self.routing_rules.get(alert.severity)
         if not routing_rule:
@@ -243,11 +241,11 @@ class PredictiveAlertManager:
             await asyncio.gather(*tasks, return_exceptions=True)
 
     async def _send_to_github_async(self, alert: DegradationAlert) -> None:
-        """
-        Create GitHub issue for alert.
+        """Create GitHub issue for alert.
 
         Args:
             alert: Alert to create issue for
+
         """
         try:
             # This would integrate with GitHub API
@@ -270,12 +268,12 @@ class PredictiveAlertManager:
             logger.error(f"Failed to send alert to GitHub: {e}")
 
     async def _send_to_slack_async(self, alert: DegradationAlert, channel: str) -> None:
-        """
-        Send alert to Slack channel.
+        """Send alert to Slack channel.
 
         Args:
             alert: Alert to send
             channel: Slack channel identifier
+
         """
         try:
             logger.info(f"Slack notification to {channel} for alert: {alert.alert_id}")
@@ -291,11 +289,11 @@ class PredictiveAlertManager:
             logger.error(f"Failed to send alert to Slack: {e}")
 
     async def _send_to_pagerduty_async(self, alert: DegradationAlert) -> None:
-        """
-        Send alert to PagerDuty.
+        """Send alert to PagerDuty.
 
         Args:
             alert: Alert to send
+
         """
         try:
             logger.info(f"PagerDuty incident for alert: {alert.alert_id}")
@@ -339,15 +337,15 @@ class PredictiveAlertManager:
             lines.append(f"- {action}")
 
         # PROJECT CHIMERA: Add historical context if enricher available
-        if self.historical_enricher and hasattr(alert, 'metadata') and 'enriched_context' in alert.metadata:
-            context = alert.metadata['enriched_context']
+        if self.historical_enricher and hasattr(alert, "metadata") and "enriched_context" in alert.metadata:
+            context = alert.metadata["enriched_context"]
             lines.extend([
                 "",
                 "## Historical Context",
                 "",
                 f"**Similar Past Incidents**: {context.total_historical_occurrences}",
                 f"**Average Resolution Time**: {context.average_resolution_time_minutes:.0f} minutes" if context.average_resolution_time_minutes else "**Average Resolution Time**: Unknown",
-                ""
+                "",
             ])
 
             if context.most_common_root_cause:
@@ -430,8 +428,7 @@ class PredictiveAlertManager:
         }
 
     async def resolve_alert_async(self, alert_id: str, resolution_note: str = "") -> bool:
-        """
-        Resolve an active alert.
+        """Resolve an active alert.
 
         Args:
             alert_id: ID of alert to resolve
@@ -439,6 +436,7 @@ class PredictiveAlertManager:
 
         Returns:
             True if alert was resolved
+
         """
         if alert_id not in self.active_alerts:
             logger.warning(f"Alert not found: {alert_id}")
@@ -457,8 +455,7 @@ class PredictiveAlertManager:
         service_name: str | None = None,
         severity: AlertSeverity | None = None,
     ) -> list[DegradationAlert]:
-        """
-        Get currently active alerts with optional filtering.
+        """Get currently active alerts with optional filtering.
 
         Args:
             service_name: Filter by service name
@@ -466,6 +463,7 @@ class PredictiveAlertManager:
 
         Returns:
             List of active alerts matching filters
+
         """
         alerts = list(self.active_alerts.values())
 
@@ -486,14 +484,14 @@ class PredictiveAlertManager:
         }
 
     def clear_old_alerts(self, hours: int = 24) -> int:
-        """
-        Clear old active alerts that haven't been resolved.
+        """Clear old active alerts that haven't been resolved.
 
         Args:
             hours: Age threshold for clearing alerts
 
         Returns:
             Number of alerts cleared
+
         """
         cutoff = (datetime.utcnow() - timedelta(hours=hours),)
         alerts_to_clear = [alert_id for alert_id, alert in self.active_alerts.items() if alert.created_at < cutoff]

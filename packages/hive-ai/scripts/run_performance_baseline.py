@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Runner script for performance baseline that ensures correct package imports.
+"""Runner script for performance baseline that ensures correct package imports.
 
 This script sets up the Python path to use workspace packages instead of
 globally installed ones, preventing ImportError issues.

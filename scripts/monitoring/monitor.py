@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal monitoring tooling.
 
-"""
-Unified Monitoring Runner - Consolidates All Monitoring Operations
+"""Unified Monitoring Runner - Consolidates All Monitoring Operations
 
 Replaces 5 separate monitoring scripts with a single unified interface:
 - alert_validation_tracker.py → monitor.py --alerts
@@ -55,7 +53,7 @@ def run_script(script_name: str, args: list[str]) -> int:
     print(f"Command: {' '.join(cmd)}")
     print(f"{'=' * 80}\n")
 
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd, check=False)
     return result.returncode
 
 

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal debugging tooling.
 
-"""
-Run Inspection Tool - Objective Code Analysis for Intelligent Review
+"""Run Inspection Tool - Objective Code Analysis for Intelligent Review
 
 This script provides objective analysis of a run's output to support
 the Queen's intelligent decision-making during the review phase.
@@ -137,7 +135,7 @@ class RunInspector:
                     # Try ruff first (faster)
                     result = subprocess.run(
                         ["ruff", "check", file_path, "--output-format", "json"],
-                        capture_output=True,
+                        check=False, capture_output=True,
                         text=True,
                         timeout=10,
                     )
@@ -165,7 +163,7 @@ class RunInspector:
                     try:
                         result = subprocess.run(
                             ["python", "-m", "py_compile", file_path],
-                            capture_output=True,
+                            check=False, capture_output=True,
                             text=True,
                             timeout=5,
                         )
@@ -247,10 +245,9 @@ class RunInspector:
         """Get recommendation based on quality score"""
         if score >= 80:
             return "approve"  # Good quality, ready to proceed
-        elif score >= 60:
+        if score >= 60:
             return "conditional"  # Needs minor fixes
-        else:
-            return "rework"  # Needs significant improvement
+        return "rework"  # Needs significant improvement
 
     def inspect(self) -> dict[str, Any]:
         """Run full inspection"""

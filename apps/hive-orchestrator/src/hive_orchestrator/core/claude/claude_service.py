@@ -1,5 +1,4 @@
-"""
-Centralized Claude Service
+"""Centralized Claude Service
 Manages all Claude API interactions with rate limiting, caching, and monitoring
 """
 
@@ -155,8 +154,7 @@ class RateLimiter:
 
 
 class ClaudeService:
-    """
-    Centralized service for all Claude API interactions
+    """Centralized service for all Claude API interactions
 
     Features:
     - Rate limiting to prevent API throttling
@@ -180,6 +178,7 @@ class ClaudeService:
             rate_config: Rate limiting configuration,
             cache_ttl: Cache TTL in seconds,
             claude_config: Full Claude configuration dictionary,
+
         """
         # Use provided claude_config if available, otherwise use defaults
         if claude_config is None:
@@ -242,9 +241,8 @@ class ClaudeService:
                 self.metrics.cached_responses += 1
                 logger.debug(f"Cache hit for key {cache_key[:8]}... (hits: {entry.hit_count})")
                 return entry.response
-            else:
-                # Remove expired entry
-                del self.cache[cache_key]
+            # Remove expired entry
+            del self.cache[cache_key]
 
         return None
 
@@ -264,6 +262,7 @@ class ClaudeService:
 
         Returns:
             True if can proceed, False if should abort
+
         """
         max_wait = 120  # Maximum 2 minutes wait,
         start_time = time.time()
@@ -293,6 +292,7 @@ class ClaudeService:
 
         Returns:
             Operation result
+
         """
         # Generate cache key
         cache_key = self._generate_cache_key(operation, **kwargs) if use_cache else None
@@ -381,6 +381,7 @@ class ClaudeService:
 
         Returns:
             Execution plan dictionary,
+
         """
         return self._execute_with_metrics(
             "generate_plan",
@@ -417,6 +418,7 @@ class ClaudeService:
 
         Returns:
             Review result dictionary,
+
         """
         return self._execute_with_metrics(
             "review_code",
@@ -517,6 +519,7 @@ def get_claude_service(
 
     Returns:
         ClaudeService singleton instance
+
     """
     global _service
     if _service is None:

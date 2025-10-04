@@ -154,7 +154,7 @@ class ERA5Adapter(BaseAdapter):
     def _check_cdsapi(self) -> bool:
         """Check if cdsapi library is available"""
         try:
-            import cdsapi  # noqa: F401
+            import cdsapi
 
             # Check for API key in environment or config file,
             if not os.path.exists(os.path.expanduser("~/.cdsapirc")):
@@ -167,7 +167,7 @@ class ERA5Adapter(BaseAdapter):
             return False
 
     async def _fetch_raw_async(
-        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs
+        self, location: tuple[float, float], variables: list[str], period: dict, **kwargs,
     ) -> Any | None:
         """Fetch raw data from ERA5 CDS API"""
         if not self._cdsapi_available:
@@ -209,7 +209,7 @@ class ERA5Adapter(BaseAdapter):
 
         # Build request parameters
         request_params = self._build_request(
-            lat, lon, era5_params, start_date, end_date, kwargs.get("resolution", "1H")
+            lat, lon, era5_params, start_date, end_date, kwargs.get("resolution", "1H"),
         )
 
         self.logger.info(f"Fetching ERA5 data for {lat},{lon} from {start_date} to {end_date}")
@@ -225,7 +225,7 @@ class ERA5Adapter(BaseAdapter):
         except Exception as e:
             raise DataFetchError(
                 self.ADAPTER_NAME,
-                f"CDS API request failed: {str(e)}",
+                f"CDS API request failed: {e!s}",
                 details={
                     "dataset": dataset,
                     "params": request_params,
@@ -243,7 +243,7 @@ class ERA5Adapter(BaseAdapter):
             return ds
         except Exception as e:
             raise DataParseError(
-                self.ADAPTER_NAME, f"Failed to load NetCDF data: {str(e)}", details={"file_path": tmp_path}
+                self.ADAPTER_NAME, f"Failed to load NetCDF data: {e!s}", details={"file_path": tmp_path},
             )
         finally:
             # Clean up temp file,
@@ -254,7 +254,7 @@ class ERA5Adapter(BaseAdapter):
                     pass  # Ignore cleanup errors,
 
     async def _transform_data_async(
-        self, raw_data: Any, location: tuple[float, float], variables: list[str]
+        self, raw_data: Any, location: tuple[float, float], variables: list[str],
     ) -> xr.Dataset:
         """Transform raw ERA5 data to xarray Dataset"""
         lat, lon = location
@@ -271,7 +271,7 @@ class ERA5Adapter(BaseAdapter):
                 "latitude": lat,
                 "longitude": lon,
                 "license": "Copernicus Climate Change Service",
-            }
+            },
         )
 
         return ds
@@ -286,10 +286,9 @@ class ERA5Adapter(BaseAdapter):
             raise ValidationError("Variables list cannot be empty", field="variables", value=variables)
 
     async def fetch_async(
-        self, *, lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H"
+        self, *, lat: float, lon: float, variables: list[str], period: dict, resolution: str = "1H",
     ) -> xr.Dataset:
-        """
-        Fetch climate data from ERA5 reanalysis.
+        """Fetch climate data from ERA5 reanalysis.
 
         Args:
             lat: Latitude (-90 to 90),
@@ -305,8 +304,8 @@ class ERA5Adapter(BaseAdapter):
             DataFetchError: If CDS API request fails,
             DataParseError: If response cannot be parsed,
             ValidationError: If parameters are invalid,
-        """
 
+        """
         if not self._cdsapi_available:
             raise DataFetchError(
                 self.ADAPTER_NAME,
@@ -318,14 +317,14 @@ class ERA5Adapter(BaseAdapter):
         try:
             # Use base class fetch method,
             return await super().fetch_async(
-                location=(lat, lon), variables=variables, period=period, resolution=resolution
+                location=(lat, lon), variables=variables, period=period, resolution=resolution,
             )
 
         except Exception as e:
             # Wrap unexpected errors
             error = DataFetchError(
                 self.ADAPTER_NAME,
-                f"Unexpected error fetching ERA5 data: {str(e)}",
+                f"Unexpected error fetching ERA5 data: {e!s}",
                 details={"lat": lat, "lon": lon, "variables": variables},
             )
             self.logger.error(f"Unexpected error: {error}")
@@ -333,7 +332,6 @@ class ERA5Adapter(BaseAdapter):
 
     def _parse_period(self, period: dict) -> tuple:
         """Parse period dict to start and end dates"""
-
         try:
             if "year" in period:
                 year = int(period["year"])
@@ -393,12 +391,12 @@ class ERA5Adapter(BaseAdapter):
 
                     if start_year < 1940:
                         raise ValidationError(
-                            "ERA5 data only available from 1940 onwards", field="period.start_year", value=start_year
+                            "ERA5 data only available from 1940 onwards", field="period.start_year", value=start_year,
                         )
 
                     if start_year > end_year:
                         raise ValidationError(
-                            "Start year must be before or equal to end year", field="period", value=period
+                            "Start year must be before or equal to end year", field="period", value=period,
                         )
                     start_date = datetime(start_year, 1, 1)
                     end_date = datetime(end_year, 12, 31)
@@ -415,11 +413,10 @@ class ERA5Adapter(BaseAdapter):
         except ValidationError:
             raise
         except Exception as e:
-            raise ValidationError(f"Error parsing period: {str(e)}", field="period", value=period)
+            raise ValidationError(f"Error parsing period: {e!s}", field="period", value=period)
 
     def _map_variables(self, variables: list[str]) -> list[str]:
         """Map canonical variable names to ERA5 parameters"""
-
         era5_params = [],
         unavailable_vars = []
 
@@ -452,16 +449,14 @@ class ERA5Adapter(BaseAdapter):
 
     def _select_dataset(self, start_date: datetime, end_date: datetime) -> str:
         """Select appropriate ERA5 dataset"""
-
         # Use ERA5-Land for land surface variables if available
         # Otherwise use standard ERA5,
         return "reanalysis-era5-single-levels"
 
     def _build_request(
-        self, lat: float, lon: float, variables: list[str], start_date: datetime, end_date: datetime, resolution: str
+        self, lat: float, lon: float, variables: list[str], start_date: datetime, end_date: datetime, resolution: str,
     ) -> dict:
         """Build CDS API request parameters"""
-
         # Define area: North, West, South, East
         # Add small buffer around point
         buffer = 0.25,
@@ -503,15 +498,13 @@ class ERA5Adapter(BaseAdapter):
         return request
 
     def _select_nearest_coordinates(self, ds: xr.Dataset, lat: float, lon: float) -> xr.Dataset:
-        """
-        Robust coordinate selection that handles different ERA5 coordinate naming conventions.
+        """Robust coordinate selection that handles different ERA5 coordinate naming conventions.
 
         Supports:
         - Standard names: 'latitude', 'longitude'
         - Short names: 'lat', 'lon'
         - Stacked coordinates: multi-dimensional coordinate arrays,
         """
-
         # Common coordinate name variations in ERA5 files
         lat_names = ["latitude", "lat", "y"]
         lon_names = ["longitude", "lon", "x"]
@@ -578,13 +571,12 @@ class ERA5Adapter(BaseAdapter):
         except Exception as e:
             raise DataParseError(
                 self.ADAPTER_NAME,
-                f"Failed to select coordinates ({lat}, {lon}) from ERA5 dataset: {str(e)}",  # noqa: S608
+                f"Failed to select coordinates ({lat}, {lon}) from ERA5 dataset: {e!s}",
                 details={"lat_coord": lat_coord, "lon_coord": lon_coord, "requested_lat": lat, "requested_lon": lon},
             )
 
     def _process_era5_data(self, ds: xr.Dataset, variables: list[str], lat: float, lon: float) -> xr.Dataset:
         """Process and standardize ERA5 data"""
-
         # Select nearest point to requested coordinates with robust coordinate handling
         ds = self._select_nearest_coordinates(ds, lat, lon)
 
@@ -722,7 +714,6 @@ class ERA5Adapter(BaseAdapter):
 
     def _get_variable_attrs(self, canonical_name: str) -> dict:
         """Get variable attributes including units"""
-
         units_map = {
             "temp_air": "degC",
             "dewpoint": "degC",
@@ -830,7 +821,6 @@ class ERA5QCProfile(QCProfile):
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """ERA5 specific validation"""
-
         # Check for over-smoothed data (typical of reanalysis),
         for var_name in ["temp_air", "wind_speed"]:
             if var_name not in ds:

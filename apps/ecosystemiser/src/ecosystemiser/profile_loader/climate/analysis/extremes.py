@@ -1,5 +1,4 @@
-"""
-Extreme event analysis for climate data.
+"""Extreme event analysis for climate data.
 """
 
 import numpy as np
@@ -17,8 +16,7 @@ def find_extreme_events(
     threshold_percentile: float = 95,
     min_duration_hours: int = 24,
 ) -> list[dict]:
-    """
-    Find extreme events (hot/cold spells, high wind, etc).
+    """Find extreme events (hot/cold spells, high wind, etc).
 
     Args:
         ds: Climate dataset,
@@ -28,6 +26,7 @@ def find_extreme_events(
 
     Returns:
         List of extreme events with metadata,
+
     """
     if variable not in ds:
         logger.warning(f"Variable {variable} not found in dataset")
@@ -98,8 +97,7 @@ def identify_heat_waves(
     min_duration_days: int = 3,
     night_relief_threshold: float = 20,
 ) -> list[dict]:
-    """
-    Identify heat wave events using temperature criteria.
+    """Identify heat wave events using temperature criteria.
 
     Args:
         ds: Climate dataset,
@@ -109,6 +107,7 @@ def identify_heat_waves(
 
     Returns:
         List of heat wave events,
+
     """
     if "temp_air" not in ds or "time" not in ds["temp_air"].dims:
         return []
@@ -165,8 +164,7 @@ def identify_heat_waves(
 
 
 def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration_days: int = 3) -> list[dict]:
-    """
-    Identify cold snap events.
+    """Identify cold snap events.
 
     Args:
         ds: Climate dataset
@@ -175,6 +173,7 @@ def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration
 
     Returns:
         List of cold snap events,
+
     """
     if "temp_air" not in ds or "time" not in ds["temp_air"].dims:
         return []
@@ -225,8 +224,7 @@ def identify_cold_snaps(ds: xr.Dataset, temp_threshold: float = -5, min_duration
 
 
 def calculate_percentiles(ds: xr.Dataset, variables: list[str] | None = None, percentiles: list[float] = None) -> dict:
-    """
-    Calculate percentile values for variables.
+    """Calculate percentile values for variables.
 
     Args:
         ds: Climate dataset,
@@ -235,6 +233,7 @@ def calculate_percentiles(ds: xr.Dataset, variables: list[str] | None = None, pe
 
     Returns:
         Dictionary with percentile values,
+
     """
     if percentiles is None:
         percentiles = [1, 5, 25, 50, 75, 95, 99]
@@ -267,8 +266,7 @@ def calculate_return_periods(
     return_years: list[int] = None,
     extreme_type: str = "max",
 ) -> dict:
-    """
-    Estimate return period values using simple statistical methods.
+    """Estimate return period values using simple statistical methods.
 
     Note: For rigorous analysis, use specialized extreme value packages.
 
@@ -280,6 +278,7 @@ def calculate_return_periods(
 
     Returns:
         Dictionary with return period estimates,
+
     """
     if return_years is None:
         return_years = [2, 5, 10, 25, 50, 100]
@@ -342,14 +341,14 @@ def calculate_return_periods(
 
 
 def summarize_extremes(ds: xr.Dataset) -> dict:
-    """
-    Comprehensive summary of extreme events in the dataset.
+    """Comprehensive summary of extreme events in the dataset.
 
     Args:
         ds: Climate dataset
 
     Returns:
         Dictionary with extreme event summary,
+
     """
     summary = {"temperature": {}, "precipitation": {}, "wind": {}, "solar": {}}
 

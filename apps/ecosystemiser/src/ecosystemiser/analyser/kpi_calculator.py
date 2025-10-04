@@ -25,6 +25,7 @@ class KPICalculator:
 
         Returns:
             Dictionary of calculated KPIs,
+
         """
         kpis = {}
 
@@ -49,6 +50,7 @@ class KPICalculator:
 
         Returns:
             Dictionary of calculated KPIs,
+
         """
         # Load results
         if results_path.suffix == ".json":
@@ -72,6 +74,7 @@ class KPICalculator:
 
         Returns:
             'energy' or 'water',
+
         """
         # Check component types and media
         media_counts = {}
@@ -82,8 +85,7 @@ class KPICalculator:
         # Determine dominant medium
         if media_counts.get("electricity", 0) > media_counts.get("water", 0):
             return "energy"
-        else:
-            return "water"
+        return "water"
 
     def _calculate_energy_kpis(self, system) -> dict[str, float]:
         """Calculate energy-specific KPIs.
@@ -93,6 +95,7 @@ class KPICalculator:
 
         Returns:
             Dictionary of energy KPIs,
+
         """
         kpis = {}
 
@@ -233,6 +236,7 @@ class KPICalculator:
 
         Returns:
             Dictionary of water KPIs,
+
         """
         kpis = {}
 
@@ -300,6 +304,7 @@ class KPICalculator:
 
         Returns:
             Dictionary of common KPIs,
+
         """
         kpis = {}
 
@@ -338,6 +343,7 @@ class KPICalculator:
 
         Returns:
             Number of equivalent full cycles,
+
         """
         if len(energy_levels) < 2:
             return 0.0
@@ -364,6 +370,7 @@ class KPICalculator:
 
         Returns:
             Dictionary of calculated KPIs,
+
         """
         kpis = {}
 
@@ -393,6 +400,7 @@ class KPICalculator:
 
         Returns:
             Formatted summary report string,
+
         """
         report = []
         report.append("=" * 60)

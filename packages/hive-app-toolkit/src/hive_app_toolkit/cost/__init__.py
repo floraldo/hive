@@ -9,8 +9,8 @@ from .rate_limiter import RateLimiter
 
 __all__ = [
     "CostManager",
-    "ResourceCost",
     "RateLimiter",
+    "ResourceCost",
     # "ResourceLimiter",  # TODO: implement resource_limiter module
     # "BudgetTracker",  # TODO: implement budget_tracker module
 ]

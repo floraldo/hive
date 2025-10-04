@@ -1,5 +1,4 @@
-"""
-Hive Orchestration Package - Platform Infrastructure (v1.0.0)
+"""Hive Orchestration Package - Platform Infrastructure (v1.0.0)
 
 This package provides task orchestration and workflow management infrastructure
 for the Hive platform. It replaces the platform app exception where ai-planner
@@ -111,7 +110,6 @@ Breaking changes require:
 
 ========================================================================
 """
-# ruff: noqa: E402
 # Module-level docstring must precede imports for package documentation
 
 # Import operations
@@ -150,52 +148,52 @@ from .workflows.chimera_agents import create_chimera_agents_registry
 from .workflows.chimera_executor import ChimeraExecutor, create_and_execute_chimera_workflow
 
 __all__ = [
-    # Task operations
-    "create_task",
-    "get_task",
-    "update_task_status",
-    "get_tasks_by_status",
-    "get_queued_tasks",
-    "delete_task",
-    # Worker operations
-    "register_worker",
-    "update_worker_heartbeat",
-    "get_active_workers",
-    "get_worker",
-    "unregister_worker",
-    # Execution plan operations
-    "create_planned_subtasks_from_plan",
-    "get_execution_plan_status",
-    "check_subtask_dependencies",
-    "get_next_planned_subtask",
-    "mark_plan_execution_started",
-    "check_subtask_dependencies_batch",
-    "get_execution_plan_status_cached",
+    "AgentEvent",
+    "ChimeraExecutor",
+    "ChimeraPhase",
+    # Chimera workflow
+    "ChimeraWorkflow",
+    "ExecutionPlan",
+    # Client SDK
+    "OrchestrationClient",
+    "PlanStatus",
+    "Run",
+    "RunStatus",
+    "SubTask",
     # Models
     "Task",
+    "TaskEvent",
     "TaskStatus",
     "Worker",
     "WorkerStatus",
-    "Run",
-    "RunStatus",
-    "ExecutionPlan",
-    "SubTask",
-    "PlanStatus",
-    # Client SDK
-    "OrchestrationClient",
-    "get_client",
-    # Event bus
-    "get_async_event_bus",
-    "TaskEvent",
     "WorkflowEvent",
-    "AgentEvent",
-    # Chimera workflow
-    "ChimeraWorkflow",
-    "ChimeraPhase",
-    "ChimeraExecutor",
-    "create_chimera_task",
+    "check_subtask_dependencies",
+    "check_subtask_dependencies_batch",
     "create_and_execute_chimera_workflow",
     "create_chimera_agents_registry",
+    "create_chimera_task",
+    # Execution plan operations
+    "create_planned_subtasks_from_plan",
+    # Task operations
+    "create_task",
+    "delete_task",
+    "get_active_workers",
+    # Event bus
+    "get_async_event_bus",
+    "get_client",
+    "get_execution_plan_status",
+    "get_execution_plan_status_cached",
+    "get_next_planned_subtask",
+    "get_queued_tasks",
+    "get_task",
+    "get_tasks_by_status",
+    "get_worker",
+    "mark_plan_execution_started",
+    # Worker operations
+    "register_worker",
+    "unregister_worker",
+    "update_task_status",
+    "update_worker_heartbeat",
 ]
 
 __version__ = "1.0.0"

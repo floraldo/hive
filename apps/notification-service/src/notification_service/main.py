@@ -1,5 +1,4 @@
-"""
-Notification Service - Built with Hive Application Toolkit.
+"""Notification Service - Built with Hive Application Toolkit.
 
 Demonstrates 5x development speed with production-grade quality.
 This entire service was built in <1 day using the toolkit.

@@ -1,5 +1,4 @@
-"""
-V3.0 Platform Certification Test
+"""V3.0 Platform Certification Test
 Comprehensive integration test for all V3.0 improvements
 """
 import pytest
@@ -19,28 +18,28 @@ class V3CertificationTest:
         self.test_results = {}
         self.start_time = time.time()
 
-    def log(self, message: str, level: str='INFO'):
+    def log(self, message: str, level: str="INFO"):
         """Log test messages"""
-        timestamp = datetime.now().strftime('%H:%M:%S')
-        logger.info(f'[{timestamp}] [{level}] {message}')
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        logger.info(f"[{timestamp}] [{level}] {message}")
 
     def run_test(self, test_name: str, test_func):
         """Run a single test and record results"""
-        self.log(f'Starting test: {test_name}')
+        self.log(f"Starting test: {test_name}")
         try:
             start_time = (time.time(),)
             result = (test_func(),)
             duration = time.time() - start_time
             if result:
-                self.test_results[test_name] = {'status': 'PASSED', 'duration': duration, 'message': 'Test completed successfully'}
-                self.log(f'[PASS] {test_name} PASSED ({duration:.2f}s)', 'SUCCESS')
+                self.test_results[test_name] = {"status": "PASSED", "duration": duration, "message": "Test completed successfully"}
+                self.log(f"[PASS] {test_name} PASSED ({duration:.2f}s)", "SUCCESS")
             else:
-                self.test_results[test_name] = {'status': 'FAILED', 'duration': duration, 'message': 'Test returned False'}
-                self.log(f'[FAIL] {test_name} FAILED ({duration:.2f}s)', 'ERROR')
+                self.test_results[test_name] = {"status": "FAILED", "duration": duration, "message": "Test returned False"}
+                self.log(f"[FAIL] {test_name} FAILED ({duration:.2f}s)", "ERROR")
         except Exception as e:
             duration = time.time() - start_time
-            self.test_results[test_name] = {'status': 'ERROR', 'duration': duration, 'message': str(e)}
-            self.log(f'[ERROR] {test_name} ERROR: {e} ({duration:.2f}s)', 'ERROR')
+            self.test_results[test_name] = {"status": "ERROR", "duration": duration, "message": str(e)}
+            self.log(f"[ERROR] {test_name} ERROR: {e} ({duration:.2f}s)", "ERROR")
 
     @pytest.mark.crust
     def test_1_configuration_centralization(self) -> bool:
@@ -50,23 +49,23 @@ class V3CertificationTest:
             config = create_config_from_sources()
             assert config.logging is not None
             assert config.logging.level is not None
-            assert hasattr(config, 'debug_mode')
+            assert hasattr(config, "debug_mode")
             assert config.database.connection_pool_max > 0
-            assert config.environment in ['development', 'testing', 'production']
+            assert config.environment in ["development", "testing", "production"]
             claude_config = config.get_claude_config()
-            assert 'mock_mode' in claude_config
-            assert 'timeout' in claude_config
-            assert 'rate_limit_per_minute' in claude_config
+            assert "mock_mode" in claude_config
+            assert "timeout" in claude_config
+            assert "rate_limit_per_minute" in claude_config
             db_config = config.get_database_config()
-            assert 'timeout' in db_config
-            assert 'max_connections' in db_config
+            assert "timeout" in db_config
+            assert "max_connections" in db_config
             orchestrator_config = config.get_orchestrator_config()
-            assert 'worker_spawn_timeout' in orchestrator_config
-            assert 'max_parallel_tasks' in orchestrator_config
-            self.log('Configuration centralization: All components accessible')
+            assert "worker_spawn_timeout" in orchestrator_config
+            assert "max_parallel_tasks" in orchestrator_config
+            self.log("Configuration centralization: All components accessible")
             return True
         except Exception as e:
-            self.log(f'Configuration test failed: {e}')
+            self.log(f"Configuration test failed: {e}")
             return False
 
     @pytest.mark.crust
@@ -74,54 +73,54 @@ class V3CertificationTest:
         """Test database connection pool with centralized config"""
         try:
             from hive_db import create_sqlite_manager
-            self.log('Testing database connection pool initialization...')
+            self.log("Testing database connection pool initialization...")
             manager = create_sqlite_manager()
             assert manager is not None
-            self.log('Testing database connection acquisition...')
-            with manager.get_connection('test_db', ':memory:') as conn:
+            self.log("Testing database connection acquisition...")
+            with manager.get_connection("test_db", ":memory:") as conn:
                 cursor = conn.cursor()
-                cursor.execute('SELECT 1')
+                cursor.execute("SELECT 1")
                 result = cursor.fetchone()
                 assert result[0] == 1
-            self.log('Testing pool statistics...')
+            self.log("Testing pool statistics...")
             stats = manager.get_all_stats()
             assert isinstance(stats, dict)
             manager.close_all_pools()
-            self.log('Database connection pool: Working with canonical implementation')
+            self.log("Database connection pool: Working with canonical implementation")
             return True
         except Exception as e:
-            self.log(f'Database connection pool test failed: {e}')
+            self.log(f"Database connection pool test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_3_claude_service_integration(self) -> bool:
         """Test Claude service with centralized configuration"""
         try:
-            self.log('Testing Claude service integration...')
+            self.log("Testing Claude service integration...")
             from hive_claude_bridge.claude_service import get_claude_service, reset_claude_service
-            self.log('Resetting Claude service...')
+            self.log("Resetting Claude service...")
             reset_claude_service()
-            self.log('Creating Claude service...')
+            self.log("Creating Claude service...")
             service = get_claude_service()
             assert service is not None
-            self.log('Verifying configuration integration...')
+            self.log("Verifying configuration integration...")
             from hive_config import create_config_from_sources
             config = (create_config_from_sources(),)
             claude_config = config.get_claude_config()
-            assert service.cache_ttl == claude_config['cache_ttl']
-            self.log('Testing metrics...')
+            assert service.cache_ttl == claude_config["cache_ttl"]
+            self.log("Testing metrics...")
             initial_metrics = service.get_metrics()
-            assert 'total_calls' in initial_metrics
-            assert 'success_rate' in initial_metrics
-            self.log('Testing cache operations...')
+            assert "total_calls" in initial_metrics
+            assert "success_rate" in initial_metrics
+            self.log("Testing cache operations...")
             service.clear_cache()
             service.reset_metrics()
             final_metrics = service.get_metrics()
-            assert final_metrics['total_calls'] == 0
-            self.log('Claude service: Integrated with centralized configuration')
+            assert final_metrics["total_calls"] == 0
+            self.log("Claude service: Integrated with centralized configuration")
             return True
         except Exception as e:
-            self.log(f'Claude service integration test failed: {e}')
+            self.log(f"Claude service integration test failed: {e}")
             return False
 
     @pytest.mark.crust
@@ -133,15 +132,15 @@ class V3CertificationTest:
             try:
                 with get_pooled_connection() as conn:
                     cursor = conn.cursor()
-                    cursor.execute('SELECT 1')
+                    cursor.execute("SELECT 1")
             except Exception:
                 pass
             finally:
                 pool.close_all()
-            self.log('Error handling: Improved exception specificity verified')
+            self.log("Error handling: Improved exception specificity verified")
             return True
         except Exception as e:
-            self.log(f'Error handling test failed: {e}')
+            self.log(f"Error handling test failed: {e}")
             return False
 
     @pytest.mark.crust
@@ -149,19 +148,19 @@ class V3CertificationTest:
         """Test QueenLite improved structure"""
         try:
             from hive_orchestrator.queen import Phase, QueenLite
-            assert Phase.PLAN.value == 'plan'
-            assert Phase.APPLY.value == 'apply'
-            assert Phase.TEST.value == 'test'
-            assert hasattr(QueenLite, '__init__')
-            assert hasattr(QueenLite, 'spawn_worker')
-            assert hasattr(QueenLite, 'process_queued_tasks')
-            assert hasattr(QueenLite, 'run_forever')
+            assert Phase.PLAN.value == "plan"
+            assert Phase.APPLY.value == "apply"
+            assert Phase.TEST.value == "test"
+            assert hasattr(QueenLite, "__init__")
+            assert hasattr(QueenLite, "spawn_worker")
+            assert hasattr(QueenLite, "process_queued_tasks")
+            assert hasattr(QueenLite, "run_forever")
             assert QueenLite.__doc__ is not None
-            assert 'Architecture:' in QueenLite.__doc__
-            self.log('QueenLite structure: Improved organization verified')
+            assert "Architecture:" in QueenLite.__doc__
+            self.log("QueenLite structure: Improved organization verified")
             return True
         except Exception as e:
-            self.log(f'QueenLite structure test failed: {e}')
+            self.log(f"QueenLite structure test failed: {e}")
             return False
 
     @pytest.mark.crust
@@ -176,18 +175,18 @@ class V3CertificationTest:
             config.get_database_config()
             with get_pooled_connection() as conn:
                 cursor = conn.cursor()
-                cursor.execute('SELECT 1 as test_value')
+                cursor.execute("SELECT 1 as test_value")
                 result = cursor.fetchone()
                 assert result[0] == 1
             reset_claude_service()
             claude_service = get_claude_service()
-            assert claude_service.config.timeout == config.get_int('claude_timeout')
+            assert claude_service.config.timeout == config.get_int("claude_timeout")
             claude_config = config.get_claude_config()
-            assert claude_service.cache_ttl == claude_config['cache_ttl']
-            self.log('Component integration: All components work together')
+            assert claude_service.cache_ttl == claude_config["cache_ttl"]
+            self.log("Component integration: All components work together")
             return True
         except Exception as e:
-            self.log(f'Component integration test failed: {e}')
+            self.log(f"Component integration test failed: {e}")
             return False
 
     @pytest.mark.crust
@@ -199,83 +198,83 @@ class V3CertificationTest:
             from hive_config import create_config_from_sources
             config = create_config_from_sources()
             env = config.environment
-            assert env in ['development', 'testing', 'production']
-            if env == 'testing':
-                assert config.get_bool('claude_mock_mode') is True
-                assert config.get_int('claude_rate_limit_per_minute') >= 1000
-            original_value = os.environ.get('test_override_key')
-            os.environ['test_override_key'] = 'test_value'
+            assert env in ["development", "testing", "production"]
+            if env == "testing":
+                assert config.get_bool("claude_mock_mode") is True
+                assert config.get_int("claude_rate_limit_per_minute") >= 1000
+            original_value = os.environ.get("test_override_key")
+            os.environ["test_override_key"] = "test_value"
             try:
-                assert config.get('test_override_key') == 'test_value'
+                assert config.get("test_override_key") == "test_value"
             finally:
                 if original_value is not None:
-                    os.environ['test_override_key'] = original_value
+                    os.environ["test_override_key"] = original_value
                 else:
-                    os.environ.pop('test_override_key', None)
-            self.log('Environment configuration: Environment-aware configuration working')
+                    os.environ.pop("test_override_key", None)
+            self.log("Environment configuration: Environment-aware configuration working")
             return True
         except Exception as e:
-            self.log(f'Environment configuration test failed: {e}')
+            self.log(f"Environment configuration test failed: {e}")
             return False
 
     def print_final_report(self):
         """Print comprehensive test report"""
-        self.log('\n' + '=' * 70)
-        self.log('V3.0 PLATFORM CERTIFICATION TEST REPORT')
-        self.log('=' * 70)
+        self.log("\n" + "=" * 70)
+        self.log("V3.0 PLATFORM CERTIFICATION TEST REPORT")
+        self.log("=" * 70)
         total_tests = (len(self.test_results),)
-        passed_tests = (len([r for r in self.test_results.values() if r['status'] == 'PASSED']),)
-        failed_tests = (len([r for r in self.test_results.values() if r['status'] == 'FAILED']),)
-        error_tests = len([r for r in self.test_results.values() if r['status'] == 'ERROR'])
-        self.log(f'Total Tests: {total_tests}')
-        self.log(f'Passed: {passed_tests}')
-        self.log(f'Failed: {failed_tests}')
-        self.log(f'Errors: {error_tests}')
+        passed_tests = (len([r for r in self.test_results.values() if r["status"] == "PASSED"]),)
+        failed_tests = (len([r for r in self.test_results.values() if r["status"] == "FAILED"]),)
+        error_tests = len([r for r in self.test_results.values() if r["status"] == "ERROR"])
+        self.log(f"Total Tests: {total_tests}")
+        self.log(f"Passed: {passed_tests}")
+        self.log(f"Failed: {failed_tests}")
+        self.log(f"Errors: {error_tests}")
         success_rate = passed_tests / total_tests * 100 if total_tests > 0 else 0
-        self.log(f'Success Rate: {success_rate:.1f}%')
+        self.log(f"Success Rate: {success_rate:.1f}%")
         total_duration = time.time() - self.start_time
-        self.log(f'Total Duration: {total_duration:.2f} seconds')
-        self.log('\nDetailed Results:')
-        self.log('-' * 50)
+        self.log(f"Total Duration: {total_duration:.2f} seconds")
+        self.log("\nDetailed Results:")
+        self.log("-" * 50)
         for test_name, result in self.test_results.items():
-            status_icon = {'PASSED': '[PASS]', 'FAILED': '[FAIL]', 'ERROR': '[ERR]'}[result['status']]
+            status_icon = {"PASSED": "[PASS]", "FAILED": "[FAIL]", "ERROR": "[ERR]"}[result["status"]]
             self.log(f"{status_icon} {test_name:<35} {result['status']:<8} ({result['duration']:.2f}s)")
-            if result['status'] != 'PASSED':
+            if result["status"] != "PASSED":
                 self.log(f"   -> {result['message']}")
-        self.log('\nV3.0 CERTIFICATION ASSESSMENT:')
-        self.log('-' * 40)
+        self.log("\nV3.0 CERTIFICATION ASSESSMENT:")
+        self.log("-" * 40)
         if success_rate >= 85:
-            self.log('CERTIFICATION: PASSED')
-            self.log('Platform meets V3.0 certification requirements')
+            self.log("CERTIFICATION: PASSED")
+            self.log("Platform meets V3.0 certification requirements")
         elif success_rate >= 70:
-            self.log('CERTIFICATION: CONDITIONAL')
-            self.log('Platform needs minor fixes before certification')
+            self.log("CERTIFICATION: CONDITIONAL")
+            self.log("Platform needs minor fixes before certification")
         else:
-            self.log('CERTIFICATION: FAILED')
-            self.log('Platform requires significant fixes before certification')
-        self.log('\nRECOMMENDATIONS:')
-        self.log('-' * 20)
+            self.log("CERTIFICATION: FAILED")
+            self.log("Platform requires significant fixes before certification")
+        self.log("\nRECOMMENDATIONS:")
+        self.log("-" * 20)
         if error_tests > 0:
-            self.log('- Fix error conditions in failing tests')
+            self.log("- Fix error conditions in failing tests")
         if failed_tests > 0:
-            self.log('- Address test failures before production deployment')
+            self.log("- Address test failures before production deployment")
         if success_rate == 100:
-            self.log('- All tests passed! Platform ready for V3.0 certification')
+            self.log("- All tests passed! Platform ready for V3.0 certification")
         else:
-            self.log(f'- Achieve >=85% success rate for certification (current: {success_rate:.1f}%)')
+            self.log(f"- Achieve >=85% success rate for certification (current: {success_rate:.1f}%)")
 
     def run_all_tests(self):
         """Run all certification tests"""
-        self.log('Starting V3.0 Platform Certification Test Suite')
-        self.log(f'Python: {sys.version}')
+        self.log("Starting V3.0 Platform Certification Test Suite")
+        self.log(f"Python: {sys.version}")
         self.log(f"Test time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        self.log('=' * 70)
-        test_methods = [('Configuration Centralization', self.test_1_configuration_centralization), ('Database Connection Pool', self.test_2_database_connection_pool), ('Claude Service Integration', self.test_3_claude_service_integration), ('Error Handling Improvements', self.test_4_error_handling_improvements), ('QueenLite Structure', self.test_5_queen_lite_structure), ('Component Integration', self.test_6_component_integration), ('Environment Configuration', self.test_7_environment_configuration)]
+        self.log("=" * 70)
+        test_methods = [("Configuration Centralization", self.test_1_configuration_centralization), ("Database Connection Pool", self.test_2_database_connection_pool), ("Claude Service Integration", self.test_3_claude_service_integration), ("Error Handling Improvements", self.test_4_error_handling_improvements), ("QueenLite Structure", self.test_5_queen_lite_structure), ("Component Integration", self.test_6_component_integration), ("Environment Configuration", self.test_7_environment_configuration)]
         for test_name, test_func in test_methods:
             self.run_test(test_name, test_func)
             time.sleep(0.5)
         self.print_final_report()
-        passed_tests = (len([r for r in self.test_results.values() if r['status'] == 'PASSED']),)
+        passed_tests = (len([r for r in self.test_results.values() if r["status"] == "PASSED"]),)
         total_tests = (len(self.test_results),)
         success_rate = passed_tests / total_tests * 100 if total_tests > 0 else 0
         return success_rate >= 85
@@ -285,5 +284,5 @@ def main():
     test_suite = (V3CertificationTest(),)
     success = test_suite.run_all_tests()
     return 0 if success else 1
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

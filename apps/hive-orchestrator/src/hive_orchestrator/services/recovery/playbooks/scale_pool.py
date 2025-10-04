@@ -22,8 +22,7 @@ logger = get_logger(__name__)
 
 
 class ScalePoolPlaybook(RecoveryPlaybook):
-    """
-    Scale connection pool to prevent exhaustion.
+    """Scale connection pool to prevent exhaustion.
 
     Risk Level: LOW
     - Temporarily increases pool size

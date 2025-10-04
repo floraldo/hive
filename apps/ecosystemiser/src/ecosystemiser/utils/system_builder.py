@@ -31,6 +31,7 @@ class SystemBuilder:
             config_path: Path to system configuration YAML (optional if config_dict provided)
             component_repo: Repository for component data
             config_dict: In-memory configuration dict (optimization performance)
+
         """
         if config_path is None and config_dict is None:
             raise ValueError("Either config_path or config_dict must be provided")
@@ -52,6 +53,7 @@ class SystemBuilder:
 
         Returns:
             Dictionary mapping component type to description,
+
         """
         available = {}
         for comp_type, comp_class in COMPONENT_REGISTRY.items():
@@ -66,6 +68,7 @@ class SystemBuilder:
 
         Returns:
             Configured System object,
+
         """
         # Load system configuration from file or use in-memory dict
         if self.config_dict is not None:
@@ -100,6 +103,7 @@ class SystemBuilder:
 
         Raises:
             ValueError: If configuration is invalid,
+
         """
         required_keys = ["system_id", "components", "connections"]
         for key in required_keys:
@@ -121,6 +125,7 @@ class SystemBuilder:
 
         Returns:
             Component instance,
+
         """
         name = comp_config.get("name")
         if not name:
@@ -181,6 +186,7 @@ class SystemBuilder:
         Args:
             system: System object
             profiles: Dictionary of profile data,
+
         """
         for comp_name, component in system.components.items():
             # Check if component needs a profile
@@ -208,6 +214,7 @@ class SystemBuilder:
 
         Returns:
             Minimal test system with 4 components,
+
         """
         import numpy as np
 

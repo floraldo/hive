@@ -82,8 +82,7 @@ class ServiceInfo:
 
 
 class ServiceRegistry:
-    """
-    Service registry for managing service instances with Redis backend.
+    """Service registry for managing service instances with Redis backend.
 
     Features:
     - Service registration and deregistration
@@ -169,6 +168,7 @@ class ServiceRegistry:
 
         Returns:
             Service ID
+
         """
         if service_id is None:
             service_id = f"{service_name}-{uuid.uuid4().hex[:8]}"
@@ -217,6 +217,7 @@ class ServiceRegistry:
 
         Returns:
             True if service was deregistered
+
         """
         try:
             # Remove from Redis
@@ -248,6 +249,7 @@ class ServiceRegistry:
 
         Returns:
             True if heartbeat_async was recorded
+
         """
         try:
             # Check if service exists
@@ -281,6 +283,7 @@ class ServiceRegistry:
 
         Returns:
             ServiceInfo or None if not found
+
         """
         try:
             # Check cache first
@@ -313,6 +316,7 @@ class ServiceRegistry:
 
         Returns:
             List of ServiceInfo instances
+
         """
         try:
             # Refresh cache if needed
@@ -339,6 +343,7 @@ class ServiceRegistry:
 
         Returns:
             List of ServiceInfo instances
+
         """
         try:
             await self._refresh_cache_if_needed_async()
@@ -363,6 +368,7 @@ class ServiceRegistry:
 
         Returns:
             List of all ServiceInfo instances
+
         """
         try:
             await self._refresh_cache_if_needed_async()
@@ -377,6 +383,7 @@ class ServiceRegistry:
 
         Returns:
             Set of service names
+
         """
         try:
             await self._refresh_cache_if_needed_async()
@@ -395,6 +402,7 @@ class ServiceRegistry:
 
         Returns:
             True if health status was updated
+
         """
         try:
             service = await self.get_service_async(service_id)
@@ -488,6 +496,7 @@ class ServiceRegistry:
 
         Returns:
             Statistics dictionary
+
         """
         try:
             await self._refresh_cache_if_needed_async()

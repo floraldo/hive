@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Submit hive-catalog requirement to Colossus Command Center.
+"""Submit hive-catalog requirement to Colossus Command Center.
 
 This script demonstrates Project Genesis Phase 2: The First Creation.
 It submits a service requirement to hive-ui and monitors the autonomous
@@ -61,14 +60,14 @@ Data Model:
 
 
 async def submit_project(api_url: str = "http://localhost:8000") -> str:
-    """
-    Submit hive-catalog project to Command Center.
+    """Submit hive-catalog project to Command Center.
 
     Args:
         api_url: Base URL for hive-ui API
 
     Returns:
         project_id: Created project ID
+
     """
     async with httpx.AsyncClient(timeout=30.0) as client:
         logger.info("Submitting hive-catalog requirement to Colossus...")
@@ -100,8 +99,7 @@ async def monitor_project(
     api_url: str = "http://localhost:8000",
     poll_interval: int = 3,
 ) -> dict:
-    """
-    Monitor project execution until completion.
+    """Monitor project execution until completion.
 
     Args:
         project_id: Project to monitor
@@ -110,6 +108,7 @@ async def monitor_project(
 
     Returns:
         final_project_state: Project data when complete/failed
+
     """
     async with httpx.AsyncClient(timeout=30.0) as client:
         logger.info(f"Monitoring project {project_id}...")
@@ -196,11 +195,10 @@ async def main():
             logger.info("  3. Validate API endpoints")
             logger.info("  4. Proceed to Phase 3: Graduation")
             return 0
-        else:
-            logger.error("")
-            logger.error("❌ FAILED: Pipeline did not complete successfully")
-            logger.error("Review logs above for error details")
-            return 1
+        logger.error("")
+        logger.error("❌ FAILED: Pipeline did not complete successfully")
+        logger.error("Review logs above for error details")
+        return 1
 
     except Exception as e:
         logger.exception(f"Error during Phase 2 execution: {e}")

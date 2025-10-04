@@ -1,5 +1,4 @@
-"""
-Knowledge graph models for representing code structure and relationships.
+"""Knowledge graph models for representing code structure and relationships.
 
 Defines Pydantic models for nodes (code entities) and edges (relationships)
 that form a semantic graph of the codebase.
@@ -93,7 +92,7 @@ class FunctionDefinition(BaseModel):
     return_type: str | None = Field(default=None, description="Return type annotation")
     parameters: list[dict[str, Any]] = Field(
         default_factory=list,
-        description="List of parameters with name, type, default"
+        description="List of parameters with name, type, default",
     )
 
     def get_id(self) -> str:
@@ -108,7 +107,7 @@ class ImportStatement(BaseModel):
     target_module: str = Field(..., description="Module being imported")
     imported_names: list[str] = Field(
         default_factory=list,
-        description="Specific names imported (empty for 'import module')"
+        description="Specific names imported (empty for 'import module')",
     )
     alias: str | None = Field(default=None, description="Import alias (e.g., 'as np')")
     file_path: str = Field(..., description="Path to file containing this import")
@@ -122,8 +121,7 @@ class ImportStatement(BaseModel):
 # Edge Model
 
 class Edge(BaseModel):
-    """
-    Represents a directed relationship between two code entities.
+    """Represents a directed relationship between two code entities.
 
     Edges connect nodes in the code graph to represent relationships like
     function calls, inheritance, imports, etc.
@@ -134,7 +132,7 @@ class Edge(BaseModel):
     edge_type: EdgeType = Field(..., description="Type of relationship")
     metadata: dict[str, Any] = Field(
         default_factory=dict,
-        description="Additional edge properties (e.g., call count, line number)"
+        description="Additional edge properties (e.g., call count, line number)",
     )
 
     def __hash__(self) -> int:
@@ -145,8 +143,7 @@ class Edge(BaseModel):
 # Graph Container
 
 class CodeGraph(BaseModel):
-    """
-    Container for a code knowledge graph.
+    """Container for a code knowledge graph.
 
     Stores nodes (code entities) and edges (relationships) forming a
     semantic representation of the codebase structure.
@@ -154,81 +151,81 @@ class CodeGraph(BaseModel):
 
     nodes: dict[str, Any] = Field(
         default_factory=dict,
-        description="Nodes indexed by their ID (from get_id())"
+        description="Nodes indexed by their ID (from get_id())",
     )
     edges: list[Edge] = Field(
         default_factory=list,
-        description="List of all edges in the graph"
+        description="List of all edges in the graph",
     )
     metadata: dict[str, Any] = Field(
         default_factory=dict,
-        description="Graph-level metadata (e.g., creation time, version)"
+        description="Graph-level metadata (e.g., creation time, version)",
     )
 
     def add_node(self, node: CodeFile | ModuleDefinition | ClassDefinition | FunctionDefinition | ImportStatement) -> None:
-        """
-        Add a node to the graph.
+        """Add a node to the graph.
 
         Args:
             node: Code entity to add
+
         """
         node_id = node.get_id()
         self.nodes[node_id] = node
 
     def add_edge(self, edge: Edge) -> None:
-        """
-        Add an edge to the graph.
+        """Add an edge to the graph.
 
         Args:
             edge: Relationship to add
+
         """
         self.edges.append(edge)
 
     def get_node(self, node_id: str) -> Any | None:
-        """
-        Get a node by its ID.
+        """Get a node by its ID.
 
         Args:
             node_id: Node identifier
 
         Returns:
             Node if found, None otherwise
+
         """
         return self.nodes.get(node_id)
 
     def get_edges_from(self, source_id: str) -> list[Edge]:
-        """
-        Get all edges originating from a node.
+        """Get all edges originating from a node.
 
         Args:
             source_id: Source node ID
 
         Returns:
             List of outgoing edges
+
         """
         return [edge for edge in self.edges if edge.source == source_id]
 
     def get_edges_to(self, target_id: str) -> list[Edge]:
-        """
-        Get all edges pointing to a node.
+        """Get all edges pointing to a node.
 
         Args:
             target_id: Target node ID
 
         Returns:
             List of incoming edges
+
         """
         return [edge for edge in self.edges if edge.target == target_id]
 
     def get_edges_by_type(self, edge_type: EdgeType) -> list[Edge]:
-        """
-        Get all edges of a specific type.
+        """Get all edges of a specific type.
 
         Args:
             edge_type: Type of edge to filter
 
         Returns:
             List of edges matching the type
+
         """
         return [edge for edge in self.edges if edge.edge_type == edge_type]
 

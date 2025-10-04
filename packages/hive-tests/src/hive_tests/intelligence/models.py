@@ -1,5 +1,4 @@
-"""
-Data models for test intelligence system.
+"""Data models for test intelligence system.
 
 Defines the structure of test runs, test results, and derived analytics.
 """

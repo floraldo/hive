@@ -1,5 +1,4 @@
-"""
-Safe Automated Golden Rules Violation Fixer - AST-ONLY
+"""Safe Automated Golden Rules Violation Fixer - AST-ONLY
 
 This module provides SAFE automated fixes for mechanical violations using
 ONLY AST-based transformations. NO REGEX CODE MODIFICATION ALLOWED.
@@ -46,8 +45,7 @@ class AutofixResult:
 
 
 class SafeGoldenRulesAutoFixer:
-    """
-    SAFE automated fixer for mechanical Golden Rules violations.
+    """SAFE automated fixer for mechanical Golden Rules violations.
 
     Uses ONLY AST-based transformations. NO REGEX CODE MODIFICATION.
 
@@ -63,8 +61,7 @@ class SafeGoldenRulesAutoFixer:
         self.results: list[AutofixResult] = []
 
     def fix_all_violations(self, target_rules: set[str] | None = None) -> list[AutofixResult]:
-        """
-        Fix all mechanical violations across the project using SAFE AST-based methods.
+        """Fix all mechanical violations across the project using SAFE AST-based methods.
 
         Args:
             target_rules: Specific rules to fix (e.g., {'rule-14', 'rule-8'})
@@ -72,6 +69,7 @@ class SafeGoldenRulesAutoFixer:
 
         Returns:
             List of autofix results
+
         """
         self.results = []
 
@@ -135,8 +133,7 @@ class SafeGoldenRulesAutoFixer:
         return backup_path
 
     def _fix_async_naming(self, file_path: Path) -> None:
-        """
-        Fix async function naming violations (Rule 14) - SAFE AST-BASED.
+        """Fix async function naming violations (Rule 14) - SAFE AST-BASED.
 
         Renames async functions to end with '_async' suffix using AST transformation.
         Delegates to async_naming_transformer which uses proper AST visitors.
@@ -208,8 +205,7 @@ class SafeGoldenRulesAutoFixer:
             )
 
     def _fix_exception_inheritance(self, file_path: Path) -> None:
-        """
-        Fix exception inheritance violations (Rule 8) - SAFE AST-BASED.
+        """Fix exception inheritance violations (Rule 8) - SAFE AST-BASED.
 
         Updates custom exception classes to inherit from BaseError.
         Uses AST parsing to find exception classes (context-aware).

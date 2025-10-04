@@ -31,6 +31,7 @@ class Component:
             name: Component identifier
             params: Pydantic BaseModel containing all parameters
             n: Number of timesteps,
+
         """
         self.name = name
         self.params = params  # Store full params object
@@ -70,7 +71,6 @@ class Component:
         Override this method in subclasses for component-specific setup.,
         This is called automatically after parameter unpacking is complete.,
         """
-        pass
 
     def add_optimization_vars(self) -> None:
         """Placeholder for future cvxpy variable initialization.,
@@ -79,7 +79,6 @@ class Component:
         Subclasses can override to add their specific optimization variables.,
         This supports future refactoring to separate cvxpy from component logic.,
         """
-        pass
 
     def set_constraints(self) -> None:
         """Define component constraints for optimization.
@@ -89,6 +88,7 @@ class Component:
 
         Note:
             Override in subclasses to define component-specific constraints.,
+
         """
         return []
 
@@ -103,6 +103,7 @@ class Component:
 
         Note:
             Override in subclasses for component-specific state.,
+
         """
         state = {"name": self.name, "type": self.type, "medium": self.medium}
 
@@ -121,6 +122,7 @@ class Component:
         Note:
             The Pydantic model handles most validation, but subclasses,
             can override for additional checks.,
+
         """
         return True
 

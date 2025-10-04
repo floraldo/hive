@@ -4,4 +4,4 @@ from .generator import ApplicationGenerator
 from .main import main
 from .templates import TemplateManager
 
-__all__ = ["main", "ApplicationGenerator", "TemplateManager"]
+__all__ = ["ApplicationGenerator", "TemplateManager", "main"]

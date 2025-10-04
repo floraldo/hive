@@ -14,8 +14,7 @@ logger = get_logger(__name__)
 
 
 class ClearCachePlaybook(RecoveryPlaybook):
-    """
-    Clear cache for service experiencing cache-related issues.
+    """Clear cache for service experiencing cache-related issues.
 
     Risk Level: LOW
     - Clears cache which will be rebuilt from source
@@ -71,8 +70,7 @@ class ClearCachePlaybook(RecoveryPlaybook):
         return result
 
     async def rollback_async(self, execution_result: PlaybookResult) -> bool:
-        """
-        Rollback not needed for cache clear.
+        """Rollback not needed for cache clear.
 
         Cache will repopulate automatically from source data.
         """

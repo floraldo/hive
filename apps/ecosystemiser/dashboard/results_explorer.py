@@ -17,7 +17,7 @@ import streamlit as st
 
 spec = importlib.util.spec_from_file_location(
     "database_metadata_service",
-    Path(__file__).parent.parent / "src" / "ecosystemiser" / "services" / "database_metadata_service.py"
+    Path(__file__).parent.parent / "src" / "ecosystemiser" / "services" / "database_metadata_service.py",
 )
 db_module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(db_module)
@@ -28,7 +28,7 @@ st.set_page_config(
     page_title="EcoSystemiser - Results Explorer",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Initialize database connection
@@ -44,7 +44,6 @@ def get_db_service():
 # Main application
 def main():
     """Main application entry point."""
-
     # Header
     st.title("🔍 Simulation Results Explorer")
     st.markdown("Explore and analyze your simulation archive")
@@ -79,7 +78,7 @@ def main():
     solver_type_filter = st.sidebar.selectbox(
         "Solver Type",
         options=["All", "hybrid", "milp", "rule_based", "rolling_horizon"],
-        index=0
+        index=0,
     )
 
     cost_range = st.sidebar.slider(
@@ -87,7 +86,7 @@ def main():
         min_value=0,
         max_value=500000,
         value=(0, 500000),
-        step=10000
+        step=10000,
     )
 
     renewable_min = st.sidebar.slider(
@@ -95,7 +94,7 @@ def main():
         min_value=0.0,
         max_value=1.0,
         value=0.0,
-        step=0.05
+        step=0.05,
     )
 
     limit = st.sidebar.number_input(
@@ -103,7 +102,7 @@ def main():
         min_value=10,
         max_value=1000,
         value=100,
-        step=10
+        step=10,
     )
 
     # Query button
@@ -132,7 +131,7 @@ def main():
         query_params = {
             "limit": limit,
             "order_by": "timestamp",
-            "order_desc": True
+            "order_desc": True,
         }
 
         if study_id_filter:
@@ -168,7 +167,7 @@ def main():
         # Select and format columns
         display_columns = [
             "run_id", "study_id", "solver_type", "total_cost",
-            "renewable_fraction", "simulation_status", "timestamp"
+            "renewable_fraction", "simulation_status", "timestamp",
         ]
 
         # Only include columns that exist
@@ -178,19 +177,19 @@ def main():
         # Format numbers
         if "total_cost" in df_display.columns:
             df_display["total_cost"] = df_display["total_cost"].apply(
-                lambda x: f"${x:,.2f}" if pd.notna(x) else "N/A"
+                lambda x: f"${x:,.2f}" if pd.notna(x) else "N/A",
             )
 
         if "renewable_fraction" in df_display.columns:
             df_display["renewable_fraction"] = df_display["renewable_fraction"].apply(
-                lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A"
+                lambda x: f"{x*100:.1f}%" if pd.notna(x) else "N/A",
             )
 
         # Display as interactive dataframe
         st.dataframe(
             df_display,
             use_container_width=True,
-            hide_index=True
+            hide_index=True,
         )
 
         # Export button
@@ -200,7 +199,7 @@ def main():
                 label="Download CSV",
                 data=csv,
                 file_name="simulation_results.csv",
-                mime="text/csv"
+                mime="text/csv",
             )
 
     except Exception as e:

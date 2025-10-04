@@ -68,6 +68,7 @@ def add_ruff_config(filepath: Path, dry_run: bool = False) -> bool:
 
     Returns:
         True if config was added, False if already present or error
+
     """
     try:
         content = filepath.read_text(encoding="utf-8")

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Production Shield Monitor
+"""Production Shield Monitor
 
 Proactive monitoring system for production and staging environments:
 - Health endpoint monitoring with intelligent alerting
@@ -199,11 +198,11 @@ class ProductionMonitor:
             result.is_healthy = False
 
         except requests.exceptions.RequestException as e:
-            result.error_message = f"Request failed: {str(e)}"
+            result.error_message = f"Request failed: {e!s}"
             result.is_healthy = False
 
         except Exception as e:
-            result.error_message = f"Unexpected error: {str(e)}"
+            result.error_message = f"Unexpected error: {e!s}"
             result.is_healthy = False
 
         return result

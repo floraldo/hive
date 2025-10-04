@@ -1,5 +1,4 @@
-"""
-Deployment orchestrator that manages deployment strategies and execution
+"""Deployment orchestrator that manages deployment strategies and execution
 """
 
 from __future__ import annotations
@@ -56,16 +55,15 @@ class HealthStatus:
 
 
 class DeploymentOrchestrator:
-    """
-    Orchestrates deployment operations using various strategies
+    """Orchestrates deployment operations using various strategies
     """
 
     def __init__(self, config: dict[str, Any] | None = None) -> None:
-        """
-        Initialize deployment orchestrator
+        """Initialize deployment orchestrator
 
         Args:
             config: Optional configuration dictionary
+
         """
         self.config = config or {}
         self.strategies = self._initialize_strategies()
@@ -85,14 +83,14 @@ class DeploymentOrchestrator:
         }
 
     async def deploy_async(self, task: dict[str, Any]) -> DeploymentResult:
-        """
-        Deploy application based on task configuration
+        """Deploy application based on task configuration
 
         Args:
             task: Deployment task containing configuration
 
         Returns:
             DeploymentResult with status and metrics
+
         """
         task_id = task.get("id", "unknown")
         deployment_id = f"deploy-{task_id}-{int(asyncio.get_event_loop().time())}"
@@ -134,14 +132,14 @@ class DeploymentOrchestrator:
             )
 
     def _select_strategy(self, task: dict[str, Any]) -> DeploymentStrategy:
-        """
-        Select deployment strategy based on task configuration
+        """Select deployment strategy based on task configuration
 
         Args:
             task: Deployment task
 
         Returns:
             Selected deployment strategy
+
         """
         # Check task configuration for strategy preference
         strategy_name = task.get("deployment_strategy", "").lower()
@@ -164,8 +162,7 @@ class DeploymentOrchestrator:
         return strategy
 
     def _validate_strategy_compatibility(self, strategy: DeploymentStrategy, task: dict[str, Any]) -> bool:
-        """
-        Validate if strategy is compatible with deployment environment
+        """Validate if strategy is compatible with deployment environment
 
         Args:
             strategy: Selected deployment strategy
@@ -173,6 +170,7 @@ class DeploymentOrchestrator:
 
         Returns:
             True if strategy is compatible
+
         """
         environment = task.get("environment", {})
 
@@ -197,8 +195,7 @@ class DeploymentOrchestrator:
         task: dict[str, Any],
         deployment_id: str,
     ) -> DeploymentResult:
-        """
-        Execute deployment using selected strategy
+        """Execute deployment using selected strategy
 
         Args:
             strategy_impl: Strategy implementation
@@ -207,6 +204,7 @@ class DeploymentOrchestrator:
 
         Returns:
             Deployment result
+
         """
         # Pre-deployment checks
         pre_checks = await strategy_impl.pre_deployment_checks(task)
@@ -228,8 +226,7 @@ class DeploymentOrchestrator:
         )
 
     async def _validate_deployment_async(self, task: dict[str, Any], deployment_id: str) -> bool:
-        """
-        Validate deployment was successful
+        """Validate deployment was successful
 
         Args:
             task: Deployment task
@@ -237,6 +234,7 @@ class DeploymentOrchestrator:
 
         Returns:
             True if deployment is valid
+
         """
         try:
             # Run health checks
@@ -261,8 +259,7 @@ class DeploymentOrchestrator:
             return False
 
     async def _attempt_rollback_async(self, task: dict[str, Any], deployment_id: str) -> bool:
-        """
-        Attempt to rollback failed deployment
+        """Attempt to rollback failed deployment
 
         Args:
             task: Deployment task
@@ -270,6 +267,7 @@ class DeploymentOrchestrator:
 
         Returns:
             True if rollback successful
+
         """
         try:
             logger.info(f"Attempting rollback for deployment {deployment_id}")
@@ -289,23 +287,22 @@ class DeploymentOrchestrator:
             if rollback_result["success"]:
                 logger.info(f"Rollback successful for deployment {deployment_id}")
                 return True
-            else:
-                logger.error(f"Rollback failed for deployment {deployment_id}: {rollback_result.get('error')}")
-                return False
+            logger.error(f"Rollback failed for deployment {deployment_id}: {rollback_result.get('error')}")
+            return False
 
         except Exception as e:
             logger.error(f"Rollback error: {e}", exc_info=True)
             return False
 
     async def check_health_async(self, task: dict[str, Any]) -> HealthStatus:
-        """
-        Check health of deployed application
+        """Check health of deployed application
 
         Args:
             task: Deployment task with endpoint info
 
         Returns:
             Health status
+
         """
         try:
             health_checks = {}

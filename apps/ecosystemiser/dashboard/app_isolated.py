@@ -1,5 +1,4 @@
-"""
-EcoSystemiser Climate Dashboard (Isolated Version)
+"""EcoSystemiser Climate Dashboard (Isolated Version)
 Interactive web interface that reads from output artifacts
 No direct imports from ecosystemiser package - maintains architectural isolation
 """
@@ -114,7 +113,7 @@ def load_climate_data_from_file(file_path: Path) -> pd.DataFrame | None:
         return df
 
     except Exception as e:
-        st.error(f"Error loading file: {str(e)}")
+        st.error(f"Error loading file: {e!s}")
         return None
 
 

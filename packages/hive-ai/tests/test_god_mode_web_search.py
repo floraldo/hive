@@ -1,5 +1,4 @@
-"""
-Unit tests for Exa web search client.
+"""Unit tests for Exa web search client.
 
 Tests cover:
 - Search functionality
@@ -51,7 +50,7 @@ class TestExaSearchClient:
         """Test client with custom base URL."""
         client = ExaSearchClient(
             api_key="test-key",
-            base_url="https://custom.exa.api"
+            base_url="https://custom.exa.api",
         )
 
         assert client.base_url == "https://custom.exa.api"
@@ -72,18 +71,18 @@ class TestExaSearch:
                     "url": "https://example.com/async",
                     "text": "Learn about async/await...",
                     "score": 0.95,
-                    "publishedDate": "2024-01-15"
+                    "publishedDate": "2024-01-15",
                 },
                 {
                     "title": "Advanced Async Patterns",
                     "url": "https://example.com/patterns",
                     "text": "Deep dive into async patterns...",
                     "score": 0.88,
-                }
-            ]
+                },
+            ],
         }
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_resp = MagicMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = MagicMock()
@@ -112,11 +111,11 @@ class TestExaSearch:
                     "title": "Test Article",
                     "url": "https://example.com/test",
                     "score": 0.9,
-                }
-            ]
+                },
+            ],
         }
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_resp = MagicMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = MagicMock()
@@ -132,8 +131,8 @@ class TestExaSearch:
 
             # Verify request payload didn't include contents
             call_args = mock_post.call_args
-            payload = call_args.kwargs['json']
-            assert 'contents' not in payload
+            payload = call_args.kwargs["json"]
+            assert "contents" not in payload
 
     @pytest.mark.asyncio
     async def test_search_with_filters(self):
@@ -142,7 +141,7 @@ class TestExaSearch:
 
         mock_response = {"results": []}
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_resp = MagicMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = MagicMock()
@@ -157,11 +156,11 @@ class TestExaSearch:
 
             # Verify filters in request
             call_args = mock_post.call_args
-            payload = call_args.kwargs['json']
+            payload = call_args.kwargs["json"]
 
-            assert payload['category'] == "research paper"
-            assert payload['startPublishedDate'] == "2024-01-01"
-            assert payload['useAutoprompt'] is True
+            assert payload["category"] == "research paper"
+            assert payload["startPublishedDate"] == "2024-01-01"
+            assert payload["useAutoprompt"] is True
 
     @pytest.mark.asyncio
     async def test_search_num_results_validation(self):
@@ -183,14 +182,14 @@ class TestExaSearch:
         """Test handling of API errors."""
         client = ExaSearchClient(api_key="test-key")
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_resp = MagicMock()
             mock_resp.status_code = 429
             mock_resp.text = "Rate limit exceeded"
             mock_resp.raise_for_status.side_effect = httpx.HTTPStatusError(
                 "Rate limit",
                 request=MagicMock(),
-                response=mock_resp
+                response=mock_resp,
             )
             mock_post.return_value = mock_resp
 
@@ -204,7 +203,7 @@ class TestExaSearch:
 
         mock_response = {"results": []}
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_resp = MagicMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = MagicMock()
@@ -231,11 +230,11 @@ class TestExaSimilarSearch:
                     "url": "https://example.com/similar1",
                     "text": "Similar content here...",
                     "score": 0.92,
-                }
-            ]
+                },
+            ],
         }
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_resp = MagicMock()
             mock_resp.json.return_value = mock_response
             mock_resp.raise_for_status = MagicMock()
@@ -252,9 +251,9 @@ class TestExaSimilarSearch:
             # Verify correct endpoint and payload
             call_args = mock_post.call_args
             assert call_args.args[0] == "https://api.exa.ai/findSimilar"
-            payload = call_args.kwargs['json']
-            assert payload['url'] == "https://example.com/source"
-            assert payload['numResults'] == 5
+            payload = call_args.kwargs["json"]
+            assert payload["url"] == "https://example.com/source"
+            assert payload["numResults"] == 5
 
     @pytest.mark.asyncio
     async def test_search_similar_validation(self):
@@ -264,7 +263,7 @@ class TestExaSimilarSearch:
         with pytest.raises(ValueError):
             await client.search_similar_async(
                 url="https://example.com",
-                num_results=25  # Too many
+                num_results=25,  # Too many
             )
 
 
@@ -328,7 +327,7 @@ class TestClientLifecycle:
         """Test closing the client."""
         client = ExaSearchClient(api_key="test-key")
 
-        with patch.object(client.client, 'aclose', new_callable=AsyncMock) as mock_close:
+        with patch.object(client.client, "aclose", new_callable=AsyncMock) as mock_close:
             await client.close()
 
             mock_close.assert_called_once()
@@ -342,7 +341,7 @@ class TestClientLifecycle:
             nonlocal close_called
             close_called = True
 
-        with patch.object(httpx.AsyncClient, 'aclose', new=mock_aclose):
+        with patch.object(httpx.AsyncClient, "aclose", new=mock_aclose):
             async with ExaSearchClient(api_key="test-key") as client:
                 assert client.api_key == "test-key"
 
@@ -372,7 +371,7 @@ class TestIntegrationWithAgent:
                 title="Result 1",
                 url="https://example.com/1",
                 text="Content 1",
-            )
+            ),
         ]
 
         async def mock_search(**kwargs):

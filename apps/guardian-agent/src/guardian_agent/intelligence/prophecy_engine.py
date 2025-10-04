@@ -1,5 +1,4 @@
-"""
-Prophecy Engine - Architectural Future Prediction
+"""Prophecy Engine - Architectural Future Prediction
 
 The Oracle's ultimate evolution into a system that can predict the future
 consequences of architectural decisions before a single line of code is written.
@@ -210,8 +209,7 @@ class ProphecyEngineConfig(BaseModel):
 
 
 class ProphecyEngine:
-    """
-    The Oracle's Prophecy Engine - Architectural Future Prediction
+    """The Oracle's Prophecy Engine - Architectural Future Prediction
 
     Predicts the future consequences of architectural decisions by analyzing
     design intent against historical patterns, business intelligence, and
@@ -236,7 +234,6 @@ class ProphecyEngine:
 
     async def _initialize_prophecy_knowledge_async(self) -> None:
         """Initialize the prophecy knowledge base with historical data and patterns."""
-
         try:
             if not self.oracle:
                 logger.warning("Oracle not available - using limited prophecy knowledge")
@@ -260,13 +257,11 @@ class ProphecyEngine:
             logger.error(f"Failed to initialize prophecy knowledge: {e}")
 
     async def analyze_design_intent_async(self, design_doc_path: str) -> ProphecyReport:
-        """
-        Perform comprehensive prophetic analysis of a design document.
+        """Perform comprehensive prophetic analysis of a design document.
 
         This is the core function that transforms design intent into
         architectural prophecies and strategic recommendations.
         """
-
         start_time = datetime.utcnow()
         logger.info(f"🔮 Prophecy Engine analyzing design: {design_doc_path}")
 
@@ -342,12 +337,11 @@ class ProphecyEngine:
                 ),
                 overall_risk_level=ProphecySeverity.MODERATE,
                 total_prophecies=0,
-                strategic_guidance=f"Prophecy analysis failed: {str(e)}",
+                strategic_guidance=f"Prophecy analysis failed: {e!s}",
             )
 
     async def _extract_design_intent_async(self, design_doc_path: str) -> DesignIntent:
         """Extract structured design intent from a design document."""
-
         try:
             # Read the design document
             doc_path = Path(design_doc_path)
@@ -399,7 +393,6 @@ class ProphecyEngine:
 
     async def _ai_extract_intent_async(self, content: str, doc_path: str) -> dict[str, Any]:
         """Use AI to extract structured intent from unstructured document content."""
-
         # This is a simplified version - in reality, would use a sophisticated AI model
         # to parse the document and extract structured information
 
@@ -586,7 +579,6 @@ class ProphecyEngine:
 
     async def _generate_prophecies_async(self, design_intent: DesignIntent) -> list[ArchitecturalProphecy]:
         """Generate architectural prophecies based on design intent analysis."""
-
         prophecies = []
 
         try:
@@ -894,7 +886,6 @@ class ProphecyEngine:
         prophecies: list[ArchitecturalProphecy],
     ) -> dict[str, Any]:
         """Perform strategic analysis and generate architectural recommendations."""
-
         try:
             # Analyze prophecies to generate strategic recommendations
             high_severity_prophecies = [
@@ -1099,7 +1090,6 @@ class ProphecyEngine:
 
     async def generate_prophecy_summary_async(self, report: ProphecyReport) -> str:
         """Generate a human-readable summary of the prophecy report."""
-
         summary_parts = []
 
         # Header

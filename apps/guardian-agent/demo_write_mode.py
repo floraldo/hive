@@ -1,5 +1,4 @@
-"""
-Guardian Write Mode Demonstration.
+"""Guardian Write Mode Demonstration.
 
 Demonstrates progressive deployment of Guardian's write capabilities,
 starting with safe typo fixes and progressing to more complex changes.
@@ -53,7 +52,7 @@ async def demo_dry_run():
         {
             "filename": "example.py",
             "patch": "+    print('Helo world')  # Typo in comment",
-        }
+        },
     ]
 
     print("\nAnalyzing PR with write mode enabled...")

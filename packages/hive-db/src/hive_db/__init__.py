@@ -1,5 +1,4 @@
-"""
-Hive DB package - Database utilities and connection management for Hive applications.
+"""Hive DB package - Database utilities and connection management for Hive applications.
 
 Provides both sync and async database operations, connection pooling,
 and utility functions following the Hive inherit-extend pattern.
@@ -52,6 +51,7 @@ def configure_async_session(database_url: str, **engine_kwargs):
     Args:
         database_url: Async database URL (e.g., 'sqlite+aiosqlite:///db.sqlite')
         **engine_kwargs: Additional arguments for create_async_engine
+
     """
     global _async_session_factory
     if not SQLALCHEMY_AVAILABLE:
@@ -69,6 +69,7 @@ def get_async_session():
 
     Raises:
         RuntimeError: If async session factory not configured
+
     """
     if _async_session_factory is None:
         raise RuntimeError("Async session factory not configured. Call configure_async_session() first.")
@@ -79,43 +80,43 @@ connect_sqlite = get_sqlite_connection
 connect_postgres = get_postgres_connection
 
 __all__ = [
-    # SQLite utilities
-    "get_sqlite_connection",
-    "sqlite_transaction",
-    "connect_sqlite",
-    # PostgreSQL utilities
-    "get_postgres_connection",
-    "postgres_transaction",
-    "create_connection_pool",
-    "get_postgres_info",
-    "connect_postgres",
+    "SQLALCHEMY_AVAILABLE",
     # Connection pooling (legacy - DEPRECATED, removed)
     # "ConnectionPool",  # Use SQLiteConnectionFactory instead
     # "DatabaseManager",  # Use SQLiteConnectionManager instead
     # "create_database_manager",  # Use create_sqlite_manager instead
     # Async connection pooling
     "AsyncDatabaseManager",
-    "create_async_database_manager",
-    "create_async_sqlite_pool",
+    # SQLAlchemy async session support
+    "AsyncSession",
     # Modern SQLite pooling (canonical hive-async based)
     "SQLiteConnectionFactory",
     "SQLiteConnectionManager",
-    "create_sqlite_manager",
-    # SQLAlchemy async session support
-    "AsyncSession",
-    "get_async_session",
+    "backup_database",
+    "batch_insert",
     "configure_async_session",
-    "SQLALCHEMY_AVAILABLE",
+    "connect_postgres",
+    "connect_sqlite",
+    "create_async_database_manager",
+    "create_async_sqlite_pool",
+    "create_connection_pool",
+    "create_sqlite_manager",
+    "create_table_if_not_exists",
+    "database_transaction",
+    "execute_script",
+    "get_async_session",
+    "get_database_info",
+    # PostgreSQL utilities
+    "get_postgres_connection",
+    "get_postgres_info",
+    # SQLite utilities
+    "get_sqlite_connection",
+    "get_table_schema",
+    "insert_or_update",
+    "migrate_database",
+    "postgres_transaction",
+    "sqlite_transaction",
     # Database utilities
     "table_exists",
-    "create_table_if_not_exists",
-    "get_table_schema",
-    "execute_script",
-    "backup_database",
     "vacuum_database",
-    "get_database_info",
-    "database_transaction",
-    "insert_or_update",
-    "batch_insert",
-    "migrate_database",
 ]

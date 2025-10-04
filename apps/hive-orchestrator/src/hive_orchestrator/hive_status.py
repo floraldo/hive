@@ -2,7 +2,6 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 #!/usr/bin/env python3
-# ruff: noqa: E402
 """
 Hive Status Dashboard - Read-only viewer for new architecture
 Shows tasks, active workers, results, and events without any scheduling logic
@@ -21,7 +20,7 @@ from typing import Any
 # Windows console color support
 if sys.platform == "win32":
     # Use subprocess instead of os.system for security
-    subprocess.run(["cmd", "/c", "color"], check=False)  # noqa: S607
+    subprocess.run(["cmd", "/c", "color"], check=False)
 
 
 class HiveStatus:
@@ -157,12 +156,11 @@ class HiveStatus:
 
             if delta.days > 0:
                 return f"{delta.days}d"
-            elif delta.seconds > 3600:
+            if delta.seconds > 3600:
                 return f"{delta.seconds // 3600}h"
-            elif delta.seconds > 60:
+            if delta.seconds > 60:
                 return f"{delta.seconds // 60}m"
-            else:
-                return f"{delta.seconds}s"
+            return f"{delta.seconds}s"
         except (ValueError, TypeError, AttributeError):
             return "?"
 
@@ -170,10 +168,9 @@ class HiveStatus:
         """Format duration in milliseconds"""
         if ms < 1000:
             return f"{ms}ms"
-        elif ms < 60000:
+        if ms < 60000:
             return f"{ms / 1000:.1f}s"
-        else:
-            return f"{ms / 60000:.1f}m"
+        return f"{ms / 60000:.1f}m"
 
     def get_status_icon(self, status: str) -> str:
         """Get colored status icon with emoji/ASCII fallback"""

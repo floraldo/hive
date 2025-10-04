@@ -1,5 +1,4 @@
-"""
-Strategic Recommendation Engine - The Oracle Function
+"""Strategic Recommendation Engine - The Oracle Function
 
 Transforms analytics insights into strategic, actionable recommendations
 that guide platform evolution, cost optimization, and failure prevention.
@@ -144,8 +143,7 @@ class RecommendationReport:
 
 
 class RecommendationEngine:
-    """
-    Strategic Recommendation Engine - The Oracle Function
+    """Strategic Recommendation Engine - The Oracle Function
 
     Analyzes platform data and generates strategic, actionable
     recommendations for optimization, risk mitigation, and improvement.
@@ -165,7 +163,6 @@ class RecommendationEngine:
 
     def _load_recommendation_templates(self) -> dict[str, dict[str, Any]]:
         """Load recommendation templates and patterns."""
-
         return {
             "high_ai_costs": {
                 "type": RecommendationType.COST_OPTIMIZATION,
@@ -424,10 +421,9 @@ class RecommendationEngine:
         }
 
     async def generate_recommendations_async(
-        self, hours: int = 24, include_predictive: bool = True
+        self, hours: int = 24, include_predictive: bool = True,
     ) -> RecommendationReport:
         """Generate comprehensive strategic recommendations."""
-
         logger.info(f"Generating recommendations for last {hours} hours")
 
         # Get insights from analytics engine
@@ -483,10 +479,9 @@ class RecommendationEngine:
         return report
 
     async def _generate_cost_recommendations_async(
-        self, insights: list[Insight], trends: list[TrendAnalysis]
+        self, insights: list[Insight], trends: list[TrendAnalysis],
     ) -> list[Recommendation]:
         """Generate cost optimization recommendations."""
-
         recommendations = []
 
         # Check for AI cost trends
@@ -509,7 +504,7 @@ class RecommendationEngine:
                 recommendation = Recommendation(
                     title=template["title_template"].format(model=model_name),
                     description=template["description_template"].format(
-                        model=model_name, percentage=f"{trend.change_rate:.1f}", period=f"{trend.time_period.days} days"
+                        model=model_name, percentage=f"{trend.change_rate:.1f}", period=f"{trend.time_period.days} days",
                     ),
                     recommendation_type=template["type"],
                     priority=Priority.HIGH if trend.change_rate > 50 else Priority.MEDIUM,
@@ -558,10 +553,9 @@ class RecommendationEngine:
         return recommendations
 
     async def _generate_performance_recommendations_async(
-        self, insights: list[Insight], trends: list[TrendAnalysis], anomalies: list[Anomaly]
+        self, insights: list[Insight], trends: list[TrendAnalysis], anomalies: list[Anomaly],
     ) -> list[Recommendation]:
         """Generate performance improvement recommendations."""
-
         recommendations = []
 
         # Check for performance degradation trends,
@@ -648,7 +642,6 @@ class RecommendationEngine:
 
     async def _generate_developer_recommendations_async(self, trends: list[TrendAnalysis]) -> list[Recommendation]:
         """Generate developer productivity recommendations."""
-
         recommendations = []
 
         # Check for CI/CD performance issues,
@@ -670,7 +663,7 @@ class RecommendationEngine:
                 recommendation = Recommendation(
                     title=template["title_template"].format(pipeline=pipeline_name),
                     description=template["description_template"].format(
-                        pipeline=pipeline_name, time=f"{time_minutes:.1f}"
+                        pipeline=pipeline_name, time=f"{time_minutes:.1f}",
                     ),
                     recommendation_type=template["type"],
                     priority=Priority.MEDIUM,
@@ -693,10 +686,9 @@ class RecommendationEngine:
         return recommendations
 
     async def _generate_predictive_recommendations_async(
-        self, trends: list[TrendAnalysis], anomalies: list[Anomaly]
+        self, trends: list[TrendAnalysis], anomalies: list[Anomaly],
     ) -> list[Recommendation]:
         """Generate predictive maintenance recommendations."""
-
         recommendations = []
 
         # Look for trends that predict future issues,
@@ -722,7 +714,7 @@ class RecommendationEngine:
                         recommendation = Recommendation(
                             title=template["title_template"].format(resource=resource_name),
                             description=template["description_template"].format(
-                                resource=resource_name, percentage=f"{current:.1f}", timeframe=timeframe
+                                resource=resource_name, percentage=f"{current:.1f}", timeframe=timeframe,
                             ),
                             recommendation_type=template["type"],
                             priority=Priority.HIGH,
@@ -746,7 +738,6 @@ class RecommendationEngine:
 
     async def _generate_security_recommendations_async(self, anomalies: list[Anomaly]) -> list[Recommendation]:
         """Generate security enhancement recommendations."""
-
         recommendations = []
 
         # Look for security-related anomalies,
@@ -786,7 +777,6 @@ class RecommendationEngine:
 
     async def _generate_architectural_recommendations_async(self) -> list[Recommendation]:
         """Generate architectural compliance and improvement recommendations."""
-
         recommendations = []
 
         try:
@@ -804,7 +794,7 @@ class RecommendationEngine:
             )
 
             await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.TECHNICAL_DEBT], start_time=datetime.utcnow() - timedelta(hours=24), limit=10
+                metric_types=[MetricType.TECHNICAL_DEBT], start_time=datetime.utcnow() - timedelta(hours=24), limit=10,
             )
 
             # Analyze violations by rule type and package,
@@ -849,7 +839,7 @@ class RecommendationEngine:
                     recommendation = Recommendation(
                         title=template["title_template"].format(package=worst_package[0]),
                         description=template["description_template"].format(
-                            package=worst_package[0], violation_count=worst_package[1]
+                            package=worst_package[0], violation_count=worst_package[1],
                         ),
                         recommendation_type=template["type"],
                         priority=Priority.CRITICAL,  # Global state is critical,
@@ -888,10 +878,10 @@ class RecommendationEngine:
 
                     recommendation = Recommendation(
                         title=template["title_template"].format(
-                            package=worst_package[0], missing_count=worst_package[1]
+                            package=worst_package[0], missing_count=worst_package[1],
                         ),
                         description=template["description_template"].format(
-                            package=worst_package[0], missing_count=worst_package[1]
+                            package=worst_package[0], missing_count=worst_package[1],
                         ),
                         recommendation_type=template["type"],
                         priority=Priority.HIGH,
@@ -967,7 +957,7 @@ class RecommendationEngine:
                     recommendation = Recommendation(
                         title=template["title_template"].format(package=worst_package[0]),
                         description=template["description_template"].format(
-                            package=worst_package[0], violation_count=worst_package[1]
+                            package=worst_package[0], violation_count=worst_package[1],
                         ),
                         recommendation_type=template["type"],
                         priority=Priority.MEDIUM,
@@ -1025,13 +1015,12 @@ class RecommendationEngine:
 
     async def _generate_business_strategy_recommendations_async(self) -> list[Recommendation]:
         """Generate business strategy and product recommendations."""
-
         recommendations = []
 
         try:
             # Get business intelligence metrics,
             feature_metrics = await self.warehouse.query_metrics_async(
-                metric_types=[MetricType.FEATURE_ADOPTION], start_time=datetime.utcnow() - timedelta(days=7), limit=100
+                metric_types=[MetricType.FEATURE_ADOPTION], start_time=datetime.utcnow() - timedelta(days=7), limit=100,
             )
 
             user_metrics = await self.warehouse.query_metrics_async(
@@ -1065,7 +1054,7 @@ class RecommendationEngine:
                         recommendation = Recommendation(
                             title=template["title_template"].format(feature=feature_name),
                             description=template["description_template"].format(
-                                feature=feature_name, adoption_rate=adoption_rate, cost=operational_cost
+                                feature=feature_name, adoption_rate=adoption_rate, cost=operational_cost,
                             ),
                             recommendation_type=template["type"],
                             priority=Priority.HIGH,
@@ -1096,7 +1085,7 @@ class RecommendationEngine:
                     recommendation = Recommendation(
                         title=template["title_template"].format(feature=feature_name),
                         description=template["description_template"].format(
-                            feature=feature_name, roi_score=roi_score, adoption_rate=adoption_rate
+                            feature=feature_name, roi_score=roi_score, adoption_rate=adoption_rate,
                         ),
                         recommendation_type=template["type"],
                         priority=Priority.MEDIUM,
@@ -1167,7 +1156,7 @@ class RecommendationEngine:
                     recommendation = Recommendation(
                         title=template["title_template"].format(customer=customer),
                         description=template["description_template"].format(
-                            customer=customer, error_increase=error_increase, duration=duration
+                            customer=customer, error_increase=error_increase, duration=duration,
                         ),
                         recommendation_type=template["type"],
                         priority=Priority.CRITICAL,
@@ -1204,7 +1193,7 @@ class RecommendationEngine:
                     recommendation = Recommendation(
                         title=template["title_template"],
                         description=template["description_template"].format(
-                            conversion_rate=conversion_rate, benchmark=benchmark, potential_revenue=potential_revenue
+                            conversion_rate=conversion_rate, benchmark=benchmark, potential_revenue=potential_revenue,
                         ),
                         recommendation_type=template["type"],
                         priority=Priority.HIGH,
@@ -1234,7 +1223,7 @@ class RecommendationEngine:
                         recommendation = Recommendation(
                             title=template["title_template"],
                             description=template["description_template"].format(
-                                ltv_cac_ratio=ltv_cac_ratio, potential_loss=potential_loss
+                                ltv_cac_ratio=ltv_cac_ratio, potential_loss=potential_loss,
                             ),
                             recommendation_type=template["type"],
                             priority=Priority.HIGH,
@@ -1259,10 +1248,9 @@ class RecommendationEngine:
         return recommendations
 
     def _create_recommendation_report(
-        self, recommendations: list[Recommendation], insights: list[Insight]
+        self, recommendations: list[Recommendation], insights: list[Insight],
     ) -> RecommendationReport:
         """Create comprehensive recommendation report."""
-
         # Categorize recommendations by priority,
         critical = [r for r in recommendations if r.priority == Priority.CRITICAL],
         high = [r for r in recommendations if r.priority == Priority.HIGH],
@@ -1294,7 +1282,7 @@ class RecommendationEngine:
                     category="urgency",
                     confidence_score=0.9,
                     risk_level="high",
-                )
+                ),
             )
 
         if total_savings > 100:
@@ -1305,7 +1293,7 @@ class RecommendationEngine:
                     category="cost",
                     confidence_score=0.8,
                     risk_level="low",
-                )
+                ),
             )
 
         # Immediate actions,
@@ -1345,10 +1333,9 @@ class RecommendationEngine:
         )
 
     async def create_github_issues_async(
-        self, recommendations: list[Recommendation], repository: str = "hive"
+        self, recommendations: list[Recommendation], repository: str = "hive",
     ) -> list[dict[str, Any]]:
         """Create GitHub issues for recommendations (returns issue data for API calls)."""
-
         issues = []
 
         for rec in recommendations:
@@ -1369,7 +1356,6 @@ class RecommendationEngine:
 
     def _generate_github_issue_body(self, recommendation: Recommendation) -> str:
         """Generate detailed GitHub issue body for recommendation."""
-
         body = f"""## 🎯 Strategic Recommendation: {recommendation.title}
 
 ### Description

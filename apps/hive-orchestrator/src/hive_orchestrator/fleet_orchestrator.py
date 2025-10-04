@@ -1,5 +1,4 @@
-"""
-Fleet Orchestrator - Coordinating Task Queue, Worker Pool, and QA Workers
+"""Fleet Orchestrator - Coordinating Task Queue, Worker Pool, and QA Workers
 
 Central orchestrator that:
 - Manages task queue and worker pool
@@ -26,8 +25,7 @@ logger = get_logger(__name__)
 
 
 class FleetOrchestrator:
-    """
-    Central orchestrator for autonomous QA worker fleet.
+    """Central orchestrator for autonomous QA worker fleet.
 
     Coordinates:
     - Task queue management
@@ -47,8 +45,7 @@ class FleetOrchestrator:
         scaling_check_interval: float = 30.0,
         cleanup_interval: float = 3600.0,
     ):
-        """
-        Initialize fleet orchestrator.
+        """Initialize fleet orchestrator.
 
         Args:
             db_path: Database path for persistence
@@ -58,6 +55,7 @@ class FleetOrchestrator:
             health_check_interval: Worker health check interval (seconds)
             scaling_check_interval: Scaling decision interval (seconds)
             cleanup_interval: Old task cleanup interval (seconds)
+
         """
         self.db_path = db_path or (PROJECT_ROOT / "hive.db")
 
@@ -92,8 +90,7 @@ class FleetOrchestrator:
         priority: TaskPriority = TaskPriority.NORMAL,
         timeout_seconds: int = 60,
     ) -> str:
-        """
-        Submit task to queue for processing.
+        """Submit task to queue for processing.
 
         Args:
             task: Task to submit
@@ -102,27 +99,28 @@ class FleetOrchestrator:
 
         Returns:
             Task ID
+
         """
         task_id = await self.task_queue.enqueue(
-            task=task, priority=priority, timeout_seconds=timeout_seconds
+            task=task, priority=priority, timeout_seconds=timeout_seconds,
         )
 
         logger.info(
             f"Task {task_id} submitted with {priority} priority "
-            f"(queue depth: {self.task_queue.queue_depth})"
+            f"(queue depth: {self.task_queue.queue_depth})",
         )
 
         return task_id
 
     async def assign_task_to_worker(self, worker_id: str) -> dict[str, Any] | None:
-        """
-        Assign next task from queue to worker.
+        """Assign next task from queue to worker.
 
         Args:
             worker_id: Worker requesting task
 
         Returns:
             Task data or None if queue is empty
+
         """
         # Dequeue task
         queued_task = await self.task_queue.dequeue(worker_id)
@@ -153,10 +151,9 @@ class FleetOrchestrator:
         }
 
     async def complete_task(
-        self, task_id: str, worker_id: str, result: dict[str, Any]
+        self, task_id: str, worker_id: str, result: dict[str, Any],
     ) -> bool:
-        """
-        Mark task as completed by worker.
+        """Mark task as completed by worker.
 
         Args:
             task_id: Task ID
@@ -165,6 +162,7 @@ class FleetOrchestrator:
 
         Returns:
             True if task marked completed, False otherwise
+
         """
         success = await self.task_queue.mark_completed(task_id, result)
 
@@ -193,10 +191,9 @@ class FleetOrchestrator:
         return success
 
     async def fail_task(
-        self, task_id: str, worker_id: str, error: str, retry: bool = True
+        self, task_id: str, worker_id: str, error: str, retry: bool = True,
     ) -> bool:
-        """
-        Mark task as failed and optionally retry.
+        """Mark task as failed and optionally retry.
 
         Args:
             task_id: Task ID
@@ -206,6 +203,7 @@ class FleetOrchestrator:
 
         Returns:
             True if task marked failed, False otherwise
+
         """
         success = await self.task_queue.mark_failed(task_id, error, retry)
 
@@ -262,19 +260,19 @@ class FleetOrchestrator:
 
                 # Calculate scaling decision
                 action, count = await self.worker_pool.calculate_scaling_decision(
-                    queue_depth
+                    queue_depth,
                 )
 
                 # Apply scaling decision
                 if action != "no_change":
                     scaled = await self.worker_pool.apply_scaling_decision(
-                        action, count, worker_type="qa"
+                        action, count, worker_type="qa",
                     )
 
                     logger.info(
                         f"Auto-scaling: {action} {scaled} workers "
                         f"(queue depth: {queue_depth}, "
-                        f"pool size: {self.worker_pool.pool_size})"
+                        f"pool size: {self.worker_pool.pool_size})",
                     )
 
                 await asyncio.sleep(self.scaling_check_interval)
@@ -343,11 +341,11 @@ class FleetOrchestrator:
         logger.info("FleetOrchestrator stopped")
 
     async def get_status(self) -> dict[str, Any]:
-        """
-        Get orchestrator status and metrics.
+        """Get orchestrator status and metrics.
 
         Returns:
             Status dictionary with queue and pool metrics
+
         """
         queue_metrics = await self.task_queue.get_metrics()
         pool_metrics = await self.worker_pool.get_metrics()
@@ -375,8 +373,7 @@ def get_orchestrator(
     min_workers: int = 1,
     max_workers: int = 10,
 ) -> FleetOrchestrator:
-    """
-    Get or create global orchestrator instance.
+    """Get or create global orchestrator instance.
 
     Args:
         db_path: Database path
@@ -385,12 +382,13 @@ def get_orchestrator(
 
     Returns:
         FleetOrchestrator instance
+
     """
     global _orchestrator_instance
 
     if _orchestrator_instance is None:
         _orchestrator_instance = FleetOrchestrator(
-            db_path=db_path, min_workers=min_workers, max_workers=max_workers
+            db_path=db_path, min_workers=min_workers, max_workers=max_workers,
         )
 
     return _orchestrator_instance
@@ -402,7 +400,7 @@ async def main():
 
     parser = argparse.ArgumentParser(description="Fleet Orchestrator")
     parser.add_argument(
-        "--db-path", type=Path, default=None, help="Database path (default: PROJECT_ROOT/hive.db)"
+        "--db-path", type=Path, default=None, help="Database path (default: PROJECT_ROOT/hive.db)",
     )
     parser.add_argument("--min-workers", type=int, default=1, help="Minimum workers")
     parser.add_argument("--max-workers", type=int, default=10, help="Maximum workers")
@@ -411,7 +409,7 @@ async def main():
 
     # Create and start orchestrator
     orchestrator = FleetOrchestrator(
-        db_path=args.db_path, min_workers=args.min_workers, max_workers=args.max_workers
+        db_path=args.db_path, min_workers=args.min_workers, max_workers=args.max_workers,
     )
 
     await orchestrator.start()

@@ -1,5 +1,4 @@
-"""
-Unit tests for God Mode sequential thinking loop and retry prevention.
+"""Unit tests for God Mode sequential thinking loop and retry prevention.
 
 Tests cover:
 - Multi-step thinking loop execution

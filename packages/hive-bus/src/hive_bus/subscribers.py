@@ -18,8 +18,7 @@ from .base_events import BaseEvent
 
 @dataclass
 class BaseSubscriber:
-    """
-    Generic event subscriber.
+    """Generic event subscriber.
 
     Contains only the minimal, universal properties needed
     for subscription management in any system.

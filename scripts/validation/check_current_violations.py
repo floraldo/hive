@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Check current violations for commit readiness
+"""Check current violations for commit readiness
 """
 
 import sys

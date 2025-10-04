@@ -1,5 +1,4 @@
-"""
-Test YAML and TOML chunking functionality.
+"""Test YAML and TOML chunking functionality.
 
 Simple script to validate that YAML and TOML files are correctly chunked
 for RAG indexing.

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-ASCII-Safe Hive Oracle Intelligence Demo
+"""ASCII-Safe Hive Oracle Intelligence Demo
 
 This demo showcases the core Oracle Intelligence system with ASCII-only output.
 """

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Pipeline Monitor for AI Planner -> Queen -> Worker Integration
+"""Pipeline Monitor for AI Planner -> Queen -> Worker Integration
 
 Provides comprehensive monitoring, logging, and reporting for the complete
 autonomous task execution pipeline to ensure reliable operation.
@@ -98,11 +97,11 @@ class PipelineMonitor:
     """Comprehensive monitor for the AI Planner -> Queen -> Worker pipeline"""
 
     def __init__(self, alert_thresholds: dict[str, Any] | None = None) -> None:
-        """
-        Initialize pipeline monitor
+        """Initialize pipeline monitor
 
         Args:
             alert_thresholds: Custom thresholds for alerts
+
         """
         self.alert_thresholds = alert_thresholds or {
             "stuck_task_minutes": 30,
@@ -295,14 +294,14 @@ class PipelineMonitor:
         return float(cursor.fetchone()[0])
 
     def check_health(self, metrics: PipelineMetrics) -> tuple[HealthStatus, list[PipelineAlert]]:
-        """
-        Check pipeline health and generate alerts
+        """Check pipeline health and generate alerts
 
         Args:
             metrics: Current pipeline metrics
 
         Returns:
             Overall health status and list of alerts
+
         """
         alerts = ([],)
         health_scores = []

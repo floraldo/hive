@@ -1,5 +1,4 @@
-"""
-Arq worker configuration for processing climate jobs.,
+"""Arq worker configuration for processing climate jobs.,
 
 Run with: arq ecosystemiser.worker.WorkerSettings
 """

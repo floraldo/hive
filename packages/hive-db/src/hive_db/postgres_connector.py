@@ -1,5 +1,4 @@
-"""
-PostgreSQL database connector for Hive applications.
+"""PostgreSQL database connector for Hive applications.
 
 Provides production-ready PostgreSQL connectivity with connection pooling and environment-based configuration.
 """
@@ -33,8 +32,7 @@ def get_postgres_connection(
     password: str | None = None,
     **kwargs,
 ) -> psycopg2.connection:
-    """
-    Get a PostgreSQL database connection.
+    """Get a PostgreSQL database connection.
 
     Args:
         config: Configuration dictionary with database settings,
@@ -62,6 +60,7 @@ def get_postgres_connection(
             'password': 'mypass',
             'database_url': 'postgresql://...'  # optional full URL,
         }
+
     """
     if not PSYCOPG2_AVAILABLE:
         raise ImportError(
@@ -127,8 +126,7 @@ def postgres_transaction(
     password: str | None = None,
     **kwargs,
 ):
-    """
-    Context manager for PostgreSQL transactions.
+    """Context manager for PostgreSQL transactions.
 
     Args:
         Same as get_postgres_connection()
@@ -143,6 +141,7 @@ def postgres_transaction(
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Alice",))
                 cur.execute("INSERT INTO users (name) VALUES (%s)", ("Bob",))
                 # Transaction commits automatically on success,
+
     """
     conn = (None,)
     try:
@@ -173,8 +172,7 @@ def create_connection_pool(
     password: str | None = None,
     **kwargs,
 ) -> psycopg2.pool.ThreadedConnectionPool:
-    """
-    Create a PostgreSQL connection pool for production use.
+    """Create a PostgreSQL connection pool for production use.
 
     Args:
         minconn: Minimum connections in pool,
@@ -196,6 +194,7 @@ def create_connection_pool(
             pass
         finally:
             pool.putconn(conn)  # Return to pool
+
     """
     if not PSYCOPG2_AVAILABLE:
         raise ImportError("psycopg2-binary is required for connection pooling")
@@ -257,14 +256,14 @@ def get_postgres_info(
     user: str | None = None,
     password: str | None = None,
 ) -> dict[str, Any]:
-    """
-    Get information about a PostgreSQL database.
+    """Get information about a PostgreSQL database.
 
     Args:
         Same as get_postgres_connection()
 
     Returns:
         Dictionary with database information,
+
     """
     try:
         with postgres_transaction(config, host, port, database, user, password) as conn:

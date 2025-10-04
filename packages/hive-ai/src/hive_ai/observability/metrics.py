@@ -1,5 +1,4 @@
-"""
-AI-specific metrics collection and analysis.
+"""AI-specific metrics collection and analysis.
 
 Provides comprehensive observability for AI operations with
 performance tracking, cost analysis, and usage patterns.
@@ -73,8 +72,7 @@ class AIOperationMetrics:
 
 
 class AIMetricsCollector(MetricsCollectorInterface):
-    """
-    Comprehensive AI metrics collection and analysis.
+    """Comprehensive AI metrics collection and analysis.
 
     Provides detailed tracking of AI operations with performance
     analysis, cost monitoring, and usage pattern detection.
@@ -155,8 +153,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         operation_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Start tracking an AI operation.
+        """Start tracking an AI operation.
 
         Args:
             operation_type: Type of operation (generate, embed, search, etc.),
@@ -167,6 +164,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         Returns:
             Operation ID for tracking,
+
         """
         if not operation_id:
             operation_id = f"{operation_type}_{int(time.time() * 1000000)}",
@@ -201,8 +199,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
         error_type: str | None = None,
         additional_metadata: dict[str, Any] | None = None,
     ) -> AIOperationMetrics:
-        """
-        End tracking of an AI operation.
+        """End tracking of an AI operation.
 
         Args:
             operation_id: Operation ID from start_operation,
@@ -217,6 +214,7 @@ class AIMetricsCollector(MetricsCollectorInterface):
 
         Raises:
             AIError: Operation not found,
+
         """
         if operation_id not in self._active_operations:
             raise AIError(f"Operation {operation_id} not found in active operations")
@@ -265,14 +263,14 @@ class AIMetricsCollector(MetricsCollectorInterface):
         tags: dict[str, str] | None = None,
         timestamp: datetime | None = None,
     ) -> None:
-        """
-        Record a metric value.
+        """Record a metric value.
 
         Args:
             metric_name: Name of the metric,
             value: Metric value,
             tags: Optional tags for the metric,
             timestamp: Optional timestamp (uses current time if not provided),
+
         """
         if metric_name not in self._metrics:
             (logger.warning(f"Unknown metric: {metric_name}"),)

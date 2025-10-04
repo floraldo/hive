@@ -1,5 +1,4 @@
-"""
-Composite decorators combining multiple observability patterns.
+"""Composite decorators combining multiple observability patterns.
 
 High-level decorators that bundle common monitoring patterns extracted
 from production usage in EcoSystemiser.
@@ -25,8 +24,7 @@ def track_request(
     labels: dict[str, str] | None = None,
     record_errors: bool = True,
 ) -> Callable:
-    """
-    Composite decorator for tracking HTTP/API requests.
+    """Composite decorator for tracking HTTP/API requests.
 
     Combines:
     - @timed: Request duration histogram
@@ -43,6 +41,7 @@ def track_request(
         @track_request("api.users.get", labels={"endpoint": "/users"})
         async def get_users(request):
             return await fetch_users()
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -62,8 +61,7 @@ def track_cache_operation(
     cache_level: str,
     operation_type: str = "get",
 ) -> Callable:
-    """
-    Composite decorator for tracking cache operations.
+    """Composite decorator for tracking cache operations.
 
     Tracks cache hits/misses and calculates hit ratio.
 
@@ -81,6 +79,7 @@ def track_cache_operation(
         - cache.{level}.{operation}.duration: Operation duration
         - cache.{level}.hits: Cache hits (when result is not None)
         - cache.{level}.misses: Cache misses (when result is None)
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -102,63 +101,61 @@ def track_cache_operation(
                         await _metrics_registry.record_counter(f"cache.{cache_level}.hits", 1.0, {"level": cache_level})
                     else:
                         await _metrics_registry.record_counter(
-                            f"cache.{cache_level}.misses", 1.0, {"level": cache_level}
+                            f"cache.{cache_level}.misses", 1.0, {"level": cache_level},
                         )
 
                     return result
                 finally:
                     duration = time.perf_counter() - start
                     await _metrics_registry.record_histogram(
-                        f"cache.{cache_level}.{operation_type}.duration", duration, base_labels
+                        f"cache.{cache_level}.{operation_type}.duration", duration, base_labels,
                     )
 
             return async_wrapper
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    logger.warning(f"No event loop available for sync function {func.__name__}. Skipping metrics.")
-                    return func(*args, **kwargs)
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                logger.warning(f"No event loop available for sync function {func.__name__}. Skipping metrics.")
+                return func(*args, **kwargs)
 
-                # Record metrics synchronously via event loop
-                loop.create_task(
-                    _metrics_registry.record_counter(f"cache.{cache_level}.{operation_type}.calls", 1.0, base_labels)
-                )
+            # Record metrics synchronously via event loop
+            loop.create_task(
+                _metrics_registry.record_counter(f"cache.{cache_level}.{operation_type}.calls", 1.0, base_labels),
+            )
 
-                start = time.perf_counter()
-                try:
-                    result = func(*args, **kwargs)
+            start = time.perf_counter()
+            try:
+                result = func(*args, **kwargs)
 
-                    # Track hit/miss
-                    if result is not None:
-                        loop.create_task(
-                            _metrics_registry.record_counter(f"cache.{cache_level}.hits", 1.0, {"level": cache_level})
-                        )
-                    else:
-                        loop.create_task(
-                            _metrics_registry.record_counter(f"cache.{cache_level}.misses", 1.0, {"level": cache_level})
-                        )
-
-                    return result
-                finally:
-                    duration = time.perf_counter() - start
+                # Track hit/miss
+                if result is not None:
                     loop.create_task(
-                        _metrics_registry.record_histogram(
-                            f"cache.{cache_level}.{operation_type}.duration", duration, base_labels
-                        )
+                        _metrics_registry.record_counter(f"cache.{cache_level}.hits", 1.0, {"level": cache_level}),
+                    )
+                else:
+                    loop.create_task(
+                        _metrics_registry.record_counter(f"cache.{cache_level}.misses", 1.0, {"level": cache_level}),
                     )
 
-            return sync_wrapper
+                return result
+            finally:
+                duration = time.perf_counter() - start
+                loop.create_task(
+                    _metrics_registry.record_histogram(
+                        f"cache.{cache_level}.{operation_type}.duration", duration, base_labels,
+                    ),
+                )
+
+        return sync_wrapper
 
     return decorator
 
 
 def track_adapter_request(adapter_name: str) -> Callable:
-    """
-    Composite decorator for tracking external adapter/API requests.
+    """Composite decorator for tracking external adapter/API requests.
 
     Combines:
     - @timed: Request latency
@@ -179,6 +176,7 @@ def track_adapter_request(adapter_name: str) -> Callable:
         - adapter.{name}.calls: Total requests counter
         - adapter.{name}.errors: Error counter
         - Trace span: "adapter.{name}.request"
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -197,7 +195,7 @@ def track_adapter_request(adapter_name: str) -> Callable:
 
                     # Record success
                     await _metrics_registry.record_counter(
-                        f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "success"}
+                        f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "success"},
                     )
                     _tracing_context.end_span(span, status="OK")
 
@@ -206,10 +204,10 @@ def track_adapter_request(adapter_name: str) -> Callable:
                 except Exception as e:
                     # Record failure
                     await _metrics_registry.record_counter(
-                        f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "failure"}
+                        f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "failure"},
                     )
                     await _metrics_registry.record_counter(
-                        f"adapter.{adapter_name}.errors", 1.0, {**base_labels, "error_type": type(e).__name__}
+                        f"adapter.{adapter_name}.errors", 1.0, {**base_labels, "error_type": type(e).__name__},
                     )
                     _tracing_context.end_span(span, status="ERROR", exception=str(e))
                     raise
@@ -220,60 +218,59 @@ def track_adapter_request(adapter_name: str) -> Callable:
                     await _metrics_registry.record_histogram(f"adapter.{adapter_name}.duration", duration, base_labels)
 
             return async_wrapper
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    logger.warning(f"No event loop available for sync function {func.__name__}. Skipping metrics.")
-                    return func(*args, **kwargs)
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                logger.warning(f"No event loop available for sync function {func.__name__}. Skipping metrics.")
+                return func(*args, **kwargs)
 
-                span = _tracing_context.start_span(f"adapter.{adapter_name}.request", attributes=base_labels)
-                start = time.perf_counter()
+            span = _tracing_context.start_span(f"adapter.{adapter_name}.request", attributes=base_labels)
+            start = time.perf_counter()
 
-                try:
-                    result = func(*args, **kwargs)
+            try:
+                result = func(*args, **kwargs)
 
-                    # Record success
-                    loop.create_task(
-                        _metrics_registry.record_counter(
-                            f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "success"}
-                        )
-                    )
-                    _tracing_context.end_span(span, status="OK")
+                # Record success
+                loop.create_task(
+                    _metrics_registry.record_counter(
+                        f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "success"},
+                    ),
+                )
+                _tracing_context.end_span(span, status="OK")
 
-                    return result
+                return result
 
-                except Exception as e:
-                    # Record failure
-                    loop.create_task(
-                        _metrics_registry.record_counter(
-                            f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "failure"}
-                        )
-                    )
-                    loop.create_task(
-                        _metrics_registry.record_counter(
-                            f"adapter.{adapter_name}.errors", 1.0, {**base_labels, "error_type": type(e).__name__}
-                        )
-                    )
-                    _tracing_context.end_span(span, status="ERROR", exception=str(e))
-                    raise
+            except Exception as e:
+                # Record failure
+                loop.create_task(
+                    _metrics_registry.record_counter(
+                        f"adapter.{adapter_name}.calls", 1.0, {**base_labels, "status": "failure"},
+                    ),
+                )
+                loop.create_task(
+                    _metrics_registry.record_counter(
+                        f"adapter.{adapter_name}.errors", 1.0, {**base_labels, "error_type": type(e).__name__},
+                    ),
+                )
+                _tracing_context.end_span(span, status="ERROR", exception=str(e))
+                raise
 
-                finally:
-                    duration = time.perf_counter() - start
-                    loop.create_task(
-                        _metrics_registry.record_histogram(f"adapter.{adapter_name}.duration", duration, base_labels)
-                    )
+            finally:
+                duration = time.perf_counter() - start
+                loop.create_task(
+                    _metrics_registry.record_histogram(f"adapter.{adapter_name}.duration", duration, base_labels),
+                )
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
 
 __all__ = [
-    "track_request",
-    "track_cache_operation",
     "track_adapter_request",
+    "track_cache_operation",
+    "track_request",
 ]

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AI Reviewer Application - BaseApplication Implementation
+"""AI Reviewer Application - BaseApplication Implementation
 
 Migrated to use BaseApplication from hive-app-toolkit for:
 - Automatic configuration loading (Project Unify V2)
@@ -25,8 +24,7 @@ logger = get_logger("ai-reviewer.app")
 
 
 class AIReviewerApp(BaseApplication):
-    """
-    AI Reviewer Application
+    """AI Reviewer Application
 
     Autonomous code review service that:
     - Monitors review_pending tasks in database
@@ -38,13 +36,13 @@ class AIReviewerApp(BaseApplication):
     app_name = "ai-reviewer"
 
     def __init__(self, config=None, test_mode: bool = False, polling_interval: int = 30):
-        """
-        Initialize AI Reviewer application.
+        """Initialize AI Reviewer application.
 
         Args:
             config: Optional pre-loaded configuration (for testing)
             test_mode: Run in test/mock mode (no actual API calls)
             polling_interval: Seconds between queue polls
+
         """
         super().__init__(config=config)
         self.test_mode = test_mode
@@ -53,14 +51,13 @@ class AIReviewerApp(BaseApplication):
         self.review_engine = None
 
     async def initialize_services(self):
-        """
-        Initialize AI Reviewer services.
+        """Initialize AI Reviewer services.
 
         Resources (db, cache, event_bus) are already initialized by BaseApplication.
         """
         self.logger.info(
             f"Initializing AI Reviewer services "
-            f"(test_mode={self.test_mode}, poll_interval={self.polling_interval}s)..."
+            f"(test_mode={self.test_mode}, poll_interval={self.polling_interval}s)...",
         )
 
         # Create review engine
@@ -78,8 +75,7 @@ class AIReviewerApp(BaseApplication):
         self.logger.info("AI Reviewer services initialized successfully")
 
     async def run(self):
-        """
-        Main application logic - run the review agent loop.
+        """Main application logic - run the review agent loop.
 
         Polls for review tasks and processes them until shutdown.
         """
@@ -112,8 +108,7 @@ class AIReviewerApp(BaseApplication):
         self.logger.info("AI Reviewer main loop stopped")
 
     async def cleanup_services(self):
-        """
-        Cleanup AI Reviewer services.
+        """Cleanup AI Reviewer services.
 
         BaseApplication handles db, cache, bus cleanup.
         We only clean reviewer-specific resources.
@@ -133,13 +128,13 @@ class AIReviewerApp(BaseApplication):
 
 
 def main() -> int:
-    """
-    Entry point for AI Reviewer application.
+    """Entry point for AI Reviewer application.
 
     Supports command-line arguments for backward compatibility.
 
     Returns:
         Exit code (0 for success, 1 for failure)
+
     """
     import argparse
 

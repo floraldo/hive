@@ -1,5 +1,4 @@
-"""
-Tests for graph-based dependency validator.
+"""Tests for graph-based dependency validator.
 
 Tests both direct and transitive dependency violation detection using
 mock file structures and controlled dependency patterns.
@@ -19,18 +18,18 @@ class TestDependencyRuleDefinition:
     @pytest.mark.core
     def test_create_rule(self) -> None:
         """Test creating a dependency rule."""
-        rule = DependencyRule(name='Test rule', source_pattern='packages/hive-db/**', target_pattern='packages/hive-ai/**', rule_type=RuleType.CANNOT_DEPEND_ON)
-        assert rule.name == 'Test rule'
-        assert rule.source_pattern == 'packages/hive-db/**'
-        assert rule.target_pattern == 'packages/hive-ai/**'
+        rule = DependencyRule(name="Test rule", source_pattern="packages/hive-db/**", target_pattern="packages/hive-ai/**", rule_type=RuleType.CANNOT_DEPEND_ON)
+        assert rule.name == "Test rule"
+        assert rule.source_pattern == "packages/hive-db/**"
+        assert rule.target_pattern == "packages/hive-ai/**"
         assert rule.rule_type == RuleType.CANNOT_DEPEND_ON
         assert rule.check_transitive is True
 
     @pytest.mark.core
     def test_rule_severity(self) -> None:
         """Test rule severity levels."""
-        critical_rule = DependencyRule(name='Critical rule', source_pattern='packages/**', target_pattern='apps/**', rule_type=RuleType.CANNOT_DEPEND_ON, severity='CRITICAL')
-        assert critical_rule.severity == 'CRITICAL'
+        critical_rule = DependencyRule(name="Critical rule", source_pattern="packages/**", target_pattern="apps/**", rule_type=RuleType.CANNOT_DEPEND_ON, severity="CRITICAL")
+        assert critical_rule.severity == "CRITICAL"
 
 @pytest.mark.core
 class TestValidatorInitialization:
@@ -47,7 +46,7 @@ class TestValidatorInitialization:
     def test_add_rule(self) -> None:
         """Test adding rules to validator."""
         validator = DependencyGraphValidator()
-        rule = DependencyRule(name='Test rule', source_pattern='src/**', target_pattern='test/**', rule_type=RuleType.CANNOT_DEPEND_ON)
+        rule = DependencyRule(name="Test rule", source_pattern="src/**", target_pattern="test/**", rule_type=RuleType.CANNOT_DEPEND_ON)
         validator.add_rule(rule)
         assert len(validator.rules) == 1
         assert validator.rules[0] == rule
@@ -62,9 +61,9 @@ class TestDirectDependencyViolations:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'module_a.py').write_text('# Module A\n')
-            (tmpdir_path / 'module_b.py').write_text('# Module B\n')
-            rule = DependencyRule(name='A cannot depend on B', source_pattern='module_a', target_pattern='module_b', rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False)
+            (tmpdir_path / "module_a.py").write_text("# Module A\n")
+            (tmpdir_path / "module_b.py").write_text("# Module B\n")
+            rule = DependencyRule(name="A cannot depend on B", source_pattern="module_a", target_pattern="module_b", rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False)
             validator.add_rule(rule)
             violations = validator.validate(tmpdir_path)
             assert len(violations) == 0
@@ -75,15 +74,15 @@ class TestDirectDependencyViolations:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'module_a.py').write_text('import module_b\n')
-            (tmpdir_path / 'module_b.py').write_text('# Module B\n')
-            rule = DependencyRule(name='A cannot depend on B', source_pattern='module_a', target_pattern='module_b', rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False)
+            (tmpdir_path / "module_a.py").write_text("import module_b\n")
+            (tmpdir_path / "module_b.py").write_text("# Module B\n")
+            rule = DependencyRule(name="A cannot depend on B", source_pattern="module_a", target_pattern="module_b", rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False)
             validator.add_rule(rule)
             violations = validator.validate(tmpdir_path)
             assert len(violations) == 1
-            assert violations[0].source_module == 'module_a'
-            assert violations[0].target_module == 'module_b'
-            assert violations[0].rule.name == 'A cannot depend on B'
+            assert violations[0].source_module == "module_a"
+            assert violations[0].target_module == "module_b"
+            assert violations[0].rule.name == "A cannot depend on B"
 
 @pytest.mark.core
 class TestTransitiveDependencyViolations:
@@ -95,16 +94,16 @@ class TestTransitiveDependencyViolations:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'module_a.py').write_text('import module_b\n')
-            (tmpdir_path / 'module_b.py').write_text('import module_c\n')
-            (tmpdir_path / 'module_c.py').write_text('# Module C\n')
-            rule = DependencyRule(name='A cannot transitively depend on C', source_pattern='module_a', target_pattern='module_c', rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=True)
+            (tmpdir_path / "module_a.py").write_text("import module_b\n")
+            (tmpdir_path / "module_b.py").write_text("import module_c\n")
+            (tmpdir_path / "module_c.py").write_text("# Module C\n")
+            rule = DependencyRule(name="A cannot transitively depend on C", source_pattern="module_a", target_pattern="module_c", rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=True)
             validator.add_rule(rule)
             violations = validator.validate(tmpdir_path)
             assert len(violations) == 1
-            assert violations[0].source_module == 'module_a'
-            assert violations[0].target_module == 'module_c'
-            assert violations[0].dependency_path == ['module_a', 'module_b', 'module_c']
+            assert violations[0].source_module == "module_a"
+            assert violations[0].target_module == "module_c"
+            assert violations[0].dependency_path == ["module_a", "module_b", "module_c"]
 
     @pytest.mark.core
     def test_transitive_violation_three_hops(self) -> None:
@@ -112,15 +111,15 @@ class TestTransitiveDependencyViolations:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'module_a.py').write_text('import module_b\n')
-            (tmpdir_path / 'module_b.py').write_text('import module_c\n')
-            (tmpdir_path / 'module_c.py').write_text('import module_d\n')
-            (tmpdir_path / 'module_d.py').write_text('# Module D\n')
-            rule = DependencyRule(name='A cannot transitively depend on D', source_pattern='module_a', target_pattern='module_d', rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=True)
+            (tmpdir_path / "module_a.py").write_text("import module_b\n")
+            (tmpdir_path / "module_b.py").write_text("import module_c\n")
+            (tmpdir_path / "module_c.py").write_text("import module_d\n")
+            (tmpdir_path / "module_d.py").write_text("# Module D\n")
+            rule = DependencyRule(name="A cannot transitively depend on D", source_pattern="module_a", target_pattern="module_d", rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=True)
             validator.add_rule(rule)
             violations = validator.validate(tmpdir_path)
             assert len(violations) == 1
-            assert violations[0].target_module == 'module_d'
+            assert violations[0].target_module == "module_d"
             assert len(violations[0].dependency_path) == 4
 
 @pytest.mark.core
@@ -133,13 +132,13 @@ class TestPatternMatching:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            pkg_a = tmpdir_path / 'packages' / 'pkg_a'
-            pkg_b = tmpdir_path / 'packages' / 'pkg_b'
+            pkg_a = tmpdir_path / "packages" / "pkg_a"
+            pkg_b = tmpdir_path / "packages" / "pkg_b"
             pkg_a.mkdir(parents=True)
             pkg_b.mkdir(parents=True)
-            (pkg_a / 'module.py').write_text('from pkg_b import something\n')
-            (pkg_b / 'module.py').write_text('# Module\n')
-            rule = DependencyRule(name='Package A cannot depend on Package B', source_pattern='packages/pkg_a/**', target_pattern='packages/pkg_b/**', rule_type=RuleType.CANNOT_DEPEND_ON)
+            (pkg_a / "module.py").write_text("from pkg_b import something\n")
+            (pkg_b / "module.py").write_text("# Module\n")
+            rule = DependencyRule(name="Package A cannot depend on Package B", source_pattern="packages/pkg_a/**", target_pattern="packages/pkg_b/**", rule_type=RuleType.CANNOT_DEPEND_ON)
             validator.add_rule(rule)
             violations = validator.validate(tmpdir_path)
             assert len(violations) >= 0
@@ -154,11 +153,11 @@ class TestMultipleRules:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'a.py').write_text('# Module A\n')
-            (tmpdir_path / 'b.py').write_text('# Module B\n')
-            (tmpdir_path / 'c.py').write_text('# Module C\n')
-            validator.add_rule(DependencyRule(name='A cannot depend on B', source_pattern='a', target_pattern='b', rule_type=RuleType.CANNOT_DEPEND_ON))
-            validator.add_rule(DependencyRule(name='B cannot depend on C', source_pattern='b', target_pattern='c', rule_type=RuleType.CANNOT_DEPEND_ON))
+            (tmpdir_path / "a.py").write_text("# Module A\n")
+            (tmpdir_path / "b.py").write_text("# Module B\n")
+            (tmpdir_path / "c.py").write_text("# Module C\n")
+            validator.add_rule(DependencyRule(name="A cannot depend on B", source_pattern="a", target_pattern="b", rule_type=RuleType.CANNOT_DEPEND_ON))
+            validator.add_rule(DependencyRule(name="B cannot depend on C", source_pattern="b", target_pattern="c", rule_type=RuleType.CANNOT_DEPEND_ON))
             violations = validator.validate(tmpdir_path)
             assert len(violations) == 0
 
@@ -168,16 +167,16 @@ class TestMultipleRules:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'a.py').write_text('import b\n')
-            (tmpdir_path / 'b.py').write_text('import c\n')
-            (tmpdir_path / 'c.py').write_text('# Module C\n')
-            validator.add_rule(DependencyRule(name='A cannot depend on B', source_pattern='a', target_pattern='b', rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False))
-            validator.add_rule(DependencyRule(name='B cannot depend on C', source_pattern='b', target_pattern='c', rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False))
+            (tmpdir_path / "a.py").write_text("import b\n")
+            (tmpdir_path / "b.py").write_text("import c\n")
+            (tmpdir_path / "c.py").write_text("# Module C\n")
+            validator.add_rule(DependencyRule(name="A cannot depend on B", source_pattern="a", target_pattern="b", rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False))
+            validator.add_rule(DependencyRule(name="B cannot depend on C", source_pattern="b", target_pattern="c", rule_type=RuleType.CANNOT_DEPEND_ON, check_transitive=False))
             violations = validator.validate(tmpdir_path)
             assert len(violations) == 2
             violation_sources = {v.source_module for v in violations}
-            assert 'a' in violation_sources
-            assert 'b' in violation_sources
+            assert "a" in violation_sources
+            assert "b" in violation_sources
 
 @pytest.mark.core
 class TestViolationReporting:
@@ -186,23 +185,23 @@ class TestViolationReporting:
     @pytest.mark.core
     def test_violation_string_direct(self) -> None:
         """Test violation string formatting for direct dependencies."""
-        rule = DependencyRule(name='Test rule', source_pattern='a', target_pattern='b', rule_type=RuleType.CANNOT_DEPEND_ON, severity='ERROR')
-        violation = Violation(rule=rule, source_module='module_a', target_module='module_b', file_path='/test/module_a.py', line_number=5)
+        rule = DependencyRule(name="Test rule", source_pattern="a", target_pattern="b", rule_type=RuleType.CANNOT_DEPEND_ON, severity="ERROR")
+        violation = Violation(rule=rule, source_module="module_a", target_module="module_b", file_path="/test/module_a.py", line_number=5)
         violation_str = str(violation)
-        assert 'ERROR' in violation_str
-        assert 'Test rule' in violation_str
-        assert 'module_a' in violation_str
-        assert 'module_b' in violation_str
-        assert '/test/module_a.py:5' in violation_str
+        assert "ERROR" in violation_str
+        assert "Test rule" in violation_str
+        assert "module_a" in violation_str
+        assert "module_b" in violation_str
+        assert "/test/module_a.py:5" in violation_str
 
     @pytest.mark.core
     def test_violation_string_transitive(self) -> None:
         """Test violation string formatting for transitive dependencies."""
-        rule = DependencyRule(name='Test rule', source_pattern='a', target_pattern='c', rule_type=RuleType.CANNOT_DEPEND_ON)
-        violation = Violation(rule=rule, source_module='module_a', target_module='module_c', dependency_path=['module_a', 'module_b', 'module_c'])
+        rule = DependencyRule(name="Test rule", source_pattern="a", target_pattern="c", rule_type=RuleType.CANNOT_DEPEND_ON)
+        violation = Violation(rule=rule, source_module="module_a", target_module="module_c", dependency_path=["module_a", "module_b", "module_c"])
         violation_str = str(violation)
-        assert 'transitive' in violation_str
-        assert 'module_a → module_b → module_c' in violation_str
+        assert "transitive" in violation_str
+        assert "module_a → module_b → module_c" in violation_str
 
 @pytest.mark.core
 class TestGraphBuilding:
@@ -214,9 +213,9 @@ class TestGraphBuilding:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'a.py').write_text('import b\n')
-            (tmpdir_path / 'b.py').write_text('import c\n')
-            (tmpdir_path / 'c.py').write_text('# Module C\n')
+            (tmpdir_path / "a.py").write_text("import b\n")
+            (tmpdir_path / "b.py").write_text("import c\n")
+            (tmpdir_path / "c.py").write_text("# Module C\n")
             graph = validator.build_graph(tmpdir_path)
             assert graph is not None
             assert graph.node_count() > 0
@@ -228,7 +227,7 @@ class TestGraphBuilding:
         validator = DependencyGraphValidator()
         with TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            (tmpdir_path / 'a.py').write_text('# Module A\n')
+            (tmpdir_path / "a.py").write_text("# Module A\n")
             graph1 = validator.build_graph(tmpdir_path)
             graph2 = validator.graph
             assert graph1 is graph2
@@ -242,9 +241,9 @@ class TestPredefinedRules:
         """Test that pre-defined rules are available."""
         from hive_tests.dependency_graph_validator import HIVE_ARCHITECTURAL_RULES
         assert len(HIVE_ARCHITECTURAL_RULES) > 0
-        packages_rule = next((r for r in HIVE_ARCHITECTURAL_RULES if 'packages' in r.source_pattern.lower() and 'apps' in r.target_pattern.lower()), None)
+        packages_rule = next((r for r in HIVE_ARCHITECTURAL_RULES if "packages" in r.source_pattern.lower() and "apps" in r.target_pattern.lower()), None)
         assert packages_rule is not None
-        assert packages_rule.severity == 'CRITICAL'
+        assert packages_rule.severity == "CRITICAL"
 
     @pytest.mark.core
     def test_apply_predefined_rules(self) -> None:

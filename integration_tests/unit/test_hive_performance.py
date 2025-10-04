@@ -23,7 +23,7 @@ def metrics_collector():
 @pytest.fixture
 def system_monitor():
     """Create SystemMonitor instance for testing."""
-    return SystemMonitor(collection_interval=0.1, max_history=10, enable_alerts=True, alert_thresholds={'cpu_percent': 80.0, 'memory_percent': 85.0})
+    return SystemMonitor(collection_interval=0.1, max_history=10, enable_alerts=True, alert_thresholds={"cpu_percent": 80.0, "memory_percent": 85.0})
 
 @pytest.mark.crust
 class TestPerformanceMetrics:
@@ -45,16 +45,16 @@ class TestPerformanceMetrics:
     @pytest.mark.crust
     def test_performance_metrics_with_data(self):
         """Test PerformanceMetrics with specific data."""
-        custom_data = {'test_metric': 42}
-        tags = {'environment': 'test', 'version': '1.0'}
-        metrics = PerformanceMetrics(execution_time=1.5, memory_usage=1024 * 1024, operations_count=5, error_count=1, custom_metrics=custom_data, tags=tags, operation_name='test_operation')
+        custom_data = {"test_metric": 42}
+        tags = {"environment": "test", "version": "1.0"}
+        metrics = PerformanceMetrics(execution_time=1.5, memory_usage=1024 * 1024, operations_count=5, error_count=1, custom_metrics=custom_data, tags=tags, operation_name="test_operation")
         assert metrics.execution_time == 1.5
         assert metrics.memory_usage == 1024 * 1024
         assert metrics.operations_count == 5
         assert metrics.error_count == 1
         assert metrics.custom_metrics == custom_data
         assert metrics.tags == tags
-        assert metrics.operation_name == 'test_operation'
+        assert metrics.operation_name == "test_operation"
 
 @pytest.mark.crust
 class TestMetricsCollector:
@@ -85,8 +85,8 @@ class TestMetricsCollector:
     @pytest.mark.asyncio
     async def test_operation_tracking_basic(self, metrics_collector):
         """Test basic operation tracking functionality."""
-        operation_name = 'test_operation'
-        tags = {'test': 'value'}
+        operation_name = "test_operation"
+        tags = {"test": "value"}
         operation_id = metrics_collector.start_operation(operation_name, tags)
         assert operation_id is not None
         assert operation_name in operation_id
@@ -102,7 +102,7 @@ class TestMetricsCollector:
     @pytest.mark.asyncio
     async def test_operation_tracking_with_error(self, metrics_collector):
         """Test operation tracking with error condition."""
-        operation_name = 'failing_operation'
+        operation_name = "failing_operation"
         operation_id = metrics_collector.start_operation(operation_name)
         metrics = metrics_collector.end_operation(operation_id, success=False)
         assert metrics.operation_name == operation_name
@@ -115,7 +115,7 @@ class TestMetricsCollector:
         """Test tracking multiple operations concurrently."""
         operation_ids = []
         for i in range(3):
-            op_id = metrics_collector.start_operation(f'operation_{i}')
+            op_id = metrics_collector.start_operation(f"operation_{i}")
             operation_ids.append(op_id)
         results = []
         for op_id in operation_ids:
@@ -137,12 +137,12 @@ class TestMetricsCollector:
     async def test_get_metrics_with_data(self, metrics_collector):
         """Test getting metrics after operations."""
         for _i in range(3):
-            op_id = metrics_collector.start_operation('test_op')
+            op_id = metrics_collector.start_operation("test_op")
             await asyncio.sleep(0.001)
             metrics_collector.end_operation(op_id, success=True)
         all_metrics = metrics_collector.get_metrics()
         assert len(all_metrics) == 3
-        aggregated = metrics_collector.get_aggregated_metrics('test_op')
+        aggregated = metrics_collector.get_aggregated_metrics("test_op")
         assert aggregated.operations_count == 3
         assert aggregated.execution_time > 0
 
@@ -150,20 +150,20 @@ class TestMetricsCollector:
     @pytest.mark.asyncio
     async def test_metrics_time_window_filtering(self, metrics_collector):
         """Test time window filtering for metrics."""
-        op_id = metrics_collector.start_operation('old_op')
+        op_id = metrics_collector.start_operation("old_op")
         old_metrics = metrics_collector.end_operation(op_id)
         old_metrics.timestamp = datetime.utcnow() - timedelta(hours=2)
-        metrics_collector._metrics_history['old_op'][-1] = old_metrics
-        op_id = metrics_collector.start_operation('recent_op')
+        metrics_collector._metrics_history["old_op"][-1] = old_metrics
+        op_id = metrics_collector.start_operation("recent_op")
         metrics_collector.end_operation(op_id)
         recent_only = metrics_collector.get_metrics(time_window=timedelta(hours=1))
         assert len(recent_only) == 1
-        assert recent_only[0].operation_name == 'recent_op'
+        assert recent_only[0].operation_name == "recent_op"
 
     @pytest.mark.crust
     def test_baseline_functionality(self, metrics_collector):
         """Test performance baseline setting and comparison."""
-        operation_name = 'baseline_test'
+        operation_name = "baseline_test"
         op_id = metrics_collector.start_operation(operation_name)
         metrics_collector.end_operation(op_id, success=True)
         metrics_collector.set_baseline(operation_name)
@@ -172,49 +172,49 @@ class TestMetricsCollector:
         metrics_collector.end_operation(op_id, success=True)
         comparison = metrics_collector.compare_to_baseline(operation_name)
         assert comparison is not None
-        assert 'execution_time_change' in comparison
-        assert 'memory_change' in comparison
-        assert 'throughput_change' in comparison
+        assert "execution_time_change" in comparison
+        assert "memory_change" in comparison
+        assert "throughput_change" in comparison
 
     @pytest.mark.crust
     def test_export_metrics_json(self, metrics_collector):
         """Test JSON export functionality."""
-        op_id = metrics_collector.start_operation('export_test')
+        op_id = metrics_collector.start_operation("export_test")
         metrics_collector.end_operation(op_id, success=True)
-        json_data = metrics_collector.export_metrics(format='json')
+        json_data = metrics_collector.export_metrics(format="json")
         assert isinstance(json_data, str)
         import json
         parsed = json.loads(json_data)
         assert isinstance(parsed, list)
         assert len(parsed) == 1
-        assert parsed[0]['operation_name'] == 'export_test'
+        assert parsed[0]["operation_name"] == "export_test"
 
     @pytest.mark.crust
     def test_export_metrics_dict(self, metrics_collector):
         """Test dictionary export functionality."""
-        op_id = metrics_collector.start_operation('export_test')
+        op_id = metrics_collector.start_operation("export_test")
         metrics_collector.end_operation(op_id, success=True)
-        dict_data = metrics_collector.export_metrics(format='dict')
+        dict_data = metrics_collector.export_metrics(format="dict")
         assert isinstance(dict_data, dict)
-        assert 'metrics' in dict_data
-        assert 'summary' in dict_data
-        assert dict_data['summary']['total_operations'] == 1
+        assert "metrics" in dict_data
+        assert "summary" in dict_data
+        assert dict_data["summary"]["total_operations"] == 1
 
     @pytest.mark.crust
     def test_clear_metrics(self, metrics_collector):
         """Test clearing metrics functionality."""
-        op_id1 = metrics_collector.start_operation('op1')
+        op_id1 = metrics_collector.start_operation("op1")
         metrics_collector.end_operation(op_id1)
-        op_id2 = metrics_collector.start_operation('op2')
+        op_id2 = metrics_collector.start_operation("op2")
         metrics_collector.end_operation(op_id2)
-        metrics_collector.clear_metrics('op1')
-        assert len(metrics_collector.get_metrics('op1')) == 0
-        assert len(metrics_collector.get_metrics('op2')) == 1
+        metrics_collector.clear_metrics("op1")
+        assert len(metrics_collector.get_metrics("op1")) == 0
+        assert len(metrics_collector.get_metrics("op2")) == 1
         metrics_collector.clear_metrics()
         assert len(metrics_collector.get_metrics()) == 0
 
     @pytest.mark.crust
-    @patch('hive_performance.metrics_collector.psutil.Process')
+    @patch("hive_performance.metrics_collector.psutil.Process")
     def test_memory_usage_tracking(self, mock_process, metrics_collector):
         """Test memory usage tracking functionality."""
         mock_memory = MagicMock()
@@ -226,7 +226,7 @@ class TestMetricsCollector:
     @pytest.mark.crust
     def test_error_rate_calculation(self, metrics_collector):
         """Test error rate calculation."""
-        operation_name = 'error_test'
+        operation_name = "error_test"
         for _ in range(8):
             op_id = metrics_collector.start_operation(operation_name)
             metrics_collector.end_operation(op_id, success=True)
@@ -244,8 +244,8 @@ class TestOperationTracker:
     @pytest.mark.asyncio
     async def test_operation_tracker_success(self, metrics_collector):
         """Test operation tracker with successful operation."""
-        operation_name = 'tracked_operation'
-        tags = {'type': 'test'}
+        operation_name = "tracked_operation"
+        tags = {"type": "test"}
         with operation_tracker(metrics_collector, operation_name, tags) as tracker:
             assert tracker.operation_id is not None
             await asyncio.sleep(0.001)
@@ -259,10 +259,10 @@ class TestOperationTracker:
     @pytest.mark.asyncio
     async def test_operation_tracker_with_exception(self, metrics_collector):
         """Test operation tracker with exception."""
-        operation_name = 'failing_operation'
+        operation_name = "failing_operation"
         try:
             with operation_tracker(metrics_collector, operation_name):
-                raise ValueError('Test exception')
+                raise ValueError("Test exception")
         except ValueError:
             pass
         metrics = metrics_collector.get_metrics(operation_name)
@@ -273,8 +273,8 @@ class TestOperationTracker:
     @pytest.mark.asyncio
     async def test_operation_tracker_with_custom_metrics(self, metrics_collector):
         """Test operation tracker with custom metrics."""
-        operation_name = 'custom_operation'
-        custom_data = {'processing_items': 50}
+        operation_name = "custom_operation"
+        custom_data = {"processing_items": 50}
         with operation_tracker(metrics_collector, operation_name, bytes_processed=2048, custom_metrics=custom_data):
             await asyncio.sleep(0.001)
         metrics = metrics_collector.get_metrics(operation_name)
@@ -291,13 +291,13 @@ class TestPerformanceDecorator:
     async def test_async_function_tracking(self, metrics_collector):
         """Test tracking async functions."""
 
-        @track_performance(metrics_collector, 'async_test')
+        @track_performance(metrics_collector, "async_test")
         async def async_test_function(x, y):
             await asyncio.sleep(0.001)
             return x + y
         result = await async_test_function(5, 3)
         assert result == 8
-        metrics = metrics_collector.get_metrics('async_test')
+        metrics = metrics_collector.get_metrics("async_test")
         assert len(metrics) == 1
         assert metrics[0].execution_time > 0
 
@@ -305,13 +305,13 @@ class TestPerformanceDecorator:
     def test_sync_function_tracking(self, metrics_collector):
         """Test tracking sync functions."""
 
-        @track_performance(metrics_collector, 'sync_test')
+        @track_performance(metrics_collector, "sync_test")
         def sync_test_function(x, y):
             time.sleep(0.001)
             return x * y
         result = sync_test_function(4, 5)
         assert result == 20
-        metrics = metrics_collector.get_metrics('sync_test')
+        metrics = metrics_collector.get_metrics("sync_test")
         assert len(metrics) == 1
         assert metrics[0].execution_time > 0
 
@@ -324,11 +324,11 @@ class TestPerformanceDecorator:
         @track_performance(metrics_collector)
         async def test_auto_named_function():
             await asyncio.sleep(0.001)
-            return 'done'
+            return "done"
         await test_auto_named_function()
         metrics = metrics_collector.get_metrics()
         assert len(metrics) == 1
-        assert 'test_auto_named_function' in metrics[0].operation_name
+        assert "test_auto_named_function" in metrics[0].operation_name
 
 @pytest.mark.crust
 class TestSystemMetrics:
@@ -348,14 +348,14 @@ class TestSystemMetrics:
     @pytest.mark.crust
     def test_system_metrics_with_data(self):
         """Test SystemMetrics with specific data."""
-        metrics = SystemMetrics(cpu_percent=45.5, memory_total=8 * 1024 * 1024 * 1024, memory_percent=60.0, disk_percent=75.0, active_tasks=10, hostname='test-host', platform='linux')
+        metrics = SystemMetrics(cpu_percent=45.5, memory_total=8 * 1024 * 1024 * 1024, memory_percent=60.0, disk_percent=75.0, active_tasks=10, hostname="test-host", platform="linux")
         assert metrics.cpu_percent == 45.5
         assert metrics.memory_total == 8 * 1024 * 1024 * 1024
         assert metrics.memory_percent == 60.0
         assert metrics.disk_percent == 75.0
         assert metrics.active_tasks == 10
-        assert metrics.hostname == 'test-host'
-        assert metrics.platform == 'linux'
+        assert metrics.hostname == "test-host"
+        assert metrics.platform == "linux"
 
 @pytest.mark.crust
 class TestSystemMonitor:
@@ -367,7 +367,7 @@ class TestSystemMonitor:
         assert system_monitor.collection_interval == 0.1
         assert system_monitor.max_history == 10
         assert system_monitor.enable_alerts is True
-        assert system_monitor.alert_thresholds['cpu_percent'] == 80.0
+        assert system_monitor.alert_thresholds["cpu_percent"] == 80.0
         assert not system_monitor._monitoring
 
     @pytest.mark.crust
@@ -383,11 +383,11 @@ class TestSystemMonitor:
 
     @pytest.mark.crust
     @pytest.mark.asyncio
-    @patch('hive_performance.system_monitor.psutil.cpu_percent')
-    @patch('hive_performance.system_monitor.psutil.virtual_memory')
-    @patch('hive_performance.system_monitor.psutil.disk_usage')
-    @patch('hive_performance.system_monitor.psutil.disk_io_counters')
-    @patch('hive_performance.system_monitor.psutil.net_io_counters')
+    @patch("hive_performance.system_monitor.psutil.cpu_percent")
+    @patch("hive_performance.system_monitor.psutil.virtual_memory")
+    @patch("hive_performance.system_monitor.psutil.disk_usage")
+    @patch("hive_performance.system_monitor.psutil.disk_io_counters")
+    @patch("hive_performance.system_monitor.psutil.net_io_counters")
     async def test_collect_system_metrics(self, mock_net, mock_disk_io, mock_disk, mock_memory, mock_cpu, system_monitor):
         """Test system metrics collection."""
         mock_cpu.return_value = 45.5
@@ -418,8 +418,8 @@ class TestSystemMonitor:
         high_cpu_metrics = SystemMetrics(cpu_percent=90.0, memory_percent=90.0, disk_percent=95.0, swap_percent=60.0)
         await system_monitor._check_alerts(high_cpu_metrics)
         assert len(alert_triggered) == 4
-        assert any('High CPU usage: 90.0%' in alert for alert in alert_triggered)
-        assert any('High memory usage: 90.0%' in alert for alert in alert_triggered)
+        assert any("High CPU usage: 90.0%" in alert for alert in alert_triggered)
+        assert any("High memory usage: 90.0%" in alert for alert in alert_triggered)
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -477,10 +477,10 @@ class TestSystemMonitor:
             metrics = SystemMetrics(cpu_percent=20.0 + i * 10, memory_percent=30.0 + i * 5)
             system_monitor._metrics_history.append(metrics)
         trends = system_monitor.analyze_trends(timedelta(hours=1))
-        assert 'cpu_trend' in trends
-        assert 'memory_trend' in trends
-        assert trends['cpu_trend'] > 0
-        assert trends['memory_trend'] > 0
+        assert "cpu_trend" in trends
+        assert "memory_trend" in trends
+        assert trends["cpu_trend"] > 0
+        assert trends["memory_trend"] > 0
 
     @pytest.mark.crust
     def test_resource_exhaustion_prediction(self, system_monitor):
@@ -489,30 +489,30 @@ class TestSystemMonitor:
             metrics = SystemMetrics(cpu_percent=70.0 + i * 5)
             system_monitor._metrics_history.append(metrics)
         predictions = system_monitor.predict_resource_exhaustion(timedelta(hours=1))
-        assert 'cpu_exhaustion' in predictions
+        assert "cpu_exhaustion" in predictions
 
     @pytest.mark.crust
     def test_export_metrics_json(self, system_monitor):
         """Test JSON export of system metrics."""
         metrics = SystemMetrics(cpu_percent=45.0, memory_percent=60.0)
         system_monitor._metrics_history.append(metrics)
-        json_data = system_monitor.export_metrics(format='json')
+        json_data = system_monitor.export_metrics(format="json")
         assert isinstance(json_data, str)
         import json
         parsed = json.loads(json_data)
         assert isinstance(parsed, list)
         assert len(parsed) == 1
-        assert parsed[0]['cpu_percent'] == 45.0
+        assert parsed[0]["cpu_percent"] == 45.0
 
     @pytest.mark.crust
     def test_export_metrics_csv(self, system_monitor):
         """Test CSV export of system metrics."""
         metrics = SystemMetrics(cpu_percent=45.0, memory_percent=60.0)
         system_monitor._metrics_history.append(metrics)
-        csv_data = system_monitor.export_metrics(format='csv')
+        csv_data = system_monitor.export_metrics(format="csv")
         assert isinstance(csv_data, str)
-        assert 'timestamp,cpu_percent,memory_percent' in csv_data
-        assert '45.0' in csv_data
+        assert "timestamp,cpu_percent,memory_percent" in csv_data
+        assert "45.0" in csv_data
 
     @pytest.mark.crust
     def test_clear_history(self, system_monitor):
@@ -537,7 +537,7 @@ class TestPerformanceIntegration:
             await metrics_collector.start_collection()
             await system_monitor.start_monitoring()
             for i in range(3):
-                with operation_tracker(metrics_collector, f'integration_test_{i}'):
+                with operation_tracker(metrics_collector, f"integration_test_{i}"):
                     await asyncio.sleep(0.01)
             await asyncio.sleep(0.3)
             operation_metrics = metrics_collector.get_metrics()
@@ -557,7 +557,7 @@ class TestPerformanceIntegration:
 
         async def worker(worker_id):
             for _i in range(5):
-                with operation_tracker(metrics_collector, f'worker_{worker_id}'):
+                with operation_tracker(metrics_collector, f"worker_{worker_id}"):
                     await asyncio.sleep(0.001)
         workers = [worker(i) for i in range(5)]
         await asyncio.gather(*workers)
@@ -575,14 +575,14 @@ class TestPerformanceIntegration:
         success_count = 0
         error_count = 0
         for i in range(10):
-            op_id = metrics_collector.start_operation('mixed_operation')
+            op_id = metrics_collector.start_operation("mixed_operation")
             success = i % 3 != 0
             if success:
                 success_count += 1
             else:
                 error_count += 1
             metrics_collector.end_operation(op_id, success=success)
-        aggregated = metrics_collector.get_aggregated_metrics('mixed_operation')
+        aggregated = metrics_collector.get_aggregated_metrics("mixed_operation")
         assert aggregated.operations_count == 10
         assert aggregated.error_count == error_count
         assert abs(aggregated.error_rate - error_count / 10) < 0.01
@@ -592,13 +592,13 @@ class TestPerformanceIntegration:
     async def test_memory_and_performance_correlation(self, metrics_collector):
         """Test correlation between memory usage and performance metrics."""
         big_data = []
-        with operation_tracker(metrics_collector, 'memory_test'):
+        with operation_tracker(metrics_collector, "memory_test"):
             for _i in range(1000):
                 big_data.append([0] * 1000)
             await asyncio.sleep(0.01)
-        metrics = metrics_collector.get_metrics('memory_test')
+        metrics = metrics_collector.get_metrics("memory_test")
         assert len(metrics) == 1
         assert metrics[0].memory_usage > 0
         assert metrics[0].execution_time > 0
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

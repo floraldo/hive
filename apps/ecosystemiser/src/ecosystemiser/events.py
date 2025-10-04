@@ -1,5 +1,4 @@
-"""
-EcoSystemiser Event System
+"""EcoSystemiser Event System
 
 Extends the generic hive-bus with EcoSystemiser-specific events and patterns.
 Follows the inherit→extend pattern for event-driven architecture.

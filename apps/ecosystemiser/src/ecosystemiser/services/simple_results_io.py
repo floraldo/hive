@@ -28,7 +28,7 @@ class SimpleResultsIO:
         system,
         simulation_id: str,
         output_dir: Path,
-        metadata: dict | None = None
+        metadata: dict | None = None,
     ) -> Path:
         """Save simulation results in simple two-file format.
 
@@ -40,6 +40,7 @@ class SimpleResultsIO:
 
         Returns:
             Path to simulation directory containing the two files,
+
         """
         output_dir = Path(output_dir)
 
@@ -73,6 +74,7 @@ class SimpleResultsIO:
 
         Returns:
             Dictionary with 'summary' and 'timeseries' keys,
+
         """
         run_dir = Path(run_dir)
 
@@ -105,6 +107,7 @@ class SimpleResultsIO:
 
         Returns:
             DataFrame with columns: timestep, variable, value,
+
         """
         data = []
 
@@ -134,8 +137,8 @@ class SimpleResultsIO:
                         {
                             "timestep": t,
                             "variable": f"flow.{flow_name}",
-                            "value": float(val)
-                        }
+                            "value": float(val),
+                        },
                     )
 
         # Extract component states
@@ -158,8 +161,8 @@ class SimpleResultsIO:
                             {
                                 "timestep": t,
                                 "variable": f"state.{comp_name}.energy",
-                                "value": float(val)
-                            }
+                                "value": float(val),
+                            },
                         )
 
             # Generation profiles
@@ -170,8 +173,8 @@ class SimpleResultsIO:
                             {
                                 "timestep": t,
                                 "variable": f"profile.{comp_name}",
-                                "value": float(val)
-                            }
+                                "value": float(val),
+                            },
                         )
 
         # Create DataFrame
@@ -195,13 +198,14 @@ class SimpleResultsIO:
 
         Returns:
             Summary dictionary,
+
         """
         summary = {
             "simulation_id": getattr(system, "system_id", "unknown"),
             "timestamp": datetime.now().isoformat(),
             "timesteps": system.N,
             "solver": getattr(system, "solver_type", "unknown"),
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
 
         # Calculate basic KPIs from timeseries
@@ -236,7 +240,7 @@ class SimpleResultsIO:
             "total_datapoints": len(timeseries_df),
             "min_value": float(timeseries_df["value"].min()) if not timeseries_df.empty else 0,
             "max_value": float(timeseries_df["value"].max()) if not timeseries_df.empty else 0,
-            "mean_value": float(timeseries_df["value"].mean()) if not timeseries_df.empty else 0
+            "mean_value": float(timeseries_df["value"].mean()) if not timeseries_df.empty else 0,
         },
 
         return summary

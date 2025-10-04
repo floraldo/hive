@@ -1,5 +1,4 @@
-"""
-AI Reviewer - Autonomous code review agent for Hive App Factory
+"""AI Reviewer - Autonomous code review agent for Hive App Factory
 """
 
 from hive_logging import get_logger
@@ -11,4 +10,4 @@ logger = get_logger(__name__)
 
 __version__ = "0.1.0"
 
-__all__ = ["ReviewEngine", "ReviewResult", "ReviewAgent"]
+__all__ = ["ReviewAgent", "ReviewEngine", "ReviewResult"]

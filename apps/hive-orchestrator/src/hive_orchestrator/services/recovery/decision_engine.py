@@ -1,5 +1,4 @@
-"""
-Automation Decision Engine
+"""Automation Decision Engine
 
 PROJECT CHIMERA Phase 3: Self-Healing Feedback Loop
 Determines if/when to automate recovery based on safety rules.
@@ -48,8 +47,7 @@ class AutomationDecision:
 
 
 class AutomationDecisionEngine:
-    """
-    Decide whether to automate recovery for a predictive alert.
+    """Decide whether to automate recovery for a predictive alert.
 
     Safety Rules (ALL must pass):
     1. Confidence score > 95%
@@ -66,14 +64,14 @@ class AutomationDecisionEngine:
         manual_mode_services: set[str] | None = None,
         confidence_threshold: float = 0.95,
     ):
-        """
-        Initialize decision engine.
+        """Initialize decision engine.
 
         Args:
             playbook_registry: RecoveryPlaybookRegistry instance
             failure_history: Dict mapping issue_key -> list of failure timestamps
             manual_mode_services: Set of services in manual-only mode
             confidence_threshold: Minimum confidence to automate (default 95%)
+
         """
         self.playbook_registry = playbook_registry
         self.failure_history = failure_history or {}
@@ -83,18 +81,18 @@ class AutomationDecisionEngine:
         logger.info(
             f"AutomationDecisionEngine initialized "
             f"(confidence_threshold={confidence_threshold}, "
-            f"manual_mode_services={len(self.manual_mode_services)})"
+            f"manual_mode_services={len(self.manual_mode_services)})",
         )
 
     async def evaluate_async(self, alert_event: Any) -> AutomationDecision:
-        """
-        Evaluate whether to automate recovery for alert.
+        """Evaluate whether to automate recovery for alert.
 
         Args:
             alert_event: PredictiveAlertEvent instance
 
         Returns:
             AutomationDecision with recommendation
+
         """
         logger.info(f"Evaluating automation decision for alert {alert_event.alert_id}")
 
@@ -120,7 +118,7 @@ class AutomationDecisionEngine:
             safety_checks["confidence_sufficient"] = confidence > self.confidence_threshold
             if not safety_checks["confidence_sufficient"]:
                 raise InsufficientConfidenceError(
-                    f"Confidence {confidence:.2%} below threshold {self.confidence_threshold:.2%}"
+                    f"Confidence {confidence:.2%} below threshold {self.confidence_threshold:.2%}",
                 )
 
             # SAFETY RULE 2: Single unambiguous root cause
@@ -162,7 +160,7 @@ class AutomationDecisionEngine:
             # ALL SAFETY CHECKS PASSED - Authorize automation
             logger.info(
                 f"Automation APPROVED for alert {alert_event.alert_id} "
-                f"(playbook={playbook_id}, confidence={confidence:.2%})"
+                f"(playbook={playbook_id}, confidence={confidence:.2%})",
             )
 
             return AutomationDecision(
@@ -191,8 +189,7 @@ class AutomationDecisionEngine:
             )
 
     def _has_recent_failure(self, issue_key: str, window_hours: int = 24) -> bool:
-        """
-        Check if automated recovery recently failed for this issue.
+        """Check if automated recovery recently failed for this issue.
 
         Args:
             issue_key: Unique key for issue (service:metric)
@@ -200,6 +197,7 @@ class AutomationDecisionEngine:
 
         Returns:
             True if recent failure exists
+
         """
         if issue_key not in self.failure_history:
             return False
@@ -237,4 +235,4 @@ class AutomationDecisionEngine:
         }
 
 
-__all__ = ["AutomationDecisionEngine", "AutomationDecision"]
+__all__ = ["AutomationDecision", "AutomationDecisionEngine"]

@@ -1,5 +1,4 @@
-"""
-Metrics collection and analysis for AI model operations.
+"""Metrics collection and analysis for AI model operations.
 
 Provides comprehensive tracking of usage, costs, performance
 and trends with integration to the Hive observability stack.
@@ -48,8 +47,7 @@ class ModelPerformanceStats:
 
 
 class ModelMetrics(MetricsCollectorInterface):
-    """
-    Comprehensive metrics collection for AI model operations.
+    """Comprehensive metrics collection for AI model operations.
 
     Tracks usage patterns, costs, performance, and provides
     analytics for optimization and cost management.
@@ -287,7 +285,6 @@ class ModelMetrics(MetricsCollectorInterface):
         """Persist usage record to database."""
         # Implementation would depend on specific database schema
         # This is a placeholder for the actual database persistence
-        pass
 
     async def _get_daily_cost_from_db_async(self, session: AsyncSession, date: datetime) -> float:
         """Get daily cost from database."""

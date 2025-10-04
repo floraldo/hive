@@ -1,5 +1,4 @@
-"""
-Resilient Two-Stage Hive Codebase Indexing for RAG System.
+"""Resilient Two-Stage Hive Codebase Indexing for RAG System.
 
 Stage 1: Chunking (Fast, ~10 minutes)
 - Scan all files
@@ -50,7 +49,7 @@ stats = {
         "embeddings_created": 0,
         "checkpoints_saved": 0,
         "time_sec": 0.0,
-    }
+    },
 }
 
 def chunk_python(file_path: Path) -> list[dict[str, Any]]:
@@ -58,7 +57,7 @@ def chunk_python(file_path: Path) -> list[dict[str, Any]]:
     import ast
 
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         tree = ast.parse(content)
@@ -68,25 +67,25 @@ def chunk_python(file_path: Path) -> list[dict[str, Any]]:
             if isinstance(node, (ast.FunctionDef, ast.ClassDef)):
                 start_line = node.lineno
                 end_line = node.end_lineno or (start_line + 1)
-                chunk_lines = content.split('\n')[start_line-1:end_line]
-                chunk_text = '\n'.join(chunk_lines)
+                chunk_lines = content.split("\n")[start_line-1:end_line]
+                chunk_text = "\n".join(chunk_lines)
 
                 chunks.append({
-                    'text': chunk_text,
-                    'file': str(file_path.relative_to(PROJECT_ROOT)),
-                    'start_line': start_line,
-                    'type': 'python',
-                    'name': node.name
+                    "text": chunk_text,
+                    "file": str(file_path.relative_to(PROJECT_ROOT)),
+                    "start_line": start_line,
+                    "type": "python",
+                    "name": node.name,
                 })
 
         if not chunks:
             # No top-level definitions, chunk as whole
             chunks.append({
-                'text': content[:2000],
-                'file': str(file_path.relative_to(PROJECT_ROOT)),
-                'start_line': 1,
-                'type': 'python',
-                'name': file_path.stem
+                "text": content[:2000],
+                "file": str(file_path.relative_to(PROJECT_ROOT)),
+                "start_line": 1,
+                "type": "python",
+                "name": file_path.stem,
             })
 
         return chunks
@@ -96,33 +95,33 @@ def chunk_python(file_path: Path) -> list[dict[str, Any]]:
 def chunk_markdown(file_path: Path) -> list[dict[str, Any]]:
     """Chunk Markdown by sections."""
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         chunks = []
         current_section = []
         current_header = None
 
-        for line in content.split('\n'):
-            if line.startswith('#'):
+        for line in content.split("\n"):
+            if line.startswith("#"):
                 if current_section:
                     chunks.append({
-                        'text': '\n'.join(current_section),
-                        'file': str(file_path.relative_to(PROJECT_ROOT)),
-                        'type': 'markdown',
-                        'name': current_header or file_path.stem
+                        "text": "\n".join(current_section),
+                        "file": str(file_path.relative_to(PROJECT_ROOT)),
+                        "type": "markdown",
+                        "name": current_header or file_path.stem,
                     })
                 current_section = [line]
-                current_header = line.strip('# ')
+                current_header = line.strip("# ")
             else:
                 current_section.append(line)
 
         if current_section:
             chunks.append({
-                'text': '\n'.join(current_section),
-                'file': str(file_path.relative_to(PROJECT_ROOT)),
-                'type': 'markdown',
-                'name': current_header or file_path.stem
+                "text": "\n".join(current_section),
+                "file": str(file_path.relative_to(PROJECT_ROOT)),
+                "type": "markdown",
+                "name": current_header or file_path.stem,
             })
 
         return chunks
@@ -132,33 +131,33 @@ def chunk_markdown(file_path: Path) -> list[dict[str, Any]]:
 def chunk_yaml(file_path: Path) -> list[dict[str, Any]]:
     """Chunk YAML by top-level keys."""
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         chunks = []
         current_chunk = []
         current_key = None
 
-        for line in content.split('\n'):
-            if line and not line.startswith(' ') and ':' in line:
+        for line in content.split("\n"):
+            if line and not line.startswith(" ") and ":" in line:
                 if current_chunk:
                     chunks.append({
-                        'text': '\n'.join(current_chunk),
-                        'file': str(file_path.relative_to(PROJECT_ROOT)),
-                        'type': 'yaml',
-                        'name': current_key or file_path.stem
+                        "text": "\n".join(current_chunk),
+                        "file": str(file_path.relative_to(PROJECT_ROOT)),
+                        "type": "yaml",
+                        "name": current_key or file_path.stem,
                     })
                 current_chunk = [line]
-                current_key = line.split(':')[0].strip()
+                current_key = line.split(":")[0].strip()
             else:
                 current_chunk.append(line)
 
         if current_chunk:
             chunks.append({
-                'text': '\n'.join(current_chunk),
-                'file': str(file_path.relative_to(PROJECT_ROOT)),
-                'type': 'yaml',
-                'name': current_key or file_path.stem
+                "text": "\n".join(current_chunk),
+                "file": str(file_path.relative_to(PROJECT_ROOT)),
+                "type": "yaml",
+                "name": current_key or file_path.stem,
             })
 
         return chunks
@@ -176,7 +175,7 @@ def chunk_toml(file_path: Path) -> list[dict[str, Any]]:
             return []
 
     try:
-        with open(file_path, encoding='utf-8') as f:
+        with open(file_path, encoding="utf-8") as f:
             content = f.read()
 
         data = tomli.loads(content)
@@ -186,15 +185,15 @@ def chunk_toml(file_path: Path) -> list[dict[str, Any]]:
             section_text = f"[{section}]\n"
             if isinstance(values, dict):
                 for k, v in values.items():
-                    section_text += f"{k} = {repr(v)}\n"
+                    section_text += f"{k} = {v!r}\n"
             else:
-                section_text += f"{section} = {repr(values)}\n"
+                section_text += f"{section} = {values!r}\n"
 
             chunks.append({
-                'text': section_text,
-                'file': str(file_path.relative_to(PROJECT_ROOT)),
-                'type': 'toml',
-                'name': section
+                "text": section_text,
+                "file": str(file_path.relative_to(PROJECT_ROOT)),
+                "type": "toml",
+                "name": section,
             })
 
         return chunks
@@ -202,11 +201,11 @@ def chunk_toml(file_path: Path) -> list[dict[str, Any]]:
         return []
 
 def stage1_chunking(output_path: Path) -> Path:
-    """
-    Stage 1: Scan files and create chunks.
+    """Stage 1: Scan files and create chunks.
 
     Returns:
         Path to intermediate chunks.jsonl file
+
     """
     print("\n" + "=" * 80)
     print("STAGE 1: CHUNKING")
@@ -243,20 +242,20 @@ def stage1_chunking(output_path: Path) -> Path:
     all_chunks = []
     chunks_file = output_path / "chunks.jsonl"
 
-    with open(chunks_file, 'w', encoding='utf-8') as f:
+    with open(chunks_file, "w", encoding="utf-8") as f:
         for file_path in tqdm(filtered_files, desc="Processing files"):
             suffix = file_path.suffix.lower()
 
-            if suffix == '.py':
+            if suffix == ".py":
                 chunks = chunk_python(file_path)
                 stats["stage1"]["python_files"] += 1
-            elif suffix == '.md':
+            elif suffix == ".md":
                 chunks = chunk_markdown(file_path)
                 stats["stage1"]["markdown_files"] += 1
-            elif suffix in ['.yml', '.yaml']:
+            elif suffix in [".yml", ".yaml"]:
                 chunks = chunk_yaml(file_path)
                 stats["stage1"]["yaml_files"] += 1
-            elif suffix == '.toml':
+            elif suffix == ".toml":
                 chunks = chunk_toml(file_path)
                 stats["stage1"]["toml_files"] += 1
             else:
@@ -264,7 +263,7 @@ def stage1_chunking(output_path: Path) -> Path:
 
             # Write each chunk to JSONL
             for chunk in chunks:
-                f.write(json.dumps(chunk) + '\n')
+                f.write(json.dumps(chunk) + "\n")
                 all_chunks.append(chunk)
 
             stats["stage1"]["files_scanned"] += 1
@@ -286,12 +285,12 @@ def stage1_chunking(output_path: Path) -> Path:
     return chunks_file
 
 def stage2_embedding(chunks_file: Path, output_path: Path) -> None:
-    """
-    Stage 2: Create embeddings and build FAISS index.
+    """Stage 2: Create embeddings and build FAISS index.
 
     Args:
         chunks_file: Path to intermediate chunks.jsonl
         output_path: Directory to save final index
+
     """
     print("\n" + "=" * 80)
     print("STAGE 2: EMBEDDING & INDEXING")
@@ -301,13 +300,13 @@ def stage2_embedding(chunks_file: Path, output_path: Path) -> None:
 
     # Load embedding model
     print("\nLoading embedding model...")
-    model = SentenceTransformer('all-MiniLM-L6-v2')
+    model = SentenceTransformer("all-MiniLM-L6-v2")
     print(f"  Model: all-MiniLM-L6-v2 ({model.get_sentence_embedding_dimension()} dims)")
 
     # Load chunks from JSONL
     print("\nLoading chunks from intermediate file...")
     chunks = []
-    with open(chunks_file, encoding='utf-8') as f:
+    with open(chunks_file, encoding="utf-8") as f:
         for line in f:
             chunks.append(json.loads(line))
 
@@ -319,7 +318,7 @@ def stage2_embedding(chunks_file: Path, output_path: Path) -> None:
     batch_size = 500
     all_embeddings = []
 
-    texts = [chunk['text'][:500] for chunk in chunks]  # Truncate to 500 chars
+    texts = [chunk["text"][:500] for chunk in chunks]  # Truncate to 500 chars
     num_batches = (len(texts) - 1) // batch_size + 1
 
     for i in tqdm(range(0, len(texts), batch_size), desc="Embedding batches", total=num_batches):
@@ -346,7 +345,7 @@ def stage2_embedding(chunks_file: Path, output_path: Path) -> None:
     print("\nBuilding FAISS index...")
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
-    index.add(embeddings.astype('float32'))
+    index.add(embeddings.astype("float32"))
 
     print(f"  Index: {index.ntotal} vectors, {dimension} dimensions")
 
@@ -355,19 +354,19 @@ def stage2_embedding(chunks_file: Path, output_path: Path) -> None:
     faiss.write_index(index, str(output_path / "faiss.index"))
 
     # Save chunks metadata
-    with open(output_path / "chunks.json", 'w', encoding='utf-8') as f:
+    with open(output_path / "chunks.json", "w", encoding="utf-8") as f:
         json.dump(chunks, f)
 
     # Save metadata
-    with open(output_path / "metadata.json", 'w', encoding='utf-8') as f:
+    with open(output_path / "metadata.json", "w", encoding="utf-8") as f:
         json.dump({
-            'total_chunks': len(chunks),
-            'total_files': stats['stage1']['files_scanned'],
-            'embedding_model': 'all-MiniLM-L6-v2',
-            'dimension': dimension,
-            'indexed_at': time.time(),
-            'stage1_time_sec': stats['stage1']['time_sec'],
-            'stage2_time_sec': time.time() - start_time,
+            "total_chunks": len(chunks),
+            "total_files": stats["stage1"]["files_scanned"],
+            "embedding_model": "all-MiniLM-L6-v2",
+            "dimension": dimension,
+            "indexed_at": time.time(),
+            "stage1_time_sec": stats["stage1"]["time_sec"],
+            "stage2_time_sec": time.time() - start_time,
         }, f, indent=2)
 
     # Clean up checkpoints
@@ -405,7 +404,7 @@ def print_summary():
     print(f"  Checkpoints saved: {stats['stage2']['checkpoints_saved']}")
     print(f"  Time: {stats['stage2']['time_sec']:.1f}s")
 
-    total_time = stats['stage1']['time_sec'] + stats['stage2']['time_sec']
+    total_time = stats["stage1"]["time_sec"] + stats["stage2"]["time_sec"]
     print(f"\nTOTAL TIME: {total_time:.1f}s ({total_time/60:.1f} minutes)")
 
     print("\nINDEX LOCATION:")

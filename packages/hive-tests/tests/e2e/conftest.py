@@ -1,5 +1,4 @@
-"""
-Pytest configuration for hive-tests.
+"""Pytest configuration for hive-tests.
 """
 
 import pytest

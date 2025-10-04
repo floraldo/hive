@@ -1,5 +1,4 @@
-"""
-Unit tests for RetryManager component.
+"""Unit tests for RetryManager component.
 
 Tests fix application, backup/rollback, and session management.
 """

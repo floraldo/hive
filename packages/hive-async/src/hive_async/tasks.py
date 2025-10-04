@@ -16,8 +16,7 @@ async def gather_with_concurrency_async(
     max_concurrent: int = 10,
     return_exceptions: bool = False,
 ) -> list[Any]:
-    """
-    Gather coroutines with concurrency limit.
+    """Gather coroutines with concurrency limit.
 
     This is a basic infrastructure utility. For advanced task management,
     use hive_orchestrator.tasks.TaskManager.
@@ -29,6 +28,7 @@ async def gather_with_concurrency_async(
 
     Returns:
         List of results in the same order as input coroutines
+
     """
     semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -41,8 +41,7 @@ async def gather_with_concurrency_async(
 
 
 async def run_with_timeout_async(coro: Awaitable[T], timeout: float) -> T:
-    """
-    Run a coroutine with timeout.
+    """Run a coroutine with timeout.
 
     Basic infrastructure utility. For advanced retry logic,
     use hive_orchestrator.tasks.run_with_timeout_and_retry.
@@ -53,5 +52,6 @@ async def run_with_timeout_async(coro: Awaitable[T], timeout: float) -> T:
 
     Returns:
         Result of the coroutine
+
     """
     return await asyncio.wait_for(coro, timeout=timeout)

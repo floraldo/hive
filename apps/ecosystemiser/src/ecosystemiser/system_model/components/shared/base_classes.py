@@ -29,8 +29,7 @@ class BaseStoragePhysics(ABC):
 
     @abstractmethod
     def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
-        """
-        Calculate new energy state based on physics model.,
+        """Calculate new energy state based on physics model.,
 
         This is the core physics method that each strategy must implement.
 
@@ -42,13 +41,12 @@ class BaseStoragePhysics(ABC):
 
         Returns:
             float: New energy level after physics update (kWh)
+
         """
-        pass
 
     @abstractmethod
     def apply_bounds(self, energy_level: float) -> float:
-        """
-        Apply physical energy bounds (0 <= E <= E_max).
+        """Apply physical energy bounds (0 <= E <= E_max).
 
         This method is now abstract - each strategy must implement its own bounds logic.,
         This maintains architectural gravity toward implementing logic in strategies, not base classes.
@@ -58,8 +56,8 @@ class BaseStoragePhysics(ABC):
 
         Returns:
             float: Bounded energy level,
+
         """
-        pass
 
 
 class BaseStorageOptimization(ABC):
@@ -75,16 +73,15 @@ class BaseStorageOptimization(ABC):
 
     @abstractmethod
     def set_constraints(self) -> list:
-        """
-        Create CVXPY constraints for this storage component.,
+        """Create CVXPY constraints for this storage component.,
 
         This is the core optimization method that each strategy must implement.,
         Should return all constraints needed for MILP solver.
 
         Returns:
             list: CVXPY constraint objects,
+
         """
-        pass
 
 
 class BaseGenerationPhysics(ABC):
@@ -105,8 +102,7 @@ class BaseGenerationPhysics(ABC):
 
     @abstractmethod
     def rule_based_generate(self, t: int, profile_value: float) -> float:
-        """
-        Calculate generation output based on physics model.,
+        """Calculate generation output based on physics model.,
 
         This is the core physics method that each strategy must implement.
 
@@ -116,8 +112,8 @@ class BaseGenerationPhysics(ABC):
 
         Returns:
             float: Actual generation output in kW,
+
         """
-        pass
 
 
 class BaseGenerationOptimization(ABC):
@@ -133,16 +129,15 @@ class BaseGenerationOptimization(ABC):
 
     @abstractmethod
     def set_constraints(self) -> list:
-        """
-        Create CVXPY constraints for this generation component.,
+        """Create CVXPY constraints for this generation component.,
 
         This is the core optimization method that each strategy must implement.,
         Should return all constraints needed for MILP solver.
 
         Returns:
             list: CVXPY constraint objects,
+
         """
-        pass
 
 
 class BaseConversionPhysics(ABC):
@@ -163,8 +158,7 @@ class BaseConversionPhysics(ABC):
 
     @abstractmethod
     def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
-        """
-        Calculate conversion capacities for the current timestep.,
+        """Calculate conversion capacities for the current timestep.,
 
         This is a core physics method that each strategy must implement.
 
@@ -175,13 +169,12 @@ class BaseConversionPhysics(ABC):
 
         Returns:
             dict: {'max_input': float, 'max_output': float, 'efficiency': float},
+
         """
-        pass
 
     @abstractmethod
     def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
-        """
-        Calculate actual input/output for a requested output.
+        """Calculate actual input/output for a requested output.
 
         Args:
             t: Current timestep
@@ -191,8 +184,8 @@ class BaseConversionPhysics(ABC):
 
         Returns:
             dict: {'input_required': float, 'output_delivered': float},
+
         """
-        pass
 
 
 class BaseConversionOptimization(ABC):
@@ -208,16 +201,15 @@ class BaseConversionOptimization(ABC):
 
     @abstractmethod
     def set_constraints(self) -> list:
-        """
-        Create CVXPY constraints for this conversion component.,
+        """Create CVXPY constraints for this conversion component.,
 
         This is the core optimization method that each strategy must implement.,
         Should return all constraints needed for MILP solver.
 
         Returns:
             list: CVXPY constraint objects,
+
         """
-        pass
 
 
 class BaseDemandPhysics(ABC):
@@ -238,8 +230,7 @@ class BaseDemandPhysics(ABC):
 
     @abstractmethod
     def rule_based_demand(self, t: int, profile_value: float) -> float:
-        """
-        Calculate demand requirement based on physics model.,
+        """Calculate demand requirement based on physics model.,
 
         This is the core physics method that each strategy must implement.
 
@@ -249,8 +240,8 @@ class BaseDemandPhysics(ABC):
 
         Returns:
             float: Actual demand requirement in kW,
+
         """
-        pass
 
 
 class BaseDemandOptimization(ABC):
@@ -266,13 +257,12 @@ class BaseDemandOptimization(ABC):
 
     @abstractmethod
     def set_constraints(self) -> list:
-        """
-        Create CVXPY constraints for this demand component.,
+        """Create CVXPY constraints for this demand component.,
 
         This is the core optimization method that each strategy must implement.,
         Should return all constraints needed for MILP solver.
 
         Returns:
             list: CVXPY constraint objects,
+
         """
-        pass

@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from __future__ import annotations
 
 from hive_logging import get_logger
@@ -31,7 +30,7 @@ class SubTask(BaseModel):
     complexity: Literal["simple", "medium", "complex"] = Field(description="Task complexity level")
     dependencies: list[str] = Field(default_factory=list, description="List of sub-task IDs this depends on")
     workflow_phase: Literal["analysis", "design", "implementation", "testing", "validation"] = Field(
-        description="Primary workflow phase for this sub-task"
+        description="Primary workflow phase for this sub-task",
     )
     required_skills: list[str] = Field(default_factory=list, description="Required skills/technologies")
     deliverables: list[str] = Field(default_factory=list, description="Expected outputs/deliverables")
@@ -42,10 +41,10 @@ class DependencyMap(BaseModel):
 
     critical_path: list[str] = Field(description="Ordered list of sub-task IDs on critical path")
     parallel_groups: list[list[str]] = Field(
-        default_factory=list, description="Groups of tasks that can run in parallel"
+        default_factory=list, description="Groups of tasks that can run in parallel",
     )
     blocking_dependencies: dict[str, list[str]] = Field(
-        default_factory=dict, description="Map of task_id -> blocking_task_ids"
+        default_factory=dict, description="Map of task_id -> blocking_task_ids",
     )
 
 
@@ -108,7 +107,7 @@ class PlanningResponseValidator(PydanticValidator):
                     dependencies=[],
                     workflow_phase="analysis",
                     required_skills=["analysis"],
-                    deliverables=["requirements.md"]
+                    deliverables=["requirements.md"],
                 ),
                 SubTask(
                     id="fallback-002",
@@ -120,7 +119,7 @@ class PlanningResponseValidator(PydanticValidator):
                     dependencies=["fallback-001"],
                     workflow_phase="implementation",
                     required_skills=["programming"],
-                    deliverables=["implementation.py"]
+                    deliverables=["implementation.py"],
                 ),
                 SubTask(
                     id="fallback-003",
@@ -132,16 +131,16 @@ class PlanningResponseValidator(PydanticValidator):
                     dependencies=["fallback-002"],
                     workflow_phase="testing",
                     required_skills=["testing"],
-                    deliverables=["test_results.md"]
-                )
+                    deliverables=["test_results.md"],
+                ),
             ],
             dependencies=DependencyMap(
                 critical_path=["fallback-001", "fallback-002", "fallback-003"],
                 parallel_groups=[],
                 blocking_dependencies={
                     "fallback-002": ["fallback-001"],
-                    "fallback-003": ["fallback-002"]
-                }
+                    "fallback-003": ["fallback-002"],
+                },
             ),
             workflow=WorkflowDefinition(
                 lifecycle_phases=["analysis", "implementation", "testing"],
@@ -152,9 +151,9 @@ class PlanningResponseValidator(PydanticValidator):
                 validation_gates={
                     "analysis": ["requirements_clear"],
                     "implementation": ["code_complete"],
-                    "testing": ["tests_pass"]
+                    "testing": ["tests_pass"],
                 },
-                rollback_strategy="manual rollback with git revert"
+                rollback_strategy="manual rollback with git revert",
             ),
             metrics=PlanningMetrics(
                 total_estimated_duration=210,
@@ -162,16 +161,16 @@ class PlanningResponseValidator(PydanticValidator):
                 complexity_breakdown={"simple": 1, "medium": 2, "complex": 0},
                 skill_requirements={"programming": 2, "testing": 1, "analysis": 1},
                 confidence_score=0.6,
-                risk_factors=["claude_unavailable", "simplified_planning"]
+                risk_factors=["claude_unavailable", "simplified_planning"],
             ),
             recommendations=[
                 "Validate requirements before implementation",
-                "Test thoroughly before deployment"
+                "Test thoroughly before deployment",
             ],
             considerations=[
                 "This is a fallback plan - consider human review",
-                "Claude integration should be restored for better planning"
-            ]
+                "Claude integration should be restored for better planning",
+            ],
         )
 
 
@@ -187,10 +186,9 @@ class ClaudePlannerBridge(BaseClaludeBridge):
         task_description: str,
         context_data: dict[str, Any] = None,
         priority: int = 50,
-        requestor: str = "system"
+        requestor: str = "system",
     ) -> dict[str, Any]:
-        """
-        Generate intelligent execution plan using Claude API
+        """Generate intelligent execution plan using Claude API
 
         Args:
             task_description: High-level task description,
@@ -200,6 +198,7 @@ class ClaudePlannerBridge(BaseClaludeBridge):
 
         Returns:
             Validated planning response or fallback on failure,
+
         """
         prompt = self._create_planning_prompt(task_description, context_data or {}, priority, requestor)
 
@@ -217,10 +216,9 @@ class ClaudePlannerBridge(BaseClaludeBridge):
         task_description: str,
         context_data: dict[str, Any],
         priority: int,
-        requestor: str
+        requestor: str,
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
-
         context_info = "",
         if context_data:
             context_info = f""",
@@ -282,15 +280,15 @@ Generate the execution plan now:"""
                     dependencies=[],
                     workflow_phase="analysis",
                     required_skills=["testing"],
-                    deliverables=["mock_output.txt"]
-                )
+                    deliverables=["mock_output.txt"],
+                ),
             ],
             dependencies=DependencyMap(critical_path=["mock-001"], parallel_groups=[], blocking_dependencies={}),
             workflow=WorkflowDefinition(
                 lifecycle_phases=["analysis"],
                 phase_transitions={},
                 validation_gates={"analysis": ["mock_validation"]},
-                rollback_strategy="mock rollback"
+                rollback_strategy="mock rollback",
             ),
             metrics=PlanningMetrics(
                 total_estimated_duration=30,
@@ -298,10 +296,10 @@ Generate the execution plan now:"""
                 complexity_breakdown={"simple": 0, "medium": 1, "complex": 0},
                 skill_requirements={"testing": 1},
                 confidence_score=0.9,
-                risk_factors=["mock_risk"]
+                risk_factors=["mock_risk"],
             ),
             recommendations=["Mock recommendation"],
-            considerations=["Mock consideration"]
+            considerations=["Mock consideration"],
         )
         return json.dumps(mock_plan.dict())
 

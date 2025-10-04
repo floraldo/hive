@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Genesis Mandate Phase 1 Demonstration - Architectural Prophecy
+"""Genesis Mandate Phase 1 Demonstration - Architectural Prophecy
 
 This demonstration showcases the Oracle's revolutionary evolution into a system
 that can predict the future consequences of architectural decisions before
@@ -44,7 +43,6 @@ def print_prophecy_icon() -> None:
 
 async def demonstrate_genesis_phase1_async():
     """Demonstrate the Genesis Mandate Phase 1 implementation."""
-
     print_header("GENESIS MANDATE - PHASE 1: ARCHITECTURAL PROPHECY")
     print("The Oracle's Evolution: From Reactive Analysis to Prophetic Design")
     print()
@@ -400,7 +398,6 @@ Small business owners and their staff members.
 
 async def simulate_prophecy_analysis_async():
     """Simulate prophecy analysis for demo purposes."""
-
     print("\n*** PROPHECY ANALYSIS RESULTS ***")
     print("Overall Risk Level: CRITICAL")
     print("Oracle Confidence: 85.3%")

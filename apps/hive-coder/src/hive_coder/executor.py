@@ -1,5 +1,4 @@
-"""
-Task execution engine for code generation.
+"""Task execution engine for code generation.
 
 Executes individual tasks from ExecutionPlan using hive-app-toolkit.
 """
@@ -22,12 +21,10 @@ logger = get_logger(__name__)
 class TaskExecutionError(BaseError):
     """Raised when task execution fails"""
 
-    pass
 
 
 class TaskExecutor:
-    """
-    Executes individual tasks from ExecutionPlan.
+    """Executes individual tasks from ExecutionPlan.
 
     Each task type maps to specific actions:
     - SCAFFOLD: Generate project using hive-app-toolkit
@@ -40,11 +37,11 @@ class TaskExecutor:
     """
 
     def __init__(self, output_dir: Path) -> None:
-        """
-        Initialize task executor.
+        """Initialize task executor.
 
         Args:
             output_dir: Base directory for generated code
+
         """
         self.output_dir = Path(output_dir)
         # Ensure output directory exists
@@ -52,8 +49,7 @@ class TaskExecutor:
         self.logger = logger
 
     def execute_task(self, task: ExecutionTask, service_name: str) -> TaskResult:
-        """
-        Execute a single task from ExecutionPlan.
+        """Execute a single task from ExecutionPlan.
 
         Args:
             task: ExecutionTask to execute
@@ -61,6 +57,7 @@ class TaskExecutor:
 
         Returns:
             TaskResult with execution status and file changes
+
         """
         self.logger.info(f"Executing task {task.task_id}: {task.task_type}")
         start_time = time.time()
@@ -115,8 +112,7 @@ class TaskExecutor:
         return handler
 
     def _execute_scaffold(self, task: ExecutionTask, service_name: str) -> tuple[list[str], list[str]]:
-        """
-        Execute SCAFFOLD task using hive-app-toolkit.
+        """Execute SCAFFOLD task using hive-app-toolkit.
 
         Generates project structure with:
         - pyproject.toml
@@ -138,7 +134,7 @@ class TaskExecutor:
 
         # Execute command
         try:
-            result = subprocess.run(  # noqa: S603, S607
+            result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
@@ -154,8 +150,7 @@ class TaskExecutor:
             if service_dir.exists():
                 files = [str(f.relative_to(self.output_dir)) for f in service_dir.rglob("*") if f.is_file()]
                 return files, []
-            else:
-                raise TaskExecutionError(f"Service directory not created: {service_dir}")
+            raise TaskExecutionError(f"Service directory not created: {service_dir}")
 
         except subprocess.CalledProcessError as e:
             raise TaskExecutionError(f"Scaffold failed: {e.stderr}") from e
@@ -173,7 +168,7 @@ class TaskExecutor:
         cmd = ["hive-toolkit", "add-api", endpoint_name]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)  # noqa: S603, S607
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)
 
             self.logger.info(f"API endpoint created: {result.stdout.strip()}")
 
@@ -228,7 +223,7 @@ class TaskExecutor:
         cmd = ["hive-toolkit", "add-k8s", "--namespace", task.parameters.get("namespace", "hive-platform")]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)  # noqa: S603, S607
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)
 
             self.logger.info(f"Deployment configs created: {result.stdout.strip()}")
 

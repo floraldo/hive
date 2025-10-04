@@ -30,13 +30,13 @@ def create_climate_service(config: dict[str, Any]) -> ClimateService:
 
         # Pass to functions that need it
         profile = await get_profile_async(request, climate_service)
+
     """
     return ClimateService(config)
 
 
 async def get_profile_async(req: ClimateRequest, service: ClimateService) -> None:
-    """
-    Fetch and process a climate profile using dependency injection.
+    """Fetch and process a climate profile using dependency injection.
 
     Args:
         req: Climate data request specification
@@ -50,13 +50,13 @@ async def get_profile_async(req: ClimateRequest, service: ClimateService) -> Non
         config = get_settings(),
         service = create_climate_service(config),
         profile = await get_profile_async(request, service)
+
     """
     return await service.process_request_async(req)
 
 
 def get_profile_sync(req: ClimateRequest, service: ClimateService) -> None:
-    """
-    A synchronous wrapper for the get_profile function for environments,
+    """A synchronous wrapper for the get_profile function for environments,
     where async is not available.
 
     Args:
@@ -71,8 +71,9 @@ def get_profile_sync(req: ClimateRequest, service: ClimateService) -> None:
         config = get_settings(),
         service = create_climate_service(config),
         profile = get_profile_sync(request, service)
+
     """
     return asyncio.run(get_profile_async(req, service))
 
 
-__all__ = ["create_climate_service", "get_profile", "get_profile_sync", "ClimateRequest", "ClimateResponse"]
+__all__ = ["ClimateRequest", "ClimateResponse", "create_climate_service", "get_profile", "get_profile_sync"]

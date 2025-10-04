@@ -1,5 +1,4 @@
-"""
-Worker Models
+"""Worker Models
 
 Data models for orchestration workers.
 """
@@ -24,8 +23,7 @@ class WorkerStatus(str, Enum):
 
 
 class Worker(IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
-    """
-    Orchestration worker model.
+    """Orchestration worker model.
 
     Represents a worker process that executes tasks.
     """

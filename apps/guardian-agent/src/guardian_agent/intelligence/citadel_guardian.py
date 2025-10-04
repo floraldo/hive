@@ -1,5 +1,4 @@
-"""
-Citadel Guardian - The Oracle's Final Evolution
+"""Citadel Guardian - The Oracle's Final Evolution
 
 The Guardian of the Citadel enforces zero-tolerance architectural compliance,
 ensuring the platform maintains its state of unassailable production readiness.
@@ -142,8 +141,7 @@ class CitadelGuardianConfig(BaseModel):
 
 
 class CitadelGuardian:
-    """
-    The Guardian of the Citadel - Oracle's Final Evolution
+    """The Guardian of the Citadel - Oracle's Final Evolution
 
     Enforces zero-tolerance architectural compliance through:
     - CI/CD quality gates
@@ -165,10 +163,9 @@ class CitadelGuardian:
         logger.info("Citadel Guardian initialized - Zero tolerance compliance active")
 
     async def validate_pr_compliance_async(
-        self, pr_number: int, commit_sha: str, branch_name: str, changed_files: list[str]
+        self, pr_number: int, commit_sha: str, branch_name: str, changed_files: list[str],
     ) -> CitadelReport:
-        """
-        Validate PR compliance with zero-tolerance standards.
+        """Validate PR compliance with zero-tolerance standards.
 
         This is the core CI/CD quality gate function.
         """
@@ -191,7 +188,7 @@ class CitadelGuardian:
 
             # Determine compliance action
             compliance_status = self._determine_compliance_action(
-                current_score, blocker_count, critical_count, score_change
+                current_score, blocker_count, critical_count, score_change,
             )
 
             # Generate Oracle-powered recommendations
@@ -231,7 +228,7 @@ class CitadelGuardian:
 
             logger.info(
                 f"🏰 Compliance validation complete: {compliance_status.value} ",
-                f"(score: {current_score:.1f}, change: {score_change:+.1f})"
+                f"(score: {current_score:.1f}, change: {score_change:+.1f})",
             )
 
             return report
@@ -247,10 +244,10 @@ class CitadelGuardian:
                     CitadelViolation(
                         rule_name="validation_error",
                         severity=ViolationSeverity.MAJOR,
-                        description=f"Compliance validation failed: {str(e)}",
+                        description=f"Compliance validation failed: {e!s}",
                         file_path="system",
                         suggested_fix="Review Citadel Guardian configuration and logs",
-                    )
+                    ),
                 ],
                 major_count=1,
                 commit_sha=commit_sha,
@@ -281,9 +278,9 @@ class CitadelGuardian:
                 CitadelViolation(
                     rule_name="scan_error",
                     severity=ViolationSeverity.MAJOR,
-                    description=f"Violation scanning failed: {str(e)}",
+                    description=f"Violation scanning failed: {e!s}",
                     file_path="system",
-                )
+                ),
             )
 
         return violations
@@ -390,7 +387,7 @@ class CitadelGuardian:
                         "suggested_fix": "Consider using hive-cache's ClaudeAPICache or HttpCache for better performance and resilience",
                         "estimated_time": "30 minutes",
                         "confidence": 0.85,
-                    }
+                    },
                 )
 
         # Pattern: Manual retry logic that could use hive-async
@@ -402,7 +399,7 @@ class CitadelGuardian:
                         "suggested_fix": "Replace manual retry with @async_retry decorator from hive-async for better reliability",
                         "estimated_time": "45 minutes",
                         "confidence": 0.9,
-                    }
+                    },
                 )
 
         # Pattern: Generic exception handling that could use hive-errors
@@ -413,7 +410,7 @@ class CitadelGuardian:
                     "suggested_fix": "Use specific exception types from hive-errors for better error categorization and handling",
                     "estimated_time": "20 minutes",
                     "confidence": 0.75,
-                }
+                },
             )
 
         # Pattern: Manual logging setup that could use hive-logging
@@ -424,7 +421,7 @@ class CitadelGuardian:
                     "suggested_fix": "Use get_logger from hive-logging for standardized logging configuration",
                     "estimated_time": "15 minutes",
                     "confidence": 0.95,
-                }
+                },
             )
 
         # Pattern: Database connections without connection pooling
@@ -435,7 +432,7 @@ class CitadelGuardian:
                     "suggested_fix": "Use hive-db's connection management for better resource handling and transaction support",
                     "estimated_time": "1 hour",
                     "confidence": 0.8,
-                }
+                },
             )
 
         return opportunities
@@ -464,7 +461,7 @@ class CitadelGuardian:
                                 suggested_fix="Consider using list comprehension or generator for better performance",
                                 component_affected=self._extract_component_from_path(file_path),
                                 estimated_fix_time="15 minutes",
-                            )
+                            ),
                         )
 
                 except Exception:
@@ -509,7 +506,7 @@ class CitadelGuardian:
                                     component_affected=component,
                                     certification_impact="May reduce Technical Excellence score",
                                     estimated_fix_time="30-60 minutes",
-                                )
+                                ),
                             )
 
                 except Exception:
@@ -536,12 +533,11 @@ class CitadelGuardian:
 
         if any(blocker in rule_name for blocker in blocker_rules):
             return ViolationSeverity.BLOCKER
-        elif any(critical in rule_name for critical in critical_rules):
+        if any(critical in rule_name for critical in critical_rules):
             return ViolationSeverity.CRITICAL
-        elif any(major in rule_name for major in major_rules):
+        if any(major in rule_name for major in major_rules):
             return ViolationSeverity.MAJOR
-        else:
-            return ViolationSeverity.MINOR
+        return ViolationSeverity.MINOR
 
     def _extract_file_path_from_violation(self, violation_desc: str, changed_files: list[str]) -> str | None:
         """Extract file path from violation description."""
@@ -694,10 +690,9 @@ class CitadelGuardian:
         return self._baseline_scores.get(branch_name, 82.4)  # Current platform score
 
     def _determine_compliance_action(
-        self, score: float, blocker_count: int, critical_count: int, score_change: float
+        self, score: float, blocker_count: int, critical_count: int, score_change: float,
     ) -> ComplianceAction:
         """Determine what action to take based on compliance results."""
-
         # Zero tolerance for blockers,
         if blocker_count > self.config.blocker_threshold:
             return ComplianceAction.BLOCK
@@ -748,12 +743,12 @@ class CitadelGuardian:
 
                 if blocker_violations:
                     recommendations["immediate"].append(
-                        f"BLOCKER: {component} has {len(blocker_violations)} blocking violations - fix immediately"
+                        f"BLOCKER: {component} has {len(blocker_violations)} blocking violations - fix immediately",
                     )
 
                 if critical_violations:
                     recommendations["immediate"].append(
-                        f"CRITICAL: {component} has {len(critical_violations)} critical violations - fix before merge"
+                        f"CRITICAL: {component} has {len(critical_violations)} critical violations - fix before merge",
                     )
 
                 # Generate specific fix suggestions,
@@ -773,12 +768,11 @@ class CitadelGuardian:
 
         if blocker_count > 0 or score_change < -10:
             return "high"
-        elif critical_count > 2 or score_change < -5:
+        if critical_count > 2 or score_change < -5:
             return "medium"
-        elif critical_count > 0 or score_change < -2:
+        if critical_count > 0 or score_change < -2:
             return "low"
-        else:
-            return "minimal"
+        return "minimal"
 
     def _estimate_fix_effort(self, violations: list[CitadelViolation]) -> str:
         """Estimate total effort required to fix all violations."""
@@ -806,16 +800,14 @@ class CitadelGuardian:
 
         if total_minutes < 60:
             return f"{total_minutes} minutes"
-        else:
-            hours = total_minutes / 60
-            if hours < 1.5:
-                return "1 hour"
-            elif hours < 4:
-                return f"{hours:.1f} hours"
-            elif hours < 8:
-                return "Half day"
-            else:
-                return f"{hours/8:.1f} days"
+        hours = total_minutes / 60
+        if hours < 1.5:
+            return "1 hour"
+        if hours < 4:
+            return f"{hours:.1f} hours"
+        if hours < 8:
+            return "Half day"
+        return f"{hours/8:.1f} days"
 
     async def _store_compliance_report_async(self, report: CitadelReport) -> None:
         """Store compliance report for analytics and trending."""
@@ -842,7 +834,7 @@ class CitadelGuardian:
                             "score_change": report.score_change,
                             "risk_level": report.risk_assessment,
                         },
-                    )
+                    ),
                 ]
 
                 await self.data_layer.warehouse.store_metrics_async(metrics)
@@ -852,7 +844,6 @@ class CitadelGuardian:
 
     async def generate_pr_comment_async(self, report: CitadelReport) -> str:
         """Generate comprehensive PR comment for the Citadel Guardian report."""
-
         # Status emoji and header
         status_emoji = {
             ComplianceAction.ALLOW: "✅",
@@ -948,7 +939,6 @@ Excellent work! This PR meets all architectural standards.
 
     async def create_epic_for_remaining_gaps_async(self) -> dict[str, Any]:
         """Create Operation Citadel epic with child issues for remaining compliance gaps."""
-
         try:
             # Get current certification readiness data
             if not self.oracle:
@@ -1041,7 +1031,7 @@ Upon completion, the platform will achieve:
                         "component": scorecard.name,
                         "priority": "high" if scorecard.urgency == "high" else "medium",
                         "labels": ["operation-citadel", "certification", scorecard.urgency, scorecard.component_type],
-                    }
+                    },
                 )
 
             return {

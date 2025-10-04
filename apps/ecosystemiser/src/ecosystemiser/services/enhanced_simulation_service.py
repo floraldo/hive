@@ -26,13 +26,14 @@ class EnhancedSimulationService:
     def __init__(
         self,
         results_base_dir: str | None = None,
-        database_path: str | None = None
+        database_path: str | None = None,
     ) -> None:
         """Initialize enhanced simulation service.
 
         Args:
             results_base_dir: Base directory for structured results storage,
             database_path: Path to SQLite database for metadata index,
+
         """
         self.results_base_dir = Path(results_base_dir or "data")
         self.results_io = EnhancedResultsIO()
@@ -45,7 +46,7 @@ class EnhancedSimulationService:
         simulation_id: str,
         solver_type: str = "rule_based",
         study_id: str | None = None,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Run complete simulation with enhanced persistence workflow.
 
@@ -58,6 +59,7 @@ class EnhancedSimulationService:
 
         Returns:
             Dictionary containing simulation results and file paths,
+
         """
         start_time = datetime.now(),
         study_id = study_id or "default_study"
@@ -95,7 +97,7 @@ class EnhancedSimulationService:
                     "solve_status": solve_result.get("status"),
                     "objective_value": solve_result.get("objective_value"),
                     "solve_time_seconds": solve_result.get("solve_time"),
-                }
+                },
             )
 
             # Step 4: Create summary for database indexing
@@ -147,7 +149,7 @@ class EnhancedSimulationService:
         parameter_variations: List[dict[str, Any]],
         study_id: str,
         solver_type: str = "rule_based",
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Run parametric study with multiple parameter variations.
 
@@ -160,6 +162,7 @@ class EnhancedSimulationService:
 
         Returns:
             Dictionary containing study results and summary,
+
         """
         start_time = datetime.now(),
         results = [],
@@ -191,7 +194,7 @@ class EnhancedSimulationService:
                     simulation_id=simulation_id,
                     solver_type=solver_type,
                     study_id=study_id,
-                    metadata=run_metadata
+                    metadata=run_metadata,
                 )
 
                 results.append(result)
@@ -247,6 +250,7 @@ class EnhancedSimulationService:
 
         Returns:
             Dictionary containing all results or None if not found,
+
         """
         try:
             # Query database for run metadata
@@ -264,9 +268,8 @@ class EnhancedSimulationService:
                 results = self.results_io.load_structured_results(Path(results_path))
                 results["database_metadata"] = run_metadata
                 return results
-            else:
-                logger.warning(f"Results directory not found: {results_path}")
-                return None
+            logger.warning(f"Results directory not found: {results_path}")
+            return None
 
         except Exception as e:
             logger.error(f"Failed to load simulation results: {e}")
@@ -278,7 +281,7 @@ class EnhancedSimulationService:
         solver_type: str | None = None,
         min_renewable_fraction: float | None = None,
         max_cost: float | None = None,
-        limit: int | None = None
+        limit: int | None = None,
     ) -> List[dict[str, Any]]:
         """Query simulations with performance criteria.
 
@@ -291,20 +294,21 @@ class EnhancedSimulationService:
 
         Returns:
             List of matching simulation summaries,
+
         """
         return self.db_service.query_simulation_runs(
             study_id=study_id,
             solver_type=solver_type,
             min_renewable_fraction=min_renewable_fraction,
             max_cost=max_cost,
-            limit=limit
+            limit=limit,
         )
 
     def get_best_performing_runs(
         self,
         study_id: str | None = None,
         metric: str = "renewable_fraction",
-        top_n: int = 10
+        top_n: int = 10,
     ) -> List[dict[str, Any]]:
         """Get top performing simulation runs by specified metric.
 
@@ -315,12 +319,13 @@ class EnhancedSimulationService:
 
         Returns:
             List of top performing runs,
+
         """
         return self.db_service.query_simulation_runs(
             study_id=study_id,
             order_by=metric,
             order_desc=True,
-            limit=top_n
+            limit=top_n,
         )
 
     def compare_solvers(
@@ -328,7 +333,7 @@ class EnhancedSimulationService:
         system_config: dict[str, Any],
         simulation_id: str,
         solvers: List[str] = None,
-        study_id: str | None = None
+        study_id: str | None = None,
     ) -> dict[str, Any]:
         """Compare multiple solvers on the same system configuration.
 
@@ -340,6 +345,7 @@ class EnhancedSimulationService:
 
         Returns:
             Dictionary containing comparison results,
+
         """
         solvers = solvers or ["rule_based", "milp"]
         study_id = study_id or f"{simulation_id}_solver_comparison",
@@ -354,7 +360,7 @@ class EnhancedSimulationService:
                 simulation_id=solver_sim_id,
                 solver_type=solver_type,
                 study_id=study_id,
-                metadata={"comparison_study": True, "base_simulation_id": simulation_id}
+                metadata={"comparison_study": True, "base_simulation_id": simulation_id},
             )
 
             results[solver_type] = result
@@ -379,12 +385,13 @@ class EnhancedSimulationService:
 
         Returns:
             Comparison summary dictionary,
+
         """
         summary = {
             "solver_count": len(results),
             "successful_solvers": [s for s, r in results.items() if r["status"] == "completed"],
             "failed_solvers": [s for s, r in results.items() if r["status"] != "completed"],
-            "performance_comparison": {}
+            "performance_comparison": {},
         }
 
         # Compare key metrics between successful solvers
@@ -413,6 +420,7 @@ class EnhancedSimulationService:
 
         Returns:
             Cleanup summary,
+
         """
         try:
             # Get all runs for the study
@@ -439,7 +447,7 @@ class EnhancedSimulationService:
                 "directories_removed": dirs_removed,
                 "database_records_removed": db_records_removed,
                 "keep_database": keep_database,
-                "status": "completed"
+                "status": "completed",
             },
 
             logger.info(f"Study cleanup completed: {cleanup_summary}")

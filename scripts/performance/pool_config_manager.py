@@ -1,5 +1,4 @@
-"""
-Pool Configuration Manager
+"""Pool Configuration Manager
 
 Manages connection pool configurations with versioning and validation.
 Part of PROJECT VANGUARD Phase 2.2 - Automated Connection Pool Tuning.
@@ -61,8 +60,7 @@ class PoolConfig:
 
 
 class PoolConfigManager:
-    """
-    Manage connection pool configurations with versioning.
+    """Manage connection pool configurations with versioning.
 
     Responsibilities:
     - Load/save pool configurations
@@ -116,14 +114,14 @@ class PoolConfigManager:
         }
 
     def get_config(self, service_name: str) -> PoolConfig | None:
-        """
-        Get current configuration for a service.
+        """Get current configuration for a service.
 
         Args:
             service_name: Name of service
 
         Returns:
             Pool configuration or None if not found
+
         """
         config_file = self.config_dir / f"{service_name}.json"
 
@@ -160,14 +158,14 @@ class PoolConfigManager:
             return None
 
     def validate_config(self, config: dict[str, Any]) -> tuple[bool, list[str]]:
-        """
-        Validate configuration against schema.
+        """Validate configuration against schema.
 
         Args:
             config: Configuration to validate
 
         Returns:
             (is_valid, list of validation errors)
+
         """
         errors = []
 
@@ -202,7 +200,7 @@ class PoolConfigManager:
                     if not rules["validation"](value, config):
                         errors.append(f"{field_name} failed custom validation")
                 except Exception as e:
-                    errors.append(f"{field_name} validation error: {str(e)}")
+                    errors.append(f"{field_name} validation error: {e!s}")
 
         # Cross-field validation
         if "min_size" in config and "max_size" in config:
@@ -221,8 +219,7 @@ class PoolConfigManager:
         return is_valid, errors
 
     def save_to_history(self, service_name: str, config: dict[str, Any], change_reason: str = "") -> Path:
-        """
-        Save configuration to history.
+        """Save configuration to history.
 
         Args:
             service_name: Name of service
@@ -231,6 +228,7 @@ class PoolConfigManager:
 
         Returns:
             Path to history file
+
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         history_file = self.history_dir / f"{service_name}_{timestamp}.json"
@@ -261,8 +259,7 @@ class PoolConfigManager:
         change_reason: str = "",
         skip_validation: bool = False,
     ) -> bool:
-        """
-        Update configuration with validation and history tracking.
+        """Update configuration with validation and history tracking.
 
         Args:
             service_name: Name of service
@@ -272,6 +269,7 @@ class PoolConfigManager:
 
         Returns:
             True if successful
+
         """
         logger.info(f"Updating config for {service_name}")
 
@@ -323,8 +321,7 @@ class PoolConfigManager:
         old_config: dict[str, Any],
         new_config: dict[str, Any],
     ) -> dict[str, tuple[Any, Any]]:
-        """
-        Generate diff between two configurations.
+        """Generate diff between two configurations.
 
         Args:
             service_name: Service name
@@ -333,6 +330,7 @@ class PoolConfigManager:
 
         Returns:
             Dictionary of changes: {field: (old_value, new_value)}
+
         """
         changes = {}
 
@@ -349,8 +347,7 @@ class PoolConfigManager:
         return changes
 
     def rollback_config(self, service_name: str, version: int | None = None) -> bool:
-        """
-        Rollback configuration to previous version.
+        """Rollback configuration to previous version.
 
         Args:
             service_name: Service to rollback
@@ -358,6 +355,7 @@ class PoolConfigManager:
 
         Returns:
             True if successful
+
         """
         logger.info(f"Rolling back config for {service_name}")
 
@@ -412,8 +410,7 @@ class PoolConfigManager:
             return False
 
     def get_config_history(self, service_name: str, limit: int = 10) -> list[dict[str, Any]]:
-        """
-        Get configuration history for a service.
+        """Get configuration history for a service.
 
         Args:
             service_name: Service name
@@ -421,6 +418,7 @@ class PoolConfigManager:
 
         Returns:
             List of history entries (newest first)
+
         """
         history_files = sorted(self.history_dir.glob(f"{service_name}_*.json"), reverse=True)[:limit]
 
@@ -436,11 +434,11 @@ class PoolConfigManager:
         return history
 
     def list_services(self) -> list[str]:
-        """
-        List all services with configurations.
+        """List all services with configurations.
 
         Returns:
             List of service names
+
         """
         config_files = self.config_dir.glob("*.json")
         services = [f.stem for f in config_files]
@@ -449,14 +447,14 @@ class PoolConfigManager:
         return services
 
     def export_all_configs(self, output_file: str) -> bool:
-        """
-        Export all configurations to a single file.
+        """Export all configurations to a single file.
 
         Args:
             output_file: Path to output file
 
         Returns:
             True if successful
+
         """
         services = self.list_services()
         all_configs = {}

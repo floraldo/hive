@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Project Colossus - Complete Flow Demonstration
+"""Project Colossus - Complete Flow Demonstration
 
 This script demonstrates the end-to-end autonomous development flow:
 1. Natural Language → Architect Agent → ExecutionPlan

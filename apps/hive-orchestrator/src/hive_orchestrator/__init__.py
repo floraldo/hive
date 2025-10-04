@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -20,4 +19,4 @@ from .queen import main as queen_main
 from .worker import WorkerCore
 from .worker import main as worker_main
 
-__all__ = ["QueenLite", "WorkerCore", "HiveCore", "queen_main", "worker_main", "clean_main", "status_main"]
+__all__ = ["HiveCore", "QueenLite", "WorkerCore", "clean_main", "queen_main", "status_main", "worker_main"]

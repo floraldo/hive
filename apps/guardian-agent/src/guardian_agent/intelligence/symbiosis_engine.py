@@ -1,5 +1,4 @@
-"""
-Symbiosis Engine - Autonomous Ecosystem Optimization
+"""Symbiosis Engine - Autonomous Ecosystem Optimization
 
 The Oracle's Phase 2 evolution into an autonomous refactoring agent that can
 identify cross-package optimization opportunities and automatically generate
@@ -197,13 +196,13 @@ class SymbiosisEngineConfig(BaseModel):
     # Scope settings
     target_packages: list[str] = Field(default=["hive-*"], description="Packages to analyze for optimizations")
     exclude_patterns: list[str] = Field(
-        default=["**/test_*", "**/__pycache__/**"], description="Files to exclude from analysis"
+        default=["**/test_*", "**/__pycache__/**"], description="Files to exclude from analysis",
     )
     max_files_per_analysis: int = Field(default=100, description="Maximum files to analyze per run")
 
     # Optimization settings
     min_optimization_confidence: float = Field(
-        default=0.7, description="Minimum confidence for optimization implementation"
+        default=0.7, description="Minimum confidence for optimization implementation",
     )
     max_auto_prs_per_day: int = Field(default=5, description="Maximum automated PRs per day")
     require_human_approval: bool = Field(default=True, description="Require human approval for all PRs")
@@ -226,8 +225,7 @@ class SymbiosisEngineConfig(BaseModel):
 
 
 class SymbiosisEngine:
-    """
-    The Oracle's Symbiosis Engine - Autonomous Ecosystem Optimization
+    """The Oracle's Symbiosis Engine - Autonomous Ecosystem Optimization
 
     This engine represents the Oracle's evolution into an autonomous architect
     that can identify cross-package optimization opportunities and automatically
@@ -258,13 +256,11 @@ class SymbiosisEngine:
         logger.info("Symbiosis Engine initialized - Autonomous ecosystem optimization active")
 
     async def analyze_ecosystem_async(self, force_refresh: bool = False) -> dict[str, Any]:
-        """
-        Perform comprehensive ecosystem analysis to identify optimization opportunities.
+        """Perform comprehensive ecosystem analysis to identify optimization opportunities.
 
         This is the core method that scans the entire Hive ecosystem for patterns
         and optimization opportunities.
         """
-
         analysis_start = datetime.utcnow()
         logger.info("🔄 Starting comprehensive ecosystem analysis...")
 
@@ -302,7 +298,7 @@ class SymbiosisEngine:
                             o
                             for o in optimizations
                             if o.priority in [OptimizationPriority.CRITICAL, OptimizationPriority.HIGH]
-                        ]
+                        ],
                     ),
                     "auto_implementable": len([o for o in optimizations if o.can_auto_implement]),
                     "analysis_duration": analysis_duration,
@@ -319,14 +315,14 @@ class SymbiosisEngine:
             await self._store_analysis_results_async(analysis_report)
 
             logger.info(
-                f"🔄 Ecosystem analysis complete: {len(optimizations)} opportunities identified in {analysis_duration:.1f}s"
+                f"🔄 Ecosystem analysis complete: {len(optimizations)} opportunities identified in {analysis_duration:.1f}s",
             )
             return analysis_report
 
         except Exception as e:
             logger.error(f"Ecosystem analysis failed: {e}")
             return {
-                "error": f"Analysis failed: {str(e)}",
+                "error": f"Analysis failed: {e!s}",
                 "analysis_summary": {"total_patterns_discovered": 0, "optimization_opportunities": 0},
                 "patterns": [],
                 "optimizations": [],
@@ -334,13 +330,11 @@ class SymbiosisEngine:
             }
 
     async def generate_automated_prs_async(self, max_prs: int | None = None) -> list[AutomatedPullRequest]:
-        """
-        Generate automated pull requests for high-confidence optimizations.
+        """Generate automated pull requests for high-confidence optimizations.
 
         This method represents the Oracle's autonomous action capability -
         automatically implementing improvements without human intervention.
         """
-
         if not self.config.enable_automated_pr_generation:
             logger.warning("Automated PR generation is disabled")
             return []
@@ -403,7 +397,6 @@ class SymbiosisEngine:
 
     async def validate_optimization_results_async(self, optimization_id: str) -> dict[str, Any]:
         """Validate the results of an implemented optimization."""
-
         logger.info(f"🔍 Validating optimization results: {optimization_id}")
 
         try:
@@ -422,7 +415,7 @@ class SymbiosisEngine:
             # Check if tests pass
             if optimization.pr_url:
                 validation_results["checks"]["tests_passing"] = await self._check_tests_passing_async(
-                    optimization.pr_url
+                    optimization.pr_url,
                 )
 
             # Check performance impact
@@ -457,7 +450,7 @@ class SymbiosisEngine:
 
         except Exception as e:
             logger.error(f"Optimization validation failed: {e}")
-            return {"error": f"Validation failed: {str(e)}"}
+            return {"error": f"Validation failed: {e!s}"}
 
     # Internal methods for pattern analysis and optimization detection
 
@@ -507,13 +500,13 @@ class SymbiosisEngine:
                         "affected_packages": list(packages_with_pattern),
                         "pattern_count": len(type_patterns),
                         "optimization_potential": "high" if len(packages_with_pattern) > 2 else "medium",
-                    }
+                    },
                 )
 
         return opportunities
 
     async def _detect_optimizations_async(
-        self, patterns: list[CodePattern], cross_package_opportunities: list[dict]
+        self, patterns: list[CodePattern], cross_package_opportunities: list[dict],
     ) -> list[OptimizationOpportunity]:
         """Detect specific optimization opportunities."""
         optimizations = []
@@ -532,7 +525,7 @@ class SymbiosisEngine:
         return optimizations
 
     async def _prioritize_optimizations_async(
-        self, optimizations: list[OptimizationOpportunity]
+        self, optimizations: list[OptimizationOpportunity],
     ) -> list[OptimizationOpportunity]:
         """Prioritize optimizations based on impact and effort."""
 
@@ -555,7 +548,6 @@ class SymbiosisEngine:
 
     async def _plan_implementations_async(self, optimizations: list[OptimizationOpportunity]) -> dict[str, Any]:
         """Plan implementation strategies for optimizations."""
-
         implementation_plans = {
             "immediate_actions": [],
             "scheduled_optimizations": [],
@@ -585,10 +577,9 @@ class SymbiosisEngine:
         return implementation_plans
 
     async def _generate_ecosystem_recommendations_async(
-        self, optimizations: list[OptimizationOpportunity]
+        self, optimizations: list[OptimizationOpportunity],
     ) -> list[str]:
         """Generate high-level ecosystem recommendations."""
-
         recommendations = []
 
         # Count optimizations by type
@@ -609,7 +600,7 @@ class SymbiosisEngine:
         critical_count = len([o for o in optimizations if o.priority == OptimizationPriority.CRITICAL])
         if critical_count > 0:
             recommendations.append(
-                f"Address {critical_count} critical optimizations immediately to prevent system issues"
+                f"Address {critical_count} critical optimizations immediately to prevent system issues",
             )
 
         auto_count = len([o for o in optimizations if o.can_auto_implement])
@@ -643,14 +634,14 @@ class SymbiosisEngine:
                         tags={
                             "analysis_type": "ecosystem_optimization",
                             "patterns_discovered": str(
-                                analysis_report["analysis_summary"]["total_patterns_discovered"]
+                                analysis_report["analysis_summary"]["total_patterns_discovered"],
                             ),
                             "high_priority_count": str(
-                                analysis_report["analysis_summary"]["high_priority_optimizations"]
+                                analysis_report["analysis_summary"]["high_priority_optimizations"],
                             ),
                         },
                         metadata=analysis_report["analysis_summary"],
-                    )
+                    ),
                 ]
 
                 await self.data_layer.warehouse.store_metrics_async(metrics)
@@ -843,10 +834,9 @@ class OptimizationDetector:
         self.config = config
 
     async def create_optimization_from_opportunity_async(
-        self, opportunity: dict[str, Any], patterns: list[CodePattern]
+        self, opportunity: dict[str, Any], patterns: list[CodePattern],
     ) -> OptimizationOpportunity | None:
         """Create optimization from cross-package opportunity."""
-
         if opportunity["type"] == "cross_package_duplication":
             return OptimizationOpportunity(
                 opportunity_id=f"cross_pkg_{opportunity['pattern_type']}_{len(opportunity['affected_packages'])}",
@@ -923,7 +913,6 @@ class PullRequestGenerator:
 
     async def generate_pr_async(self, optimization: OptimizationOpportunity) -> AutomatedPullRequest | None:
         """Generate a pull request for an optimization."""
-
         try:
             # Generate branch name,
             branch_name = f"oracle/optimization/{optimization.opportunity_id.replace('_', '-')}"
@@ -962,7 +951,6 @@ class PullRequestGenerator:
 
     def _generate_pr_description(self, optimization: OptimizationOpportunity) -> str:
         """Generate comprehensive PR description."""
-
         description_parts = [
             "## 🤖 Oracle Autonomous Optimization",
             "",
@@ -983,7 +971,7 @@ class PullRequestGenerator:
 
         if optimization.affected_packages:
             description_parts.extend(
-                ["### Affected Packages", "\n".join(f"- {pkg}" for pkg in optimization.affected_packages), ""]
+                ["### Affected Packages", "\n".join(f"- {pkg}" for pkg in optimization.affected_packages), ""],
             )
 
         if optimization.implementation_plan:
@@ -992,7 +980,7 @@ class PullRequestGenerator:
                     "### Implementation Plan",
                     "\n".join(f"{i+1}. {step}" for i, step in enumerate(optimization.implementation_plan)),
                     "",
-                ]
+                ],
             )
 
         if optimization.potential_breaking_changes:
@@ -1001,7 +989,7 @@ class PullRequestGenerator:
                     "### ⚠️ Potential Breaking Changes",
                     "\n".join(f"- {change}" for change in optimization.potential_breaking_changes),
                     "",
-                ]
+                ],
             )
 
         if optimization.mitigation_strategies:
@@ -1010,7 +998,7 @@ class PullRequestGenerator:
                     "### 🛡️ Mitigation Strategies",
                     "\n".join(f"- {strategy}" for strategy in optimization.mitigation_strategies),
                     "",
-                ]
+                ],
             )
 
         description_parts.extend(
@@ -1030,14 +1018,13 @@ class PullRequestGenerator:
                 f"**Risk Level**: {optimization.risk_level.title()}",
                 "",
                 "*This PR was automatically generated by the Oracle Symbiosis Engine*",
-            ]
+            ],
         )
 
         return "\n".join(description_parts)
 
     async def _generate_code_changes_async(self, optimization: OptimizationOpportunity) -> dict[str, str]:
         """Generate actual code changes for the optimization."""
-
         code_changes = {}
 
         # Simplified code generation based on optimization type,

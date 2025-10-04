@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Final integration test for the EcoSystemiser architectural refactoring.
+"""Final integration test for the EcoSystemiser architectural refactoring.
 
 This script validates that all the fixes are working properly without Unicode issues.
 """
@@ -84,9 +83,9 @@ def test_core_architecture() -> None:
         request = ClimateRequest(
             lat=52.5,
             lon=4.9,
-            start_date='2023-01-01',
-            end_date='2023-01-02',
-            variables=['temperature_2m']
+            start_date="2023-01-01",
+            end_date="2023-01-02",
+            variables=["temperature_2m"],
         )
 
         logger.info("SUCCESS: Climate data models working")
@@ -153,9 +152,8 @@ def main() -> None:
         logger.info("- Golden Rules compliance: WORKING")
         logger.info("\nArchitectural refactoring is COMPLETE and SUCCESSFUL!")
         return 0
-    else:
-        logger.info("FAILED: Some tests failed")
-        return 1
+    logger.info("FAILED: Some tests failed")
+    return 1
 
 if __name__ == "__main__":
     sys.exit(main())

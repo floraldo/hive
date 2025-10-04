@@ -1,4 +1,3 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
@@ -27,7 +26,7 @@ def run_script(script_name: str) -> bool:
     try:
         result = subprocess.run(
             [sys.executable, str(script_path)],
-            cwd=script_path.parent.parent,
+            check=False, cwd=script_path.parent.parent,
             capture_output=False,
             text=True,
         )
@@ -49,7 +48,7 @@ def run_syntax_check() -> bool:
 
     for py_file in src_dir.rglob("*.py"):
         try:
-            result = subprocess.run([sys.executable, "-m", "py_compile", str(py_file)], capture_output=True, text=True)
+            result = subprocess.run([sys.executable, "-m", "py_compile", str(py_file)], check=False, capture_output=True, text=True)
             if result.returncode != 0:
                 errors.append((py_file.relative_to(src_dir), result.stderr))
         except Exception as e:

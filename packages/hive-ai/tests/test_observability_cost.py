@@ -9,6 +9,5 @@ class TestObservabilityCost:
     @pytest.mark.core
     def test_cost_tracking(self):
         """Test cost tracking."""
-        pass
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Database Setup Tool - Consolidated Database Management
+"""Database Setup Tool - Consolidated Database Management
 
 This script consolidates the functionality of multiple database scripts:
 - init_db_simple.py
@@ -54,7 +53,7 @@ class DatabaseSetup:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-            """
+            """,
             )
 
             cursor.execute(
@@ -71,7 +70,7 @@ class DatabaseSetup:
                     error TEXT,
                     FOREIGN KEY (task_id) REFERENCES tasks(task_id)
                 )
-            """
+            """,
             )
 
             cursor.execute(
@@ -83,7 +82,7 @@ class DatabaseSetup:
                     last_heartbeat TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     metadata TEXT
                 )
-            """
+            """,
             )
 
             conn.commit()

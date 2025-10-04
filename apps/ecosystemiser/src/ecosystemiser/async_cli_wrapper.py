@@ -1,5 +1,4 @@
-"""
-Async CLI wrapper for EcoSystemiser to enable high-performance I/O operations.,
+"""Async CLI wrapper for EcoSystemiser to enable high-performance I/O operations.,
 
 This wrapper provides async versions of key CLI operations while maintaining
 backward compatibility with the existing synchronous CLI interface.
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class AsyncCLIWrapper:
-    """
-    Async wrapper for EcoSystemiser CLI operations.,
+    """Async wrapper for EcoSystemiser CLI operations.,
 
     Provides high-performance async versions of common CLI operations,
     while maintaining compatibility with existing command structure.
@@ -66,6 +64,7 @@ class AsyncCLIWrapper:
 
         Returns:
             Simulation result dictionary,
+
         """
         try:
             await self.initialize_async()
@@ -134,6 +133,7 @@ class AsyncCLIWrapper:
 
         Returns:
             List of simulation results,
+
         """
         try:
             await self.initialize_async()
@@ -212,6 +212,7 @@ class AsyncCLIWrapper:
 
         Returns:
             Climate data response,
+
         """
         try:
             await self.initialize_async()
@@ -301,6 +302,7 @@ class AsyncCLIWrapper:
 
         Returns:
             Validation result,
+
         """
         try:
             await self.initialize_async()
@@ -334,6 +336,7 @@ class AsyncCLIWrapper:
 
         Returns:
             Performance metrics dictionary,
+
         """
         try:
             await self.initialize_async()
@@ -374,6 +377,7 @@ class AsyncCLIWrapperFactory:
 
         Returns:
             AsyncCLIWrapper instance
+
         """
         if self._instance is None:
             self._instance = AsyncCLIWrapper()
@@ -397,6 +401,7 @@ def get_async_cli_wrapper() -> AsyncCLIWrapper:
 
     Returns:
         AsyncCLIWrapper instance
+
     """
     return _default_factory.get_wrapper()
 
@@ -422,6 +427,7 @@ def run_async_simulation_from_cli(
 
     Returns:
         Simulation result dictionary,
+
     """
     wrapper = get_async_cli_wrapper()
     try:
@@ -459,6 +465,7 @@ def get_async_climate_from_cli(
 
     Returns:
         Climate data response,
+
     """
     wrapper = get_async_cli_wrapper()
     try:
@@ -491,6 +498,7 @@ def validate_async_config_from_cli(config_path: str) -> dict[str, Any]:
 
     Returns:
         Validation result,
+
     """
     wrapper = get_async_cli_wrapper()
     try:

@@ -38,8 +38,7 @@ BuildingType = Literal[
 
 
 class DemandRequest(BaseProfileRequest):
-    """
-    Request for demand profile data.,
+    """Request for demand profile data.,
 
     Extends BaseProfileRequest with demand-specific parameters.,
     """
@@ -67,8 +66,7 @@ class DemandRequest(BaseProfileRequest):
 
 
 class DemandResponse(BaseProfileResponse):
-    """
-    Response containing demand profile data.,
+    """Response containing demand profile data.,
 
     Extends BaseProfileResponse with demand-specific metrics.,
     """

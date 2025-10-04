@@ -1,5 +1,4 @@
-"""
-Generic error handling and reporting toolkit.
+"""Generic error handling and reporting toolkit.
 
 Provides reusable components for building robust error management:
 - Base exception classes with enhanced resilience patterns
@@ -49,33 +48,33 @@ except ImportError:
 logger = get_logger(__name__)
 
 __all__ = [
+    "APIError",
+    # Legacy (DEPRECATED)
+    "AsyncErrorHandler",  # Use UnifiedErrorReporter instead
+    "AsyncTimeoutError",
     # Base error classes
     "BaseError",
-    "ConfigurationError",
-    "ConnectionError",
-    "ValidationError",
-    "TimeoutError",
-    "ResourceError",
-    "APIError",
-    "RateLimitError",
-    # Resilience pattern errors
-    "CircuitBreakerOpenError",
-    "AsyncTimeoutError",
-    "RetryExhaustedError",
-    "PoolExhaustedError",
     # Error handling infrastructure (UNIFIED)
     "BaseErrorReporter",
-    "UnifiedErrorReporter",  # Primary interface - use this
-    "MonitoringErrorReporter",  # Alias to UnifiedErrorReporter
-    "RecoveryStrategy",
-    "RecoveryStatus",
-    "RetryStrategy",
+    # Resilience pattern errors
+    "CircuitBreakerOpenError",
+    "ConfigurationError",
+    "ConnectionError",
     # Async error handling context (unified in MonitoringErrorReporter)
     "ErrorContext",
     "ErrorStats",
+    "MonitoringErrorReporter",  # Alias to UnifiedErrorReporter
+    "PoolExhaustedError",
+    "RateLimitError",
+    "RecoveryStatus",
+    "RecoveryStrategy",
+    "ResourceError",
+    "RetryExhaustedError",
+    "RetryStrategy",
+    "TimeoutError",
+    "UnifiedErrorReporter",  # Primary interface - use this
+    "ValidationError",
+    "create_error_context",
     "error_context",
     "handle_async_errors",
-    "create_error_context",
-    # Legacy (DEPRECATED)
-    "AsyncErrorHandler",  # Use UnifiedErrorReporter instead
 ]

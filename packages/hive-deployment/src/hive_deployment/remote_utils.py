@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Remote utility functions for Hive Deployment.
+"""Remote utility functions for Hive Deployment.
 Adapted from SmartHoodsOptimisationTool Apper project.
 """
 
@@ -20,14 +19,14 @@ logger = get_logger(__name__)
 
 
 def parse_deployignore(local_dir: str) -> list[str]:
-    """
-    Parse .deployignore file and return list of patterns to exclude.
+    """Parse .deployignore file and return list of patterns to exclude.
 
     Args:
         local_dir: The local directory containing the .deployignore file
 
     Returns:
         List of patterns to exclude from deployment
+
     """
     ignore_patterns = ([],)
     deployignore_path = os.path.join(local_dir, ".deployignore")
@@ -47,8 +46,7 @@ def parse_deployignore(local_dir: str) -> list[str]:
 
 
 def should_ignore_path(path: str, ignore_patterns: list[str], base_dir: str = "") -> bool:
-    """
-    Check if a path should be ignored based on .deployignore patterns.
+    """Check if a path should be ignored based on .deployignore patterns.
 
     Args:
         path: The path to check (relative to base directory)
@@ -57,6 +55,7 @@ def should_ignore_path(path: str, ignore_patterns: list[str], base_dir: str = ""
 
     Returns:
         True if the path should be ignored
+
     """
     # Normalize path separators
     path = path.replace("\\\\", "/")
@@ -128,8 +127,7 @@ def run_remote_command(
     check: bool = True,
     log_output: bool = True,
 ) -> tuple[int, str, str]:
-    """
-    Executes a command on the remote server using the provided SSH client.
+    """Executes a command on the remote server using the provided SSH client.
 
     Args:
         ssh_client: An initialized and connected SSHClient instance.,
@@ -144,6 +142,7 @@ def run_remote_command(
 
     Raises:
         Exception: If 'check' is True and the command returns a non-zero exit code.,
+
     """
     sudo_prefix = "sudo " if sudo else ""
     logger.debug(f"Running remote command: {sudo_prefix}{command}")
@@ -177,8 +176,7 @@ def upload_directory(
     config: dict[str, Any],
     sudo_upload: bool = False,
 ) -> bool:
-    """
-    Uploads a local directory to a remote server via SFTP.
+    """Uploads a local directory to a remote server via SFTP.
 
     Args:
         ssh_client: An initialized and connected SSHClient instance.,
@@ -189,6 +187,7 @@ def upload_directory(
 
     Returns:
         True if the upload was successful, False otherwise.
+
     """
     local_path = Path(local_dir)
     if not local_path.is_dir():

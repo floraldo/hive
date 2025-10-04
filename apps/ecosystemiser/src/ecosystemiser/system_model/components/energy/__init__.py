@@ -7,11 +7,11 @@ logger = get_logger(__name__)
 
 __all__ = [
     "BatteryBatteryParams",
-    "GridGridParams",
-    "SolarPVSolarPVParams",
-    "PowerDemandPowerDemandParams",
-    "HeatPumpHeatPumpParams",
     "ElectricBoilerElectricBoilerParams",
+    "GridGridParams",
     "HeatBufferHeatBufferParams",
     "HeatDemandHeatDemandParams",
+    "HeatPumpHeatPumpParams",
+    "PowerDemandPowerDemandParams",
+    "SolarPVSolarPVParams",
 ]

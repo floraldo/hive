@@ -264,15 +264,14 @@ class MILPSolver(BaseSolver):
         # Aggregate contributions based on objective type
         if self.objective_type == "min_cost":
             return self._aggregate_cost_contributions(contributions)
-        elif self.objective_type == "min_co2":
+        if self.objective_type == "min_co2":
             return self._aggregate_emission_contributions(contributions)
-        elif self.objective_type == "min_grid":
+        if self.objective_type == "min_grid":
             return self._aggregate_grid_contributions(contributions)
-        elif self.objective_type.startswith("multi_"):
+        if self.objective_type.startswith("multi_"):
             return self._aggregate_multi_objective_contributions(contributions)
-        else:
-            logger.warning(f"Unknown objective type: {self.objective_type}, using min_cost")
-            return self._aggregate_cost_contributions(contributions)
+        logger.warning(f"Unknown objective type: {self.objective_type}, using min_cost")
+        return self._aggregate_cost_contributions(contributions)
 
     def _aggregate_cost_contributions(self, contributions: dict[str, Any]):
         """Aggregate cost contributions from all components.
@@ -281,6 +280,7 @@ class MILPSolver(BaseSolver):
             contributions: Component cost contributions from system
         Returns:
             CVXPY Minimize objective,
+
         """
         cost_terms = []
 
@@ -315,6 +315,7 @@ class MILPSolver(BaseSolver):
             contributions: Component emission contributions from system
         Returns:
             CVXPY Minimize objective,
+
         """
         total_emissions = 0
 
@@ -341,6 +342,7 @@ class MILPSolver(BaseSolver):
             contributions: Component grid usage contributions from system
         Returns:
             CVXPY Minimize objective,
+
         """
         total_grid_usage = 0
 
@@ -367,6 +369,7 @@ class MILPSolver(BaseSolver):
             contributions: Component contributions from system
         Returns:
             CVXPY Minimize objective with weighted combination,
+
         """
         # First check if we have configured weights
         if self.config.objective_weights:
@@ -394,33 +397,32 @@ class MILPSolver(BaseSolver):
             logger.info(f"Multi-objective with configured weights: {weights}")
             return cp.Minimize(combined_objective)
 
-        else:
-            # Fallback: Parse from objective type name for backward compatibility
-            parts = self.objective_type.split("_")
-            if len(parts) < 5:
-                logger.error(f"Invalid multi-objective format: {self.objective_type}")
-                logger.info("Use config.objective_weights to specify weights properly")
-                return self._aggregate_cost_contributions(contributions)
+        # Fallback: Parse from objective type name for backward compatibility
+        parts = self.objective_type.split("_")
+        if len(parts) < 5:
+            logger.error(f"Invalid multi-objective format: {self.objective_type}")
+            logger.info("Use config.objective_weights to specify weights properly")
+            return self._aggregate_cost_contributions(contributions)
 
-            obj1, obj2 = parts[1], parts[2]
-            try:
-                weight1, weight2 = float(parts[3]), float(parts[4])
-                # Normalize weights
-                total_weight = weight1 + weight2
-                weight1, weight2 = weight1 / total_weight, weight2 / total_weight
-            except (ValueError, ZeroDivisionError):
-                logger.error(f"Invalid weights in multi-objective: {self.objective_type}")
-                weight1, weight2 = 0.5, 0.5
+        obj1, obj2 = parts[1], parts[2]
+        try:
+            weight1, weight2 = float(parts[3]), float(parts[4])
+            # Normalize weights
+            total_weight = weight1 + weight2
+            weight1, weight2 = weight1 / total_weight, weight2 / total_weight
+        except (ValueError, ZeroDivisionError):
+            logger.error(f"Invalid weights in multi-objective: {self.objective_type}")
+            weight1, weight2 = 0.5, 0.5
 
-            # Get individual objective values
-            obj1_value = self._get_single_objective_value(obj1, contributions)
-            obj2_value = self._get_single_objective_value(obj2, contributions)
+        # Get individual objective values
+        obj1_value = self._get_single_objective_value(obj1, contributions)
+        obj2_value = self._get_single_objective_value(obj2, contributions)
 
-            # Weighted combination
-            combined_objective = weight1 * obj1_value + weight2 * obj2_value
+        # Weighted combination
+        combined_objective = weight1 * obj1_value + weight2 * obj2_value
 
-            (logger.info(f"Multi-objective (legacy format): {weight1:.1%} {obj1} + {weight2:.1%} {obj2}"),)
-            return cp.Minimize(combined_objective)
+        (logger.info(f"Multi-objective (legacy format): {weight1:.1%} {obj1} + {weight2:.1%} {obj2}"),)
+        return cp.Minimize(combined_objective)
 
     def _get_single_objective_value(self, objective_type: str, contributions: dict[str, Any]):
         """Get objective value for single objective type."""
@@ -438,7 +440,7 @@ class MILPSolver(BaseSolver):
                             total += variable * rate
             return total
 
-        elif objective_type == "co2":
+        if objective_type == "co2":
             emission_contribs = self.system.get_component_emission_contributions(),
             total = 0
             for comp_emissions in emission_contribs.values():
@@ -452,7 +454,7 @@ class MILPSolver(BaseSolver):
                             total += variable * factor
             return total
 
-        elif objective_type == "grid":
+        if objective_type == "grid":
             grid_usage = self.system.get_component_grid_usage(),
             total = 0
             for comp_usage in grid_usage.values():
@@ -464,9 +466,8 @@ class MILPSolver(BaseSolver):
                             total += variable
             return total
 
-        else:
-            logger.warning(f"Unknown single objective type: {objective_type}")
-            return 0
+        logger.warning(f"Unknown single objective type: {objective_type}")
+        return 0
 
     def _select_solver(self):
         """Select appropriate solver based on availability."""

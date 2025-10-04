@@ -1,5 +1,4 @@
-"""
-Predictive failure alerts and trend analysis.
+"""Predictive failure alerts and trend analysis.
 
 Analyzes trends from monitoring systems to predict potential failures
 before thresholds are breached, enabling proactive maintenance.
@@ -86,22 +85,21 @@ class DegradationAlert:
 
 
 class TrendAnalyzer:
-    """
-    Analyze metric trends for predictive insights.
+    """Analyze metric trends for predictive insights.
 
     Uses exponential moving average, linear regression, and pattern
     detection to identify potential failures before they occur.
     """
 
     def __init__(self, window_size: int = 50, ema_alpha: float = 0.2, degradation_threshold: int = 3, historical_enricher=None):
-        """
-        Initialize trend analyzer.
+        """Initialize trend analyzer.
 
         Args:
             window_size: Number of data points to analyze
             ema_alpha: EMA smoothing factor (0.0-1.0, higher = more responsive)
             degradation_threshold: Consecutive increases to trigger alert
             historical_enricher: Optional HistoricalContextEnricher for context-aware thresholding
+
         """
         self.window_size = window_size
         self.ema_alpha = ema_alpha
@@ -109,8 +107,7 @@ class TrendAnalyzer:
         self.historical_enricher = historical_enricher
 
     def calculate_ema(self, data: list[float], alpha: float | None = None) -> list[float]:
-        """
-        Calculate exponential moving average.
+        """Calculate exponential moving average.
 
         Args:
             data: List of metric values
@@ -118,6 +115,7 @@ class TrendAnalyzer:
 
         Returns:
             List of EMA values
+
         """
         if not data:
             return []
@@ -131,8 +129,7 @@ class TrendAnalyzer:
         return ema
 
     async def detect_degradation(self, metrics: list[MetricPoint], threshold: float) -> DegradationAlert | None:
-        """
-        Detect if metrics show degradation pattern.
+        """Detect if metrics show degradation pattern.
 
         Returns alert if consecutive increases detected that could
         lead to threshold breach.
@@ -143,6 +140,7 @@ class TrendAnalyzer:
 
         Returns:
             DegradationAlert if pattern detected, None otherwise
+
         """
         if len(metrics) < self.degradation_threshold + 1:
             logger.debug(f"Insufficient data points: {len(metrics)} < {self.degradation_threshold + 1}")
@@ -162,7 +160,7 @@ class TrendAnalyzer:
             try:
                 # Retrieve historical context for dynamic thresholding
                 historical_stats = await get_historical_baseline_async(
-                    self.historical_enricher, service_name, metric_type_str
+                    self.historical_enricher, service_name, metric_type_str,
                 )
 
                 if historical_stats:
@@ -264,13 +262,12 @@ class TrendAnalyzer:
                 "volatility_factor": metrics[0].metadata.get("volatility_factor", 1.0),
                 "baseline_mean": metrics[0].metadata.get("baseline_mean"),
                 "baseline_std": metrics[0].metadata.get("baseline_std"),
-                "historical_context_used": self.historical_enricher is not None
+                "historical_context_used": self.historical_enricher is not None,
             },
         )
 
     def predict_time_to_breach(self, metrics: list[MetricPoint], threshold: float) -> timedelta | None:
-        """
-        Use linear regression to predict when threshold will be breached.
+        """Use linear regression to predict when threshold will be breached.
 
         Args:
             metrics: Historical metric data points
@@ -278,6 +275,7 @@ class TrendAnalyzer:
 
         Returns:
             Time until breach, or None if not trending toward threshold
+
         """
         if len(metrics) < 5:
             return None
@@ -312,8 +310,7 @@ class TrendAnalyzer:
         return timedelta(seconds=seconds_to_breach)
 
     def _linear_regression(self, x: list[float], y: list[float]) -> tuple[float, float]:
-        """
-        Calculate simple linear regression.
+        """Calculate simple linear regression.
 
         Args:
             x: Independent variable (time)
@@ -321,6 +318,7 @@ class TrendAnalyzer:
 
         Returns:
             (slope, intercept) of regression line
+
         """
         n = len(x)
         if n == 0:
@@ -342,8 +340,7 @@ class TrendAnalyzer:
         return slope, intercept
 
     def _calculate_confidence(self, ema: list[float]) -> float:
-        """
-        Calculate confidence score based on trend consistency.
+        """Calculate confidence score based on trend consistency.
 
         Higher confidence when trend is consistent and strong.
 
@@ -352,6 +349,7 @@ class TrendAnalyzer:
 
         Returns:
             Confidence score (0.0-1.0)
+
         """
         if len(ema) < 3:
             return 0.5
@@ -373,8 +371,7 @@ class TrendAnalyzer:
         return min(max(confidence, 0.0), 1.0)  # Clamp to [0, 1]
 
     def _determine_severity(self, time_to_breach: timedelta | None, confidence: float) -> AlertSeverity:
-        """
-        Determine alert severity based on time to breach and confidence.
+        """Determine alert severity based on time to breach and confidence.
 
         Args:
             time_to_breach: Predicted time until threshold breach
@@ -382,6 +379,7 @@ class TrendAnalyzer:
 
         Returns:
             Alert severity level
+
         """
         if time_to_breach is None:
             return AlertSeverity.LOW
@@ -409,8 +407,7 @@ class TrendAnalyzer:
         threshold: float,
         severity: AlertSeverity,
     ) -> list[str]:
-        """
-        Generate recommended actions based on metric type and severity.
+        """Generate recommended actions based on metric type and severity.
 
         Args:
             metrics: Historical metric data
@@ -419,6 +416,7 @@ class TrendAnalyzer:
 
         Returns:
             List of recommended actions
+
         """
         metric_type = metrics[0].metadata.get("metric_type", "unknown")
         recommendations = []
@@ -465,12 +463,11 @@ class TrendAnalyzer:
 
         timestamp = datetime.utcnow().isoformat()
         content = f"{service_name}:{timestamp}"
-        hash_value = hashlib.md5(content.encode("utf-8")).hexdigest()[:12]  # noqa: S324
+        hash_value = hashlib.md5(content.encode("utf-8")).hexdigest()[:12]
         return f"alert-{hash_value}"
 
     def detect_anomaly(self, metrics: list[MetricPoint], std_dev_threshold: float = 2.0) -> bool:
-        """
-        Detect statistical anomalies using standard deviation.
+        """Detect statistical anomalies using standard deviation.
 
         Args:
             metrics: Historical metric data points
@@ -478,6 +475,7 @@ class TrendAnalyzer:
 
         Returns:
             True if current value is anomalous
+
         """
         if len(metrics) < 10:
             return False

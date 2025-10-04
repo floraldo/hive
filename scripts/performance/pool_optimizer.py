@@ -1,5 +1,4 @@
-"""
-Connection Pool Optimizer
+"""Connection Pool Optimizer
 
 Analyzes connection pool utilization metrics and provides data-driven
 tuning recommendations for optimal pool sizing.
@@ -61,8 +60,7 @@ class OptimizationRecommendation:
 
 
 class PoolOptimizer:
-    """
-    Analyzes connection pool metrics and recommends optimal configurations.
+    """Analyzes connection pool metrics and recommends optimal configurations.
 
     Collects metrics over time and applies heuristics to identify:
     - Undersized pools (high utilization, slow acquisitions)
@@ -71,23 +69,23 @@ class PoolOptimizer:
     """
 
     def __init__(self, collection_interval: float = 5.0):
-        """
-        Initialize pool optimizer.
+        """Initialize pool optimizer.
 
         Args:
             collection_interval: Seconds between metric collections
+
         """
         self.collection_interval = collection_interval
         self.metrics_history: list[PoolMetrics] = []
         self._collecting = False
 
     async def collect_metrics_async(self, get_pool_stats_func, duration: timedelta = timedelta(minutes=5)) -> None:
-        """
-        Collect pool metrics over a period of time.
+        """Collect pool metrics over a period of time.
 
         Args:
             get_pool_stats_func: Async function that returns pool statistics dict
             duration: How long to collect metrics
+
         """
         logger.info(f"Starting metric collection for {duration}")
 
@@ -139,11 +137,11 @@ class PoolOptimizer:
         )
 
     def analyze_pools(self) -> dict[str, list[OptimizationRecommendation]]:
-        """
-        Analyze collected metrics and generate recommendations.
+        """Analyze collected metrics and generate recommendations.
 
         Returns:
             Dict mapping pool names to lists of recommendations
+
         """
         if not self.metrics_history:
             logger.warning("No metrics collected, cannot analyze")
@@ -316,7 +314,7 @@ class PoolOptimizer:
                 indent=2,
             )
 
-        elif format == "text":
+        if format == "text":
             lines = [
                 "=== Connection Pool Optimization Report ===",
                 f"Analysis Time: {datetime.now().isoformat()}",
@@ -360,8 +358,7 @@ class PoolOptimizer:
 
             return "\n".join(lines)
 
-        else:
-            raise ValueError(f"Unsupported format: {format}")
+        raise ValueError(f"Unsupported format: {format}")
 
     def save_metrics(self, filepath: Path) -> None:
         """Save collected metrics to file."""

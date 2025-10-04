@@ -172,8 +172,7 @@ class NASAPowerAdapter(BaseAdapter):
         chunk_years: int = 1,  # Maximum years per request
         use_batch: bool = False,  # Enable batch processing
     ) -> xr.Dataset:
-        """
-        Fetch climate data from NASA POWER API.
+        """Fetch climate data from NASA POWER API.
 
         Args:
             lat: Latitude (-90 to 90)
@@ -189,6 +188,7 @@ class NASAPowerAdapter(BaseAdapter):
             DataFetchError: If API request fails,
             DataParseError: If response cannot be parsed,
             ValidationError: If parameters are invalid,
+
         """
         try:
             # Check if we need to chunk the request
@@ -216,7 +216,7 @@ class NASAPowerAdapter(BaseAdapter):
             # Wrap unexpected errors
             error = DataFetchError(
                 self.ADAPTER_NAME,
-                f"Unexpected error fetching NASA POWER data: {str(e)}",
+                f"Unexpected error fetching NASA POWER data: {e!s}",
                 details={"lat": lat, "lon": lon, "variables": variables},
             )
             raise error from e
@@ -229,8 +229,7 @@ class NASAPowerAdapter(BaseAdapter):
         period: dict[str, Any],
         resolution: str,
     ) -> dict[str, Any]:
-        """
-        Build request parameters for NASA POWER API.
+        """Build request parameters for NASA POWER API.
 
         Args:
             lat: Latitude,
@@ -241,6 +240,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         Returns:
             Dictionary of request parameters,
+
         """
         # Parse period
         start_date, end_date = self._parse_period(period)
@@ -279,8 +279,7 @@ class NASAPowerAdapter(BaseAdapter):
         lat: float,
         lon: float,
     ) -> xr.Dataset:
-        """
-        Parse NASA POWER API response into xarray Dataset.
+        """Parse NASA POWER API response into xarray Dataset.
 
         Args:
             response_data: Parsed API response,
@@ -290,6 +289,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         Returns:
             xarray Dataset with canonical variable names,
+
         """
         return self._json_to_xarray(response_data, variables)
 
@@ -309,7 +309,6 @@ class NASAPowerAdapter(BaseAdapter):
 
     def _json_to_xarray(self, data: dict[str, Any], requested_vars: list[str]) -> xr.Dataset:
         """Convert NASA POWER JSON response to xarray Dataset"""
-
         try:
             properties = data.get("properties", {})
             parameters = properties.get("parameter", {})
@@ -374,13 +373,12 @@ class NASAPowerAdapter(BaseAdapter):
             # Wrap unexpected parsing errors
             raise DataParseError(
                 self.ADAPTER_NAME,
-                f"Failed to parse NASA POWER response: {str(e)}",
+                f"Failed to parse NASA POWER response: {e!s}",
                 details={"variables": requested_vars},
             ) from e
 
     def _convert_units(self, da: xr.DataArray, canonical_name: str, nasa_param: str) -> xr.DataArray:
         """Convert units from NASA POWER to canonical units if needed"""
-
         # NASA POWER specific unit conversions
         conversions = {"PS": lambda x: x * 1000}  # kPa to Pa
 
@@ -490,8 +488,7 @@ class NASAPowerAdapter(BaseAdapter):
         resolution: str,
         chunk_years: int = 1,
     ) -> xr.Dataset:
-        """
-        Fetch data in chunks for large date ranges.
+        """Fetch data in chunks for large date ranges.
 
         Args:
             lat: Latitude,
@@ -503,6 +500,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         Returns:
             Combined dataset from all chunks,
+
         """
         start_date, end_date = self._parse_period(period)
         chunks = split_date_range(start_date, end_date, chunk_years * 365)
@@ -543,8 +541,7 @@ class NASAPowerAdapter(BaseAdapter):
         period: dict[str, Any],
         resolution: str,
     ) -> xr.Dataset:
-        """
-        Fetch data using smart batching to reduce API calls.
+        """Fetch data using smart batching to reduce API calls.
 
         Args:
             lat: Latitude,
@@ -555,6 +552,7 @@ class NASAPowerAdapter(BaseAdapter):
 
         Returns:
             Combined dataset from batched requests,
+
         """
         # Group variables into optimal batches
         # NASA POWER can handle multiple variables per request
@@ -607,7 +605,6 @@ class NASAPowerQCProfile(QCProfile):
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """NASA POWER specific validation"""
-
         # Check for known solar radiation bias in tropics
         lat = ds.attrs.get("latitude", 0)
         if abs(lat) < 23.5 and "ghi" in ds:  # Tropics

@@ -1,5 +1,4 @@
-"""
-Demonstration of Singleton Elimination Benefits
+"""Demonstration of Singleton Elimination Benefits
 
 This test demonstrates the problems with singleton patterns and how the new
 dependency injection framework solves them.
@@ -75,11 +74,11 @@ class TestSingletonProblems:
             thread.start()
         for thread in threads:
             thread.join()
-        assert len(errors) == 0, f'Errors occurred: {errors}'
-        print(f'Initialization counts: {results}')
+        assert len(errors) == 0, f"Errors occurred: {errors}"
+        print(f"Initialization counts: {results}")
         singleton = SingletonAntiPattern()
-        print(f'Final initialization count: {singleton.initialization_count}')
-        assert singleton.initialization_count > 1, 'Singleton __init__ called multiple times (race condition)'
+        print(f"Final initialization count: {singleton.initialization_count}")
+        assert singleton.initialization_count > 1, "Singleton __init__ called multiple times (race condition)"
 
     @pytest.mark.crust
     def test_singleton_testing_pollution(self):
@@ -92,7 +91,7 @@ class TestSingletonProblems:
         singleton2 = SingletonAntiPattern()
         assert singleton2 is singleton1
         assert singleton2.value == 2
-        print(f'Singleton state pollution: {singleton2.value}')
+        print(f"Singleton state pollution: {singleton2.value}")
 
     @pytest.mark.crust
     def test_singleton_cannot_mock_dependencies(self):
@@ -100,7 +99,7 @@ class TestSingletonProblems:
         SingletonAntiPattern.reset()
         singleton = SingletonAntiPattern()
         assert isinstance(singleton, SingletonAntiPattern)
-        print('Singleton cannot be easily mocked or have dependencies injected')
+        print("Singleton cannot be easily mocked or have dependencies injected")
 
 @pytest.mark.crust
 class TestDependencyInjectionSolution:
@@ -126,9 +125,9 @@ class TestDependencyInjectionSolution:
             thread.start()
         for thread in threads:
             thread.join()
-        assert len(errors) == 0, f'Errors occurred: {errors}'
-        assert all(count == 1 for count in results), 'All services initialized exactly once'
-        print(f'DI initialization counts: {results} (all exactly 1)')
+        assert len(errors) == 0, f"Errors occurred: {errors}"
+        assert all(count == 1 for count in results), "All services initialized exactly once"
+        print(f"DI initialization counts: {results} (all exactly 1)")
 
     @pytest.mark.crust
     def test_di_no_test_pollution(self):
@@ -140,7 +139,7 @@ class TestDependencyInjectionSolution:
         service2 = DIService(initial_value=0)
         assert service2 is not service1
         assert service2.value == 0
-        print(f'DI test isolation: service1.value={service1.value}, service2.value={service2.value}')
+        print(f"DI test isolation: service1.value={service1.value}, service2.value={service2.value}")
 
     @pytest.mark.crust
     def test_di_easy_mocking(self):
@@ -155,7 +154,7 @@ class TestDependencyInjectionSolution:
         result = service_user(mock_service)
         assert result == 42
         mock_service.increment.assert_called_once()
-        print('DI enables easy mocking and dependency injection')
+        print("DI enables easy mocking and dependency injection")
 
     @pytest.mark.crust
     def test_di_container_lifecycle_management(self):
@@ -173,9 +172,9 @@ class TestDependencyInjectionSolution:
             service3 = container.resolve(DIService)
             assert service3 is not service1
             assert service3.value == 100
-            print('DI container provides proper lifecycle management')
+            print("DI container provides proper lifecycle management")
         except ImportError:
-            print('DI framework not available for this test')
+            print("DI framework not available for this test")
 
     @pytest.mark.crust
     def test_di_thread_safety(self):
@@ -201,13 +200,13 @@ class TestDependencyInjectionSolution:
                 thread.start()
             for thread in threads:
                 thread.join()
-            assert len(errors) == 0, f'Errors occurred: {errors}'
+            assert len(errors) == 0, f"Errors occurred: {errors}"
             assert len(results) == 10
             for result in results:
                 assert result is results[0]
-            print('DI container is thread-safe')
+            print("DI container is thread-safe")
         except ImportError:
-            print('DI framework not available for this test')
+            print("DI framework not available for this test")
 
 @pytest.mark.crust
 class TestRealWorldScenario:
@@ -223,11 +222,11 @@ class TestRealWorldScenario:
             def __new__(cls):
                 if not cls._instance:
                     cls._instance = super().__new__(cls)
-                    cls._instance.config = {'database': {'max_connections': 10}}
+                    cls._instance.config = {"database": {"max_connections": 10}}
                 return cls._instance
 
             def get_database_config(self):
-                return self.config['database']
+                return self.config["database"]
 
         class ConfigService:
 
@@ -235,16 +234,16 @@ class TestRealWorldScenario:
                 self.config = config_data
 
             def get_database_config(self):
-                return self.config['database']
+                return self.config["database"]
         config1 = ConfigSingleton()
-        config1.config['database']['max_connections'] = 20
+        config1.config["database"]["max_connections"] = 20
         config2 = ConfigSingleton()
-        assert config2.get_database_config()['max_connections'] == 20
-        test_config = ConfigService({'database': {'max_connections': 5}})
-        prod_config = ConfigService({'database': {'max_connections': 50}})
-        assert test_config.get_database_config()['max_connections'] == 5
-        assert prod_config.get_database_config()['max_connections'] == 50
-        print('DI enables testing different configurations independently')
+        assert config2.get_database_config()["max_connections"] == 20
+        test_config = ConfigService({"database": {"max_connections": 5}})
+        prod_config = ConfigService({"database": {"max_connections": 50}})
+        assert test_config.get_database_config()["max_connections"] == 5
+        assert prod_config.get_database_config()["max_connections"] == 50
+        print("DI enables testing different configurations independently")
 
     @pytest.mark.crust
     def test_error_reporting_service_comparison(self):
@@ -278,38 +277,38 @@ class TestRealWorldScenario:
             def get_error_count(self):
                 return len(self._errors)
         reporter1 = ErrorReporterSingleton()
-        reporter1.report_error('Error 1')
+        reporter1.report_error("Error 1")
         reporter2 = ErrorReporterSingleton()
         assert reporter2.get_error_count() == 1
         service1 = ErrorReportingService()
-        service1.report_error('Error A')
+        service1.report_error("Error A")
         service2 = ErrorReportingService()
         assert service2.get_error_count() == 0
-        print('DI provides clean state for each test')
-if __name__ == '__main__':
+        print("DI provides clean state for each test")
+if __name__ == "__main__":
     test_instance = TestSingletonProblems()
-    print('=== Demonstrating Singleton Problems ===')
+    print("=== Demonstrating Singleton Problems ===")
     try:
         test_instance.test_singleton_race_condition()
     except AssertionError as e:
-        print(f'Race condition detected: {e}')
+        print(f"Race condition detected: {e}")
     test_instance.test_singleton_testing_pollution()
     test_instance.test_singleton_cannot_mock_dependencies()
-    print('\n=== Demonstrating DI Solutions ===')
+    print("\n=== Demonstrating DI Solutions ===")
     di_test = TestDependencyInjectionSolution()
     di_test.test_di_no_race_conditions()
     di_test.test_di_no_test_pollution()
     di_test.test_di_easy_mocking()
     di_test.test_di_container_lifecycle_management()
     di_test.test_di_thread_safety()
-    print('\n=== Real-World Scenarios ===')
+    print("\n=== Real-World Scenarios ===")
     real_world = TestRealWorldScenario()
     real_world.test_configuration_service_comparison()
     real_world.test_error_reporting_service_comparison()
-    print('\n=== Summary ===')
-    print('✅ DI eliminates race conditions')
-    print('✅ DI prevents test pollution')
-    print('✅ DI enables easy mocking')
-    print('✅ DI provides proper lifecycle management')
-    print('✅ DI is thread-safe')
-    print('✅ DI enables testing different configurations')
+    print("\n=== Summary ===")
+    print("✅ DI eliminates race conditions")
+    print("✅ DI prevents test pollution")
+    print("✅ DI enables easy mocking")
+    print("✅ DI provides proper lifecycle management")
+    print("✅ DI is thread-safe")
+    print("✅ DI enables testing different configurations")

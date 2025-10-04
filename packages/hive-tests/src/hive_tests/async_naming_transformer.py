@@ -1,5 +1,4 @@
-"""
-Enhanced AST-based Async Naming Transformer.
+"""Enhanced AST-based Async Naming Transformer.
 
 Provides robust async function renaming using AST transformation
 instead of regex for accuracy and safety.
@@ -27,8 +26,7 @@ class AsyncNamingFix:
 
 
 class AsyncNamingTransformer(ast.NodeTransformer):
-    """
-    AST transformer that renames async functions to have _async suffix.
+    """AST transformer that renames async functions to have _async suffix.
 
     Handles:
     - Function definitions (async def)
@@ -43,14 +41,14 @@ class AsyncNamingTransformer(ast.NodeTransformer):
         self.fixes: list[AsyncNamingFix] = []
 
     def should_rename(self, func_name: str) -> bool:
-        """
-        Determine if an async function should be renamed.
+        """Determine if an async function should be renamed.
 
         Args:
             func_name: Name of the async function
 
         Returns:
             True if function should be renamed
+
         """
         # Already has _async suffix
         if func_name.endswith("_async"):
@@ -161,8 +159,7 @@ class AsyncNamingTransformer(ast.NodeTransformer):
 
 
 def fix_async_naming_ast(source_code: str) -> tuple[str, list[AsyncNamingFix]]:
-    """
-    Fix async function naming using AST transformation.
+    """Fix async function naming using AST transformation.
 
     Args:
         source_code: Python source code as string
@@ -172,6 +169,7 @@ def fix_async_naming_ast(source_code: str) -> tuple[str, list[AsyncNamingFix]]:
 
     Raises:
         SyntaxError: If source code is not valid Python
+
     """
     # Parse the source code
     tree = ast.parse(source_code)
@@ -188,27 +186,26 @@ def fix_async_naming_ast(source_code: str) -> tuple[str, list[AsyncNamingFix]]:
     if hasattr(ast, "unparse"):
         fixed_code = ast.unparse(new_tree)
         return fixed_code, transformer.fixes
-    else:
-        # Fall back to astor if available
-        try:
-            import astor
+    # Fall back to astor if available
+    try:
+        import astor
 
-            fixed_code = astor.to_source(new_tree)
-            return fixed_code, transformer.fixes
-        except ImportError:
-            logger.error("Neither ast.unparse nor astor available. Cannot transform AST back to source.")
-            raise RuntimeError("AST to source conversion not available. Install astor or use Python 3.9+")
+        fixed_code = astor.to_source(new_tree)
+        return fixed_code, transformer.fixes
+    except ImportError:
+        logger.error("Neither ast.unparse nor astor available. Cannot transform AST back to source.")
+        raise RuntimeError("AST to source conversion not available. Install astor or use Python 3.9+")
 
 
 def analyze_async_naming_violations(source_code: str) -> list[AsyncNamingFix]:
-    """
-    Analyze source code for async naming violations without fixing.
+    """Analyze source code for async naming violations without fixing.
 
     Args:
         source_code: Python source code as string
 
     Returns:
         List of violations found (with occurrences=0)
+
     """
     try:
         tree = (ast.parse(source_code),)
@@ -236,14 +233,14 @@ def analyze_async_naming_violations(source_code: str) -> list[AsyncNamingFix]:
 
 
 def get_async_naming_report(fixes: list[AsyncNamingFix]) -> str:
-    """
-    Generate a human-readable report of async naming fixes.
+    """Generate a human-readable report of async naming fixes.
 
     Args:
         fixes: List of fixes applied
 
     Returns:
         Formatted report string
+
     """
     if not fixes:
         return "No async naming violations found."

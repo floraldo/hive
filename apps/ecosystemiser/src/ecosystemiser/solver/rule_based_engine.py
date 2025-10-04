@@ -171,8 +171,7 @@ class RuleBasedEngine(BaseSolver):
         return self.priorities.get((from_type, to_type), 99)
 
     def _finalize_storage_levels(self, t: int) -> None:
-        """
-        Ask storage components to update their state after all flows are decided.,
+        """Ask storage components to update their state after all flows are decided.,
 
         This method is the key to simultaneous charge/discharge:
         - It runs AFTER all flow decisions are made
@@ -203,7 +202,6 @@ class RuleBasedEngine(BaseSolver):
 
     def extract_results(self) -> None:
         """Results are already in numpy arrays, nothing to extract."""
-        pass
 
     def validate_solution(self) -> bool:
         """Basic validation of solution."""

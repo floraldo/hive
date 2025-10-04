@@ -1,5 +1,4 @@
-"""
-Real integration test for MCP + RAG synergy.
+"""Real integration test for MCP + RAG synergy.
 
 Tests the complete God Mode integration with actual MCP Sequential Thinking tool.
 NO MOCKS - this tests real functionality.
@@ -128,7 +127,7 @@ async def test_mcp_tool_call(agent: BaseAgent):
     try:
         await agent.call_tool_async(
             "mcp__sequential-thinking__sequentialthinking",
-            query="Test query"
+            query="Test query",
         )
         print("UNEXPECTED: MCP call did not raise error")
 

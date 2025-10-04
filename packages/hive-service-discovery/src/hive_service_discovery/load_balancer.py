@@ -48,10 +48,9 @@ class LoadBalancingAlgorithm(ABC):
 
     @abstractmethod
     async def select_service_async(
-        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics],
     ) -> ServiceInfo | None:
         """Select a service instance based on the algorithm."""
-        pass
 
     def _is_service_available(self, service: ServiceInfo) -> bool:
         # This method is needed for all algorithms, so provide a default implementation.
@@ -69,7 +68,7 @@ class RoundRobinAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics],
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -101,7 +100,7 @@ class LeastConnectionsAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics],
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -123,7 +122,7 @@ class RandomAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics],
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -134,7 +133,7 @@ class RandomAlgorithm(LoadBalancingAlgorithm):
         if not healthy_services:
             return None
 
-        return random.choice(healthy_services)  # noqa: S311
+        return random.choice(healthy_services)
 
 
 class WeightedAlgorithm(LoadBalancingAlgorithm):
@@ -144,7 +143,7 @@ class WeightedAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics],
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -161,7 +160,7 @@ class WeightedAlgorithm(LoadBalancingAlgorithm):
             weight = service.metadata.get("weight", 1)
             weighted_services.extend([service] * weight)
 
-        return random.choice(weighted_services) if weighted_services else None  # noqa: S311
+        return random.choice(weighted_services) if weighted_services else None
 
 
 class HealthBasedAlgorithm(LoadBalancingAlgorithm):
@@ -171,7 +170,7 @@ class HealthBasedAlgorithm(LoadBalancingAlgorithm):
         return getattr(service, "healthy", True)
 
     async def select_service_async(
-        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics]
+        self, services: list[ServiceInfo], metrics: dict[str, ServiceMetrics],
     ) -> ServiceInfo | None:
         if not services:
             return None
@@ -207,8 +206,7 @@ class HealthBasedAlgorithm(LoadBalancingAlgorithm):
 
 
 class LoadBalancer:
-    """
-    Intelligent load balancer with multiple strategies and circuit breaker.
+    """Intelligent load balancer with multiple strategies and circuit breaker.
 
     Features:
     - Multiple load balancing algorithms
@@ -262,7 +260,7 @@ class LoadBalancer:
         return service.healthy and not self._is_circuit_breaker_open(service.service_id)
 
     async def select_service_async(
-        self, services: list[ServiceInfo], session_id: str | None = None
+        self, services: list[ServiceInfo], session_id: str | None = None,
     ) -> ServiceInfo | None:
         """Select a service instance for load balancing.
 
@@ -272,6 +270,7 @@ class LoadBalancer:
 
         Returns:
             Selected ServiceInfo or None if no healthy service available
+
         """
         if not services:
             raise ServiceNotFoundError("No services available for load balancing")
@@ -309,19 +308,20 @@ class LoadBalancer:
 
         Returns:
             Request result
+
         """
         service_id = service.service_id
 
         # Check circuit breaker
         if self._is_circuit_breaker_open(service_id):
             raise LoadBalancerError(
-                f"Circuit breaker is open for service {service_id}", service_name=service.service_name
+                f"Circuit breaker is open for service {service_id}", service_name=service.service_name,
             )
 
         # Initialize metrics if needed
         if service_id not in self._service_metrics:
             circuit_breaker = AsyncCircuitBreaker(
-                failure_threshold=self.circuit_breaker_threshold, recovery_timeout=self.circuit_breaker_timeout
+                failure_threshold=self.circuit_breaker_threshold, recovery_timeout=self.circuit_breaker_timeout,
             )
             self._service_metrics[service_id] = ServiceMetrics(circuit_breaker=circuit_breaker)
 
@@ -358,7 +358,7 @@ class LoadBalancer:
             metrics.failed_requests += 1
 
             raise LoadBalancerError(
-                f"Request failed for service {service_id}: {e}", service_name=service.service_name
+                f"Request failed for service {service_id}: {e}", service_name=service.service_name,
             ) from e
 
         finally:
@@ -386,6 +386,7 @@ class LoadBalancer:
 
         Returns:
             Request result,
+
         """
         last_exception = None,
         attempted_services = set()
@@ -433,6 +434,7 @@ class LoadBalancer:
 
         Returns:
             ServiceMetrics or None if not found
+
         """
         return self._service_metrics.get(service_id)
 
@@ -441,6 +443,7 @@ class LoadBalancer:
 
         Returns:
             Dictionary of service metrics
+
         """
         return self._service_metrics.copy()
 
@@ -449,6 +452,7 @@ class LoadBalancer:
 
         Args:
             service_id: Service ID to reset (all if None)
+
         """
         if service_id:
             if service_id in self._service_metrics:
@@ -464,6 +468,7 @@ class LoadBalancer:
 
         Returns:
             True if circuit breaker was closed
+
         """
         if service_id in self._service_metrics:
             metrics = self._service_metrics[service_id]
@@ -478,6 +483,7 @@ class LoadBalancer:
 
         Returns:
             Statistics dictionary
+
         """
         total_requests = sum(m.total_requests for m in self._service_metrics.values()),
         total_successful = sum(m.successful_requests for m in self._service_metrics.values()),

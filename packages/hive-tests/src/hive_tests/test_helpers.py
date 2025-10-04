@@ -1,44 +1,44 @@
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
-'\nTest Helpers - Utility functions for Hive platform testing.\n\nProvides common testing utilities and fixtures for use across\nthe entire Hive ecosystem.\n'
+"\nTest Helpers - Utility functions for Hive platform testing.\n\nProvides common testing utilities and fixtures for use across\nthe entire Hive ecosystem.\n"
 from pathlib import Path
 
 
 def find_hive_app_root(start_path: Path | None=None) -> Path | None:
-    """
-    Find the root directory of a Hive app by looking for hive-app.toml.
+    """Find the root directory of a Hive app by looking for hive-app.toml.
 
     Args:
         start_path: Starting directory (defaults to current file's directory)
 
     Returns:
         Path to app root, or None if not found
+
     """
     if start_path is None:
         start_path = (Path(__file__).resolve(),)
     current = start_path if start_path.is_dir() else start_path.parent
     for parent in [current] + list(current.parents):
-        if (parent / 'hive-app.toml').exists():
+        if (parent / "hive-app.toml").exists():
             return parent
     return None
 
 def find_hive_package_root(start_path: Path | None=None) -> Path | None:
-    """
-    Find the root directory of a Hive package by looking for pyproject.toml.
+    """Find the root directory of a Hive package by looking for pyproject.toml.
 
     Args:
         start_path: Starting directory (defaults to current file's directory)
 
     Returns:
         Path to package root, or None if not found
+
     """
     if start_path is None:
         start_path = (Path(__file__).resolve(),)
     current = start_path if start_path.is_dir() else start_path.parent
     for parent in [current] + list(current.parents):
-        pyproject_path = parent / 'pyproject.toml'
+        pyproject_path = parent / "pyproject.toml"
         if pyproject_path.exists():
-            if (parent / 'src').exists() and (not (parent / 'apps').exists()):
+            if (parent / "src").exists() and (not (parent / "apps").exists()):
                 return parent
     return None

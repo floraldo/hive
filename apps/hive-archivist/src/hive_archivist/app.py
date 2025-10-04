@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Hive Archivist Application - BaseApplication Implementation
+"""Hive Archivist Application - BaseApplication Implementation
 
 Migrated to use BaseApplication from hive-app-toolkit for:
 - Automatic configuration loading (Project Unify V2)
@@ -24,8 +23,7 @@ logger = get_logger("hive-archivist.app")
 
 
 class HiveArchivistApp(BaseApplication):
-    """
-    Hive Archivist Application
+    """Hive Archivist Application
 
     Unified knowledge management service that:
     - Librarian mode: Real-time event-driven indexing
@@ -36,13 +34,13 @@ class HiveArchivistApp(BaseApplication):
     app_name = "hive-archivist"
 
     def __init__(self, config=None, mode: str = "librarian", maintenance_interval: int = 3600):
-        """
-        Initialize Hive Archivist application.
+        """Initialize Hive Archivist application.
 
         Args:
             config: Optional pre-loaded configuration (for testing)
             mode: Operating mode ('librarian', 'curator', 'both')
             maintenance_interval: Seconds between curator maintenance runs (curator/both modes)
+
         """
         super().__init__(config=config)
         self.mode = mode
@@ -50,8 +48,7 @@ class HiveArchivistApp(BaseApplication):
         self.archivist_service = None
 
     async def initialize_services(self):
-        """
-        Initialize Hive Archivist service.
+        """Initialize Hive Archivist service.
 
         Resources (db, cache, event_bus) are already initialized by BaseApplication.
         """
@@ -71,8 +68,7 @@ class HiveArchivistApp(BaseApplication):
         self.logger.info(f"Hive Archivist services initialized in '{self.mode}' mode")
 
     async def run(self):
-        """
-        Main application logic.
+        """Main application logic.
 
         - Librarian mode: Service is event-driven, just stay alive
         - Curator mode: Run periodic maintenance
@@ -89,7 +85,7 @@ class HiveArchivistApp(BaseApplication):
         elif self.mode == "curator":
             # Curator runs periodic maintenance
             self.logger.info(
-                f"Curator mode active - " f"running maintenance every {self.maintenance_interval}s..."
+                f"Curator mode active - " f"running maintenance every {self.maintenance_interval}s...",
             )
             while not self._shutdown_requested:
                 try:
@@ -109,7 +105,7 @@ class HiveArchivistApp(BaseApplication):
             # Both modes: librarian event-driven + curator periodic
             self.logger.info(
                 f"Dual mode active - "
-                f"Librarian (events) + Curator (every {self.maintenance_interval}s)..."
+                f"Librarian (events) + Curator (every {self.maintenance_interval}s)...",
             )
             while not self._shutdown_requested:
                 try:
@@ -128,8 +124,7 @@ class HiveArchivistApp(BaseApplication):
         self.logger.info("Hive Archivist main loop stopped")
 
     async def cleanup_services(self):
-        """
-        Cleanup Hive Archivist services.
+        """Cleanup Hive Archivist services.
 
         BaseApplication handles db, cache, bus cleanup.
         We only clean archivist-specific resources.
@@ -142,11 +137,11 @@ class HiveArchivistApp(BaseApplication):
 
 
 def main() -> int:
-    """
-    Entry point for Hive Archivist application.
+    """Entry point for Hive Archivist application.
 
     Returns:
         Exit code (0 for success, 1 for failure)
+
     """
     import argparse
 

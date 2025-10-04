@@ -90,8 +90,7 @@ class ReviewResult:
 
 
 class ReviewEngine:
-    """
-    AI-powered code review engine using Claude CLI
+    """AI-powered code review engine using Claude CLI
     """
 
     def __init__(self, mock_mode: bool = False) -> None:
@@ -99,6 +98,7 @@ class ReviewEngine:
 
         Args:
             mock_mode: If True, use mock responses for testing
+
         """
         # Initialize Claude service with rate limiting
         config = (ClaudeBridgeConfig(mock_mode=mock_mode),)
@@ -128,8 +128,7 @@ class ReviewEngine:
         test_results: dict[str, Any] | None = None,
         transcript: str | None = None,
     ) -> ReviewResult:
-        """
-        Perform AI review of a task
+        """Perform AI review of a task
 
         Args:
             task_id: Unique task identifier,
@@ -140,6 +139,7 @@ class ReviewEngine:
 
         Returns:
             ReviewResult with decision and metrics,
+
         """
         # Step 1: Run objective analysis using inspect_run.py,
         try:
@@ -166,11 +166,11 @@ class ReviewEngine:
             # Create fallback result,
             claude_result = {
                 "decision": "escalate",
-                "summary": f"Review failed: {str(e)}",
+                "summary": f"Review failed: {e!s}",
                 "issues": ["Review process encountered an error"],
                 "suggestions": ["Manual review required"],
                 "confidence": 0.0,
-                "escalation_reason": f"Claude review failed: {str(e)}",
+                "escalation_reason": f"Claude review failed: {e!s}",
             }
 
         # Step 3: Extract validated results,

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AsyncWorker - High-Performance Async Worker for V4.0
+"""AsyncWorker - High-Performance Async Worker for V4.0
 Phase 2 Implementation with non-blocking I/O and concurrent operations
 """
 
@@ -37,8 +36,7 @@ except ImportError:
 
 
 class AsyncWorker:
-    """
-    High-performance async worker with V4.0 optimizations
+    """High-performance async worker with V4.0 optimizations
 
     Features:
     - Non-blocking file operations
@@ -60,16 +58,16 @@ class AsyncWorker:
         config: dict[str, Any] | None = None,
     ):
         """Initialize AsyncWorker with async-first architecture"""
-        self.worker_id = (worker_id,)
-        self.task_id = (task_id,)
-        self.run_id = (run_id,)
-        self.phase = (phase,)
-        self.mode = (mode,)
-        self.live_output = (live_output,)
+        self.worker_id = worker_id
+        self.task_id = task_id
+        self.run_id = run_id
+        self.phase = phase
+        self.mode = mode
+        self.live_output = live_output
         self.config = config or {}
 
-        # Async components,
-        self.db_ops: AsyncDatabaseOperations | None = (None,)
+        # Async components
+        self.db_ops: AsyncDatabaseOperations | None = None
         self.event_bus = None
 
         # Logging,
@@ -116,7 +114,7 @@ class AsyncWorker:
         else:
             self.db_ops = None
             self.log.warning(
-                "Async database operations not available (install aiosqlite for Phase 4.1 features)"
+                "Async database operations not available (install aiosqlite for Phase 4.1 features)",
             )
 
         # Initialize async event bus
@@ -150,16 +148,15 @@ class AsyncWorker:
         if self.mode == "repo":
             # Use main repository
             return self.project_root
-        elif self.mode == "worktree":
+        if self.mode == "worktree":
             # Create git worktree
             worktree_dir = WORKTREES_DIR / f"{self.worker_id}-{self.task_id}"
             worktree_dir.mkdir(parents=True, exist_ok=True)
             return worktree_dir
-        else:
-            # Fresh workspace
-            workspace_dir = get_worker_workspace_dir(self.worker_id, self.task_id or "default")
-            workspace_dir.mkdir(parents=True, exist_ok=True)
-            return workspace_dir
+        # Fresh workspace
+        workspace_dir = get_worker_workspace_dir(self.worker_id, self.task_id or "default")
+        workspace_dir.mkdir(parents=True, exist_ok=True)
+        return workspace_dir
 
     def find_claude_cmd(self) -> str | None:
         """Find Claude command"""
@@ -240,12 +237,11 @@ class AsyncWorker:
                     "files_created": self._parse_created_files(stdout.decode() if stdout else ""),
                     "files_modified": self._parse_modified_files(stdout.decode() if stdout else ""),
                 }
-            else:
-                return {
-                    "status": "error",
-                    "error": stderr.decode() if stderr else "Unknown error",
-                    "return_code": process.returncode,
-                }
+            return {
+                "status": "error",
+                "error": stderr.decode() if stderr else "Unknown error",
+                "return_code": process.returncode,
+            }
 
         except Exception as e:
             self.log.error(f"Failed to execute Claude: {e}")
@@ -450,12 +446,11 @@ class AsyncWorker:
                     "passed": True,
                     "output": stdout.decode() if stdout else "",
                 }
-            else:
-                return {
-                    "passed": False,
-                    "output": stdout.decode() if stdout else "",
-                    "error": stderr.decode() if stderr else "",
-                }
+            return {
+                "passed": False,
+                "output": stdout.decode() if stdout else "",
+                "error": stderr.decode() if stderr else "",
+            }
 
         except TimeoutError:
             return {
@@ -516,8 +511,7 @@ class AsyncWorker:
             # Return exit code
             if result.get("status") == "success":
                 return 0
-            else:
-                return 1
+            return 1
 
         except Exception as e:
             self.log.error(f"Worker execution failed: {e}")

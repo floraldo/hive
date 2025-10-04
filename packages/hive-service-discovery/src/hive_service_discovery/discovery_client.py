@@ -19,8 +19,7 @@ logger = get_logger(__name__)
 
 
 class DiscoveryClient:
-    """
-    Service discovery client for finding and connecting to services.
+    """Service discovery client for finding and connecting to services.
 
     Features:
     - Service discovery with caching
@@ -170,6 +169,7 @@ class DiscoveryClient:
 
         Returns:
             List of service instances
+
         """
         try:
             # Check if cache refresh is needed
@@ -191,6 +191,7 @@ class DiscoveryClient:
 
         Returns:
             List of healthy service instances
+
         """
         services = await self.discover_service_async(service_name)
         return [s for s in services if s.healthy]
@@ -208,6 +209,7 @@ class DiscoveryClient:
 
         Returns:
             Selected service instance or None
+
         """
         try:
             healthy_services = await self.get_healthy_services_async(service_name)
@@ -242,6 +244,7 @@ class DiscoveryClient:
 
         Returns:
             Request result
+
         """
         if max_retries is None:
             max_retries = self.config.load_balancer.max_retries
@@ -273,6 +276,7 @@ class DiscoveryClient:
 
         Returns:
             Service address in format "host:port" or None
+
         """
         service = await self.select_service_instance_async(service_name)
         return service.get_address() if service else None
@@ -292,6 +296,7 @@ class DiscoveryClient:
 
         Args:
             callback: Function to call when service is added
+
         """
         self._service_added_callbacks.append(callback)
 
@@ -300,6 +305,7 @@ class DiscoveryClient:
 
         Args:
             callback: Function to call when service is removed
+
         """
         self._service_removed_callbacks.append(callback)
 
@@ -308,6 +314,7 @@ class DiscoveryClient:
 
         Args:
             callback: Function to call when service health changes
+
         """
         self._service_health_changed_callbacks.append(callback)
 
@@ -351,6 +358,7 @@ class DiscoveryClient:
 
         Returns:
             Dictionary mapping service names to service instances
+
         """
         return self._service_cache.copy()
 
@@ -362,6 +370,7 @@ class DiscoveryClient:
 
         Returns:
             Number of service instances
+
         """
         services = await self.discover_service_async(service_name)
         return len(services)
@@ -374,6 +383,7 @@ class DiscoveryClient:
 
         Returns:
             Number of healthy service instances
+
         """
         healthy_services = await self.get_healthy_services_async(service_name)
         return len(healthy_services)
@@ -383,6 +393,7 @@ class DiscoveryClient:
 
         Returns:
             Statistics dictionary
+
         """
         total_services = (sum(len(services) for services in self._service_cache.values()),)
         healthy_services = sum(len([s for s in services if s.healthy]) for services in self._service_cache.values())
@@ -402,6 +413,7 @@ class DiscoveryClient:
 
         Args:
             service_name: Service to clear (all if None)
+
         """
         if service_name:
             self._service_cache.pop(service_name, None)
@@ -417,6 +429,7 @@ class DiscoveryClient:
 
         Args:
             service_name: Service to refresh (all if None)
+
         """
         if service_name:
             await self._refresh_service_cache_async(service_name)

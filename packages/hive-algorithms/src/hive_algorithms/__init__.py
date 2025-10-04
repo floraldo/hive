@@ -11,5 +11,5 @@ Contains efficient algorithm implementations for graph theory and optimization.
 
 from .dijkstra import DijkstraResult, Edge, Graph, dijkstra, find_shortest_path
 
-__all__ = ["Graph", "Edge", "dijkstra", "find_shortest_path", "DijkstraResult"]
+__all__ = ["DijkstraResult", "Edge", "Graph", "dijkstra", "find_shortest_path"]
 __version__ = "1.0.0"

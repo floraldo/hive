@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Complete Hive Oracle Intelligence Demo
+"""Complete Hive Oracle Intelligence Demo
 
 This script provides a comprehensive demonstration of the complete
 "Hive Intelligence Initiative" implementation, showcasing how the

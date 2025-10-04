@@ -1,5 +1,4 @@
-"""
-Test client for RAG API.
+"""Test client for RAG API.
 
 Simple script to validate the RAG API functionality with sample queries.
 
@@ -224,10 +223,9 @@ def main() -> int:
                 formatting_style=args.formatting_style,
             )
             return 0 if result else 1
-        else:
-            # Full test suite
-            success = tester.run_all_tests()
-            return 0 if success else 1
+        # Full test suite
+        success = tester.run_all_tests()
+        return 0 if success else 1
 
     except KeyboardInterrupt:
         print("\n\nTest interrupted by user")

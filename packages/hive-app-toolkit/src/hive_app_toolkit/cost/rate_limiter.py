@@ -39,11 +39,11 @@ class RateLimitWindow:
         self._clean_window(now)
 
     def can_proceed(self) -> tuple[bool, float]:
-        """
-        Check if request can proceed.
+        """Check if request can proceed.
 
         Returns:
             Tuple of (can_proceed, wait_time_seconds)
+
         """
         now = time.time()
         self._clean_window(now)
@@ -80,8 +80,7 @@ class RateLimitWindow:
 
 
 class RateLimiter:
-    """
-    Generalized rate limiter supporting multiple operations and time windows.
+    """Generalized rate limiter supporting multiple operations and time windows.
 
     Features:
     - Per-operation rate limits
@@ -145,14 +144,14 @@ class RateLimiter:
         return self.operation_limits[operation]
 
     async def acquire(self, operation: str) -> bool:
-        """
-        Acquire permission to proceed with an operation.
+        """Acquire permission to proceed with an operation.
 
         Args:
             operation: Name of the operation
 
         Returns:
             True if permission granted, False if rate limited
+
         """
         self._get_operation_limits(operation)
         windows = self.windows[operation]
@@ -187,8 +186,7 @@ class RateLimiter:
         return True
 
     async def execute_with_limit(self, operation: str, func, *args, **kwargs):
-        """
-        Execute a function with rate limiting and concurrency control.
+        """Execute a function with rate limiting and concurrency control.
 
         Args:
             operation: Name of the operation
@@ -201,6 +199,7 @@ class RateLimiter:
 
         Raises:
             Exception: If rate limit is exceeded or function fails
+
         """
         # Acquire rate limit permission
         if not await self.acquire(operation):
@@ -232,14 +231,14 @@ class RateLimiter:
                 raise
 
     def get_status(self, operation: str | None = None) -> dict[str, any]:
-        """
-        Get current rate limiter status.
+        """Get current rate limiter status.
 
         Args:
             operation: Specific operation to check (None for all)
 
         Returns:
             Status information
+
         """
         if operation:
             # Single operation status
@@ -270,18 +269,16 @@ class RateLimiter:
                     "hour": windows["hour"].current_rate,
                 },
             }
-        else:
-            # All operations status
-            status = {"operations": {}}
+        # All operations status
+        status = {"operations": {}}
 
-            for op in self.operation_limits.keys():
-                status["operations"][op] = self.get_status(op)
+        for op in self.operation_limits.keys():
+            status["operations"][op] = self.get_status(op)
 
-            return status
+        return status
 
     async def wait_for_capacity(self, operation: str, max_wait_seconds: float = 60.0) -> bool:
-        """
-        Wait for rate limit capacity to become available.
+        """Wait for rate limit capacity to become available.
 
         Args:
             operation: Operation to wait for,
@@ -289,6 +286,7 @@ class RateLimiter:
 
         Returns:
             True if capacity became available, False if timeout
+
         """
         start_time = time.time(),
         wait_interval = 0.1

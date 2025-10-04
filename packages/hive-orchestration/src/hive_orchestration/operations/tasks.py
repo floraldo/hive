@@ -1,5 +1,4 @@
-"""
-Task Operations
+"""Task Operations
 
 Core task management operations for the Hive orchestration system.
 These functions provide the public API for task lifecycle management.
@@ -24,8 +23,7 @@ def create_task(
     tags: list[str] | None = None,
     **kwargs: Any,
 ) -> str:
-    """
-    Create a new orchestration task.
+    """Create a new orchestration task.
 
     Args:
         title: Task title
@@ -47,6 +45,7 @@ def create_task(
         ...     payload={"env": "production", "script": "deploy.sh"},
         ...     priority=5,
         ... )
+
     """
     import json
     import uuid
@@ -82,8 +81,7 @@ def create_task(
 
 
 def get_task(task_id: str) -> dict[str, Any] | None:
-    """
-    Retrieve task by ID.
+    """Retrieve task by ID.
 
     Args:
         task_id: The task ID to retrieve
@@ -95,6 +93,7 @@ def get_task(task_id: str) -> dict[str, Any] | None:
         >>> task = get_task("task-123")
         >>> if task:
         ...     print(f"Task status: {task['status']}")
+
     """
     import json
 
@@ -119,8 +118,7 @@ def update_task_status(
     status: str,
     metadata: dict[str, Any] | None = None,
 ) -> bool:
-    """
-    Update task execution status.
+    """Update task execution status.
 
     Args:
         task_id: The task ID to update
@@ -132,6 +130,7 @@ def update_task_status(
 
     Example:
         >>> success = update_task_status("task-123", "running", {"assigned_worker": "worker-1"})
+
     """
     from ..database import transaction
 
@@ -148,7 +147,7 @@ def update_task_status(
                 values.append(metadata["current_phase"])
 
         values.append(task_id)
-        query = f"UPDATE tasks SET {', '.join(fields)} WHERE id = ?"  # noqa: S608
+        query = f"UPDATE tasks SET {', '.join(fields)} WHERE id = ?"
 
         cursor = conn.execute(query, values)
         success = cursor.rowcount > 0
@@ -162,8 +161,7 @@ def update_task_status(
 
 
 def get_tasks_by_status(status: str) -> list[dict[str, Any]]:
-    """
-    Get all tasks with a specific status.
+    """Get all tasks with a specific status.
 
     Args:
         status: Task status to filter by (e.g., 'queued', 'in_progress', 'completed')
@@ -175,6 +173,7 @@ def get_tasks_by_status(status: str) -> list[dict[str, Any]]:
         >>> pending_tasks = get_tasks_by_status("queued")
         >>> for task in pending_tasks:
         ...     print(f"Task {task['id']}: {task['title']}")
+
     """
     import json
 
@@ -202,8 +201,7 @@ def get_queued_tasks(
     limit: int = 10,
     task_type: str | None = None,
 ) -> list[dict[str, Any]]:
-    """
-    Get queued tasks ready for execution, ordered by priority.
+    """Get queued tasks ready for execution, ordered by priority.
 
     Args:
         limit: Maximum number of tasks to return (default: 10)
@@ -216,6 +214,7 @@ def get_queued_tasks(
         >>> tasks = get_queued_tasks(limit=5, task_type="deployment")
         >>> for task in tasks:
         ...     print(f"Priority {task['priority']}: {task['title']}")
+
     """
     import json
 
@@ -257,8 +256,7 @@ def get_queued_tasks(
 
 
 def delete_task(task_id: str) -> bool:
-    """
-    Delete a task and all associated runs.
+    """Delete a task and all associated runs.
 
     Args:
         task_id: The task ID to delete
@@ -268,6 +266,7 @@ def delete_task(task_id: str) -> bool:
 
     Example:
         >>> success = delete_task("task-123")
+
     """
     from ..database import transaction
 
@@ -285,9 +284,9 @@ def delete_task(task_id: str) -> bool:
 
 __all__ = [
     "create_task",
-    "get_task",
-    "update_task_status",
-    "get_tasks_by_status",
-    "get_queued_tasks",
     "delete_task",
+    "get_queued_tasks",
+    "get_task",
+    "get_tasks_by_status",
+    "update_task_status",
 ]

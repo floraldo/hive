@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -25,24 +24,24 @@ from .hive_events import AgentEvent, AgentStatus, TaskEvent, TaskStatus, Workflo
 get_async_event_bus = get_event_bus
 
 __all__ = [
+    "AgentEvent",
+    "AgentStatus",
     # Infrastructure base classes (re-exported)
     "BaseBus",
     "BaseEvent",
     "BaseSubscriber",
-    # Hive-specific events
-    "TaskEvent",
-    "AgentEvent",
-    "WorkflowEvent",
-    "TaskStatus",
-    "AgentStatus",
-    "TaskEventType",
-    "WorkflowEventType",
     # Event bus instances
     "HiveEventBus",
-    "get_hive_event_bus",
-    "get_event_bus",
-    "get_async_event_bus",  # Backward compatibility alias
+    # Hive-specific events
+    "TaskEvent",
+    "TaskEventType",
+    "TaskStatus",
+    "WorkflowEvent",
+    "WorkflowEventType",
     # Event creation helpers
     "create_task_event",
     "create_workflow_event",
+    "get_async_event_bus",  # Backward compatibility alias
+    "get_event_bus",
+    "get_hive_event_bus",
 ]

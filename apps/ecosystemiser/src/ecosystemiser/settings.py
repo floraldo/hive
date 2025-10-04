@@ -1,5 +1,4 @@
-"""
-Centralized configuration management for EcoSystemiser platform.,
+"""Centralized configuration management for EcoSystemiser platform.,
 
 Combines all configuration needs for the modular architecture including
 profile_loader (climate, demand), solver, analyser, and reporting modules.

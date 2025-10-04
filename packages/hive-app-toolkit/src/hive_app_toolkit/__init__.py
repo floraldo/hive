@@ -1,5 +1,4 @@
-"""
-Hive Application Toolkit - Production-grade development accelerator.
+"""Hive Application Toolkit - Production-grade development accelerator.
 
 Strategic Force Multiplier for the Hive Platform.
 """
@@ -16,8 +15,8 @@ from .cost.rate_limiter import RateLimiter
 
 __all__ = [
     "BaseApplication",  # Project Launchpad - unified application lifecycle
-    "create_hive_app",  # FastAPI app factory
-    "HiveAppConfig",  # Configuration dataclass
     "CostManager",  # Cost management and budget control
+    "HiveAppConfig",  # Configuration dataclass
     "RateLimiter",  # Rate limiting for operations
+    "create_hive_app",  # FastAPI app factory
 ]

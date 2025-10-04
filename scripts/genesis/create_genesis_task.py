@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Project Genesis - Task Creation Script
+"""Project Genesis - Task Creation Script
 
 This script creates the first autonomous development validation task (PRJ-GENESIS-001)
 in the hive-orchestration system. This task serves as the final exam for the entire
@@ -80,8 +79,7 @@ GENESIS_TASK = {
 
 
 def main():
-    """
-    Create the Project Genesis task and initialize autonomous development.
+    """Create the Project Genesis task and initialize autonomous development.
 
     Steps:
     1. Initialize orchestration database
@@ -140,7 +138,7 @@ def main():
         logger.info(f"Created: {task['created_at']}")
         logger.info("")
         logger.info("Payload:")
-        logger.info(json.dumps(task['payload'], indent=2))
+        logger.info(json.dumps(task["payload"], indent=2))
         logger.info("=" * 80)
 
     except Exception as e:

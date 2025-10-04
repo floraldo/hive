@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Project Genesis - Planner Agent Execution (Path A+, Phase 1, Step 1)
+"""Project Genesis - Planner Agent Execution (Path A+, Phase 1, Step 1)
 
 This script manually triggers the Planner Agent to analyze and decompose
 the Genesis task (PRJ-GENESIS-001) into a structured execution plan.
@@ -42,13 +41,12 @@ def load_genesis_task():
         return None
 
     task = dict(row)
-    task['payload'] = json.loads(task['payload']) if task['payload'] else {}
+    task["payload"] = json.loads(task["payload"]) if task["payload"] else {}
     return task
 
 
 def generate_planner_response(task):
-    """
-    Generate a structured execution plan for the Genesis task.
+    """Generate a structured execution plan for the Genesis task.
 
     This simulates what a "God Mode" Planner Agent would generate using
     Sequential Thinking MCP and RAG knowledge retrieval.
@@ -67,9 +65,9 @@ def generate_planner_response(task):
     print("\nPhase 1: ANALYZING REQUIREMENTS...")
 
     # Extract requirements from payload
-    requirements = task['payload'].get('requirements', [])
-    acceptance_criteria = task['payload'].get('acceptance_criteria', [])
-    technical_details = task['payload'].get('technical_details', {})
+    requirements = task["payload"].get("requirements", [])
+    acceptance_criteria = task["payload"].get("acceptance_criteria", [])
+    technical_details = task["payload"].get("technical_details", {})
 
     print(f"  - Found {len(requirements)} requirements")
     print(f"  - Found {len(acceptance_criteria)} acceptance criteria")
@@ -81,7 +79,7 @@ def generate_planner_response(task):
     plan = {
         "plan_id": f"genesis_plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
         "plan_name": "Genesis Feature: CLI --since Filter Implementation",
-        "task_id": task['id'],
+        "task_id": task["id"],
         "created_at": datetime.now().isoformat(),
         "status": "generated",
         "metadata": {
@@ -242,7 +240,7 @@ def save_plan_to_file(plan):
     """Save the generated plan to a JSON file for inspection."""
     output_file = Path(__file__).parent / "genesis_plan_output.json"
 
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(plan, f, indent=2)
 
     print(f"\nPlan saved to: {output_file}")
@@ -260,7 +258,7 @@ def display_plan_summary(plan):
     print(f"Status: {plan['status']}")
 
     print(f"\nSub-Tasks ({len(plan['sub_tasks'])}):")
-    for i, subtask in enumerate(plan['sub_tasks'], 1):
+    for i, subtask in enumerate(plan["sub_tasks"], 1):
         print(f"\n{i}. {subtask['title']} ({subtask['id']})")
         print(f"   Complexity: {subtask['complexity']}")
         print(f"   Duration: {subtask['estimated_duration']} min")
@@ -317,7 +315,7 @@ def main():
     print("  3. This will insert sub-tasks into the orchestration database")
     print("  4. Then we'll manually trigger the Coder Agent on one sub-task")
     print("\nThe plan is ready for validation and execution.")
-    print("")
+    print()
 
     return 0
 

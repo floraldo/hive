@@ -10,16 +10,15 @@ from .batch_processor import BATCH_PROCESSOR_BLUEPRINT
 from .event_worker import EVENT_WORKER_BLUEPRINT
 
 __all__ = [
-    "get_blueprint",
     "API_SERVICE_BLUEPRINT",
-    "EVENT_WORKER_BLUEPRINT",
     "BATCH_PROCESSOR_BLUEPRINT",
+    "EVENT_WORKER_BLUEPRINT",
+    "get_blueprint",
 ]
 
 
 def get_blueprint(service_type: ServiceType) -> dict[str, Any]:
-    """
-    Get blueprint configuration for service type.
+    """Get blueprint configuration for service type.
 
     Args:
         service_type: Type of service
@@ -29,6 +28,7 @@ def get_blueprint(service_type: ServiceType) -> dict[str, Any]:
 
     Raises:
         ValueError: If service type is not supported
+
     """
     blueprints = {
         ServiceType.API: API_SERVICE_BLUEPRINT,

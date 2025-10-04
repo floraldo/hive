@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Factory Acceptance Test (FAT) Framework for Hive Autonomous Platform
+"""Factory Acceptance Test (FAT) Framework for Hive Autonomous Platform
 
 This framework provides comprehensive stress testing to validate system resilience
 and capability under increasingly complex scenarios.
@@ -17,8 +16,7 @@ from typing import Any
 
 
 class FactoryAcceptanceTest:
-    """
-    Comprehensive factory acceptance testing framework.
+    """Comprehensive factory acceptance testing framework.
 
     Tests the autonomous platform against increasingly complex scenarios
     to validate production readiness and identify breaking points.
@@ -44,7 +42,6 @@ class FactoryAcceptanceTest:
 
     def create_test_task(self, test_case: dict[str, Any]) -> int | None:
         """Create a test task in the database"""
-
         print(f"\n--- {test_case['name']} ---")
         print(f"Goal: {test_case['goal']}")
         print(f"Complexity: {test_case['complexity']}")
@@ -96,7 +93,6 @@ class FactoryAcceptanceTest:
 
     def execute_autonomous_workflow(self, test_case: dict[str, Any], task_id: int) -> bool:
         """Execute the autonomous workflow for a test case"""
-
         print(f"\nExecuting autonomous workflow for: {test_case['name']}")
         print("-" * 50)
 
@@ -164,7 +160,6 @@ class FactoryAcceptanceTest:
 
     def _execute_test_generation(self, test_case: dict[str, Any], task_id: int) -> bool:
         """Execute test-specific code generation"""
-
         generator_func = test_case.get("generator_function")
         if not generator_func:
             print("   [ERROR] No generator function specified")
@@ -176,9 +171,8 @@ class FactoryAcceptanceTest:
             if success:
                 print(f"   [OK] Generated {test_case['name']} successfully")
                 return True
-            else:
-                print(f"   [ERROR] Generation failed for {test_case['name']}")
-                return False
+            print(f"   [ERROR] Generation failed for {test_case['name']}")
+            return False
 
         except Exception as e:
             print(f"   [ERROR] Generation exception: {e}")
@@ -187,7 +181,6 @@ class FactoryAcceptanceTest:
 
     def validate_test_result(self, test_case: dict[str, Any]) -> dict[str, Any]:
         """Validate the test result against success criteria"""
-
         print(f"\nValidating test result for: {test_case['name']}")
         print("-" * 40)
 
@@ -215,7 +208,6 @@ class FactoryAcceptanceTest:
 
     def run_test_case(self, test_case: dict[str, Any]) -> dict[str, Any]:
         """Run a complete test case"""
-
         self.current_test = test_case
         test_start = datetime.now()
 
@@ -256,7 +248,6 @@ class FactoryAcceptanceTest:
 
     def generate_fat_report(self):
         """Generate comprehensive Factory Acceptance Test report"""
-
         total_duration = datetime.now() - self.test_start_time
         passed_tests = [t for t in self.test_results if t["success"]]
         failed_tests = [t for t in self.test_results if not t["success"]]
@@ -339,7 +330,6 @@ class FactoryAcceptanceTest:
 
     def run_factory_acceptance_test(self, test_cases: list[dict[str, Any]]) -> dict[str, Any]:
         """Run the complete Factory Acceptance Test suite"""
-
         try:
             self.setup_test_environment()
 

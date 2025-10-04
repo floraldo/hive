@@ -1,5 +1,4 @@
-"""
-Automated Golden Rules Violation Fixer
+"""Automated Golden Rules Violation Fixer
 
 This module provides automated fixes for mechanical violations detected by the
 Enhanced Golden Rules Framework. It focuses on high-confidence, low-risk fixes
@@ -37,8 +36,7 @@ class AutofixResult:
 
 
 class GoldenRulesAutoFixer:
-    """
-    Automated fixer for mechanical Golden Rules violations.
+    """Automated fixer for mechanical Golden Rules violations.
 
     Focuses on high-confidence fixes that can be applied safely:
     - Async function naming (Rule 14)
@@ -54,8 +52,7 @@ class GoldenRulesAutoFixer:
         self.results: list[AutofixResult] = []
 
     def fix_all_violations(self, target_rules: set[str] | None = None) -> list[AutofixResult]:
-        """
-        Fix all mechanical violations across the project.
+        """Fix all mechanical violations across the project.
 
         Args:
             target_rules: Specific rules to fix (e.g., {'rule-14', 'rule-9'})
@@ -63,6 +60,7 @@ class GoldenRulesAutoFixer:
 
         Returns:
             List of autofix results
+
         """
         self.results = []
 
@@ -129,8 +127,7 @@ class GoldenRulesAutoFixer:
         return backup_path
 
     def _fix_async_naming(self, file_path: Path) -> None:
-        """
-        Fix async function naming violations (Rule 14).
+        """Fix async function naming violations (Rule 14).
 
         Renames async functions to end with '_async' suffix using AST transformation.
         """
@@ -201,8 +198,7 @@ class GoldenRulesAutoFixer:
             )
 
     def _fix_print_statements(self, file_path: Path) -> None:
-        """
-        Fix print statement violations (Rule 9).
+        """Fix print statement violations (Rule 9).
 
         Replaces print() calls with logger.info() calls.
         """
@@ -312,8 +308,7 @@ class GoldenRulesAutoFixer:
             )
 
     def _fix_exception_inheritance(self, file_path: Path) -> None:
-        """
-        Fix exception inheritance violations (Rule 8).
+        """Fix exception inheritance violations (Rule 8).
 
         Updates custom exception classes to inherit from BaseError.
         """

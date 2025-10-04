@@ -1,5 +1,4 @@
-"""
-Code validation for generated services.
+"""Code validation for generated services.
 
 Validates syntax, Golden Rules compliance, and test execution.
 """
@@ -17,8 +16,7 @@ logger = get_logger(__name__)
 
 
 class CodeValidator:
-    """
-    Validates generated code meets quality standards.
+    """Validates generated code meets quality standards.
 
     Runs multiple validation checks:
     1. Syntax validation (py_compile)
@@ -31,8 +29,7 @@ class CodeValidator:
         self.logger = logger
 
     def validate(self, service_dir: Path, run_tests: bool = True, run_type_check: bool = False) -> ValidationResult:
-        """
-        Run all validation checks on generated service.
+        """Run all validation checks on generated service.
 
         Args:
             service_dir: Directory containing generated service
@@ -41,6 +38,7 @@ class CodeValidator:
 
         Returns:
             ValidationResult with detailed validation status
+
         """
         self.logger.info(f"Validating generated service: {service_dir}")
 
@@ -83,7 +81,7 @@ class CodeValidator:
 
         for py_file in python_files:
             try:
-                result = subprocess.run(  # noqa: S603, S607
+                result = subprocess.run(
                     ["python", "-m", "py_compile", str(py_file)],
                     capture_output=True,
                     text=True,
@@ -114,7 +112,7 @@ class CodeValidator:
             return True, []
 
         try:
-            result = subprocess.run(  # noqa: S603, S607
+            result = subprocess.run(
                 ["python", str(validator_script), "--level", "ERROR", "--app", service_dir.name],
                 capture_output=True,
                 text=True,
@@ -148,7 +146,7 @@ class CodeValidator:
             return True, []
 
         try:
-            result = subprocess.run(  # noqa: S603, S607
+            result = subprocess.run(
                 ["python", "-m", "pytest", "tests/", "-v", "--tb=short"],
                 capture_output=True,
                 text=True,
@@ -174,7 +172,7 @@ class CodeValidator:
         errors = []
 
         try:
-            result = subprocess.run(  # noqa: S603, S607
+            result = subprocess.run(
                 ["python", "-m", "mypy", "src/", "--ignore-missing-imports"],
                 capture_output=True,
                 text=True,

@@ -1,5 +1,4 @@
-"""
-Security utilities for Hive AI components.
+"""Security utilities for Hive AI components.
 
 Provides input validation, secret management, and security controls
 to prevent common security vulnerabilities in AI operations.
@@ -78,6 +77,7 @@ class InputValidator:
 
         Args:
             security_level: Level of security validation to apply.
+
         """
         self.security_level = security_level
         self._compile_patterns()
@@ -96,6 +96,7 @@ class InputValidator:
 
         Returns:
             ValidationResult with validation status and sanitized input.
+
         """
         violations = ([],)
         risk_level = "low"
@@ -144,6 +145,7 @@ class InputValidator:
 
         Returns:
             Sanitized prompt string.
+
         """
         sanitized = prompt
 
@@ -168,6 +170,7 @@ class InputValidator:
 
         Returns:
             ValidationResult with validation status.
+
         """
         violations = ([],)
         risk_level = "low"
@@ -212,6 +215,7 @@ class SecretManager:
 
         Returns:
             Masked secret string.
+
         """
         if not secret or len(secret) <= visible_chars:
             return "*" * 8
@@ -229,6 +233,7 @@ class SecretManager:
 
         Returns:
             True if the string appears to be a secret.
+
         """
         if not isinstance(value, str) or len(value) < 8:
             return False
@@ -252,6 +257,7 @@ class SecretManager:
 
         Returns:
             Entropy value.
+
         """
         if not text:
             return 0.0
@@ -279,17 +285,17 @@ class SecretManager:
 
         Returns:
             Sanitized copy of the data.
+
         """
         if isinstance(data, dict):
             return {key: self.sanitize_for_logging(value) for key, value in data.items()}
-        elif isinstance(data, (list, tuple)):
+        if isinstance(data, (list, tuple)):
             return type(data)(self.sanitize_for_logging(item) for item in data)
-        elif isinstance(data, str):
+        if isinstance(data, str):
             if self.is_potential_secret(data):
                 return self.mask_secret(data)
             return data
-        else:
-            return data
+        return data
 
 
 class RateLimiter:
@@ -301,6 +307,7 @@ class RateLimiter:
         Args:
             max_requests: Maximum requests allowed in the window.
             window_seconds: Time window in seconds.
+
         """
         self.max_requests = max_requests
         self.window_seconds = window_seconds
@@ -314,6 +321,7 @@ class RateLimiter:
 
         Returns:
             True if request is allowed, False if rate limited.
+
         """
         import time
 
@@ -342,6 +350,7 @@ class RateLimiter:
 
         Returns:
             Unix timestamp when rate limit resets, or None if not limited.
+
         """
         if identifier not in self._requests or not self._requests[identifier]:
             return None
@@ -355,6 +364,7 @@ def generate_request_id() -> str:
 
     Returns:
         Random request ID string.
+
     """
     return secrets.token_urlsafe(16)
 
@@ -367,6 +377,7 @@ def hash_content(content: str) -> str:
 
     Returns:
         SHA-256 hash of the content.
+
     """
     return hashlib.sha256(content.encode("utf-8")).hexdigest()
 

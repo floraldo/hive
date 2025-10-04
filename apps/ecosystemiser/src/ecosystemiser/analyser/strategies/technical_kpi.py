@@ -37,6 +37,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of calculated technical KPIs,
+
         """
         kpis = {}
 
@@ -64,6 +65,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             System type: 'energy', 'water', or 'mixed',
+
         """
         components = results_data.get("components", {})
         has_energy = any(
@@ -78,12 +80,11 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         if has_energy and has_water:
             return ("mixed",)
-        elif has_energy:
+        if has_energy:
             return ("energy",)
-        elif has_water:
+        if has_water:
             return ("water",)
-        else:
-            return "unknown"
+        return "unknown"
 
     def _calculate_energy_kpis(self, results_data: dict[str, Any]) -> dict[str, float]:
         """Calculate energy-specific KPIs.
@@ -93,6 +94,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of energy KPIs,
+
         """
         kpis = ({},)
         flows = results_data.get("flows", {})
@@ -141,6 +143,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of water KPIs,
+
         """
         kpis = ({},)
         flows = results_data.get("flows", {})
@@ -174,6 +177,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of common KPIs,
+
         """
         kpis = {}
 
@@ -212,6 +216,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of battery KPIs,
+
         """
         kpis = {}
 
@@ -255,6 +260,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of peak shaving KPIs,
+
         """
         kpis = {}
 
@@ -294,6 +300,7 @@ class TechnicalKPIAnalysis(BaseAnalysis):
 
         Returns:
             Sum of matching flows,
+
         """
         total = 0
 

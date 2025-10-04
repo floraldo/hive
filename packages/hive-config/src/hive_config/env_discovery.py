@@ -1,5 +1,4 @@
-"""
-Dynamic Environment Variable Discovery
+"""Dynamic Environment Variable Discovery
 
 Auto-discovers and maps HIVE_* environment variables to HiveConfig structure
 without requiring manual mapping maintenance.
@@ -19,8 +18,7 @@ logger = get_logger(__name__)
 
 
 def discover_hive_env_vars() -> dict[str, Any]:
-    """
-    Auto-discover all HIVE_* environment variables and map to config structure.
+    """Auto-discover all HIVE_* environment variables and map to config structure.
 
     Supports nested paths using underscores:
     - HIVE_DATABASE_PATH → database.path
@@ -29,6 +27,7 @@ def discover_hive_env_vars() -> dict[str, Any]:
 
     Returns:
         Dictionary with nested structure matching HiveConfig
+
     """
     env_data = {}
 
@@ -52,8 +51,7 @@ def discover_hive_env_vars() -> dict[str, Any]:
 
 
 def _map_env_var_to_config_path(key_path: str, value: str) -> str | None:
-    """
-    Map environment variable key to HiveConfig attribute path.
+    """Map environment variable key to HiveConfig attribute path.
 
     Args:
         key_path: Lowercase environment variable name (without HIVE_ prefix)
@@ -61,6 +59,7 @@ def _map_env_var_to_config_path(key_path: str, value: str) -> str | None:
 
     Returns:
         Dotted path in HiveConfig structure, or None if unmapped
+
     """
     # Direct mappings (high-level config)
     if key_path == "environment":
@@ -220,13 +219,13 @@ def _map_cache_var(key_path: str) -> str:
 
 
 def _set_nested_value(data: dict, path: str, value: str) -> None:
-    """
-    Set a value in nested dictionary using dot notation.
+    """Set a value in nested dictionary using dot notation.
 
     Args:
         data: Dictionary to update
         path: Dot-separated path (e.g., "database.path")
         value: String value to set (will be type-converted)
+
     """
     keys = path.split(".")
     current = data
@@ -243,8 +242,7 @@ def _set_nested_value(data: dict, path: str, value: str) -> None:
 
 
 def _convert_value_type(value: str, key: str) -> Any:
-    """
-    Convert string value to appropriate Python type.
+    """Convert string value to appropriate Python type.
 
     Args:
         value: String value from environment
@@ -252,6 +250,7 @@ def _convert_value_type(value: str, key: str) -> Any:
 
     Returns:
         Converted value (bool, int, Path, or str)
+
     """
     # Boolean conversion
     if value.lower() in ("true", "false", "yes", "no", "1", "0"):
@@ -277,12 +276,12 @@ def _convert_value_type(value: str, key: str) -> Any:
 
 
 def get_env_config_dict() -> dict[str, Any]:
-    """
-    Get configuration dictionary from environment variables.
+    """Get configuration dictionary from environment variables.
 
     This is the main entry point for environment variable discovery.
 
     Returns:
         Nested dictionary matching HiveConfig structure
+
     """
     return discover_hive_env_vars()

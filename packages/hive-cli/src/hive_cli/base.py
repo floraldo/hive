@@ -14,7 +14,6 @@ from hive_logging import get_logger
 class HiveError(BaseError):
     """Base error for Hive CLI operations."""
 
-    pass
 
 
 class HiveCommand(click.Command):
@@ -71,7 +70,6 @@ class HiveContext:
             self.config_path = config_path
             # Implementation would load from config file
             # This is a placeholder for the pattern
-            pass
 
 
 def create_cli():
@@ -79,6 +77,7 @@ def create_cli():
 
     Returns:
         Callable that creates a click.Group with HiveGroup class
+
     """
     def decorator(f):
         return click.group(cls=HiveGroup)(f)

@@ -12,37 +12,31 @@ Exception hierarchy for Claude Bridge operations
 class ClaudeError(Exception):
     """Base exception for all Claude-related errors"""
 
-    pass
 
 
 class ClaudeNotFoundError(BaseError):
     """Raised when Claude CLI is not found on the system"""
 
-    pass
 
 
 class ClaudeTimeoutError(BaseError):
     """Raised when Claude CLI execution times out"""
 
-    pass
 
 
 class ClaudeResponseError(BaseError):
     """Raised when Claude returns an unexpected response"""
 
-    pass
 
 
 class ClaudeValidationError(BaseError):
     """Raised when Claude response fails validation"""
 
-    pass
 
 
 class ClaudeRateLimitError(BaseError):
     """Raised when rate limit is exceeded"""
 
-    pass
 
 
 class ClaudeServiceError(BaseError):

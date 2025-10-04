@@ -1,5 +1,4 @@
-"""
-Dependency resolution for task ordering.
+"""Dependency resolution for task ordering.
 
 Ensures tasks execute in correct order based on dependencies using topological sort.
 """
@@ -16,18 +15,15 @@ logger = get_logger(__name__)
 class DependencyError(BaseError):
     """Raised when dependency resolution fails"""
 
-    pass
 
 
 class CyclicDependencyError(DependencyError):
     """Raised when circular dependencies detected"""
 
-    pass
 
 
 class DependencyResolver:
-    """
-    Resolves task dependencies and determines execution order.
+    """Resolves task dependencies and determines execution order.
 
     Uses topological sort (Kahn's algorithm) to order tasks such that
     dependencies are always executed before dependent tasks.
@@ -37,8 +33,7 @@ class DependencyResolver:
         self.logger = logger
 
     def resolve_order(self, plan: ExecutionPlan) -> list[ExecutionTask]:
-        """
-        Resolve task execution order based on dependencies.
+        """Resolve task execution order based on dependencies.
 
         Args:
             plan: ExecutionPlan with tasks and dependencies
@@ -49,6 +44,7 @@ class DependencyResolver:
         Raises:
             CyclicDependencyError: If circular dependencies detected
             DependencyError: If dependency graph invalid
+
         """
         self.logger.info(f"Resolving task order for plan: {plan.plan_id}")
 
@@ -99,14 +95,14 @@ class DependencyResolver:
         return ordered_tasks
 
     def validate_dependencies(self, plan: ExecutionPlan) -> dict[str, bool]:
-        """
-        Validate dependency graph without resolving order.
+        """Validate dependency graph without resolving order.
 
         Args:
             plan: ExecutionPlan to validate
 
         Returns:
             Validation results with boolean flags
+
         """
         task_ids = {task.task_id for task in plan.tasks}
         validation = {"has_tasks": len(plan.tasks) > 0, "all_dependencies_exist": True, "no_cycles": True}

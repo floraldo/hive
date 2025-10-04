@@ -99,6 +99,7 @@ def get_changed_files_from_pr(pr_number: int) -> list[str]:
     Note:
         This is a placeholder. Real implementation would use GitHub API
         or git diff to detect changed files.
+
     """
     logger.info(f"Fetching changed files from PR #{pr_number}")
     # Placeholder - in real implementation, use GitHub API or git diff
@@ -121,6 +122,7 @@ async def review_files_with_rag(
     Note:
         This connects to the RAGCommentEngine from
         apps/guardian-agent/src/guardian_agent/review/rag_comment_engine.py
+
     """
     try:
         from guardian_agent.review.rag_comment_engine import RAGCommentEngine
@@ -163,12 +165,12 @@ async def review_files_with_rag(
                         "body": pr_comment.to_github_comment(),
                         "confidence": pr_comment.confidence_score,
                         "pattern_type": pr_comment.comment_type,
-                    }
+                    },
                 )
 
         logger.info(
             f"Generated {len(all_comments)} comments from {len(comment_batch.comments)} total "
-            f"(threshold: {confidence_threshold})"
+            f"(threshold: {confidence_threshold})",
         )
 
         return all_comments
@@ -187,6 +189,7 @@ def generate_placeholder_comments(files: list[str]) -> list[dict[str, Any]]:
 
     Returns:
         List of placeholder review comments
+
     """
     comments = []
 
@@ -214,7 +217,7 @@ This file has been queued for RAG-enhanced review. Full analysis will be availab
 """,
                 "confidence": 1.0,
                 "pattern_type": "placeholder",
-            }
+            },
         )
 
     return comments
@@ -240,6 +243,7 @@ def format_for_github_api(
             "body": "Markdown comment body",
             "side": "RIGHT"
         }
+
     """
     # Sort by confidence (highest first)
     sorted_comments = sorted(
@@ -268,7 +272,7 @@ def format_for_github_api(
                 "line": comment.get("line", 1),
                 "body": body_with_feedback,
                 "side": "RIGHT",  # Comment on the new version
-            }
+            },
         )
 
     return github_comments

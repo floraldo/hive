@@ -1,5 +1,4 @@
-"""
-Predictive Analysis Runner
+"""Predictive Analysis Runner
 
 Periodically analyzes monitoring data and generates predictive alerts.
 Designed to run as a scheduled job (every 5-15 minutes).
@@ -30,21 +29,20 @@ logger = get_logger(__name__)
 
 
 class PredictiveAnalysisRunner:
-    """
-    Run predictive analysis on monitoring data.
+    """Run predictive analysis on monitoring data.
 
     Integrates with MonitoringErrorReporter and HealthMonitor
     to analyze trends and generate proactive alerts.
     """
 
     def __init__(self, alert_manager: PredictiveAlertManager, error_reporter=None, health_monitor=None):
-        """
-        Initialize analysis runner.
+        """Initialize analysis runner.
 
         Args:
             alert_manager: Predictive alert manager instance
             error_reporter: MonitoringErrorReporter instance (optional)
             health_monitor: HealthMonitor instance (optional)
+
         """
         self.alert_manager = alert_manager
         self._error_reporter = error_reporter
@@ -57,11 +55,11 @@ class PredictiveAnalysisRunner:
         }
 
     async def run_analysis_async(self) -> dict:
-        """
-        Run complete predictive analysis cycle.
+        """Run complete predictive analysis cycle.
 
         Returns:
             Analysis results and statistics
+
         """
         start_time = datetime.utcnow()
         logger.info("Starting predictive analysis run")
@@ -108,8 +106,7 @@ class PredictiveAnalysisRunner:
         return await self.run_analysis_async()
 
     async def _collect_metrics_async(self) -> dict[tuple[str, MetricType], list[MetricPoint]]:
-        """
-        Collect metrics from monitoring systems.
+        """Collect metrics from monitoring systems.
 
         In production, this would integrate with:
         - MonitoringErrorReporter for error rate trends
@@ -118,6 +115,7 @@ class PredictiveAnalysisRunner:
 
         Returns:
             Dictionary mapping (service, metric_type) to metric points
+
         """
         metrics = {}
 
@@ -142,14 +140,14 @@ class PredictiveAnalysisRunner:
         return metrics
 
     async def _get_service_error_rates_async(self, service_name: str) -> list[MetricPoint] | None:
-        """
-        Get error rate metrics for a service.
+        """Get error rate metrics for a service.
 
         Args:
             service_name: Name of service to get metrics for
 
         Returns:
             List of error rate metric points
+
         """
         try:
             # Get global instance if available
@@ -180,14 +178,14 @@ class PredictiveAnalysisRunner:
             return None
 
     async def _get_service_cpu_metrics_async(self, service_name: str) -> list[MetricPoint] | None:
-        """
-        Get CPU utilization metrics for a service.
+        """Get CPU utilization metrics for a service.
 
         Args:
             service_name: Name of service to get metrics for
 
         Returns:
             List of CPU metric points
+
         """
         try:
             # Get health monitor instance if available
@@ -217,14 +215,14 @@ class PredictiveAnalysisRunner:
             return None
 
     async def _get_service_latency_async(self, service_name: str) -> list[MetricPoint] | None:
-        """
-        Get latency metrics for a service.
+        """Get latency metrics for a service.
 
         Args:
             service_name: Name of service to get metrics for
 
         Returns:
             List of latency metric points
+
         """
         try:
             # Get health monitor instance if available

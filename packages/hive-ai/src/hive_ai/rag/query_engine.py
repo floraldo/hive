@@ -1,5 +1,4 @@
-"""
-High-level query engine for RAG system with agent-friendly API.
+"""High-level query engine for RAG system with agent-friendly API.
 
 Provides simplified interface for agents to perform reactive retrieval
 with built-in caching, error handling, and structured context generation.
@@ -80,8 +79,7 @@ class QueryResult:
 
 
 class QueryEngine:
-    """
-    High-level query engine for RAG system.
+    """High-level query engine for RAG system.
 
     Provides simplified API for agents to perform reactive retrieval
     with automatic error handling, caching, and structured context.
@@ -98,6 +96,7 @@ class QueryEngine:
         if result.context:
             prompt = result.context.to_prompt_section()
         ```
+
     """
 
     def __init__(
@@ -105,12 +104,12 @@ class QueryEngine:
         retriever: EnhancedRAGRetriever | None = None,
         config: QueryEngineConfig | None = None,
     ):
-        """
-        Initialize query engine.
+        """Initialize query engine.
 
         Args:
             retriever: RAG retriever instance (creates default if None)
             config: Query engine configuration
+
         """
         self.retriever = retriever or EnhancedRAGRetriever()
         self.config = config or QueryEngineConfig()
@@ -152,8 +151,7 @@ class QueryEngine:
         include_golden_rules: bool | None = None,
         exclude_archived: bool | None = None,
     ) -> QueryResult:
-        """
-        Execute query with automatic caching and error handling.
+        """Execute query with automatic caching and error handling.
 
         Args:
             query: Natural language query string
@@ -164,6 +162,7 @@ class QueryEngine:
 
         Returns:
             QueryResult with structured context and metadata
+
         """
         # Build cache key
         cache_key = self._build_cache_key(query, k, usage_context)
@@ -218,8 +217,7 @@ class QueryEngine:
         queries: list[str],
         k_per_query: int | None = None,
     ) -> list[QueryResult]:
-        """
-        Execute multiple queries in sequence for reactive retrieval pattern.
+        """Execute multiple queries in sequence for reactive retrieval pattern.
 
         This implements the multi-stage reactive retrieval approach where
         an agent performs several queries as it builds understanding.
@@ -239,6 +237,7 @@ class QueryEngine:
                 "Are there any deprecated database patterns?"
             ])
             ```
+
         """
         results = []
 
@@ -257,8 +256,7 @@ class QueryEngine:
         include_golden_rules: bool,
         exclude_archived: bool,
     ) -> QueryResult:
-        """
-        Execute query with retry logic and graceful degradation.
+        """Execute query with retry logic and graceful degradation.
 
         Implements graceful degradation: Returns empty context on failure
         rather than raising exception.
@@ -325,9 +323,8 @@ class QueryEngine:
                 error=last_error,
                 query=query,
             )
-        else:
-            # Re-raise if fallback disabled
-            raise RuntimeError(f"Query failed: {last_error}")
+        # Re-raise if fallback disabled
+        raise RuntimeError(f"Query failed: {last_error}")
 
     def _build_cache_key(
         self,
@@ -364,21 +361,21 @@ class QueryEngine:
         }
 
     def load_index(self, path: Path | str) -> None:
-        """
-        Load RAG index from disk.
+        """Load RAG index from disk.
 
         Args:
             path: Directory containing saved index
+
         """
         self.retriever.load(path)
         logger.info(f"Loaded RAG index from {path}")
 
     def save_index(self, path: Path | str) -> None:
-        """
-        Save RAG index to disk.
+        """Save RAG index to disk.
 
         Args:
             path: Directory to save index
+
         """
         self.retriever.save(path)
         logger.info(f"Saved RAG index to {path}")

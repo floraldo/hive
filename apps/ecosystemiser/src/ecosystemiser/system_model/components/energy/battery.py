@@ -82,8 +82,7 @@ class BatteryPhysicsSimple(BaseStoragePhysics):
     """
 
     def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
-        """
-        Implement SIMPLE battery physics with roundtrip efficiency.,
+        """Implement SIMPLE battery physics with roundtrip efficiency.,
 
         This matches the exact logic from BaseStorageComponent for numerical equivalence.,
         """
@@ -107,14 +106,14 @@ class BatteryPhysicsSimple(BaseStoragePhysics):
         return self.apply_bounds(next_state)
 
     def apply_bounds(self, energy_level: float) -> float:
-        """
-        Apply physical energy bounds (0 <= E <= E_max).
+        """Apply physical energy bounds (0 <= E <= E_max).
 
         Args:
             energy_level: Energy level to bound
 
         Returns:
             float: Bounded energy level,
+
         """
         # Get maximum capacity from params
         E_max = self.params.technical.capacity_nominal
@@ -132,8 +131,7 @@ class BatteryPhysicsStandard(BatteryPhysicsSimple):
     """
 
     def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
-        """
-        Implement STANDARD battery physics with self-discharge.,
+        """Implement STANDARD battery physics with self-discharge.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -173,8 +171,7 @@ class BatteryOptimizationSimple(BaseStorageOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for battery optimization.,
+        """Create SIMPLE CVXPY constraints for battery optimization.,
 
         Returns constraints for basic battery operation without losses.,
         """
@@ -217,8 +214,7 @@ class BatteryOptimizationStandard(BatteryOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for battery optimization.,
+        """Create STANDARD CVXPY constraints for battery optimization.,
 
         First gets SIMPLE constraints, then modifies energy balance,
         to include self-discharge losses.,
@@ -310,16 +306,15 @@ class Battery(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return BatteryPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return BatteryPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return BatteryPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return BatteryPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for Battery: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for Battery: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -327,20 +322,18 @@ class Battery(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return BatteryOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return BatteryOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return BatteryOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return BatteryOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for Battery optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for Battery optimization: {fidelity}")
 
     def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float) -> None:
-        """
-        Delegate to physics strategy for state update.,
+        """Delegate to physics strategy for state update.,
 
         This maintains the same interface as BaseStorageComponent but,
         delegates the actual physics calculation to the strategy object.,

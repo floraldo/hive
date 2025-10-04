@@ -1,5 +1,4 @@
-"""
-Base agent implementation with sequential thinking capabilities (God Mode).
+"""Base agent implementation with sequential thinking capabilities (God Mode).
 
 Implements the multi-step thinking loop with retry prevention and
 knowledge archival integration.
@@ -75,8 +74,7 @@ class Task:
 
 
 class BaseAgent:
-    """
-    Base AI agent with sequential thinking capabilities (God Mode).
+    """Base AI agent with sequential thinking capabilities (God Mode).
 
     Features:
     - Multi-step sequential thinking loop (1-50 thoughts configurable)
@@ -92,6 +90,7 @@ class BaseAgent:
         Args:
             config: Agent configuration. If None, uses default AgentConfig.
             testing_mode: If True, allows mock responses for testing without dependencies.
+
         """
         self.config = config or AgentConfig()
         self.testing_mode = testing_mode
@@ -106,7 +105,7 @@ class BaseAgent:
             if not HAS_WEB_SEARCH:
                 self.logger.warning(
                     "Exa web search requested but hive_ai.tools.web_search not available. "
-                    "Install optional dependencies or disable enable_exa_search."
+                    "Install optional dependencies or disable enable_exa_search.",
                 )
             else:
                 try:
@@ -121,7 +120,7 @@ class BaseAgent:
             if not HAS_KNOWLEDGE_ARCHIVIST:
                 self.logger.warning(
                     "Knowledge archival requested but KnowledgeArchivist not available. "
-                    "Continuing without archival."
+                    "Continuing without archival.",
                 )
             else:
                 try:
@@ -145,7 +144,7 @@ class BaseAgent:
 
         self.logger.info(
             f"Initialized {self.config.agent_role} agent '{self.config.agent_name}' "
-            f"with max_thoughts={self.config.max_thoughts}"
+            f"with max_thoughts={self.config.max_thoughts}",
         )
 
     def _register_default_tools(self) -> None:
@@ -161,8 +160,7 @@ class BaseAgent:
             self._tools["retrieve_context"] = self._retrieve_context_tool
 
     async def _think_tool(self, prompt: str) -> dict[str, Any]:
-        """
-        Core thinking tool using structured reasoning.
+        """Core thinking tool using structured reasoning.
 
         Implements a real reasoning algorithm - NO MOCKS.
         This is a simplified but REAL implementation that analyzes the prompt
@@ -174,6 +172,7 @@ class BaseAgent:
         Returns:
             Dictionary with thought result including completion status,
             next step, and current solution.
+
         """
         # REAL IMPLEMENTATION - NO MOCKS
         # Parse prompt to extract task context
@@ -244,7 +243,7 @@ class BaseAgent:
                 "max_thoughts": max_thoughts,
                 "task_length": len(task_description),
                 "requirements_count": len(requirements),
-            }
+            },
         }
 
     async def _web_search_tool(
@@ -253,8 +252,7 @@ class BaseAgent:
         num_results: int | None = None,
         include_text: bool = True,
     ) -> list[dict[str, Any]]:
-        """
-        Web search tool using Exa API.
+        """Web search tool using Exa API.
 
         Executes a web search and returns results that can be used for
         context augmentation and archived to RAG.
@@ -269,6 +267,7 @@ class BaseAgent:
 
         Raises:
             RuntimeError: If web search client is not initialized.
+
         """
         if not self._web_search_client:
             raise RuntimeError("Web search client not initialized. Enable with enable_exa_search=True")
@@ -299,8 +298,7 @@ class BaseAgent:
         include_test_intelligence: bool = True,
         top_k: int | None = None,
     ) -> dict[str, Any]:
-        """
-        Retrieve relevant context from RAG (knowledge archive + test intelligence).
+        """Retrieve relevant context from RAG (knowledge archive + test intelligence).
 
         This is the critical RAG integration that was missing - agents can now
         learn from past thinking sessions and archived web searches.
@@ -317,6 +315,7 @@ class BaseAgent:
 
         Raises:
             RuntimeError: If context service is not initialized.
+
         """
         if not self._context_service:
             raise RuntimeError("Context retrieval service not initialized")
@@ -334,7 +333,7 @@ class BaseAgent:
 
             self.logger.info(
                 f"Retrieved RAG context for task {task_id}: "
-                f"{len(context_result.get('sources', []))} sources"
+                f"{len(context_result.get('sources', []))} sources",
             )
 
             return context_result
@@ -361,6 +360,7 @@ class BaseAgent:
         Raises:
             ValueError: If tool is not registered and not an MCP tool.
             RuntimeError: If MCP tool call fails.
+
         """
         # Check if it's a registry tool first
         if tool_name in self._tools:
@@ -375,7 +375,7 @@ class BaseAgent:
                 f"MCP tool {tool_name} cannot be called directly from Python code. "
                 "MCP tools are invoked by Claude Code environment. "
                 "If you see this error, the agent is being run outside Claude Code context. "
-                "Use a real reasoning implementation instead of MCP in standalone mode."
+                "Use a real reasoning implementation instead of MCP in standalone mode.",
             )
 
         raise ValueError(f"Tool '{tool_name}' not registered and not a valid MCP tool")
@@ -388,6 +388,7 @@ class BaseAgent:
 
         Returns:
             Hexadecimal SHA256 hash string.
+
         """
         solution_str = json.dumps(solution, sort_keys=True, default=str)
         return hashlib.sha256(solution_str.encode()).hexdigest()
@@ -409,6 +410,7 @@ class BaseAgent:
 
         Returns:
             Formatted prompt string for the thinking tool.
+
         """
         prompt_parts = [
             f"TASK: {task.description}",
@@ -424,7 +426,7 @@ class BaseAgent:
         if failed_hashes and self.config.enable_retry_prevention:
             prompt_parts.append(
                 f"\nAVOID RETRYING: {len(failed_hashes)} previously failed approaches "
-                "(retry prevention active)"
+                "(retry prevention active)",
             )
 
         if task.context:
@@ -433,7 +435,7 @@ class BaseAgent:
 
         prompt_parts.append(
             "\nProvide your next step or final solution. "
-            "Mark complete when task is fully solved."
+            "Mark complete when task is fully solved.",
         )
 
         return "\n".join(prompt_parts)
@@ -449,6 +451,7 @@ class BaseAgent:
             - is_complete: Whether the task is complete
             - next_step: Next action to take
             - solution: Current solution if complete
+
         """
         is_complete = thought_result.get("is_complete", False)
         next_step = thought_result.get("next_step")
@@ -469,14 +472,14 @@ class BaseAgent:
 
         Raises:
             Exception: If step execution fails.
+
         """
         # Placeholder - specific agents will override this
         self.logger.debug(f"Executing step: {step}")
         return step
 
     async def _execute_main_logic_async(self, task: Task) -> TaskResult:
-        """
-        Execute task with multi-step sequential thinking loop (God Mode).
+        """Execute task with multi-step sequential thinking loop (God Mode).
 
         This implements the core sequential thinking pattern:
         1. Retrieve RAG context (past experiences, web searches, test intelligence)
@@ -491,6 +494,7 @@ class BaseAgent:
 
         Returns:
             TaskResult with solution, thoughts log, and metadata.
+
         """
         working_solution = None
         attempted_solutions: list[str] = []  # SHA256 hashes
@@ -501,7 +505,7 @@ class BaseAgent:
 
         self.logger.info(
             f"Starting thinking loop for task {task.task_id} "
-            f"(max_thoughts={self.config.max_thoughts})"
+            f"(max_thoughts={self.config.max_thoughts})",
         )
 
         # PHASE 2 CRITICAL FIX: Retrieve RAG context before first thought
@@ -529,7 +533,7 @@ class BaseAgent:
             if datetime.now() - start_time > timeout:
                 self.logger.warning(
                     f"Thinking loop timed out after {timeout.total_seconds()}s "
-                    f"at thought {thought_num}"
+                    f"at thought {thought_num}",
                 )
                 return TaskResult(
                     success=False,
@@ -609,8 +613,7 @@ class BaseAgent:
         )
 
     async def execute_async(self, task: Task) -> TaskResult:
-        """
-        Execute a task asynchronously with full thinking loop.
+        """Execute a task asynchronously with full thinking loop.
 
         Public entry point for task execution. Handles:
         - Sequential thinking loop
@@ -622,6 +625,7 @@ class BaseAgent:
 
         Returns:
             TaskResult with solution and execution metadata.
+
         """
         self.logger.info(f"Executing task {task.task_id}: {task.description}")
 
@@ -643,11 +647,12 @@ class BaseAgent:
         Args:
             task: The task that was executed.
             result: The execution result with thoughts log.
+
         """
         if not self._knowledge_archivist:
             self.logger.debug(
                 f"Knowledge archival disabled for task {task.task_id} "
-                "(enable with enable_knowledge_archival=True)"
+                "(enable with enable_knowledge_archival=True)",
             )
             return
 
@@ -670,7 +675,7 @@ class BaseAgent:
 
             self.logger.info(
                 f"Archived thinking session for task {task.task_id} "
-                f"({len(result.thoughts_log)} thoughts, {len(web_searches)} web searches)"
+                f"({len(result.thoughts_log)} thoughts, {len(web_searches)} web searches)",
             )
 
         except Exception as e:

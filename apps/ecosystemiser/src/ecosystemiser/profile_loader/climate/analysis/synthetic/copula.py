@@ -40,8 +40,7 @@ class CopulaConfig:
 
 
 class CopulaSyntheticGenerator:
-    """
-    Advanced synthetic climate data generation using copula methods.,
+    """Advanced synthetic climate data generation using copula methods.,
 
     Preserves both marginal distributions and dependence structure,
     while allowing for temporal pattern preservation.
@@ -55,8 +54,7 @@ class CopulaSyntheticGenerator:
         self._seasonal_patterns = {}
 
     def generate(self, ds_hist: xr.Dataset, seed: int | None = None, target_length: str = "1Y") -> xr.Dataset:
-        """
-        Generate synthetic climate data preserving correlations and distributions.
+        """Generate synthetic climate data preserving correlations and distributions.
 
         Args:
             ds_hist: Historical dataset to learn from
@@ -65,6 +63,7 @@ class CopulaSyntheticGenerator:
 
         Returns:
             Synthetic dataset with same structure as input,
+
         """
         if seed is not None:
             np.random.seed(seed)
@@ -127,18 +126,16 @@ class CopulaSyntheticGenerator:
         if target_length.endswith("Y"):
             years = int(target_length[:-1]) if target_length[:-1] else 1
             return years * 365 * samples_per_day
-        elif target_length.endswith("M"):
+        if target_length.endswith("M"):
             months = int(target_length[:-1]) if target_length[:-1] else 1
             return months * 30 * samples_per_day  # Approximate
-        elif target_length.endswith("D"):
+        if target_length.endswith("D"):
             days = int(target_length[:-1]) if target_length[:-1] else 1
             return days * samples_per_day
-        else:
-            return int(target_length)  # Assume number of samples
+        return int(target_length)  # Assume number of samples
 
     def _prepare_data(self, ds: xr.Dataset) -> tuple[np.ndarray, list[str], dict]:
         """Prepare data matrix for copula fitting"""
-
         # Select numerical variables only
         variables = [],
         data_arrays = []
@@ -173,7 +170,6 @@ class CopulaSyntheticGenerator:
 
     def _fit_marginals(self, data_matrix: np.ndarray, variables: list[str], time_info: dict) -> None:
         """Fit marginal distributions for each variable"""
-
         logger.info("Fitting marginal distributions")
 
         for i, var in enumerate(variables):
@@ -218,7 +214,6 @@ class CopulaSyntheticGenerator:
 
     def _fit_copula(self, data_matrix: np.ndarray) -> None:
         """Fit copula to the dependence structure"""
-
         logger.info(f"Fitting {self.config.copula_type.value} copula")
 
         # Transform to uniform margins using empirical CDF
@@ -292,7 +287,6 @@ class CopulaSyntheticGenerator:
 
     def _generate_synthetic(self, n_samples: int, variables: list[str], time_info: dict) -> np.ndarray:
         """Generate synthetic samples from fitted copula"""
-
         logger.info(f"Generating {n_samples} synthetic samples")
 
         if self._fitted_copula["type"] == "gaussian":
@@ -355,7 +349,6 @@ class CopulaSyntheticGenerator:
         time_info: dict,
     ) -> xr.Dataset:
         """Create xarray dataset from synthetic data"""
-
         # Create time index
         n_samples = synthetic_data.shape[0]
 
@@ -400,8 +393,7 @@ def copula_synthetic_generation(
     target_length: str = "1Y",
     **kwargs,
 ) -> xr.Dataset:
-    """
-    Generate synthetic climate data using copula methods.
+    """Generate synthetic climate data using copula methods.
 
     Args:
         ds_hist: Historical dataset to learn from,
@@ -412,6 +404,7 @@ def copula_synthetic_generation(
 
     Returns:
         Synthetic dataset preserving correlations and marginal distributions,
+
     """
     # Create configuration
     try:

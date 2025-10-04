@@ -1,5 +1,4 @@
-"""
-AST-aware code chunking with metadata enrichment.
+"""AST-aware code chunking with metadata enrichment.
 
 Provides hierarchical chunking of Python code using AST parsing,
 enriched with operational metadata and architectural memory.
@@ -20,8 +19,7 @@ logger = get_logger(__name__)
 
 
 class HierarchicalChunker:
-    """
-    AST-aware code chunker with metadata enrichment.
+    """AST-aware code chunker with metadata enrichment.
 
     Chunks Python files into logical units (classes, functions, methods)
     using AST parsing, enriching each chunk with:
@@ -32,24 +30,24 @@ class HierarchicalChunker:
     """
 
     def __init__(self, metadata_loader: MetadataLoader | None = None):
-        """
-        Initialize hierarchical chunker.
+        """Initialize hierarchical chunker.
 
         Args:
             metadata_loader: Metadata loader instance.
                            Creates new one if not provided.
+
         """
         self.metadata_loader = metadata_loader or MetadataLoader()
 
     def chunk_file(self, file_path: Path | str) -> list[CodeChunk]:
-        """
-        Chunk a Python file into semantic units.
+        """Chunk a Python file into semantic units.
 
         Args:
             file_path: Path to Python file
 
         Returns:
             List of CodeChunk objects with rich metadata
+
         """
         file_path = Path(file_path)
 
@@ -69,8 +67,7 @@ class HierarchicalChunker:
             return []
 
     def chunk_code(self, code: str, file_path: Path | str) -> list[CodeChunk]:
-        """
-        Chunk Python code into semantic units.
+        """Chunk Python code into semantic units.
 
         Args:
             code: Python source code
@@ -78,6 +75,7 @@ class HierarchicalChunker:
 
         Returns:
             List of CodeChunk objects
+
         """
         chunks = [],
         file_path = Path(file_path)
@@ -105,7 +103,7 @@ class HierarchicalChunker:
                 for item in node.body:
                     if isinstance(item, ast.FunctionDef):
                         method_chunk = self._process_function(
-                            item, file_path, file_metadata, module_imports, parent_class=node.name
+                            item, file_path, file_metadata, module_imports, parent_class=node.name,
                         )
                         if method_chunk:
                             chunks.append(method_chunk)
@@ -136,7 +134,7 @@ class HierarchicalChunker:
         return imports
 
     def _process_class(
-        self, node: ast.ClassDef, file_path: Path, file_metadata: dict[str, Any], module_imports: list[str]
+        self, node: ast.ClassDef, file_path: Path, file_metadata: dict[str, Any], module_imports: list[str],
     ) -> CodeChunk | None:
         """Process a class definition node."""
         try:
@@ -246,8 +244,7 @@ class HierarchicalChunker:
         return f"def {node.name}({params_str}){returns_str}:"
 
     def _create_enriched_code(self, signature: str, docstring: str, code: str) -> str:
-        """
-        Create enriched code for embedding.
+        """Create enriched code for embedding.
 
         Prepends signature and docstring to code for better semantic representation.
         """
@@ -264,10 +261,9 @@ class HierarchicalChunker:
         """Get name from an AST expression node."""
         if isinstance(node, ast.Name):
             return node.id
-        elif isinstance(node, ast.Attribute):
+        if isinstance(node, ast.Attribute):
             return ast.unparse(node)
-        else:
-            return ast.unparse(node)
+        return ast.unparse(node)
 
     def _is_inside_class(self, func_node: ast.FunctionDef, tree: ast.Module) -> bool:
         """Check if a function node is inside a class definition."""
@@ -279,8 +275,7 @@ class HierarchicalChunker:
         return False
 
     def chunk_markdown(self, file_path: Path | str) -> list[CodeChunk]:
-        """
-        Chunk markdown files for architectural memory.
+        """Chunk markdown files for architectural memory.
 
         Splits markdown documents on headers (##) treating each section as a chunk.
         Preserves architectural knowledge from documentation, READMEs, migration guides.
@@ -290,6 +285,7 @@ class HierarchicalChunker:
 
         Returns:
             List of CodeChunk objects with documentation content
+
         """
         file_path = Path(file_path)
 
@@ -405,10 +401,9 @@ class HierarchicalChunker:
             return None
 
     def chunk_directory(
-        self, directory: Path | str, recursive: bool = True, exclude_patterns: list[str] | None = None
+        self, directory: Path | str, recursive: bool = True, exclude_patterns: list[str] | None = None,
     ) -> list[CodeChunk]:
-        """
-        Chunk all Python files in a directory.
+        """Chunk all Python files in a directory.
 
         Args:
             directory: Directory to scan
@@ -417,6 +412,7 @@ class HierarchicalChunker:
 
         Returns:
             List of all chunks from all files
+
         """
         directory = Path(directory),
         exclude_patterns = exclude_patterns or ["__pycache__", ".pyc", "test_"]
@@ -440,10 +436,9 @@ class HierarchicalChunker:
         return all_chunks
 
     def chunk_all_files(
-        self, directory: Path | str, recursive: bool = True, include_markdown: bool = True
+        self, directory: Path | str, recursive: bool = True, include_markdown: bool = True,
     ) -> list[CodeChunk]:
-        """
-        Chunk all supported files (Python and optionally markdown) in a directory.
+        """Chunk all supported files (Python and optionally markdown) in a directory.
 
         Args:
             directory: Directory to scan
@@ -452,6 +447,7 @@ class HierarchicalChunker:
 
         Returns:
             List of all chunks from all files
+
         """
         directory = Path(directory),
         all_chunks = []
@@ -481,8 +477,7 @@ class HierarchicalChunker:
         return all_chunks
 
     def chunk_yaml(self, file_path: Path | str) -> list[CodeChunk]:
-        """
-        Chunk YAML files for configuration understanding.
+        """Chunk YAML files for configuration understanding.
 
         Splits YAML documents on top-level keys, treating each major section
         as a chunk. Useful for indexing CI/CD workflows, configuration files,
@@ -493,6 +488,7 @@ class HierarchicalChunker:
 
         Returns:
             List of CodeChunk objects with YAML configuration content
+
         """
         file_path = Path(file_path)
 
@@ -505,7 +501,7 @@ class HierarchicalChunker:
             return []
 
         try:
-            import yaml  # noqa: F401
+            import yaml
         except ImportError:
             logger.error("PyYAML not installed. Run: pip install pyyaml")
             return []
@@ -609,12 +605,11 @@ class HierarchicalChunker:
                         "type": "yaml",
                         "parse_error": str(e),
                     },
-                )
+                ),
             ]
 
     def chunk_toml(self, file_path: Path | str) -> list[CodeChunk]:
-        """
-        Chunk TOML files for configuration understanding.
+        """Chunk TOML files for configuration understanding.
 
         Splits TOML documents on table headers ([section.name]), treating
         each table as a chunk. Useful for indexing pyproject.toml, configuration
@@ -625,6 +620,7 @@ class HierarchicalChunker:
 
         Returns:
             List of CodeChunk objects with TOML configuration content
+
         """
         file_path = Path(file_path)
 
@@ -637,7 +633,7 @@ class HierarchicalChunker:
             return []
 
         try:
-            import tomli  # noqa: F401
+            import tomli
         except ImportError:
             logger.error("tomli not installed. Run: pip install tomli")
             return []
@@ -727,7 +723,7 @@ class HierarchicalChunker:
                             "table": "root",
                             "parent_file": file_path.name,
                         },
-                    )
+                    ),
                 )
 
             logger.info(f"Chunked TOML {file_path.name}: {len(chunks)} tables")
@@ -747,5 +743,5 @@ class HierarchicalChunker:
                         "type": "toml",
                         "parse_error": str(e),
                     },
-                )
+                ),
             ]

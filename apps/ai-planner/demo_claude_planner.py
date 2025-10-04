@@ -20,7 +20,6 @@ from hive_db import get_connection, init_db
 
 def demonstrate_claude_planning() -> None:
     """Demonstrate the complete Claude-powered planning workflow"""
-
     logger.info("=" * 70)
     logger.info("AI PLANNER PHASE 2 - CLAUDE INTEGRATION DEMONSTRATION")
     logger.info("=" * 70)

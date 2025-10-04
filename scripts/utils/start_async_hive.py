@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Async Hive Startup Script - V4.0 Phase 2
+"""Async Hive Startup Script - V4.0 Phase 2
 Launch high-performance async orchestrator and workers
 """
 

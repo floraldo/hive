@@ -1,5 +1,4 @@
-"""
-SQLite database connector for Hive applications.
+"""SQLite database connector for Hive applications.
 
 Provides simple, reliable SQLite connectivity for development and lightweight production use.
 """
@@ -21,8 +20,7 @@ def get_sqlite_connection(
     config: dict[str, Any] | None = None,
     **kwargs,
 ) -> sqlite3.Connection:
-    """
-    Get a SQLite database connection.
+    """Get a SQLite database connection.
 
     Args:
         db_path: Path to the SQLite database file (overrides config),
@@ -42,6 +40,7 @@ def get_sqlite_connection(
             'timeout': 30.0,
             'check_same_thread': False,
         }
+
     """
     # If no config provided, create minimal config (db_path can be sufficient)
     if config is None:
@@ -84,8 +83,7 @@ def get_sqlite_connection(
 
 @contextmanager
 def sqlite_transaction(db_path: str | None = None, config: dict[str, Any] | None = None, **kwargs) -> None:
-    """
-    Context manager for SQLite transactions.
+    """Context manager for SQLite transactions.
 
     Args:
         db_path: Path to the SQLite database file (overrides config)
@@ -101,6 +99,7 @@ def sqlite_transaction(db_path: str | None = None, config: dict[str, Any] | None
             conn.execute("INSERT INTO users (name) VALUES (?)", ("Alice",))
             conn.execute("INSERT INTO users (name) VALUES (?)", ("Bob",))
             # Transaction commits automatically on success
+
     """
     conn = None
     try:

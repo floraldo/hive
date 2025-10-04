@@ -1,5 +1,4 @@
-"""
-Guardian Write Mode - Active Code Improvement.
+"""Guardian Write Mode - Active Code Improvement.
 
 Evolves Guardian from read-only advisor to active participant that can
 propose and apply safe code changes. Implements progressive complexity
@@ -106,8 +105,7 @@ class ChangeCategory(Enum):
 
 @dataclass
 class ChangeProposal:
-    """
-    Proposed code change with safety metadata.
+    """Proposed code change with safety metadata.
 
     Represents a single atomic change Guardian wants to make,
     with full context for review and rollback.
@@ -186,8 +184,7 @@ class ChangeProposal:
 
 @dataclass
 class SafetyGate:
-    """
-    Safety gate for validating changes before application.
+    """Safety gate for validating changes before application.
 
     Implements progressive validation based on change level.
     """
@@ -202,11 +199,11 @@ class SafetyGate:
         return proposal.level in self.required_for_levels
 
     async def validate(self, proposal: ChangeProposal) -> tuple[bool, str]:
-        """
-        Validate proposal through this gate.
+        """Validate proposal through this gate.
 
         Returns:
             (passed, message) tuple
+
         """
         try:
             result = await self.validation_fn(proposal)
@@ -215,7 +212,7 @@ class SafetyGate:
             return result
         except Exception as e:
             logger.error(f"Safety gate {self.name} failed: {e}")
-            return False, f"Gate error: {str(e)}"
+            return False, f"Gate error: {e!s}"
 
 
 class WriteModeConfig:
@@ -229,8 +226,7 @@ class WriteModeConfig:
         auto_commit: bool = False,
         dry_run: bool = True,
     ):
-        """
-        Initialize Write Mode configuration.
+        """Initialize Write Mode configuration.
 
         Args:
             enabled_levels: Levels allowed for automatic application
@@ -238,6 +234,7 @@ class WriteModeConfig:
             require_approval: Require human approval before applying
             auto_commit: Automatically commit approved changes
             dry_run: Run in simulation mode (no actual changes)
+
         """
         # Default to safest level only
         self.enabled_levels = enabled_levels or [ChangeLevel.LEVEL_1_TYPO]

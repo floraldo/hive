@@ -1,5 +1,4 @@
-"""
-Embedding generation for code chunks with caching and batch processing.
+"""Embedding generation for code chunks with caching and batch processing.
 
 Provides sentence-transformers integration with intelligent caching
 using hive-cache for performance optimization.
@@ -23,8 +22,7 @@ logger = get_logger(__name__)
 
 
 class EmbeddingGenerator:
-    """
-    Generate embeddings for code chunks using sentence-transformers.
+    """Generate embeddings for code chunks using sentence-transformers.
 
     Features:
     - Multi-level caching (hot cache + Redis via hive-cache)
@@ -39,13 +37,13 @@ class EmbeddingGenerator:
         cache_ttl: int = 604800,  # 1 week
         device: str | None = None,
     ):
-        """
-        Initialize embedding generator.
+        """Initialize embedding generator.
 
         Args:
             model_name: HuggingFace model name (default: all-MiniLM-L6-v2, 384-dim)
             cache_ttl: Cache TTL in seconds (default: 1 week)
             device: Device to use ('cpu', 'cuda', or None for auto)
+
         """
         self.model_name = model_name
         self.cache_ttl = cache_ttl
@@ -61,14 +59,14 @@ class EmbeddingGenerator:
         self.hot_cache: dict[str, np.ndarray] = {}  # In-memory cache
 
     def generate_embedding(self, text: str) -> np.ndarray:
-        """
-        Generate embedding for a single text.
+        """Generate embedding for a single text.
 
         Args:
             text: Text to embed
 
         Returns:
             Numpy array with embedding vector
+
         """
         # Check hot cache
         cache_key = self._compute_cache_key(text)
@@ -97,8 +95,7 @@ class EmbeddingGenerator:
         return embedding
 
     def generate_embeddings_batch(self, texts: list[str], batch_size: int = 32) -> list[np.ndarray]:
-        """
-        Generate embeddings for multiple texts efficiently.
+        """Generate embeddings for multiple texts efficiently.
 
         Args:
             texts: List of texts to embed
@@ -106,6 +103,7 @@ class EmbeddingGenerator:
 
         Returns:
             List of numpy arrays with embedding vectors
+
         """
         embeddings = ([],)
         uncached_texts = ([],)
@@ -156,8 +154,7 @@ class EmbeddingGenerator:
         return [emb for _, emb in embeddings]
 
     def embed_chunk(self, chunk: CodeChunk) -> CodeChunk:
-        """
-        Generate and attach embedding to a CodeChunk.
+        """Generate and attach embedding to a CodeChunk.
 
         Uses chunk.get_enriched_code() for better semantic representation.
 
@@ -166,6 +163,7 @@ class EmbeddingGenerator:
 
         Returns:
             Same CodeChunk with embedding attached
+
         """
         enriched_code = (chunk.get_enriched_code(),)
         embedding = self.generate_embedding(enriched_code)
@@ -173,8 +171,7 @@ class EmbeddingGenerator:
         return chunk
 
     def embed_chunks_batch(self, chunks: list[CodeChunk], batch_size: int = 32) -> list[CodeChunk]:
-        """
-        Generate embeddings for multiple chunks efficiently.
+        """Generate embeddings for multiple chunks efficiently.
 
         Args:
             chunks: List of CodeChunks to embed
@@ -182,6 +179,7 @@ class EmbeddingGenerator:
 
         Returns:
             Same chunks with embeddings attached
+
         """
         # Extract enriched code from all chunks
         texts = [chunk.get_enriched_code() for chunk in chunks]
@@ -197,8 +195,7 @@ class EmbeddingGenerator:
         return chunks
 
     def _compute_cache_key(self, text: str) -> str:
-        """
-        Compute cache key for text.
+        """Compute cache key for text.
 
         Uses SHA-256 hash of text + model name for uniqueness.
         """

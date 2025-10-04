@@ -1,5 +1,4 @@
-"""
-Property-based tests for graph algorithms using Hypothesis.
+"""Property-based tests for graph algorithms using Hypothesis.
 
 This demonstrates the power of property-based testing for finding edge cases
 in algorithmic code that traditional example-based tests might miss.
@@ -55,7 +54,7 @@ class TestGraphAlgorithmProperties:
             if intermediate in nx_distances:
                 for neighbor in G.neighbors(intermediate):
                     if neighbor in nx_distances:
-                        edge_weight = G[intermediate][neighbor]['weight']
+                        edge_weight = G[intermediate][neighbor]["weight"]
                         direct_dist = nx_distances[neighbor]
                         via_intermediate = nx_distances[intermediate] + edge_weight
                         assert direct_dist <= via_intermediate
@@ -89,7 +88,7 @@ class TestGraphAlgorithmProperties:
         n = len(weights)
         assume(n >= 2)
         G = nx.path_graph(n)
-        coloring = nx.greedy_color(G, strategy='largest_first')
+        coloring = nx.greedy_color(G, strategy="largest_first")
         for u, v in G.edges():
             assert coloring[u] != coloring[v]
         num_colors = len(set(coloring.values()))
@@ -141,7 +140,7 @@ class TestGraphAlgorithmProperties:
         try:
             is_bipartite = nx.is_bipartite(G)
             if is_bipartite:
-                coloring = nx.greedy_color(G, strategy='largest_first')
+                coloring = nx.greedy_color(G, strategy="largest_first")
                 num_colors = len(set(coloring.values()))
                 assert num_colors <= 2
                 partition = nx.bipartite.sets(G)
@@ -176,5 +175,5 @@ class TestAlgorithmIntegration:
             assert reference_distances[source] == 0
         except nx.NetworkXNoPath:
             assume(False)
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--tb=short'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])

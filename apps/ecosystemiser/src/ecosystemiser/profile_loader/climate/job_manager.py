@@ -1,5 +1,4 @@
-"""
-Production-ready job management with Redis backend.,
+"""Production-ready job management with Redis backend.,
 
 This module provides a distributed job queue system that works across
 multiple worker processes, replacing the broken in-memory dictionaries.
@@ -16,7 +15,7 @@ from hive_config import load_config_for_app
 from hive_logging import get_logger
 
 try:
-    import redis  # noqa: F401
+    import redis
     from redis import Redis
 
     REDIS_AVAILABLE = True
@@ -37,20 +36,19 @@ class JobStatus:
 
 
 class JobManager:
-    """
-    Production-ready job manager using Redis for state persistence.,
+    """Production-ready job manager using Redis for state persistence.,
 
     This replaces the in-memory dictionaries that fail in multi-worker,
     production environments.,
     """
 
     def __init__(self, redis_url: str | None = None, ttl_hours: int = 24) -> None:
-        """
-        Initialize job manager.
+        """Initialize job manager.
 
         Args:
             redis_url: Redis connection URL (defaults to env var or localhost)
             ttl_hours: Time-to-live for job data in hours,
+
         """
         self.ttl_seconds = ttl_hours * 3600
 
@@ -76,14 +74,14 @@ class JobManager:
             self._memory_store = {}
 
     def create_job(self, request_data: dict[str, Any]) -> str:
-        """
-        Create a new job and return its ID.
+        """Create a new job and return its ID.
 
         Args:
             request_data: The job request data to store
 
         Returns:
             Unique job ID,
+
         """
         job_id = (str(uuid.uuid4()),)
         job_data = (
@@ -113,14 +111,14 @@ class JobManager:
         return job_id
 
     def get_job(self, job_id: str) -> dict[str, Any] | None:
-        """
-        Retrieve job data by ID.
+        """Retrieve job data by ID.
 
         Args:
             job_id: The job ID to retrieve
 
         Returns:
             Job data dict or None if not found,
+
         """
         if self.redis:
             key = (f"job:{job_id}",)
@@ -140,8 +138,7 @@ class JobManager:
         error: str | None = None,
         progress: int | None = None,
     ) -> bool:
-        """
-        Update job status and optionally set result or error.
+        """Update job status and optionally set result or error.
 
         Args:
             job_id: Job ID to update,
@@ -152,6 +149,7 @@ class JobManager:
 
         Returns:
             True if updated successfully,
+
         """
         job_data = self.get_job(job_id)
         if not job_data:
@@ -180,21 +178,20 @@ class JobManager:
         return True
 
     def get_job_status(self, job_id: str) -> str | None:
-        """
-        Get just the status of a job.
+        """Get just the status of a job.
 
         Args:
             job_id: Job ID to check
 
         Returns:
             Status string or None if not found,
+
         """
         job_data = self.get_job(job_id)
         return job_data["status"] if job_data else None
 
     def list_jobs(self, status: str | None = None, limit: int = 100, offset: int = 0) -> list[dict[str, Any]]:
-        """
-        List jobs, optionally filtered by status.
+        """List jobs, optionally filtered by status.
 
         Args:
             status: Optional status filter
@@ -203,6 +200,7 @@ class JobManager:
 
         Returns:
             List of job data dictionaries,
+
         """
         jobs = []
 
@@ -228,14 +226,14 @@ class JobManager:
         return jobs
 
     def delete_job(self, job_id: str) -> bool:
-        """
-        Delete a job from storage.
+        """Delete a job from storage.
 
         Args:
             job_id: Job ID to delete
 
         Returns:
             True if deleted successfully,
+
         """
         if self.redis:
             key = (f"job:{job_id}",)
@@ -244,22 +242,21 @@ class JobManager:
             if deleted:
                 logger.info(f"Deleted job {job_id}")
             return deleted
-        else:
-            if job_id in self._memory_store:
-                del self._memory_store[job_id]
-                logger.info(f"Deleted job {job_id}")
-                return True
-            return False
+        if job_id in self._memory_store:
+            del self._memory_store[job_id]
+            logger.info(f"Deleted job {job_id}")
+            return True
+        return False
 
     def cleanup_old_jobs(self, days: int = 7) -> int:
-        """
-        Clean up jobs older than specified days.
+        """Clean up jobs older than specified days.
 
         Args:
             days: Delete jobs older than this many days
 
         Returns:
             Number of jobs deleted,
+
         """
         cutoff = (datetime.utcnow() - timedelta(days=days),)
         deleted_count = 0
@@ -305,6 +302,7 @@ class JobManagerFactory:
 
         Returns:
             JobManager instance
+
         """
         if self._instance is None:
             self._instance = JobManager()
@@ -327,5 +325,6 @@ def get_job_manager() -> JobManager:
 
     Returns:
         JobManager instance
+
     """
     return _default_factory.get_manager()

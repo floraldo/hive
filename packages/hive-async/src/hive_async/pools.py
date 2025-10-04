@@ -105,8 +105,7 @@ class ConnectionPool(Generic[T]):
             async with self._lock:
                 if len(self._connections) < self.config.max_size:
                     return await self._create_new_connection_async()
-                else:
-                    raise RuntimeError("Pool exhausted and max size reached")
+                raise RuntimeError("Pool exhausted and max size reached")
 
     async def release_async(self, connection: T) -> None:
         """Release a connection back to the pool."""

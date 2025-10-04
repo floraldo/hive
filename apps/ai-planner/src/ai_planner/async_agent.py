@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AsyncAIPlanner - High-Performance Async AI Planning Agent for V4.2
+"""AsyncAIPlanner - High-Performance Async AI Planning Agent for V4.2
 
 Fully async AI planner agent with non-blocking operations, concurrent task processing
 and integration with the V4.0 async infrastructure.
@@ -42,8 +41,7 @@ class PlanningPriority(Enum):
 
 
 class AsyncClaudeService:
-    """
-    Async version of Claude service for non-blocking plan generation
+    """Async version of Claude service for non-blocking plan generation
     """
 
     def __init__(self, config, rate_config=None) -> None:
@@ -61,8 +59,7 @@ class AsyncClaudeService:
         requestor: str,
         use_cache: bool = True,
     ) -> dict[str, Any]:
-        """
-        Generate an execution plan asynchronously
+        """Generate an execution plan asynchronously
 
         Args:
             task_description: Description of the task to plan
@@ -73,6 +70,7 @@ class AsyncClaudeService:
 
         Returns:
             Dict containing plan_id, plan_name, sub_tasks, and metrics
+
         """
         async with self._semaphore:
             # Rate limiting check
@@ -110,15 +108,14 @@ class AsyncClaudeService:
                         "generation_timestamp": datetime.now(UTC).isoformat(),
                     },
                 }
-            else:
-                # Use actual Claude API integration asynchronously
-                return await self._call_claude_for_planning_async(
-                    task_description=task_description,
-                    context_data=context_data,
-                    priority=priority,
-                    requestor=requestor,
-                    use_cache=use_cache,
-                )
+            # Use actual Claude API integration asynchronously
+            return await self._call_claude_for_planning_async(
+                task_description=task_description,
+                context_data=context_data,
+                priority=priority,
+                requestor=requestor,
+                use_cache=use_cache,
+            )
 
     async def _check_rate_limits_async(self) -> None:
         """Check and enforce rate limits"""
@@ -146,10 +143,9 @@ class AsyncClaudeService:
 
         if any(word in desc_lower for word in ["simple", "basic", "quick", "small"]):
             return "low"
-        elif any(word in desc_lower for word in ["complex", "advanced", "large", "system"]):
+        if any(word in desc_lower for word in ["complex", "advanced", "large", "system"]):
             return "high"
-        else:
-            return "medium"
+        return "medium"
 
     async def _generate_mock_subtasks_async(
         self,
@@ -288,7 +284,7 @@ class AsyncClaudeService:
                 return self._convert_claude_response_to_async_format(validated_response.dict(), requestor, priority)
             except Exception as e:
                 logger.error(f"Claude response validation failed: {e}")
-                return bridge._create_fallback_response(task_description, f"Response validation error: {str(e)}")
+                return bridge._create_fallback_response(task_description, f"Response validation error: {e!s}")
 
         except TimeoutError:
             logger.error("Claude CLI timed out during planning")
@@ -297,7 +293,7 @@ class AsyncClaudeService:
         except Exception as e:
             logger.error(f"Unexpected error during Claude planning: {e}")
             bridge = RobustClaudePlannerBridge(mock_mode=False)
-            return bridge._create_fallback_response(task_description, f"Unexpected error: {str(e)}")
+            return bridge._create_fallback_response(task_description, f"Unexpected error: {e!s}")
 
     async def _find_claude_cmd_async(self) -> str | None:
         """Find Claude CLI command asynchronously"""
@@ -397,8 +393,7 @@ class AsyncClaudeService:
 
 
 class AsyncAIPlanner:
-    """
-    High-performance async AI planner agent with V4.2 optimizations
+    """High-performance async AI planner agent with V4.2 optimizations
 
     Features:
     - Non-blocking task processing

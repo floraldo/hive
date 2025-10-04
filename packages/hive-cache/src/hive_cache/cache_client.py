@@ -33,18 +33,16 @@ logger = get_logger(__name__)
 
 
 class HiveCacheClient:
-    """
+    """High-performance async Redis cache client with circuit breaker protection.
 
-        High-performance async Redis cache client with circuit breaker protection.
-
-        Features:
-        - Async Redis operations with connection pooling
-        - Circuit breaker for resilience
-        - Intelligent serialization (MessagePack, JSON, binary)
-        - Compression for large payloads
-        - TTL management with smart defaults
-        - Key namespacing and pattern operations
-        - Health monitoring and metrics
+    Features:
+    - Async Redis operations with connection pooling
+    - Circuit breaker for resilience
+    - Intelligent serialization (MessagePack, JSON, binary)
+    - Compression for large payloads
+    - TTL management with smart defaults
+    - Key namespacing and pattern operations
+    - Health monitoring and metrics
     """
 
     def __init__(self, config: CacheConfig) -> None:
@@ -208,13 +206,12 @@ class HiveCacheClient:
 
             if self.config.serialization_format == "msgpack":
                 return msgpack.unpackb(data, raw=False)
-            elif self.config.serialization_format == "orjson":
+            if self.config.serialization_format == "orjson":
                 return orjson.loads(data)
-            elif self.config.serialization_format == "json":
+            if self.config.serialization_format == "json":
                 return json.loads(data.decode("utf-8"))
-            else:
-                # Default to orjson for best performance
-                return orjson.loads(data)
+            # Default to orjson for best performance
+            return orjson.loads(data)
 
         except Exception as e:
             # Try JSON fallback if enabled
@@ -223,7 +220,6 @@ class HiveCacheClient:
                     return json.loads(data.decode("utf-8"))
                 except Exception as e:
                     logger.warning(f"JSON fallback deserialization failed: {e}")
-                    pass
 
             raise CacheSerializationError(f"Failed to deserialize value: {e}")
 
@@ -250,6 +246,7 @@ class HiveCacheClient:
 
         Returns:
             True if value was set_async successfully
+
         """
 
         async def _set_implementation():
@@ -270,8 +267,7 @@ class HiveCacheClient:
             async def _set_operation_async():
                 if overwrite:
                     return await self._redis_client.setex(cache_key, ttl_async, serialized_value)
-                else:
-                    return await self._redis_client.set(cache_key, serialized_value, ex=ttl_async, nx=True)
+                return await self._redis_client.set(cache_key, serialized_value, ex=ttl_async, nx=True)
 
             result = await self._execute_with_circuit_breaker_async(_set_operation_async)
             self._metrics["sets"] += 1
@@ -295,6 +291,7 @@ class HiveCacheClient:
 
         Returns:
             Cached value or default
+
         """
 
         async def _get_implementation():
@@ -344,6 +341,7 @@ class HiveCacheClient:
 
         Returns:
             Cached or computed value
+
         """
         # Try to get_async from cache first
         value = await self.get_async(key, namespace)
@@ -371,6 +369,7 @@ class HiveCacheClient:
 
         Returns:
             True if key was deleted
+
         """
         try:
             # Generate namespaced key
@@ -399,6 +398,7 @@ class HiveCacheClient:
 
         Returns:
             Number of keys deleted
+
         """
         try:
             # Generate namespaced pattern
@@ -430,6 +430,7 @@ class HiveCacheClient:
 
         Returns:
             True if key exists_async
+
         """
         try:
             # Generate namespaced key
@@ -456,6 +457,7 @@ class HiveCacheClient:
 
         Returns:
             TTL in seconds (-1 if no expiry, -2 if key doesn't exist)
+
         """
         try:
             # Generate namespaced key
@@ -482,6 +484,7 @@ class HiveCacheClient:
 
         Returns:
             True if TTL was updated
+
         """
         try:
             # Generate namespaced key
@@ -514,6 +517,7 @@ class HiveCacheClient:
 
         Yields:
             Matching keys (without namespace prefix)
+
         """
         try:
             # Generate namespaced pattern
@@ -545,6 +549,7 @@ class HiveCacheClient:
 
         Returns:
             Dictionary of key-value pairs (missing keys omitted)
+
         """
         try:
             # Generate namespaced keys
@@ -591,6 +596,7 @@ class HiveCacheClient:
 
         Returns:
             True if all values were set_async
+
         """
         try:
             # Use namespace-specific TTL if not provided
@@ -623,6 +629,7 @@ class HiveCacheClient:
 
         Returns:
             Health status dictionary
+
         """
         try:
             start_time = time.time()
@@ -666,6 +673,7 @@ class HiveCacheClient:
 
         Returns:
             Metrics dictionary
+
         """
         total_operations = self._metrics["hits"] + self._metrics["misses"],
         hit_rate = (self._metrics["hits"] / total_operations * 100) if total_operations > 0 else 0
@@ -687,6 +695,7 @@ class HiveCacheClient:
 
         Returns:
             Performance metrics dictionary or None if monitoring is disabled
+
         """
         if not self._performance_monitor:
             return None
@@ -731,6 +740,7 @@ async def get_cache_client_async(config: CacheConfig | None = None) -> HiveCache
 
     Returns:
         HiveCacheClient instance
+
     """
     global _global_cache_client
 

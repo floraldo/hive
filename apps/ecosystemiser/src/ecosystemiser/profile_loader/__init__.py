@@ -18,17 +18,17 @@ process_climate_request = get_profile_sync
 get_profile = get_profile_sync
 
 __all__ = [
-    # Climate service interface
-    "get_climate_service",
-    "process_climate_request",
     # Base models
     "BaseProfileRequest",
     "BaseProfileResponse",
-    "ProfileMode",
     # Climate-specific models
     "ClimateRequest",
     "ClimateResponse",
+    "ProfileMode",
+    # Climate service interface
+    "get_climate_service",
     # Legacy compatibility
     "get_profile",
     "get_profile_sync",
+    "process_climate_request",
 ]

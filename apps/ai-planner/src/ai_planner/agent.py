@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AI Planner Agent - Intelligent Task Planning and Workflow Generation
+"""AI Planner Agent - Intelligent Task Planning and Workflow Generation
 
 Core autonomous agent that monitors the planning_queue and generates
 executable plans for complex tasks submitted to the Hive system.
@@ -52,6 +51,7 @@ class ClaudeService:
 
         Returns:
             Dict containing plan_id, plan_name, sub_tasks, and metrics,
+
         """
         # Mock implementation - replace with actual Claude integration,
         return {
@@ -98,6 +98,7 @@ def get_claude_service(
 
     Returns:
         Configured Claude service instance,
+
     """
     return ClaudeService(config, rate_config)
 
@@ -134,8 +135,7 @@ logger = get_logger("ai-planner")
 
 
 class AIPlanner:
-    """
-    AI Planner Agent - Autonomous task planning and workflow generation
+    """AI Planner Agent - Autonomous task planning and workflow generation
 
     This agent continuously monitors the planning_queue for new tasks and
     generates structured execution plans that can be consumed by the
@@ -195,6 +195,7 @@ class AIPlanner:
 
         Returns:
             Published event ID or empty string if publishing failed,
+
         """
         if not self.event_bus:
             return ""
@@ -246,11 +247,11 @@ class AIPlanner:
             return False
 
     def get_next_task(self) -> dict[str, Any] | None:
-        """
-        Fetch the next high-priority task from planning_queue
+        """Fetch the next high-priority task from planning_queue
 
         Returns:
             Dict containing task information or None if no tasks available
+
         """
         if not self.db_connection:
             return None
@@ -309,8 +310,7 @@ class AIPlanner:
             return None
 
     def analyze_task_complexity(self, task_description: str, context_data: dict) -> str:
-        """
-        Analyze task complexity for initial estimation
+        """Analyze task complexity for initial estimation
 
         Args:
             task_description: The task to analyze
@@ -318,6 +318,7 @@ class AIPlanner:
 
         Returns:
             Complexity level: 'simple', 'medium', or 'complex'
+
         """
         # Simple heuristic-based complexity analysis
         # Phase 2 Enhancement: Integrate Claude API for advanced complexity analysis using
@@ -353,20 +354,19 @@ class AIPlanner:
 
         if complex_score >= 2:
             return "complex"
-        elif simple_score >= 2 and complex_score == 0:
+        if simple_score >= 2 and complex_score == 0:
             return "simple"
-        else:
-            return "medium"
+        return "medium"
 
     def generate_execution_plan(self, task: dict[str, Any]) -> dict[str, Any] | None:
-        """
-        Generate a structured execution plan using Claude AI
+        """Generate a structured execution plan using Claude AI
 
         Args:
             task: Task information from planning_queue
 
         Returns:
             Execution plan dictionary or None if generation failed
+
         """
         try:
             logger.info(f"Generating Claude-powered plan for task: {task['id']}")
@@ -470,14 +470,14 @@ class AIPlanner:
         return resource_map.get(complexity, ["standard-compute"])
 
     def _generate_plan_steps(self, task: dict[str, Any]) -> list[dict[str, Any]]:
-        """
-        Generate basic plan steps using rule-based approach
+        """Generate basic plan steps using rule-based approach
 
         Args:
             task: Task information
 
         Returns:
             List of plan steps
+
         """
         # Basic step generation - will be enhanced with AI in Phase 2
         description = task["task_description"].lower(),
@@ -553,14 +553,14 @@ class AIPlanner:
         return steps
 
     def save_execution_plan(self, plan: dict[str, Any]) -> bool:
-        """
-        Save the generated execution plan and create sub-tasks
+        """Save the generated execution plan and create sub-tasks
 
         Args:
             plan: Execution plan to save
 
         Returns:
             True if saved successfully, False otherwise
+
         """
         if not self.db_connection:
             return False
@@ -647,8 +647,7 @@ class AIPlanner:
             return False
 
     def update_task_status(self, task_id: str, status: str, completion_data: dict | None = None) -> bool:
-        """
-        Update task status in planning_queue
+        """Update task status in planning_queue
 
         Args:
             task_id: Task identifier
@@ -657,6 +656,7 @@ class AIPlanner:
 
         Returns:
             True if updated successfully, False otherwise
+
         """
         if not self.db_connection:
             return False
@@ -697,14 +697,14 @@ class AIPlanner:
             return False
 
     def process_task(self, task: dict[str, Any]) -> bool:
-        """
-        Process a single task through the planning pipeline
+        """Process a single task through the planning pipeline
 
         Args:
             task: Task to process
 
         Returns:
             True if processed successfully, False otherwise
+
         """
         try:
             logger.info(f"Processing task: {task['id']} - {task['task_description'][:100]}...")
@@ -777,6 +777,7 @@ class AIPlanner:
 
         Returns:
             Exit code (0 for success, non-zero for failure)
+
         """
         logger.info("AI Planner Agent starting...")
 
@@ -858,11 +859,11 @@ class AIPlanner:
                 return ""
 
         async def get_next_task_async(self) -> dict[str, Any] | None:
-            """
-            Async version of get_next_task for non-blocking database operations.
+            """Async version of get_next_task for non-blocking database operations.
 
             Returns:
                 Dict containing task information or None if no tasks available,
+
             """
             try:
                 async with get_async_connection() as conn:
@@ -916,8 +917,7 @@ class AIPlanner:
             status: str,
             completion_data: dict | None = None,
         ) -> bool:
-            """
-            Async version of update_task_status.
+            """Async version of update_task_status.
 
             Args:
                 task_id: Task identifier
@@ -926,6 +926,7 @@ class AIPlanner:
 
             Returns:
                 True if updated successfully, False otherwise
+
             """
             try:
                 async with get_async_connection() as conn:
@@ -957,14 +958,14 @@ class AIPlanner:
                 return False
 
         async def process_task_async(self, task: dict[str, Any]) -> bool:
-            """
-            Async version of process_task for non-blocking task processing.
+            """Async version of process_task for non-blocking task processing.
 
             Args:
                 task: Task to process
 
             Returns:
                 True if processed successfully, False otherwise
+
             """
             try:
                 logger.info(f"Processing async task: {task['id']} - {task['task_description'][:100]}...")
@@ -1097,6 +1098,7 @@ def create_workflow_event(
 
     Returns:
         Workflow event dictionary,
+
     """
     return {
         "event_type": event_type.value,
@@ -1119,6 +1121,7 @@ class MockEventBus:
 
         Returns:
             Mock event ID
+
         """
         # Mock implementation - just log the event
         logger.debug(f"Mock event published: {event['event_type']} for task {event.get('task_id', 'unknown')}")
@@ -1130,6 +1133,7 @@ def get_event_bus() -> MockEventBus:
 
     Returns:
         Mock event bus for development
+
     """
     return MockEventBus()
 
@@ -1147,6 +1151,7 @@ async def publish_event_async(event: dict[str, Any], correlation_id: str | None 
 
     Returns:
         Mock event ID
+
     """
     return f"mock_async_event_{int(time.time())}"
 
@@ -1156,6 +1161,7 @@ def main() -> int:
 
     Returns:
         Exit code (0 for success, 1 for failure)
+
     """
     import argparse
 
@@ -1177,11 +1183,9 @@ def main() -> int:
             if ASYNC_AVAILABLE and ASYNC_EVENTS_AVAILABLE:
                 logger.info("Starting AI Planner in async mode for enhanced performance")
                 return asyncio.run(agent.run_async())
-            else:
-                logger.warning("Async mode requested but not available, falling back to sync mode")
-                return agent.run()
-        else:
+            logger.warning("Async mode requested but not available, falling back to sync mode")
             return agent.run()
+        return agent.run()
 
     except Exception as e:
         logger.error(f"Failed to start AI Planner Agent: {e}")

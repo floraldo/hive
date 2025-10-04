@@ -1,5 +1,4 @@
-"""
-Worker Fleet Monitor - Real-time Dashboard
+"""Worker Fleet Monitor - Real-time Dashboard
 
 Displays real-time status of autonomous QA worker fleet with:
 - Worker health and status
@@ -36,8 +35,7 @@ logger = get_logger(__name__)
 
 
 class WorkerFleetMonitor:
-    """
-    Real-time monitoring dashboard for worker fleet.
+    """Real-time monitoring dashboard for worker fleet.
 
     Features:
     - Live worker status table
@@ -145,7 +143,7 @@ class WorkerFleetMonitor:
         self.escalations.append(escalation)
 
         self.add_activity(
-            f"[{worker_id}] 🚨 ESCALATION: {task_id} - {reason}", "escalation"
+            f"[{worker_id}] 🚨 ESCALATION: {task_id} - {reason}", "escalation",
         )
 
     def add_activity(self, message: str, level: str = "info") -> None:
@@ -155,7 +153,7 @@ class WorkerFleetMonitor:
                 "timestamp": datetime.now(UTC),
                 "message": message,
                 "level": level,
-            }
+            },
         )
 
         # Keep only last 20 activities
@@ -293,7 +291,7 @@ class WorkerFleetMonitor:
             reason = esc["reason"]
 
             lines.append(
-                Text(f"{timestamp} [{worker_id}] {task_id}: {reason}", style="yellow")
+                Text(f"{timestamp} [{worker_id}] {task_id}: {reason}", style="yellow"),
             )
 
         return Panel(
@@ -313,15 +311,15 @@ class WorkerFleetMonitor:
         )
 
         layout["body"].split_row(
-            Layout(name="left", ratio=2), Layout(name="right", ratio=1)
+            Layout(name="left", ratio=2), Layout(name="right", ratio=1),
         )
 
         layout["left"].split_column(
-            Layout(name="workers"), Layout(name="activity", size=15)
+            Layout(name="workers"), Layout(name="activity", size=15),
         )
 
         layout["right"].split_column(
-            Layout(name="metrics", size=10), Layout(name="escalations")
+            Layout(name="metrics", size=10), Layout(name="escalations"),
         )
 
         # Header
@@ -342,7 +340,7 @@ class WorkerFleetMonitor:
 
         # Footer
         footer_text = Text(
-            "Press Ctrl+C to exit | Updates every 500ms", style="dim", justify="center"
+            "Press Ctrl+C to exit | Updates every 500ms", style="dim", justify="center",
         )
         layout["footer"].update(Panel(footer_text, style="dim"))
 
@@ -356,7 +354,7 @@ class WorkerFleetMonitor:
         await self.event_bus.subscribe("completed", self.handle_qa_task_event)
         await self.event_bus.subscribe("failed", self.handle_qa_task_event)
         await self.event_bus.subscribe(
-            "escalation_needed", self.handle_escalation
+            "escalation_needed", self.handle_escalation,
         )
 
         logger.info("Subscribed to worker fleet events")

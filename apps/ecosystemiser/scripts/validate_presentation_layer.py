@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
@@ -31,8 +30,8 @@ def run_command(cmd: str) -> tuple[int, str, str]:
     cmd_args = shlex.split(cmd),
     result = subprocess.run(
         cmd_args,
-        capture_output=True,
-        text=True
+        check=False, capture_output=True,
+        text=True,
     )
     return result.returncode, result.stdout, result.stderr
 
@@ -42,7 +41,7 @@ def create_test_config() -> dict[str, Any]:
     return {
         "system": {
             "name": "test_system",
-            "description": "Integration test system"
+            "description": "Integration test system",
         },
         "optimization": {
             "algorithm": "nsga2",
@@ -53,15 +52,15 @@ def create_test_config() -> dict[str, Any]:
                 {
                     "name": "solar_capacity",
                     "min": 1.0,
-                    "max": 10.0
+                    "max": 10.0,
                 },
                 {
                     "name": "battery_capacity",
                     "min": 1.0,
-                    "max": 20.0
-                }
-            ]
-        }
+                    "max": 20.0,
+                },
+            ],
+        },
     }
 
 
@@ -70,7 +69,7 @@ def create_mc_config() -> dict[str, Any]:
     return {
         "system": {
             "name": "test_mc_system",
-            "description": "Monte Carlo test system"
+            "description": "Monte Carlo test system",
         },
         "uncertainty": {
             "method": "monte_carlo",
@@ -81,16 +80,16 @@ def create_mc_config() -> dict[str, Any]:
                     "name": "demand_factor",
                     "distribution": "normal",
                     "mean": 1.0,
-                    "std": 0.1
+                    "std": 0.1,
                 },
                 {
                     "name": "efficiency",
                     "distribution": "uniform",
                     "min": 0.8,
-                    "max": 0.95
-                }
-            ]
-        }
+                    "max": 0.95,
+                },
+            ],
+        },
     }
 
 
@@ -102,7 +101,7 @@ def test_ga_workflow() -> None:
 
     # Create temporary config file
     config = create_test_config()
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config, f)
         config_path = f.name
 
@@ -118,11 +117,11 @@ def test_ga_workflow() -> None:
         logger.info("GA optimization completed successfully")
 
         # Extract study ID from output
-        lines = stdout.split('\n'),
+        lines = stdout.split("\n"),
         study_id = None
         for line in lines:
-            if 'Study ID:' in line:
-                study_id = line.split('Study ID:')[1].strip()
+            if "Study ID:" in line:
+                study_id = line.split("Study ID:")[1].strip()
                 break
 
         if study_id:
@@ -154,7 +153,7 @@ def test_mc_workflow() -> None:
 
     # Create temporary config file
     config = create_mc_config()
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
         json.dump(config, f)
         config_path = f.name
 
@@ -170,11 +169,11 @@ def test_mc_workflow() -> None:
         logger.info("MC analysis completed successfully")
 
         # Extract study ID from output
-        lines = stdout.split('\n'),
+        lines = stdout.split("\n"),
         study_id = None
         for line in lines:
-            if 'Study ID:' in line:
-                study_id = line.split('Study ID:')[1].strip()
+            if "Study ID:" in line:
+                study_id = line.split("Study ID:")[1].strip()
                 break
 
         if study_id:
@@ -210,7 +209,7 @@ def test_flask_app() -> None:
         cmd_args,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
     )
 
     # Give Flask time to start
@@ -226,9 +225,8 @@ def test_flask_app() -> None:
             logger.info("Opening browser to view reports...")
             webbrowser.open("http://localhost:5001/")
             return True
-        else:
-            logger.info(f"Flask app returned status: {response.status_code}")
-            return False
+        logger.info(f"Flask app returned status: {response.status_code}")
+        return False
 
     except Exception as e:
         logger.info(f"Could not connect to Flask app: {e}")
@@ -248,7 +246,7 @@ def main() -> None:
     results = {
         "GA Workflow": test_ga_workflow(),
         "MC Workflow": test_mc_workflow(),
-        "Flask App": test_flask_app()
+        "Flask App": test_flask_app(),
     }
 
     logger.info("\n" + "="*60)
@@ -264,9 +262,8 @@ def main() -> None:
     if all_passed:
         logger.info("\n🎉 All tests passed! Presentation layer is ready for deployment.")
         return 0
-    else:
-        logger.info("\n⚠️ Some tests failed. Please review the output above.")
-        return 1
+    logger.info("\n⚠️ Some tests failed. Please review the output above.")
+    return 1
 
 
 if __name__ == "__main__":

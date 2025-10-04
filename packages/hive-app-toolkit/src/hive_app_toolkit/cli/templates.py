@@ -13,8 +13,7 @@ logger = get_logger(__name__)
 
 
 class TemplateManager:
-    """
-    Manage Jinja2 templates for code generation.
+    """Manage Jinja2 templates for code generation.
 
     Provides methods to:
     - Load and render templates
@@ -44,8 +43,7 @@ class TemplateManager:
         context: dict[str, Any],
         output_path: Path,
     ) -> str:
-        """
-        Render a template and write to file.
+        """Render a template and write to file.
 
         Args:
             template_path: Path to template (relative to templates dir)
@@ -54,6 +52,7 @@ class TemplateManager:
 
         Returns:
             Rendered content as string
+
         """
         logger.debug(f"Rendering template {template_path} to {output_path}")
 
@@ -71,8 +70,7 @@ class TemplateManager:
         return content
 
     def render_string(self, template_string: str, context: dict[str, Any]) -> str:
-        """
-        Render a template from string.
+        """Render a template from string.
 
         Args:
             template_string: Template content as string
@@ -80,32 +78,33 @@ class TemplateManager:
 
         Returns:
             Rendered content
+
         """
         template = Template(template_string)
         return template.render(**context)
 
     def template_exists(self, template_path: str) -> bool:
-        """
-        Check if template exists.
+        """Check if template exists.
 
         Args:
             template_path: Path to template (relative to templates dir)
 
         Returns:
             True if template exists
+
         """
         full_path = self.template_dir / template_path
         return full_path.exists()
 
     def list_templates(self, pattern: str = "**/*.j2") -> list[str]:
-        """
-        List all templates matching pattern.
+        """List all templates matching pattern.
 
         Args:
             pattern: Glob pattern for templates
 
         Returns:
             List of template paths
+
         """
         templates = []
         for template_file in self.template_dir.glob(pattern):

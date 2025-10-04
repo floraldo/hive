@@ -82,8 +82,7 @@ class PromptConfig(BaseModel):
 
 
 class AIConfig(BaseConfig):
-    """
-    Main configuration for Hive AI components.
+    """Main configuration for Hive AI components.
 
     Extends BaseConfig from hive-config with AI-specific settings.
     """
@@ -165,6 +164,7 @@ class AIConfig(BaseConfig):
 
         Raises:
             ValueError: If the specified model is not configured.
+
         """
         name = model_name or self.default_model
         if name not in self.models:
@@ -176,6 +176,7 @@ class AIConfig(BaseConfig):
 
         Args:
             config: ModelConfig instance to add to available models.
+
         """
         self.models[config.name] = config
 
@@ -188,6 +189,7 @@ class AIConfig(BaseConfig):
         Note:
             If removing the default model, automatically sets a new default
             from remaining models if any exist.
+
         """
         if model_name in self.models:
             del self.models[model_name]
@@ -198,8 +200,7 @@ class AIConfig(BaseConfig):
 
 
 class AgentConfig(BaseConfig):
-    """
-    Configuration for AI agents with sequential thinking capabilities.
+    """Configuration for AI agents with sequential thinking capabilities.
 
     Extends BaseConfig from hive-config with agent-specific settings including
     the God Mode sequential thinking loop and web search integration.

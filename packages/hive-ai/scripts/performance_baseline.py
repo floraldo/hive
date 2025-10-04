@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Performance baseline establishment for hive-ai package.
+"""Performance baseline establishment for hive-ai package.
 
 Measures key performance metrics across all components to establish
 baseline for optimization tracking and regression detection.
@@ -80,8 +79,8 @@ class PerformanceBenchmark:
                 logger.error(f"Failed {suite_name}: {e}")
                 self.metrics.append(
                     PerformanceMetric(
-                        component=suite_name, operation="suite_execution", duration_ms=0, success=False, error=str(e)
-                    )
+                        component=suite_name, operation="suite_execution", duration_ms=0, success=False, error=str(e),
+                    ),
                 )
 
         total_duration = time.time() - start_time
@@ -104,7 +103,7 @@ class PerformanceBenchmark:
 
         for i, prompt in enumerate(test_prompts):
             duration = await self._time_operation_async(
-                lambda: validator.validate_prompt(prompt), f"input_validation_prompt_{i}"
+                lambda: validator.validate_prompt(prompt), f"input_validation_prompt_{i}",
             )
 
             self.metrics.append(
@@ -113,7 +112,7 @@ class PerformanceBenchmark:
                     operation=f"validate_prompt_size_{len(prompt)}",
                     duration_ms=duration,
                     metadata={"prompt_length": len(prompt)},
-                )
+                ),
             )
 
         # Secret management benchmarks
@@ -129,7 +128,7 @@ class PerformanceBenchmark:
                     operation="mask_secret",
                     duration_ms=duration,
                     metadata={"secret_length": len(secret)},
-                )
+                ),
             )
 
         # Rate limiter benchmarks
@@ -137,13 +136,13 @@ class PerformanceBenchmark:
 
         # Test rate limiting performance
         duration = await self._time_operation_async(
-            lambda: [rate_limiter.is_allowed(f"user_{i}") for i in range(50)], "rate_limit_check_batch"
+            lambda: [rate_limiter.is_allowed(f"user_{i}") for i in range(50)], "rate_limit_check_batch",
         )
 
         self.metrics.append(
             PerformanceMetric(
-                component="security", operation="rate_limit_batch_50", duration_ms=duration, metadata={"batch_size": 50}
-            )
+                component="security", operation="rate_limit_batch_50", duration_ms=duration, metadata={"batch_size": 50},
+            ),
         )
 
     async def run_config_benchmarks_async(self) -> None:
@@ -167,7 +166,7 @@ class PerformanceBenchmark:
         ]
 
         duration = await self._time_operation_async(
-            lambda: [config.model_dump() for config in model_configs], "model_config_serialization"
+            lambda: [config.model_dump() for config in model_configs], "model_config_serialization",
         )
 
         self.metrics.append(
@@ -176,7 +175,7 @@ class PerformanceBenchmark:
                 operation="model_config_batch_serialize",
                 duration_ms=duration,
                 metadata={"config_count": len(model_configs)},
-            )
+            ),
         )
 
     async def run_embedding_benchmarks_async(self) -> None:
@@ -194,7 +193,7 @@ class PerformanceBenchmark:
             # Test individual embedding generation (simulated)
             for i, text in enumerate(test_texts):
                 duration = await self._time_operation_async(
-                    lambda: embedding_manager._simulate_embedding_async(text), f"embedding_generation_{i}"
+                    lambda: embedding_manager._simulate_embedding_async(text), f"embedding_generation_{i}",
                 )
 
                 self.metrics.append(
@@ -203,7 +202,7 @@ class PerformanceBenchmark:
                         operation=f"generate_single_length_{len(text)}",
                         duration_ms=duration,
                         metadata={"text_length": len(text)},
-                    )
+                    ),
                 )
 
             # Test batch embedding generation
@@ -218,7 +217,7 @@ class PerformanceBenchmark:
                     operation="generate_batch",
                     duration_ms=duration,
                     metadata={"batch_size": len(test_texts)},
-                )
+                ),
             )
 
             # Test similarity calculation
@@ -226,7 +225,7 @@ class PerformanceBenchmark:
             vec2 = (await embedding_manager._simulate_embedding_async("Test text 2"),)
 
             duration = await self._time_operation_async(
-                lambda: embedding_manager._calculate_cosine_similarity(vec1, vec2), "similarity_calculation"
+                lambda: embedding_manager._calculate_cosine_similarity(vec1, vec2), "similarity_calculation",
             )
 
             self.metrics.append(
@@ -235,15 +234,15 @@ class PerformanceBenchmark:
                     operation="cosine_similarity",
                     duration_ms=duration,
                     metadata={"vector_dimension": len(vec1)},
-                )
+                ),
             )
 
         except Exception as e:
             logger.warning(f"Embedding benchmarks failed: {e}")
             self.metrics.append(
                 PerformanceMetric(
-                    component="embedding", operation="benchmark_suite", duration_ms=0, success=False, error=str(e)
-                )
+                    component="embedding", operation="benchmark_suite", duration_ms=0, success=False, error=str(e),
+                ),
             )
 
     async def run_vector_benchmarks_async(self) -> None:
@@ -256,7 +255,7 @@ class PerformanceBenchmark:
             duration = await self._time_operation_async(lambda: VectorStore(self.vector_config), "vector_store_init")
 
             self.metrics.append(
-                PerformanceMetric(component="vector_store", operation="initialization", duration_ms=duration)
+                PerformanceMetric(component="vector_store", operation="initialization", duration_ms=duration),
             )
 
             # Test configuration validation
@@ -265,7 +264,7 @@ class PerformanceBenchmark:
             ]
 
             duration = await self._time_operation_async(
-                lambda: [config.model_dump() for config in test_configs], "vector_config_validation"
+                lambda: [config.model_dump() for config in test_configs], "vector_config_validation",
             )
 
             self.metrics.append(
@@ -274,15 +273,15 @@ class PerformanceBenchmark:
                     operation="config_batch_validation",
                     duration_ms=duration,
                     metadata={"config_count": len(test_configs)},
-                )
+                ),
             )
 
         except Exception as e:
             logger.warning(f"Vector store benchmarks failed: {e}")
             self.metrics.append(
                 PerformanceMetric(
-                    component="vector_store", operation="benchmark_suite", duration_ms=0, success=False, error=str(e)
-                )
+                    component="vector_store", operation="benchmark_suite", duration_ms=0, success=False, error=str(e),
+                ),
             )
 
     async def run_model_benchmarks_async(self) -> None:
@@ -290,11 +289,11 @@ class PerformanceBenchmark:
         try:
             # Test registry initialization
             duration = await self._time_operation_async(
-                lambda: ModelRegistry(self.ai_config), "registry_initialization"
+                lambda: ModelRegistry(self.ai_config), "registry_initialization",
             )
 
             self.metrics.append(
-                PerformanceMetric(component="model_registry", operation="initialization", duration_ms=duration)
+                PerformanceMetric(component="model_registry", operation="initialization", duration_ms=duration),
             )
 
             registry = ModelRegistry(self.ai_config)
@@ -312,7 +311,7 @@ class PerformanceBenchmark:
             ]
 
             duration = await self._time_operation_async(
-                lambda: [registry._register_model(model) for model in test_models], "model_registration_batch"
+                lambda: [registry._register_model(model) for model in test_models], "model_registration_batch",
             )
 
             self.metrics.append(
@@ -321,12 +320,12 @@ class PerformanceBenchmark:
                     operation="register_batch_20",
                     duration_ms=duration,
                     metadata={"model_count": len(test_models)},
-                )
+                ),
             )
 
             # Test model lookup performance
             duration = await self._time_operation_async(
-                lambda: [registry.list_available_models() for _ in range(100)], "model_lookup_batch"
+                lambda: [registry.list_available_models() for _ in range(100)], "model_lookup_batch",
             )
 
             self.metrics.append(
@@ -335,15 +334,15 @@ class PerformanceBenchmark:
                     operation="lookup_batch_100",
                     duration_ms=duration,
                     metadata={"lookup_count": 100},
-                )
+                ),
             )
 
         except Exception as e:
             logger.warning(f"Model benchmarks failed: {e}")
             self.metrics.append(
                 PerformanceMetric(
-                    component="model_system", operation="benchmark_suite", duration_ms=0, success=False, error=str(e)
-                )
+                    component="model_system", operation="benchmark_suite", duration_ms=0, success=False, error=str(e),
+                ),
             )
 
     async def _time_operation_async(self, operation: callable, operation_name: str) -> float:
@@ -435,7 +434,7 @@ class PerformanceBenchmark:
         }
 
     def _generate_performance_insights(
-        self, component_stats: dict[str, Any], overall_stats: dict[str, Any]
+        self, component_stats: dict[str, Any], overall_stats: dict[str, Any],
     ) -> list[str]:
         """Generate performance insights from benchmark data."""
         insights = []
@@ -489,7 +488,7 @@ class PerformanceBenchmark:
         for component, stats in component_stats.items():
             if stats["success_rate"] < 0.9:
                 recommendations.append(
-                    f"Investigate {component} reliability issues (success rate: {stats['success_rate']:.1%})"
+                    f"Investigate {component} reliability issues (success rate: {stats['success_rate']:.1%})",
                 )
 
         return recommendations

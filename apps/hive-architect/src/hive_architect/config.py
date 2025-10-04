@@ -19,7 +19,7 @@ class HiveArchitectConfig(BaseModel):
     )
     # API settings
     host: str = Field(
-        default_factory=lambda: os.getenv("HOST", "127.0.0.1"),  # noqa: S104
+        default_factory=lambda: os.getenv("HOST", "127.0.0.1"),
         description="API host",
     )
     port: int = Field(

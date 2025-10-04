@@ -1,5 +1,4 @@
-"""
-Pytest configuration and fixtures for hive-coder tests.
+"""Pytest configuration and fixtures for hive-coder tests.
 """
 
 from __future__ import annotations

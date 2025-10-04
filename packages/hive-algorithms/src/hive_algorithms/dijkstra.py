@@ -31,8 +31,7 @@ class Edge:
 
 
 class Graph:
-    """
-    Weighted directed graph implementation optimized for Dijkstra's algorithm.
+    """Weighted directed graph implementation optimized for Dijkstra's algorithm.
 
     Uses adjacency list representation for efficient neighbor lookup.
     """
@@ -77,14 +76,14 @@ class DijkstraResult:
     source: str
 
     def get_shortest_path(self, destination: str) -> Optional[List[str]]:
-        """
-        Reconstruct the shortest path from source to destination.
+        """Reconstruct the shortest path from source to destination.
 
         Args:
             destination: Target vertex
 
         Returns:
             List of vertices representing the shortest path, or None if unreachable
+
         """
         if destination not in self.distances:
             return None
@@ -107,8 +106,7 @@ class DijkstraResult:
 
 
 def dijkstra(graph: Graph, source: str) -> DijkstraResult:
-    """
-    Implement Dijkstra's shortest path algorithm.
+    """Implement Dijkstra's shortest path algorithm.
 
     Args:
         graph: Weighted graph to analyze
@@ -122,6 +120,7 @@ def dijkstra(graph: Graph, source: str) -> DijkstraResult:
 
     Time Complexity: O((V + E) log V) where V is vertices and E is edges
     Space Complexity: O(V)
+
     """
     if not graph.has_vertex(source):
         raise ValueError(f"Source vertex '{source}' does not exist in graph")
@@ -176,8 +175,7 @@ def dijkstra(graph: Graph, source: str) -> DijkstraResult:
 
 
 def find_shortest_path(graph: Graph, source: str, destination: str) -> tuple[Optional[List[str]], float]:
-    """
-    Convenience function to find shortest path between two vertices.
+    """Convenience function to find shortest path between two vertices.
 
     Args:
         graph: Weighted graph
@@ -186,6 +184,7 @@ def find_shortest_path(graph: Graph, source: str, destination: str) -> tuple[Opt
 
     Returns:
         Tuple of (path_list, distance). Path is None if unreachable.
+
     """
     result = dijkstra(graph, source)
     path = (result.get_shortest_path(destination),)

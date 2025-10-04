@@ -1,5 +1,4 @@
-"""
-Autonomous deployment agent that polls the database for deployment_pending tasks
+"""Autonomous deployment agent that polls the database for deployment_pending tasks
 """
 
 from __future__ import annotations
@@ -34,7 +33,7 @@ try:
 
     # Try to import async event bus operations
     try:
-        from hive_bus.event_bus import get_async_event_bus, publish_event_async  # noqa: F401
+        from hive_bus.event_bus import get_async_event_bus, publish_event_async
 
         ASYNC_EVENTS_AVAILABLE = True
     except ImportError:
@@ -53,8 +52,7 @@ logger = get_logger(__name__)
 
 
 class DeploymentAgent:
-    """
-    Autonomous agent that continuously monitors and processes deployment_pending tasks
+    """Autonomous agent that continuously monitors and processes deployment_pending tasks
     """
 
     def __init__(
@@ -63,13 +61,13 @@ class DeploymentAgent:
         polling_interval: int = 30,
         test_mode: bool = False,
     ):
-        """
-        Initialize the deployment agent
+        """Initialize the deployment agent
 
         Args:
             orchestrator: Deployment orchestrator engine
             polling_interval: Seconds between queue checks
             test_mode: Run with shorter intervals for testing
+
         """
         self.adapter = DatabaseAdapter()
         self.orchestrator = orchestrator or DeploymentOrchestrator()
@@ -95,8 +93,7 @@ class DeploymentAgent:
             self.event_bus = None
 
     async def run_async(self) -> None:
-        """
-        Main agent loop - continuously polls for deployment tasks
+        """Main agent loop - continuously polls for deployment tasks
         """
         self.running = True
         self.stats["start_time"] = datetime.now()
@@ -140,20 +137,19 @@ class DeploymentAgent:
         try:
             if ASYNC_DB_AVAILABLE:
                 # Use async database operations if available
-                return await get_tasks_by_status_async("deployment_pending")  # noqa: F821
-            else:
-                # Fallback to sync operations
-                return self.adapter.get_deployment_pending_tasks()
+                return await get_tasks_by_status_async("deployment_pending")
+            # Fallback to sync operations
+            return self.adapter.get_deployment_pending_tasks()
         except Exception as e:
             logger.error(f"Error fetching deployment tasks: {e}")
             return []
 
     async def _process_task_async(self, task: dict[str, Any]) -> None:
-        """
-        Process a single deployment task
+        """Process a single deployment task
 
         Args:
             task: Task dictionary from database
+
         """
         task_id = task.get("id", "unknown")
 
@@ -219,7 +215,7 @@ class DeploymentAgent:
         """Update task status in database"""
         try:
             if ASYNC_DB_AVAILABLE:
-                await update_task_status_async(task_id, status, metadata)  # noqa: F821
+                await update_task_status_async(task_id, status, metadata)
             else:
                 self.adapter.update_task_status(task_id, status, metadata)
         except Exception as e:

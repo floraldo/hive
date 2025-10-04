@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Documentation Analyzer - Operational Excellence Tool
+"""Documentation Analyzer - Operational Excellence Tool
 
 Analyzes repository documentation to identify:
 - Dead links (internal and external)
@@ -103,8 +102,7 @@ def check_external_link(url: str, timeout: int = 5) -> tuple[bool, str]:
         response = requests.head(url, timeout=timeout, allow_redirects=True)
         if response.status_code < 400:
             return True, f"OK ({response.status_code})"
-        else:
-            return False, f"HTTP {response.status_code}"
+        return False, f"HTTP {response.status_code}"
     except requests.exceptions.Timeout:
         return False, "Timeout"
     except requests.exceptions.RequestException as e:

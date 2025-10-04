@@ -1,5 +1,4 @@
-"""
-Prompt optimization and improvement engine.
+"""Prompt optimization and improvement engine.
 
 Provides AI-driven prompt enhancement, A/B testing,
 and performance analysis for prompt effectiveness.
@@ -68,8 +67,7 @@ class PromptTestResult:
 
 
 class PromptOptimizer:
-    """
-    AI-driven prompt optimization and testing engine.
+    """AI-driven prompt optimization and testing engine.
 
     Provides systematic prompt improvement through analysis,
     optimization, and A/B testing capabilities.
@@ -193,8 +191,7 @@ Context-aware prompt:""",
         strategy: OptimizationStrategy = OptimizationStrategy.CLARITY,
         context: dict[str, Any] | None = None,
     ) -> OptimizationResult:
-        """
-        Optimize a prompt using specified strategy.
+        """Optimize a prompt using specified strategy.
 
         Args:
             prompt: Original prompt to optimize,
@@ -206,6 +203,7 @@ Context-aware prompt:""",
 
         Raises:
             PromptError: Optimization failed,
+
         """
         if not self.model_client:
             raise PromptError("Model client required for prompt optimization")
@@ -239,7 +237,7 @@ Context-aware prompt:""",
             return result
 
         except Exception as e:
-            raise PromptError(f"Prompt optimization failed: {str(e)}") from e
+            raise PromptError(f"Prompt optimization failed: {e!s}") from e
 
     def _parse_optimization_response(
         self,
@@ -294,14 +292,14 @@ Context-aware prompt:""",
             reduction = (len(original) - len(optimized)) / len(original)
             return max(0.0, min(1.0, reduction))
 
-        elif strategy == OptimizationStrategy.CLARITY:
+        if strategy == OptimizationStrategy.CLARITY:
             # More specific words indicate better clarity
             specific_indicators = ["specific", "clearly", "exactly", "must", "should"]
             original_score = sum(1 for word in specific_indicators if word in original.lower()),
             optimized_score = sum(1 for word in specific_indicators if word in optimized.lower())
             return min(1.0, (optimized_score - original_score + 5) / 10)
 
-        elif strategy == OptimizationStrategy.CREATIVITY:
+        if strategy == OptimizationStrategy.CREATIVITY:
             # Creative words indicate better creativity
             creative_indicators = ["creative", "innovative", "explore", "imagine", "unique"]
             original_score = sum(1 for word in creative_indicators if word in original.lower()),
@@ -319,8 +317,7 @@ Context-aware prompt:""",
         evaluation_criteria: list[str],
         sample_size: int = 10,
     ) -> PromptTestResult:
-        """
-        A/B test two prompts for effectiveness.
+        """A/B test two prompts for effectiveness.
 
         Args:
             prompt_a: First prompt to test,
@@ -334,6 +331,7 @@ Context-aware prompt:""",
 
         Raises:
             PromptError: A/B testing failed,
+
         """
         if not self.model_client:
             raise PromptError("Model client required for A/B testing")
@@ -393,7 +391,7 @@ Context-aware prompt:""",
             return result
 
         except Exception as e:
-            raise PromptError(f"A/B testing failed: {str(e)}") from e
+            raise PromptError(f"A/B testing failed: {e!s}") from e
 
     async def _evaluate_responses_async(self, responses: list[str], criteria: list[str]) -> list[PerformanceMetric]:
         """Evaluate responses against criteria."""
@@ -405,7 +403,7 @@ Context-aware prompt:""",
 
         metrics.append(
             PerformanceMetric(
-                name="success_rate", value=success_rate, description="Percentage of successful responses"
+                name="success_rate", value=success_rate, description="Percentage of successful responses",
             ),
         )
 
@@ -468,18 +466,16 @@ Context-aware prompt:""",
         # Determine winner
         if score_a > score_b:
             return "A", confidence
-        elif score_b > score_a:
+        if score_b > score_a:
             return "B", confidence
-        else:
-            return "TIE", confidence
+        return "TIE", confidence
 
     async def batch_optimize_async(
         self,
         prompts: list[str],
         strategy: OptimizationStrategy = OptimizationStrategy.CLARITY,
     ) -> list[OptimizationResult]:
-        """
-        Optimize multiple prompts in batch.
+        """Optimize multiple prompts in batch.
 
         Args:
             prompts: List of prompts to optimize,
@@ -487,6 +483,7 @@ Context-aware prompt:""",
 
         Returns:
             List of optimization results
+
         """
         logger.info(f"Starting batch optimization of {len(prompts)} prompts")
 

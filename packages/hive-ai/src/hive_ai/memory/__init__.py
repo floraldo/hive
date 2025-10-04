@@ -1,5 +1,4 @@
-"""
-Memory management components for agents.
+"""Memory management components for agents.
 
 Provides context retrieval and smart memory management for token-efficient agent operation.
 """

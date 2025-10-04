@@ -1,10 +1,8 @@
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this test file use sys.executable or system tools
 # (git, ruff, etc.) with hardcoded, trusted arguments only. No user input is passed
 # to subprocess. This is safe for internal testing infrastructure.
 
-"""
-Official Certification Test: Full Autonomous Lifecycle (Unicode-safe)
+"""Official Certification Test: Full Autonomous Lifecycle (Unicode-safe)
 
 This test validates the complete autonomous workflow from task creation to live deployment.
 It serves as the definitive proof that the Hive platform can autonomously deliver applications.
@@ -21,140 +19,140 @@ import requests
 
 def run_certification_test():
     """Run the complete autonomous lifecycle certification test"""
-    print('=' * 60)
-    print('HIVE AUTONOMOUS LIFECYCLE CERTIFICATION TEST')
-    print('=' * 60)
-    print(f'Test started: {datetime.now()}')
+    print("=" * 60)
+    print("HIVE AUTONOMOUS LIFECYCLE CERTIFICATION TEST")
+    print("=" * 60)
+    print(f"Test started: {datetime.now()}")
     print()
     task_id = None
     hello_service_port = 5002
     background_processes = []
     try:
-        print('1. TASK CREATION')
-        print('-' * 30)
-        db_path = Path('apps/hive-orchestrator/hive/db/hive-internal.db')
+        print("1. TASK CREATION")
+        print("-" * 30)
+        db_path = Path("apps/hive-orchestrator/hive/db/hive-internal.db")
         if not db_path.exists():
-            print(f'Database not found: {db_path}')
+            print(f"Database not found: {db_path}")
             return False
-        task_data = {'project_name': 'hello-service-cert', 'description': 'Certification test: Build minimal Flask web service', 'requirements': {'framework': 'Flask', 'port': hello_service_port, 'endpoints': [{'path': '/', 'method': 'GET', 'response': {'message': 'Hello, World!', 'service': 'hello-service-cert', 'certified': True}}, {'path': '/health', 'method': 'GET', 'response': {'status': 'healthy'}}]}, 'deployment': {'strategy': 'direct', 'port': hello_service_port, 'auto_start': True}}
-        metadata = {'source': 'certification_test', 'test_id': f'cert_{int(time.time())}', 'priority': 'critical', 'automated': True}
+        task_data = {"project_name": "hello-service-cert", "description": "Certification test: Build minimal Flask web service", "requirements": {"framework": "Flask", "port": hello_service_port, "endpoints": [{"path": "/", "method": "GET", "response": {"message": "Hello, World!", "service": "hello-service-cert", "certified": True}}, {"path": "/health", "method": "GET", "response": {"status": "healthy"}}]}, "deployment": {"strategy": "direct", "port": hello_service_port, "auto_start": True}}
+        metadata = {"source": "certification_test", "test_id": f"cert_{int(time.time())}", "priority": "critical", "automated": True}
         conn = sqlite3.connect(str(db_path))
         cursor = conn.cursor()
         now = datetime.now().isoformat()
-        cursor.execute('\n            INSERT INTO tasks (\n                title, description, created_at, updated_at,\n                priority, task_data, metadata, status, estimated_duration\n            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n        ', ('CERTIFICATION: Hello Service Autonomous Lifecycle', 'Official certification test for complete autonomous workflow validation', now, now, 10, json.dumps(task_data), json.dumps(metadata), 'deployment_pending', 900))
+        cursor.execute("\n            INSERT INTO tasks (\n                title, description, created_at, updated_at,\n                priority, task_data, metadata, status, estimated_duration\n            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)\n        ", ("CERTIFICATION: Hello Service Autonomous Lifecycle", "Official certification test for complete autonomous workflow validation", now, now, 10, json.dumps(task_data), json.dumps(metadata), "deployment_pending", 900))
         task_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        print(f'[OK] Certification task created: ID {task_id}')
-        print('  Status: deployment_pending')
-        print('  Priority: 10 (Critical)')
-        print('\n2. AUTONOMOUS WORKFLOW EXECUTION')
-        print('-' * 40)
-        workflow_stages = [('planning', 'AI Planner analyzing certification requirements', 1), ('specification', 'Creating technical specifications', 1), ('code_generation', 'Backend Worker generating Flask application', 2), ('testing', 'Backend Worker creating test suite', 1), ('review_approved', 'AI Reviewer approving implementation', 1), ('deployment', 'AI Deployer executing deployment', 2), ('completed', 'Certification workflow completed', 1)]
-        print('Executing autonomous workflow stages:')
+        print(f"[OK] Certification task created: ID {task_id}")
+        print("  Status: deployment_pending")
+        print("  Priority: 10 (Critical)")
+        print("\n2. AUTONOMOUS WORKFLOW EXECUTION")
+        print("-" * 40)
+        workflow_stages = [("planning", "AI Planner analyzing certification requirements", 1), ("specification", "Creating technical specifications", 1), ("code_generation", "Backend Worker generating Flask application", 2), ("testing", "Backend Worker creating test suite", 1), ("review_approved", "AI Reviewer approving implementation", 1), ("deployment", "AI Deployer executing deployment", 2), ("completed", "Certification workflow completed", 1)]
+        print("Executing autonomous workflow stages:")
         for i, (status, description, duration) in enumerate(workflow_stages, 1):
-            print(f'{i:2d}. [{status.upper()}] {description}')
-            if status in ['planning', 'review_approved', 'deployment', 'completed']:
+            print(f"{i:2d}. [{status.upper()}] {description}")
+            if status in ["planning", "review_approved", "deployment", "completed"]:
                 try:
                     conn = sqlite3.connect(str(db_path))
                     cursor = conn.cursor()
-                    cursor.execute('\n                        UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?\n                    ', (status, datetime.now().isoformat(), task_id))
+                    cursor.execute("\n                        UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?\n                    ", (status, datetime.now().isoformat(), task_id))
                     conn.commit()
                     conn.close()
                 except Exception as e:
-                    print(f'  Warning: Could not update task status: {e}')
-            if status == 'code_generation':
-                print('   [CODE] Generating hello-service application files...')
-                base_dir = Path('apps/hello-service-cert')
+                    print(f"  Warning: Could not update task status: {e}")
+            if status == "code_generation":
+                print("   [CODE] Generating hello-service application files...")
+                base_dir = Path("apps/hello-service-cert")
                 base_dir.mkdir(parents=True, exist_ok=True)
-                (base_dir / 'src' / 'hello_service_cert').mkdir(parents=True, exist_ok=True)
+                (base_dir / "src" / "hello_service_cert").mkdir(parents=True, exist_ok=True)
                 app_content = f'''#!/usr/bin/env python3\n"""\nHello Service Certification - Generated by Hive Autonomous AI Agents\n"""\n\nfrom flask import Flask, jsonify\nimport time\n\napp = Flask(__name__)\nstart_time = time.time()\n\n@app.route('/')\ndef hello():\n    """Main hello endpoint - Certification test marker"""\n    return jsonify({{\n        "message": "Hello, World!",\n        "service": "hello-service-cert",\n        "certified": True,\n        "generated_by": "hive_autonomous_agents",\n        "certification_test": True,\n        "version": "1.0.0"\n    }})\n\n@app.route('/health')\ndef health():\n    """Health check endpoint"""\n    return jsonify({{\n        "status": "healthy",\n        "uptime_seconds": int(time.time() - start_time),\n        "service": "hello-service-cert",\n        "endpoints": ["/", "/health"],\n        "certification": "ACTIVE",\n        "port": {hello_service_port}\n    }})\n\n@app.route('/certification')\ndef certification():\n    """Special certification endpoint"""\n    return jsonify({{\n        "certification_status": "PASSED",\n        "test_id": "autonomous_lifecycle_test",\n        "generated_at": time.time(),\n        "autonomous_workflow": "VALIDATED"\n    }})\n\nif __name__ == '__main__':\n    print("Starting Hello Service Certification on port {hello_service_port}")\n    app.run(host='0.0.0.0', port={hello_service_port}, debug=False)\n'''
-                with open(base_dir / 'src' / 'hello_service_cert' / 'app.py', 'w') as f:
+                with open(base_dir / "src" / "hello_service_cert" / "app.py", "w") as f:
                     f.write(app_content)
-                with open(base_dir / 'src' / 'hello_service_cert' / '__init__.py', 'w') as f:
-                    f.write('# Hello Service Certification - Autonomous AI Generated')
-                print('   [OK] Generated Flask application with certification markers')
+                with open(base_dir / "src" / "hello_service_cert" / "__init__.py", "w") as f:
+                    f.write("# Hello Service Certification - Autonomous AI Generated")
+                print("   [OK] Generated Flask application with certification markers")
             for _j in range(duration):
-                print('   .', end='', flush=True)
+                print("   .", end="", flush=True)
                 time.sleep(0.3)
-            print(' [OK]')
+            print(" [OK]")
             time.sleep(0.1)
-        print('\n[OK] Autonomous workflow completed successfully')
-        print('\n3. LIVE SERVICE VALIDATION')
-        print('-' * 30)
-        print('Starting hello-service-cert...')
-        hello_service_path = Path('apps/hello-service-cert/src/hello_service_cert/app.py')
+        print("\n[OK] Autonomous workflow completed successfully")
+        print("\n3. LIVE SERVICE VALIDATION")
+        print("-" * 30)
+        print("Starting hello-service-cert...")
+        hello_service_path = Path("apps/hello-service-cert/src/hello_service_cert/app.py")
         if not hello_service_path.exists():
-            print('[ERROR] Hello-service-cert application not found')
+            print("[ERROR] Hello-service-cert application not found")
             return False
-        proc = subprocess.Popen(['python', str(hello_service_path)], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(["python", str(hello_service_path)], cwd=Path.cwd(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         background_processes.append(proc)
-        print('Waiting for service startup...')
+        print("Waiting for service startup...")
         time.sleep(3)
-        base_url = f'http://localhost:{hello_service_port}'
-        print(f'Testing endpoints at {base_url}...')
+        base_url = f"http://localhost:{hello_service_port}"
+        print(f"Testing endpoints at {base_url}...")
         try:
-            response = requests.get(f'{base_url}/', timeout=5)
+            response = requests.get(f"{base_url}/", timeout=5)
             assert response.status_code == 200
             data = response.json()
-            assert data['message'] == 'Hello, World!'
-            assert data['certified'] is True
-            assert data['certification_test'] is True
-            print('[OK] Hello endpoint: PASSED')
+            assert data["message"] == "Hello, World!"
+            assert data["certified"] is True
+            assert data["certification_test"] is True
+            print("[OK] Hello endpoint: PASSED")
         except Exception as e:
-            print(f'[ERROR] Hello endpoint failed: {e}')
+            print(f"[ERROR] Hello endpoint failed: {e}")
             return False
         try:
-            response = requests.get(f'{base_url}/health', timeout=5)
+            response = requests.get(f"{base_url}/health", timeout=5)
             assert response.status_code == 200
             data = response.json()
-            assert data['status'] == 'healthy'
-            assert data['certification'] == 'ACTIVE'
-            print('[OK] Health endpoint: PASSED')
+            assert data["status"] == "healthy"
+            assert data["certification"] == "ACTIVE"
+            print("[OK] Health endpoint: PASSED")
         except Exception as e:
-            print(f'[ERROR] Health endpoint failed: {e}')
+            print(f"[ERROR] Health endpoint failed: {e}")
             return False
         try:
-            response = requests.get(f'{base_url}/certification', timeout=5)
+            response = requests.get(f"{base_url}/certification", timeout=5)
             assert response.status_code == 200
             data = response.json()
-            assert data['certification_status'] == 'PASSED'
-            assert data['autonomous_workflow'] == 'VALIDATED'
-            print('[OK] Certification endpoint: PASSED')
+            assert data["certification_status"] == "PASSED"
+            assert data["autonomous_workflow"] == "VALIDATED"
+            print("[OK] Certification endpoint: PASSED")
         except Exception as e:
-            print(f'[ERROR] Certification endpoint failed: {e}')
+            print(f"[ERROR] Certification endpoint failed: {e}")
             return False
-        print('\n[OK] ALL ENDPOINTS VALIDATED SUCCESSFULLY')
-        print('\n' + '=' * 60)
-        print('CERTIFICATION RESULTS')
-        print('=' * 60)
-        print(f'Task ID: {task_id}')
-        print(f'Service Port: {hello_service_port}')
+        print("\n[OK] ALL ENDPOINTS VALIDATED SUCCESSFULLY")
+        print("\n" + "=" * 60)
+        print("CERTIFICATION RESULTS")
+        print("=" * 60)
+        print(f"Task ID: {task_id}")
+        print(f"Service Port: {hello_service_port}")
         print()
-        print('CERTIFICATION STATUS: [PASSED]')
+        print("CERTIFICATION STATUS: [PASSED]")
         print()
-        print('Validated Components:')
-        print('[OK] Task creation and database integration')
-        print('[OK] Autonomous workflow execution')
-        print('[OK] Code generation with certification markers')
-        print('[OK] Live service deployment')
-        print('[OK] Endpoint functionality validation')
+        print("Validated Components:")
+        print("[OK] Task creation and database integration")
+        print("[OK] Autonomous workflow execution")
+        print("[OK] Code generation with certification markers")
+        print("[OK] Live service deployment")
+        print("[OK] Endpoint functionality validation")
         print()
-        print('CONCLUSION: The Hive autonomous lifecycle is CERTIFIED OPERATIONAL')
+        print("CONCLUSION: The Hive autonomous lifecycle is CERTIFIED OPERATIONAL")
         return True
     except Exception as e:
-        print(f'\n[ERROR] CERTIFICATION FAILED: {e}')
+        print(f"\n[ERROR] CERTIFICATION FAILED: {e}")
         return False
     finally:
-        print('\n4. CLEANUP')
-        print('-' * 15)
+        print("\n4. CLEANUP")
+        print("-" * 15)
         for proc in background_processes:
             try:
                 proc.terminate()
                 proc.wait(timeout=5)
             except (subprocess.TimeoutExpired, ProcessLookupError, OSError):
                 proc.kill()
-        print('[OK] Cleanup completed')
-if __name__ == '__main__':
+        print("[OK] Cleanup completed")
+if __name__ == "__main__":
     success = run_certification_test()
     exit(0 if success else 1)

@@ -25,8 +25,8 @@ class SolarPVTechnicalParams(GenerationTechnicalParams):
     """Solar PV-specific technical parameters extending generation archetype.,
 
 
-        This model inherits from GenerationTechnicalParams and adds solar-specific,
-        parameters for different fidelity levels.,
+    This model inherits from GenerationTechnicalParams and adds solar-specific,
+    parameters for different fidelity levels.,
     """
 
     # Basic solar parameters (always used)
@@ -77,8 +77,7 @@ class SolarPVPhysicsSimple(BaseGenerationPhysics):
     """
 
     def rule_based_generate(self, t: int, profile_value: float) -> float:
-        """
-        Implement SIMPLE solar PV physics with direct profile scaling.,
+        """Implement SIMPLE solar PV physics with direct profile scaling.,
 
         This matches the exact logic from BaseGenerationComponent for numerical equivalence.,
         """
@@ -101,8 +100,7 @@ class SolarPVPhysicsStandard(SolarPVPhysicsSimple):
     """
 
     def rule_based_generate(self, t: int, profile_value: float) -> float:
-        """
-        Implement STANDARD solar PV physics with inverter efficiency.,
+        """Implement STANDARD solar PV physics with inverter efficiency.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -137,8 +135,7 @@ class SolarPVOptimizationSimple(BaseGenerationOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for solar PV optimization.,
+        """Create SIMPLE CVXPY constraints for solar PV optimization.,
 
         Returns constraints for basic solar generation without losses.,
         """
@@ -165,8 +162,7 @@ class SolarPVOptimizationStandard(SolarPVOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for solar PV optimization.,
+        """Create STANDARD CVXPY constraints for solar PV optimization.,
 
         Adds inverter efficiency to the generation constraints.,
         """
@@ -241,16 +237,15 @@ class SolarPV(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return SolarPVPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return SolarPVPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return SolarPVPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return SolarPVPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for SolarPV: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for SolarPV: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -258,20 +253,18 @@ class SolarPV(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return SolarPVOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return SolarPVOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return SolarPVOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return SolarPVOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for SolarPV optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for SolarPV optimization: {fidelity}")
 
     def rule_based_generate(self, t: int) -> float:
-        """
-        Delegate to physics strategy for generation calculation.,
+        """Delegate to physics strategy for generation calculation.,
 
         This maintains the same interface as BaseGenerationComponent but,
         delegates the actual physics calculation to the strategy object.,

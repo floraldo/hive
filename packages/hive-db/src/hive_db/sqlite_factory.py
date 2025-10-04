@@ -1,5 +1,4 @@
-"""
-SQLite Connection Factory for Hive Platform.
+"""SQLite Connection Factory for Hive Platform.
 
 Provides SQLite-specific connection management using the canonical
 hive-async connection pool with SQLite optimizations.
@@ -18,8 +17,7 @@ logger = get_logger(__name__)
 
 
 class SQLiteConnectionFactory:
-    """
-    Factory for creating SQLite connections with optimal settings.
+    """Factory for creating SQLite connections with optimal settings.
 
     Uses the canonical hive-async ConnectionPool with SQLite-specific
     configuration and connection creation logic.
@@ -32,14 +30,14 @@ class SQLiteConnectionFactory:
         max_connections: int = 10,
         connection_timeout: float = 30.0,
     ):
-        """
-        Initialize SQLite connection factory.
+        """Initialize SQLite connection factory.
 
         Args:
             db_path: Path to SQLite database file
             min_connections: Minimum pool size
             max_connections: Maximum pool size
             connection_timeout: Timeout for acquiring connections
+
         """
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,11 +62,11 @@ class SQLiteConnectionFactory:
         logger.info(f"SQLite connection factory initialized for {self.db_path.name}")
 
     def _create_sqlite_connection(self) -> sqlite3.Connection:
-        """
-        Create a new SQLite connection with optimal settings.
+        """Create a new SQLite connection with optimal settings.
 
         Returns:
             Configured SQLite connection
+
         """
         conn = sqlite3.connect(
             str(self.db_path),
@@ -89,11 +87,11 @@ class SQLiteConnectionFactory:
         return conn
 
     def _close_sqlite_connection(self, conn: sqlite3.Connection) -> None:
-        """
-        Close a SQLite connection gracefully.
+        """Close a SQLite connection gracefully.
 
         Args:
             conn: Connection to close
+
         """
         try:
             conn.close()
@@ -102,14 +100,14 @@ class SQLiteConnectionFactory:
             logger.warning(f"Error closing SQLite connection: {e}")
 
     def _health_check_connection(self, conn: sqlite3.Connection) -> bool:
-        """
-        Check if SQLite connection is healthy.
+        """Check if SQLite connection is healthy.
 
         Args:
             conn: Connection to check
 
         Returns:
             True if connection is healthy
+
         """
         try:
             conn.execute("SELECT 1")
@@ -123,26 +121,25 @@ class SQLiteConnectionFactory:
         logger.info(f"Connection pool initialized for {self.db_path.name}")
 
     async def acquire_async(self) -> sqlite3.Connection:
-        """
-        Acquire a connection from the pool.
+        """Acquire a connection from the pool.
 
         Returns:
             SQLite connection from pool
+
         """
         return await self._pool.acquire_async()
 
     async def release_async(self, connection: sqlite3.Connection) -> None:
-        """
-        Release a connection back to the pool.
+        """Release a connection back to the pool.
 
         Args:
             connection: Connection to release
+
         """
         await self._pool.release_async(connection)
 
     async def connection_async(self):
-        """
-        Context manager for acquiring and releasing connections.
+        """Context manager for acquiring and releasing connections.
 
         Usage:
             async with factory.connection_async() as conn:
@@ -167,11 +164,11 @@ class SQLiteConnectionFactory:
         return self._pool.available
 
     def get_stats(self) -> dict[str, Any]:
-        """
-        Get pool statistics.
+        """Get pool statistics.
 
         Returns:
             Dictionary with pool statistics
+
         """
         return {
             "db_path": str(self.db_path),
@@ -183,8 +180,7 @@ class SQLiteConnectionFactory:
 
 
 class SQLiteConnectionManager:
-    """
-    Manager for multiple SQLite database connection pools.
+    """Manager for multiple SQLite database connection pools.
 
     Provides a unified interface for managing connections to multiple
     SQLite databases with automatic pooling.
@@ -201,8 +197,7 @@ class SQLiteConnectionManager:
         db_path: Path | str,
         **factory_kwargs,
     ) -> SQLiteConnectionFactory:
-        """
-        Get or create a connection factory for a database.
+        """Get or create a connection factory for a database.
 
         Args:
             db_name: Unique identifier for the database
@@ -211,6 +206,7 @@ class SQLiteConnectionManager:
 
         Returns:
             SQLiteConnectionFactory for the database
+
         """
         if db_name not in self._factories:
             self._factories[db_name] = SQLiteConnectionFactory(db_path, **factory_kwargs)
@@ -219,8 +215,7 @@ class SQLiteConnectionManager:
         return self._factories[db_name]
 
     async def connection_async(self, db_name: str, db_path: Path | str, **factory_kwargs):
-        """
-        Get a connection for a specific database.
+        """Get a connection for a specific database.
 
         Args:
             db_name: Unique identifier for the database
@@ -229,6 +224,7 @@ class SQLiteConnectionManager:
 
         Yields:
             SQLite connection from appropriate pool
+
         """
         factory = self.get_factory(db_name, db_path, **factory_kwargs)
         async with factory.connection_async() as conn:
@@ -246,20 +242,20 @@ class SQLiteConnectionManager:
         self._factories.clear()
 
     def get_all_stats(self) -> dict[str, dict[str, Any]]:
-        """
-        Get statistics for all connection factories.
+        """Get statistics for all connection factories.
 
         Returns:
             Dictionary mapping database names to statistics
+
         """
         return {db_name: factory.get_stats() for db_name, factory in self._factories.items()}
 
     async def health_check_async(self) -> dict[str, Any]:
-        """
-        Perform health check on all connection pools.
+        """Perform health check on all connection pools.
 
         Returns:
             Dictionary with health status for each database
+
         """
         results = {}
         for db_name, factory in self._factories.items():
@@ -275,8 +271,7 @@ class SQLiteConnectionManager:
 
 
 def create_sqlite_manager() -> SQLiteConnectionManager:
-    """
-    Factory function to create a new SQLiteConnectionManager.
+    """Factory function to create a new SQLiteConnectionManager.
 
     Following dependency injection principles, applications should
     create one manager instance and inject it where needed.
@@ -290,6 +285,7 @@ def create_sqlite_manager() -> SQLiteConnectionManager:
 
         # Pass to services
         service = MyService(db_manager=db_manager)
+
     """
     manager = SQLiteConnectionManager()
     logger.info("SQLite connection manager created")

@@ -1,5 +1,4 @@
-"""
-Graph-based dependency validator using hive-graph for architectural rule enforcement.
+"""Graph-based dependency validator using hive-graph for architectural rule enforcement.
 
 This module provides sophisticated dependency validation by building a complete
 dependency graph of the codebase and enforcing architectural rules through
@@ -32,8 +31,7 @@ class RuleType(str, Enum):
 
 @dataclass
 class DependencyRule:
-    """
-    Declarative dependency rule definition.
+    """Declarative dependency rule definition.
 
     Examples:
         >>> # Layer enforcement
@@ -51,6 +49,7 @@ class DependencyRule:
         ...     target_pattern="apps/**",
         ...     rule_type=RuleType.CANNOT_DEPEND_ON,
         ... )
+
     """
 
     name: str
@@ -81,17 +80,15 @@ class Violation:
                 f"{self.source_module} has transitive dependency on {self.target_module} "
                 f"via path: {path_str}"
             )
-        else:
-            location = f" at {self.file_path}:{self.line_number}" if self.file_path else ""
-            return (
-                f"[{self.rule.severity}] {self.rule.name}: "
-                f"{self.source_module} depends on {self.target_module}{location}"
-            )
+        location = f" at {self.file_path}:{self.line_number}" if self.file_path else ""
+        return (
+            f"[{self.rule.severity}] {self.rule.name}: "
+            f"{self.source_module} depends on {self.target_module}{location}"
+        )
 
 
 class DependencyGraphValidator:
-    """
-    Validates architectural dependency rules using knowledge graph analysis.
+    """Validates architectural dependency rules using knowledge graph analysis.
 
     Uses hive-graph to build a complete dependency graph and enforces rules
     through graph traversal, catching both direct and transitive violations.
@@ -107,6 +104,7 @@ class DependencyGraphValidator:
         >>> violations = validator.validate(Path("packages/"))
         >>> for violation in violations:
         ...     print(violation)
+
     """
 
     def __init__(self) -> None:
@@ -116,18 +114,17 @@ class DependencyGraphValidator:
         self._module_to_file: dict[str, str] = {}
 
     def add_rule(self, rule: DependencyRule) -> None:
-        """
-        Add a dependency rule to enforce.
+        """Add a dependency rule to enforce.
 
         Args:
             rule: Dependency rule to add
+
         """
         self.rules.append(rule)
         logger.debug(f"Added rule: {rule.name}")
 
     def build_graph(self, root_path: Path, use_cache: bool = True) -> CodeGraph:
-        """
-        Build complete dependency graph for the codebase.
+        """Build complete dependency graph for the codebase.
 
         Args:
             root_path: Root directory to parse
@@ -135,6 +132,7 @@ class DependencyGraphValidator:
 
         Returns:
             Complete code graph with all dependencies
+
         """
         root_key = str(root_path.resolve())
 
@@ -163,7 +161,7 @@ class DependencyGraphValidator:
                     self._module_to_file[module_name] = node.file_path
 
         logger.info(
-            f"Graph built: {graph.node_count()} nodes, {graph.edge_count()} edges"
+            f"Graph built: {graph.node_count()} nodes, {graph.edge_count()} edges",
         )
 
         self.graph = graph
@@ -175,14 +173,14 @@ class DependencyGraphValidator:
         return graph
 
     def validate(self, root_path: Path) -> list[Violation]:
-        """
-        Validate all dependency rules against the codebase.
+        """Validate all dependency rules against the codebase.
 
         Args:
             root_path: Root directory to validate
 
         Returns:
             List of violations found
+
         """
         if self.graph is None:
             self.build_graph(root_path)
@@ -196,20 +194,20 @@ class DependencyGraphValidator:
 
             if rule_violations:
                 logger.warning(
-                    f"Found {len(rule_violations)} violations for rule: {rule.name}"
+                    f"Found {len(rule_violations)} violations for rule: {rule.name}",
                 )
 
         return violations
 
     def _check_rule(self, rule: DependencyRule) -> list[Violation]:
-        """
-        Check a single dependency rule.
+        """Check a single dependency rule.
 
         Args:
             rule: Rule to check
 
         Returns:
             List of violations for this rule
+
         """
         if self.graph is None:
             return []
@@ -248,15 +246,14 @@ class DependencyGraphValidator:
                     # Check transitive dependencies if enabled
                     elif rule.check_transitive:
                         transitive_violations = self._check_transitive_dependencies(
-                            source_module, rule
+                            source_module, rule,
                         )
                         violations.extend(transitive_violations)
 
         return violations
 
     def _is_same_app_import(self, source_module: str, target_module: str) -> bool:
-        """
-        Check if source and target are in the same app.
+        """Check if source and target are in the same app.
 
         Same-app imports are allowed (e.g., ecosystemiser.core -> ecosystemiser.services).
         Cross-app imports are forbidden (e.g., ecosystemiser -> ai_planner).
@@ -267,6 +264,7 @@ class DependencyGraphValidator:
 
         Returns:
             True if both modules are in the same app directory
+
         """
         source_file = self._module_to_file.get(source_module, "")
         target_file = self._module_to_file.get(target_module, "")
@@ -296,10 +294,9 @@ class DependencyGraphValidator:
         return False
 
     def _check_transitive_dependencies(
-        self, source_module: str, rule: DependencyRule
+        self, source_module: str, rule: DependencyRule,
     ) -> list[Violation]:
-        """
-        Check for transitive dependency violations using graph traversal.
+        """Check for transitive dependency violations using graph traversal.
 
         Args:
             source_module: Starting module
@@ -307,6 +304,7 @@ class DependencyGraphValidator:
 
         Returns:
             List of transitive violations
+
         """
         if self.graph is None:
             return []
@@ -338,10 +336,9 @@ class DependencyGraphValidator:
         return violations
 
     def _find_reachable_modules(
-        self, start_module: str, max_depth: int = 10
+        self, start_module: str, max_depth: int = 10,
     ) -> dict[str, list[str]]:
-        """
-        Find all modules reachable from start module via IMPORTS edges.
+        """Find all modules reachable from start module via IMPORTS edges.
 
         Uses BFS to find reachable modules and track paths.
 
@@ -351,6 +348,7 @@ class DependencyGraphValidator:
 
         Returns:
             Dict mapping target module to dependency path
+
         """
         if self.graph is None:
             return {}
@@ -386,8 +384,7 @@ class DependencyGraphValidator:
         return reachable
 
     def _matches_pattern(self, module_path: str, pattern: str) -> bool:
-        """
-        Check if a module path matches a glob pattern.
+        """Check if a module path matches a glob pattern.
 
         Args:
             module_path: Module path to check
@@ -395,6 +392,7 @@ class DependencyGraphValidator:
 
         Returns:
             True if module matches pattern
+
         """
         # Convert module name to file path for pattern matching
         if "/" in pattern or "\\" in pattern:
@@ -412,21 +410,18 @@ class DependencyGraphValidator:
                 # Match directory and all subdirectories
                 base_pattern = pattern[:-3]
                 return file_path.startswith(base_pattern)
-            elif pattern.endswith("/*"):
+            if pattern.endswith("/*"):
                 # Match directory only (no subdirectories)
                 base_pattern = pattern[:-2]
                 return file_path.startswith(base_pattern) and "/" not in file_path[
                     len(base_pattern) + 1 :
                 ]
-            else:
-                # Exact match
-                return file_path == pattern
-        else:
-            # Pattern is a module name pattern
-            if pattern.endswith("*"):
-                return module_path.startswith(pattern[:-1])
-            else:
-                return module_path == pattern
+            # Exact match
+            return file_path == pattern
+        # Pattern is a module name pattern
+        if pattern.endswith("*"):
+            return module_path.startswith(pattern[:-1])
+        return module_path == pattern
 
 
 # Pre-defined architectural rules for Hive platform

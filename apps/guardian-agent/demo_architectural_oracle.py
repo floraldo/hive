@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Demo: Oracle's Architectural Intelligence - The Self-Healing Platform
+"""Demo: Oracle's Architectural Intelligence - The Self-Healing Platform
 
 This demonstration shows how the Oracle has evolved to become the platform's
 architectural guardian, turning raw compliance data into strategic wisdom.
@@ -15,7 +14,7 @@ from datetime import datetime
 try:
     from rich.console import Console
     from rich.panel import Panel
-    from rich.progress import Progress, SpinnerColumn, TextColumn  # noqa: F401
+    from rich.progress import Progress, SpinnerColumn, TextColumn
     from rich.table import Table
 
     console = Console()
@@ -60,7 +59,6 @@ from guardian_agent.intelligence.data_unification import (
 
 async def demo_architectural_oracle_async():
     """Demonstrate the Oracle's architectural intelligence capabilities."""
-
     console.rule("🔮 ORACLE'S ARCHITECTURAL INTELLIGENCE DEMO")
     console.print("\n[bold blue]The Guardian has evolved into the Oracle...[/bold blue]")
     console.print("[dim]Transforming from reactive protection to proactive architectural wisdom[/dim]")

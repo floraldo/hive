@@ -21,10 +21,10 @@ class AnalyserService:
     """Orchestrator for executing analysis strategies on simulation results.,
 
 
-        This service coordinates the execution of various analysis strategies
-        managing the flow of data from raw simulation results to structured
-        analysis outputs. It follows the principle of separation of concerns,
-        producing only data (JSON) without any visualization or side effects.,
+    This service coordinates the execution of various analysis strategies
+    managing the flow of data from raw simulation results to structured
+    analysis outputs. It follows the principle of separation of concerns,
+    producing only data (JSON) without any visualization or side effects.,
     """
 
     def __init__(self, event_bus: EcoSystemiserEventBus | None = None) -> None:
@@ -32,6 +32,7 @@ class AnalyserService:
 
         Args:
             event_bus: Optional EcoSystemiser event bus for publishing events,
+
         """
         self.strategies: dict[str, BaseAnalysis] = {}
         self.event_bus = event_bus or get_ecosystemiser_event_bus()
@@ -49,6 +50,7 @@ class AnalyserService:
         Args:
             name: Unique identifier for the strategy
             strategy: Analysis strategy instance implementing BaseAnalysis,
+
         """
         if not isinstance(strategy, BaseAnalysis):
             raise TypeError(f"Strategy must inherit from BaseAnalysis, got {type(strategy)}")
@@ -78,6 +80,7 @@ class AnalyserService:
         Raises:
             FileNotFoundError: If results file doesn't exist,
             ValueError: If requested strategy doesn't exist,
+
         """
         # Generate analysis ID and start time
         analysis_id = (f"analysis_{uuid.uuid4().hex[:8]}",)
@@ -172,6 +175,7 @@ class AnalyserService:
 
         Returns:
             Dictionary containing parametric study analysis,
+
         """
         # Load parametric study results
         study_data = self._load_results(study_results_path)
@@ -197,6 +201,7 @@ class AnalyserService:
         Raises:
             FileNotFoundError: If file doesn't exist,
             json.JSONDecodeError: If file is not valid JSON,
+
         """
         path = Path(results_path)
 
@@ -220,6 +225,7 @@ class AnalyserService:
 
         Raises:
             ValueError: If requested strategy doesn't exist,
+
         """
         if requested is None:
             return list(self.strategies.keys())
@@ -240,6 +246,7 @@ class AnalyserService:
 
         Returns:
             Summary dictionary with key metrics,
+
         """
         summary = {"successful_analyses": 0, "failed_analyses": 0, "key_metrics": {}}
 
@@ -272,6 +279,7 @@ class AnalyserService:
         Args:
             analysis_results: Analysis results to save
             output_path: Path for output file,
+
         """
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -311,8 +319,8 @@ class AnalyserService:
             strategies_executed: List of strategies that were executed,
             analysis_results_path: Optional path to analysis results,
             duration_seconds: Optional execution duration,
-        """
 
+        """
         try:
             analysis_event = create_analysis_event(
                 event_type=event_type,

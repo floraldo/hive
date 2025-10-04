@@ -81,8 +81,7 @@ class UsageStats:
 
 
 class CostManager:
-    """
-    Generalized cost control manager for resource-intensive operations.
+    """Generalized cost control manager for resource-intensive operations.
 
     Tracks usage across multiple resource types and enforces budget limits.
     Designed to be flexible enough for any type of operation that incurs costs.
@@ -91,7 +90,7 @@ class CostManager:
     def __init__(
         self,
         limits: BudgetLimits | None = None,
-        cache_client: HiveCacheClient | None = None
+        cache_client: HiveCacheClient | None = None,
     ) -> None:
         """Initialize cost manager."""
         self.limits = limits or BudgetLimits()
@@ -179,10 +178,9 @@ class CostManager:
     async def estimate_cost(
         self,
         operation: str,
-        parameters: dict[str, Any] | None = None
+        parameters: dict[str, Any] | None = None,
     ) -> ResourceCost:
-        """
-        Estimate cost for an operation before execution.
+        """Estimate cost for an operation before execution.
 
         Args:
             operation: Name of the operation,
@@ -190,6 +188,7 @@ class CostManager:
 
         Returns:
             Estimated resource cost
+
         """
         parameters = parameters or {}
 
@@ -220,10 +219,9 @@ class CostManager:
     async def check_budget(
         self,
         estimated_cost: ResourceCost,
-        operation: str | None = None
+        operation: str | None = None,
     ) -> tuple[bool, str]:
-        """
-        Check if operation can proceed within budget limits.
+        """Check if operation can proceed within budget limits.
 
         Args:
             estimated_cost: Estimated cost of the operation,
@@ -231,6 +229,7 @@ class CostManager:
 
         Returns:
             Tuple of (can_proceed, reason)
+
         """
         self._check_and_reset_periods()
 
@@ -272,15 +271,15 @@ class CostManager:
         self,
         actual_cost: ResourceCost,
         operation: str,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Record actual resource usage.
+        """Record actual resource usage.
 
         Args:
             actual_cost: Actual cost incurred,
             operation: Operation that incurred the cost,
             metadata: Additional metadata for tracking,
+
         """
         cost = actual_cost.total_cost
         resource_key = f"{operation}_{actual_cost.resource_type.value}"
@@ -300,7 +299,7 @@ class CostManager:
                 "cost_per_unit": actual_cost.cost_per_unit,
                 "total_cost": cost,
                 "metadata": metadata or {},
-            }
+            },
         )
 
         # Update metrics,
@@ -311,7 +310,7 @@ class CostManager:
         self._save_to_cache()
 
         logger.info(
-            f"Recorded usage: {operation} cost ${cost:.4f} " f"(daily total: ${sum(self.daily_usage.values()):.2f})"
+            f"Recorded usage: {operation} cost ${cost:.4f} " f"(daily total: ${sum(self.daily_usage.values()):.2f})",
         )
 
     def get_usage_report(self) -> dict[str, Any]:
@@ -328,7 +327,7 @@ class CostManager:
                         h
                         for h in self.usage_history
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(hours=1)
-                    ]
+                    ],
                 ),
             ),
             "daily": UsageStats(
@@ -340,7 +339,7 @@ class CostManager:
                         h
                         for h in self.usage_history
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=1)
-                    ]
+                    ],
                 ),
             ),
             "monthly": UsageStats(
@@ -352,7 +351,7 @@ class CostManager:
                         h
                         for h in self.usage_history
                         if datetime.fromisoformat(h["timestamp"]) > datetime.now() - timedelta(days=30)
-                    ]
+                    ],
                 ),
             ),
             "recent_operations": list(self.usage_history)[-10:],
@@ -377,10 +376,9 @@ class CostManager:
         return dict(usage_by_op)
 
     async def with_cost_control(
-        self, operation: str, operation_func, parameters: dict[str, Any] | None = None, **kwargs
+        self, operation: str, operation_func, parameters: dict[str, Any] | None = None, **kwargs,
     ):
-        """
-        Execute an operation with automatic cost control.
+        """Execute an operation with automatic cost control.
 
         Args:
             operation: Name of the operation,
@@ -393,6 +391,7 @@ class CostManager:
 
         Raises:
             Exception: If budget check fails or operation fails,
+
         """
         # Estimate cost
         estimated_cost = await self.estimate_cost(operation, parameters)

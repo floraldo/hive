@@ -1,5 +1,4 @@
-"""
-Comprehensive Hive Platform Integration Testing Suite - Complete Version
+"""Comprehensive Hive Platform Integration Testing Suite - Complete Version
 
 This suite validates the entire Hive platform works correctly after all fixes and improvements:
 
@@ -28,10 +27,10 @@ from typing import Any
 import pytest
 
 test_root = Path(__file__).parent.parent
-sys.path.insert(0, str(test_root / 'apps' / 'hive-orchestrator' / 'src'))
-sys.path.insert(0, str(test_root / 'apps' / 'ai-planner' / 'src'))
-sys.path.insert(0, str(test_root / 'apps' / 'ai-reviewer' / 'src'))
-sys.path.insert(0, str(test_root / 'apps' / 'ecosystemiser' / 'src'))
+sys.path.insert(0, str(test_root / "apps" / "hive-orchestrator" / "src"))
+sys.path.insert(0, str(test_root / "apps" / "ai-planner" / "src"))
+sys.path.insert(0, str(test_root / "apps" / "ai-reviewer" / "src"))
+sys.path.insert(0, str(test_root / "apps" / "ecosystemiser" / "src"))
 
 @pytest.mark.crust
 @dataclass
@@ -80,15 +79,15 @@ class PlatformTestEnvironment:
 
     def setup(self):
         """Set up test environment"""
-        print('🔧 Setting up test environment...')
-        self.temp_dir = tempfile.mkdtemp(prefix='hive_test_')
-        self.test_db_path = Path(self.temp_dir) / 'test_hive.db'
-        os.environ['HIVE_TEST_MODE'] = 'true'
-        os.environ['HIVE_TEST_DB_PATH'] = str(self.test_db_path)
-        os.environ['HIVE_LOG_LEVEL'] = 'INFO'
-        self.test_config = {'test_mode': True, 'database_path': str(self.test_db_path), 'async_enabled': True, 'event_bus_enabled': True, 'max_workers': 3, 'task_timeout': 30, 'performance_monitoring': True}
+        print("🔧 Setting up test environment...")
+        self.temp_dir = tempfile.mkdtemp(prefix="hive_test_")
+        self.test_db_path = Path(self.temp_dir) / "test_hive.db"
+        os.environ["HIVE_TEST_MODE"] = "true"
+        os.environ["HIVE_TEST_DB_PATH"] = str(self.test_db_path)
+        os.environ["HIVE_LOG_LEVEL"] = "INFO"
+        self.test_config = {"test_mode": True, "database_path": str(self.test_db_path), "async_enabled": True, "event_bus_enabled": True, "max_workers": 3, "task_timeout": 30, "performance_monitoring": True}
         self._setup_test_database()
-        print(f'✅ Test environment ready in {self.temp_dir}')
+        print(f"✅ Test environment ready in {self.temp_dir}")
 
     def _setup_test_database(self):
         """Initialize test database with required schemas"""
@@ -98,12 +97,12 @@ class PlatformTestEnvironment:
             conn.commit()
             conn.close()
         except Exception as e:
-            self.metrics.errors_encountered.append(f'Database setup failed: {e}')
+            self.metrics.errors_encountered.append(f"Database setup failed: {e}")
             raise
 
     def teardown(self):
         """Clean up test environment"""
-        print('🧹 Cleaning up test environment...')
+        print("🧹 Cleaning up test environment...")
         for process in self.background_processes:
             try:
                 if process.poll() is None:
@@ -118,41 +117,41 @@ class PlatformTestEnvironment:
             try:
                 cleanup_func()
             except Exception as e:
-                print(f'⚠️ Cleanup function failed: {e}')
+                print(f"⚠️ Cleanup function failed: {e}")
         if self.temp_dir and Path(self.temp_dir).exists():
             import shutil
             shutil.rmtree(self.temp_dir, ignore_errors=True)
-        for env_var in ['HIVE_TEST_MODE', 'HIVE_TEST_DB_PATH', 'HIVE_LOG_LEVEL']:
+        for env_var in ["HIVE_TEST_MODE", "HIVE_TEST_DB_PATH", "HIVE_LOG_LEVEL"]:
             if env_var in os.environ:
                 del os.environ[env_var]
         self.metrics.test_end_time = time.time()
-        print('✅ Test environment cleaned up')
+        print("✅ Test environment cleaned up")
 
     def add_cleanup(self, func):
         """Add cleanup function"""
         self.cleanup_funcs.append(func)
 
-    def log_event(self, event_type: str, event_data: dict[str, Any], component: str='test'):
+    def log_event(self, event_type: str, event_data: dict[str, Any], component: str="test"):
         """Log test event"""
         self.metrics.events_published += 1
         try:
             conn = sqlite3.connect(self.test_db_path)
-            conn.execute('INSERT INTO event_log (event_type, event_data, component) VALUES (?, ?, ?)', (event_type, json.dumps(event_data), component))
+            conn.execute("INSERT INTO event_log (event_type, event_data, component) VALUES (?, ?, ?)", (event_type, json.dumps(event_data), component))
             conn.commit()
             conn.close()
         except Exception as e:
-            self.metrics.errors_encountered.append(f'Event logging failed: {e}')
+            self.metrics.errors_encountered.append(f"Event logging failed: {e}")
 
-    def record_performance(self, metric_name: str, metric_value: float, component: str='test'):
+    def record_performance(self, metric_name: str, metric_value: float, component: str="test"):
         """Record performance metric"""
         try:
             conn = sqlite3.connect(self.test_db_path)
-            conn.execute('INSERT INTO performance_metrics (metric_name, metric_value, component) VALUES (?, ?, ?)', (metric_name, metric_value, component))
+            conn.execute("INSERT INTO performance_metrics (metric_name, metric_value, component) VALUES (?, ?, ?)", (metric_name, metric_value, component))
             conn.commit()
             conn.close()
-            self.metrics.performance_samples.append({'test': metric_name, 'value': metric_value, 'component': component, 'timestamp': time.time()})
+            self.metrics.performance_samples.append({"test": metric_name, "value": metric_value, "component": component, "timestamp": time.time()})
         except Exception as e:
-            self.metrics.errors_encountered.append(f'Performance recording failed: {e}')
+            self.metrics.errors_encountered.append(f"Performance recording failed: {e}")
 
 class AIPlannerIntegrationTests:
     """Test AI Planner → Orchestrator integration"""
@@ -163,10 +162,10 @@ class AIPlannerIntegrationTests:
     @pytest.mark.crust
     def test_planning_queue_to_execution(self) -> bool:
         """Test complete AI Planner task decomposition → Queen pickup → Worker execution"""
-        print('🤖 Testing AI Planner → Queen → Worker integration...')
+        print("🤖 Testing AI Planner → Queen → Worker integration...")
         start_time = time.time()
         try:
-            planning_task_id = self._create_planning_task({'title': 'Build Authentication System', 'description': 'Implement JWT-based authentication with user management', 'priority': 80, 'context': json.dumps({'complexity': 'high', 'estimated_subtasks': 5, 'technologies': ['JWT', 'Flask', 'SQLite']})})
+            planning_task_id = self._create_planning_task({"title": "Build Authentication System", "description": "Implement JWT-based authentication with user management", "priority": 80, "context": json.dumps({"complexity": "high", "estimated_subtasks": 5, "technologies": ["JWT", "Flask", "SQLite"]})})
             plan_id = self._simulate_ai_planner_processing(planning_task_id)
             if not plan_id:
                 return False
@@ -180,89 +179,89 @@ class AIPlannerIntegrationTests:
             if not plan_completed:
                 return False
             duration = time.time() - start_time
-            self.env.record_performance('ai_planner_integration_duration', duration, 'ai_planner')
-            print(f'✅ AI Planner integration test passed ({duration:.2f}s)')
+            self.env.record_performance("ai_planner_integration_duration", duration, "ai_planner")
+            print(f"✅ AI Planner integration test passed ({duration:.2f}s)")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'AI Planner integration test failed: {e}')
-            print(f'❌ AI Planner integration test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"AI Planner integration test failed: {e}")
+            print(f"❌ AI Planner integration test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_subtask_dependency_resolution(self) -> bool:
         """Test subtask dependency resolution and execution ordering"""
-        print('🔗 Testing subtask dependency resolution...')
+        print("🔗 Testing subtask dependency resolution...")
         try:
-            planning_task_id = self._create_planning_task({'title': 'Database Migration Pipeline', 'description': 'Multi-step database migration with dependencies', 'context': json.dumps({'dependencies': True})})
-            plan_data = {'subtasks': [{'id': 1, 'title': 'Backup Database', 'dependencies': [], 'priority': 100}, {'id': 2, 'title': 'Run Migration Scripts', 'dependencies': [1], 'priority': 90}, {'id': 3, 'title': 'Verify Migration', 'dependencies': [2], 'priority': 80}, {'id': 4, 'title': 'Update Application Config', 'dependencies': [3], 'priority': 70}]}
+            planning_task_id = self._create_planning_task({"title": "Database Migration Pipeline", "description": "Multi-step database migration with dependencies", "context": json.dumps({"dependencies": True})})
+            plan_data = {"subtasks": [{"id": 1, "title": "Backup Database", "dependencies": [], "priority": 100}, {"id": 2, "title": "Run Migration Scripts", "dependencies": [1], "priority": 90}, {"id": 3, "title": "Verify Migration", "dependencies": [2], "priority": 80}, {"id": 4, "title": "Update Application Config", "dependencies": [3], "priority": 70}]}
             plan_id = self._create_execution_plan(planning_task_id, plan_data)
             ready_tasks = self._get_ready_subtasks(plan_id)
-            if len(ready_tasks) != 1 or ready_tasks[0]['title'] != 'Backup Database':
-                print(f'❌ Dependency resolution failed: expected 1 ready task, got {len(ready_tasks)}')
+            if len(ready_tasks) != 1 or ready_tasks[0]["title"] != "Backup Database":
+                print(f"❌ Dependency resolution failed: expected 1 ready task, got {len(ready_tasks)}")
                 return False
             self._mark_subtask_completed(plan_id, 1)
             ready_tasks = self._get_ready_subtasks(plan_id)
-            if len(ready_tasks) != 1 or ready_tasks[0]['title'] != 'Run Migration Scripts':
-                print(f'❌ Dependency progression failed: expected Migration Scripts, got {ready_tasks}')
+            if len(ready_tasks) != 1 or ready_tasks[0]["title"] != "Run Migration Scripts":
+                print(f"❌ Dependency progression failed: expected Migration Scripts, got {ready_tasks}")
                 return False
-            print('✅ Subtask dependency resolution test passed')
+            print("✅ Subtask dependency resolution test passed")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Dependency resolution test failed: {e}')
-            print(f'❌ Dependency resolution test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Dependency resolution test failed: {e}")
+            print(f"❌ Dependency resolution test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_plan_status_synchronization(self) -> bool:
         """Test plan status synchronization back to AI Planner"""
-        print('🔄 Testing plan status synchronization...')
+        print("🔄 Testing plan status synchronization...")
         try:
-            planning_task_id = self._create_planning_task({'title': 'Status Sync Test', 'description': 'Test plan status synchronization'})
-            plan_data = {'subtasks': [{'id': 1, 'title': 'Subtask 1', 'status': 'pending'}, {'id': 2, 'title': 'Subtask 2', 'status': 'pending'}]}
+            planning_task_id = self._create_planning_task({"title": "Status Sync Test", "description": "Test plan status synchronization"})
+            plan_data = {"subtasks": [{"id": 1, "title": "Subtask 1", "status": "pending"}, {"id": 2, "title": "Subtask 2", "status": "pending"}]}
             plan_id = self._create_execution_plan(planning_task_id, plan_data)
             self._mark_subtask_completed(plan_id, 1)
             status_1 = self._get_plan_progress(plan_id)
             self._mark_subtask_completed(plan_id, 2)
             status_2 = self._get_plan_progress(plan_id)
-            if status_1['completed_count'] != 1 or status_2['completed_count'] != 2:
-                print('❌ Status sync failed: expected progressive updates')
+            if status_1["completed_count"] != 1 or status_2["completed_count"] != 2:
+                print("❌ Status sync failed: expected progressive updates")
                 return False
             planning_status = self._get_planning_task_status(planning_task_id)
-            if planning_status != 'completed':
-                print(f'❌ Planning task status not updated: got {planning_status}')
+            if planning_status != "completed":
+                print(f"❌ Planning task status not updated: got {planning_status}")
                 return False
-            print('✅ Plan status synchronization test passed')
+            print("✅ Plan status synchronization test passed")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Status synchronization test failed: {e}')
-            print(f'❌ Status synchronization test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Status synchronization test failed: {e}")
+            print(f"❌ Status synchronization test failed: {e}")
             return False
 
     def _create_planning_task(self, task_data: dict[str, Any]) -> int:
         """Create planning task in database"""
         conn = sqlite3.connect(self.env.test_db_path)
-        cursor = conn.execute('INSERT INTO planning_queue (title, description, priority, context)\n               VALUES (?, ?, ?, ?)', (task_data['title'], task_data['description'], task_data.get('priority', 50), task_data.get('context', '{}')))
+        cursor = conn.execute("INSERT INTO planning_queue (title, description, priority, context)\n               VALUES (?, ?, ?, ?)", (task_data["title"], task_data["description"], task_data.get("priority", 50), task_data.get("context", "{}")))
         task_id = cursor.lastrowid
         conn.commit()
         conn.close()
         self.env.metrics.tasks_created += 1
-        self.env.log_event('planning_task_created', {'task_id': task_id, **task_data}, 'ai_planner')
+        self.env.log_event("planning_task_created", {"task_id": task_id, **task_data}, "ai_planner")
         return task_id
 
     def _simulate_ai_planner_processing(self, planning_task_id: int) -> int | None:
         """Simulate AI Planner processing planning task"""
         try:
-            plan_data = {'planning_task_id': planning_task_id, 'subtasks': [{'id': 1, 'title': 'Design authentication schema', 'priority': 90}, {'id': 2, 'title': 'Implement JWT token handling', 'priority': 85}, {'id': 3, 'title': 'Create user registration endpoint', 'priority': 80}, {'id': 4, 'title': 'Create login endpoint', 'priority': 80}, {'id': 5, 'title': 'Add authentication middleware', 'priority': 75}], 'estimated_duration': 240, 'complexity': 'high'}
+            plan_data = {"planning_task_id": planning_task_id, "subtasks": [{"id": 1, "title": "Design authentication schema", "priority": 90}, {"id": 2, "title": "Implement JWT token handling", "priority": 85}, {"id": 3, "title": "Create user registration endpoint", "priority": 80}, {"id": 4, "title": "Create login endpoint", "priority": 80}, {"id": 5, "title": "Add authentication middleware", "priority": 75}], "estimated_duration": 240, "complexity": "high"}
             plan_id = self._create_execution_plan(planning_task_id, plan_data)
             self.env.metrics.plans_generated += 1
             conn = sqlite3.connect(self.env.test_db_path)
             conn.execute("UPDATE planning_queue SET status = 'planned', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (planning_task_id,))
             conn.commit()
             conn.close()
-            self.env.log_event('plan_generated', {'planning_task_id': planning_task_id, 'plan_id': plan_id}, 'ai_planner')
+            self.env.log_event("plan_generated", {"planning_task_id": planning_task_id, "plan_id": plan_id}, "ai_planner")
             return plan_id
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'AI Planner processing simulation failed: {e}')
+            self.env.metrics.errors_encountered.append(f"AI Planner processing simulation failed: {e}")
             return None
 
     def _create_execution_plan(self, planning_task_id: int, plan_data: dict[str, Any]) -> int:
@@ -278,21 +277,21 @@ class AIPlannerIntegrationTests:
         """Simulate Queen picking up planned subtasks"""
         try:
             conn = sqlite3.connect(self.env.test_db_path)
-            cursor = conn.execute('SELECT plan_data FROM execution_plans WHERE id = ?', (plan_id,))
+            cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
             row = cursor.fetchone()
             if not row:
                 return []
             plan_data = json.loads(row[0])
             subtask_ids = []
-            for subtask in plan_data['subtasks']:
-                cursor = conn.execute("INSERT INTO tasks (title, description, status, priority, context)\n                       VALUES (?, ?, 'assigned', ?, ?)", (subtask['title'], f'Subtask from plan {plan_id}', subtask['priority'], json.dumps({'plan_id': plan_id, 'subtask_id': subtask['id']})))
+            for subtask in plan_data["subtasks"]:
+                cursor = conn.execute("INSERT INTO tasks (title, description, status, priority, context)\n                       VALUES (?, ?, 'assigned', ?, ?)", (subtask["title"], f"Subtask from plan {plan_id}", subtask["priority"], json.dumps({"plan_id": plan_id, "subtask_id": subtask["id"]})))
                 subtask_ids.append(cursor.lastrowid)
             conn.commit()
             conn.close()
-            self.env.log_event('subtasks_picked_up', {'plan_id': plan_id, 'subtask_count': len(subtask_ids)}, 'queen')
+            self.env.log_event("subtasks_picked_up", {"plan_id": plan_id, "subtask_count": len(subtask_ids)}, "queen")
             return subtask_ids
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Queen subtask pickup simulation failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Queen subtask pickup simulation failed: {e}")
             return []
 
     def _simulate_subtask_execution(self, subtask_ids: list[int]) -> bool:
@@ -300,16 +299,16 @@ class AIPlannerIntegrationTests:
         try:
             for subtask_id in subtask_ids:
                 time.sleep(0.05)
-                result_data = {'status': 'success', 'execution_time': 0.05, 'worker': f'test_worker_{subtask_id % 3}'}
+                result_data = {"status": "success", "execution_time": 0.05, "worker": f"test_worker_{subtask_id % 3}"}
                 conn = sqlite3.connect(self.env.test_db_path)
                 conn.execute("UPDATE tasks SET status = 'completed', result = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (json.dumps(result_data), subtask_id))
                 conn.commit()
                 conn.close()
                 self.env.metrics.subtasks_executed += 1
-            self.env.log_event('subtasks_completed', {'subtask_count': len(subtask_ids)}, 'worker')
+            self.env.log_event("subtasks_completed", {"subtask_count": len(subtask_ids)}, "worker")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Subtask execution simulation failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Subtask execution simulation failed: {e}")
             return False
 
     def _verify_plan_completion_sync(self, plan_id: int) -> bool:
@@ -319,59 +318,59 @@ class AIPlannerIntegrationTests:
             conn.execute("UPDATE execution_plans SET status = 'completed', updated_at = CURRENT_TIMESTAMP WHERE id = ?", (plan_id,))
             conn.commit()
             conn.close()
-            self.env.log_event('plan_completed', {'plan_id': plan_id}, 'queen')
+            self.env.log_event("plan_completed", {"plan_id": plan_id}, "queen")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Plan completion sync verification failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Plan completion sync verification failed: {e}")
             return False
 
     def _get_ready_subtasks(self, plan_id: int) -> list[dict[str, Any]]:
         """Get subtasks ready for execution (dependencies met)"""
         conn = sqlite3.connect(self.env.test_db_path)
-        cursor = conn.execute('SELECT plan_data FROM execution_plans WHERE id = ?', (plan_id,))
+        cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
         row = cursor.fetchone()
         conn.close()
         if not row:
             return []
         plan_data = json.loads(row[0])
-        ready_tasks = [task for task in plan_data['subtasks'] if not task.get('dependencies', []) and task.get('status', 'pending') == 'pending']
+        ready_tasks = [task for task in plan_data["subtasks"] if not task.get("dependencies", []) and task.get("status", "pending") == "pending"]
         return ready_tasks
 
     def _mark_subtask_completed(self, plan_id: int, subtask_id: int):
         """Mark subtask as completed in plan"""
         conn = sqlite3.connect(self.env.test_db_path)
-        cursor = conn.execute('SELECT plan_data FROM execution_plans WHERE id = ?', (plan_id,))
+        cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
         row = cursor.fetchone()
         if row:
             plan_data = json.loads(row[0])
-            for task in plan_data['subtasks']:
-                if task['id'] == subtask_id:
-                    task['status'] = 'completed'
+            for task in plan_data["subtasks"]:
+                if task["id"] == subtask_id:
+                    task["status"] = "completed"
                     break
-            conn.execute('UPDATE execution_plans SET plan_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', (json.dumps(plan_data), plan_id))
+            conn.execute("UPDATE execution_plans SET plan_data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", (json.dumps(plan_data), plan_id))
         conn.commit()
         conn.close()
 
     def _get_plan_progress(self, plan_id: int) -> dict[str, Any]:
         """Get plan progress statistics"""
         conn = sqlite3.connect(self.env.test_db_path)
-        cursor = conn.execute('SELECT plan_data FROM execution_plans WHERE id = ?', (plan_id,))
+        cursor = conn.execute("SELECT plan_data FROM execution_plans WHERE id = ?", (plan_id,))
         row = cursor.fetchone()
         conn.close()
         if not row:
-            return {'completed_count': 0, 'total_count': 0}
+            return {"completed_count": 0, "total_count": 0}
         plan_data = json.loads(row[0])
-        total_count = len(plan_data['subtasks'])
-        completed_count = sum(1 for task in plan_data['subtasks'] if task.get('status') == 'completed')
-        return {'completed_count': completed_count, 'total_count': total_count}
+        total_count = len(plan_data["subtasks"])
+        completed_count = sum(1 for task in plan_data["subtasks"] if task.get("status") == "completed")
+        return {"completed_count": completed_count, "total_count": total_count}
 
     def _get_planning_task_status(self, planning_task_id: int) -> str:
         """Get planning task status"""
         conn = sqlite3.connect(self.env.test_db_path)
-        cursor = conn.execute('SELECT status FROM planning_queue WHERE id = ?', (planning_task_id,))
+        cursor = conn.execute("SELECT status FROM planning_queue WHERE id = ?", (planning_task_id,))
         row = cursor.fetchone()
         conn.close()
-        return row[0] if row else 'unknown'
+        return row[0] if row else "unknown"
 
 class CrossAppCommunicationTests:
     """Test communication between all Hive apps"""
@@ -382,13 +381,13 @@ class CrossAppCommunicationTests:
     @pytest.mark.crust
     def test_event_bus_communication(self) -> bool:
         """Test event bus communication between all apps"""
-        print('📡 Testing event bus communication...')
+        print("📡 Testing event bus communication...")
         try:
             events_published = 0
             events_handled = 0
-            test_events = [{'type': 'task_created', 'component': 'queen', 'data': {'task_id': 1}}, {'type': 'plan_generated', 'component': 'ai_planner', 'data': {'plan_id': 1}}, {'type': 'worker_started', 'component': 'worker', 'data': {'worker_id': 'w1'}}, {'type': 'analysis_complete', 'component': 'ecosystemiser', 'data': {'result_id': 1}}]
+            test_events = [{"type": "task_created", "component": "queen", "data": {"task_id": 1}}, {"type": "plan_generated", "component": "ai_planner", "data": {"plan_id": 1}}, {"type": "worker_started", "component": "worker", "data": {"worker_id": "w1"}}, {"type": "analysis_complete", "component": "ecosystemiser", "data": {"result_id": 1}}]
             for event in test_events:
-                self.env.log_event(event['type'], event['data'], event['component'])
+                self.env.log_event(event["type"], event["data"], event["component"])
                 events_published += 1
                 self.env.metrics.events_published += 1
             conn = sqlite3.connect(self.env.test_db_path)
@@ -398,42 +397,41 @@ class CrossAppCommunicationTests:
             events_handled = recent_events
             self.env.metrics.events_handled += events_handled
             if events_handled >= events_published:
-                print(f'✅ Event bus communication test passed: {events_handled}/{events_published} events handled')
+                print(f"✅ Event bus communication test passed: {events_handled}/{events_published} events handled")
                 return True
-            else:
-                print(f'❌ Event bus communication test failed: only {events_handled}/{events_published} events handled')
-                return False
+            print(f"❌ Event bus communication test failed: only {events_handled}/{events_published} events handled")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Event bus communication test failed: {e}')
-            print(f'❌ Event bus communication test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Event bus communication test failed: {e}")
+            print(f"❌ Event bus communication test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_database_connection_sharing(self) -> bool:
         """Test database connection sharing works properly"""
-        print('🗄️ Testing database connection sharing...')
+        print("🗄️ Testing database connection sharing...")
         try:
             start_time = time.time()
 
             def simulate_app_db_access(app_name: str, operations: int):
                 for i in range(operations):
                     conn = sqlite3.connect(self.env.test_db_path)
-                    if app_name == 'orchestrator':
-                        conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', (f'Task {i}', f'Task from {app_name}'))
-                    elif app_name == 'ai_planner':
-                        conn.execute('INSERT INTO planning_queue (title, description) VALUES (?, ?)', (f'Plan {i}', f'Planning task from {app_name}'))
-                    elif app_name == 'ecosystemiser':
-                        conn.execute('INSERT INTO event_log (event_type, component) VALUES (?, ?)', (f'eco_event_{i}', app_name))
+                    if app_name == "orchestrator":
+                        conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", (f"Task {i}", f"Task from {app_name}"))
+                    elif app_name == "ai_planner":
+                        conn.execute("INSERT INTO planning_queue (title, description) VALUES (?, ?)", (f"Plan {i}", f"Planning task from {app_name}"))
+                    elif app_name == "ecosystemiser":
+                        conn.execute("INSERT INTO event_log (event_type, component) VALUES (?, ?)", (f"eco_event_{i}", app_name))
                     conn.commit()
                     conn.close()
                     self.env.metrics.database_operations += 1
             with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                futures = [executor.submit(simulate_app_db_access, 'orchestrator', 10), executor.submit(simulate_app_db_access, 'ai_planner', 10), executor.submit(simulate_app_db_access, 'ecosystemiser', 10)]
+                futures = [executor.submit(simulate_app_db_access, "orchestrator", 10), executor.submit(simulate_app_db_access, "ai_planner", 10), executor.submit(simulate_app_db_access, "ecosystemiser", 10)]
                 for future in concurrent.futures.as_completed(futures, timeout=30):
                     future.result()
             duration = time.time() - start_time
             ops_per_second = 30 / duration
-            self.env.record_performance('db_sharing_ops_per_second', ops_per_second, 'database')
+            self.env.record_performance("db_sharing_ops_per_second", ops_per_second, "database")
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE description LIKE '%orchestrator%'")
             orchestrator_ops = cursor.fetchone()[0]
@@ -444,32 +442,31 @@ class CrossAppCommunicationTests:
             conn.close()
             total_ops = orchestrator_ops + planner_ops + eco_ops
             if total_ops >= 30:
-                print(f'✅ Database connection sharing test passed: {total_ops} operations, {ops_per_second:.2f} ops/sec')
+                print(f"✅ Database connection sharing test passed: {total_ops} operations, {ops_per_second:.2f} ops/sec")
                 return True
-            else:
-                print(f'❌ Database connection sharing test failed: only {total_ops}/30 operations completed')
-                return False
+            print(f"❌ Database connection sharing test failed: only {total_ops}/30 operations completed")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Database connection sharing test failed: {e}')
-            print(f'❌ Database connection sharing test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Database connection sharing test failed: {e}")
+            print(f"❌ Database connection sharing test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_error_reporting_flows(self) -> bool:
         """Test error reporting flows across app boundaries"""
-        print('🚨 Testing error reporting flows...')
+        print("🚨 Testing error reporting flows...")
         try:
-            error_scenarios = [{'component': 'worker', 'error_type': 'task_execution_failed', 'severity': 'high'}, {'component': 'ai_planner', 'error_type': 'plan_generation_failed', 'severity': 'medium'}, {'component': 'ecosystemiser', 'error_type': 'analysis_timeout', 'severity': 'low'}, {'component': 'queen', 'error_type': 'worker_communication_failed', 'severity': 'high'}]
+            error_scenarios = [{"component": "worker", "error_type": "task_execution_failed", "severity": "high"}, {"component": "ai_planner", "error_type": "plan_generation_failed", "severity": "medium"}, {"component": "ecosystemiser", "error_type": "analysis_timeout", "severity": "low"}, {"component": "queen", "error_type": "worker_communication_failed", "severity": "high"}]
             errors_reported = 0
             errors_handled = 0
             for scenario in error_scenarios:
-                error_data = {'error_type': scenario['error_type'], 'severity': scenario['severity'], 'timestamp': time.time(), 'component': scenario['component']}
-                self.env.log_event('error_reported', error_data, scenario['component'])
+                error_data = {"error_type": scenario["error_type"], "severity": scenario["severity"], "timestamp": time.time(), "component": scenario["component"]}
+                self.env.log_event("error_reported", error_data, scenario["component"])
                 errors_reported += 1
-                if scenario['severity'] == 'high':
-                    self.env.log_event('error_escalated', error_data, 'error_handler')
+                if scenario["severity"] == "high":
+                    self.env.log_event("error_escalated", error_data, "error_handler")
                 else:
-                    self.env.log_event('error_logged', error_data, 'error_handler')
+                    self.env.log_event("error_logged", error_data, "error_handler")
                 errors_handled += 1
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute("SELECT COUNT(*) FROM event_log WHERE event_type IN ('error_reported', 'error_escalated', 'error_logged')")
@@ -477,22 +474,21 @@ class CrossAppCommunicationTests:
             conn.close()
             expected_events = errors_reported + errors_handled
             if total_error_events >= expected_events:
-                print(f'✅ Error reporting flows test passed: {total_error_events} error events processed')
+                print(f"✅ Error reporting flows test passed: {total_error_events} error events processed")
                 return True
-            else:
-                print(f'❌ Error reporting flows test failed: only {total_error_events}/{expected_events} error events')
-                return False
+            print(f"❌ Error reporting flows test failed: only {total_error_events}/{expected_events} error events")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Error reporting flows test failed: {e}')
-            print(f'❌ Error reporting flows test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Error reporting flows test failed: {e}")
+            print(f"❌ Error reporting flows test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_configuration_consistency(self) -> bool:
         """Test configuration and logging consistency across apps"""
-        print('⚙️ Testing configuration consistency...')
+        print("⚙️ Testing configuration consistency...")
         try:
-            components = ['queen', 'worker', 'ai_planner', 'ecosystemiser']
+            components = ["queen", "worker", "ai_planner", "ecosystemiser"]
             for component in components:
                 config_access_success = self._test_component_config_access(component)
                 if not config_access_success:
@@ -500,32 +496,32 @@ class CrossAppCommunicationTests:
                 logging_success = self._test_component_logging(component)
                 if not logging_success:
                     return False
-            print('✅ Configuration consistency test passed')
+            print("✅ Configuration consistency test passed")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Configuration consistency test failed: {e}')
-            print(f'❌ Configuration consistency test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Configuration consistency test failed: {e}")
+            print(f"❌ Configuration consistency test failed: {e}")
             return False
 
     def _test_component_config_access(self, component: str) -> bool:
         """Test component can access configuration"""
         try:
-            config_data = {'database_path': str(self.env.test_db_path), 'log_level': 'INFO', 'max_workers': 3, 'timeout': 30}
-            self.env.log_event('config_accessed', {'component': component, 'config': config_data}, component)
+            config_data = {"database_path": str(self.env.test_db_path), "log_level": "INFO", "max_workers": 3, "timeout": 30}
+            self.env.log_event("config_accessed", {"component": component, "config": config_data}, component)
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Config access test failed for {component}: {e}')
+            self.env.metrics.errors_encountered.append(f"Config access test failed for {component}: {e}")
             return False
 
     def _test_component_logging(self, component: str) -> bool:
         """Test component logging consistency"""
         try:
-            log_messages = [{'level': 'INFO', 'message': f'{component} started successfully'}, {'level': 'DEBUG', 'message': f'{component} processing request'}, {'level': 'WARNING', 'message': f'{component} detected minor issue'}]
+            log_messages = [{"level": "INFO", "message": f"{component} started successfully"}, {"level": "DEBUG", "message": f"{component} processing request"}, {"level": "WARNING", "message": f"{component} detected minor issue"}]
             for log_msg in log_messages:
-                self.env.log_event('log_message', log_msg, component)
+                self.env.log_event("log_message", log_msg, component)
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Logging test failed for {component}: {e}')
+            self.env.metrics.errors_encountered.append(f"Logging test failed for {component}: {e}")
             return False
 
 class DatabaseIntegrationTests:
@@ -537,7 +533,7 @@ class DatabaseIntegrationTests:
     @pytest.mark.crust
     def test_connection_pool_under_load(self) -> bool:
         """Test the consolidated connection pool under load"""
-        print('🏊 Testing connection pool under load...')
+        print("🏊 Testing connection pool under load...")
         start_time = time.time()
         try:
 
@@ -545,9 +541,9 @@ class DatabaseIntegrationTests:
                 for i in range(operations):
                     conn = sqlite3.connect(self.env.test_db_path)
                     if i % 3 == 0:
-                        conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', (f'Load test task {worker_id}-{i}', f'From worker {worker_id}'))
+                        conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", (f"Load test task {worker_id}-{i}", f"From worker {worker_id}"))
                     else:
-                        cursor = conn.execute('SELECT COUNT(*) FROM tasks')
+                        cursor = conn.execute("SELECT COUNT(*) FROM tasks")
                         cursor.fetchone()
                     conn.commit()
                     conn.close()
@@ -561,7 +557,7 @@ class DatabaseIntegrationTests:
             duration = time.time() - start_time
             total_operations = num_workers * operations_per_worker
             ops_per_second = total_operations / duration
-            self.env.record_performance('pool_load_ops_per_second', ops_per_second, 'database')
+            self.env.record_performance("pool_load_ops_per_second", ops_per_second, "database")
             self.env.metrics.database_operations += total_operations
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE title LIKE 'Load test task%'")
@@ -569,44 +565,43 @@ class DatabaseIntegrationTests:
             conn.close()
             expected_inserts = num_workers * operations_per_worker // 3
             if inserted_tasks >= expected_inserts * 0.9:
-                print(f'✅ Connection pool load test passed: {ops_per_second:.2f} ops/sec, {inserted_tasks} tasks inserted')
+                print(f"✅ Connection pool load test passed: {ops_per_second:.2f} ops/sec, {inserted_tasks} tasks inserted")
                 return True
-            else:
-                print(f'❌ Connection pool load test failed: only {inserted_tasks}/{expected_inserts} tasks inserted')
-                return False
+            print(f"❌ Connection pool load test failed: only {inserted_tasks}/{expected_inserts} tasks inserted")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Connection pool load test failed: {e}')
-            print(f'❌ Connection pool load test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Connection pool load test failed: {e}")
+            print(f"❌ Connection pool load test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_ecosystemiser_database_integration(self) -> bool:
         """Test EcoSystemiser database integration works correctly"""
-        print('🌍 Testing EcoSystemiser database integration...')
+        print("🌍 Testing EcoSystemiser database integration...")
         try:
             conn = sqlite3.connect(self.env.test_db_path)
             conn.executescript("\n                CREATE TABLE IF NOT EXISTS eco_components (\n                    id INTEGER PRIMARY KEY AUTOINCREMENT,\n                    name TEXT NOT NULL,\n                    type TEXT NOT NULL,\n                    config_data TEXT,\n                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n                );\n\n                CREATE TABLE IF NOT EXISTS eco_simulations (\n                    id INTEGER PRIMARY KEY AUTOINCREMENT,\n                    component_id INTEGER,\n                    simulation_data TEXT,\n                    status TEXT DEFAULT 'pending',\n                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,\n                    FOREIGN KEY (component_id) REFERENCES eco_components(id)\n                );\n            ")
             conn.commit()
             conn.close()
-            component_id = self._create_eco_component({'name': 'Solar Panel Array', 'type': 'energy_generation', 'config': {'capacity': 100, 'efficiency': 0.85}})
-            simulation_id = self._create_eco_simulation(component_id, {'duration': 24, 'timestep': 3600, 'weather_data': 'test_weather.csv'})
+            component_id = self._create_eco_component({"name": "Solar Panel Array", "type": "energy_generation", "config": {"capacity": 100, "efficiency": 0.85}})
+            simulation_id = self._create_eco_simulation(component_id, {"duration": 24, "timestep": 3600, "weather_data": "test_weather.csv"})
             simulation_success = self._process_eco_simulation(simulation_id)
             if not simulation_success:
                 return False
             results_retrieved = self._retrieve_eco_results(simulation_id)
             if not results_retrieved:
                 return False
-            print('✅ EcoSystemiser database integration test passed')
+            print("✅ EcoSystemiser database integration test passed")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'EcoSystemiser database integration test failed: {e}')
-            print(f'❌ EcoSystemiser database integration test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"EcoSystemiser database integration test failed: {e}")
+            print(f"❌ EcoSystemiser database integration test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_async_database_operations(self) -> bool:
         """Test async database operations work correctly"""
-        print('⚡ Testing async database operations...')
+        print("⚡ Testing async database operations...")
 
         async def async_database_test():
             try:
@@ -614,7 +609,7 @@ class DatabaseIntegrationTests:
                 async def async_db_operation(operation_id: int):
                     await asyncio.sleep(0.01)
                     conn = sqlite3.connect(self.env.test_db_path)
-                    conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', (f'Async task {operation_id}', f'Async operation {operation_id}'))
+                    conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", (f"Async task {operation_id}", f"Async operation {operation_id}"))
                     conn.commit()
                     conn.close()
                     return operation_id
@@ -622,56 +617,55 @@ class DatabaseIntegrationTests:
                 tasks = [async_db_operation(i) for i in range(20)]
                 results = await asyncio.gather(*tasks)
                 duration = time.time() - start_time
-                self.env.record_performance('async_db_ops_duration', duration, 'database')
+                self.env.record_performance("async_db_ops_duration", duration, "database")
                 self.env.metrics.async_operations += len(results)
                 conn = sqlite3.connect(self.env.test_db_path)
                 cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE title LIKE 'Async task%'")
                 async_tasks = cursor.fetchone()[0]
                 conn.close()
                 if async_tasks >= 20:
-                    print(f'✅ Async database operations test passed: {async_tasks} operations in {duration:.3f}s')
+                    print(f"✅ Async database operations test passed: {async_tasks} operations in {duration:.3f}s")
                     return True
-                else:
-                    print(f'❌ Async database operations test failed: only {async_tasks}/20 operations completed')
-                    return False
+                print(f"❌ Async database operations test failed: only {async_tasks}/20 operations completed")
+                return False
             except Exception as e:
-                self.env.metrics.errors_encountered.append(f'Async database operations test failed: {e}')
-                print(f'❌ Async database operations test failed: {e}')
+                self.env.metrics.errors_encountered.append(f"Async database operations test failed: {e}")
+                print(f"❌ Async database operations test failed: {e}")
                 return False
         try:
             result = asyncio.run(async_database_test())
             return result
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Async test execution failed: {e}')
-            print(f'❌ Async test execution failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Async test execution failed: {e}")
+            print(f"❌ Async test execution failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_transaction_handling_and_rollback(self) -> bool:
         """Test transaction handling and rollback scenarios"""
-        print('🔄 Testing transaction handling and rollback...')
+        print("🔄 Testing transaction handling and rollback...")
         try:
             conn = sqlite3.connect(self.env.test_db_path)
-            conn.execute('BEGIN TRANSACTION')
-            conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', ('Transaction Test 1', 'Successful transaction'))
-            conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', ('Transaction Test 2', 'Successful transaction'))
-            conn.execute('COMMIT')
+            conn.execute("BEGIN TRANSACTION")
+            conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 1", "Successful transaction"))
+            conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", ("Transaction Test 2", "Successful transaction"))
+            conn.execute("COMMIT")
             conn.close()
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE description = 'Successful transaction'")
             success_count = cursor.fetchone()[0]
             conn.close()
             if success_count != 2:
-                print(f'❌ Transaction commit failed: expected 2 records, got {success_count}')
+                print(f"❌ Transaction commit failed: expected 2 records, got {success_count}")
                 return False
             conn = sqlite3.connect(self.env.test_db_path)
             try:
-                conn.execute('BEGIN TRANSACTION')
-                conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', ('Rollback Test 1', 'Should be rolled back'))
-                conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', ('Rollback Test 2', 'Should be rolled back'))
-                raise sqlite3.Error('Simulated transaction error')
+                conn.execute("BEGIN TRANSACTION")
+                conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 1", "Should be rolled back"))
+                conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", ("Rollback Test 2", "Should be rolled back"))
+                raise sqlite3.Error("Simulated transaction error")
             except sqlite3.Error:
-                conn.execute('ROLLBACK')
+                conn.execute("ROLLBACK")
             finally:
                 conn.close()
             conn = sqlite3.connect(self.env.test_db_path)
@@ -679,34 +673,33 @@ class DatabaseIntegrationTests:
             rollback_count = cursor.fetchone()[0]
             conn.close()
             if rollback_count == 0:
-                print('✅ Transaction handling and rollback test passed')
+                print("✅ Transaction handling and rollback test passed")
                 return True
-            else:
-                print(f'❌ Transaction rollback failed: found {rollback_count} records that should have been rolled back')
-                return False
+            print(f"❌ Transaction rollback failed: found {rollback_count} records that should have been rolled back")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Transaction handling test failed: {e}')
-            print(f'❌ Transaction handling test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Transaction handling test failed: {e}")
+            print(f"❌ Transaction handling test failed: {e}")
             return False
 
     def _create_eco_component(self, component_data: dict[str, Any]) -> int:
         """Create EcoSystemiser component"""
         conn = sqlite3.connect(self.env.test_db_path)
-        cursor = conn.execute('INSERT INTO eco_components (name, type, config_data) VALUES (?, ?, ?)', (component_data['name'], component_data['type'], json.dumps(component_data.get('config', {}))))
+        cursor = conn.execute("INSERT INTO eco_components (name, type, config_data) VALUES (?, ?, ?)", (component_data["name"], component_data["type"], json.dumps(component_data.get("config", {}))))
         component_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        self.env.log_event('eco_component_created', {'component_id': component_id, **component_data}, 'ecosystemiser')
+        self.env.log_event("eco_component_created", {"component_id": component_id, **component_data}, "ecosystemiser")
         return component_id
 
     def _create_eco_simulation(self, component_id: int, simulation_data: dict[str, Any]) -> int:
         """Create EcoSystemiser simulation"""
         conn = sqlite3.connect(self.env.test_db_path)
-        cursor = conn.execute('INSERT INTO eco_simulations (component_id, simulation_data) VALUES (?, ?)', (component_id, json.dumps(simulation_data)))
+        cursor = conn.execute("INSERT INTO eco_simulations (component_id, simulation_data) VALUES (?, ?)", (component_id, json.dumps(simulation_data)))
         simulation_id = cursor.lastrowid
         conn.commit()
         conn.close()
-        self.env.log_event('eco_simulation_created', {'simulation_id': simulation_id, 'component_id': component_id}, 'ecosystemiser')
+        self.env.log_event("eco_simulation_created", {"simulation_id": simulation_id, "component_id": component_id}, "ecosystemiser")
         return simulation_id
 
     def _process_eco_simulation(self, simulation_id: int) -> bool:
@@ -717,26 +710,25 @@ class DatabaseIntegrationTests:
             conn.execute("UPDATE eco_simulations SET status = 'completed' WHERE id = ?", (simulation_id,))
             conn.commit()
             conn.close()
-            self.env.log_event('eco_simulation_processed', {'simulation_id': simulation_id}, 'ecosystemiser')
+            self.env.log_event("eco_simulation_processed", {"simulation_id": simulation_id}, "ecosystemiser")
             return True
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'EcoSystemiser simulation processing failed: {e}')
+            self.env.metrics.errors_encountered.append(f"EcoSystemiser simulation processing failed: {e}")
             return False
 
     def _retrieve_eco_results(self, simulation_id: int) -> bool:
         """Retrieve EcoSystemiser simulation results"""
         try:
             conn = sqlite3.connect(self.env.test_db_path)
-            cursor = conn.execute('SELECT status, simulation_data FROM eco_simulations WHERE id = ?', (simulation_id,))
+            cursor = conn.execute("SELECT status, simulation_data FROM eco_simulations WHERE id = ?", (simulation_id,))
             row = cursor.fetchone()
             conn.close()
-            if row and row[0] == 'completed':
-                self.env.log_event('eco_results_retrieved', {'simulation_id': simulation_id}, 'ecosystemiser')
+            if row and row[0] == "completed":
+                self.env.log_event("eco_results_retrieved", {"simulation_id": simulation_id}, "ecosystemiser")
                 return True
-            else:
-                return False
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'EcoSystemiser results retrieval failed: {e}')
+            self.env.metrics.errors_encountered.append(f"EcoSystemiser results retrieval failed: {e}")
             return False
 
 class PerformanceIntegrationTests:
@@ -748,48 +740,47 @@ class PerformanceIntegrationTests:
     @pytest.mark.crust
     def test_async_infrastructure_performance(self) -> bool:
         """Test async infrastructure performance improvements"""
-        print('🚀 Testing async infrastructure performance...')
+        print("🚀 Testing async infrastructure performance...")
 
         async def async_performance_test():
             try:
                 sequential_time = await self._test_sequential_operations()
                 concurrent_time = await self._test_concurrent_operations()
                 improvement_factor = sequential_time / concurrent_time if concurrent_time > 0 else 0
-                self.env.record_performance('async_improvement_factor', improvement_factor, 'async')
+                self.env.record_performance("async_improvement_factor", improvement_factor, "async")
                 event_processing_time = await self._test_async_event_processing()
-                self.env.record_performance('async_event_processing_time', event_processing_time, 'async')
+                self.env.record_performance("async_event_processing_time", event_processing_time, "async")
                 db_async_time = await self._test_async_database_batch()
-                self.env.record_performance('async_db_batch_time', db_async_time, 'async')
+                self.env.record_performance("async_db_batch_time", db_async_time, "async")
                 if improvement_factor >= 3.0:
-                    print(f'✅ Async infrastructure performance test passed: {improvement_factor:.1f}x improvement')
+                    print(f"✅ Async infrastructure performance test passed: {improvement_factor:.1f}x improvement")
                     return True
-                else:
-                    print(f'❌ Async infrastructure performance test failed: only {improvement_factor:.1f}x improvement')
-                    return False
+                print(f"❌ Async infrastructure performance test failed: only {improvement_factor:.1f}x improvement")
+                return False
             except Exception as e:
-                self.env.metrics.errors_encountered.append(f'Async infrastructure performance test failed: {e}')
-                print(f'❌ Async infrastructure performance test failed: {e}')
+                self.env.metrics.errors_encountered.append(f"Async infrastructure performance test failed: {e}")
+                print(f"❌ Async infrastructure performance test failed: {e}")
                 return False
         try:
             result = asyncio.run(async_performance_test())
             return result
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Async performance test execution failed: {e}')
-            print(f'❌ Async performance test execution failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Async performance test execution failed: {e}")
+            print(f"❌ Async performance test execution failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_concurrent_task_processing_performance(self) -> bool:
         """Test concurrent task processing capabilities and throughput"""
-        print('⚡ Testing concurrent task processing performance...')
+        print("⚡ Testing concurrent task processing performance...")
         start_time = time.time()
         try:
             num_tasks = 20
             task_ids = []
             for i in range(num_tasks):
-                task_data = {'title': f'Performance Test Task {i + 1}', 'description': f'Task {i + 1} for performance testing', 'priority': 60, 'context': json.dumps({'performance_test': True, 'task_number': i + 1})}
+                task_data = {"title": f"Performance Test Task {i + 1}", "description": f"Task {i + 1} for performance testing", "priority": 60, "context": json.dumps({"performance_test": True, "task_number": i + 1})}
                 conn = sqlite3.connect(self.env.test_db_path)
-                cursor = conn.execute('INSERT INTO tasks (title, description, priority, context) VALUES (?, ?, ?, ?)', (task_data['title'], task_data['description'], task_data['priority'], task_data['context']))
+                cursor = conn.execute("INSERT INTO tasks (title, description, priority, context) VALUES (?, ?, ?, ?)", (task_data["title"], task_data["description"], task_data["priority"], task_data["context"]))
                 task_ids.append(cursor.lastrowid)
                 conn.commit()
                 conn.close()
@@ -810,56 +801,54 @@ class PerformanceIntegrationTests:
                     future.result()
             duration = time.time() - start_time
             throughput = num_tasks / duration
-            self.env.record_performance('concurrent_task_throughput', throughput, 'concurrent')
+            self.env.record_performance("concurrent_task_throughput", throughput, "concurrent")
             self.env.metrics.throughput = throughput
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'completed' AND title LIKE 'Performance Test Task%'")
             completed_tasks = cursor.fetchone()[0]
             conn.close()
             if completed_tasks >= num_tasks and throughput >= 5.0:
-                print(f'✅ Concurrent processing performance test passed: {throughput:.2f} tasks/sec, {completed_tasks}/{num_tasks} completed')
+                print(f"✅ Concurrent processing performance test passed: {throughput:.2f} tasks/sec, {completed_tasks}/{num_tasks} completed")
                 return True
-            else:
-                print(f'❌ Concurrent processing performance test failed: {throughput:.2f} tasks/sec, only {completed_tasks}/{num_tasks} completed')
-                return False
+            print(f"❌ Concurrent processing performance test failed: {throughput:.2f} tasks/sec, only {completed_tasks}/{num_tasks} completed")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Concurrent processing performance test failed: {e}')
-            print(f'❌ Concurrent processing performance test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Concurrent processing performance test failed: {e}")
+            print(f"❌ Concurrent processing performance test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_database_performance_optimization(self) -> bool:
         """Test database performance optimizations"""
-        print('🗄️ Testing database performance optimizations...')
+        print("🗄️ Testing database performance optimizations...")
         try:
             batch_insert_time = self._test_batch_insert_performance()
-            self.env.record_performance('batch_insert_time', batch_insert_time, 'database')
+            self.env.record_performance("batch_insert_time", batch_insert_time, "database")
             query_optimization_time = self._test_query_optimization_performance()
-            self.env.record_performance('query_optimization_time', query_optimization_time, 'database')
+            self.env.record_performance("query_optimization_time", query_optimization_time, "database")
             connection_pool_time = self._test_connection_pool_performance()
-            self.env.record_performance('connection_pool_time', connection_pool_time, 'database')
+            self.env.record_performance("connection_pool_time", connection_pool_time, "database")
             total_time = batch_insert_time + query_optimization_time + connection_pool_time
             if total_time < 2.0:
-                print(f'✅ Database performance optimization test passed: {total_time:.3f}s total')
+                print(f"✅ Database performance optimization test passed: {total_time:.3f}s total")
                 return True
-            else:
-                print(f'❌ Database performance optimization test failed: {total_time:.3f}s total (too slow)')
-                return False
+            print(f"❌ Database performance optimization test failed: {total_time:.3f}s total (too slow)")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'Database performance optimization test failed: {e}')
-            print(f'❌ Database performance optimization test failed: {e}')
+            self.env.metrics.errors_encountered.append(f"Database performance optimization test failed: {e}")
+            print(f"❌ Database performance optimization test failed: {e}")
             return False
 
     @pytest.mark.crust
     def test_5x_performance_improvement_validation(self) -> bool:
         """Validate the claimed 5x performance improvement"""
-        print('📈 Testing 5x performance improvement validation...')
+        print("📈 Testing 5x performance improvement validation...")
         try:
             start_time = time.time()
             for i in range(10):
                 time.sleep(0.05)
                 conn = sqlite3.connect(self.env.test_db_path)
-                conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', (f'Sequential Task {i}', 'Old approach task'))
+                conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", (f"Sequential Task {i}", "Old approach task"))
                 conn.commit()
                 conn.close()
             sequential_time = time.time() - start_time
@@ -869,7 +858,7 @@ class PerformanceIntegrationTests:
                 for i in task_batch:
                     time.sleep(0.05)
                     conn = sqlite3.connect(self.env.test_db_path)
-                    conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', (f'Concurrent Task {i}', 'New approach task'))
+                    conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", (f"Concurrent Task {i}", "New approach task"))
                     conn.commit()
                     conn.close()
             with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
@@ -878,7 +867,7 @@ class PerformanceIntegrationTests:
                     future.result()
             concurrent_time = time.time() - start_time
             improvement_factor = sequential_time / concurrent_time if concurrent_time > 0 else 0
-            self.env.record_performance('5x_improvement_factor', improvement_factor, 'performance')
+            self.env.record_performance("5x_improvement_factor", improvement_factor, "performance")
             conn = sqlite3.connect(self.env.test_db_path)
             cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE title LIKE 'Sequential Task%'")
             sequential_count = cursor.fetchone()[0]
@@ -886,15 +875,14 @@ class PerformanceIntegrationTests:
             concurrent_count = cursor.fetchone()[0]
             conn.close()
             if improvement_factor >= 3.0 and sequential_count == 10 and (concurrent_count == 10):
-                print(f'✅ 5x performance improvement validation passed: {improvement_factor:.1f}x improvement achieved')
+                print(f"✅ 5x performance improvement validation passed: {improvement_factor:.1f}x improvement achieved")
                 self.env.metrics.improvement_factor = improvement_factor
                 return True
-            else:
-                print(f'❌ 5x performance improvement validation failed: only {improvement_factor:.1f}x improvement')
-                return False
+            print(f"❌ 5x performance improvement validation failed: only {improvement_factor:.1f}x improvement")
+            return False
         except Exception as e:
-            self.env.metrics.errors_encountered.append(f'5x performance improvement validation failed: {e}')
-            print(f'❌ 5x performance improvement validation failed: {e}')
+            self.env.metrics.errors_encountered.append(f"5x performance improvement validation failed: {e}")
+            print(f"❌ 5x performance improvement validation failed: {e}")
             return False
 
     async def _test_sequential_operations(self) -> float:
@@ -917,7 +905,7 @@ class PerformanceIntegrationTests:
 
         async def process_event(event_id):
             await asyncio.sleep(0.001)
-            self.env.log_event('async_test_event', {'event_id': event_id}, 'async_test')
+            self.env.log_event("async_test_event", {"event_id": event_id}, "async_test")
         tasks = [process_event(i) for i in range(10)]
         await asyncio.gather(*tasks)
         return time.time() - start_time
@@ -929,7 +917,7 @@ class PerformanceIntegrationTests:
         async def async_db_insert(task_id):
             await asyncio.sleep(0.001)
             conn = sqlite3.connect(self.env.test_db_path)
-            conn.execute('INSERT INTO tasks (title, description) VALUES (?, ?)', (f'Async DB Task {task_id}', 'Async database test'))
+            conn.execute("INSERT INTO tasks (title, description) VALUES (?, ?)", (f"Async DB Task {task_id}", "Async database test"))
             conn.commit()
             conn.close()
         tasks = [async_db_insert(i) for i in range(5)]
@@ -940,8 +928,8 @@ class PerformanceIntegrationTests:
         """Test batch insert performance"""
         start_time = time.time()
         conn = sqlite3.connect(self.env.test_db_path)
-        insert_data = [(f'Batch Task {i}', f'Batch insert test {i}') for i in range(50)]
-        conn.executemany('INSERT INTO tasks (title, description) VALUES (?, ?)', insert_data)
+        insert_data = [(f"Batch Task {i}", f"Batch insert test {i}") for i in range(50)]
+        conn.executemany("INSERT INTO tasks (title, description) VALUES (?, ?)", insert_data)
         conn.commit()
         conn.close()
         self.env.metrics.database_operations += 50
@@ -952,7 +940,7 @@ class PerformanceIntegrationTests:
         start_time = time.time()
         conn = sqlite3.connect(self.env.test_db_path)
         for _i in range(10):
-            cursor = conn.execute('SELECT id, title FROM tasks WHERE status = ? LIMIT 10', ('pending',))
+            cursor = conn.execute("SELECT id, title FROM tasks WHERE status = ? LIMIT 10", ("pending",))
             cursor.fetchall()
         conn.close()
         self.env.metrics.database_operations += 10
@@ -963,7 +951,7 @@ class PerformanceIntegrationTests:
         start_time = time.time()
         for _i in range(20):
             conn = sqlite3.connect(self.env.test_db_path)
-            cursor = conn.execute('SELECT 1')
+            cursor = conn.execute("SELECT 1")
             cursor.fetchone()
             conn.close()
         self.env.metrics.database_operations += 20
@@ -978,139 +966,139 @@ class ComprehensiveHiveIntegrationTestSuite:
 
     def run_all_tests(self) -> bool:
         """Run all integration tests"""
-        print('🏁 Starting Comprehensive Hive Platform Integration Tests')
-        print('=' * 80)
+        print("🏁 Starting Comprehensive Hive Platform Integration Tests")
+        print("=" * 80)
         self.env.setup()
         try:
-            self.test_suites = {'ai_planner': AIPlannerIntegrationTests(self.env), 'cross_app': CrossAppCommunicationTests(self.env), 'database': DatabaseIntegrationTests(self.env), 'performance': PerformanceIntegrationTests(self.env)}
+            self.test_suites = {"ai_planner": AIPlannerIntegrationTests(self.env), "cross_app": CrossAppCommunicationTests(self.env), "database": DatabaseIntegrationTests(self.env), "performance": PerformanceIntegrationTests(self.env)}
             all_passed = True
             test_results = {}
             print(f"\n{'=' * 20} AI PLANNER INTEGRATION TESTS {'=' * 20}")
             ai_planner_results = self._run_ai_planner_tests()
-            test_results['ai_planner'] = ai_planner_results
+            test_results["ai_planner"] = ai_planner_results
             all_passed &= ai_planner_results
             print(f"\n{'=' * 20} CROSS-APP COMMUNICATION TESTS {'=' * 20}")
             cross_app_results = self._run_cross_app_tests()
-            test_results['cross_app'] = cross_app_results
+            test_results["cross_app"] = cross_app_results
             all_passed &= cross_app_results
             print(f"\n{'=' * 20} DATABASE INTEGRATION TESTS {'=' * 20}")
             database_results = self._run_database_tests()
-            test_results['database'] = database_results
+            test_results["database"] = database_results
             all_passed &= database_results
             print(f"\n{'=' * 20} PERFORMANCE INTEGRATION TESTS {'=' * 20}")
             performance_results = self._run_performance_tests()
-            test_results['performance'] = performance_results
+            test_results["performance"] = performance_results
             all_passed &= performance_results
             self._print_final_summary(test_results, all_passed)
             return all_passed
         except Exception as e:
-            print(f'❌ Test suite execution failed: {e}')
-            self.env.metrics.errors_encountered.append(f'Test suite execution failed: {e}')
+            print(f"❌ Test suite execution failed: {e}")
+            self.env.metrics.errors_encountered.append(f"Test suite execution failed: {e}")
             return False
         finally:
             self.env.teardown()
 
     def _run_ai_planner_tests(self) -> bool:
         """Run AI Planner integration tests"""
-        tests = [('Planning Queue to Execution', self.test_suites['ai_planner'].test_planning_queue_to_execution), ('Subtask Dependency Resolution', self.test_suites['ai_planner'].test_subtask_dependency_resolution), ('Plan Status Synchronization', self.test_suites['ai_planner'].test_plan_status_synchronization)]
-        return self._execute_test_group(tests, 'AI Planner')
+        tests = [("Planning Queue to Execution", self.test_suites["ai_planner"].test_planning_queue_to_execution), ("Subtask Dependency Resolution", self.test_suites["ai_planner"].test_subtask_dependency_resolution), ("Plan Status Synchronization", self.test_suites["ai_planner"].test_plan_status_synchronization)]
+        return self._execute_test_group(tests, "AI Planner")
 
     def _run_cross_app_tests(self) -> bool:
         """Run cross-app communication tests"""
-        tests = [('Event Bus Communication', self.test_suites['cross_app'].test_event_bus_communication), ('Database Connection Sharing', self.test_suites['cross_app'].test_database_connection_sharing), ('Error Reporting Flows', self.test_suites['cross_app'].test_error_reporting_flows), ('Configuration Consistency', self.test_suites['cross_app'].test_configuration_consistency)]
-        return self._execute_test_group(tests, 'Cross-App')
+        tests = [("Event Bus Communication", self.test_suites["cross_app"].test_event_bus_communication), ("Database Connection Sharing", self.test_suites["cross_app"].test_database_connection_sharing), ("Error Reporting Flows", self.test_suites["cross_app"].test_error_reporting_flows), ("Configuration Consistency", self.test_suites["cross_app"].test_configuration_consistency)]
+        return self._execute_test_group(tests, "Cross-App")
 
     def _run_database_tests(self) -> bool:
         """Run database integration tests"""
-        tests = [('Connection Pool Under Load', self.test_suites['database'].test_connection_pool_under_load), ('EcoSystemiser Database Integration', self.test_suites['database'].test_ecosystemiser_database_integration), ('Async Database Operations', self.test_suites['database'].test_async_database_operations), ('Transaction Handling and Rollback', self.test_suites['database'].test_transaction_handling_and_rollback)]
-        return self._execute_test_group(tests, 'Database')
+        tests = [("Connection Pool Under Load", self.test_suites["database"].test_connection_pool_under_load), ("EcoSystemiser Database Integration", self.test_suites["database"].test_ecosystemiser_database_integration), ("Async Database Operations", self.test_suites["database"].test_async_database_operations), ("Transaction Handling and Rollback", self.test_suites["database"].test_transaction_handling_and_rollback)]
+        return self._execute_test_group(tests, "Database")
 
     def _run_performance_tests(self) -> bool:
         """Run performance integration tests"""
-        tests = [('Async Infrastructure Performance', self.test_suites['performance'].test_async_infrastructure_performance), ('Concurrent Task Processing Performance', self.test_suites['performance'].test_concurrent_task_processing_performance), ('Database Performance Optimization', self.test_suites['performance'].test_database_performance_optimization), ('5x Performance Improvement Validation', self.test_suites['performance'].test_5x_performance_improvement_validation)]
-        return self._execute_test_group(tests, 'Performance')
+        tests = [("Async Infrastructure Performance", self.test_suites["performance"].test_async_infrastructure_performance), ("Concurrent Task Processing Performance", self.test_suites["performance"].test_concurrent_task_processing_performance), ("Database Performance Optimization", self.test_suites["performance"].test_database_performance_optimization), ("5x Performance Improvement Validation", self.test_suites["performance"].test_5x_performance_improvement_validation)]
+        return self._execute_test_group(tests, "Performance")
 
     def _execute_test_group(self, tests: list[tuple[str, callable]], group_name: str) -> bool:
         """Execute a group of tests"""
         group_passed = True
         for test_name, test_func in tests:
-            print(f'\n🧪 Running: {test_name}')
-            print('-' * 50)
+            print(f"\n🧪 Running: {test_name}")
+            print("-" * 50)
             start_time = time.time()
             try:
                 result = test_func()
                 duration = time.time() - start_time
                 if result:
-                    print(f'✅ {test_name}: PASSED ({duration:.2f}s)')
+                    print(f"✅ {test_name}: PASSED ({duration:.2f}s)")
                 else:
-                    print(f'❌ {test_name}: FAILED ({duration:.2f}s)')
+                    print(f"❌ {test_name}: FAILED ({duration:.2f}s)")
                     group_passed = False
             except Exception as e:
                 duration = time.time() - start_time
-                print(f'💥 {test_name}: EXCEPTION ({duration:.2f}s) - {e}')
-                self.env.metrics.errors_encountered.append(f'{test_name}: {e}')
+                print(f"💥 {test_name}: EXCEPTION ({duration:.2f}s) - {e}")
+                self.env.metrics.errors_encountered.append(f"{test_name}: {e}")
                 group_passed = False
         return group_passed
 
     def _print_final_summary(self, test_results: dict[str, bool], all_passed: bool):
         """Print comprehensive test summary"""
         print(f"\n{'=' * 80}")
-        print('🏆 COMPREHENSIVE INTEGRATION TEST SUMMARY')
-        print('=' * 80)
-        print('\n📊 Test Results by Category:')
+        print("🏆 COMPREHENSIVE INTEGRATION TEST SUMMARY")
+        print("=" * 80)
+        print("\n📊 Test Results by Category:")
         for category, passed in test_results.items():
-            status = '✅ PASSED' if passed else '❌ FAILED'
+            status = "✅ PASSED" if passed else "❌ FAILED"
             print(f"   {status} {category.replace('_', ' ').title()}")
-        print('\n📈 Overall Metrics:')
-        print(f'   ⏱️  Total Duration: {self.env.metrics.duration:.2f}s')
-        print(f'   📋 Tasks Created: {self.env.metrics.tasks_created}')
-        print(f'   🤖 Plans Generated: {self.env.metrics.plans_generated}')
-        print(f'   ⚙️  Subtasks Executed: {self.env.metrics.subtasks_executed}')
-        print(f'   🗄️  Database Operations: {self.env.metrics.database_operations}')
-        print(f'   ⚡ Async Operations: {self.env.metrics.async_operations}')
-        print(f'   📡 Events Published: {self.env.metrics.events_published}')
-        print(f'   📨 Events Handled: {self.env.metrics.events_handled}')
+        print("\n📈 Overall Metrics:")
+        print(f"   ⏱️  Total Duration: {self.env.metrics.duration:.2f}s")
+        print(f"   📋 Tasks Created: {self.env.metrics.tasks_created}")
+        print(f"   🤖 Plans Generated: {self.env.metrics.plans_generated}")
+        print(f"   ⚙️  Subtasks Executed: {self.env.metrics.subtasks_executed}")
+        print(f"   🗄️  Database Operations: {self.env.metrics.database_operations}")
+        print(f"   ⚡ Async Operations: {self.env.metrics.async_operations}")
+        print(f"   📡 Events Published: {self.env.metrics.events_published}")
+        print(f"   📨 Events Handled: {self.env.metrics.events_handled}")
         if self.env.metrics.throughput > 0:
-            print(f'   📈 Task Throughput: {self.env.metrics.throughput:.2f} tasks/second')
+            print(f"   📈 Task Throughput: {self.env.metrics.throughput:.2f} tasks/second")
         if self.env.metrics.improvement_factor > 0:
-            print(f'   🚀 Performance Improvement: {self.env.metrics.improvement_factor:.1f}x')
+            print(f"   🚀 Performance Improvement: {self.env.metrics.improvement_factor:.1f}x")
         if self.env.metrics.errors_encountered:
-            print(f'\n❌ Errors Encountered ({len(self.env.metrics.errors_encountered)}):')
+            print(f"\n❌ Errors Encountered ({len(self.env.metrics.errors_encountered)}):")
             for error in self.env.metrics.errors_encountered[:10]:
-                print(f'   • {error}')
+                print(f"   • {error}")
             if len(self.env.metrics.errors_encountered) > 10:
-                print(f'   ... and {len(self.env.metrics.errors_encountered) - 10} more')
+                print(f"   ... and {len(self.env.metrics.errors_encountered) - 10} more")
         if self.env.metrics.performance_samples:
-            print('\n📊 Performance Highlights:')
+            print("\n📊 Performance Highlights:")
             for sample in self.env.metrics.performance_samples[-5:]:
-                test_name = sample.get('test', 'unknown')
-                value = sample.get('value', 0)
-                sample.get('component', '')
-                if 'improvement' in test_name:
-                    print(f'   🚀 {test_name}: {value:.1f}x improvement')
-                elif 'throughput' in test_name:
-                    print(f'   ⚡ {test_name}: {value:.2f} ops/sec')
-                elif 'time' in test_name:
-                    print(f'   ⏱️  {test_name}: {value:.3f}s')
+                test_name = sample.get("test", "unknown")
+                value = sample.get("value", 0)
+                sample.get("component", "")
+                if "improvement" in test_name:
+                    print(f"   🚀 {test_name}: {value:.1f}x improvement")
+                elif "throughput" in test_name:
+                    print(f"   ⚡ {test_name}: {value:.2f} ops/sec")
+                elif "time" in test_name:
+                    print(f"   ⏱️  {test_name}: {value:.3f}s")
         print(f"\n{'=' * 80}")
         if all_passed:
-            print('🎉 ALL INTEGRATION TESTS PASSED!')
-            print('✨ Hive platform is functioning correctly across all components')
-            print('🚀 All fixes and improvements have been validated')
-            print('📦 Ready for production deployment')
+            print("🎉 ALL INTEGRATION TESTS PASSED!")
+            print("✨ Hive platform is functioning correctly across all components")
+            print("🚀 All fixes and improvements have been validated")
+            print("📦 Ready for production deployment")
         else:
-            print('❌ SOME INTEGRATION TESTS FAILED')
-            print('🔧 Platform requires fixes before production deployment')
-            print('📝 Review failed tests and error logs above')
-        print('=' * 80)
+            print("❌ SOME INTEGRATION TESTS FAILED")
+            print("🔧 Platform requires fixes before production deployment")
+            print("📝 Review failed tests and error logs above")
+        print("=" * 80)
 
 @pytest.mark.crust
 def test_comprehensive_hive_integration():
     """Pytest entry point for comprehensive integration tests"""
     suite = ComprehensiveHiveIntegrationTestSuite()
     success = suite.run_all_tests()
-    assert success, 'Comprehensive Hive integration tests failed'
-if __name__ == '__main__':
+    assert success, "Comprehensive Hive integration tests failed"
+if __name__ == "__main__":
     suite = ComprehensiveHiveIntegrationTestSuite()
     success = suite.run_all_tests()
     import sys

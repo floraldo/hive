@@ -1,5 +1,4 @@
-"""
-Direct test of MCP integration - minimal dependencies.
+"""Direct test of MCP integration - minimal dependencies.
 
 Tests the MCP call path without importing full hive stack.
 """
@@ -28,7 +27,7 @@ async def test_mcp_sequential_thinking():
         result = {
             "query": prompt,
             "mcp_tool": "mcp__sequential-thinking__sequentialthinking",
-            "explanation": "This would invoke the real Sequential Thinking MCP server when run in Claude Code"
+            "explanation": "This would invoke the real Sequential Thinking MCP server when run in Claude Code",
         }
 
         print(f"\nMCP call pattern: {result['mcp_tool']}")

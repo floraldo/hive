@@ -1,5 +1,4 @@
-"""
-Embedding generation and management with multi-provider support.
+"""Embedding generation and management with multi-provider support.
 
 Handles text-to-vector conversion with caching, batching
 and integration with the model management system.
@@ -34,8 +33,7 @@ class EmbeddingResult:
 
 
 class EmbeddingManager:
-    """
-    Manages text embedding generation across providers.
+    """Manages text embedding generation across providers.
 
     Provides efficient embedding generation with caching
     batching, and automatic model selection.
@@ -51,14 +49,14 @@ class EmbeddingManager:
         self._default_models = {
             "openai": "text-embedding-ada-002",
             "anthropic": "claude-3-sonnet",  # Fallback, Anthropic doesn't have embedding models,
-            "local": "sentence-transformers/all-MiniLM-L6-v2"
+            "local": "sentence-transformers/all-MiniLM-L6-v2",
         }
 
     def _get_cache_key(self, text: str, model: str) -> str:
         """Generate cache key for text and model combination."""
         # Create hash of text and model for consistent caching
         content = f"{text}|{model}"
-        return hashlib.md5(content.encode("utf-8")).hexdigest()  # noqa: S324
+        return hashlib.md5(content.encode("utf-8")).hexdigest()
 
     def _get_embedding_model(self, model: str | None = None) -> str:
         """Get appropriate embedding model."""
@@ -89,10 +87,9 @@ class EmbeddingManager:
         raise VectorError("No embedding or completion models available", operation="get_embedding_model")
 
     async def generate_embedding_async(
-        self, text: str, model: str | None = None, use_cache: bool = True
+        self, text: str, model: str | None = None, use_cache: bool = True,
     ) -> EmbeddingResult:
-        """
-        Generate embedding for single text.
+        """Generate embedding for single text.
 
         Args:
             text: Text to embed,
@@ -104,6 +101,7 @@ class EmbeddingManager:
 
         Raises:
             VectorError: Embedding generation failed,
+
         """
         if not text.strip():
             raise VectorError("Cannot generate embedding for empty text", operation="generate_embedding")
@@ -121,7 +119,7 @@ class EmbeddingManager:
                     vector=cached_result["vector"],
                     model=embedding_model,
                     tokens_used=cached_result["tokens_used"],
-                    cache_hit=True
+                    cache_hit=True,
                 )
 
         try:
@@ -139,7 +137,7 @@ class EmbeddingManager:
                 tokens_used = len(text.split()) * 2  # Higher token usage for completion,
 
             result = EmbeddingResult(
-                text=text, vector=vector, model=embedding_model, tokens_used=tokens_used, cache_hit=False
+                text=text, vector=vector, model=embedding_model, tokens_used=tokens_used, cache_hit=False,
             )
 
             # Cache the result,
@@ -150,7 +148,7 @@ class EmbeddingManager:
             return result
 
         except Exception as e:
-            raise VectorError(f"Failed to generate embedding: {str(e)}", operation="generate_embedding") from e
+            raise VectorError(f"Failed to generate embedding: {e!s}", operation="generate_embedding") from e
 
     async def _generate_embedding_vector_async(self, text: str, model: str) -> list[float]:
         """Generate embedding using dedicated embedding model."""
@@ -162,9 +160,8 @@ class EmbeddingManager:
 
         if hasattr(provider, "generate_embedding_async"):
             return await provider.generate_embedding_async(text, model)
-        else:
-            # Fallback to simulated embedding,
-            return await self._simulate_embedding_async(text)
+        # Fallback to simulated embedding,
+        return await self._simulate_embedding_async(text)
 
     async def _generate_completion_embedding_async(self, text: str, model: str) -> list[float]:
         """Generate embedding-like vector using completion model."""
@@ -204,10 +201,9 @@ class EmbeddingManager:
         model: str | None = None,
         batch_size: int = 32,
         use_cache: bool = True,
-        max_concurrency: int = 5
+        max_concurrency: int = 5,
     ) -> list[EmbeddingResult]:
-        """
-        Generate embeddings for multiple texts efficiently.
+        """Generate embeddings for multiple texts efficiently.
 
         Args:
             texts: List of texts to embed,
@@ -221,6 +217,7 @@ class EmbeddingManager:
 
         Raises:
             VectorError: Batch embedding generation failed,
+
         """
         if not texts:
             return []
@@ -250,21 +247,20 @@ class EmbeddingManager:
 
             logger.info(
                 f"Batch embedding complete: {len(all_results)} embeddings, ",
-                f"{cache_hits} cache hits, {total_tokens} tokens used"
+                f"{cache_hits} cache hits, {total_tokens} tokens used",
             )
 
             return all_results
 
         except Exception as e:
             raise VectorError(
-                f"Batch embedding generation failed: {str(e)}", operation="generate_batch_embeddings"
+                f"Batch embedding generation failed: {e!s}", operation="generate_batch_embeddings",
             ) from e
 
     async def search_similar_texts_async(
-        self, query_text: str, candidate_texts: list[str], top_k: int = 5, model: str | None = None
+        self, query_text: str, candidate_texts: list[str], top_k: int = 5, model: str | None = None,
     ) -> list[dict[str, Any]]:
-        """
-        Find most similar texts using embedding similarity.
+        """Find most similar texts using embedding similarity.
 
         Args:
             query_text: Text to find similarities for,
@@ -277,6 +273,7 @@ class EmbeddingManager:
 
         Raises:
             VectorError: Similarity search failed,
+
         """
         if not candidate_texts:
             return []
@@ -298,7 +295,7 @@ class EmbeddingManager:
                         "text": candidate_result.text,
                         "similarity": similarity,
                         "model": candidate_result.model,
-                    }
+                    },
                 )
 
             # Sort by similarity and return top k
@@ -306,13 +303,13 @@ class EmbeddingManager:
             return similarities[:top_k]
 
         except Exception as e:
-            raise VectorError(f"Similar text search failed: {str(e)}", operation="search_similar_texts") from e
+            raise VectorError(f"Similar text search failed: {e!s}", operation="search_similar_texts") from e
 
     def _calculate_cosine_similarity(self, vec1: list[float], vec2: list[float]) -> float:
         """Calculate cosine similarity between two vectors."""
         if len(vec1) != len(vec2):
             raise VectorError(
-                f"Vector dimensions don't match: {len(vec1)} vs {len(vec2)}", operation="cosine_similarity"
+                f"Vector dimensions don't match: {len(vec1)} vs {len(vec2)}", operation="cosine_similarity",
             )
 
         # Calculate dot product
@@ -341,7 +338,7 @@ class EmbeddingManager:
             "available_embedding_models": available_models,
             "default_model": self._get_embedding_model(),
             "cache_stats": cache_stats,
-            "supported_providers": list(self._default_models.keys())
+            "supported_providers": list(self._default_models.keys()),
         }
 
     async def clear_cache_async(self) -> bool:

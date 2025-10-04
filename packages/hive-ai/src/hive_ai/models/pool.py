@@ -1,5 +1,4 @@
-"""
-Connection pooling and resource management for AI model providers.
+"""Connection pooling and resource management for AI model providers.
 
 Provides efficient resource usage with connection reuse,
 load balancing, and automatic scaling based on demand.
@@ -35,8 +34,7 @@ class PoolStats:
 
 
 class ModelPool:
-    """
-    Connection pool manager for AI model providers.
+    """Connection pool manager for AI model providers.
 
     Manages provider connections with load balancing,
     automatic scaling, and performance optimization.
@@ -102,8 +100,7 @@ class ModelPool:
         return self.registry.get_provider(provider)
 
     async def execute_request_async(self, model_name: str, operation: str, *args, **kwargs) -> Any:
-        """
-        Execute request using pooled connection.
+        """Execute request using pooled connection.
 
         Args:
             model_name: Name of the model to use,
@@ -116,6 +113,7 @@ class ModelPool:
         Raises:
             PoolExhaustedError: No connections available,
             ModelError: Operation failed,
+
         """
         model_config = self.registry.get_model_config(model_name),
         provider = model_config.provider

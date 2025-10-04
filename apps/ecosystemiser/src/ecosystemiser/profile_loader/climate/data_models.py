@@ -18,8 +18,7 @@ ClimateResolution = Literal["15min", "30min", "1H", "3H", "1D"]
 
 
 class ClimateRequest(BaseProfileRequest):
-    """
-    Climate data request extending the unified profile interface.,
+    """Climate data request extending the unified profile interface.,
 
     Uses BaseProfileRequest for common fields and adds climate-specific parameters.,
     """
@@ -64,14 +63,13 @@ class ClimateRequest(BaseProfileRequest):
         """Legacy mode field for backward compatibility."""
         if self.mode == ProfileMode.OBSERVED:
             return "observed"
-        elif self.mode == ProfileMode.TYPICAL:
+        if self.mode == ProfileMode.TYPICAL:
             return "tmy"
-        elif self.mode == ProfileMode.AVERAGE:
+        if self.mode == ProfileMode.AVERAGE:
             return "average"
-        elif self.mode == ProfileMode.SYNTHETIC:
+        if self.mode == ProfileMode.SYNTHETIC:
             return "synthetic"
-        else:
-            return "observed"
+        return "observed"
 
     @classmethod
     def from_legacy_mode(cls, mode_str: str, **kwargs):

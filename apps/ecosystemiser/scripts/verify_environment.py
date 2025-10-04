@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-EcoSystemiser Environment Verification Script
+"""EcoSystemiser Environment Verification Script
 
 This script verifies that EcoSystemiser is properly integrated with the Hive
 ecosystem and all components are functioning correctly.
@@ -40,9 +38,8 @@ class EnvironmentVerifier:
             if package_path.resolve() == expected_path.resolve():
                 self.results.append("[OK] EcoSystemiser installed as editable package")
                 return True
-            else:
-                self.errors.append(f"[ERROR] EcoSystemiser not editable: {package_path}")
-                return False
+            self.errors.append(f"[ERROR] EcoSystemiser not editable: {package_path}")
+            return False
         except ImportError as e:
             self.errors.append(f"[ERROR] EcoSystemiser not installed: {e}")
             return False
@@ -67,7 +64,7 @@ class EnvironmentVerifier:
         cmd = ["grep", "-r", "sys.path.insert\\|sys.path.append", "--include=*.py", str(self.ecosystemiser_dir)]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True)
             if result.stdout:
                 lines = result.stdout.strip().split("\n")
                 # Filter out this script and legitimate uses
@@ -129,7 +126,7 @@ class EnvironmentVerifier:
             # Check for direct os.getenv usage
             cmd = ["grep", "-r", "os.getenv\\|os.environ", "--include=*.py", str(self.ecosystemiser_dir / "src")]
 
-            result = subprocess.run(cmd, capture_output=True, text=True)
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True)
             if result.stdout:
                 lines = [line for line in result.stdout.strip().split("\n") if "hive_env.py" not in line]
                 if lines:
@@ -193,9 +190,8 @@ class EnvironmentVerifier:
             for file in relative_imports[:3]:
                 self.errors.append(f"  - {file}")
             return False
-        else:
-            self.results.append("[OK] No boundary-crossing relative imports found")
-            return True
+        self.results.append("[OK] No boundary-crossing relative imports found")
+        return True
 
     def check_test_environment(self) -> bool:
         """Verify test environment is set up correctly."""
@@ -203,7 +199,7 @@ class EnvironmentVerifier:
             # Run a simple test to verify pytest works
             result = subprocess.run(
                 ["python", "-m", "pytest", "--collect-only", "-q"],
-                cwd=self.ecosystemiser_dir,
+                check=False, cwd=self.ecosystemiser_dir,
                 capture_output=True,
                 text=True,
                 timeout=10,
@@ -286,10 +282,9 @@ class EnvironmentVerifier:
                 logger.info("[OK] Environment FULLY READY")
                 logger.info("  EcoSystemiser is a model citizen of the Hive ecosystem!")
             return True
-        else:
-            logger.error("[FAILED] Environment NOT READY")
-            logger.error("  Please fix the errors above before proceeding")
-            return False
+        logger.error("[FAILED] Environment NOT READY")
+        logger.error("  Please fix the errors above before proceeding")
+        return False
 
 
 def main() -> None:

@@ -1,5 +1,4 @@
-"""
-Structured logging configuration using structlog.,
+"""Structured logging configuration using structlog.,
 
 Provides consistent, structured logging across the platform with:
 - JSON output for production
@@ -101,12 +100,12 @@ class AdapterContextProcessor:
 
 
 def setup_logging(log_level: str | None = None, log_format: str | None = None) -> None:
-    """
-    Configure structured logging for the application.
+    """Configure structured logging for the application.
 
     Args:
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         log_format: Output format ('json' or 'console')
+
     """
     settings = get_settings()
 
@@ -118,7 +117,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     logging.basicConfig(
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         stream=sys.stdout,
-        level=getattr(logging, level.upper())
+        level=getattr(logging, level.upper()),
     )
 
     # Configure processors
@@ -140,7 +139,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
         # Add call site info for errors
         structlog.processors.CallsiteParameterAdder(
             parameters=[structlog.processors.CallsiteParameter.FILENAME, structlog.processors.CallsiteParameter.LINENO],
-            levels=["warning", "error", "critical"]
+            levels=["warning", "error", "critical"],
         ),
         # Add performance metrics
         PerformanceProcessor(),
@@ -150,7 +149,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
         structlog.processors.StackInfoRenderer(),
         structlog.processors.format_exc_info,
         # Decode unicode
-        structlog.processors.UnicodeDecoder()
+        structlog.processors.UnicodeDecoder(),
     ]
 
     # Add appropriate renderer based on format
@@ -159,7 +158,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
     else:
         # Console output with colors
         processors.append(
-            structlog.dev.ConsoleRenderer(colors=True, pad_event=30, exception_formatter=structlog.dev.plain_traceback)
+            structlog.dev.ConsoleRenderer(colors=True, pad_event=30, exception_formatter=structlog.dev.plain_traceback),
         )
 
     # Configure structlog
@@ -168,19 +167,19 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None) -
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
         wrapper_class=structlog.stdlib.BoundLogger,
-        cache_logger_on_first_use=True
+        cache_logger_on_first_use=True,
     )
 
 
-def get_logger(name: str) -> structlog.stdlib.BoundLogger:  # noqa: F811
-    """
-    Get a configured logger instance.
+def get_logger(name: str) -> structlog.stdlib.BoundLogger:
+    """Get a configured logger instance.
 
     Args:
         name: Logger name (usually __name__)
 
     Returns:
         Configured structlog logger,
+
     """
     return structlog.get_logger(name)
 
@@ -230,14 +229,14 @@ class LoggingContext:
 
 # Convenience function for logging with context
 def log_with_context(logger: structlog.stdlib.BoundLogger, level: str, message: str, **kwargs) -> None:
-    """
-    Log a message with additional context.
+    """Log a message with additional context.
 
     Args:
         logger: Logger instance
         level: Log level
         message: Log message
         **kwargs: Additional context,
+
     """
     log_method = getattr(logger, level)
     log_method(message, **kwargs)

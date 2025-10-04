@@ -1,5 +1,4 @@
-"""
-BM25-based keyword search for exact matching and text retrieval.
+"""BM25-based keyword search for exact matching and text retrieval.
 
 Provides traditional text search to complement semantic search in hybrid retrieval.
 """
@@ -18,8 +17,7 @@ logger = get_logger(__name__)
 
 
 class BM25KeywordSearch:
-    """
-    BM25 keyword search for code chunks.
+    """BM25 keyword search for code chunks.
 
     Features:
     - BM25 ranking algorithm
@@ -29,12 +27,12 @@ class BM25KeywordSearch:
     """
 
     def __init__(self, k1: float = 1.5, b: float = 0.75):
-        """
-        Initialize BM25 keyword search.
+        """Initialize BM25 keyword search.
 
         Args:
             k1: Term frequency saturation parameter (default: 1.5)
             b: Length normalization parameter (default: 0.75)
+
         """
         self.k1 = k1
         self.b = b
@@ -51,11 +49,11 @@ class BM25KeywordSearch:
         logger.info("Initialized BM25 keyword search")
 
     def add_chunks(self, chunks: list[CodeChunk]) -> None:
-        """
-        Add chunks to the keyword search index.
+        """Add chunks to the keyword search index.
 
         Args:
             chunks: List of CodeChunks to index
+
         """
         if not chunks:
             return
@@ -80,8 +78,7 @@ class BM25KeywordSearch:
         k: int = 5,
         filters: dict[str, Any] | None = None,
     ) -> list[RetrievalResult]:
-        """
-        Search for chunks matching the query.
+        """Search for chunks matching the query.
 
         Args:
             query: Search query
@@ -90,6 +87,7 @@ class BM25KeywordSearch:
 
         Returns:
             List of RetrievalResult objects sorted by BM25 score
+
         """
         if not self.chunks:
             logger.warning("Keyword search index is empty")
@@ -138,15 +136,14 @@ class BM25KeywordSearch:
                     score=score,
                     retrieval_method="keyword",
                     rank=rank,
-                )
+                ),
             )
 
         logger.debug(f"Keyword search returned {len(results)} results")
         return results
 
     def _tokenize(self, text: str) -> list[str]:
-        """
-        Tokenize text for code search.
+        """Tokenize text for code search.
 
         Preserves:
         - Underscores (snake_case)
@@ -201,8 +198,7 @@ class BM25KeywordSearch:
         logger.debug(f"BM25 stats computed: {len(self.idf)} unique terms, avgdl={self.avgdl:.1f}")
 
     def _compute_bm25_score(self, query_tokens: list[str], doc_tokens: list[str]) -> float:
-        """
-        Compute BM25 score for a query-document pair.
+        """Compute BM25 score for a query-document pair.
 
         Args:
             query_tokens: Tokenized query
@@ -210,6 +206,7 @@ class BM25KeywordSearch:
 
         Returns:
             BM25 score
+
         """
         score = 0.0
         doc_len = len(doc_tokens)

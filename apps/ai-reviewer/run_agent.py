@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Standalone entry point for AI Reviewer Agent
+"""Standalone entry point for AI Reviewer Agent
 """
 
 # Now import and run

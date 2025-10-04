@@ -15,7 +15,6 @@ import sys
 
 def setup_environment() -> None:
     """Setup environment for EcoSystemiser - now using proper package installation"""
-
     logger.info("🐝 EcoSystemiser starting in Hive ecosystem")
     logger.info("   Using installed package imports")
     logger.info(f"   Working directory: {os.getcwd()}")
@@ -25,18 +24,17 @@ def setup_environment() -> None:
 
 def run_server() -> None:
     """Run the EcoSystemiser FastAPI server"""
-
     try:
         # Import after path setup
         import uvicorn
 
         # Get configuration using simplified settings
-        from ecosystemiser.hive_env import get_app_config, get_app_settings  # noqa: F401
+        from ecosystemiser.hive_env import get_app_config, get_app_settings
 
         from ecosystemiser.main import app
 
         settings = (get_app_settings(),)
-        host = settings.get("HOST", "0.0.0.0")  # noqa: S104
+        host = settings.get("HOST", "0.0.0.0")
         port = int(settings.get("PORT", "8001"))
         workers = int(settings.get("WORKERS", "1"))
         log_level = settings.get("LOG_LEVEL", "info").lower()
@@ -69,7 +67,6 @@ def run_server() -> None:
 
 def run_cli() -> None:
     """Run EcoSystemiser CLI commands"""
-
     try:
         # Import after path setup
         from ecosystemiser.cli import main as cli_main
@@ -94,7 +91,6 @@ def run_cli() -> None:
 
 def main() -> None:
     """Main entry point"""
-
     setup_environment()
 
     # Check command line arguments

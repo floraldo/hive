@@ -1,5 +1,4 @@
-"""
-Smart gap filling for climate data.,
+"""Smart gap filling for climate data.,
 
 Preserves diurnal and seasonal patterns for building energy modeling.
 """
@@ -17,13 +16,13 @@ class GapFiller:
     """Smart gap filling with pattern preservation."""
 
     def __init__(self, max_linear_gap: int = 3, max_pattern_gap: int = 24, preserve_extremes: bool = True):
-        """
-        Initialize gap filler.
+        """Initialize gap filler.
 
         Args:
             max_linear_gap: Maximum hours for linear interpolation,
             max_pattern_gap: Maximum hours for pattern-based filling,
             preserve_extremes: Whether to preserve daily min/max patterns,
+
         """
         self.max_linear_gap = (max_linear_gap,)
         self.max_pattern_gap = (max_pattern_gap,)
@@ -31,14 +30,14 @@ class GapFiller:
         self.fill_report = {}
 
     def fill_dataset(self, ds: xr.Dataset) -> tuple[xr.Dataset, dict]:
-        """
-        Fill gaps in entire dataset using appropriate methods.
+        """Fill gaps in entire dataset using appropriate methods.
 
         Args:
             ds: Dataset with gaps
 
         Returns:
             Tuple of (filled dataset, filling report)
+
         """
         logger.info("Starting smart gap filling")
         ds_filled = ds.copy()
@@ -87,42 +86,40 @@ class GapFiller:
         return ds_filled, self.fill_report
 
     def _get_fill_method(self, var_name: str) -> str:
-        """
-        Determine appropriate fill method based on variable type.
+        """Determine appropriate fill method based on variable type.
 
         Args:
             var_name: Variable name
 
         Returns:
             Fill method identifier,
+
         """
         # Temperature variables - use diurnal pattern
         if "temp" in var_name or "dewpoint" in var_name:
             return "diurnal"
 
         # Solar radiation - use clear sky or diurnal
-        elif var_name in ["ghi", "dni", "dhi"]:
+        if var_name in ["ghi", "dni", "dhi"]:
             return "solar"
 
         # Wind - use seasonal statistics
-        elif "wind" in var_name:
+        if "wind" in var_name:
             return "seasonal"
 
         # Humidity - use diurnal with constraints
-        elif "humid" in var_name:
+        if "humid" in var_name:
             return "humidity"
 
         # Pressure - use linear (changes slowly)
-        elif "pressure" in var_name:
+        if "pressure" in var_name:
             return "linear"
 
         # Default to smart interpolation
-        else:
-            return "smart"
+        return "smart"
 
     def _fill_variable(self, data: xr.DataArray, var_name: str, method: str) -> xr.DataArray:
-        """
-        Fill gaps in a single variable.
+        """Fill gaps in a single variable.
 
         Args:
             data: Data array with gaps
@@ -131,6 +128,7 @@ class GapFiller:
 
         Returns:
             Filled data array,
+
         """
         initial_gaps = np.isnan(data.values).sum()
 
@@ -171,8 +169,7 @@ class GapFiller:
         return filled
 
     def _fill_diurnal_pattern(self, data: xr.DataArray) -> xr.DataArray:
-        """
-        Fill using diurnal (daily) patterns from nearby days.,
+        """Fill using diurnal (daily) patterns from nearby days.,
 
         Preserves the typical daily cycle for temperature-like variables.,
         """
@@ -207,8 +204,7 @@ class GapFiller:
         return filled
 
     def _fill_solar_pattern(self, data: xr.DataArray) -> xr.DataArray:
-        """
-        Fill solar radiation with clear-sky or similar day patterns.,
+        """Fill solar radiation with clear-sky or similar day patterns.,
 
         Ensures physical consistency (zero at night, smooth daily curve).,
         """
@@ -232,8 +228,7 @@ class GapFiller:
         return filled
 
     def _fill_seasonal_median(self, data: xr.DataArray) -> xr.DataArray:
-        """
-        Fill with seasonal median values.,
+        """Fill with seasonal median values.,
 
         Good for variables without strong diurnal patterns.,
         """
@@ -262,8 +257,7 @@ class GapFiller:
         return filled
 
     def _fill_humidity_constrained(self, data: xr.DataArray) -> xr.DataArray:
-        """
-        Fill humidity with physical constraints (0-100%).,
+        """Fill humidity with physical constraints (0-100%).,
 
         Considers temperature relationships if available.,
         """
@@ -276,8 +270,7 @@ class GapFiller:
         return filled
 
     def _fill_linear_only(self, data: xr.DataArray) -> xr.DataArray:
-        """
-        Fill using only linear interpolation.,
+        """Fill using only linear interpolation.,
 
         Good for slowly changing variables like pressure.,
         """
@@ -285,8 +278,7 @@ class GapFiller:
         return data.interpolate_na(dim="time", method="linear", limit=self.max_pattern_gap)
 
     def _fill_smart_interpolation(self, data: xr.DataArray) -> xr.DataArray:
-        """
-        Smart interpolation with multiple fallback methods.,
+        """Smart interpolation with multiple fallback methods.,
         """
         filled = data.copy()
 
@@ -304,8 +296,7 @@ class GapFiller:
         return filled
 
     def _fill_seasonal_hour_mean(self, data: xr.DataArray) -> xr.DataArray:
-        """
-        Fill with seasonal hourly means.,
+        """Fill with seasonal hourly means.,
         """
         if "time" not in data.dims:
             return data
@@ -333,8 +324,7 @@ class GapFiller:
         return filled
 
     def _fill_similar_day_pattern(self, data: xr.DataArray, prefer_clear: bool = False) -> xr.DataArray:
-        """
-        Fill gaps using patterns from similar days.
+        """Fill gaps using patterns from similar days.
 
         Args:
             data: Data with gaps
@@ -342,6 +332,7 @@ class GapFiller:
 
         Returns:
             Filled data,
+
         """
         if "time" not in data.dims:
             return data
@@ -380,8 +371,7 @@ class GapFiller:
 
 
 def smart_fill_gaps(ds: xr.Dataset, **kwargs) -> tuple[xr.Dataset, dict]:
-    """
-    Convenience function for smart gap filling.
+    """Convenience function for smart gap filling.
 
     Args:
         ds: Dataset with gaps
@@ -389,6 +379,7 @@ def smart_fill_gaps(ds: xr.Dataset, **kwargs) -> tuple[xr.Dataset, dict]:
 
     Returns:
         Tuple of (filled dataset, report)
+
     """
     filler = GapFiller(**kwargs)
     return filler.fill_dataset(ds)

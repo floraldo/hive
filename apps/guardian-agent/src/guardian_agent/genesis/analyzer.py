@@ -1,5 +1,4 @@
-"""
-Semantic Analyzer - AI-Powered App Description Analysis
+"""Semantic Analyzer - AI-Powered App Description Analysis
 
 Analyzes natural language app descriptions to extract features,
 dependencies, and architectural requirements.
@@ -16,8 +15,7 @@ logger = get_logger(__name__)
 
 
 class SemanticAnalyzer:
-    """
-    AI-powered semantic analysis of application descriptions.
+    """AI-powered semantic analysis of application descriptions.
 
     Extracts features, dependencies, and architectural requirements
     from natural language descriptions.
@@ -92,14 +90,14 @@ class SemanticAnalyzer:
         }
 
     async def analyze_description_async(self, description: str) -> dict[str, Any]:
-        """
-        Analyze an application description and extract structured information.
+        """Analyze an application description and extract structured information.
 
         Args:
             description: Natural language description of the application
 
         Returns:
             Dict containing extracted features, keywords, and recommendations
+
         """
         logger.info(f"Analyzing description: {description[:100]}...")
 
@@ -154,7 +152,6 @@ class SemanticAnalyzer:
 
     def _extract_features(self, description: str) -> list[str]:
         """Extract features from description using pattern matching."""
-
         features = ([],)
         description_lower = description.lower()
 
@@ -175,7 +172,6 @@ class SemanticAnalyzer:
 
     def _extract_explicit_features(self, description: str) -> list[str]:
         """Extract explicitly mentioned features."""
-
         explicit_features = []
 
         # Look for "feature" or "functionality" mentions
@@ -197,7 +193,6 @@ class SemanticAnalyzer:
 
     def _extract_keywords(self, description: str) -> list[str]:
         """Extract technical keywords from description."""
-
         keywords = ([],)
         description_lower = description.lower()
 
@@ -236,7 +231,6 @@ class SemanticAnalyzer:
 
     def _extract_business_keywords(self, description: str) -> list[str]:
         """Extract business context keywords."""
-
         business_keywords = ([],)
         description_lower = description.lower()
 
@@ -275,7 +269,6 @@ class SemanticAnalyzer:
 
     def _suggest_packages(self, features: list[str], keywords: list[str]) -> list[str]:
         """Suggest hive packages based on identified features and keywords."""
-
         suggested = {"hive-config"}  # Always include base config,
         all_terms = [f.lower() for f in features] + [k.lower() for k in keywords]
 
@@ -289,7 +282,6 @@ class SemanticAnalyzer:
 
     def _assess_complexity(self, features: list[str], keywords: list[str]) -> str:
         """Assess the complexity of the application."""
-
         complexity_indicators = {
             "high": ["ai", "ml", "real-time", "analytics", "integration", "scale"],
             "medium": ["auth", "database", "api", "search", "upload"],
@@ -307,14 +299,12 @@ class SemanticAnalyzer:
 
         if high_count >= 2:
             return "high"
-        elif high_count >= 1 or medium_count >= 3:
+        if high_count >= 1 or medium_count >= 3:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _extract_user_personas(self, description: str) -> list[str]:
         """Extract user personas from description."""
-
         personas = ([],)
         description_lower = description.lower()
 
@@ -338,7 +328,6 @@ class SemanticAnalyzer:
 
     def _analyze_data_requirements(self, description: str, features: list[str]) -> dict[str, Any]:
         """Analyze data storage and processing requirements."""
-
         requirements = {
             "storage_type": "sqlite",  # Default,
             "data_volume": "low",
@@ -378,7 +367,6 @@ class SemanticAnalyzer:
 
     def _calculate_confidence(self, features: list[str], keywords: list[str]) -> float:
         """Calculate confidence score for the analysis."""
-
         confidence = 0.0
 
         # Base confidence from features identified

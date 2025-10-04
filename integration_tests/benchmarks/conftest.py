@@ -1,5 +1,4 @@
-"""
-Pytest configuration for performance benchmarking.
+"""Pytest configuration for performance benchmarking.
 """
 
 import sys

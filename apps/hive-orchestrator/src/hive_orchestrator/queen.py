@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
-# ruff: noqa: E402
 """
 QueenLite - Streamlined Queen Orchestrator
 Preserves ALL hardening while removing complexity
@@ -42,8 +41,7 @@ class Phase(Enum):
 
 
 class QueenLite:
-    """
-    Streamlined orchestrator with preserved hardening
+    """Streamlined orchestrator with preserved hardening
 
     Architecture:
     - Initialization & Configuration Management
@@ -60,8 +58,7 @@ class QueenLite:
     # ================================================================================
 
     def __init__(self, hive_core: HiveCore, config: HiveConfig | None = None, live_output: bool = False):
-        """
-        Initialize QueenLite orchestrator
+        """Initialize QueenLite orchestrator
 
         Args:
             hive_core: HiveCore instance for task management and database operations
@@ -70,6 +67,7 @@ class QueenLite:
 
         Raises:
             SystemExit: If system configuration validation fails
+
         """
         # Tight integration with HiveCore
         self.hive = hive_core
@@ -128,7 +126,7 @@ class QueenLite:
 
         try:
             # Import validation functions (we already have hive-config path setup)
-            from hive_config import (  # noqa: F401
+            from hive_config import (
                 ValidationError,
                 format_validation_report,
                 run_comprehensive_validation,
@@ -168,14 +166,14 @@ class QueenLite:
             # Continue anyway - validation is helpful but not critical
 
     def _create_enhanced_environment(self, root_path: Path | None = None) -> dict[str, str]:
-        """
-        Create enhanced environment with proper Python paths for worker processes.
+        """Create enhanced environment with proper Python paths for worker processes.
 
         Args:
             root_path: Root path to use (defaults to self.hive.root)
 
         Returns:
             Enhanced environment dictionary with PYTHONPATH configured
+
         """
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
@@ -204,8 +202,7 @@ class QueenLite:
         correlation_id: str | None = None,
         **additional_payload,
     ) -> str:
-        """
-        Publish task state transition events for explicit agent communication
+        """Publish task state transition events for explicit agent communication
 
         Args:
             event_type: Type of task event (assigned, started, completed, etc.)
@@ -216,6 +213,7 @@ class QueenLite:
 
         Returns:
             Event ID of published event
+
         """
         try:
             # Create task event with Queen as source

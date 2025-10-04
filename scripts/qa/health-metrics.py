@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: S607  # subprocess with partial path - safe for our development tools
+# subprocess with partial path - safe for our development tools
 """Platform Health Metrics Dashboard for QA Agent
 
 Purpose: Generate comprehensive health metrics for technical debt management
@@ -37,12 +37,13 @@ def get_linting_violations() -> tuple[int, int, int]:
 
     Returns:
         (total_violations, core_violations, crust_violations)
+
     """
     try:
         # Total violations
         result = subprocess.run(
             ["ruff", "check", ".", "--statistics"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=60,
         )
@@ -56,7 +57,7 @@ def get_linting_violations() -> tuple[int, int, int]:
         # Core violations (strict)
         result_core = subprocess.run(
             ["ruff", "check", "packages/", "--select", "ALL", "--statistics"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=60,
         )
@@ -68,7 +69,7 @@ def get_linting_violations() -> tuple[int, int, int]:
         # Crust violations (lenient ignores applied)
         result_crust = subprocess.run(
             ["ruff", "check", "apps/", "integration_tests/", "--statistics"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=60,
         )
@@ -87,7 +88,7 @@ def get_syntax_errors() -> int:
     try:
         result = subprocess.run(
             ["pytest", "--collect-only", "-q"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
             timeout=60,
         )
@@ -109,6 +110,7 @@ def get_bypass_counts(repo_root: Path) -> tuple[int, int]:
 
     Returns:
         (count_24h, count_7d)
+
     """
     log_path = repo_root / ".git" / "bypass-log.txt"
     if not log_path.exists():
@@ -178,10 +180,10 @@ def generate_dashboard(metrics: HealthMetrics) -> str:
     output.append("## Linting Violations\n")
     output.append(f"- **Total Platform**: {metrics.total_violations:,} violations\n")
     output.append(
-        f"- **Core (packages/)**: {metrics.core_violations:,} violations (strict standards)\n"
+        f"- **Core (packages/)**: {metrics.core_violations:,} violations (strict standards)\n",
     )
     output.append(
-        f"- **Crust (apps/)**: {metrics.crust_violations:,} violations (pragmatic standards)\n"
+        f"- **Crust (apps/)**: {metrics.crust_violations:,} violations (pragmatic standards)\n",
     )
     output.append("\n")
 
@@ -191,7 +193,7 @@ def generate_dashboard(metrics: HealthMetrics) -> str:
         output.append("- ZERO syntax errors maintained\n")
     else:
         output.append(
-            f"- **{metrics.syntax_errors} syntax errors** - CRITICAL, fix immediately\n"
+            f"- **{metrics.syntax_errors} syntax errors** - CRITICAL, fix immediately\n",
         )
     output.append("\n")
 
@@ -202,7 +204,7 @@ def generate_dashboard(metrics: HealthMetrics) -> str:
 
     if metrics.bypass_count_24h > 5:
         output.append(
-            "- WARNING: High bypass frequency, review bypass log for patterns\n"
+            "- WARNING: High bypass frequency, review bypass log for patterns\n",
         )
     output.append("\n")
 
@@ -217,12 +219,12 @@ def generate_dashboard(metrics: HealthMetrics) -> str:
 
     if metrics.bypass_count_24h > 3:
         output.append(
-            f"3. MEDIUM - Review recent bypasses ({metrics.bypass_count_24h} in 24h)\n"
+            f"3. MEDIUM - Review recent bypasses ({metrics.bypass_count_24h} in 24h)\n",
         )
 
     if metrics.total_violations > 5000:
         output.append(
-            f"4. MEDIUM - Overall technical debt ({metrics.total_violations:,}) requires cleanup sprint\n"
+            f"4. MEDIUM - Overall technical debt ({metrics.total_violations:,}) requires cleanup sprint\n",
         )
 
     output.append("\n---\n")
@@ -273,10 +275,10 @@ def calculate_health_score(metrics: HealthMetrics) -> int:
 def main():
     parser = argparse.ArgumentParser(description="Generate platform health metrics")
     parser.add_argument(
-        "--export", metavar="FILE", help="Export dashboard to markdown file"
+        "--export", metavar="FILE", help="Export dashboard to markdown file",
     )
     parser.add_argument(
-        "--show-trend", type=int, metavar="DAYS", help="Show trend over N days (future enhancement)"
+        "--show-trend", type=int, metavar="DAYS", help="Show trend over N days (future enhancement)",
     )
     args = parser.parse_args()
 

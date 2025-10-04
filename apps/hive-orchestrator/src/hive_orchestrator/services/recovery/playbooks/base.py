@@ -1,5 +1,4 @@
-"""
-Base Recovery Playbook
+"""Base Recovery Playbook
 
 PROJECT CHIMERA Phase 3: Self-Healing Feedback Loop
 Abstract base class for all recovery playbooks.
@@ -67,8 +66,7 @@ class PlaybookSignature:
 
 
 class RecoveryPlaybook(ABC):
-    """
-    Abstract base class for recovery playbooks.
+    """Abstract base class for recovery playbooks.
 
     All recovery playbooks must inherit from this class and implement:
     - playbook_id: Unique identifier
@@ -98,20 +96,18 @@ class RecoveryPlaybook(ABC):
 
     @abstractmethod
     async def execute_async(self, alert_event: Any) -> PlaybookResult:
-        """
-        Execute recovery action.
+        """Execute recovery action.
 
         Args:
             alert_event: PredictiveAlertEvent instance
 
         Returns:
             PlaybookResult with execution outcome
+
         """
-        pass
 
     async def rollback_async(self, execution_result: PlaybookResult) -> bool:
-        """
-        Rollback recovery action if needed.
+        """Rollback recovery action if needed.
 
         Override this method if playbook supports rollback.
 
@@ -120,13 +116,13 @@ class RecoveryPlaybook(ABC):
 
         Returns:
             True if rollback succeeded
+
         """
         logger.warning(f"Playbook {self.playbook_id} does not implement rollback")
         return False
 
     async def pre_execution_check_async(self, alert_event: Any) -> bool:
-        """
-        Pre-execution safety check.
+        """Pre-execution safety check.
 
         Override to add playbook-specific safety checks.
 
@@ -135,6 +131,7 @@ class RecoveryPlaybook(ABC):
 
         Returns:
             True if safe to proceed
+
         """
         return True
 
@@ -147,4 +144,4 @@ class RecoveryPlaybook(ABC):
         }
 
 
-__all__ = ["RecoveryPlaybook", "PlaybookResult", "PlaybookSignature"]
+__all__ = ["PlaybookResult", "PlaybookSignature", "RecoveryPlaybook"]

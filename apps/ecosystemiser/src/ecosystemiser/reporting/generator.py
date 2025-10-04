@@ -28,7 +28,7 @@ class HTMLReportGenerator:
         analysis_results: dict[str, Any],
         plots: dict[str, Any] | None = None,
         title: str = "EcoSystemiser Analysis Report",
-        report_type: str = "standard"
+        report_type: str = "standard",
     ) -> str:
         """Generate a complete standalone HTML report.
 
@@ -39,10 +39,11 @@ class HTMLReportGenerator:
 
         Returns:
             Complete HTML string,
+
         """
         # Build HTML sections based on report type
         head_html = self._generate_head(
-            title, include_bootstrap=(report_type in ["genetic_algorithm", "monte_carlo", "study"])
+            title, include_bootstrap=(report_type in ["genetic_algorithm", "monte_carlo", "study"]),
         ),
 
         if report_type == "genetic_algorithm":
@@ -120,6 +121,7 @@ class HTMLReportGenerator:
 
         Returns:
             HTML body content string,
+
         """
         summary_html = self._generate_summary_section(analysis_results),
         plots_html = self._generate_plots_section(plots or {}),
@@ -434,7 +436,7 @@ class HTMLReportGenerator:
             "total_cost": ("Total Cost", lambda x: f"${x:,.0f}"),
             "emissions_reduction": ("Emissions Reduction", lambda x: f"{x:.1%}"),
             "peak_demand_reduction": ("Peak Demand Reduction", lambda x: f"{x:.1%}"),
-            "storage_utilization": ("Storage Utilization", lambda x: f"{x:.1%}")
+            "storage_utilization": ("Storage Utilization", lambda x: f"{x:.1%}"),
         }
 
         for key, (label, formatter) in metric_formatters.items():
@@ -808,7 +810,7 @@ document.addEventListener('DOMContentLoaded', function() {{
                 """
             else:
                 # Multi-objective case
-                for obj_name, obj_stats in statistics.items():  # noqa: B007
+                for obj_name, obj_stats in statistics.items():
                     if isinstance(obj_stats, dict):
                         mean = obj_stats.get("mean", 0)
                         std = obj_stats.get("std", 0)
@@ -993,6 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 
         Returns:
             Complete HTML report string,
+
         """
         title = f"Genetic Algorithm Optimization: {study_result.get('study_id', 'GA Study')}"
         return self.generate_standalone_report(study_result, plots, title, "genetic_algorithm")
@@ -1006,12 +1009,13 @@ document.addEventListener('DOMContentLoaded', function() {{
 
         Returns:
             Complete HTML report string,
+
         """
         title = f"Monte Carlo Uncertainty Analysis: {study_result.get('study_id', 'MC Study')}"
         return self.generate_standalone_report(study_result, plots, title, "monte_carlo")
 
     def generate_study_comparison_report(
-        self, study_results: list[dict[str, Any]], plots: dict[str, Any] | None = None
+        self, study_results: list[dict[str, Any]], plots: dict[str, Any] | None = None,
     ) -> str:
         """Generate a comparative study report.
 
@@ -1021,6 +1025,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 
         Returns:
             Complete HTML report string,
+
         """
         # Aggregate results for comparison
         aggregated_results = {
@@ -1045,7 +1050,7 @@ document.addEventListener('DOMContentLoaded', function() {{
             "successful_studies": successful_studies,
             "total_execution_time": total_execution_time,
             "avg_execution_time": avg_execution_time,
-            "study_types": list({s.get("study_type", "unknown") for s in study_results})
+            "study_types": list({s.get("study_type", "unknown") for s in study_results}),
         },
 
     def save_report(self, html_content: str, output_path: Path) -> None:
@@ -1054,6 +1059,7 @@ document.addEventListener('DOMContentLoaded', function() {{
         Args:
             html_content: Complete HTML content
             output_path: Path to save the report,
+
         """
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(html_content, encoding="utf-8")
@@ -1063,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {{
 def create_standalone_html_report(
     analysis_results: dict[str, Any],
     plots: dict[str, Any] | None = None,
-    title: str = "EcoSystemiser Analysis Report"
+    title: str = "EcoSystemiser Analysis Report",
 ) -> str:
     """Create a standalone HTML report (backward compatibility wrapper).
 
@@ -1074,6 +1080,7 @@ def create_standalone_html_report(
 
     Returns:
         Complete HTML string,
+
     """
     generator = HTMLReportGenerator()
     return generator.generate_standalone_report(analysis_results, plots, title)

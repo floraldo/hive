@@ -9,6 +9,5 @@ class TestVectorStore:
     @pytest.mark.core
     def test_store_operations(self):
         """Test store operations."""
-        pass
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

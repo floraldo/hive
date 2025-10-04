@@ -17,17 +17,15 @@ logger = get_logger(__name__)
 
 
 class PerformanceCache:
-    """
+    """High-performance cache for expensive computations and I/O operations.
 
-        High-performance cache for expensive computations and I/O operations.
-
-        Features:
-        - Function result caching with automatic key generation
-        - Computation time tracking and TTL optimization
-        - Async and sync function support
-        - Memoization decorators
-        - Batch operation caching
-        - Cache warming strategies
+    Features:
+    - Function result caching with automatic key generation
+    - Computation time tracking and TTL optimization
+    - Async and sync function support
+    - Memoization decorators
+    - Batch operation caching
+    - Cache warming strategies
     """
 
     def __init__(self, cache_client: HiveCacheClient, config: CacheConfig) -> None:
@@ -54,6 +52,7 @@ class PerformanceCache:
 
         Returns:
             PerformanceCache instance
+
         """
         cache_client = await get_cache_client_async(config)
         if config is None:
@@ -62,7 +61,7 @@ class PerformanceCache:
         return cls(cache_client, config)
 
     def _generate_function_key(
-        self, func: Callable, args: tuple[Any, ...] = (), kwargs: dict[str, Any] = None, key_prefix: str | None = None
+        self, func: Callable, args: tuple[Any, ...] = (), kwargs: dict[str, Any] = None, key_prefix: str | None = None,
     ) -> str:
         """Generate cache key for function call.
 
@@ -74,6 +73,7 @@ class PerformanceCache:
 
         Returns:
             Cache key string,
+
         """
         if kwargs is None:
             kwargs = {}
@@ -107,6 +107,7 @@ class PerformanceCache:
 
         Returns:
             Calculated TTL in seconds
+
         """
         if base_ttl is None:
             base_ttl = self.config.performance_default_ttl
@@ -147,6 +148,7 @@ class PerformanceCache:
 
         Returns:
             Computation result
+
         """
         if kwargs is None:
             kwargs = {}
@@ -225,6 +227,7 @@ class PerformanceCache:
 
         Returns:
             Function result
+
         """
         # Generate cache key
         cache_key = self._generate_function_key(func, args, kwargs, key_prefix)
@@ -242,6 +245,7 @@ class PerformanceCache:
 
         Returns:
             Decorated function,
+
         """
 
         def decorator(func: Callable) -> Callable:
@@ -271,26 +275,25 @@ class PerformanceCache:
 
                 return async_wrapper
 
-            else:
 
-                def sync_wrapper(*args, **kwargs) -> Any:
-                    # Convert to async and run
-                    async def _async_exec_async():
-                        return await self.memoize_function_async(func, args, kwargs, ttl, key_prefix)
+            def sync_wrapper(*args, **kwargs) -> Any:
+                # Convert to async and run
+                async def _async_exec_async():
+                    return await self.memoize_function_async(func, args, kwargs, ttl, key_prefix)
 
-                    try:
-                        loop = asyncio.get_event_loop()
-                        return loop.run_until_complete(_async_exec_async())
-                    except RuntimeError:
-                        # No event loop, create_async one
-                        return asyncio.run(_async_exec_async())
+                try:
+                    loop = asyncio.get_event_loop()
+                    return loop.run_until_complete(_async_exec_async())
+                except RuntimeError:
+                    # No event loop, create_async one
+                    return asyncio.run(_async_exec_async())
 
-                return sync_wrapper
+            return sync_wrapper
 
         return decorator
 
     async def batch_cache_operations_async(
-        self, operations: list[dict[str, Any]], max_concurrent: int = 10
+        self, operations: list[dict[str, Any]], max_concurrent: int = 10,
     ) -> list[Any]:
         """Execute multiple cached operations in batch.
 
@@ -305,6 +308,7 @@ class PerformanceCache:
 
         Returns:
             List of results in same order as operations
+
         """
         semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -334,7 +338,7 @@ class PerformanceCache:
         return final_results
 
     async def warm_cache_from_functions_async(
-        self, function_configs: list[dict[str, Any]], max_concurrent: int = 5
+        self, function_configs: list[dict[str, Any]], max_concurrent: int = 5,
     ) -> dict[str, bool]:
         """Warm cache by pre-executing functions.
 
@@ -344,6 +348,7 @@ class PerformanceCache:
 
         Returns:
             Dictionary mapping function keys to success status
+
         """
         semaphore = (asyncio.Semaphore(max_concurrent),)
         results = {}
@@ -386,7 +391,7 @@ class PerformanceCache:
         return results
 
     async def invalidate_function_cache_async(
-        self, func: Callable, args: tuple[Any, ...] = None, kwargs: dict[str, Any] = None, key_prefix: str | None = None
+        self, func: Callable, args: tuple[Any, ...] = None, kwargs: dict[str, Any] = None, key_prefix: str | None = None,
     ) -> bool:
         """Invalidate cached result for specific function call.
 
@@ -398,6 +403,7 @@ class PerformanceCache:
 
         Returns:
             True if cache was invalidated
+
         """
         if args is None:
             # Invalidate all cached results for this function
@@ -405,16 +411,16 @@ class PerformanceCache:
             if key_prefix:
                 pattern = f"{key_prefix}_{pattern}"
             return await self.cache_client.delete_pattern(pattern, self.namespace) > 0
-        else:
-            # Invalidate specific function call
-            cache_key = self._generate_function_key(func, args, kwargs or {}, key_prefix)
-            return await self.cache_client.delete(cache_key, self.namespace)
+        # Invalidate specific function call
+        cache_key = self._generate_function_key(func, args, kwargs or {}, key_prefix)
+        return await self.cache_client.delete(cache_key, self.namespace)
 
     async def get_performance_stats_async(self) -> dict[str, Any]:
         """Get performance cache statistics.
 
         Returns:
             Performance statistics dictionary
+
         """
         # Calculate additional metrics
         total_calls = (self.perf_metrics["total_function_calls"],)
@@ -435,6 +441,7 @@ class PerformanceCache:
 
         Returns:
             Number of entries cleaned up
+
         """
         cleaned_count = (0,)
         current_time = time.time()

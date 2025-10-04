@@ -54,7 +54,7 @@ def parse_bypass_log(log_path: Path) -> list[BypassEntry]:
                         author=author,
                         justification=justification,
                         raw_line=line,
-                    )
+                    ),
                 )
             except (ValueError, IndexError):
                 # Skip malformed lines
@@ -113,7 +113,7 @@ def generate_cleanup_tasks(categories: dict[str, list[BypassEntry]]) -> str:
     if categories["emergency"]:
         output.append("## Priority 1: Emergency Bypasses (Validate ASAP)\n")
         output.append(
-            "These commits bypassed validation due to production issues. Validate they didn't introduce regressions.\n"
+            "These commits bypassed validation due to production issues. Validate they didn't introduce regressions.\n",
         )
         for entry in categories["emergency"]:
             output.append(f"- [ ] **{entry.timestamp.strftime('%Y-%m-%d %H:%M')}** ")
@@ -124,7 +124,7 @@ def generate_cleanup_tasks(categories: dict[str, list[BypassEntry]]) -> str:
     if categories["blocked"]:
         output.append("## Priority 2: Tool Issues (Investigate)\n")
         output.append(
-            "These bypasses indicate potential false positives or tool configuration issues.\n"
+            "These bypasses indicate potential false positives or tool configuration issues.\n",
         )
         for entry in categories["blocked"]:
             output.append(f"- [ ] **{entry.timestamp.strftime('%Y-%m-%d %H:%M')}** ")
@@ -135,7 +135,7 @@ def generate_cleanup_tasks(categories: dict[str, list[BypassEntry]]) -> str:
     if categories["wip"]:
         output.append("## Priority 3: Work in Progress (Consolidate)\n")
         output.append(
-            "These commits were incomplete at time of commit. Ensure they are now complete.\n"
+            "These commits were incomplete at time of commit. Ensure they are now complete.\n",
         )
         for entry in categories["wip"]:
             output.append(f"- [ ] **{entry.timestamp.strftime('%Y-%m-%d %H:%M')}** ")
@@ -156,10 +156,10 @@ def generate_cleanup_tasks(categories: dict[str, list[BypassEntry]]) -> str:
 def main():
     parser = argparse.ArgumentParser(description="Review bypass log for QA cleanup")
     parser.add_argument(
-        "--show-recent", type=int, metavar="N", help="Show N most recent bypasses"
+        "--show-recent", type=int, metavar="N", help="Show N most recent bypasses",
     )
     parser.add_argument(
-        "--export-tasks", metavar="FILE", help="Export cleanup tasks to markdown file"
+        "--export-tasks", metavar="FILE", help="Export cleanup tasks to markdown file",
     )
     args = parser.parse_args()
 

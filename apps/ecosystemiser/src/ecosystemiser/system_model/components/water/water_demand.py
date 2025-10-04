@@ -26,8 +26,8 @@ class WaterDemandTechnicalParams(DemandTechnicalParams):
     """Water demand-specific technical parameters extending demand archetype.
 
 
-        This model inherits from DemandTechnicalParams and adds water demand-specific,
-        parameters for different fidelity levels.,
+    This model inherits from DemandTechnicalParams and adds water demand-specific,
+    parameters for different fidelity levels.,
     """
 
     # Water-specific parameters (in cubic meters and m³/h)
@@ -79,8 +79,7 @@ class WaterDemandPhysicsSimple(BaseDemandPhysics):
     """
 
     def rule_based_demand(self, t: int, profile_value: float) -> float:
-        """
-        Implement SIMPLE water demand physics with direct profile scaling.,
+        """Implement SIMPLE water demand physics with direct profile scaling.,
 
         This matches the exact logic from BaseDemandComponent for numerical equivalence.,
         """
@@ -103,8 +102,7 @@ class WaterDemandPhysicsStandard(WaterDemandPhysicsSimple):
     """
 
     def rule_based_demand(self, t: int, profile_value: float) -> float:
-        """
-        Implement STANDARD water demand physics with seasonal effects.,
+        """Implement STANDARD water demand physics with seasonal effects.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -143,8 +141,7 @@ class WaterDemandOptimizationSimple(BaseDemandOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for water demand optimization.,
+        """Create SIMPLE CVXPY constraints for water demand optimization.,
 
         Returns constraints for fixed water demand without flexibility.,
         """
@@ -174,8 +171,7 @@ class WaterDemandOptimizationStandard(WaterDemandOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for water demand optimization.,
+        """Create STANDARD CVXPY constraints for water demand optimization.,
 
         Currently same as SIMPLE but acknowledges seasonal variations.,
         """
@@ -254,16 +250,15 @@ class WaterDemand(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return WaterDemandPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return WaterDemandPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return WaterDemandPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return WaterDemandPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for WaterDemand: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for WaterDemand: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -271,20 +266,18 @@ class WaterDemand(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return WaterDemandOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return WaterDemandOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return WaterDemandOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return WaterDemandOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for WaterDemand optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for WaterDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
-        """
-        Delegate to physics strategy for demand calculation.,
+        """Delegate to physics strategy for demand calculation.,
 
         This maintains the same interface as BaseDemandComponent but,
         delegates the actual physics calculation to the strategy object.,

@@ -46,8 +46,7 @@ class ErrorStats:
 
 
 class AsyncErrorHandler:
-    """
-    Advanced async error handler with monitoring and recovery.
+    """Advanced async error handler with monitoring and recovery.
 
     Features:
     - Context-aware error handling
@@ -78,8 +77,7 @@ class AsyncErrorHandler:
         self._success_rates: dict[str, float] = defaultdict(lambda: 1.0)
 
     async def handle_error(self, error: Exception, context: ErrorContext, suppress: bool = False) -> Exception | None:
-        """
-        Handle an error with full context and monitoring.
+        """Handle an error with full context and monitoring.
 
         Args:
             error: The exception that occurred,
@@ -88,6 +86,7 @@ class AsyncErrorHandler:
 
         Returns:
             The processed error or None if suppressed,
+
         """
         # Record error occurrence,
         error_record = await self._record_error(error, context)

@@ -46,40 +46,40 @@ from .intelligence import (
 from .safe_autofix import AutofixResult, SafeGoldenRulesAutoFixer
 
 __all__ = [
-    # Original validators
-    "validate_app_contracts",
-    "validate_colocated_tests",
-    "validate_no_syspath_hacks",
-    "validate_single_config_source",
-    # Golden Rules validators
-    "validate_package_app_discipline",
-    "validate_dependency_direction",
-    "validate_interface_contracts",
-    "validate_error_handling_standards",
-    "validate_logging_standards",
-    "validate_service_layer_discipline",
-    "validate_inherit_extend_pattern",
-    "validate_communication_patterns",
-    "validate_package_naming_consistency",
-    "validate_development_tools_consistency",
-    "validate_async_pattern_consistency",
-    "validate_cli_pattern_consistency",
-    # Orchestration
-    "run_all_golden_rules",
+    "AutofixResult",
     # Enhanced AST-based validation
     "EnhancedValidator",
+    "FailurePattern",
+    "FlakyTestResult",
     "GoldenRuleVisitor",
-    "Violation",
+    "PackageHealthReport",
     # Safe autofix (AST-ONLY, no regex)
     "SafeGoldenRulesAutoFixer",
-    "AutofixResult",
     # Test intelligence (merged from hive-test-intelligence)
     "TestIntelligenceStorage",
-    "TestRun",
     "TestResult",
+    "TestRun",
     "TestStatus",
     "TestType",
-    "FlakyTestResult",
-    "PackageHealthReport",
-    "FailurePattern",
+    "Violation",
+    # Orchestration
+    "run_all_golden_rules",
+    # Original validators
+    "validate_app_contracts",
+    "validate_async_pattern_consistency",
+    "validate_cli_pattern_consistency",
+    "validate_colocated_tests",
+    "validate_communication_patterns",
+    "validate_dependency_direction",
+    "validate_development_tools_consistency",
+    "validate_error_handling_standards",
+    "validate_inherit_extend_pattern",
+    "validate_interface_contracts",
+    "validate_logging_standards",
+    "validate_no_syspath_hacks",
+    # Golden Rules validators
+    "validate_package_app_discipline",
+    "validate_package_naming_consistency",
+    "validate_service_layer_discipline",
+    "validate_single_config_source",
 ]

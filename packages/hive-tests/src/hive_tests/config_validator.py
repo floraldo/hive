@@ -34,7 +34,7 @@ def validate_config_consistency(project_root: Path | None = None) -> int:
             if not has_poetry_format and not has_pep621_format:
                 violations.append(
                     f"FAIL {relative_path}: Missing python version specification (Rule 32) - "
-                    f"Expected 'python = \"^3.11\"' (Poetry) or 'requires-python = \">=3.11\"' (PEP 621)"
+                    f"Expected 'python = \"^3.11\"' (Poetry) or 'requires-python = \">=3.11\"' (PEP 621)",
                 )
 
         except Exception as e:
@@ -48,9 +48,8 @@ def validate_config_consistency(project_root: Path | None = None) -> int:
         print()
         print(f"Total violations: {len(violations)}")
         return 1
-    else:
-        print("PASS: All configuration files are consistent")
-        return 0
+    print("PASS: All configuration files are consistent")
+    return 0
 
 
 if __name__ == "__main__":

@@ -1,10 +1,8 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this test file use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal testing infrastructure.
 
-"""
-End-to-End Queen → Worker Pipeline Integration Test
+"""End-to-End Queen → Worker Pipeline Integration Test
 
 This test validates the complete task flow from creation through execution:
 1. Task creation and queuing
@@ -51,32 +49,32 @@ class QueenWorkerPipelineTest:
 
     def setup_test_environment(self):
         """Set up test environment with database and mock processes"""
-        print('🔧 Setting up Queen → Worker pipeline test environment...')
-        self.temp_dir = tempfile.mkdtemp(prefix='queen_worker_test_')
-        self.test_db_path = Path(self.temp_dir) / 'pipeline_test.db'
+        print("🔧 Setting up Queen → Worker pipeline test environment...")
+        self.temp_dir = tempfile.mkdtemp(prefix="queen_worker_test_")
+        self.test_db_path = Path(self.temp_dir) / "pipeline_test.db"
         self._setup_test_database()
-        os.environ['HIVE_TEST_MODE'] = 'true'
-        os.environ['HIVE_TEST_DB_PATH'] = str(self.test_db_path)
-        os.environ['HIVE_QUEEN_TEST_MODE'] = 'true'
-        os.environ['HIVE_WORKER_TEST_MODE'] = 'true'
-        print(f'✅ Test environment ready: {self.temp_dir}')
+        os.environ["HIVE_TEST_MODE"] = "true"
+        os.environ["HIVE_TEST_DB_PATH"] = str(self.test_db_path)
+        os.environ["HIVE_QUEEN_TEST_MODE"] = "true"
+        os.environ["HIVE_WORKER_TEST_MODE"] = "true"
+        print(f"✅ Test environment ready: {self.temp_dir}")
 
     def teardown_test_environment(self):
         """Clean up test environment"""
-        print('🧹 Cleaning up test environment...')
+        print("🧹 Cleaning up test environment...")
         self._stop_all_processes()
         if self.temp_dir and Path(self.temp_dir).exists():
             import shutil
             shutil.rmtree(self.temp_dir, ignore_errors=True)
-        for env_var in ['HIVE_TEST_MODE', 'HIVE_TEST_DB_PATH', 'HIVE_QUEEN_TEST_MODE', 'HIVE_WORKER_TEST_MODE']:
+        for env_var in ["HIVE_TEST_MODE", "HIVE_TEST_DB_PATH", "HIVE_QUEEN_TEST_MODE", "HIVE_WORKER_TEST_MODE"]:
             if env_var in os.environ:
                 del os.environ[env_var]
-        print('✅ Test environment cleaned up')
+        print("✅ Test environment cleaned up")
 
     def run_complete_pipeline_test(self) -> bool:
         """Run complete end-to-end pipeline test"""
-        print('🏁 Running Complete Queen → Worker Pipeline Test')
-        print('=' * 70)
+        print("🏁 Running Complete Queen → Worker Pipeline Test")
+        print("=" * 70)
         self.setup_test_environment()
         try:
             basic_test_passed = self.test_basic_task_processing()
@@ -93,7 +91,7 @@ class QueenWorkerPipelineTest:
             self._generate_pipeline_test_report(all_passed)
             return all_passed
         except Exception as e:
-            print(f'❌ Pipeline test failed: {e}')
+            print(f"❌ Pipeline test failed: {e}")
             return False
         finally:
             self.teardown_test_environment()
@@ -101,27 +99,27 @@ class QueenWorkerPipelineTest:
     @pytest.mark.crust
     def test_basic_task_processing(self) -> bool:
         """Test basic task creation → assignment → execution → completion"""
-        print('\n🧪 Testing Basic Task Processing...')
+        print("\n🧪 Testing Basic Task Processing...")
         try:
-            task_id = self._create_test_task({'title': 'Basic Test Task', 'description': 'Test basic task processing pipeline', 'priority': 50, 'context': json.dumps({'test_type': 'basic', 'expected_duration': 1.0})})
+            task_id = self._create_test_task({"title": "Basic Test Task", "description": "Test basic task processing pipeline", "priority": 50, "context": json.dumps({"test_type": "basic", "expected_duration": 1.0})})
             queen_started = self._start_mock_queen()
             if not queen_started:
                 return False
-            worker_started = self._start_mock_worker('basic_worker')
+            worker_started = self._start_mock_worker("basic_worker")
             if not worker_started:
                 return False
             task_completed = self._monitor_task_completion(task_id, timeout=30)
             if not task_completed:
-                print('❌ Task did not complete within timeout')
+                print("❌ Task did not complete within timeout")
                 return False
             task_result = self._get_task_result(task_id)
-            if not task_result or task_result.get('status') != 'success':
-                print(f'❌ Task completion failed: {task_result}')
+            if not task_result or task_result.get("status") != "success":
+                print(f"❌ Task completion failed: {task_result}")
                 return False
-            print('✅ Basic task processing test passed')
+            print("✅ Basic task processing test passed")
             return True
         except Exception as e:
-            print(f'❌ Basic task processing test failed: {e}')
+            print(f"❌ Basic task processing test failed: {e}")
             return False
         finally:
             self._stop_all_processes()
@@ -129,18 +127,18 @@ class QueenWorkerPipelineTest:
     @pytest.mark.crust
     def test_concurrent_task_processing(self) -> bool:
         """Test concurrent processing of multiple tasks"""
-        print('\n🧪 Testing Concurrent Task Processing...')
+        print("\n🧪 Testing Concurrent Task Processing...")
         try:
             num_tasks = 5
             task_ids = []
             for i in range(num_tasks):
-                task_id = self._create_test_task({'title': f'Concurrent Test Task {i + 1}', 'description': f'Concurrent processing test task {i + 1}', 'priority': 60, 'context': json.dumps({'test_type': 'concurrent', 'task_number': i + 1})})
+                task_id = self._create_test_task({"title": f"Concurrent Test Task {i + 1}", "description": f"Concurrent processing test task {i + 1}", "priority": 60, "context": json.dumps({"test_type": "concurrent", "task_number": i + 1})})
                 task_ids.append(task_id)
             queen_started = self._start_mock_queen()
             if not queen_started:
                 return False
             for i in range(3):
-                worker_started = self._start_mock_worker(f'concurrent_worker_{i}')
+                worker_started = self._start_mock_worker(f"concurrent_worker_{i}")
                 if not worker_started:
                     return False
             start_time = time.time()
@@ -150,18 +148,17 @@ class QueenWorkerPipelineTest:
                     if task_id not in completed_tasks:
                         if self._is_task_completed(task_id):
                             completed_tasks.append(task_id)
-                            print(f'✅ Task {task_id} completed')
+                            print(f"✅ Task {task_id} completed")
                 time.sleep(1)
             if len(completed_tasks) == num_tasks:
                 duration = time.time() - start_time
                 throughput = num_tasks / duration
-                print(f'✅ Concurrent processing test passed: {num_tasks} tasks in {duration:.2f}s ({throughput:.2f} tasks/sec)')
+                print(f"✅ Concurrent processing test passed: {num_tasks} tasks in {duration:.2f}s ({throughput:.2f} tasks/sec)")
                 return True
-            else:
-                print(f'❌ Concurrent processing test failed: only {len(completed_tasks)}/{num_tasks} tasks completed')
-                return False
+            print(f"❌ Concurrent processing test failed: only {len(completed_tasks)}/{num_tasks} tasks completed")
+            return False
         except Exception as e:
-            print(f'❌ Concurrent processing test failed: {e}')
+            print(f"❌ Concurrent processing test failed: {e}")
             return False
         finally:
             self._stop_all_processes()
@@ -169,15 +166,15 @@ class QueenWorkerPipelineTest:
     @pytest.mark.crust
     def test_task_priority_handling(self) -> bool:
         """Test that high-priority tasks are processed first"""
-        print('\n🧪 Testing Task Priority Handling...')
+        print("\n🧪 Testing Task Priority Handling...")
         try:
-            low_priority_task = self._create_test_task({'title': 'Low Priority Task', 'description': 'Should be processed last', 'priority': 20, 'context': json.dumps({'test_type': 'priority', 'priority_level': 'low'})})
-            high_priority_task = self._create_test_task({'title': 'High Priority Task', 'description': 'Should be processed first', 'priority': 90, 'context': json.dumps({'test_type': 'priority', 'priority_level': 'high'})})
-            medium_priority_task = self._create_test_task({'title': 'Medium Priority Task', 'description': 'Should be processed second', 'priority': 50, 'context': json.dumps({'test_type': 'priority', 'priority_level': 'medium'})})
+            low_priority_task = self._create_test_task({"title": "Low Priority Task", "description": "Should be processed last", "priority": 20, "context": json.dumps({"test_type": "priority", "priority_level": "low"})})
+            high_priority_task = self._create_test_task({"title": "High Priority Task", "description": "Should be processed first", "priority": 90, "context": json.dumps({"test_type": "priority", "priority_level": "high"})})
+            medium_priority_task = self._create_test_task({"title": "Medium Priority Task", "description": "Should be processed second", "priority": 50, "context": json.dumps({"test_type": "priority", "priority_level": "medium"})})
             queen_started = self._start_mock_queen()
             if not queen_started:
                 return False
-            worker_started = self._start_mock_worker('priority_worker')
+            worker_started = self._start_mock_worker("priority_worker")
             if not worker_started:
                 return False
             completion_order = []
@@ -186,21 +183,19 @@ class QueenWorkerPipelineTest:
                 for task_id in [low_priority_task, high_priority_task, medium_priority_task]:
                     if task_id not in completion_order and self._is_task_completed(task_id):
                         completion_order.append(task_id)
-                        print(f'✅ Task {task_id} completed')
+                        print(f"✅ Task {task_id} completed")
                 time.sleep(0.5)
             if len(completion_order) == 3:
                 if completion_order[0] == high_priority_task and completion_order[1] == medium_priority_task and (completion_order[2] == low_priority_task):
-                    print('✅ Task priority handling test passed')
+                    print("✅ Task priority handling test passed")
                     return True
-                else:
-                    print(f'❌ Tasks completed in wrong order: {completion_order}')
-                    print(f'   Expected: [{high_priority_task}, {medium_priority_task}, {low_priority_task}]')
-                    return False
-            else:
-                print(f'❌ Not all priority tasks completed: {len(completion_order)}/3')
+                print(f"❌ Tasks completed in wrong order: {completion_order}")
+                print(f"   Expected: [{high_priority_task}, {medium_priority_task}, {low_priority_task}]")
                 return False
+            print(f"❌ Not all priority tasks completed: {len(completion_order)}/3")
+            return False
         except Exception as e:
-            print(f'❌ Priority handling test failed: {e}')
+            print(f"❌ Priority handling test failed: {e}")
             return False
         finally:
             self._stop_all_processes()
@@ -208,35 +203,33 @@ class QueenWorkerPipelineTest:
     @pytest.mark.crust
     def test_worker_failure_recovery(self) -> bool:
         """Test worker failure detection and task reassignment"""
-        print('\n🧪 Testing Worker Failure Recovery...')
+        print("\n🧪 Testing Worker Failure Recovery...")
         try:
-            task_id = self._create_test_task({'title': 'Worker Failure Test Task', 'description': 'Test worker failure recovery', 'priority': 70, 'context': json.dumps({'test_type': 'failure_recovery', 'worker_failure': True})})
+            task_id = self._create_test_task({"title": "Worker Failure Test Task", "description": "Test worker failure recovery", "priority": 70, "context": json.dumps({"test_type": "failure_recovery", "worker_failure": True})})
             queen_started = self._start_mock_queen()
             if not queen_started:
                 return False
-            failing_worker_started = self._start_mock_worker('failing_worker', should_fail=True)
+            failing_worker_started = self._start_mock_worker("failing_worker", should_fail=True)
             if not failing_worker_started:
                 return False
             time.sleep(2)
-            self._stop_worker('failing_worker')
-            print('💥 Simulated worker failure')
-            recovery_worker_started = self._start_mock_worker('recovery_worker')
+            self._stop_worker("failing_worker")
+            print("💥 Simulated worker failure")
+            recovery_worker_started = self._start_mock_worker("recovery_worker")
             if not recovery_worker_started:
                 return False
             task_completed = self._monitor_task_completion(task_id, timeout=30)
             if task_completed:
                 task_result = self._get_task_result(task_id)
-                if task_result and task_result.get('worker_id') == 'recovery_worker':
-                    print('✅ Worker failure recovery test passed')
+                if task_result and task_result.get("worker_id") == "recovery_worker":
+                    print("✅ Worker failure recovery test passed")
                     return True
-                else:
-                    print(f'❌ Task not completed by recovery worker: {task_result}')
-                    return False
-            else:
-                print('❌ Task was not recovered after worker failure')
+                print(f"❌ Task not completed by recovery worker: {task_result}")
                 return False
+            print("❌ Task was not recovered after worker failure")
+            return False
         except Exception as e:
-            print(f'❌ Worker failure recovery test failed: {e}')
+            print(f"❌ Worker failure recovery test failed: {e}")
             return False
         finally:
             self._stop_all_processes()
@@ -244,32 +237,31 @@ class QueenWorkerPipelineTest:
     @pytest.mark.crust
     def test_task_timeout_handling(self) -> bool:
         """Test task timeout detection and handling"""
-        print('\n🧪 Testing Task Timeout Handling...')
+        print("\n🧪 Testing Task Timeout Handling...")
         try:
-            task_id = self._create_test_task({'title': 'Timeout Test Task', 'description': 'Test task timeout handling', 'priority': 50, 'timeout': 2, 'context': json.dumps({'test_type': 'timeout', 'long_running': True})})
+            task_id = self._create_test_task({"title": "Timeout Test Task", "description": "Test task timeout handling", "priority": 50, "timeout": 2, "context": json.dumps({"test_type": "timeout", "long_running": True})})
             queen_started = self._start_mock_queen()
             if not queen_started:
                 return False
-            timeout_worker_started = self._start_mock_worker('timeout_worker', slow_execution=True)
+            timeout_worker_started = self._start_mock_worker("timeout_worker", slow_execution=True)
             if not timeout_worker_started:
                 return False
             start_time = time.time()
             timeout_detected = False
             while time.time() - start_time < 10:
                 task_status = self._get_task_status(task_id)
-                if task_status == 'timeout' or task_status == 'failed':
+                if task_status == "timeout" or task_status == "failed":
                     timeout_detected = True
-                    print(f'✅ Timeout detected: task status = {task_status}')
+                    print(f"✅ Timeout detected: task status = {task_status}")
                     break
                 time.sleep(0.5)
             if timeout_detected:
-                print('✅ Task timeout handling test passed')
+                print("✅ Task timeout handling test passed")
                 return True
-            else:
-                print('❌ Task timeout was not detected')
-                return False
+            print("❌ Task timeout was not detected")
+            return False
         except Exception as e:
-            print(f'❌ Task timeout handling test failed: {e}')
+            print(f"❌ Task timeout handling test failed: {e}")
             return False
         finally:
             self._stop_all_processes()
@@ -284,7 +276,7 @@ class QueenWorkerPipelineTest:
     def _create_test_task(self, task_data: dict[str, Any]) -> int:
         """Create a test task in the database"""
         conn = sqlite3.connect(self.test_db_path)
-        cursor = conn.execute('INSERT INTO tasks (title, description, priority, timeout, context)\n               VALUES (?, ?, ?, ?, ?)', (task_data['title'], task_data['description'], task_data.get('priority', 50), task_data.get('timeout', 300), task_data.get('context', '{}')))
+        cursor = conn.execute("INSERT INTO tasks (title, description, priority, timeout, context)\n               VALUES (?, ?, ?, ?, ?)", (task_data["title"], task_data["description"], task_data.get("priority", 50), task_data.get("timeout", 300), task_data.get("context", "{}")))
         task_id = cursor.lastrowid
         conn.commit()
         conn.close()
@@ -298,13 +290,12 @@ class QueenWorkerPipelineTest:
             self.queen_process = subprocess.Popen([sys.executable, queen_script], env=os.environ.copy())
             time.sleep(2)
             if self.queen_process.poll() is None:
-                print('👑 Mock Queen started successfully')
+                print("👑 Mock Queen started successfully")
                 return True
-            else:
-                print('❌ Mock Queen failed to start')
-                return False
+            print("❌ Mock Queen failed to start")
+            return False
         except Exception as e:
-            print(f'❌ Failed to start mock Queen: {e}')
+            print(f"❌ Failed to start mock Queen: {e}")
             return False
 
     def _start_mock_worker(self, worker_id: str, should_fail: bool=False, slow_execution: bool=False) -> bool:
@@ -315,28 +306,27 @@ class QueenWorkerPipelineTest:
             self.worker_processes.append((worker_id, worker_process))
             time.sleep(1)
             if worker_process.poll() is None:
-                print(f'⚙️ Mock Worker {worker_id} started successfully')
+                print(f"⚙️ Mock Worker {worker_id} started successfully")
                 return True
-            else:
-                print(f'❌ Mock Worker {worker_id} failed to start')
-                return False
+            print(f"❌ Mock Worker {worker_id} failed to start")
+            return False
         except Exception as e:
-            print(f'❌ Failed to start mock Worker {worker_id}: {e}')
+            print(f"❌ Failed to start mock Worker {worker_id}: {e}")
             return False
 
     def _create_mock_queen_script(self) -> str:
         """Create mock Queen script"""
         script_content = f'''  # noqa: S608\nimport sqlite3\nimport time\nimport json\nimport signal\nimport sys\n\n# Mock Queen implementation\nclass MockQueen:\n    def __init__(self, db_path):\n        self.db_path = db_path\n        self.running = True\n        signal.signal(signal.SIGTERM, self.shutdown)\n\n    def shutdown(self, signum, frame):\n        self.running = False\n\n    def run(self):\n        print("👑 Mock Queen starting...")\n\n        while self.running:\n            try:\n                # Check for pending tasks\n                conn = sqlite3.connect(self.db_path)\n                cursor = conn.execute(\n                    "SELECT id, title, priority FROM tasks WHERE status = 'pending' ORDER BY priority DESC, created_at ASC LIMIT 5"\n                )\n                tasks = cursor.fetchall()\n\n                for task_id, title, priority in tasks:\n                    # Assign task to available worker\n                    conn.execute(\n                        "UPDATE tasks SET status = 'assigned', updated_at = CURRENT_TIMESTAMP WHERE id = ?",\n                        (task_id,)\n                    )\n                    print(f"👑 Queen assigned task {{task_id}}: {{title}}")\n\n                conn.commit()\n                conn.close()\n\n                time.sleep(1)\n\n            except Exception as e:\n                print(f"👑 Queen error: {{e}}")\n                time.sleep(1)\n\n        print("👑 Mock Queen shutting down")\n\nif __name__ == "__main__":\n    queen = MockQueen("{self.test_db_path}")\n    queen.run()\n'''
-        script_path = Path(self.temp_dir) / 'mock_queen.py'
-        with open(script_path, 'w') as f:
+        script_path = Path(self.temp_dir) / "mock_queen.py"
+        with open(script_path, "w") as f:
             f.write(script_content)
         return str(script_path)
 
     def _create_mock_worker_script(self, worker_id: str, should_fail: bool=False, slow_execution: bool=False) -> str:
         """Create mock Worker script"""
         script_content = f'''  # noqa: S608\nimport sqlite3\nimport time\nimport json\nimport signal\nimport sys\nimport random\n\n# Mock Worker implementation\nclass MockWorker:\n    def __init__(self, worker_id, db_path, should_fail=False, slow_execution=False):\n        self.worker_id = worker_id\n        self.db_path = db_path\n        self.should_fail = should_fail\n        self.slow_execution = slow_execution\n        self.running = True\n        signal.signal(signal.SIGTERM, self.shutdown)\n\n    def shutdown(self, signum, frame):\n        self.running = False\n\n    def run(self):\n        print(f"⚙️ Mock Worker {{self.worker_id}} starting...")\n\n        while self.running:\n            try:\n                # Look for assigned tasks\n                conn = sqlite3.connect(self.db_path)\n                cursor = conn.execute(\n                    "SELECT id, title, context FROM tasks WHERE status = 'assigned' LIMIT 1"\n                )\n                row = cursor.fetchone()\n\n                if row:\n                    task_id, title, context = row\n\n                    # Mark task as in progress\n                    conn.execute(\n                        "UPDATE tasks SET status = 'running', assigned_worker = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",\n                        (self.worker_id, task_id)\n                    )\n                    conn.commit()\n\n                    print(f"⚙️ Worker {{self.worker_id}} starting task {{task_id}}: {{title}}")\n\n                    # Simulate work\n                    if self.slow_execution:\n                        time.sleep(5)  # Long execution for timeout testing\n                    elif self.should_fail:\n                        # Simulate failure\n                        conn.execute(\n                            "UPDATE tasks SET status = 'failed', result = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",\n                            (json.dumps({{"status": "error", "error": "Simulated worker failure", "worker_id": self.worker_id}}), task_id)\n                        )\n                        conn.commit()\n                        print(f"💥 Worker {{self.worker_id}} failed on task {{task_id}}")\n                        sys.exit(1)  # Worker crash\n                    else:\n                        time.sleep(1)  # Normal execution time\n\n                    # Complete task\n                    result = {{\n                        "status": "success",\n                        "worker_id": self.worker_id,\n                        "execution_time": 1.0,\n                        "timestamp": time.time()\n                    }}\n\n                    conn.execute(\n                        "UPDATE tasks SET status = 'completed', result = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",\n                        (json.dumps(result), task_id)\n                    )\n                    conn.commit()\n\n                    print(f"✅ Worker {{self.worker_id}} completed task {{task_id}}")\n\n                conn.close()\n                time.sleep(0.5)\n\n            except Exception as e:\n                print(f"⚙️ Worker {{self.worker_id}} error: {{e}}")\n                time.sleep(1)\n\n        print(f"⚙️ Mock Worker {{self.worker_id}} shutting down")\n\nif __name__ == "__main__":\n    worker = MockWorker("{worker_id}", "{self.test_db_path}", {should_fail}, {slow_execution})\n    worker.run()\n'''
-        script_path = Path(self.temp_dir) / f'mock_worker_{worker_id}.py'
-        with open(script_path, 'w') as f:
+        script_path = Path(self.temp_dir) / f"mock_worker_{worker_id}.py"
+        with open(script_path, "w") as f:
             f.write(script_content)
         return str(script_path)
 
@@ -391,15 +381,15 @@ class QueenWorkerPipelineTest:
     def _is_task_completed(self, task_id: int) -> bool:
         """Check if task is completed"""
         conn = sqlite3.connect(self.test_db_path)
-        cursor = conn.execute('SELECT status FROM tasks WHERE id = ?', (task_id,))
+        cursor = conn.execute("SELECT status FROM tasks WHERE id = ?", (task_id,))
         row = cursor.fetchone()
         conn.close()
-        return row and row[0] == 'completed'
+        return row and row[0] == "completed"
 
     def _get_task_status(self, task_id: int) -> str | None:
         """Get current task status"""
         conn = sqlite3.connect(self.test_db_path)
-        cursor = conn.execute('SELECT status FROM tasks WHERE id = ?', (task_id,))
+        cursor = conn.execute("SELECT status FROM tasks WHERE id = ?", (task_id,))
         row = cursor.fetchone()
         conn.close()
         return row[0] if row else None
@@ -407,7 +397,7 @@ class QueenWorkerPipelineTest:
     def _get_task_result(self, task_id: int) -> dict | None:
         """Get task result data"""
         conn = sqlite3.connect(self.test_db_path)
-        cursor = conn.execute('SELECT result FROM tasks WHERE id = ?', (task_id,))
+        cursor = conn.execute("SELECT result FROM tasks WHERE id = ?", (task_id,))
         row = cursor.fetchone()
         conn.close()
         if row and row[0]:
@@ -420,35 +410,35 @@ class QueenWorkerPipelineTest:
     def _generate_pipeline_test_report(self, all_passed: bool):
         """Generate pipeline test report"""
         print(f"\n{'=' * 70}")
-        print('📊 QUEEN → WORKER PIPELINE TEST REPORT')
-        print('=' * 70)
+        print("📊 QUEEN → WORKER PIPELINE TEST REPORT")
+        print("=" * 70)
         sum([1 if all_passed else 0])
-        print('\n📈 Test Results:')
+        print("\n📈 Test Results:")
         print(f"   Overall Status: {('✅ ALL PASSED' if all_passed else '❌ SOME FAILED')}")
         conn = sqlite3.connect(self.test_db_path)
-        cursor = conn.execute('SELECT COUNT(*) FROM tasks')
+        cursor = conn.execute("SELECT COUNT(*) FROM tasks")
         total_tasks = cursor.fetchone()[0]
         cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'completed'")
         completed_tasks = cursor.fetchone()[0]
         cursor = conn.execute("SELECT COUNT(*) FROM tasks WHERE status = 'failed'")
         failed_tasks = cursor.fetchone()[0]
         conn.close()
-        print('\n📊 Pipeline Statistics:')
-        print(f'   Total Tasks Created: {total_tasks}')
-        print(f'   Tasks Completed: {completed_tasks}')
-        print(f'   Tasks Failed: {failed_tasks}')
+        print("\n📊 Pipeline Statistics:")
+        print(f"   Total Tasks Created: {total_tasks}")
+        print(f"   Tasks Completed: {completed_tasks}")
+        print(f"   Tasks Failed: {failed_tasks}")
         if total_tasks > 0:
             success_rate = completed_tasks / total_tasks * 100
-            print(f'   Success Rate: {success_rate:.1f}%')
+            print(f"   Success Rate: {success_rate:.1f}%")
         print(f"\n{'=' * 70}")
         if all_passed:
-            print('🎉 QUEEN → WORKER PIPELINE VALIDATION COMPLETE!')
-            print('✅ All pipeline components working correctly')
-            print('🚀 Ready for production deployment')
+            print("🎉 QUEEN → WORKER PIPELINE VALIDATION COMPLETE!")
+            print("✅ All pipeline components working correctly")
+            print("🚀 Ready for production deployment")
         else:
-            print('❌ QUEEN → WORKER PIPELINE VALIDATION FAILED')
-            print('🔧 Pipeline needs fixes before production')
-        print('=' * 70)
+            print("❌ QUEEN → WORKER PIPELINE VALIDATION FAILED")
+            print("🔧 Pipeline needs fixes before production")
+        print("=" * 70)
 
 def main():
     """Main entry point for pipeline test"""
@@ -457,12 +447,12 @@ def main():
         success = pipeline_test.run_complete_pipeline_test()
         sys.exit(0 if success else 1)
     except KeyboardInterrupt:
-        print('\n⚠️ Pipeline test interrupted by user')
+        print("\n⚠️ Pipeline test interrupted by user")
         pipeline_test.teardown_test_environment()
         sys.exit(1)
     except Exception as e:
-        print(f'\n💥 Pipeline test failed: {e}')
+        print(f"\n💥 Pipeline test failed: {e}")
         pipeline_test.teardown_test_environment()
         sys.exit(1)
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

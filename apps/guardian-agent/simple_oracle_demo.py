@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Simplified Hive Oracle Intelligence Demo
+"""Simplified Hive Oracle Intelligence Demo
 
 This demo showcases the core Oracle Intelligence concepts without
 requiring the full Guardian Agent dependencies.

@@ -25,8 +25,8 @@ class HeatDemandTechnicalParams(DemandTechnicalParams):
     """Heat demand-specific technical parameters extending demand archetype.,
 
 
-        This model inherits from DemandTechnicalParams and adds thermal demand-specific,
-        parameters for different fidelity levels.,
+    This model inherits from DemandTechnicalParams and adds thermal demand-specific,
+    parameters for different fidelity levels.,
     """
 
     # Heat-specific parameters
@@ -88,8 +88,7 @@ class HeatDemandPhysicsSimple(BaseDemandPhysics):
     """
 
     def rule_based_demand(self, t: int, profile_value: float) -> float:
-        """
-        Implement SIMPLE heat demand physics with direct profile scaling.,
+        """Implement SIMPLE heat demand physics with direct profile scaling.,
 
         This matches the exact logic from BaseDemandComponent for numerical equivalence.,
         """
@@ -112,8 +111,7 @@ class HeatDemandPhysicsStandard(HeatDemandPhysicsSimple):
     """
 
     def rule_based_demand(self, t: int, profile_value: float) -> float:
-        """
-        Implement STANDARD heat demand physics with weather dependency.,
+        """Implement STANDARD heat demand physics with weather dependency.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -155,8 +153,7 @@ class HeatDemandOptimizationSimple(BaseDemandOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for heat demand optimization.,
+        """Create SIMPLE CVXPY constraints for heat demand optimization.,
 
         Returns constraints for fixed heat demand without flexibility.,
         """
@@ -189,8 +186,7 @@ class HeatDemandOptimizationStandard(HeatDemandOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for heat demand optimization.,
+        """Create STANDARD CVXPY constraints for heat demand optimization.,
 
         Adds thermal comfort flexibility to the constraints.,
         """
@@ -286,16 +282,15 @@ class HeatDemand(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return HeatDemandPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return HeatDemandPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return HeatDemandPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return HeatDemandPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for HeatDemand: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for HeatDemand: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -303,20 +298,18 @@ class HeatDemand(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return HeatDemandOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return HeatDemandOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return HeatDemandOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return HeatDemandOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for HeatDemand optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for HeatDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
-        """
-        Delegate to physics strategy for demand calculation.,
+        """Delegate to physics strategy for demand calculation.,
 
         This maintains the same interface as BaseDemandComponent but,
         delegates the actual physics calculation to the strategy object.,

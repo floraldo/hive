@@ -16,7 +16,6 @@ logger = get_logger(__name__)
 @click.group()
 def main() -> None:
     """E2E Tester Agent - AI-powered browser test generation and execution."""
-    pass
 
 
 @main.command()
@@ -24,28 +23,28 @@ def main() -> None:
     "--feature",
     "-f",
     required=True,
-    help="Feature description in natural language"
+    help="Feature description in natural language",
 )
 @click.option(
     "--url",
     "-u",
     required=True,
-    help="Target URL to test"
+    help="Target URL to test",
 )
 @click.option(
     "--output",
     "-o",
     type=click.Path(path_type=Path),
     required=True,
-    help="Output path for generated test file"
+    help="Output path for generated test file",
 )
 @click.option(
     "--success-indicator",
-    help="Element that indicates success (optional)"
+    help="Element that indicates success (optional)",
 )
 @click.option(
     "--failure-indicator",
-    help="Element that indicates failure (optional)"
+    help="Element that indicates failure (optional)",
 )
 def generate(
     feature: str,
@@ -84,28 +83,28 @@ def generate(
     "-t",
     type=click.Path(exists=True, path_type=Path),
     required=True,
-    help="Path to test file to execute"
+    help="Path to test file to execute",
 )
 @click.option(
     "--report",
     "-r",
     type=click.Path(path_type=Path),
-    help="Output path for test report (JSON)"
+    help="Output path for test report (JSON)",
 )
 @click.option(
     "--headless/--no-headless",
     default=True,
-    help="Run browser in headless mode"
+    help="Run browser in headless mode",
 )
 @click.option(
     "--screenshots/--no-screenshots",
     default=True,
-    help="Capture screenshots on failure"
+    help="Capture screenshots on failure",
 )
 @click.option(
     "--timeout",
     default=120,
-    help="Test timeout in seconds"
+    help="Test timeout in seconds",
 )
 def execute(
     test: Path,
@@ -158,25 +157,25 @@ def execute(
     "--feature",
     "-f",
     required=True,
-    help="Feature description in natural language"
+    help="Feature description in natural language",
 )
 @click.option(
     "--url",
     "-u",
     required=True,
-    help="Target URL to test"
+    help="Target URL to test",
 )
 @click.option(
     "--output-dir",
     "-o",
     type=click.Path(path_type=Path),
     default=Path("tests/e2e"),
-    help="Output directory for generated test"
+    help="Output directory for generated test",
 )
 @click.option(
     "--headless/--no-headless",
     default=True,
-    help="Run browser in headless mode"
+    help="Run browser in headless mode",
 )
 def run(
     feature: str,

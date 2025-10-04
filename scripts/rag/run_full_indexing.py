@@ -1,5 +1,4 @@
-"""
-Simple wrapper to run full Hive codebase indexing using installed hive-ai package.
+"""Simple wrapper to run full Hive codebase indexing using installed hive-ai package.
 """
 
 import importlib.util

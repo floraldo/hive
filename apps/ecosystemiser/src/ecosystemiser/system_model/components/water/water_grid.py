@@ -24,8 +24,8 @@ class WaterGridTechnicalParams(TransmissionTechnicalParams):
     """Water grid-specific technical parameters extending transmission archetype.
 
 
-        This model inherits from TransmissionTechnicalParams and adds water grid-specific,
-        parameters for different fidelity levels.,
+    This model inherits from TransmissionTechnicalParams and adds water grid-specific,
+    parameters for different fidelity levels.,
     """
 
     # Water grid economic parameters (should eventually move to economic block)
@@ -69,8 +69,7 @@ class WaterGridPhysicsSimple:
         self.params = params
 
     def rule_based_import(self, water_demand: float, max_supply: float) -> float:
-        """
-        Calculate actual water import in SIMPLE mode.
+        """Calculate actual water import in SIMPLE mode.
 
         Args:
             water_demand: Water requested from grid [m³/h]
@@ -78,13 +77,13 @@ class WaterGridPhysicsSimple:
 
         Returns:
             Actual water imported [m³/h],
+
         """
         # Simple clipping to max supply
         return min(water_demand, max_supply)
 
     def rule_based_export(self, wastewater: float, max_discharge: float) -> float:
-        """
-        Calculate actual wastewater export in SIMPLE mode.
+        """Calculate actual wastewater export in SIMPLE mode.
 
         Args:
             wastewater: Wastewater available for export [m³/h]
@@ -92,6 +91,7 @@ class WaterGridPhysicsSimple:
 
         Returns:
             Actual wastewater exported [m³/h],
+
         """
         # Simple clipping to max discharge
         return min(wastewater, max_discharge)
@@ -106,8 +106,7 @@ class WaterGridPhysicsStandard(WaterGridPhysicsSimple):
     """
 
     def rule_based_import(self, water_demand: float, max_supply: float) -> float:
-        """
-        Calculate actual water import with reliability and pressure losses.,
+        """Calculate actual water import with reliability and pressure losses.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -143,8 +142,7 @@ class WaterGridOptimizationSimple:
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for water grid optimization.,
+        """Create SIMPLE CVXPY constraints for water grid optimization.,
 
         Returns constraints for basic water transmission without losses.,
         """
@@ -172,8 +170,7 @@ class WaterGridOptimizationStandard(WaterGridOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for water grid optimization.,
+        """Create STANDARD CVXPY constraints for water grid optimization.,
 
         Adds supply reliability to the constraints.,
         """
@@ -261,16 +258,15 @@ class WaterGrid(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return WaterGridPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return WaterGridPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return WaterGridPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return WaterGridPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for WaterGrid: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for WaterGrid: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -278,16 +274,15 @@ class WaterGrid(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return WaterGridOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return WaterGridOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return WaterGridOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return WaterGridOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for WaterGrid optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for WaterGrid optimization: {fidelity}")
 
     def add_optimization_vars(self, N: int | None = None) -> None:
         """Create CVXPY optimization variables."""
@@ -313,6 +308,7 @@ class WaterGrid(Component):
 
         Returns:
             Operating cost [$],
+
         """
         if not hasattr(self, "Q_import") or self.Q_import is None:
             return 0.0
@@ -346,8 +342,7 @@ class WaterGrid(Component):
         return total_cost
 
     def rule_based_operation(self, water_demand: float, wastewater_production: float, t: int) -> tuple:
-        """
-        Delegate to physics strategy for water grid operation.,
+        """Delegate to physics strategy for water grid operation.,
 
         This maintains the same interface but delegates the actual,
         physics calculation to the strategy object.,

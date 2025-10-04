@@ -1,5 +1,4 @@
-"""
-Task definition and execution framework for AI agents.
+"""Task definition and execution framework for AI agents.
 
 Provides structured task definitions, execution patterns
 and coordination mechanisms for complex workflows.
@@ -84,8 +83,7 @@ class TaskConfig:
 
 
 class BaseTask(ABC):
-    """
-    Base class for AI tasks.
+    """Base class for AI tasks.
 
     Defines the interface and common functionality for tasks
     that can be executed by agents or workflow engines.
@@ -112,10 +110,9 @@ class BaseTask(ABC):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: dict[str, TaskResult] | None = None
+        dependency_results: dict[str, TaskResult] | None = None,
     ) -> TaskResult:
-        """
-        Execute the task using the provided agent.
+        """Execute the task using the provided agent.
 
         Args:
             agent: Agent to execute the task,
@@ -127,17 +124,18 @@ class BaseTask(ABC):
 
         Raises:
             AIError: Task execution failed,
+
         """
 
     def can_execute(self, completed_tasks: dict[str, TaskResult]) -> bool:
-        """
-        Check if task dependencies are satisfied.
+        """Check if task dependencies are satisfied.
 
         Args:
             completed_tasks: Dictionary of completed task results
 
         Returns:
             True if task can be executed
+
         """
         for dependency in self.config.dependencies:
             if dependency.task_id not in completed_tasks:
@@ -167,7 +165,7 @@ class BaseTask(ABC):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: dict[str, TaskResult] | None = None
+        dependency_results: dict[str, TaskResult] | None = None,
     ) -> TaskResult:
         """Execute task with retry logic."""
         last_error = None
@@ -210,7 +208,7 @@ class BaseTask(ABC):
             error=f"Task failed after {self.config.retry_attempts} attempts. Last error: {last_error}",
             start_time=self.start_time,
             end_time=self.end_time,
-            duration_seconds=duration
+            duration_seconds=duration,
         )
 
         return self.result
@@ -234,13 +232,12 @@ class BaseTask(ABC):
             "end_time": self.end_time.isoformat() if self.end_time else None,
             "duration_seconds": duration,
             "dependencies": [dep.task_id for dep in self.config.dependencies],
-            "required_tools": self.config.required_tools
+            "required_tools": self.config.required_tools,
         }
 
 
 class PromptTask(BaseTask):
-    """
-    Task that executes a prompt using an agent.
+    """Task that executes a prompt using an agent.
 
     Simple task type for prompt-based operations.
     """
@@ -254,7 +251,7 @@ class PromptTask(BaseTask):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: dict[str, TaskResult] | None = None
+        dependency_results: dict[str, TaskResult] | None = None,
     ) -> TaskResult:
         """Execute the prompt task."""
         try:
@@ -266,7 +263,7 @@ class PromptTask(BaseTask):
                 final_prompt,
                 model=agent.config.model,
                 temperature=agent.config.temperature,
-                max_tokens=agent.config.max_tokens
+                max_tokens=agent.config.max_tokens,
             )
 
             # Process output based on expected type
@@ -281,7 +278,7 @@ class PromptTask(BaseTask):
                 start_time=self.start_time,
                 end_time=datetime.utcnow(),
                 duration_seconds=duration,
-                metadata={"tokens_used": response.tokens_used, "cost": response.cost, "model": response.model}
+                metadata={"tokens_used": response.tokens_used, "cost": response.cost, "model": response.model},
             )
 
         except Exception as e:
@@ -294,7 +291,7 @@ class PromptTask(BaseTask):
                 error=str(e),
                 start_time=self.start_time,
                 end_time=datetime.utcnow(),
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
     def _build_prompt(self, input_data: Any | None, dependency_results: dict[str, TaskResult] | None) -> str:
@@ -343,8 +340,7 @@ class PromptTask(BaseTask):
 
 
 class ToolTask(BaseTask):
-    """
-    Task that executes using agent tools.
+    """Task that executes using agent tools.
 
     Allows for more complex operations using the agent's toolkit.
     """
@@ -357,7 +353,7 @@ class ToolTask(BaseTask):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: dict[str, TaskResult] | None = None
+        dependency_results: dict[str, TaskResult] | None = None,
     ) -> TaskResult:
         """Execute the tool sequence."""
         try:
@@ -389,7 +385,7 @@ class ToolTask(BaseTask):
                 start_time=self.start_time,
                 end_time=datetime.utcnow(),
                 duration_seconds=duration,
-                metadata={"tools_used": [call["tool"] for call in self.tool_sequence], "steps_completed": len(results)}
+                metadata={"tools_used": [call["tool"] for call in self.tool_sequence], "steps_completed": len(results)},
             )
 
         except Exception as e:
@@ -402,7 +398,7 @@ class ToolTask(BaseTask):
                 error=str(e),
                 start_time=self.start_time,
                 end_time=datetime.utcnow(),
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
     def _process_parameters(self, parameters: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
@@ -424,8 +420,7 @@ class ToolTask(BaseTask):
 
 
 class TaskSequence:
-    """
-    Sequence of tasks with dependency management.
+    """Sequence of tasks with dependency management.
 
     Manages execution order and dependency resolution for multiple tasks.
     """
@@ -476,8 +471,7 @@ class TaskSequence:
         logger.info(f"Task sequence {self.name}: execution order calculated")
 
     async def execute_async(self, agent: BaseAgent, input_data: Any | None = None) -> dict[str, TaskResult]:
-        """
-        Execute all tasks in the sequence.
+        """Execute all tasks in the sequence.
 
         Args:
             agent: Agent to execute tasks
@@ -488,6 +482,7 @@ class TaskSequence:
 
         Raises:
             AIError: Sequence execution failed
+
         """
         logger.info(f"Starting task sequence {self.name} with {len(self.tasks)} tasks")
 
@@ -508,7 +503,7 @@ class TaskSequence:
             try:
                 result = await asyncio.wait_for(
                     task._execute_with_retry_async(agent, input_data, dependency_results),
-                    timeout=task.config.timeout_seconds
+                    timeout=task.config.timeout_seconds,
                 )
 
                 self.completed_tasks[task_id] = result
@@ -526,7 +521,7 @@ class TaskSequence:
                     result=None,
                     error=f"Task timed out after {task.config.timeout_seconds} seconds",
                     start_time=task.start_time,
-                    end_time=datetime.utcnow()
+                    end_time=datetime.utcnow(),
                 )
                 self.completed_tasks[task_id] = timeout_result,
                 logger.exception(f"Task {task_id} timed out")
@@ -548,13 +543,12 @@ class TaskSequence:
             "failed_tasks": failed_count,
             "remaining_tasks": len(self.tasks) - len(self.completed_tasks),
             "execution_order": self.execution_order,
-            "task_status": {task_id: result.status.value for task_id, result in self.completed_tasks.items()}
+            "task_status": {task_id: result.status.value for task_id, result in self.completed_tasks.items()},
         }
 
 
 class TaskBuilder:
-    """
-    Builder for creating common task types easily.
+    """Builder for creating common task types easily.
 
     Provides convenience methods for creating standard task configurations.
     """
@@ -566,7 +560,7 @@ class TaskBuilder:
         description: str = "",
         priority: TaskPriority = TaskPriority.NORMAL,
         expected_output_type: str = "text",
-        dependencies: list[str] | None = None
+        dependencies: list[str] | None = None,
     ) -> PromptTask:
         """Create a prompt-based task."""
         task_deps = []
@@ -577,7 +571,7 @@ class TaskBuilder:
             name=name,
             description=description or f"Execute prompt: {prompt[:50]}...",
             priority=priority,
-            dependencies=task_deps
+            dependencies=task_deps,
         )
 
         return PromptTask(config, prompt, expected_output_type)
@@ -588,7 +582,7 @@ class TaskBuilder:
         tool_sequence: list[dict[str, Any]],
         description: str = "",
         priority: TaskPriority = TaskPriority.NORMAL,
-        dependencies: list[str] | None = None
+        dependencies: list[str] | None = None,
     ) -> ToolTask:
         """Create a tool-based task."""
         task_deps = []
@@ -603,14 +597,14 @@ class TaskBuilder:
             description=description or f"Execute tool sequence: {required_tools}",
             priority=priority,
             dependencies=task_deps,
-            required_tools=required_tools
+            required_tools=required_tools,
         )
 
         return ToolTask(config, tool_sequence)
 
     @staticmethod
     def create_analysis_task(
-        name: str, analysis_prompt: str, data_source: str, dependencies: list[str] | None = None
+        name: str, analysis_prompt: str, data_source: str, dependencies: list[str] | None = None,
     ) -> PromptTask:
         """Create a data analysis task."""
         full_prompt = f""",
@@ -633,5 +627,5 @@ Analysis:
             description=f"Data analysis task: {analysis_prompt[:50]}...",
             priority=TaskPriority.NORMAL,
             expected_output_type="text",
-            dependencies=dependencies
+            dependencies=dependencies,
         )

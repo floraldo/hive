@@ -1,5 +1,4 @@
-"""
-Kubernetes-based deployment strategy
+"""Kubernetes-based deployment strategy
 """
 
 import asyncio
@@ -14,8 +13,7 @@ logger = get_logger(__name__)
 
 
 class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
-    """
-    Kubernetes-based deployment strategy for cloud-native applications
+    """Kubernetes-based deployment strategy for cloud-native applications
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
@@ -24,14 +22,14 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
         self.strategy = DeploymentStrategy.CANARY
 
     async def pre_deployment_checks_async(self, task: dict[str, Any]) -> dict[str, Any]:
-        """
-        Run pre-deployment checks for Kubernetes deployment
+        """Run pre-deployment checks for Kubernetes deployment
 
         Args:
             task: Deployment task
 
         Returns:
             Dictionary with check results
+
         """
         errors = []
 
@@ -74,8 +72,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "errors": [f"Pre-deployment check failed: {e}"]}
 
     async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
-        """
-        Execute Kubernetes deployment
+        """Execute Kubernetes deployment
 
         Args:
             task: Deployment task
@@ -83,6 +80,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
 
         Returns:
             Deployment result dictionary
+
         """
         try:
             logger.info(f"Starting Kubernetes deployment {deployment_id}")
@@ -142,8 +140,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
         deployment_id: str,
         previous_deployment: dict[str, Any],
     ) -> dict[str, Any]:
-        """
-        Rollback Kubernetes deployment to previous version
+        """Rollback Kubernetes deployment to previous version
 
         Args:
             task: Deployment task
@@ -152,6 +149,7 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
 
         Returns:
             Rollback result dictionary
+
         """
         try:
             logger.info(f"Starting Kubernetes rollback for deployment {deployment_id}")
@@ -200,12 +198,12 @@ class KubernetesDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "error": str(e)}
 
     async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
-        """
-        Run post-deployment actions for Kubernetes deployment
+        """Run post-deployment actions for Kubernetes deployment
 
         Args:
             task: Deployment task
             deployment_id: Deployment identifier
+
         """
         try:
             namespace = task.get("k8s_namespace", "default")

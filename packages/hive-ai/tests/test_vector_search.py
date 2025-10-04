@@ -9,6 +9,5 @@ class TestVectorSearch:
     @pytest.mark.core
     def test_search_operations(self):
         """Test search operations."""
-        pass
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

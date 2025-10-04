@@ -1,5 +1,4 @@
-"""
-AI Reviewer-specific error handling implementation.
+"""AI Reviewer-specific error handling implementation.
 
 Extends the generic error handling toolkit with AI Reviewer capabilities:
 - Code review errors
@@ -21,8 +20,7 @@ logger = get_logger(__name__)
 
 
 class ReviewerError(BaseError):
-    """
-    Base error class for all AI Reviewer-specific errors.
+    """Base error class for all AI Reviewer-specific errors.
 
     Extends the generic BaseError with code review context and additional
     metadata specific to the AI Reviewer service.
@@ -40,8 +38,7 @@ class ReviewerError(BaseError):
         recovery_suggestions: list[str] | None = None,
         original_error: Exception | None = None,
     ):
-        """
-        Initialize an AI Reviewer error with review context.
+        """Initialize an AI Reviewer error with review context.
 
         Args:
             message: Human-readable error message,
@@ -53,6 +50,7 @@ class ReviewerError(BaseError):
             details: Additional error details,
             recovery_suggestions: Steps to recover from error,
             original_error: Original exception if wrapped,
+
         """
         # Build details with AI Reviewer context,
         reviewer_details = details or {}
@@ -264,8 +262,7 @@ class DatabaseConnectionError(BaseError):
 
 
 class ReviewerErrorReporter(BaseErrorReporter):
-    """
-    AI Reviewer-specific error reporter.
+    """AI Reviewer-specific error reporter.
 
     Extends the base error reporter with review context tracking
     and AI Reviewer-specific reporting patterns.
@@ -284,8 +281,7 @@ class ReviewerErrorReporter(BaseErrorReporter):
         context: dict[str, Any] | None = None,
         additional_info: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Report an error with AI Reviewer-specific handling.
+        """Report an error with AI Reviewer-specific handling.
 
         Args:
             error: The error to report,
@@ -294,6 +290,7 @@ class ReviewerErrorReporter(BaseErrorReporter):
 
         Returns:
             Error ID for tracking,
+
         """
         # Generate error ID,
         error_id = str(uuid.uuid4())
@@ -370,19 +367,19 @@ def get_error_reporter() -> ReviewerErrorReporter:
 
 # Export main classes and functions
 __all__ = [
-    # Base classes,
-    "ReviewerError",
+    "ClaudeServiceError",
     # Code analysis errors,
     "CodeAnalysisError",
-    "FileAccessError",
-    "SyntaxAnalysisError",
-    # Review generation errors,
-    "ReviewGenerationError",
-    "ClaudeServiceError",
-    "ReviewValidationError",
     # Database errors,
     "DatabaseConnectionError",
+    "FileAccessError",
+    # Review generation errors,
+    "ReviewGenerationError",
+    "ReviewValidationError",
+    # Base classes,
+    "ReviewerError",
     # Reporter,
     "ReviewerErrorReporter",
+    "SyntaxAnalysisError",
     "get_error_reporter",
 ]

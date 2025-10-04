@@ -17,19 +17,18 @@ def calculate_clearness_index(
     time: xr.DataArray,
     longitude: float | None = None,
 ) -> xr.DataArray:
-    """
+    """Calculate clearness index (ratio of GHI to extraterrestrial radiation).,
+    Useful for PV system sizing and solar resource assessment.
 
-        Calculate clearness index (ratio of GHI to extraterrestrial radiation).,
-        Useful for PV system sizing and solar resource assessment.
+    Args:
+        ghi: Global horizontal irradiance in W/m2,
+        latitude: Location latitude in degrees,
+        time: Time coordinate,
+        longitude: Optional longitude for more accurate solar time
 
-        Args:
-            ghi: Global horizontal irradiance in W/m2,
-            latitude: Location latitude in degrees,
-            time: Time coordinate,
-            longitude: Optional longitude for more accurate solar time
+    Returns:
+        Clearness index (0-1)
 
-        Returns:
-            Clearness index (0-1)
     """
     # Calculate extraterrestrial radiation
     # Solar constant
@@ -93,8 +92,7 @@ def calculate_solar_position(
     latitude: float,
     longitude: float,
 ) -> tuple[xr.DataArray, xr.DataArray]:
-    """
-    Calculate solar elevation and azimuth angles.
+    """Calculate solar elevation and azimuth angles.
 
     Args:
         time: Time coordinate,
@@ -103,6 +101,7 @@ def calculate_solar_position(
 
     Returns:
         Tuple of (elevation, azimuth) angles in degrees,
+
     """
     time_pd = (pd.DatetimeIndex(time.values),)
     doy = time_pd.dayofyear
@@ -163,14 +162,14 @@ def calculate_solar_position(
 
 
 def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
-    """
-    Add solar position angles to dataset.
+    """Add solar position angles to dataset.
 
     Args:
         ds: Dataset with time coordinate and location attributes
 
     Returns:
         Dataset with solar_elevation and solar_azimuth added,
+
     """
     if "latitude" not in ds.attrs or "longitude" not in ds.attrs:
         logger.warning("Cannot calculate solar angles without latitude/longitude")
@@ -203,14 +202,14 @@ def calculate_solar_angles(ds: xr.Dataset) -> xr.Dataset:
 
 
 def equation_of_time(day_of_year) -> None:
-    """
-    Calculate equation of time in minutes.
+    """Calculate equation of time in minutes.
 
     Args:
         day_of_year: Day of year (1-365/366)
 
     Returns:
         Equation of time in minutes,
+
     """
     B = 2 * np.pi * (day_of_year - 81) / 365
     E = 9.87 * np.sin(2 * B) - 7.53 * np.cos(B) - 1.5 * np.sin(B)
@@ -218,8 +217,7 @@ def equation_of_time(day_of_year) -> None:
 
 
 def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_elevation: xr.DataArray) -> xr.DataArray:
-    """
-    Calculate DNI from GHI and DHI using solar geometry.,
+    """Calculate DNI from GHI and DHI using solar geometry.,
     More accurate than the simplified version in preprocessing.
 
     Args:
@@ -229,6 +227,7 @@ def calculate_dni_from_ghi_dhi(ghi: xr.DataArray, dhi: xr.DataArray, solar_eleva
 
     Returns:
         Direct normal irradiance in W/m2,
+
     """
     # Calculate DNI using solar geometry
     # GHI = DNI * sin(elevation) + DHI

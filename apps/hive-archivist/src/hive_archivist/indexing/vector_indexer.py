@@ -1,5 +1,4 @@
-"""
-Vector Indexer
+"""Vector Indexer
 
 Stores knowledge fragments in RAG vector database for semantic search.
 Supports multi-vector approach where each fragment gets its own embedding.
@@ -21,8 +20,7 @@ logger = get_logger(__name__)
 
 
 class VectorIndexer:
-    """
-    Index knowledge fragments into vector database.
+    """Index knowledge fragments into vector database.
 
     Implements Decision 2-B: Multi-vector approach where each fragment
     (summary, error, decision, artifact) gets its own embedding and vector ID.
@@ -32,15 +30,15 @@ class VectorIndexer:
         self,
         embedding_manager: EmbeddingManager | None = None,
         vector_store: VectorStore | None = None,
-        config: AIConfig | None = None
+        config: AIConfig | None = None,
     ):
-        """
-        Initialize vector indexer.
+        """Initialize vector indexer.
 
         Args:
             embedding_manager: Embedding generator (auto-created if None)
             vector_store: Vector database (auto-created if None)
             config: AI configuration (auto-loaded if None)
+
         """
         self.config = config or create_config_from_sources().ai
 
@@ -53,7 +51,7 @@ class VectorIndexer:
                 provider="chromadb",  # or from config
                 collection_name="hive_knowledge",
                 dimension=384,  # sentence-transformers/all-MiniLM-L6-v2
-                connection_string=None  # local ChromaDB
+                connection_string=None,  # local ChromaDB
             )
             self.vector_store = VectorStore(vector_config)
         else:
@@ -64,10 +62,9 @@ class VectorIndexer:
     @with_retry(RetryStrategy(max_attempts=3, min_wait=1.0, max_wait=5.0))
     async def index_fragments_async(
         self,
-        fragments: list[KnowledgeFragment]
+        fragments: list[KnowledgeFragment],
     ) -> list[str]:
-        """
-        Index knowledge fragments into vector database.
+        """Index knowledge fragments into vector database.
 
         Args:
             fragments: List of knowledge fragments to index
@@ -77,6 +74,7 @@ class VectorIndexer:
 
         Raises:
             VectorError: If indexing fails after retries
+
         """
         if not fragments:
             logger.warning("No fragments to index")
@@ -90,7 +88,7 @@ class VectorIndexer:
         embedding_results = await self.embedding_manager.generate_batch_embeddings_async(
             texts=texts,
             batch_size=32,
-            use_cache=True
+            use_cache=True,
         )
 
         # Prepare vectors and metadata
@@ -106,7 +104,7 @@ class VectorIndexer:
                 "timestamp": fragment.timestamp,
                 "is_archived": False,
                 "usage_context": fragment.task_type,  # for filtering
-                **fragment.metadata  # merge additional metadata
+                **fragment.metadata,  # merge additional metadata
             }
             metadata_list.append(metadata)
 
@@ -115,12 +113,12 @@ class VectorIndexer:
         vector_ids = await self.vector_store.store_async(
             vectors=vectors,
             metadata=metadata_list,
-            ids=None  # auto-generate IDs
+            ids=None,  # auto-generate IDs
         )
 
         logger.info(
             f"Successfully indexed {len(vector_ids)} fragments. "
-            f"Cache hits: {sum(1 for r in embedding_results if r.cache_hit)}/{len(embedding_results)}"
+            f"Cache hits: {sum(1 for r in embedding_results if r.cache_hit)}/{len(embedding_results)}",
         )
 
         return vector_ids
@@ -128,10 +126,9 @@ class VectorIndexer:
     async def archive_old_fragments_async(
         self,
         age_threshold_days: int = 90,
-        min_retrieval_count: int = 5
+        min_retrieval_count: int = 5,
     ) -> int:
-        """
-        Archive cold knowledge fragments (Curator mode).
+        """Archive cold knowledge fragments (Curator mode).
 
         Marks fragments as archived if they meet criteria:
         - Older than age_threshold_days
@@ -143,11 +140,12 @@ class VectorIndexer:
 
         Returns:
             Number of fragments archived
+
         """
         # Phase 2 enhancement - not implemented yet
         logger.info(
             f"Archive operation triggered (threshold: {age_threshold_days} days, "
-            f"min retrievals: {min_retrieval_count})"
+            f"min retrievals: {min_retrieval_count})",
         )
 
         # Future: Query vector store for old, low-retrieval fragments
@@ -164,7 +162,7 @@ class VectorIndexer:
         return {
             "vector_store": collection_info,
             "embedding_manager": embedding_stats,
-            "indexer_health": "operational"
+            "indexer_health": "operational",
         }
 
 

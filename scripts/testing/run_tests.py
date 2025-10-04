@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal testing infrastructure.
 
-"""
-Unified Test Runner - Consolidated Testing Tool
+"""Unified Test Runner - Consolidated Testing Tool
 
 This script consolidates the functionality of multiple test scripts:
 - run_comprehensive_integration_tests.py
@@ -103,7 +101,7 @@ class UnifiedTestRunner:
         try:
             result = subprocess.run(
                 [sys.executable, str(self.project_root / "scripts" / "validate_golden_rules.py")],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=300,
                 cwd=self.project_root,
@@ -192,7 +190,7 @@ class UnifiedTestRunner:
                     "--tb=short",
                     "--timeout=300",
                 ],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=300,
             )
@@ -211,7 +209,7 @@ class UnifiedTestRunner:
         try:
             result = subprocess.run(
                 [sys.executable, str(self.project_root / "tests" / "test_comprehensive_hive_integration_complete.py")],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=1800,
                 cwd=self.project_root,
@@ -231,7 +229,7 @@ class UnifiedTestRunner:
         try:
             result = subprocess.run(
                 [sys.executable, str(self.project_root / "tests" / "test_async_performance_validation.py")],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=600,
                 cwd=self.project_root,
@@ -254,7 +252,7 @@ class UnifiedTestRunner:
                     sys.executable,
                     str(self.project_root / "apps" / "ecosystemiser" / "tests" / "test_database_connection_fix.py"),
                 ],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=300,
                 cwd=self.project_root,
@@ -281,7 +279,7 @@ class UnifiedTestRunner:
                     "-v",
                     "--tb=short",
                 ],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=600,
                 cwd=self.project_root,
@@ -301,7 +299,7 @@ class UnifiedTestRunner:
         try:
             result = subprocess.run(
                 [sys.executable, "-c", "import sys; print('[PASS] Platform health check passed'); sys.exit(0)"],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
                 cwd=self.project_root,
@@ -325,7 +323,7 @@ class UnifiedTestRunner:
                     "-c",
                     "import sqlite3, asyncio, json; print('[PASS] All critical imports successful')",
                 ],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
                 cwd=self.project_root,
@@ -349,7 +347,7 @@ class UnifiedTestRunner:
                     "-c",
                     "import sqlite3, tempfile; db=tempfile.mktemp(); conn=sqlite3.connect(db); conn.close(); print('[PASS] Database connectivity working')",
                 ],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
                 cwd=self.project_root,
@@ -373,7 +371,7 @@ class UnifiedTestRunner:
                     "-c",
                     "import asyncio; asyncio.run(asyncio.sleep(0.01)); print('[PASS] Basic integration test passed')",
                 ],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=60,
                 cwd=self.project_root,
@@ -416,7 +414,7 @@ class UnifiedTestRunner:
         print("\n[STATS] Overall Results:")
         print(f"   Tests Passed: {passed_count}/{total_count}")
         print(
-            f"   Success Rate: {(passed_count / total_count) * 100:.1f}%" if total_count > 0 else "   Success Rate: N/A"
+            f"   Success Rate: {(passed_count / total_count) * 100:.1f}%" if total_count > 0 else "   Success Rate: N/A",
         )
         print(f"   Total Duration: {total_duration:.2f} seconds")
 

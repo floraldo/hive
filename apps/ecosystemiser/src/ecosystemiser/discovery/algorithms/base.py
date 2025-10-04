@@ -90,6 +90,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Args:
             config: Optimization configuration,
+
         """
         self.config = config
         self.status = OptimizationStatus.NOT_STARTED
@@ -108,8 +109,8 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             Initial population array of shape (population_size, dimensions)
+
         """
-        pass
 
     @abstractmethod
     def evaluate_population(self, population: np.ndarray, fitness_function: Callable) -> list[dict[str, Any]]:
@@ -121,8 +122,8 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             List of evaluation results containing objectives and metadata,
+
         """
-        pass
 
     @abstractmethod
     def update_population(self, population: np.ndarray, evaluations: list[dict[str, Any]]) -> np.ndarray:
@@ -134,8 +135,8 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             Updated population,
+
         """
-        pass
 
     @abstractmethod
     def check_convergence(self, evaluations: list[dict[str, Any]]) -> bool:
@@ -146,8 +147,8 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             True if converged, False otherwise,
+
         """
-        pass
 
     def optimize(self, fitness_function: Callable) -> OptimizationResult:
         """Run the optimization algorithm.
@@ -157,6 +158,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             Optimization result,
+
         """
         import time
 
@@ -228,6 +230,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             Best fitness value,
+
         """
         if not evaluations:
             return float("inf")
@@ -236,16 +239,15 @@ class BaseOptimizationAlgorithm(ABC):
         if len(self.config.objectives) == 1:
             fitnesses = [eval_result.get("fitness", float("inf")) for eval_result in evaluations]
             return min(fitnesses)
-        else:
-            # For multi-objective, return hypervolume or other metric
-            # For now, return average of all objectives
-            avg_objectives = []
-            for eval_result in evaluations:
-                objectives = eval_result.get("objectives", [])
-                if objectives:
-                    (avg_objectives.append(np.mean(objectives)),)
+        # For multi-objective, return hypervolume or other metric
+        # For now, return average of all objectives
+        avg_objectives = []
+        for eval_result in evaluations:
+            objectives = eval_result.get("objectives", [])
+            if objectives:
+                (avg_objectives.append(np.mean(objectives)),)
 
-            return min(avg_objectives) if avg_objectives else float("inf")
+        return min(avg_objectives) if avg_objectives else float("inf")
 
     def _should_terminate(self, evaluations: list[dict[str, Any]], start_time: float) -> bool:
         """Check if optimization should terminate.
@@ -256,6 +258,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             True if should terminate,
+
         """
         # Check convergence
         if self.check_convergence(evaluations):
@@ -295,6 +298,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             Optimization result,
+
         """
         if not evaluations:
             return OptimizationResult(
@@ -326,30 +330,29 @@ class BaseOptimizationAlgorithm(ABC):
                     "convergence_generations": len(self.convergence_history),
                 },
             )
-        else:
-            # Multi-objective - return Pareto front
-            pareto_indices = (self._find_pareto_front(evaluations),)
-            pareto_solutions = ([population[i] for i in pareto_indices],)
-            pareto_objectives = [evaluations[i].get("objectives", []) for i in pareto_indices]
+        # Multi-objective - return Pareto front
+        pareto_indices = (self._find_pareto_front(evaluations),)
+        pareto_solutions = ([population[i] for i in pareto_indices],)
+        pareto_objectives = [evaluations[i].get("objectives", []) for i in pareto_indices]
 
-            # Best solution is the one with minimum distance to ideal point
-            best_idx = self._find_best_compromise_solution(evaluations, pareto_indices)
+        # Best solution is the one with minimum distance to ideal point
+        best_idx = self._find_best_compromise_solution(evaluations, pareto_indices)
 
-            return (
-                OptimizationResult(
-                    best_solution=population[best_idx] if best_idx is not None else None,
-                    best_fitness=(evaluations[best_idx].get("fitness") if best_idx is not None else None),
-                    best_objectives=(evaluations[best_idx].get("objectives") if best_idx is not None else None),
-                    pareto_front=pareto_solutions,
-                    pareto_objectives=pareto_objectives,
-                    convergence_history=self.convergence_history,
-                    status=self.status,
-                    iterations=self.current_generation,
-                    evaluations=self.current_evaluations,
-                    execution_time=time.time() - start_time,
-                    metadata={"pareto_front_size": len(pareto_solutions), "final_population_size": len(population)},
-                ),
-            )
+        return (
+            OptimizationResult(
+                best_solution=population[best_idx] if best_idx is not None else None,
+                best_fitness=(evaluations[best_idx].get("fitness") if best_idx is not None else None),
+                best_objectives=(evaluations[best_idx].get("objectives") if best_idx is not None else None),
+                pareto_front=pareto_solutions,
+                pareto_objectives=pareto_objectives,
+                convergence_history=self.convergence_history,
+                status=self.status,
+                iterations=self.current_generation,
+                evaluations=self.current_evaluations,
+                execution_time=time.time() - start_time,
+                metadata={"pareto_front_size": len(pareto_solutions), "final_population_size": len(population)},
+            ),
+        )
 
     def _find_pareto_front(self, evaluations: list[dict[str, Any]]) -> list[int]:
         """Find Pareto front indices from evaluations.
@@ -359,6 +362,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             List of indices belonging to Pareto front,
+
         """
         objectives_list = ([],)
         valid_indices = []
@@ -405,6 +409,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             Index of best compromise solution,
+
         """
         if not pareto_indices:
             return None
@@ -442,6 +447,7 @@ class BaseOptimizationAlgorithm(ABC):
 
         Returns:
             Population with bounds enforced,
+
         """
         bounded_population = population.copy()
 

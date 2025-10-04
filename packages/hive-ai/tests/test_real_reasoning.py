@@ -1,5 +1,4 @@
-"""
-Test REAL reasoning - no mocks, no placeholders.
+"""Test REAL reasoning - no mocks, no placeholders.
 
 This tests the actual sequential thinking implementation.
 """
@@ -55,7 +54,7 @@ async def test_real_reasoning():
         print(f"\nThought {i}:")
         print(f"  Reasoning: {thought['result']['reasoning'][:100]}...")
         print(f"  Complete: {thought['result']['is_complete']}")
-        if thought['result']['solution']:
+        if thought["result"]["solution"]:
             print(f"  Solution: {thought['result']['solution'][:100]}...")
 
     # Validate it's REAL reasoning

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AsyncQueen - High-Performance Async Orchestrator for V4.0
+"""AsyncQueen - High-Performance Async Orchestrator for V4.0
 Phase 2 Implementation with 3-5x performance improvements
 """
 
@@ -43,8 +42,7 @@ class Phase(Enum):
 
 
 class AsyncQueen:
-    """
-    High-performance async orchestrator with V4.0 optimizations
+    """High-performance async orchestrator with V4.0 optimizations
 
     Features:
     - Non-blocking I/O for all operations
@@ -345,10 +343,9 @@ class AsyncQueen:
                 await self.event_bus.publish_async(event_type="task.started", task_id=task_id, priority=2)
 
                 return True
-            else:
-                # Revert to queued
-                await self.db_ops.update_task_status_async(task_id, "queued", {"assignee": None})
-                return False
+            # Revert to queued
+            await self.db_ops.update_task_status_async(task_id, "queued", {"assignee": None})
+            return False
 
         except Exception as e:
             self.log.error(f"Error processing task {task_id}: {e}")

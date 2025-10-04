@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Project Genesis - Simplified Task Creation
+"""Project Genesis - Simplified Task Creation
 
 Direct database approach to create PRJ-GENESIS-001 without complex imports.
 """
@@ -148,7 +147,7 @@ def display_task(task_id):
     task = dict(row)
     conn.close()
 
-    print("")
+    print()
     print("=" * 80)
     print("TASK DETAILS")
     print("=" * 80)
@@ -158,58 +157,58 @@ def display_task(task_id):
     print(f"Priority: {task['priority']}")
     print(f"Status: {task['status']}")
     print(f"Created: {task['created_at']}")
-    print("")
+    print()
     print("Payload:")
-    payload = json.loads(task['payload'])
+    payload = json.loads(task["payload"])
     print(json.dumps(payload, indent=2))
     print("=" * 80)
 
 
 def main():
     """Execute Project Genesis task creation."""
-    print("")
+    print()
     print("=" * 80)
     print("PROJECT GENESIS - AUTONOMOUS VALIDATION")
     print("=" * 80)
-    print("")
+    print()
 
     # Step 1: Initialize database
     print("Step 1: Initializing orchestration database...")
     init_database()
 
     # Step 2: Create genesis task
-    print("")
+    print()
     print("Step 2: Creating PRJ-GENESIS-001 task...")
     task_id = create_task()
 
     # Step 3: Display task
-    print("")
+    print()
     print("Step 3: Retrieving task details...")
     display_task(task_id)
 
     # Step 4: Observer instructions
-    print("")
+    print()
     print("=" * 80)
     print("GENESIS TASK CREATED - ENTERING OBSERVER MODE")
     print("=" * 80)
-    print("")
+    print()
     print("The autonomous development validation task has been created.")
     print("The system is now ready for autonomous agent execution.")
-    print("")
+    print()
     print("Monitor task progress with:")
     print("  hive tasks list --pretty")
     print(f"  hive tasks show {task_id} --pretty")
-    print("")
+    print()
     print("Autonomous agents will:")
     print("  1. Planner: Decompose feature into subtasks")
     print("  2. Coder: Implement --since filter")
     print("  3. Tester: Create and validate tests")
     print("  4. Guardian: Validate architectural compliance")
     print("  5. Integration: Create PR and validate")
-    print("")
+    print()
     print("This is the final exam for 'God Mode' architecture.")
     print("Observe, validate, and analyze the autonomous development process.")
-    print("")
+    print()
 
 
 if __name__ == "__main__":

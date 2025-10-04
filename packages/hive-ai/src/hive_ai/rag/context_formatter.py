@@ -1,5 +1,4 @@
-"""
-Context formatting with instructional priming for LLM agents.
+"""Context formatting with instructional priming for LLM agents.
 
 Implements Design Decision 2 (Option C): Structured sections with
 explicit instructions on how to use retrieved context.
@@ -37,8 +36,7 @@ class FormattingConfig:
 
 
 class ContextFormatter:
-    """
-    Format StructuredContext for LLM consumption with instructional priming.
+    """Format StructuredContext for LLM consumption with instructional priming.
 
     Implements multiple output formats optimized for different agent workflows:
     - Instructional: Full guidance on how to use context (best for code review)
@@ -48,38 +46,36 @@ class ContextFormatter:
     """
 
     def __init__(self, config: FormattingConfig | None = None):
-        """
-        Initialize context formatter.
+        """Initialize context formatter.
 
         Args:
             config: Formatting configuration
+
         """
         self.config = config or FormattingConfig()
 
     def format_context(self, context: StructuredContext) -> str:
-        """
-        Format StructuredContext based on configured style.
+        """Format StructuredContext based on configured style.
 
         Args:
             context: Structured context from RAG retrieval
 
         Returns:
             Formatted string ready for LLM prompt injection
+
         """
         if self.config.style == FormatStyle.INSTRUCTIONAL:
             return self._format_instructional(context)
-        elif self.config.style == FormatStyle.STRUCTURED:
+        if self.config.style == FormatStyle.STRUCTURED:
             return self._format_structured(context)
-        elif self.config.style == FormatStyle.MINIMAL:
+        if self.config.style == FormatStyle.MINIMAL:
             return self._format_minimal(context)
-        elif self.config.style == FormatStyle.MARKDOWN:
+        if self.config.style == FormatStyle.MARKDOWN:
             return self._format_markdown(context)
-        else:
-            return self._format_instructional(context)  # Default
+        return self._format_instructional(context)  # Default
 
     def _format_instructional(self, context: StructuredContext) -> str:
-        """
-        Format with full instructional priming (Option C).
+        """Format with full instructional priming (Option C).
 
         Provides explicit instructions on how to use each piece of context.
         """
@@ -293,8 +289,7 @@ class ContextFormatter:
         return sections
 
     def _truncate_code(self, code: str, max_lines: int | None = None) -> str:
-        """
-        Truncate long code snippets for token efficiency.
+        """Truncate long code snippets for token efficiency.
 
         Args:
             code: Code to truncate
@@ -302,6 +297,7 @@ class ContextFormatter:
 
         Returns:
             Truncated code with ellipsis if needed
+
         """
         max_lines = max_lines or self.config.max_code_lines,
         lines = code.split("\n")
@@ -320,8 +316,7 @@ class ContextFormatter:
 
 
 def format_for_code_review(context: StructuredContext) -> str:
-    """
-    Format context for code review use case.
+    """Format context for code review use case.
 
     Uses instructional priming with deprecation warnings first.
     """
@@ -330,14 +325,13 @@ def format_for_code_review(context: StructuredContext) -> str:
             style=FormatStyle.INSTRUCTIONAL,
             show_deprecation_warnings_first=True,
             include_relevance_scores=True,
-        )
+        ),
     )
     return formatter.format_context(context)
 
 
 def format_for_implementation(context: StructuredContext) -> str:
-    """
-    Format context for implementation use case.
+    """Format context for implementation use case.
 
     Uses instructional priming focused on patterns and rules.
     """
@@ -346,14 +340,13 @@ def format_for_implementation(context: StructuredContext) -> str:
             style=FormatStyle.INSTRUCTIONAL,
             show_deprecation_warnings_first=False,
             max_code_lines=80,  # More code for implementation
-        )
+        ),
     )
     return formatter.format_context(context)
 
 
 def format_for_documentation(context: StructuredContext) -> str:
-    """
-    Format context for human documentation.
+    """Format context for human documentation.
 
     Uses markdown format for readability.
     """
@@ -361,14 +354,13 @@ def format_for_documentation(context: StructuredContext) -> str:
         config=FormattingConfig(
             style=FormatStyle.MARKDOWN,
             include_metadata=True,
-        )
+        ),
     )
     return formatter.format_context(context)
 
 
 def format_minimal(context: StructuredContext) -> str:
-    """
-    Format context in minimal token-efficient style.
+    """Format context in minimal token-efficient style.
 
     Good for high-throughput scenarios or token budget constraints.
     """
@@ -376,6 +368,6 @@ def format_minimal(context: StructuredContext) -> str:
         config=FormattingConfig(
             style=FormatStyle.MINIMAL,
             include_metadata=False,
-        )
+        ),
     )
     return formatter.format_context(context)

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Project Genesis - Task Monitor
+"""Project Genesis - Task Monitor
 
 Simple monitoring script for observing autonomous agent execution.
 Queries the orchestration database to track task status and progress.
@@ -61,19 +60,19 @@ def display_status(task):
 
     # Status interpretation
     print("\nStatus Interpretation:")
-    if task['status'] == 'queued':
+    if task["status"] == "queued":
         print("  - Task is AWAITING autonomous agent pickup")
         print("  - Next: Planner agent should analyze and decompose")
-    elif task['status'] == 'assigned':
+    elif task["status"] == "assigned":
         print("  - Task has been ASSIGNED to an agent")
         print("  - Agent is preparing to begin execution")
-    elif task['status'] == 'in_progress':
+    elif task["status"] == "in_progress":
         print(f"  - Task is ACTIVELY RUNNING (phase: {task['current_phase']})")
         print("  - Autonomous development in progress")
-    elif task['status'] == 'completed':
+    elif task["status"] == "completed":
         print("  - Task has been COMPLETED successfully")
         print("  - Autonomous development validated!")
-    elif task['status'] == 'failed':
+    elif task["status"] == "failed":
         print("  - Task has FAILED")
         print("  - Review logs for error details")
 
@@ -91,7 +90,7 @@ def monitor_loop(interval=30):
             task = get_task_status()
             display_status(task)
 
-            if task and task['status'] in ['completed', 'failed', 'cancelled']:
+            if task and task["status"] in ["completed", "failed", "cancelled"]:
                 print("\n[!] Task reached terminal state - stopping monitor")
                 break
 
@@ -106,7 +105,7 @@ def main():
     """Main entry point."""
     import sys
 
-    if len(sys.argv) > 1 and sys.argv[1] == '--watch':
+    if len(sys.argv) > 1 and sys.argv[1] == "--watch":
         # Continuous monitoring mode
         interval = int(sys.argv[2]) if len(sys.argv) > 2 else 30
         monitor_loop(interval)

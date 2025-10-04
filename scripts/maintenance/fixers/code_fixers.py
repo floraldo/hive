@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Code Fixers - Consolidated Code Fixing Tool
+"""Code Fixers - Consolidated Code Fixing Tool
 
 This script consolidates the functionality of multiple fixer scripts:
 - add_type_hints.py

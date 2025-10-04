@@ -1,5 +1,4 @@
-"""
-Automated Recovery Service
+"""Automated Recovery Service
 
 PROJECT CHIMERA Phase 3: Self-Healing Feedback Loop
 Autonomous recovery system for predictive alerts.
@@ -22,21 +21,21 @@ from .playbooks import ClearCachePlaybook, RecoveryPlaybook, RestartServicePlayb
 from .recovery_service import AutomatedRecoveryService
 
 __all__ = [
-    "AutomatedRecoveryService",
-    "AutomationDecisionEngine",
-    "AutomationDecision",
-    "RecoveryPlaybookRegistry",
-    "RecoveryAuditLogger",
-    "RecoveryPlaybook",
-    "ClearCachePlaybook",
-    "RestartServicePlaybook",
-    "ScalePoolPlaybook",
-    "RecoveryError",
-    "PlaybookNotFoundError",
-    "PlaybookExecutionError",
-    "SafetyCheckFailedError",
-    "InsufficientConfidenceError",
     "AmbiguousRootCauseError",
-    "RecentFailureError",
+    "AutomatedRecoveryService",
+    "AutomationDecision",
+    "AutomationDecisionEngine",
+    "ClearCachePlaybook",
+    "InsufficientConfidenceError",
     "ManualModeError",
+    "PlaybookExecutionError",
+    "PlaybookNotFoundError",
+    "RecentFailureError",
+    "RecoveryAuditLogger",
+    "RecoveryError",
+    "RecoveryPlaybook",
+    "RecoveryPlaybookRegistry",
+    "RestartServicePlaybook",
+    "SafetyCheckFailedError",
+    "ScalePoolPlaybook",
 ]

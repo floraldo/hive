@@ -19,7 +19,7 @@ class TestPerformanceAnalyzer:
         """Test performance analysis functionality."""
         from hive_performance.performance_analyzer import PerformanceAnalyzer
         analyzer = PerformanceAnalyzer()
-        if hasattr(analyzer, 'analyze_performance'):
+        if hasattr(analyzer, "analyze_performance"):
             analysis = await analyzer.analyze_performance()
             assert isinstance(analysis, dict) or analysis is None
 
@@ -27,7 +27,7 @@ class TestPerformanceAnalyzer:
     def test_analyzer_configuration(self):
         """Test analyzer accepts configuration parameters."""
         from hive_performance.performance_analyzer import PerformanceAnalyzer
-        config = {'analysis_window': 300.0, 'threshold_cpu': 80.0, 'threshold_memory': 85.0}
+        config = {"analysis_window": 300.0, "threshold_cpu": 80.0, "threshold_memory": 85.0}
         analyzer = PerformanceAnalyzer(**config)
         assert analyzer is not None
 
@@ -37,7 +37,7 @@ class TestPerformanceAnalyzer:
         """Test bottleneck detection functionality."""
         from hive_performance.performance_analyzer import PerformanceAnalyzer
         analyzer = PerformanceAnalyzer()
-        if hasattr(analyzer, 'detect_bottlenecks'):
+        if hasattr(analyzer, "detect_bottlenecks"):
             bottlenecks = await analyzer.detect_bottlenecks()
             assert isinstance(bottlenecks, list) or bottlenecks is None
 
@@ -47,7 +47,7 @@ class TestPerformanceAnalyzer:
         """Test trend analysis functionality."""
         from hive_performance.performance_analyzer import PerformanceAnalyzer
         analyzer = PerformanceAnalyzer()
-        if hasattr(analyzer, 'analyze_trends'):
+        if hasattr(analyzer, "analyze_trends"):
             trends = await analyzer.analyze_trends()
             assert isinstance(trends, dict) or trends is None
 
@@ -56,10 +56,10 @@ class TestPerformanceAnalyzer:
         """Test threshold management."""
         from hive_performance.performance_analyzer import PerformanceAnalyzer
         analyzer = PerformanceAnalyzer()
-        if hasattr(analyzer, 'set_threshold'):
-            analyzer.set_threshold('cpu', 75.0)
-        if hasattr(analyzer, 'get_threshold'):
-            threshold = analyzer.get_threshold('cpu')
+        if hasattr(analyzer, "set_threshold"):
+            analyzer.set_threshold("cpu", 75.0)
+        if hasattr(analyzer, "get_threshold"):
+            threshold = analyzer.get_threshold("cpu")
             assert isinstance(threshold, (int, float)) or threshold is None
 
     @pytest.mark.core
@@ -68,7 +68,7 @@ class TestPerformanceAnalyzer:
         """Test performance recommendations."""
         from hive_performance.performance_analyzer import PerformanceAnalyzer
         analyzer = PerformanceAnalyzer()
-        if hasattr(analyzer, 'generate_recommendations'):
+        if hasattr(analyzer, "generate_recommendations"):
             recommendations = await analyzer.generate_recommendations()
             assert isinstance(recommendations, list) or recommendations is None
 
@@ -78,6 +78,6 @@ class TestPerformanceAnalyzer:
         """Test anomaly detection functionality."""
         from hive_performance.performance_analyzer import PerformanceAnalyzer
         analyzer = PerformanceAnalyzer()
-        if hasattr(analyzer, 'detect_anomalies'):
+        if hasattr(analyzer, "detect_anomalies"):
             anomalies = await analyzer.detect_anomalies()
             assert isinstance(anomalies, list) or anomalies is None

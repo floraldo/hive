@@ -21,7 +21,7 @@ class TestAsyncProfiler:
         """Test profiler works as async context manager."""
         from hive_performance.async_profiler import AsyncProfiler
         profiler = AsyncProfiler()
-        if hasattr(profiler, '__aenter__'):
+        if hasattr(profiler, "__aenter__"):
             async with profiler:
                 await asyncio.sleep(0.01)
             assert True
@@ -36,17 +36,17 @@ class TestAsyncProfiler:
         @profiler.profile
         async def sample_async_function():
             await asyncio.sleep(0.01)
-            return 'test_result'
-        if hasattr(profiler, 'profile'):
+            return "test_result"
+        if hasattr(profiler, "profile"):
             result = await sample_async_function()
-            assert result == 'test_result'
+            assert result == "test_result"
 
     @pytest.mark.core
     def test_profiler_metrics_collection(self):
         """Test profiler collects performance metrics."""
         from hive_performance.async_profiler import AsyncProfiler
         profiler = AsyncProfiler()
-        if hasattr(profiler, 'get_metrics'):
+        if hasattr(profiler, "get_metrics"):
             metrics = profiler.get_metrics()
             assert isinstance(metrics, dict)
 
@@ -70,6 +70,6 @@ class TestAsyncProfiler:
     def test_profiler_configuration(self):
         """Test profiler accepts configuration parameters."""
         from hive_performance.async_profiler import AsyncProfiler
-        config = {'enabled': True, 'sample_rate': 0.1}
+        config = {"enabled": True, "sample_rate": 0.1}
         profiler = AsyncProfiler(config)
         assert profiler is not None

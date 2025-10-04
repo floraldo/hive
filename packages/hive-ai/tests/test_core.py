@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for hive-ai core components.
+"""Comprehensive tests for hive-ai core components.
 
 Tests configuration, exceptions, and interfaces with property-based testing.
 """
@@ -21,7 +20,7 @@ class TestAIConfig:
         """Test default AI configuration creation."""
         config = AIConfig()
         assert isinstance(config, AIConfig)
-        assert config.default_model == 'claude-3-sonnet'
+        assert config.default_model == "claude-3-sonnet"
         assert len(config.models) >= 3
         assert config.daily_cost_limit == 100.0
         assert config.monthly_cost_limit == 1000.0
@@ -32,35 +31,35 @@ class TestAIConfig:
         """Test model configuration retrieval."""
         config = AIConfig()
         model_config = config.get_model_config()
-        assert model_config.name == 'claude-3-sonnet-20240229'
-        assert model_config.provider == 'anthropic'
-        gpt4_config = config.get_model_config('gpt-4')
-        assert gpt4_config.name == 'gpt-4'
-        assert gpt4_config.provider == 'openai'
+        assert model_config.name == "claude-3-sonnet-20240229"
+        assert model_config.provider == "anthropic"
+        gpt4_config = config.get_model_config("gpt-4")
+        assert gpt4_config.name == "gpt-4"
+        assert gpt4_config.provider == "openai"
 
     @pytest.mark.core
     def test_get_model_config_not_found(self):
         """Test error when model not found."""
         config = AIConfig()
-        with pytest.raises(ValueError, match='not configured'):
-            config.get_model_config('nonexistent-model')
+        with pytest.raises(ValueError, match="not configured"):
+            config.get_model_config("nonexistent-model")
 
     @pytest.mark.core
     def test_add_remove_model(self):
         """Test adding and removing model configurations."""
         config = AIConfig()
-        new_model = ModelConfig(name='test-model', provider='test-provider', model_type='completion')
+        new_model = ModelConfig(name="test-model", provider="test-provider", model_type="completion")
         config.add_model(new_model)
-        assert 'test-model' in config.models
-        assert config.models['test-model'] == new_model
-        config.remove_model('test-model')
-        assert 'test-model' not in config.models
+        assert "test-model" in config.models
+        assert config.models["test-model"] == new_model
+        config.remove_model("test-model")
+        assert "test-model" not in config.models
 
     @pytest.mark.core
     @given(st.text(min_size=1), st.floats(min_value=0, max_value=2.0))
     def test_model_config_validation(self, name, temperature):
         """Property-based test for model configuration validation."""
-        model_config = ModelConfig(name=name, provider='test', model_type='completion', temperature=temperature)
+        model_config = ModelConfig(name=name, provider="test", model_type="completion", temperature=temperature)
         assert model_config.name == name
         assert 0.0 <= model_config.temperature <= 2.0
 
@@ -70,20 +69,20 @@ class TestAIConfig:
         """Test model configuration with invalid temperature."""
         if 0.0 <= temperature <= 2.0:
             return
-        with pytest.raises(ValueError, match='Temperature must be between'):
-            ModelConfig(name='test', provider='test', model_type='completion', temperature=temperature)
+        with pytest.raises(ValueError, match="Temperature must be between"):
+            ModelConfig(name="test", provider="test", model_type="completion", temperature=temperature)
 
     @pytest.mark.core
     @given(st.text())
     def test_model_config_invalid_provider(self, provider):
         """Test model configuration with invalid provider."""
-        valid_providers = ['anthropic', 'openai', 'local', 'azure', 'huggingface']
+        valid_providers = ["anthropic", "openai", "local", "azure", "huggingface"]
         if provider in valid_providers:
-            model_config = ModelConfig(name='test', provider=provider, model_type='completion')
+            model_config = ModelConfig(name="test", provider=provider, model_type="completion")
             assert model_config.provider == provider
         else:
-            with pytest.raises(ValueError, match='Provider must be one of'):
-                ModelConfig(name='test', provider=provider, model_type='completion')
+            with pytest.raises(ValueError, match="Provider must be one of"):
+                ModelConfig(name="test", provider=provider, model_type="completion")
 
 @pytest.mark.core
 class TestVectorConfig:
@@ -92,28 +91,28 @@ class TestVectorConfig:
     @pytest.mark.core
     def test_default_vector_config(self):
         """Test default vector configuration."""
-        config = VectorConfig(provider='chroma')
-        assert config.provider == 'chroma'
-        assert config.collection_name == 'default'
+        config = VectorConfig(provider="chroma")
+        assert config.provider == "chroma"
+        assert config.collection_name == "default"
         assert config.dimension == 1536
-        assert config.distance_metric == 'cosine'
+        assert config.distance_metric == "cosine"
         assert config.max_connections == 10
 
     @pytest.mark.core
-    @given(st.sampled_from(['cosine', 'euclidean', 'dot_product']))
+    @given(st.sampled_from(["cosine", "euclidean", "dot_product"]))
     def test_valid_distance_metrics(self, metric):
         """Test valid distance metrics."""
-        config = VectorConfig(provider='chroma', distance_metric=metric)
+        config = VectorConfig(provider="chroma", distance_metric=metric)
         assert config.distance_metric == metric
 
     @pytest.mark.core
     @given(st.text())
     def test_invalid_distance_metric(self, metric):
         """Test invalid distance metrics."""
-        valid_metrics = ['cosine', 'euclidean', 'dot_product']
+        valid_metrics = ["cosine", "euclidean", "dot_product"]
         if metric not in valid_metrics:
-            with pytest.raises(ValueError, match='Distance metric must be one of'):
-                VectorConfig(provider='chroma', distance_metric=metric)
+            with pytest.raises(ValueError, match="Distance metric must be one of"):
+                VectorConfig(provider="chroma", distance_metric=metric)
 
 @pytest.mark.core
 class TestExceptions:
@@ -122,39 +121,39 @@ class TestExceptions:
     @pytest.mark.core
     def test_ai_error_hierarchy(self):
         """Test that all AI errors inherit from AIError."""
-        errors = [ModelError('test', model='test-model'), VectorError('test', collection='test-collection'), PromptError('test', template_name='test-template'), CostLimitError('test', current_cost=100.0, limit=50.0), ModelUnavailableError('test', model='test', provider='test')]
+        errors = [ModelError("test", model="test-model"), VectorError("test", collection="test-collection"), PromptError("test", template_name="test-template"), CostLimitError("test", current_cost=100.0, limit=50.0), ModelUnavailableError("test", model="test", provider="test")]
         for error in errors:
             assert isinstance(error, AIError)
 
     @pytest.mark.core
     def test_model_error_attributes(self):
         """Test ModelError specific attributes."""
-        error = ModelError('Test error', model='test-model', provider='test-provider', request_id='req-123')
-        assert error.model == 'test-model'
-        assert error.provider == 'test-provider'
-        assert error.request_id == 'req-123'
+        error = ModelError("Test error", model="test-model", provider="test-provider", request_id="req-123")
+        assert error.model == "test-model"
+        assert error.provider == "test-provider"
+        assert error.request_id == "req-123"
 
     @pytest.mark.core
     def test_cost_limit_error_attributes(self):
         """Test CostLimitError specific attributes."""
-        error = CostLimitError('Budget exceeded', current_cost=150.0, limit=100.0, period='daily')
+        error = CostLimitError("Budget exceeded", current_cost=150.0, limit=100.0, period="daily")
         assert error.current_cost == 150.0
         assert error.limit == 100.0
-        assert error.period == 'daily'
+        assert error.period == "daily"
 
     @pytest.mark.core
     def test_prompt_error_attributes(self):
         """Test PromptError specific attributes."""
-        missing_vars = ['var1', 'var2']
-        error = PromptError('Missing variables', template_name='test-template', missing_variables=missing_vars)
-        assert error.template_name == 'test-template'
+        missing_vars = ["var1", "var2"]
+        error = PromptError("Missing variables", template_name="test-template", missing_variables=missing_vars)
+        assert error.template_name == "test-template"
         assert error.missing_variables == missing_vars
 
     @pytest.mark.core
     @given(st.floats(min_value=0), st.floats(min_value=0))
     def test_cost_limit_error_property(self, current_cost, limit):
         """Property-based test for cost limit validation."""
-        error = CostLimitError('Cost exceeded', current_cost=current_cost, limit=limit)
+        error = CostLimitError("Cost exceeded", current_cost=current_cost, limit=limit)
         assert error.current_cost >= 0
         assert error.limit >= 0
 
@@ -165,13 +164,13 @@ class TestInterfaces:
     @pytest.mark.core
     def test_model_response_creation(self):
         """Test ModelResponse data class."""
-        response = ModelResponse(content='Test response', model='test-model', tokens_used=100, cost=0.01, latency_ms=1500, metadata={'test': 'value'})
-        assert response.content == 'Test response'
-        assert response.model == 'test-model'
+        response = ModelResponse(content="Test response", model="test-model", tokens_used=100, cost=0.01, latency_ms=1500, metadata={"test": "value"})
+        assert response.content == "Test response"
+        assert response.model == "test-model"
         assert response.tokens_used == 100
         assert response.cost == 0.01
         assert response.latency_ms == 1500
-        assert response.metadata['test'] == 'value'
+        assert response.metadata["test"] == "value"
 
     @pytest.mark.core
     def test_token_usage_creation(self):
@@ -194,10 +193,10 @@ class TestInterfaces:
     @pytest.mark.core
     def test_model_type_enum(self):
         """Test ModelType enum values."""
-        assert ModelType.COMPLETION.value == 'completion'
-        assert ModelType.CHAT.value == 'chat'
-        assert ModelType.EMBEDDING.value == 'embedding'
-        assert ModelType.VISION.value == 'vision'
+        assert ModelType.COMPLETION.value == "completion"
+        assert ModelType.CHAT.value == "chat"
+        assert ModelType.EMBEDDING.value == "embedding"
+        assert ModelType.VISION.value == "vision"
 
     @pytest.mark.core
     @given(st.text(), st.text(), st.integers(min_value=0), st.floats(min_value=0))
@@ -215,21 +214,21 @@ class TestConfigIntegration:
     @pytest.mark.core
     def test_config_validation_with_invalid_default_model(self):
         """Test configuration validation when default model is not in models."""
-        with pytest.raises(ValueError, match='Default model.*not found'):
-            AIConfig(models={'model1': ModelConfig(name='model1', provider='test', model_type='chat')}, default_model='nonexistent-model')
+        with pytest.raises(ValueError, match="Default model.*not found"):
+            AIConfig(models={"model1": ModelConfig(name="model1", provider="test", model_type="chat")}, default_model="nonexistent-model")
 
     @pytest.mark.core
     def test_full_config_creation(self):
         """Test creating a complete AI configuration."""
-        models = {'test-model': ModelConfig(name='test-model', provider='test', model_type='completion', temperature=0.5, max_tokens=2048, cost_per_token=1e-05)}
-        vector_config = VectorConfig(provider='chroma', dimension=768, distance_metric='euclidean')
-        prompt_config = PromptConfig(template_directory='custom_prompts/', cache_enabled=False)
-        config = AIConfig(models=models, default_model='test-model', vector=vector_config, prompts=prompt_config, daily_cost_limit=50.0, monthly_cost_limit=500.0)
-        assert config.models['test-model'].name == 'test-model'
-        assert config.default_model == 'test-model'
-        assert config.vector.provider == 'chroma'
+        models = {"test-model": ModelConfig(name="test-model", provider="test", model_type="completion", temperature=0.5, max_tokens=2048, cost_per_token=1e-05)}
+        vector_config = VectorConfig(provider="chroma", dimension=768, distance_metric="euclidean")
+        prompt_config = PromptConfig(template_directory="custom_prompts/", cache_enabled=False)
+        config = AIConfig(models=models, default_model="test-model", vector=vector_config, prompts=prompt_config, daily_cost_limit=50.0, monthly_cost_limit=500.0)
+        assert config.models["test-model"].name == "test-model"
+        assert config.default_model == "test-model"
+        assert config.vector.provider == "chroma"
         assert config.vector.dimension == 768
-        assert config.prompts.template_directory == 'custom_prompts/'
+        assert config.prompts.template_directory == "custom_prompts/"
         assert config.daily_cost_limit == 50.0
 
     @pytest.mark.core
@@ -251,7 +250,7 @@ def sample_ai_config():
 @pytest.fixture
 def sample_model_config():
     """Fixture providing a sample model configuration for tests."""
-    return ModelConfig(name='test-model', provider='test', model_type='completion', temperature=0.7, max_tokens=4096)
+    return ModelConfig(name="test-model", provider="test", model_type="completion", temperature=0.7, max_tokens=4096)
 
 @pytest.mark.core
 class TestPerformanceProperties:
@@ -264,7 +263,7 @@ class TestPerformanceProperties:
         """Test that model configuration creation scales reasonably."""
         models = {}
         for name in model_names:
-            models[name] = ModelConfig(name=name, provider='test', model_type='completion')
+            models[name] = ModelConfig(name=name, provider="test", model_type="completion")
         config = AIConfig(models=models, default_model=model_names[0])
         assert len(config.models) == len(set(model_names))
 

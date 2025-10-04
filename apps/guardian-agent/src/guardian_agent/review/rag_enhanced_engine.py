@@ -1,5 +1,4 @@
-"""
-RAG-Enhanced Review Engine with Reactive Retrieval and Graceful Degradation.
+"""RAG-Enhanced Review Engine with Reactive Retrieval and Graceful Degradation.
 
 Implements the four critical design decisions for RAG-Guardian integration:
 1. Reactive Retrieval (Option B): Multi-stage iterative context gathering
@@ -60,8 +59,7 @@ class RAGRetrievalMetrics:
 
 
 class RAGEnhancedReviewEngine:
-    """
-    RAG-Enhanced Review Engine with reactive retrieval pattern.
+    """RAG-Enhanced Review Engine with reactive retrieval pattern.
 
     Design Decisions Implemented:
     - Reactive Retrieval: Multi-stage context gathering as analysis progresses
@@ -71,12 +69,12 @@ class RAGEnhancedReviewEngine:
     """
 
     def __init__(self, config: GuardianConfig | None = None, rag_index_path: Path | None = None) -> None:
-        """
-        Initialize RAG-enhanced review engine.
+        """Initialize RAG-enhanced review engine.
 
         Args:
             config: Guardian configuration
             rag_index_path: Path to RAG index (defaults to data/rag_index)
+
         """
         self.config = config or GuardianConfig()
 
@@ -147,8 +145,7 @@ class RAGEnhancedReviewEngine:
         return analyzers
 
     async def review_file_with_rag(self, file_path: Path, diff: str | None = None) -> ReviewResult:
-        """
-        Review file with RAG-enhanced context (reactive retrieval pattern).
+        """Review file with RAG-enhanced context (reactive retrieval pattern).
 
         This implements the multi-stage reactive retrieval approach:
         1. Retrieve file structure and patterns
@@ -163,6 +160,7 @@ class RAGEnhancedReviewEngine:
 
         Returns:
             ReviewResult with RAG-enhanced insights
+
         """
         start_time = time.time()
 
@@ -231,8 +229,7 @@ class RAGEnhancedReviewEngine:
         return result
 
     async def _retrieve_structure_context(self, file_path: Path, content_preview: str) -> StructuredContext | None:
-        """
-        Stage 1: Retrieve file structure and similar patterns.
+        """Stage 1: Retrieve file structure and similar patterns.
 
         Implements graceful degradation: Returns None if RAG unavailable.
         """
@@ -281,8 +278,7 @@ class RAGEnhancedReviewEngine:
             return None
 
     async def _retrieve_pattern_context(self, detected_patterns: list[str]) -> StructuredContext | None:
-        """
-        Stage 3: Retrieve pattern-specific guidance.
+        """Stage 3: Retrieve pattern-specific guidance.
 
         Implements graceful degradation: Returns None if RAG unavailable.
         """
@@ -330,8 +326,7 @@ class RAGEnhancedReviewEngine:
             return None
 
     async def _retrieve_deprecation_context(self, content_preview: str) -> StructuredContext | None:
-        """
-        Stage 4: Check for deprecated patterns.
+        """Stage 4: Check for deprecated patterns.
 
         Implements graceful degradation: Returns None if RAG unavailable.
         """
@@ -348,7 +343,7 @@ class RAGEnhancedReviewEngine:
                     query=content_preview,
                     k=5,
                     exclude_archived=False,  # INCLUDE archived for deprecation detection
-                )
+                ),
             )
 
             # Extract deprecation warnings
@@ -392,8 +387,7 @@ class RAGEnhancedReviewEngine:
             return None
 
     def _detect_patterns(self, content: str) -> list[str]:
-        """
-        Analyze content to detect code patterns.
+        """Analyze content to detect code patterns.
 
         Returns list of pattern types detected (e.g., "async database", "config DI", etc.)
         """
@@ -433,8 +427,7 @@ class RAGEnhancedReviewEngine:
         patterns: StructuredContext | None,
         deprecation: StructuredContext | None,
     ) -> StructuredContext | None:
-        """
-        Combine multiple retrieved contexts into single unified context.
+        """Combine multiple retrieved contexts into single unified context.
 
         Implements graceful degradation: Returns None if all contexts are None.
         """
@@ -498,8 +491,7 @@ class RAGEnhancedReviewEngine:
         analysis_results: list[AnalysisResult],
         rag_context: StructuredContext | None,
     ) -> dict[str, Any]:
-        """
-        Get AI review with RAG context using Instructional Priming.
+        """Get AI review with RAG context using Instructional Priming.
 
         Implements graceful degradation: Works without RAG context.
         """
@@ -553,8 +545,7 @@ class RAGEnhancedReviewEngine:
         analysis_results: list[AnalysisResult],
         rag_context: StructuredContext,
     ) -> str:
-        """
-        Build instructional primed prompt (Design Decision 2: Option C).
+        """Build instructional primed prompt (Design Decision 2: Option C).
 
         Provides explicit instructions on how to use retrieved context.
         """
@@ -589,7 +580,7 @@ class RAGEnhancedReviewEngine:
                 "4. Provide actionable suggestions for improvement",
                 "",
                 "Generate your review:",
-            ]
+            ],
         )
 
         return "\n".join(sections)

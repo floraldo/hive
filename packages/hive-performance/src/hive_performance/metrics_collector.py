@@ -55,8 +55,7 @@ class PerformanceMetrics:
 
 
 class MetricsCollector:
-    """
-    High-performance metrics collector for async operations.
+    """High-performance metrics collector for async operations.
 
     Features:
     - Real-time performance tracking
@@ -154,7 +153,7 @@ class MetricsCollector:
                 peak_memory=memory_info.peak_wset if hasattr(memory_info, "peak_wset") else memory_info.vms,
                 active_tasks=active_tasks,
                 operation_name="system",
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             with self._lock:
@@ -173,7 +172,7 @@ class MetricsCollector:
             "start_cpu": time.process_time(),
             "start_memory": self._get_memory_usage(),
             "tags": tags or {},
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow(),
         }
 
         with self._lock:
@@ -224,7 +223,7 @@ class MetricsCollector:
                 operation_name=operation_name,
                 tags=start_info["tags"],
                 custom_metrics=custom_metrics or {},
-                timestamp=datetime.utcnow()
+                timestamp=datetime.utcnow(),
             )
 
             # Store metrics
@@ -250,7 +249,7 @@ class MetricsCollector:
         return errors / total_ops if total_ops > 0 else 0.0
 
     def get_metrics(
-        self, operation_name: str | None = None, time_window: timedelta | None = None
+        self, operation_name: str | None = None, time_window: timedelta | None = None,
     ) -> list[PerformanceMetrics]:
         """Get collected metrics."""
         with self._lock:
@@ -269,7 +268,7 @@ class MetricsCollector:
         return sorted(metrics_list, key=lambda m: m.timestamp)
 
     def get_aggregated_metrics(
-        self, operation_name: str | None = None, time_window: timedelta | None = None
+        self, operation_name: str | None = None, time_window: timedelta | None = None,
     ) -> PerformanceMetrics:
         """Get aggregated metrics for analysis."""
         metrics_list = self.get_metrics(operation_name, time_window)
@@ -302,7 +301,7 @@ class MetricsCollector:
             error_count=total_errors,
             error_rate=total_errors / total_ops if total_ops > 0 else 0.0,
             operation_name=operation_name or "aggregated",
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
 
     def set_baseline(self, operation_name: str, metrics: PerformanceMetrics | None = None) -> None:
@@ -332,7 +331,7 @@ class MetricsCollector:
             "error_rate_change": current.error_rate - baseline.error_rate,
             "cpu_change": (current.cpu_percent - baseline.cpu_percent) / baseline.cpu_percent * 100
             if baseline.cpu_percent > 0
-            else 0.0
+            else 0.0,
         }
 
     def export_metrics(self, format: str = "json") -> Union[str, dict[str, Any]]:
@@ -352,13 +351,13 @@ class MetricsCollector:
                         "error_rate": m.error_rate,
                         "timestamp": m.timestamp.isoformat(),
                         "tags": m.tags,
-                        "custom_metrics": m.custom_metrics
+                        "custom_metrics": m.custom_metrics,
                     }
                     for m in all_metrics
                 ],
-                indent=2
+                indent=2,
             )
-        elif format == "dict":
+        if format == "dict":
             return {
                 "metrics": all_metrics,
                 "summary": {
@@ -366,11 +365,10 @@ class MetricsCollector:
                     "operation_types": len({m.operation_name for m in all_metrics}),
                     "time_span": (all_metrics[-1].timestamp - all_metrics[0].timestamp).total_seconds()
                     if all_metrics
-                    else 0
-                }
+                    else 0,
+                },
             }
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")
 
     def clear_metrics(self, operation_name: str | None = None) -> None:
         """Clear collected metrics."""
@@ -397,7 +395,7 @@ class operation_tracker:
         operation_name: str,
         tags: Optional[dict[str, str]] = None,
         bytes_processed: int = 0,
-        custom_metrics: Optional[dict[str, Any]] = None
+        custom_metrics: Optional[dict[str, Any]] = None,
     ):
         self.collector = collector
         self.operation_name = operation_name
@@ -417,13 +415,13 @@ class operation_tracker:
                 self.operation_id,
                 success=success,
                 bytes_processed=self.bytes_processed,
-                custom_metrics=self.custom_metrics
+                custom_metrics=self.custom_metrics,
             )
 
 
 # Decorator for automatic function performance tracking
 def track_performance(
-    collector: MetricsCollector, operation_name: str | None = None, tags: Optional[dict[str, str]] = None
+    collector: MetricsCollector, operation_name: str | None = None, tags: Optional[dict[str, str]] = None,
 ) -> Callable:
     """Decorator for automatic function performance tracking."""
 
@@ -439,12 +437,11 @@ def track_performance(
                     return await func(*args, **kwargs)
 
             return async_wrapper
-        else:
 
-            def sync_wrapper(*args, **kwargs) -> Any:
-                with operation_tracker(collector, operation_name, tags):
-                    return func(*args, **kwargs)
+        def sync_wrapper(*args, **kwargs) -> Any:
+            with operation_tracker(collector, operation_name, tags):
+                return func(*args, **kwargs)
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator

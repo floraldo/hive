@@ -1,5 +1,4 @@
-"""
-Unit tests for async_error_handler module.
+"""Unit tests for async_error_handler module.
 
 Tests the AsyncErrorHandler class and decorators:
 - Error context creation and management
@@ -35,9 +34,9 @@ class TestErrorContext:
     @pytest.mark.core
     def test_error_context_minimal(self):
         """Test ErrorContext with minimal parameters."""
-        context = ErrorContext(operation_name='test_op', component='test_component')
-        assert context.operation_name == 'test_op'
-        assert context.component == 'test_component'
+        context = ErrorContext(operation_name="test_op", component="test_component")
+        assert context.operation_name == "test_op"
+        assert context.component == "test_component"
         assert context.timeout_duration is None
         assert context.retry_attempt == 0
         assert context.max_retries == 0
@@ -48,16 +47,16 @@ class TestErrorContext:
     @pytest.mark.core
     def test_error_context_full(self):
         """Test ErrorContext with all parameters."""
-        context = ErrorContext(operation_name='test_op', component='test_component', timeout_duration=5.0, retry_attempt=2, max_retries=3, correlation_id='test-123', user_id='user-456', request_id='req-789', custom_context={'key': 'value'})
-        assert context.operation_name == 'test_op'
-        assert context.component == 'test_component'
+        context = ErrorContext(operation_name="test_op", component="test_component", timeout_duration=5.0, retry_attempt=2, max_retries=3, correlation_id="test-123", user_id="user-456", request_id="req-789", custom_context={"key": "value"})
+        assert context.operation_name == "test_op"
+        assert context.component == "test_component"
         assert context.timeout_duration == 5.0
         assert context.retry_attempt == 2
         assert context.max_retries == 3
-        assert context.correlation_id == 'test-123'
-        assert context.user_id == 'user-456'
-        assert context.request_id == 'req-789'
-        assert context.custom_context == {'key': 'value'}
+        assert context.correlation_id == "test-123"
+        assert context.user_id == "user-456"
+        assert context.request_id == "req-789"
+        assert context.custom_context == {"key": "value"}
 
 @pytest.mark.core
 class TestCreateErrorContext:
@@ -66,12 +65,12 @@ class TestCreateErrorContext:
     @pytest.mark.core
     def test_create_error_context(self):
         """Test creating error context with utility function."""
-        context = create_error_context(operation_name='test_op', component='test_component', correlation_id='test-123', user_id='user-456', custom_key='custom_value')
-        assert context.operation_name == 'test_op'
-        assert context.component == 'test_component'
-        assert context.correlation_id == 'test-123'
-        assert context.user_id == 'user-456'
-        assert context.custom_context == {'custom_key': 'custom_value'}
+        context = create_error_context(operation_name="test_op", component="test_component", correlation_id="test-123", user_id="user-456", custom_key="custom_value")
+        assert context.operation_name == "test_op"
+        assert context.component == "test_component"
+        assert context.correlation_id == "test-123"
+        assert context.user_id == "user-456"
+        assert context.custom_context == {"custom_key": "custom_value"}
 
 @pytest.mark.core
 class TestErrorStats:
@@ -110,8 +109,8 @@ class TestAsyncErrorHandler:
     async def test_handle_error_basic(self):
         """Test basic error handling."""
         handler = (AsyncErrorHandler(enable_monitoring=False),)
-        error = (ValueError('Test error'),)
-        context = ErrorContext(operation_name='test_op', component='test_component')
+        error = (ValueError("Test error"),)
+        context = ErrorContext(operation_name="test_op", component="test_component")
         result = await handler.handle_error(error, context, suppress=False)
         assert result is error
         assert handler._error_stats.total_errors > 0
@@ -121,8 +120,8 @@ class TestAsyncErrorHandler:
     async def test_handle_error_suppress(self):
         """Test error handling with suppression."""
         handler = (AsyncErrorHandler(enable_monitoring=False),)
-        error = (ValueError('Test error'),)
-        context = ErrorContext(operation_name='test_op', component='test_component')
+        error = (ValueError("Test error"),)
+        context = ErrorContext(operation_name="test_op", component="test_component")
         result = await handler.handle_error(error, context, suppress=True)
         assert result is None
 
@@ -131,33 +130,33 @@ class TestAsyncErrorHandler:
     async def test_handle_error_with_base_error(self):
         """Test handling BaseError with enhanced details."""
         handler = (AsyncErrorHandler(enable_monitoring=False),)
-        error = BaseError('Test error', component='test', details={'key': 'value'}, recovery_suggestions=['Retry'])
-        context = ErrorContext(operation_name='test_op', component='test_component')
+        error = BaseError("Test error", component="test", details={"key": "value"}, recovery_suggestions=["Retry"])
+        context = ErrorContext(operation_name="test_op", component="test_component")
         await handler.handle_error(error, context, suppress=True)
         assert len(handler._error_history) > 0
         error_record = handler._error_history[-1]
-        assert error_record['error_details'] == {'key': 'value'}
-        assert error_record['recovery_suggestions'] == ['Retry']
+        assert error_record["error_details"] == {"key": "value"}
+        assert error_record["recovery_suggestions"] == ["Retry"]
 
     @pytest.mark.core
     def test_get_error_statistics(self):
         """Test getting error statistics."""
         handler = (AsyncErrorHandler(),)
         stats = handler.get_error_statistics()
-        assert 'total_errors' in stats
-        assert 'errors_by_type' in stats
-        assert 'errors_by_component' in stats
-        assert 'error_rate_per_minute' in stats
-        assert 'component_health' in stats
+        assert "total_errors" in stats
+        assert "errors_by_type" in stats
+        assert "errors_by_component" in stats
+        assert "error_rate_per_minute" in stats
+        assert "component_health" in stats
 
     @pytest.mark.core
     def test_get_operation_stats(self):
         """Test getting operation statistics."""
         handler = (AsyncErrorHandler(),)
-        stats = handler.get_operation_stats('test_operation')
-        assert 'success_rate' in stats
-        assert 'total_calls' in stats
-        assert 'avg_execution_time' in stats
+        stats = handler.get_operation_stats("test_operation")
+        assert "success_rate" in stats
+        assert "total_calls" in stats
+        assert "avg_execution_time" in stats
 
 @pytest.mark.core
 class TestErrorContextManager:
@@ -168,10 +167,10 @@ class TestErrorContextManager:
     async def test_error_context_success(self):
         """Test error_context with successful operation."""
         handler = AsyncErrorHandler(enable_monitoring=False)
-        async with error_context(handler, operation_name='test_op', component='test') as ctx:
+        async with error_context(handler, operation_name="test_op", component="test") as ctx:
             assert isinstance(ctx, ErrorContext)
-            assert ctx.operation_name == 'test_op'
-            assert ctx.component == 'test'
+            assert ctx.operation_name == "test_op"
+            assert ctx.component == "test"
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -179,16 +178,16 @@ class TestErrorContextManager:
         """Test error_context with error."""
         handler = AsyncErrorHandler(enable_monitoring=False)
         with pytest.raises(ValueError):
-            async with error_context(handler, operation_name='test_op', component='test', suppress_errors=False):
-                raise ValueError('Test error')
+            async with error_context(handler, operation_name="test_op", component="test", suppress_errors=False):
+                raise ValueError("Test error")
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_error_context_suppress_error(self):
         """Test error_context with error suppression."""
         handler = AsyncErrorHandler(enable_monitoring=False)
-        async with error_context(handler, operation_name='test_op', component='test', suppress_errors=True):
-            raise ValueError('Test error')
+        async with error_context(handler, operation_name="test_op", component="test", suppress_errors=True):
+            raise ValueError("Test error")
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -196,7 +195,7 @@ class TestErrorContextManager:
         """Test error_context with timeout."""
         handler = AsyncErrorHandler(enable_monitoring=False)
         with pytest.raises((AsyncTimeoutError, asyncio.TimeoutError)):
-            async with error_context(handler, operation_name='test_op', component='test', timeout=0.1, suppress_errors=False):
+            async with error_context(handler, operation_name="test_op", component="test", timeout=0.1, suppress_errors=False):
                 await asyncio.wait_for(asyncio.sleep(1.0), timeout=0.1)
 
 @pytest.mark.core
@@ -211,13 +210,13 @@ class TestHandleAsyncErrorsDecorator:
         call_count = 0
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func')
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func")
         async def test_func():
             nonlocal call_count
             call_count += 1
-            return 'success'
+            return "success"
         result = await test_func()
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 1
 
     @pytest.mark.core
@@ -228,11 +227,11 @@ class TestHandleAsyncErrorsDecorator:
         call_count = 0
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func', max_retries=0)
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func", max_retries=0)
         async def test_func():
             nonlocal call_count
             call_count += 1
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         with pytest.raises(RetryExhaustedError):
             await test_func()
         assert call_count == 1
@@ -246,15 +245,15 @@ class TestHandleAsyncErrorsDecorator:
         max_retries = 2
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func', max_retries=max_retries, retry_delay=0.01)
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func", max_retries=max_retries, retry_delay=0.01)
         async def test_func():
             nonlocal call_count
             call_count += 1
-            raise ValueError(f'Attempt {call_count}')
+            raise ValueError(f"Attempt {call_count}")
         with pytest.raises(RetryExhaustedError) as exc_info:
             await test_func()
         assert call_count == max_retries + 1
-        assert 'All 2 retry attempts failed' in str(exc_info.value)
+        assert "All 2 retry attempts failed" in str(exc_info.value)
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -264,10 +263,10 @@ class TestHandleAsyncErrorsDecorator:
         call_times = []
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func', max_retries=3, retry_delay=0.1, exponential_backoff=True)
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func", max_retries=3, retry_delay=0.1, exponential_backoff=True)
         async def test_func():
             call_times.append(time.time())
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         try:
             await test_func()
         except RetryExhaustedError:
@@ -288,26 +287,26 @@ class TestHandleAsyncErrorsDecorator:
         call_count = 0
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func', max_retries=3, retry_delay=0.01)
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func", max_retries=3, retry_delay=0.01)
         async def test_func():
             nonlocal call_count
             call_count += 1
             if call_count < 3:
-                raise ValueError(f'Attempt {call_count}')
-            return 'success'
+                raise ValueError(f"Attempt {call_count}")
+            return "success"
         result = await test_func()
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 3
 
     @pytest.mark.core
-    @pytest.mark.skip(reason='Timeout functionality in decorator not fully implemented in source code')
+    @pytest.mark.skip(reason="Timeout functionality in decorator not fully implemented in source code")
     @pytest.mark.asyncio
     async def test_decorator_with_timeout(self):
         """Test decorator with timeout."""
         handler = AsyncErrorHandler(enable_monitoring=False)
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func', timeout=0.1)
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func", timeout=0.1)
         async def test_func():
             await asyncio.sleep(1.0)
         with pytest.raises((AsyncTimeoutError, RetryExhaustedError)):
@@ -320,9 +319,9 @@ class TestHandleAsyncErrorsDecorator:
         handler = AsyncErrorHandler(enable_monitoring=False)
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func', max_retries=1, suppress_errors=True)
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func", max_retries=1, suppress_errors=True)
         async def test_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         result = await test_func()
         assert result is None
 
@@ -335,16 +334,16 @@ class TestErrorStatisticsTracking:
     async def test_error_statistics_updated(self):
         """Test that error statistics are updated correctly."""
         handler = (AsyncErrorHandler(enable_monitoring=True),)
-        error1 = (ValueError('First error'),)
-        error2 = (ValueError('Second error'),)
-        context1 = ErrorContext(operation_name='op1', component='comp1')
-        context2 = ErrorContext(operation_name='op2', component='comp1')
+        error1 = (ValueError("First error"),)
+        error2 = (ValueError("Second error"),)
+        context1 = ErrorContext(operation_name="op1", component="comp1")
+        context2 = ErrorContext(operation_name="op2", component="comp1")
         await handler.handle_error(error1, context1, suppress=True)
         await handler.handle_error(error2, context2, suppress=True)
         stats = handler.get_error_statistics()
-        assert stats['total_errors'] >= 2
-        assert 'ValueError' in stats['errors_by_type']
-        assert 'comp1' in stats['errors_by_component']
+        assert stats["total_errors"] >= 2
+        assert "ValueError" in stats["errors_by_type"]
+        assert "comp1" in stats["errors_by_component"]
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -352,8 +351,8 @@ class TestErrorStatisticsTracking:
         """Test that error history is tracked."""
         handler = AsyncErrorHandler(enable_monitoring=True, max_error_history=10)
         for i in range(5):
-            error = (ValueError(f'Error {i}'),)
-            context = ErrorContext(operation_name=f'op{i}', component='test')
+            error = (ValueError(f"Error {i}"),)
+            context = ErrorContext(operation_name=f"op{i}", component="test")
             await handler.handle_error(error, context, suppress=True)
         assert len(handler._error_history) == 5
 
@@ -363,12 +362,12 @@ class TestErrorStatisticsTracking:
         """Test component health tracking."""
         handler = AsyncErrorHandler(enable_monitoring=True)
         for _ in range(3):
-            error = (ValueError('Test error'),)
-            context = ErrorContext(operation_name='test', component='test_component')
+            error = (ValueError("Test error"),)
+            context = ErrorContext(operation_name="test", component="test_component")
             await handler.handle_error(error, context, suppress=True)
         stats = handler.get_error_statistics()
-        assert 'test_component' in stats['component_health']
-        assert stats['component_health']['test_component'] < 1.0
+        assert "test_component" in stats["component_health"]
+        assert stats["component_health"]["test_component"] < 1.0
 
 @pytest.mark.core
 class TestRetryExhaustedErrorDetails:
@@ -382,14 +381,14 @@ class TestRetryExhaustedErrorDetails:
         max_retries = 2
 
         @pytest.mark.core
-        @handle_async_errors(handler=handler, component='test', operation_name='test_func', max_retries=max_retries, retry_delay=0.01)
+        @handle_async_errors(handler=handler, component="test", operation_name="test_func", max_retries=max_retries, retry_delay=0.01)
         async def test_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         with pytest.raises(RetryExhaustedError) as exc_info:
             await test_func()
         error = exc_info.value
         assert error.max_attempts == max_retries
         assert error.attempt_count == max_retries + 1
-        assert error.component == 'test'
-        assert error.operation == 'test_func'
+        assert error.component == "test"
+        assert error.operation == "test_func"
         assert isinstance(error.last_error, ValueError)

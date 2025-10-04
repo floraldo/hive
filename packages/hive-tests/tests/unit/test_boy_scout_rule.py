@@ -1,10 +1,8 @@
-# ruff: noqa: S607
 # Security: subprocess calls in this test use system tools (ruff) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal testing infrastructure.
 
-"""
-Boy Scout Rule Enforcement Test.
+"""Boy Scout Rule Enforcement Test.
 
 This test enforces the "leave code cleaner than you found it" principle by:
 1. Tracking total linting violations over time
@@ -26,8 +24,7 @@ class TestBoyScoutRule:
 
     @pytest.mark.core
     def test_linting_violations_do_not_increase(self):
-        """
-        CRITICAL: Total linting violations must not increase.
+        """CRITICAL: Total linting violations must not increase.
 
         This test enforces the Boy Scout Rule by ensuring that:
         - New code doesn't introduce violations (format-on-save prevents this)
@@ -43,47 +40,45 @@ class TestBoyScoutRule:
         - Update BASELINE_VIOLATIONS to the new lower count
         - Celebrate the progress! 🎉
         """
-        result = subprocess.run(['python', '-m', 'ruff', 'check', '.'], capture_output=True, text=True, encoding='utf-8', errors='replace', cwd=Path(__file__).parent.parent.parent.parent.parent)
-        output = (result.stdout or '') + (result.stderr or '')
+        result = subprocess.run(["python", "-m", "ruff", "check", "."], check=False, capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=Path(__file__).parent.parent.parent.parent.parent)
+        output = (result.stdout or "") + (result.stderr or "")
         violation_count = 0
-        for line in output.split('\n'):
-            if 'Found' in line and 'error' in line:
+        for line in output.split("\n"):
+            if "Found" in line and "error" in line:
                 parts = line.split()
                 for i, part in enumerate(parts):
-                    if part == 'Found' and i + 1 < len(parts):
+                    if part == "Found" and i + 1 < len(parts):
                         try:
                             violation_count = int(parts[i + 1])
                             break
                         except ValueError:
                             continue
         if violation_count > self.BASELINE_VIOLATIONS:
-            pytest.fail(f'BOY SCOUT RULE VIOLATION\n\nLinting violations INCREASED:\n  Baseline: {self.BASELINE_VIOLATIONS} violations\n  Current:  {violation_count} violations\n  Increase: +{violation_count - self.BASELINE_VIOLATIONS}\n\nACTION REQUIRED:\n1. Run: ruff check . --fix\n2. Fix remaining violations in files you touched\n3. Never use --no-verify to bypass this check\n\nRemember: Always leave code cleaner than you found it!')
+            pytest.fail(f"BOY SCOUT RULE VIOLATION\n\nLinting violations INCREASED:\n  Baseline: {self.BASELINE_VIOLATIONS} violations\n  Current:  {violation_count} violations\n  Increase: +{violation_count - self.BASELINE_VIOLATIONS}\n\nACTION REQUIRED:\n1. Run: ruff check . --fix\n2. Fix remaining violations in files you touched\n3. Never use --no-verify to bypass this check\n\nRemember: Always leave code cleaner than you found it!")
         elif violation_count < self.BASELINE_VIOLATIONS:
             improvement = self.BASELINE_VIOLATIONS - violation_count
-            print(f'\nBOY SCOUT RULE SUCCESS!\nViolations DECREASED by {improvement}!\n  Before: {self.BASELINE_VIOLATIONS}\n  After:  {violation_count}\n\nACTION REQUIRED:\nUpdate BASELINE_VIOLATIONS in this test to {violation_count}\n')
+            print(f"\nBOY SCOUT RULE SUCCESS!\nViolations DECREASED by {improvement}!\n  Before: {self.BASELINE_VIOLATIONS}\n  After:  {violation_count}\n\nACTION REQUIRED:\nUpdate BASELINE_VIOLATIONS in this test to {violation_count}\n")
         else:
-            print(f'\nBoy Scout Rule: No new violations\nCurrent: {violation_count} violations (same as baseline)\n')
+            print(f"\nBoy Scout Rule: No new violations\nCurrent: {violation_count} violations (same as baseline)\n")
 
     @pytest.mark.core
     def test_syntax_errors_remain_zero(self):
-        """
-        CRITICAL: Syntax errors must remain at ZERO.
+        """CRITICAL: Syntax errors must remain at ZERO.
 
         Layer 1 achieved 0 syntax errors. This test ensures we never regress.
         """
-        result = subprocess.run(['python', '-m', 'compileall', '-q', '.'], capture_output=True, text=True, cwd=Path(__file__).parent.parent.parent.parent.parent)
-        error_count = result.stdout.count('Error compiling')
+        result = subprocess.run(["python", "-m", "compileall", "-q", "."], check=False, capture_output=True, text=True, cwd=Path(__file__).parent.parent.parent.parent.parent)
+        error_count = result.stdout.count("Error compiling")
         if error_count > 0:
             pytest.fail(f"SYNTAX ERROR REGRESSION\n\nFound {error_count} syntax errors!\nLayer 1 achieved ZERO - we cannot regress.\n\nRun: python -m compileall -q . 2>&1 | grep 'Error compiling'\n")
 
     @pytest.mark.core
-    @pytest.mark.skip(reason='Aspirational - will enable when violations < 100')
+    @pytest.mark.skip(reason="Aspirational - will enable when violations < 100")
     def test_zero_violations_achieved(self):
-        """
-        ASPIRATIONAL: All linting violations fixed.
+        """ASPIRATIONAL: All linting violations fixed.
 
         Enable this test when BASELINE_VIOLATIONS drops below 100.
         Ultimate goal: 0 violations via Boy Scout Rule.
         """
-        result = subprocess.run(['python', '-m', 'ruff', 'check', '.'], capture_output=True, text=True, cwd=Path(__file__).parent.parent.parent.parent.parent)
-        assert result.returncode == 0, 'All linting violations should be fixed!'
+        result = subprocess.run(["python", "-m", "ruff", "check", "."], check=False, capture_output=True, text=True, cwd=Path(__file__).parent.parent.parent.parent.parent)
+        assert result.returncode == 0, "All linting violations should be fixed!"

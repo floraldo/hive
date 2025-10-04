@@ -1,5 +1,4 @@
-"""
-AI Planner Agent Package
+"""AI Planner Agent Package
 
 Intelligent task planning and workflow generation agent for the Hive system.
 Monitors the planning_queue and generates executable plans for complex tasks.

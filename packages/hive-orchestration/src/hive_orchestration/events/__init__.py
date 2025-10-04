@@ -1,5 +1,4 @@
-"""
-Orchestration Events
+"""Orchestration Events
 
 This module contains event definitions and event bus integration
 for task, workflow, and agent lifecycle events.
@@ -14,13 +13,13 @@ from .qa_events import EscalationEvent, QATaskEvent, WorkerHeartbeat, WorkerRegi
 logger = get_logger(__name__)
 
 __all__ = [
-    "get_async_event_bus",
-    "reset_event_bus",
-    "TaskEvent",
-    "WorkflowEvent",
     "AgentEvent",
+    "EscalationEvent",
     "QATaskEvent",
+    "TaskEvent",
     "WorkerHeartbeat",
     "WorkerRegistration",
-    "EscalationEvent",
+    "WorkflowEvent",
+    "get_async_event_bus",
+    "reset_event_bus",
 ]

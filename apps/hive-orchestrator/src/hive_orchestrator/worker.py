@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607, E402
 """
 WorkerCore - Streamlined Worker
 Preserves path duplication fix while simplifying architecture
@@ -124,12 +123,11 @@ class WorkerCore:
                 self.log.info(f"Created fresh workspace: {workspace_path}")
             return workspace_path
 
-        elif self.mode == "repo":
+        if self.mode == "repo":
             # Repo mode: create or reuse git worktree
             return self._create_git_worktree(workspace_path)
 
-        else:
-            raise ValueError(f"Unknown mode: {self.mode}")
+        raise ValueError(f"Unknown mode: {self.mode}")
 
     def _create_git_worktree(self, workspace_path: Path) -> Path:
         """Create git worktree for repo mode"""
@@ -143,24 +141,23 @@ class WorkerCore:
             if git_file.exists():
                 self.log.info(f"Reusing existing git worktree: {workspace_path}")
                 return workspace_path
-            else:
-                # Directory exists but not a git worktree - remove it
-                import shutil
+            # Directory exists but not a git worktree - remove it
+            import shutil
 
-                try:
-                    shutil.rmtree(workspace_path)
-                except PermissionError:
-                    # Windows file locking issue - just continue
-                    self.log.warning("Could not clean non-git directory (file in use), continuing anyway")
+            try:
+                shutil.rmtree(workspace_path)
+            except PermissionError:
+                # Windows file locking issue - just continue
+                self.log.warning("Could not clean non-git directory (file in use), continuing anyway")
 
         # Prune stale worktrees
-        subprocess.run(["git", "worktree", "prune"], cwd=str(self.root), capture_output=True, text=True)
+        subprocess.run(["git", "worktree", "prune"], check=False, cwd=str(self.root), capture_output=True, text=True)
 
         # Does the branch already exist?
         branch_exists = (
             subprocess.run(
                 ["git", "rev-parse", "--verify", "--quiet", branch],
-                cwd=str(self.root),
+                check=False, cwd=str(self.root),
                 capture_output=True,
                 text=True,
             ).returncode
@@ -436,7 +433,7 @@ CRITICAL PATH CONSTRAINT:
                     # Files changed in commits since baseline
                     res = subprocess.run(
                         ["git", "diff", "--name-only", diff_target],
-                        cwd=str(self.workspace),
+                        check=False, cwd=str(self.workspace),
                         capture_output=True,
                         text=True,
                     )
@@ -446,7 +443,7 @@ CRITICAL PATH CONSTRAINT:
                     # Untracked files (never committed)
                     result = subprocess.run(
                         ["git", "ls-files", "--others", "--exclude-standard"],
-                        cwd=str(self.workspace),
+                        check=False, cwd=str(self.workspace),
                         capture_output=True,
                         text=True,
                     )
@@ -502,16 +499,14 @@ CRITICAL PATH CONSTRAINT:
                                 desc = item.get("input", {}).get("description", "")
                                 if desc:
                                     return f"{worker_prefix} 💻 $ {cmd}  # {desc}"
-                                else:
-                                    return f"{worker_prefix} 💻 $ {cmd}"
-                            elif tool_name in ["Write", "Edit", "MultiEdit"]:
+                                return f"{worker_prefix} 💻 $ {cmd}"
+                            if tool_name in ["Write", "Edit", "MultiEdit"]:
                                 file_path = item.get("input", {}).get("file_path", "")
                                 return f"{worker_prefix} 📝 {tool_name} {file_path}"
-                            elif tool_name == "Read":
+                            if tool_name == "Read":
                                 file_path = item.get("input", {}).get("target_file", "")
                                 return f"{worker_prefix} 📖 Read {file_path}"
-                            else:
-                                return f"{worker_prefix} 🔧 {tool_name}()"
+                            return f"{worker_prefix} 🔧 {tool_name}()"
 
             # Command results and responses
             elif data.get("type") == "user" and "content" in data:
@@ -524,15 +519,14 @@ CRITICAL PATH CONSTRAINT:
 
                             if is_error:
                                 return f"{worker_prefix} ❌ {result}"
-                            else:
-                                # Truncate long outputs but keep them readable
-                                if len(result) > 200:
-                                    lines = result.split("\n")
-                                    if len(lines) > 10:
-                                        result = "\n".join(lines[:8]) + f"\n... ({len(lines) - 8} more lines)"
-                                    else:
-                                        result = result[:200] + "..."
-                                return f"{worker_prefix} 📤 {result}"
+                            # Truncate long outputs but keep them readable
+                            if len(result) > 200:
+                                lines = result.split("\n")
+                                if len(lines) > 10:
+                                    result = "\n".join(lines[:8]) + f"\n... ({len(lines) - 8} more lines)"
+                                else:
+                                    result = result[:200] + "..."
+                            return f"{worker_prefix} 📤 {result}"
 
         except json.JSONDecodeError:
             # Not JSON - could be system messages or other output
@@ -853,7 +847,7 @@ CRITICAL PATH CONSTRAINT:
 
         except Exception as e:
             self.log.error(f"[ERROR] Claude execution failed: {e}")
-            return {"status": "failed", "notes": f"Execution error: {str(e)}", "next_state": "failed"}
+            return {"status": "failed", "notes": f"Execution error: {e!s}", "next_state": "failed"}
 
     def emit_result(self, result: dict[str, Any]) -> None:
         """Save execution result"""
@@ -963,12 +957,11 @@ CRITICAL PATH CONSTRAINT:
             return result
         except Exception as e:
             self.log.error(f"[ERROR] Async task execution failed: {e}")
-            return {"status": "failed", "notes": f"Async execution error: {str(e)}", "next_state": "failed"}
+            return {"status": "failed", "notes": f"Async execution error: {e!s}", "next_state": "failed"}
 
 
 def main() -> None:
     """Main CLI entry point"""
-
     parser = argparse.ArgumentParser(description="WorkerCore - Streamlined Worker")
     parser.add_argument("worker_id", help="Worker ID (backend, frontend, infra)")
     parser.add_argument("--one-shot", action="store_true", help="One-shot mode for Queen")

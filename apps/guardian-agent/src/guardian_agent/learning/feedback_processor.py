@@ -19,8 +19,7 @@ metrics = MetricsCollector()
 
 
 class FeedbackProcessor:
-    """
-    Processes feedback to improve review quality over time.
+    """Processes feedback to improve review quality over time.
 
     Implements continuous learning through feedback analysis,
     pattern recognition, and automatic prompt improvement.
@@ -49,8 +48,7 @@ class FeedbackProcessor:
         feedback_type: str,
         feedback_text: str | None,
     ) -> dict[str, Any]:
-        """
-        Process individual feedback item.
+        """Process individual feedback item.
 
         Args:
             review_id: ID of the review
@@ -60,6 +58,7 @@ class FeedbackProcessor:
 
         Returns:
             Processing result with confidence adjustments
+
         """
         try:
             # Save feedback to history
@@ -182,8 +181,7 @@ class FeedbackProcessor:
                 logger.info(f"Updated confidence for {rule}: {current_confidence:.2f} -> {new_confidence:.2f}")
 
     async def run_learning_cycle(self) -> dict[str, Any]:
-        """
-        Run comprehensive learning cycle.
+        """Run comprehensive learning cycle.
 
         Analyzes feedback patterns, identifies improvements,
         and generates suggestions for prompt updates.

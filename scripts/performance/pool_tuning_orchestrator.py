@@ -1,10 +1,8 @@
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal performance tooling.
 
-"""
-Pool Tuning Orchestrator
+"""Pool Tuning Orchestrator
 
 Automates connection pool tuning based on optimizer recommendations.
 Part of PROJECT VANGUARD Phase 2.2 - Automated Connection Pool Tuning.
@@ -69,8 +67,7 @@ class TuningExecution:
 
 
 class PoolTuningOrchestrator:
-    """
-    Orchestrate automated connection pool tuning.
+    """Orchestrate automated connection pool tuning.
 
     Workflow:
     1. Load recommendations from pool_optimizer
@@ -123,11 +120,11 @@ class PoolTuningOrchestrator:
             logger.error(f"Failed to save execution history: {e}")
 
     def load_recommendations(self) -> list[TuningRecommendation]:
-        """
-        Load tuning recommendations from pool_optimizer output.
+        """Load tuning recommendations from pool_optimizer output.
 
         Returns:
             List of tuning recommendations
+
         """
         if not self.recommendations_file.exists():
             logger.warning(f"Recommendations file not found: {self.recommendations_file}")
@@ -161,8 +158,7 @@ class PoolTuningOrchestrator:
             return []
 
     def prioritize_recommendations(self, recommendations: list[TuningRecommendation]) -> list[TuningRecommendation]:
-        """
-        Prioritize recommendations by impact and safety.
+        """Prioritize recommendations by impact and safety.
 
         Priority order:
         1. Critical priority, low risk, high confidence
@@ -175,6 +171,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             Sorted list of recommendations
+
         """
         priority_map = {"critical": 4, "high": 3, "medium": 2, "low": 1}
         risk_map = {"low": 3, "medium": 2, "high": 1}
@@ -192,8 +189,7 @@ class PoolTuningOrchestrator:
         return sorted_recs
 
     def is_maintenance_window(self) -> bool:
-        """
-        Check if current time is within maintenance window.
+        """Check if current time is within maintenance window.
 
         Default maintenance windows:
         - Weekdays: 2 AM - 4 AM local time
@@ -201,6 +197,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             True if within maintenance window
+
         """
         now = datetime.now()
         hour = now.hour
@@ -217,8 +214,7 @@ class PoolTuningOrchestrator:
         return False
 
     async def backup_current_config_async(self, service_name: str, config: dict[str, Any]) -> Path:
-        """
-        Backup current configuration before changes.
+        """Backup current configuration before changes.
 
         Args:
             service_name: Service being configured
@@ -226,6 +222,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             Path to backup file
+
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_file = self.config_backup_dir / f"{service_name}_{timestamp}.json"
@@ -246,8 +243,7 @@ class PoolTuningOrchestrator:
             raise
 
     async def apply_configuration_async(self, service_name: str, new_config: dict[str, Any]) -> bool:
-        """
-        Apply new configuration to service.
+        """Apply new configuration to service.
 
         This is a placeholder that would integrate with actual
         configuration management system (e.g., hive_config).
@@ -258,6 +254,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             True if successful
+
         """
         try:
             logger.info(f"Applying new configuration to {service_name}: {new_config}")
@@ -281,8 +278,7 @@ class PoolTuningOrchestrator:
             return False
 
     async def monitor_metrics_async(self, service_name: str, duration_minutes: int = 15) -> dict[str, Any]:
-        """
-        Monitor service metrics after configuration change.
+        """Monitor service metrics after configuration change.
 
         Tracks:
         - Error rate
@@ -296,6 +292,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             Metrics collected during monitoring period
+
         """
         logger.info(f"Monitoring {service_name} for {duration_minutes} minutes...")
 
@@ -322,8 +319,7 @@ class PoolTuningOrchestrator:
         return metrics
 
     def should_rollback(self, metrics_before: dict[str, Any], metrics_after: dict[str, Any]) -> tuple[bool, str | None]:
-        """
-        Determine if rollback is needed based on metrics.
+        """Determine if rollback is needed based on metrics.
 
         Rollback triggers:
         - Error rate increase >20%
@@ -336,6 +332,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             (should_rollback, reason)
+
         """
         # Error rate check
         error_before = metrics_before.get("error_rate", 0.0)
@@ -369,8 +366,7 @@ class PoolTuningOrchestrator:
         return False, None
 
     async def rollback_configuration_async(self, service_name: str, backup_config: dict[str, Any]) -> bool:
-        """
-        Rollback to previous configuration.
+        """Rollback to previous configuration.
 
         Args:
             service_name: Service to rollback
@@ -378,6 +374,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             True if successful
+
         """
         logger.warning(f"Rolling back configuration for {service_name}")
 
@@ -400,8 +397,7 @@ class PoolTuningOrchestrator:
         recommendation: TuningRecommendation,
         dry_run: bool = False,
     ) -> TuningExecution:
-        """
-        Execute a tuning recommendation.
+        """Execute a tuning recommendation.
 
         Workflow:
         1. Backup current config
@@ -418,6 +414,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             Execution record
+
         """
         execution_id = f"tune_{recommendation.service_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -500,11 +497,11 @@ class PoolTuningOrchestrator:
         return execution
 
     def _commit_to_git(self, recommendation: TuningRecommendation) -> None:
-        """
-        Commit configuration change to git.
+        """Commit configuration change to git.
 
         Args:
             recommendation: Recommendation that was applied
+
         """
         try:
             config_file = f"config/pools/{recommendation.service_name}.json"
@@ -537,8 +534,7 @@ class PoolTuningOrchestrator:
         dry_run: bool = False,
         skip_maintenance_check: bool = False,
     ) -> list[TuningExecution]:
-        """
-        Run complete orchestration workflow.
+        """Run complete orchestration workflow.
 
         Args:
             service_filter: Only tune specific service if specified
@@ -547,6 +543,7 @@ class PoolTuningOrchestrator:
 
         Returns:
             List of tuning executions
+
         """
         logger.info("Starting pool tuning orchestration...")
 

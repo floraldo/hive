@@ -1,5 +1,4 @@
-"""
-Cross-Package Pattern Analyzer
+"""Cross-Package Pattern Analyzer
 
 The Oracle's advanced intelligence for identifying opportunities to apply
 the best patterns from one package to solve problems in another, achieving
@@ -128,8 +127,7 @@ class OptimizationOpportunity:
 
 
 class CrossPackageAnalyzer:
-    """
-    Advanced Cross-Package Pattern Analysis Engine
+    """Advanced Cross-Package Pattern Analysis Engine
 
     Identifies opportunities to leverage the best patterns from the Hive
     ecosystem to optimize and harden individual components, achieving
@@ -144,7 +142,6 @@ class CrossPackageAnalyzer:
 
     def _initialize_integration_patterns(self) -> list[IntegrationPattern]:
         """Initialize the comprehensive library of integration patterns."""
-
         patterns = [
             # Caching Integration Patterns,
             IntegrationPattern(
@@ -398,7 +395,6 @@ response = await pool.generate_async(
 
     def _map_package_capabilities(self) -> dict[str, dict[str, Any]]:
         """Map the capabilities provided by each hive package."""
-
         return {
             "hive-cache": {
                 "primary_functions": ["caching", "performance", "resilience"],
@@ -453,7 +449,6 @@ response = await pool.generate_async(
 
     async def analyze_file_async(self, file_path: str) -> list[OptimizationOpportunity]:
         """Analyze a single file for cross-package optimization opportunities."""
-
         opportunities = []
 
         try:
@@ -486,7 +481,6 @@ response = await pool.generate_async(
 
     def _analyze_ast(self, tree: ast.AST, file_path: str, content: str) -> list[OptimizationOpportunity]:
         """Analyze AST for sophisticated integration opportunities."""
-
         opportunities = []
 
         class IntegrationVisitor(ast.NodeVisitor):
@@ -542,7 +536,6 @@ response = await pool.generate_async(
 
             def visit_Call(self, node):
                 """Analyze function calls for integration opportunities."""
-
                 # Check for requests library usage
                 if (
                     isinstance(node.func, ast.Attribute)
@@ -632,7 +625,6 @@ response = await pool.generate_async(
 
     def _analyze_patterns(self, content: str, file_path: str) -> list[OptimizationOpportunity]:
         """Analyze file content using regex patterns for integration opportunities."""
-
         opportunities = []
 
         for pattern in self.integration_patterns:
@@ -685,7 +677,6 @@ response = await pool.generate_async(
 
     def _analyze_context(self, content: str, file_path: str) -> list[OptimizationOpportunity]:
         """Analyze file context for sophisticated integration opportunities."""
-
         opportunities = []
 
         # Analyze import statements for missing integrations
@@ -715,7 +706,6 @@ response = await pool.generate_async(
 
     def _identify_missing_integrations(self, content: str, current_hive_imports: list[str]) -> list[dict[str, Any]]:
         """Identify missing hive package integrations based on content analysis."""
-
         missing = []
 
         # Check for logging without hive-logging
@@ -774,7 +764,6 @@ response = await pool.generate_async(
 
     def _assess_pattern_impact(self, pattern: IntegrationPattern, content: str) -> OptimizationImpact:
         """Assess the impact level of applying a pattern to the content."""
-
         # High impact patterns
         if pattern.name in ["Model Response Caching", "Robust Retry Logic"]:
             return OptimizationImpact.HIGH
@@ -794,7 +783,6 @@ response = await pool.generate_async(
 
     def _map_pattern_to_integration_type(self, pattern: IntegrationPattern) -> IntegrationType:
         """Map an integration pattern to its integration type."""
-
         type_mapping = {
             "hive-cache": IntegrationType.CACHING,
             "hive-errors": IntegrationType.ERROR_HANDLING,
@@ -809,7 +797,6 @@ response = await pool.generate_async(
 
     def _calculate_certification_impact(self, pattern: IntegrationPattern) -> float:
         """Calculate the certification score impact of applying a pattern."""
-
         # High impact patterns
         if pattern.source_package in ["hive-ai", "hive-async"]:
             return 5.0
@@ -823,7 +810,6 @@ response = await pool.generate_async(
 
     def _generate_business_value(self, pattern: IntegrationPattern) -> str:
         """Generate business value description for a pattern."""
-
         value_map = {
             "hive-cache": "Reduced API costs and improved user experience",
             "hive-errors": "Better error monitoring and faster debugging",
@@ -837,7 +823,6 @@ response = await pool.generate_async(
 
     def _get_architectural_principle(self, pattern: IntegrationPattern) -> str:
         """Get the architectural principle associated with a pattern."""
-
         principle_map = {
             "hive-cache": "Performance Optimization",
             "hive-errors": "Structured Error Handling",
@@ -852,7 +837,6 @@ response = await pool.generate_async(
 
     def _extract_component_from_path(self, file_path: str) -> str:
         """Extract component name from file path."""
-
         parts = file_path.split("/")
 
         # Look for hive-* packages
@@ -870,7 +854,6 @@ response = await pool.generate_async(
 
     async def generate_integration_report_async(self, opportunities: list[OptimizationOpportunity]) -> dict[str, Any]:
         """Generate a comprehensive cross-package integration report."""
-
         if not opportunities:
             return {"summary": "No cross-package integration opportunities found", "total_opportunities": 0}
 
@@ -930,7 +913,6 @@ response = await pool.generate_async(
 
     def _calculate_total_effort_hours(self, opportunities: list[OptimizationOpportunity]) -> float:
         """Calculate total implementation effort in hours."""
-
         total_hours = 0.0
 
         for opp in opportunities:

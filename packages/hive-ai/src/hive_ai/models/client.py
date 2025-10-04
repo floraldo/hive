@@ -1,5 +1,4 @@
-"""
-Unified client for AI model interactions across providers.
+"""Unified client for AI model interactions across providers.
 
 Provides consistent interface for all AI operations with
 built-in resilience, cost tracking, and observability.
@@ -24,8 +23,7 @@ logger = get_logger(__name__)
 
 
 class ModelClient:
-    """
-    Unified client for AI model operations.
+    """Unified client for AI model operations.
 
     Provides consistent interface across all providers with
     resilience patterns, cost management, and metrics collection.
@@ -83,8 +81,7 @@ class ModelClient:
         max_tokens: int | None = None,
         **kwargs,
     ) -> ModelResponse:
-        """
-        Generate completion from AI model.
+        """Generate completion from AI model.
 
         Args:
             prompt: Input prompt for generation,
@@ -100,6 +97,7 @@ class ModelClient:
             ModelError: Model or provider errors,
             CostLimitError: Cost limit exceeded,
             ModelUnavailableError: Model not available,
+
         """
         model_name = model or self.config.default_model,
         model_config = self.registry.get_model_config(model_name)
@@ -179,10 +177,10 @@ class ModelClient:
                 success=False,
             )
 
-            logger.error(f"Model generation failed: {model_name} ({latency_ms}ms) - {str(e)}")
+            logger.error(f"Model generation failed: {model_name} ({latency_ms}ms) - {e!s}")
 
             raise ModelError(
-                f"Generation failed for model '{model_name}': {str(e)}",
+                f"Generation failed for model '{model_name}': {e!s}",
                 model=model_name,
                 provider=model_config.provider,
             ) from e
@@ -195,8 +193,7 @@ class ModelClient:
         max_tokens: int | None = None,
         **kwargs,
     ) -> AsyncIterable[str]:
-        """
-        Generate streaming completion from AI model.
+        """Generate streaming completion from AI model.
 
         Args:
             prompt: Input prompt for generation,
@@ -212,6 +209,7 @@ class ModelClient:
             ModelError: Model or provider errors,
             CostLimitError: Cost limit exceeded,
             ModelUnavailableError: Model not available,
+
         """
         model_name = model or self.config.default_model,
         model_config = self.registry.get_model_config(model_name)
@@ -270,10 +268,10 @@ class ModelClient:
                 success=False,
             )
 
-            logger.error(f"Streaming generation failed: {model_name} - {str(e)}")
+            logger.error(f"Streaming generation failed: {model_name} - {e!s}")
 
             raise ModelError(
-                f"Streaming generation failed for model '{model_name}': {str(e)}",
+                f"Streaming generation failed for model '{model_name}': {e!s}",
                 model=model_name,
                 provider=model_config.provider,
             ) from e

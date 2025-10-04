@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Run the Queen orchestrator as a module with proper Python paths.
+"""Run the Queen orchestrator as a module with proper Python paths.
 This is the recommended way to run Queen on Windows.
 """
 

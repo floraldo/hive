@@ -1,5 +1,4 @@
-"""
-Visualization utilities for the EcoSystemiser dashboard
+"""Visualization utilities for the EcoSystemiser dashboard
 """
 
 from __future__ import annotations
@@ -16,8 +15,7 @@ def create_comparison_plot(
     variables: list[str],
     labels: tuple[str, str] = ("Dataset 1", "Dataset 2"),
 ) -> go.Figure:
-    """
-    Create a comparison plot between two datasets.
+    """Create a comparison plot between two datasets.
 
     Args:
         df1: First dataset
@@ -27,6 +25,7 @@ def create_comparison_plot(
 
     Returns:
         Plotly figure with comparison plots
+
     """
     fig = go.Figure()
 
@@ -62,8 +61,7 @@ def create_comparison_plot(
 
 
 def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D") -> go.Figure:
-    """
-    Create a heatmap visualization for a single variable.
+    """Create a heatmap visualization for a single variable.
 
     Args:
         df: Input dataframe with time index
@@ -72,6 +70,7 @@ def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D")
 
     Returns:
         Plotly heatmap figure
+
     """
     # Resample data if needed
     if time_resolution != df.index.freq:
@@ -112,14 +111,14 @@ def create_heatmap(df: pd.DataFrame, variable: str, time_resolution: str = "1D")
 
 
 def create_correlation_matrix(df: pd.DataFrame) -> go.Figure:
-    """
-    Create a correlation matrix heatmap for all numeric variables.
+    """Create a correlation matrix heatmap for all numeric variables.
 
     Args:
         df: Input dataframe
 
     Returns:
         Plotly correlation matrix figure
+
     """
     # Calculate correlation matrix
     numeric_cols = df.select_dtypes(include=[np.number]).columns,
@@ -152,14 +151,14 @@ def create_correlation_matrix(df: pd.DataFrame) -> go.Figure:
 
 
 def format_statistics_table(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Format a statistics table with proper units and formatting.
+    """Format a statistics table with proper units and formatting.
 
     Args:
         df: Raw dataframe with climate data
 
     Returns:
         Formatted statistics dataframe
+
     """
     # Get basic statistics
     stats = df.describe().T
@@ -186,14 +185,14 @@ def format_statistics_table(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_wind_rose(df: pd.DataFrame) -> go.Figure | None:
-    """
-    Create a wind rose plot if wind data is available.
+    """Create a wind rose plot if wind data is available.
 
     Args:
         df: Dataframe with wind_speed and wind_dir columns
 
     Returns:
         Plotly wind rose figure or None if data unavailable
+
     """
     if "wind_speed" not in df.columns or "wind_dir" not in df.columns:
         return None
@@ -242,8 +241,7 @@ def create_wind_rose(df: pd.DataFrame) -> go.Figure | None:
 
 
 def create_daily_profile(df: pd.DataFrame, variables: list[str], aggregation: str = "mean") -> go.Figure:
-    """
-    Create average daily profiles for selected variables.
+    """Create average daily profiles for selected variables.
 
     Args:
         df: Input dataframe with hourly or sub-hourly data
@@ -252,6 +250,7 @@ def create_daily_profile(df: pd.DataFrame, variables: list[str], aggregation: st
 
     Returns:
         Plotly figure with daily profiles
+
     """
     # Extract hour of day
     df_hourly = df.copy()

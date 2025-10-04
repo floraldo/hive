@@ -1,5 +1,4 @@
-"""
-Execution Plan Operations
+"""Execution Plan Operations
 
 Operations for managing execution plans and subtask dependencies.
 These functions support multi-step task orchestration with dependency tracking.
@@ -17,8 +16,7 @@ logger = get_logger(__name__)
 def create_planned_subtasks_from_plan(
     plan_id: str,
 ) -> int:
-    """
-    Create executable subtasks in the tasks table from an execution plan.
+    """Create executable subtasks in the tasks table from an execution plan.
 
     This bridges the gap between planning and execution by converting
     an execution plan into concrete, executable subtasks with dependency tracking.
@@ -32,6 +30,7 @@ def create_planned_subtasks_from_plan(
     Example:
         >>> count = create_planned_subtasks_from_plan("plan-123")
         >>> print(f"Created {count} subtasks")
+
     """
     import json
     import uuid
@@ -71,7 +70,7 @@ def create_planned_subtasks_from_plan(
                             "plan_id": plan_id,
                             "subtask_id": subtask.get("id"),
                             "dependencies": subtask.get("dependencies", []),
-                        }
+                        },
                     ),
                 ),
             )
@@ -82,8 +81,7 @@ def create_planned_subtasks_from_plan(
 
 
 def get_execution_plan_status(plan_id: str) -> str | None:
-    """
-    Get the status of an execution plan.
+    """Get the status of an execution plan.
 
     Args:
         plan_id: The execution plan ID
@@ -96,6 +94,7 @@ def get_execution_plan_status(plan_id: str) -> str | None:
         >>> status = get_execution_plan_status("plan-123")
         >>> if status == "in_progress":
         ...     print("Plan is currently executing")
+
     """
     from ..database import get_connection
 
@@ -106,8 +105,7 @@ def get_execution_plan_status(plan_id: str) -> str | None:
 
 
 def check_subtask_dependencies(task_id: str) -> bool:
-    """
-    Check if all dependencies for a planned subtask have been satisfied.
+    """Check if all dependencies for a planned subtask have been satisfied.
 
     A subtask is ready for execution when all its dependency tasks
     have completed successfully.
@@ -123,6 +121,7 @@ def check_subtask_dependencies(task_id: str) -> bool:
         ...     print("Subtask is ready for execution")
         ... else:
         ...     print("Waiting for dependencies")
+
     """
     import json
 
@@ -160,8 +159,7 @@ def check_subtask_dependencies(task_id: str) -> bool:
 
 
 def get_next_planned_subtask(plan_id: str) -> dict[str, Any] | None:
-    """
-    Get the next subtask from a plan that's ready for execution.
+    """Get the next subtask from a plan that's ready for execution.
 
     This returns the highest priority subtask that:
     - Is in 'queued' status
@@ -180,6 +178,7 @@ def get_next_planned_subtask(plan_id: str) -> dict[str, Any] | None:
         ...     print(f"Next task: {next_task['title']}")
         ... else:
         ...     print("No tasks ready or plan complete")
+
     """
     import json
 
@@ -209,8 +208,7 @@ def get_next_planned_subtask(plan_id: str) -> dict[str, Any] | None:
 
 
 def mark_plan_execution_started(plan_id: str) -> bool:
-    """
-    Mark an execution plan as being executed.
+    """Mark an execution plan as being executed.
 
     This transitions the plan from 'pending' to 'in_progress' status.
 
@@ -222,6 +220,7 @@ def mark_plan_execution_started(plan_id: str) -> bool:
 
     Example:
         >>> success = mark_plan_execution_started("plan-123")
+
     """
     from ..database import transaction
 
@@ -242,8 +241,7 @@ def mark_plan_execution_started(plan_id: str) -> bool:
 
 
 def check_subtask_dependencies_batch(task_ids: list[str]) -> dict[str, bool]:
-    """
-    Batch check dependencies for multiple tasks.
+    """Batch check dependencies for multiple tasks.
 
     Performance: 60% faster than individual checks.
 
@@ -256,6 +254,7 @@ def check_subtask_dependencies_batch(task_ids: list[str]) -> dict[str, bool]:
     Example:
         >>> results = check_subtask_dependencies_batch(["task-1", "task-2", "task-3"])
         >>> ready_tasks = [tid for tid, ready in results.items() if ready]
+
     """
     results = {}
     for task_id in task_ids:
@@ -264,8 +263,7 @@ def check_subtask_dependencies_batch(task_ids: list[str]) -> dict[str, bool]:
 
 
 def get_execution_plan_status_cached(plan_id: str) -> str | None:
-    """
-    Get execution plan status with caching.
+    """Get execution plan status with caching.
 
     Performance: 25% faster with cache hits.
 
@@ -277,6 +275,7 @@ def get_execution_plan_status_cached(plan_id: str) -> str | None:
 
     Example:
         >>> status = get_execution_plan_status_cached("plan-123")
+
     """
     # For now, just call the regular function
     # Caching can be added later with hive-cache package
@@ -284,11 +283,11 @@ def get_execution_plan_status_cached(plan_id: str) -> str | None:
 
 
 __all__ = [
+    "check_subtask_dependencies",
+    "check_subtask_dependencies_batch",
     "create_planned_subtasks_from_plan",
     "get_execution_plan_status",
-    "check_subtask_dependencies",
+    "get_execution_plan_status_cached",
     "get_next_planned_subtask",
     "mark_plan_execution_started",
-    "check_subtask_dependencies_batch",
-    "get_execution_plan_status_cached",
 ]

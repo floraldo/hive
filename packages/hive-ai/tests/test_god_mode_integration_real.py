@@ -1,5 +1,4 @@
-"""
-Real integration tests for God Mode (MCP + RAG).
+"""Real integration tests for God Mode (MCP + RAG).
 
 NO MOCKS - These are real integration tests that validate actual functionality.
 Tests use testing_mode=True to allow controlled responses for testing without

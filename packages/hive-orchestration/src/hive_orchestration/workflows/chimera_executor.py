@@ -1,5 +1,4 @@
-"""
-Chimera Workflow Executor - Autonomous TDD Loop Execution
+"""Chimera Workflow Executor - Autonomous TDD Loop Execution
 
 Executes Chimera workflow state machine through orchestrator integration.
 """
@@ -18,8 +17,7 @@ logger = get_logger(__name__)
 
 
 class ChimeraExecutor:
-    """
-    Execute Chimera workflow through orchestrator agent coordination.
+    """Execute Chimera workflow through orchestrator agent coordination.
 
     Manages workflow state transitions and agent delegation for autonomous
     E2E test-driven development loop.
@@ -27,14 +25,15 @@ class ChimeraExecutor:
     Example:
         executor = ChimeraExecutor(agents_registry)
         result = await executor.execute_phase(task, workflow)
+
     """
 
     def __init__(self, agents_registry: dict[str, Any] | None = None) -> None:
-        """
-        Initialize Chimera executor.
+        """Initialize Chimera executor.
 
         Args:
             agents_registry: Registry of available agents for task execution
+
         """
         self.logger = logger
         self.agents = agents_registry or {}
@@ -46,8 +45,7 @@ class ChimeraExecutor:
         task: Task,
         max_iterations: int = 10,
     ) -> ChimeraWorkflow:
-        """
-        Execute complete Chimera workflow until terminal state.
+        """Execute complete Chimera workflow until terminal state.
 
         Args:
             task: Orchestrator task containing workflow state
@@ -60,13 +58,14 @@ class ChimeraExecutor:
             workflow = await executor.execute_workflow(task)
             if workflow.current_phase == ChimeraPhase.COMPLETE:
                 print("Feature delivered!")
+
         """
         # Load workflow from task
         workflow = ChimeraWorkflow(**task.workflow)
 
         self.logger.info(
             f"Starting Chimera workflow: {workflow.feature_description} "
-            f"(phase: {workflow.current_phase})"
+            f"(phase: {workflow.current_phase})",
         )
 
         iterations = 0
@@ -87,7 +86,7 @@ class ChimeraExecutor:
 
             self.logger.info(
                 f"Chimera workflow transitioned: {workflow.current_phase} "
-                f"(iteration {iterations + 1}/{max_iterations})"
+                f"(iteration {iterations + 1}/{max_iterations})",
             )
 
             iterations += 1
@@ -96,17 +95,17 @@ class ChimeraExecutor:
         if workflow.current_phase == ChimeraPhase.COMPLETE:
             task.status = TaskStatus.COMPLETED
             self.logger.info(
-                f"Chimera workflow COMPLETE: {workflow.feature_description}"
+                f"Chimera workflow COMPLETE: {workflow.feature_description}",
             )
         elif workflow.current_phase == ChimeraPhase.FAILED:
             task.status = TaskStatus.FAILED
             self.logger.error(
-                f"Chimera workflow FAILED: {workflow.error_message}"
+                f"Chimera workflow FAILED: {workflow.error_message}",
             )
         else:
             task.status = TaskStatus.IN_PROGRESS
             self.logger.warning(
-                f"Chimera workflow incomplete after {max_iterations} iterations"
+                f"Chimera workflow incomplete after {max_iterations} iterations",
             )
 
         return workflow
@@ -116,8 +115,7 @@ class ChimeraExecutor:
         task: Task,
         workflow: ChimeraWorkflow,
     ) -> dict[str, Any]:
-        """
-        Execute single workflow phase.
+        """Execute single workflow phase.
 
         Args:
             task: Orchestrator task
@@ -130,6 +128,7 @@ class ChimeraExecutor:
             result = await executor.execute_phase(task, workflow)
             if result["status"] == "success":
                 workflow.transition_to(next_phase, result)
+
         """
         # Get next action from workflow state machine
         action = workflow.get_next_action()
@@ -144,7 +143,7 @@ class ChimeraExecutor:
 
         self.logger.info(
             f"Executing phase {workflow.current_phase}: "
-            f"{agent_name}.{action_name}()"
+            f"{agent_name}.{action_name}()",
         )
 
         # Execute agent action
@@ -158,7 +157,7 @@ class ChimeraExecutor:
 
             self.logger.info(
                 f"Phase {workflow.current_phase} completed: "
-                f"{result.get('status', 'unknown')}"
+                f"{result.get('status', 'unknown')}",
             )
 
             return result
@@ -182,8 +181,7 @@ class ChimeraExecutor:
         params: dict[str, Any],
         timeout: int,
     ) -> dict[str, Any]:
-        """
-        Execute agent action with timeout.
+        """Execute agent action with timeout.
 
         Args:
             agent_name: Agent identifier (e.g., "e2e-tester-agent")
@@ -197,6 +195,7 @@ class ChimeraExecutor:
         Raises:
             TimeoutError: If action exceeds timeout
             ValueError: If agent or action not found
+
         """
         # Get agent from registry
         agent = self.agents.get(agent_name)
@@ -230,8 +229,7 @@ class ChimeraExecutor:
         workflow: ChimeraWorkflow,
         phase_result: dict[str, Any],
     ) -> ChimeraPhase:
-        """
-        Determine next workflow phase based on current result.
+        """Determine next workflow phase based on current result.
 
         Args:
             workflow: Current workflow state
@@ -243,6 +241,7 @@ class ChimeraExecutor:
         Example:
             next_phase = executor._determine_next_phase(workflow, result)
             # Returns on_success or on_failure based on result status
+
         """
         state_machine = workflow.get_state_machine()
         current_state = state_machine["states"][workflow.current_phase]
@@ -268,8 +267,7 @@ async def create_and_execute_chimera_workflow(
     staging_url: str | None = None,
     agents_registry: dict[str, Any] | None = None,
 ) -> ChimeraWorkflow:
-    """
-    Helper function to create and execute Chimera workflow.
+    """Helper function to create and execute Chimera workflow.
 
     Args:
         feature_description: Natural language feature description
@@ -286,6 +284,7 @@ async def create_and_execute_chimera_workflow(
             target_url="https://myapp.dev/login",
             staging_url="https://staging.myapp.dev/login"
         )
+
     """
     from .chimera import create_chimera_task
 

@@ -17,7 +17,7 @@ class TestLoadBalancer:
     def test_balancer_strategy_configuration(self):
         """Test load balancer strategy configuration."""
         from hive_service_discovery.load_balancer import LoadBalancer
-        strategies = ['round_robin', 'weighted', 'least_connections', 'random']
+        strategies = ["round_robin", "weighted", "least_connections", "random"]
         for strategy in strategies:
             balancer = LoadBalancer(strategy=strategy)
             assert balancer is not None
@@ -28,8 +28,8 @@ class TestLoadBalancer:
         """Test service selection from available instances."""
         from hive_service_discovery.load_balancer import LoadBalancer
         balancer = LoadBalancer()
-        services = [{'id': 'svc-1', 'host': '127.0.0.1', 'port': 8001}, {'id': 'svc-2', 'host': '127.0.0.1', 'port': 8002}, {'id': 'svc-3', 'host': '127.0.0.1', 'port': 8003}]
-        if hasattr(balancer, 'select_service'):
+        services = [{"id": "svc-1", "host": "127.0.0.1", "port": 8001}, {"id": "svc-2", "host": "127.0.0.1", "port": 8002}, {"id": "svc-3", "host": "127.0.0.1", "port": 8003}]
+        if hasattr(balancer, "select_service"):
             selected = await balancer.select_service(services)
             assert selected is not None or selected is None
 
@@ -37,9 +37,9 @@ class TestLoadBalancer:
     def test_round_robin_strategy(self):
         """Test round robin load balancing strategy."""
         from hive_service_discovery.load_balancer import LoadBalancer
-        balancer = LoadBalancer(strategy='round_robin')
-        services = [{'id': 'svc-1', 'weight': 1}, {'id': 'svc-2', 'weight': 1}, {'id': 'svc-3', 'weight': 1}]
-        if hasattr(balancer, 'select_service'):
+        balancer = LoadBalancer(strategy="round_robin")
+        services = [{"id": "svc-1", "weight": 1}, {"id": "svc-2", "weight": 1}, {"id": "svc-3", "weight": 1}]
+        if hasattr(balancer, "select_service"):
             for _ in range(6):
                 selected = balancer.select_service(services)
                 assert selected is not None or selected is None
@@ -50,26 +50,26 @@ class TestLoadBalancer:
         """Test health-aware load balancing."""
         from hive_service_discovery.load_balancer import LoadBalancer
         balancer = LoadBalancer(health_aware=True)
-        services = [{'id': 'svc-1', 'healthy': True}, {'id': 'svc-2', 'healthy': False}, {'id': 'svc-3', 'healthy': True}]
-        if hasattr(balancer, 'select_healthy_service'):
+        services = [{"id": "svc-1", "healthy": True}, {"id": "svc-2", "healthy": False}, {"id": "svc-3", "healthy": True}]
+        if hasattr(balancer, "select_healthy_service"):
             selected = await balancer.select_healthy_service(services)
             if selected:
-                assert selected.get('healthy', True) is True
+                assert selected.get("healthy", True) is True
 
     @pytest.mark.core
     def test_weighted_balancing(self):
         """Test weighted load balancing."""
         from hive_service_discovery.load_balancer import LoadBalancer
-        balancer = LoadBalancer(strategy='weighted')
-        services = [{'id': 'svc-1', 'weight': 1}, {'id': 'svc-2', 'weight': 3}, {'id': 'svc-3', 'weight': 1}]
-        if hasattr(balancer, 'select_service'):
+        balancer = LoadBalancer(strategy="weighted")
+        services = [{"id": "svc-1", "weight": 1}, {"id": "svc-2", "weight": 3}, {"id": "svc-3", "weight": 1}]
+        if hasattr(balancer, "select_service"):
             selections = []
             for _ in range(100):
                 selected = balancer.select_service(services)
                 if selected:
-                    selections.append(selected['id'])
+                    selections.append(selected["id"])
             if selections:
-                svc2_count = selections.count('svc-2')
+                svc2_count = selections.count("svc-2")
                 assert svc2_count >= 0
 
     @pytest.mark.core
@@ -78,7 +78,7 @@ class TestLoadBalancer:
         """Test circuit breaker integration."""
         from hive_service_discovery.load_balancer import LoadBalancer
         balancer = LoadBalancer(circuit_breaker=True)
-        if hasattr(balancer, 'is_circuit_open'):
-            service_id = ('failing-service',)
+        if hasattr(balancer, "is_circuit_open"):
+            service_id = ("failing-service",)
             is_open = await balancer.is_circuit_open(service_id)
             assert isinstance(is_open, bool) or is_open is None

@@ -23,8 +23,7 @@ logger = get_logger(__name__)
 
 
 class PlannerError(BaseError):
-    """
-    Base error class for all AI Planner-specific errors.
+    """Base error class for all AI Planner-specific errors.
 
     Extends the generic BaseError with planning context and additional
     metadata specific to the AI Planner service.
@@ -42,8 +41,7 @@ class PlannerError(BaseError):
         recovery_suggestions: list[str] | None = None,
         original_error: Exception | None = None,
     ):
-        """
-        Initialize an AI Planner error with planning context.
+        """Initialize an AI Planner error with planning context.
 
         Args:
             message: Human-readable error message,
@@ -55,6 +53,7 @@ class PlannerError(BaseError):
             details: Additional error details,
             recovery_suggestions: Steps to recover from error,
             original_error: Original exception if wrapped,
+
         """
         # Build details with AI Planner context,
         planner_details = details or {}
@@ -280,8 +279,7 @@ class DatabaseConnectionError(BaseError):
 
 
 class PlannerErrorReporter(BaseErrorReporter):
-    """
-    AI Planner-specific error reporter.
+    """AI Planner-specific error reporter.
 
     Extends the base error reporter with planning context tracking
     and AI Planner-specific reporting patterns.
@@ -300,8 +298,7 @@ class PlannerErrorReporter(BaseErrorReporter):
         context: dict[str, Any] | None = None,
         additional_info: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Report an error with AI Planner-specific handling.
+        """Report an error with AI Planner-specific handling.
 
         Args:
             error: The error to report,
@@ -310,6 +307,7 @@ class PlannerErrorReporter(BaseErrorReporter):
 
         Returns:
             Error ID for tracking,
+
         """
         # Generate error ID,
         error_id = str(uuid.uuid4())
@@ -437,22 +435,22 @@ def with_recovery(strategy: RecoveryStrategy, operation: Callable[[], Any]) -> A
 
 # Export main classes and functions
 __all__ = [
-    # Base classes,
-    "PlannerError",
-    # Task processing errors,
-    "TaskProcessingError",
-    "TaskValidationError",
-    "TaskQueueError",
-    # Plan generation errors,
-    "PlanGenerationError",
     "ClaudeServiceError",
-    "PlanValidationError",
     # Database errors,
     "DatabaseConnectionError",
     # Recovery strategies,
     "ExponentialBackoffStrategy",
-    "with_recovery",
+    # Plan generation errors,
+    "PlanGenerationError",
+    "PlanValidationError",
+    # Base classes,
+    "PlannerError",
     # Reporter,
     "PlannerErrorReporter",
+    # Task processing errors,
+    "TaskProcessingError",
+    "TaskQueueError",
+    "TaskValidationError",
     "get_error_reporter",
+    "with_recovery",
 ]

@@ -24,6 +24,7 @@ class DemandFileAdapter:
 
         Returns:
             Dictionary of profile arrays,
+
         """
         profiles = ({},)
         file_path = config.get("file_path")

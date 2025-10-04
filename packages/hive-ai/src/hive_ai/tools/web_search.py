@@ -1,5 +1,4 @@
-"""
-Exa web search integration for real-time knowledge retrieval.
+"""Exa web search integration for real-time knowledge retrieval.
 
 Provides access to the Exa API for high-quality web search results
 that can be archived to RAG for future retrieval.
@@ -46,8 +45,7 @@ class ExaSearchResult:
 
 
 class ExaSearchClient:
-    """
-    Client for Exa web search API.
+    """Client for Exa web search API.
 
     Provides high-quality web search results with full text extraction
     for knowledge augmentation and RAG archival.
@@ -63,6 +61,7 @@ class ExaSearchClient:
         for result in results:
             print(f"{result.title}: {result.url}")
         ```
+
     """
 
     def __init__(self, api_key: str | None = None, base_url: str | None = None):
@@ -74,12 +73,13 @@ class ExaSearchClient:
 
         Raises:
             ValueError: If API key is not provided and not in environment.
+
         """
         self.api_key = api_key or os.getenv("EXA_API_KEY")
         if not self.api_key:
             raise ValueError(
                 "Exa API key required. Provide via api_key parameter or EXA_API_KEY "
-                "environment variable."
+                "environment variable.",
             )
 
         self.base_url = base_url or "https://api.exa.ai"
@@ -102,8 +102,7 @@ class ExaSearchClient:
         category: str | None = None,
         start_published_date: str | None = None,
     ) -> list[ExaSearchResult]:
-        """
-        Execute web search via Exa API.
+        """Execute web search via Exa API.
 
         Args:
             query: Search query string.
@@ -119,6 +118,7 @@ class ExaSearchClient:
         Raises:
             httpx.HTTPStatusError: If API request fails.
             ValueError: If num_results is out of range.
+
         """
         if not 1 <= num_results <= 20:
             raise ValueError("num_results must be between 1 and 20")
@@ -177,8 +177,7 @@ class ExaSearchClient:
         num_results: int = 5,
         include_text: bool = True,
     ) -> list[ExaSearchResult]:
-        """
-        Find content similar to a given URL.
+        """Find content similar to a given URL.
 
         Args:
             url: URL to find similar content for.
@@ -191,6 +190,7 @@ class ExaSearchClient:
         Raises:
             httpx.HTTPStatusError: If API request fails.
             ValueError: If num_results is out of range.
+
         """
         if not 1 <= num_results <= 20:
             raise ValueError("num_results must be between 1 and 20")

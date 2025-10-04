@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal maintenance tooling.
 
-"""
-Automated Repository Hygiene Scanner
+"""Automated Repository Hygiene Scanner
 
 Proactive maintenance automation for repository health:
 - Stale branch detection and reporting
@@ -231,7 +229,7 @@ class RepositoryHygieneScanner:
         try:
             result = subprocess.run(
                 ["git", "blame", "-L", f"{line_num},{line_num}", str(file_path)],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 cwd=self.repo_root,
             )

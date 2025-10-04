@@ -72,8 +72,7 @@ class PowerDemandPhysicsSimple(BaseDemandPhysics):
     """
 
     def rule_based_demand(self, t: int, profile_value: float) -> float:
-        """
-        Implement SIMPLE power demand physics with direct profile scaling.,
+        """Implement SIMPLE power demand physics with direct profile scaling.,
 
         This matches the exact logic from BaseDemandComponent for numerical equivalence.,
         """
@@ -96,8 +95,7 @@ class PowerDemandPhysicsStandard(PowerDemandPhysicsSimple):
     """
 
     def rule_based_demand(self, t: int, profile_value: float) -> float:
-        """
-        Implement STANDARD power demand physics with power factor considerations.,
+        """Implement STANDARD power demand physics with power factor considerations.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -134,8 +132,7 @@ class PowerDemandOptimizationSimple(BaseDemandOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for power demand optimization.,
+        """Create SIMPLE CVXPY constraints for power demand optimization.,
 
         Returns constraints for fixed power demand without flexibility.,
         """
@@ -165,8 +162,7 @@ class PowerDemandOptimizationStandard(PowerDemandOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for power demand optimization.,
+        """Create STANDARD CVXPY constraints for power demand optimization.,
 
         Currently same as SIMPLE but logs power factor for awareness.,
         """
@@ -246,16 +242,15 @@ class PowerDemand(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return PowerDemandPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return PowerDemandPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return PowerDemandPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return PowerDemandPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for PowerDemand: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for PowerDemand: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -263,20 +258,18 @@ class PowerDemand(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return PowerDemandOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return PowerDemandOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return PowerDemandOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return PowerDemandOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for PowerDemand optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for PowerDemand optimization: {fidelity}")
 
     def rule_based_demand(self, t: int) -> float:
-        """
-        Delegate to physics strategy for demand calculation.,
+        """Delegate to physics strategy for demand calculation.,
 
         This maintains the same interface as BaseDemandComponent but,
         delegates the actual physics calculation to the strategy object.,

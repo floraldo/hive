@@ -1,5 +1,4 @@
-"""
-Full Hive Codebase Indexing for RAG System - Standalone Script.
+"""Full Hive Codebase Indexing for RAG System - Standalone Script.
 
 This script indexes all Python files and architectural memory (markdown docs)
 across the entire Hive platform for RAG-enhanced code review.
@@ -80,7 +79,7 @@ class CodebaseIndexer:
         self.stats["indexing_time_sec"] = time.time() - start_time
 
         logger.info(
-            f"Full codebase indexing complete: {len(all_chunks)} chunks in {self.stats['indexing_time_sec']:.1f}s"
+            f"Full codebase indexing complete: {len(all_chunks)} chunks in {self.stats['indexing_time_sec']:.1f}s",
         )
 
         return self.stats
@@ -171,7 +170,7 @@ class CodebaseIndexer:
         for query in test_queries[:num_samples]:
             result = self.retriever.retrieve_with_context(query, k=3)
             logger.info(
-                f"Spot-check query: '{query}' -> {len(result.code_patterns)} patterns retrieved in {result.retrieval_time_ms:.0f}ms"
+                f"Spot-check query: '{query}' -> {len(result.code_patterns)} patterns retrieved in {result.retrieval_time_ms:.0f}ms",
             )
 
             if result.code_patterns:

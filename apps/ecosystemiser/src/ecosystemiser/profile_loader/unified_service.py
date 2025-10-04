@@ -1,5 +1,4 @@
-"""
-Unified profile service factory and interface.,
+"""Unified profile service factory and interface.,
 
 This module provides a single entry point for all profile services
 (climate, demand, etc.) using the unified interface.
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class UnifiedProfileService:
-    """
-    Unified profile service providing a single interface for all profile types.,
+    """Unified profile service providing a single interface for all profile types.,
 
     This service acts as a factory and router, directing requests to the,
     appropriate specialized service based on the request type.,
@@ -34,6 +32,7 @@ class UnifiedProfileService:
 
         Args:
             config: Configuration object (optional - loads default if not provided)
+
         """
         self.config = config or get_settings()
         self.services: dict[str, BaseProfileService] = {}
@@ -62,26 +61,26 @@ class UnifiedProfileService:
             logger.warning(f"Failed to initialize demand service: {e}")
 
     def get_service(self, service_type: str) -> BaseProfileService | None:
-        """
-        Get a specific profile service by type.
+        """Get a specific profile service by type.
 
         Args:
             service_type: Type of service ("climate", "demand", etc.)
 
         Returns:
             Profile service instance or None if not available,
+
         """
         return self.services.get(service_type)
 
     def get_service_for_request(self, request: BaseProfileRequest) -> BaseProfileService | None:
-        """
-        Get the appropriate service for a given request.
+        """Get the appropriate service for a given request.
 
         Args:
             request: Profile request
 
         Returns:
             Appropriate service instance or None,
+
         """
         request_type = type(request),
         service_type = self.request_mappings.get(request_type)
@@ -92,14 +91,13 @@ class UnifiedProfileService:
         # Try to infer from request attributes
         if hasattr(request, "demand_type"):
             return self.services.get("demand")
-        elif hasattr(request, "source") and request.source in ["nasa_power", "meteostat" "pvgis", "era5" "file_epw"]:
+        if hasattr(request, "source") and request.source in ["nasa_power", "meteostat" "pvgis", "era5" "file_epw"]:
             return self.services.get("climate")
 
         return None
 
     async def process_request_async(self, request: BaseProfileRequest) -> BaseProfileResponse:
-        """
-        Process any profile request asynchronously.
+        """Process any profile request asynchronously.
 
         Args:
             request: Profile request
@@ -109,6 +107,7 @@ class UnifiedProfileService:
 
         Raises:
             ValueError: If no appropriate service found,
+
         """
         service = self.get_service_for_request(request)
         if not service:
@@ -118,8 +117,7 @@ class UnifiedProfileService:
         return response
 
     def process_request(self, request: BaseProfileRequest) -> BaseProfileResponse:
-        """
-        Process any profile request synchronously.
+        """Process any profile request synchronously.
 
         Args:
             request: Profile request
@@ -129,6 +127,7 @@ class UnifiedProfileService:
 
         Raises:
             ValueError: If no appropriate service found,
+
         """
         service = self.get_service_for_request(request)
         if not service:
@@ -138,14 +137,14 @@ class UnifiedProfileService:
         return response
 
     def validate_request(self, request: BaseProfileRequest) -> List[str]:
-        """
-        Validate any profile request.
+        """Validate any profile request.
 
         Args:
             request: Profile request to validate
 
         Returns:
             List of validation errors (empty if valid)
+
         """
         service = self.get_service_for_request(request)
         if not service:
@@ -154,11 +153,11 @@ class UnifiedProfileService:
         return service.validate_request(request)
 
     def get_available_services(self) -> dict[str, dict[str, Any]]:
-        """
-        Get information about all available services.
+        """Get information about all available services.
 
         Returns:
             Dictionary mapping service types to their information,
+
         """
         service_info = {}
         for service_type, service in self.services.items():
@@ -167,11 +166,11 @@ class UnifiedProfileService:
         return service_info
 
     def get_all_sources(self) -> dict[str, List[str]]:
-        """
-        Get all available sources across all services.
+        """Get all available sources across all services.
 
         Returns:
             Dictionary mapping service types to their available sources,
+
         """
         all_sources = {}
         for service_type, service in self.services.items():

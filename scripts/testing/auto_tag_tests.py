@@ -84,7 +84,7 @@ def get_marker_for_path(test_file: Path) -> str | None:
 
     if "packages" in parts:
         return CORE_MARKER
-    elif "apps" in parts or "integration_tests" in parts:
+    if "apps" in parts or "integration_tests" in parts:
         return CRUST_MARKER
     return None
 
@@ -117,6 +117,7 @@ def process_test_file(test_file: Path, marker_name: str, dry_run: bool = False) 
 
     Returns:
         (modified, status_message)
+
     """
     try:
         content = test_file.read_text(encoding="utf-8")
@@ -222,9 +223,8 @@ def main():
         if stats["untagged"] > 0:
             print("\n[FAIL] Some tests are not tagged. Run without --verify to fix.")
             return 1
-        else:
-            print("\n[OK] All tests are properly tagged!")
-            return 0
+        print("\n[OK] All tests are properly tagged!")
+        return 0
 
     print("Auto-tagging test files...")
     if args.dry_run:

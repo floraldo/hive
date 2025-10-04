@@ -1,5 +1,4 @@
-"""
-hive-browser - Browser automation toolkit using Playwright.
+"""hive-browser - Browser automation toolkit using Playwright.
 
 Provides high-level API for browser automation, enabling agents to interact
 with web UIs, read documentation, and perform end-to-end testing.
@@ -11,6 +10,7 @@ Example:
     page = browser.goto_url("https://example.com")
     browser.click_element(page, "button#submit")
     browser.close()
+
 """
 
 from .client import BrowserClient

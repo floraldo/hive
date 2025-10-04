@@ -1,9 +1,7 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this module use sys.executable or controlled CLI tools
 # with hardcoded, trusted arguments only. No user input is passed to subprocess.
 
-"""
-Robust Claude CLI bridge for AI Planning
+"""Robust Claude CLI bridge for AI Planning
 Production-ready implementation for intelligent task decomposition and workflow generation
 """
 
@@ -98,6 +96,7 @@ class RobustClaudePlannerBridge:
 
         Args:
             mock_mode: If True, use mock responses instead of calling Claude
+
         """
         self.mock_mode = mock_mode
         if mock_mode:
@@ -124,7 +123,7 @@ class RobustClaudePlannerBridge:
                 return str(path)
 
         # Try system PATH
-        result = subprocess.run(["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True)
+        result = subprocess.run(["where" if os.name == "nt" else "which", "claude"], check=False, capture_output=True, text=True)
         claude_path = result.stdout.strip().split("\n")[0] if result.returncode == 0 else None
 
         if claude_path:
@@ -141,7 +140,6 @@ class RobustClaudePlannerBridge:
         requestor: str,
     ) -> str:
         """Create comprehensive planning prompt for Claude"""
-
         context_info = ("",)
         if context_data:
             context_info = f""",
@@ -281,7 +279,6 @@ Generate the execution plan now:"""
 
     def _create_fallback_response(self, task_description: str, error_message: str) -> dict[str, Any]:
         """Create fallback response when Claude is unavailable"""
-
         logger.warning(f"Creating fallback response due to: {error_message}")
 
         # Generate a simple, rule-based plan as fallback,
@@ -369,8 +366,7 @@ Generate the execution plan now:"""
         priority: int = 50,
         requestor: str = "system",
     ) -> dict[str, Any]:
-        """
-        Generate intelligent execution plan using Claude API
+        """Generate intelligent execution plan using Claude API
 
         Args:
             task_description: High-level task description,
@@ -380,6 +376,7 @@ Generate the execution plan now:"""
 
         Returns:
             Validated planning response or fallback on failure,
+
         """
         if self.mock_mode:
             # Return a mock response for testing,
@@ -436,7 +433,7 @@ Generate the execution plan now:"""
             logger.info(f"Calling Claude for planning: {task_description[:100]}...")
             result = subprocess.run(
                 [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=120,  # 2 minute timeout for complex planning
             )

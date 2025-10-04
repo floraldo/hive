@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AsyncAIReviewer - High-Performance Async AI Review Agent for V4.2
+"""AsyncAIReviewer - High-Performance Async AI Review Agent for V4.2
 
 Fully async AI reviewer agent with non-blocking operations, concurrent review processing
 and integration with the V4.0 async infrastructure.
@@ -43,8 +42,7 @@ class ReviewPriority(Enum):
 
 
 class AsyncReviewEngine:
-    """
-    Async version of review engine for non-blocking code analysis
+    """Async version of review engine for non-blocking code analysis
     """
 
     def __init__(self, config) -> None:
@@ -58,8 +56,7 @@ class AsyncReviewEngine:
         run_data: dict[str, Any],
         context: dict[str, Any] = None,
     ) -> dict[str, Any]:
-        """
-        Perform async code review of a completed task
+        """Perform async code review of a completed task
 
         Args:
             task: Task data from database
@@ -68,6 +65,7 @@ class AsyncReviewEngine:
 
         Returns:
             Dict containing review decision and detailed analysis
+
         """
         async with self._review_semaphore:
             task_id = task.get("id", "unknown")
@@ -80,9 +78,8 @@ class AsyncReviewEngine:
             if self.mock_mode:
                 await asyncio.sleep(review_time)
                 return await self._generate_mock_review_async(task, run_data)
-            else:
-                # TODO: Implement actual Claude-based review
-                return await self._perform_real_review_async(task, run_data, context)
+            # TODO: Implement actual Claude-based review
+            return await self._perform_real_review_async(task, run_data, context)
 
     async def _generate_mock_review_async(self, task: dict[str, Any], run_data: dict[str, Any]) -> dict[str, Any]:
         """Generate realistic mock review result"""
@@ -162,7 +159,6 @@ class AsyncReviewEngine:
         context: dict[str, Any],
     ) -> dict[str, Any]:
         """Perform real Claude-based review using async subprocess"""
-
         task_id = task.get("id", "unknown")
         task_description = task.get("instruction", task.get("description", "No description"))
 
@@ -196,7 +192,7 @@ class AsyncReviewEngine:
             return {
                 "decision": "escalate",
                 "confidence": 0.0,
-                "summary": f"Review failed: {str(e)}",
+                "summary": f"Review failed: {e!s}",
                 "feedback": "Manual review required due to Claude integration error",
                 "analysis": {
                     "code_quality": {"score": 0, "issues": [str(e)]},
@@ -248,7 +244,6 @@ class AsyncReviewEngine:
         transcript: str | None = None,
     ) -> dict[str, Any]:
         """Call Claude CLI asynchronously for code review"""
-
         # Find Claude CLI
         claude_cmd = await self._find_claude_cmd_async()
         if not claude_cmd:
@@ -327,7 +322,6 @@ class AsyncReviewEngine:
         transcript: str | None,
     ) -> str:
         """Create comprehensive prompt for Claude review"""
-
         # Prepare code context,
         code_context = ("",)
         for filename, content in code_files.items():
@@ -478,8 +472,7 @@ Respond with ONLY the JSON object, no other text."""
 
 
 class AsyncAIReviewer:
-    """
-    High-performance async AI reviewer agent with V4.2 optimizations
+    """High-performance async AI reviewer agent with V4.2 optimizations
 
     Features:
     - Non-blocking review processing

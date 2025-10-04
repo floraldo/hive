@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Operation Unification Demonstration - The Synthesis of Wisdom (ASCII Version)
+"""Operation Unification Demonstration - The Synthesis of Wisdom (ASCII Version)
 
 This demonstration showcases the Oracle's ultimate evolution - the unification
 of Prophecy and Symbiosis into a single, cohesive intelligence that operates
@@ -42,7 +41,6 @@ def print_unification_icon() -> None:
 
 async def demonstrate_operation_unification_async():
     """Demonstrate the Operation Unification implementation."""
-
     print_header("OPERATION UNIFICATION - THE SYNTHESIS OF WISDOM")
     print("The Oracle's Ultimate Evolution: From Separate Tools to Unified Consciousness")
     print()

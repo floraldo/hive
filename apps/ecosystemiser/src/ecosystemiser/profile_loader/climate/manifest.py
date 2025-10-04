@@ -21,8 +21,7 @@ def build_manifest(
     source_meta: dict,
     ds: xr.Dataset = None,
 ) -> dict[str, Any]:
-    """
-    Build manifest for climate data provenance.
+    """Build manifest for climate data provenance.
 
     Args:
         adapter_name: Name of data adapter used,
@@ -34,6 +33,7 @@ def build_manifest(
 
     Returns:
         Manifest dictionary,
+
     """
     manifest = {
         "version": "1.0",
@@ -74,14 +74,14 @@ def build_manifest(
 
 
 def hash_dataset(ds: xr.Dataset) -> str:
-    """
-    Generate stable hash of dataset content.
+    """Generate stable hash of dataset content.
 
     Args:
         ds: Dataset to hash
 
     Returns:
         SHA256 hash string,
+
     """
     hasher = hashlib.sha256()
 
@@ -114,14 +114,14 @@ def hash_dataset(ds: xr.Dataset) -> str:
 
 
 def validate_manifest(manifest: dict) -> bool:
-    """
-    Validate manifest structure.
+    """Validate manifest structure.
 
     Args:
         manifest: Manifest to validate
 
     Returns:
         True if valid,
+
     """
     required_keys = ["version", "created_at", "adapter", "request"]
 

@@ -14,21 +14,20 @@ import xarray as xr
 
 
 def aggregate_policy(var_type: Literal["state", "flux"]) -> str:
-    """
-    Get aggregation policy for variable type.
+    """Get aggregation policy for variable type.
 
     Args:
         var_type: Type of variable
 
     Returns:
         Aggregation method name,
+
     """
     if var_type == "state":
         return "mean"
-    elif var_type == "flux":
+    if var_type == "flux":
         return "sum"
-    else:
-        return "mean"
+    return "mean"
 
 
 def resample_timeseries(
@@ -36,8 +35,7 @@ def resample_timeseries(
     target_freq: str,
     policy_map: dict[str, str],
 ) -> pd.DataFrame | xr.Dataset:
-    """
-    Resample time series data with specified policies.
+    """Resample time series data with specified policies.
 
     Args:
         data: Time series data (DataFrame or Dataset),
@@ -46,6 +44,7 @@ def resample_timeseries(
 
     Returns:
         Resampled data,
+
     """
     if isinstance(data, pd.DataFrame):
         resampled = {}
@@ -66,7 +65,7 @@ def resample_timeseries(
 
         return pd.DataFrame(resampled)
 
-    elif isinstance(data, xr.Dataset):
+    if isinstance(data, xr.Dataset):
         resampled_vars = {}
 
         for var in data.data_vars:
@@ -85,13 +84,11 @@ def resample_timeseries(
 
         return xr.Dataset(resampled_vars)
 
-    else:
-        raise TypeError("Data must be pandas DataFrame or xarray Dataset")
+    raise TypeError("Data must be pandas DataFrame or xarray Dataset")
 
 
 def qc_bounds(data: pd.Series | np.ndarray, bounds: tuple, clip: bool = True) -> pd.Series | np.ndarray:
-    """
-    Apply quality control bounds to data.
+    """Apply quality control bounds to data.
 
     Args:
         data: Data to check
@@ -100,23 +97,21 @@ def qc_bounds(data: pd.Series | np.ndarray, bounds: tuple, clip: bool = True) ->
 
     Returns:
         Processed data,
+
     """
     min_val, max_val = bounds
 
     if clip:
         if isinstance(data, pd.Series):
             return data.clip(lower=min_val, upper=max_val)
-        else:
-            return np.clip(data, min_val, max_val)
-    else:
-        # Just flag out-of-bounds values
-        mask = (data >= min_val) & (data <= max_val)
-        return data, mask
+        return np.clip(data, min_val, max_val)
+    # Just flag out-of-bounds values
+    mask = (data >= min_val) & (data <= max_val)
+    return data, mask
 
 
 def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Series:
-    """
-    Fill gaps in time series data.
+    """Fill gaps in time series data.
 
     Args:
         data: Time series with gaps
@@ -125,14 +120,15 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
 
     Returns:
         Filled time series,
+
     """
     if method == "linear":
         return data.interpolate(method="linear", limit=limit)
-    elif method == "forward":
+    if method == "forward":
         return data.fillna(method="ffill", limit=limit)
-    elif method == "backward":
+    if method == "backward":
         return data.fillna(method="bfill", limit=limit)
-    elif method == "seasonal":
+    if method == "seasonal":
         # Simple seasonal filling
         month = (data.index.month,)
         hour = data.index.hour if hasattr(data.index, "hour") else 0
@@ -148,13 +144,11 @@ def gap_fill(data: pd.Series, method: str = "linear", limit: int = 6) -> pd.Seri
                     filled.iloc[i] = similar_values.median()
 
         return filled
-    else:
-        return data
+    return data
 
 
 def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
-    """
-    Set solar irradiance to zero during night hours using proper solar position calculations.,
+    """Set solar irradiance to zero during night hours using proper solar position calculations.,
 
     Uses solar elevation angle to determine if sun is above horizon.,
     Much more accurate than fixed hour-based approach.
@@ -165,6 +159,7 @@ def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
 
     Returns:
         Dataset with night values zeroed,
+
     """
     if var_name not in ds:
         return ds
@@ -184,8 +179,7 @@ def zero_night_irradiance(ds: xr.Dataset, var_name: str) -> xr.Dataset:
 
 
 def calculate_night_mask(times: pd.DatetimeIndex, lat: float) -> np.ndarray:
-    """
-    Calculate night mask using solar position calculations.
+    """Calculate night mask using solar position calculations.
 
     Args:
         times: Array of datetime values
@@ -193,6 +187,7 @@ def calculate_night_mask(times: pd.DatetimeIndex, lat: float) -> np.ndarray:
 
     Returns:
         Boolean mask where True indicates night time (sun below horizon)
+
     """
     # Convert to numpy array for vectorized operations
     times_array = times.values
@@ -208,8 +203,7 @@ def calculate_night_mask(times: pd.DatetimeIndex, lat: float) -> np.ndarray:
 
 
 def calculate_solar_elevation(times: np.ndarray | pd.DatetimeIndex, lat: float) -> np.ndarray:
-    """
-    Calculate solar elevation angle using vectorized operations.,
+    """Calculate solar elevation angle using vectorized operations.,
 
     Based on simplified solar position algorithm.,
     Accurate to within ~1deg for most applications.
@@ -220,6 +214,7 @@ def calculate_solar_elevation(times: np.ndarray | pd.DatetimeIndex, lat: float) 
 
     Returns:
         Array of solar elevation angles in degrees,
+
     """
     # Convert numpy datetime64 to pandas for easier manipulation
     if isinstance(times, np.ndarray):

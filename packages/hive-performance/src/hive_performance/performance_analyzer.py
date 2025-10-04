@@ -65,8 +65,7 @@ class AnalysisReport:
 
 
 class PerformanceAnalyzer:
-    """
-    Advanced performance analysis engine.
+    """Advanced performance analysis engine.
 
     Features:
     - Multi-dimensional performance analysis
@@ -78,7 +77,7 @@ class PerformanceAnalyzer:
     """
 
     def __init__(
-        self, metrics_collector: MetricsCollector, system_monitor: SystemMonitor, async_profiler: AsyncProfiler
+        self, metrics_collector: MetricsCollector, system_monitor: SystemMonitor, async_profiler: AsyncProfiler,
     ):
         self.metrics_collector = metrics_collector
         self.system_monitor = system_monitor
@@ -110,7 +109,7 @@ class PerformanceAnalyzer:
         }
 
     async def analyze_performance(
-        self, analysis_period: timedelta = timedelta(hours=1), include_predictions: bool = True
+        self, analysis_period: timedelta = timedelta(hours=1), include_predictions: bool = True,
     ) -> AnalysisReport:
         """Perform comprehensive performance analysis."""
         logger.info(f"Starting performance analysis for {analysis_period}")
@@ -236,7 +235,7 @@ class PerformanceAnalyzer:
         }
 
     async def _generate_insights_async(
-        self, metrics_data: dict[str, Any], system_data: dict[str, Any], async_data: dict[str, Any]
+        self, metrics_data: dict[str, Any], system_data: dict[str, Any], async_data: dict[str, Any],
     ) -> list[PerformanceInsight]:
         """Generate performance insights and recommendations."""
         insights = []
@@ -254,7 +253,7 @@ class PerformanceAnalyzer:
                     recommendation="Optimize slow operations, implement caching, consider horizontal scaling",
                     metric_value=avg_response,
                     threshold=self.thresholds["response_time_critical"],
-                )
+                ),
             )
         elif avg_response > self.thresholds["response_time_warning"]:
             insights.append(
@@ -267,7 +266,7 @@ class PerformanceAnalyzer:
                     recommendation="Profile slow operations and optimize bottlenecks",
                     metric_value=avg_response,
                     threshold=self.thresholds["response_time_warning"],
-                )
+                ),
             )
 
         # Error rate analysis
@@ -283,7 +282,7 @@ class PerformanceAnalyzer:
                     recommendation="Investigate and fix error sources, improve error handling",
                     metric_value=error_rate,
                     threshold=self.thresholds["error_rate_critical"],
-                )
+                ),
             )
 
         # CPU analysis
@@ -300,7 +299,7 @@ class PerformanceAnalyzer:
                     recommendation="Optimize CPU-intensive operations, consider vertical scaling",
                     metric_value=peak_cpu,
                     threshold=self.thresholds["cpu_critical"],
-                )
+                ),
             )
         elif avg_cpu > self.thresholds["cpu_warning"]:
             insights.append(
@@ -313,7 +312,7 @@ class PerformanceAnalyzer:
                     recommendation="Monitor CPU usage trends, optimize algorithms",
                     metric_value=avg_cpu,
                     threshold=self.thresholds["cpu_warning"],
-                )
+                ),
             )
 
         # Memory analysis
@@ -330,7 +329,7 @@ class PerformanceAnalyzer:
                     recommendation="Optimize memory usage, implement garbage collection tuning",
                     metric_value=peak_memory,
                     threshold=self.thresholds["memory_critical"],
-                )
+                ),
             )
 
         # Async performance analysis
@@ -347,7 +346,7 @@ class PerformanceAnalyzer:
                         recommendation="Implement task queuing and rate limiting",
                         metric_value=concurrency,
                         threshold=100.0,
-                    )
+                    ),
                 )
 
             failure_rate = async_data.get("failure_rate", 0.0)
@@ -362,7 +361,7 @@ class PerformanceAnalyzer:
                         recommendation="Improve error handling in async operations",
                         metric_value=failure_rate,
                         threshold=0.02,
-                    )
+                    ),
                 )
 
         # Optimization opportunities
@@ -377,13 +376,13 @@ class PerformanceAnalyzer:
                     impact="Could improve response times and reduce load",
                     recommendation="Implement response caching for frequently accessed data",
                     confidence=0.7,
-                )
+                ),
             )
 
         return insights
 
     async def _calculate_performance_scores_async(
-        self, metrics_data: dict[str, Any], system_data: dict[str, Any], async_data: dict[str, Any]
+        self, metrics_data: dict[str, Any], system_data: dict[str, Any], async_data: dict[str, Any],
     ) -> dict[str, float]:
         """Calculate performance scores (0-100)."""
         scores = {}
@@ -439,14 +438,13 @@ class PerformanceAnalyzer:
         """Calculate letter grade from numeric score."""
         if score >= 90:
             return "A"
-        elif score >= 80:
+        if score >= 80:
             return "B"
-        elif score >= 70:
+        if score >= 70:
             return "C"
-        elif score >= 60:
+        if score >= 60:
             return "D"
-        else:
-            return "F"
+        return "F"
 
     async def _analyze_trends_async(self, period: timedelta) -> dict[str, float]:
         """Analyze performance trends."""
@@ -460,7 +458,7 @@ class PerformanceAnalyzer:
         return trends
 
     async def benchmark_operation_async(
-        self, operation_func, iterations: int = 100, concurrency: int = 10, warmup_iterations: int = 10
+        self, operation_func, iterations: int = 100, concurrency: int = 10, warmup_iterations: int = 10,
     ) -> dict[str, Any]:
         """Benchmark a specific operation."""
         logger.info(f"Benchmarking operation with {iterations} iterations, concurrency {concurrency}")
@@ -544,7 +542,7 @@ class PerformanceAnalyzer:
                 indent=2,
             )
 
-        elif format == "text":
+        if format == "text":
             lines = [
                 "=== Performance Analysis Report ===",
                 f"Overall Score: {report.overall_score:.1f}/100 (Grade: {report.performance_grade})",
@@ -571,7 +569,7 @@ class PerformanceAnalyzer:
                 [
                     "",
                     "=== Optimization Opportunities ===",
-                ]
+                ],
             )
 
             if report.optimization_opportunities:
@@ -583,5 +581,4 @@ class PerformanceAnalyzer:
 
             return "\n".join(lines)
 
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")

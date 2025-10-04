@@ -17,8 +17,7 @@ logger = get_logger(__name__)
 @click.version_option(version="1.0.0")
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
 def main(verbose: bool = False) -> None:
-    """
-    Hive Application Toolkit - Strategic Force Multiplier for Development.
+    """Hive Application Toolkit - Strategic Force Multiplier for Development.
 
     Build production-ready applications in hours instead of weeks.
     """
@@ -60,7 +59,6 @@ def init(
     dry_run: bool = False,
 ) -> None:
     """Initialize a new Hive application with production-grade foundation."""
-
     # Parse cost limits
     daily_limit = (100.0,)
     monthly_limit = (2000.0,)
@@ -131,7 +129,6 @@ def init(
 @click.option("--output", "-o", type=click.Path(exists=True), default=".", help="Target directory")
 def add_api(output: str = ".") -> None:
     """Add API endpoints and middleware to an existing application."""
-
     output_dir = Path(output)
 
     try:
@@ -154,7 +151,6 @@ def add_api(output: str = ".") -> None:
 @click.option("--namespace", "-n", default="hive-platform", help="Kubernetes namespace")
 def add_k8s(output: str = ".", namespace: str = "hive-platform") -> None:
     """Add Kubernetes manifests to an existing application."""
-
     output_dir = Path(output)
 
     try:
@@ -177,7 +173,6 @@ def add_k8s(output: str = ".", namespace: str = "hive-platform") -> None:
 @click.option("--registry", default="ghcr.io", help="Docker registry")
 def add_ci(output: str = ".", registry: str = "ghcr.io") -> None:
     """Add CI/CD pipeline to an existing application."""
-
     output_dir = Path(output)
 
     try:
@@ -204,7 +199,6 @@ def add_ci(output: str = ".", registry: str = "ghcr.io") -> None:
 @click.option("--output", "-o", type=click.Path(exists=True), default=".", help="Target directory")
 def status(output: str = ".") -> None:
     """Show status of Hive toolkit integration."""
-
     output_dir = Path(output)
 
     try:
@@ -230,7 +224,6 @@ def status(output: str = ".") -> None:
 @main.command()
 def examples() -> None:
     """Show usage examples."""
-
     examples_text = """
  Hive Application Toolkit - Usage Examples
 

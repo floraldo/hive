@@ -1,5 +1,4 @@
-"""
-hive-graph: Knowledge graph package for semantic codebase representation.
+"""hive-graph: Knowledge graph package for semantic codebase representation.
 
 This package provides infrastructure for building and querying a knowledge graph
 of the Hive codebase, enabling deep code intelligence capabilities.
@@ -43,15 +42,15 @@ from .parser import ASTParser
 __version__ = "0.1.0"
 
 __all__ = [
-    # Models
-    "CodeFile",
-    "ModuleDefinition",
-    "ClassDefinition",
-    "FunctionDefinition",
-    "ImportStatement",
-    "Edge",
-    "EdgeType",
-    "CodeGraph",
     # Parser
     "ASTParser",
+    "ClassDefinition",
+    # Models
+    "CodeFile",
+    "CodeGraph",
+    "Edge",
+    "EdgeType",
+    "FunctionDefinition",
+    "ImportStatement",
+    "ModuleDefinition",
 ]

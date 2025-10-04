@@ -1,5 +1,4 @@
-"""
-EcoSystemiser-specific error handling implementation.,
+"""EcoSystemiser-specific error handling implementation.,
 
 Extends the generic error handling toolkit with EcoSystemiser capabilities:
 - Simulation-specific errors
@@ -40,7 +39,6 @@ except ImportError:
     class RecoveryStrategy:
         """Base recovery strategy class for fallback implementation."""
 
-        pass
 
 
 from hive_logging import get_logger
@@ -49,8 +47,7 @@ logger = get_logger(__name__)
 
 
 class EcoSystemiserError(BaseError):
-    """
-    Base error class for all EcoSystemiser-specific errors.,
+    """Base error class for all EcoSystemiser-specific errors.,
 
     Extends the generic BaseError with simulation context and additional,
     metadata specific to the EcoSystemiser platform.,
@@ -69,8 +66,7 @@ class EcoSystemiserError(BaseError):
         recovery_suggestions: list[str] | None = None,
         original_error: Exception | None = None,
     ):
-        """
-        Initialize an EcoSystemiser error with simulation context.
+        """Initialize an EcoSystemiser error with simulation context.
 
         Args:
             message: Human-readable error message,
@@ -83,6 +79,7 @@ class EcoSystemiserError(BaseError):
         details: Additional error details,
             recovery_suggestions: Steps to recover from error,
         original_error: Original exception if wrapped,
+
         """
         # Build details with EcoSystemiser context
         ecosys_details = details or {}
@@ -499,8 +496,7 @@ class EventPublishError(EventBusError):
 
 
 class EcoSystemiserErrorReporter(BaseErrorReporter):
-    """
-    EcoSystemiser-specific error reporter.,
+    """EcoSystemiser-specific error reporter.,
 
     Extends the base error reporter with simulation context tracking,
     and EcoSystemiser-specific reporting patterns.,
@@ -521,8 +517,7 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         context: dict[str, Any] | None = None,
         additional_info: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Report an error with EcoSystemiser-specific handling.
+        """Report an error with EcoSystemiser-specific handling.
 
         Args:
             error: The error to report,
@@ -531,6 +526,7 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
 
         Returns:
             Error ID for tracking,
+
         """
         # Generate error ID
         error_id = str(uuid.uuid4())
@@ -569,7 +565,6 @@ class EcoSystemiserErrorReporter(BaseErrorReporter):
         """Update error metrics and statistics."""
         # Implementation for tracking error metrics
         # Could integrate with monitoring systems
-        pass
 
     def _build_error_record(
         self,
@@ -646,37 +641,37 @@ def get_error_reporter() -> EcoSystemiserErrorReporter:
 
 # Export main classes and functions
 __all__ = [
+    # Legacy aliases for backward compatibility
+    "AdapterError",
+    "ComponentConnectionError",
+    # Component errors
+    "ComponentError",
+    "ComponentValidationError",
+    "DatabaseConnectionError",
+    # Database errors
+    "DatabaseError",
+    "DatabaseTransactionError",
     # Base classes
     "EcoSystemiserError",
-    # Simulation errors
-    "SimulationError",
-    "SimulationConfigError",
-    "SimulationExecutionError",
+    # Reporter
+    "EcoSystemiserErrorReporter",
+    # Event bus errors
+    "EventBusError",
+    "EventPublishError",
+    "OptimizationInfeasibleError",
     # Profile errors
     "ProfileError",
     "ProfileLoadError",
     "ProfileValidationError",
+    "SimulationConfigError",
+    # Simulation errors
+    "SimulationError",
+    "SimulationExecutionError",
+    "SolverConvergenceError",
     # Solver errors
     "SolverError",
-    "OptimizationInfeasibleError",
-    "SolverConvergenceError",
-    # Component errors
-    "ComponentError",
-    "ComponentConnectionError",
-    "ComponentValidationError",
-    # Database errors
-    "DatabaseError",
-    "DatabaseConnectionError",
-    "DatabaseTransactionError",
-    # Event bus errors
-    "EventBusError",
-    "EventPublishError",
-    # Reporter
-    "EcoSystemiserErrorReporter",
-    "get_error_reporter",
-    # Legacy aliases for backward compatibility
-    "AdapterError",
     "ValidationError",
+    "get_error_reporter",
 ]
 
 

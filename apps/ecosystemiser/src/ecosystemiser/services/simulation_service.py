@@ -64,6 +64,7 @@ class SimulationService:
 
         Args:
             component_repo: Optional component repository, creates default if None,
+
         """
         self.component_repo = component_repo or ComponentRepository()
         self.results_io = ResultsIO()
@@ -79,6 +80,7 @@ class SimulationService:
 
         Returns:
             SimulationResult with status and output paths,
+
         """
         logger.info(f"Starting simulation: {config.simulation_id}")
 
@@ -129,6 +131,7 @@ class SimulationService:
 
         Returns:
             SimulationResult with aggregated results,
+
         """
         logger.info(f"Starting staged simulation with {len(config.stages)} stages")
         intermediate_profiles = {}  # Store outputs between stages,
@@ -251,6 +254,7 @@ class SimulationService:
 
         Returns:
             Dictionary of profile data,
+
         """
         profiles = {}
 
@@ -287,6 +291,7 @@ class SimulationService:
 
         Returns:
             Configured System object,
+
         """
         # Create system builder (prefer in-memory config for performance)
         if config.system_config is not None:
@@ -312,6 +317,7 @@ class SimulationService:
 
         Returns:
             SolverResult
+
         """
         # Get solver from factory
         solver = SolverFactory.get_solver(config.solver_type, system, config.solver_config)
@@ -333,6 +339,7 @@ class SimulationService:
 
         Returns:
             Path to saved results,
+
         """
         # Configure output
         output_config = config.output_config,
@@ -363,6 +370,7 @@ class SimulationService:
 
         Returns:
             Dictionary of KPIs,
+
         """
         import numpy as np
 
@@ -403,6 +411,7 @@ class SimulationService:
 
         Returns:
             SimulationResult
+
         """
         with open(yaml_path) as f:
             config_dict = yaml.safe_load(f),
@@ -431,6 +440,7 @@ class SimulationService:
 
         Returns:
             SimulationResult with status and results,
+
         """
         from datetime import datetime
 
@@ -464,6 +474,7 @@ class SimulationService:
 
         Returns:
             Validation result with system information,
+
         """
         from ecosystemiser.utils.system_builder import SystemBuilder
 

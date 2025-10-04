@@ -10,17 +10,17 @@ logger = get_logger(__name__)
 # Water components
 
 __all__ = [
-    "ComponentComponentParams",
     "BatteryBatteryParams",
+    "ComponentComponentParams",
+    "ElectricBoilerElectricBoilerParams",
     "GridGridParams",
-    "SolarPVSolarPVParams",
+    "HeatBufferHeatBufferParams",
+    "HeatDemandHeatDemandParams",
     "HeatPumpHeatPumpParams",
     "PowerDemandPowerDemandParams",
-    "HeatDemandHeatDemandParams",
-    "ElectricBoilerElectricBoilerParams",
-    "HeatBufferHeatBufferParams",
-    "WaterStorageWaterStorageParams",
+    "RainwaterSourceRainwaterSourceParams",
+    "SolarPVSolarPVParams",
     "WaterDemandWaterDemandParams",
     "WaterGridWaterGridParams",
-    "RainwaterSourceRainwaterSourceParams",
+    "WaterStorageWaterStorageParams",
 ]

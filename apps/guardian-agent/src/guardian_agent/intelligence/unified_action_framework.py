@@ -1,5 +1,4 @@
-"""
-Unified Action Framework (UAF) - Strategic Context for Autonomous Actions
+"""Unified Action Framework (UAF) - Strategic Context for Autonomous Actions
 
 This represents the Oracle's Phase 2 evolution in Operation Unification -
 upgrading autonomous PR generation with the strategic foresight of the Prophecy Engine.
@@ -131,34 +130,34 @@ class UnifiedActionFrameworkConfig(BaseModel):
     # Strategic context settings
     enable_strategic_context: bool = Field(default=True, description="Enable strategic context for all actions")
     require_prophecy_alignment: bool = Field(
-        default=True, description="Require alignment with prophecies for high-confidence actions"
+        default=True, description="Require alignment with prophecies for high-confidence actions",
     )
     min_strategic_confidence: float = Field(
-        default=0.7, description="Minimum strategic confidence for autonomous actions"
+        default=0.7, description="Minimum strategic confidence for autonomous actions",
     )
 
     # Cross-correlation settings
     enable_cross_correlation_analysis: bool = Field(
-        default=True, description="Enable cross-correlation analysis for actions"
+        default=True, description="Enable cross-correlation analysis for actions",
     )
     correlation_strength_threshold: float = Field(
-        default=0.6, description="Minimum correlation strength for strategic context"
+        default=0.6, description="Minimum correlation strength for strategic context",
     )
     max_related_prophecies: int = Field(default=5, description="Maximum related prophecies to include in context")
 
     # Business intelligence integration
     enable_business_intelligence: bool = Field(
-        default=True, description="Include business intelligence in strategic context"
+        default=True, description="Include business intelligence in strategic context",
     )
     require_roi_projection: bool = Field(default=False, description="Require ROI projection for cost-related actions")
     cost_impact_threshold: float = Field(default=100.0, description="Cost impact threshold for enhanced analysis")
 
     # Enhanced PR generation
     enable_enhanced_pr_descriptions: bool = Field(
-        default=True, description="Generate enhanced PR descriptions with strategic context"
+        default=True, description="Generate enhanced PR descriptions with strategic context",
     )
     include_prophecy_references: bool = Field(
-        default=True, description="Include prophecy references in PR descriptions"
+        default=True, description="Include prophecy references in PR descriptions",
     )
     include_historical_precedents: bool = Field(default=True, description="Include historical precedents in PR context")
 
@@ -169,8 +168,7 @@ class UnifiedActionFrameworkConfig(BaseModel):
 
 
 class UnifiedActionFramework:
-    """
-    The Oracle's Unified Action Framework - Strategic Context for Autonomous Actions
+    """The Oracle's Unified Action Framework - Strategic Context for Autonomous Actions
 
     This framework represents the synthesis of the Oracle's prophecy and symbiosis
     capabilities into strategically-informed autonomous actions.
@@ -183,7 +181,7 @@ class UnifiedActionFramework:
     """
 
     def __init__(
-        self, config: UnifiedActionFrameworkConfig, unified_intelligence: UnifiedIntelligenceCore | None = None
+        self, config: UnifiedActionFrameworkConfig, unified_intelligence: UnifiedIntelligenceCore | None = None,
     ):
         self.config = config,
         self.unified_intelligence = unified_intelligence
@@ -199,15 +197,13 @@ class UnifiedActionFramework:
         logger.info("Unified Action Framework initialized - Strategic context for autonomous actions active")
 
     async def generate_unified_pr_async(
-        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None = None
+        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None = None,
     ) -> UnifiedPullRequest:
-        """
-        Generate a unified pull request with complete strategic context.
+        """Generate a unified pull request with complete strategic context.
 
         This is the Oracle's most advanced PR generation capability - combining,
         symbiosis optimization with prophecy strategic context.
         """
-
         try:
             logger.info(f"🌟 Generating unified PR for optimization: {optimization.title}")
 
@@ -223,7 +219,7 @@ class UnifiedActionFramework:
                 opportunity_id=optimization.opportunity_id,
                 title=self._generate_strategic_title(optimization, strategic_rationale),
                 description=await self._generate_strategic_description_async(
-                    optimization, strategic_rationale, unified_context
+                    optimization, strategic_rationale, unified_context,
                 ),
                 branch_name=f"oracle/unified/{optimization.opportunity_id.replace('_', '-')}",
                 strategic_rationale=strategic_rationale,
@@ -235,7 +231,7 @@ class UnifiedActionFramework:
 
             # Phase 5: Calculate Oracle confidence,
             unified_pr.oracle_confidence = self._calculate_unified_confidence(
-                optimization, strategic_rationale, unified_context
+                optimization, strategic_rationale, unified_context,
             )
 
             logger.info(f"🌟 Unified PR generated with {unified_pr.oracle_confidence:.1%} confidence")
@@ -246,13 +242,11 @@ class UnifiedActionFramework:
             raise
 
     async def collect_strategic_feedback_async(self, pr_id: str, outcome_data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Collect strategic feedback from PR outcomes for continuous learning.
+        """Collect strategic feedback from PR outcomes for continuous learning.
 
         This creates the hardened feedback loop that makes the Oracle's,
         strategic intelligence smarter with every action taken.
         """
-
         try:
             logger.info(f"🧠 Collecting strategic feedback for PR: {pr_id}")
 
@@ -283,7 +277,7 @@ class UnifiedActionFramework:
                         "pr_id": pr_id,
                         "outcome": outcome_data,
                         "learning_insights": learning_insights,
-                    }
+                    },
                 )
 
             logger.info("🧠 Strategic feedback processed - Oracle intelligence enhanced")
@@ -291,11 +285,10 @@ class UnifiedActionFramework:
 
         except Exception as e:
             logger.error(f"Failed to collect strategic feedback: {e}")
-            return {"error": f"Feedback collection failed: {str(e)}"}
+            return {"error": f"Feedback collection failed: {e!s}"}
 
     async def analyze_strategic_patterns_async(self) -> dict[str, Any]:
         """Analyze patterns in strategic actions and outcomes."""
-
         try:
             logger.info("📊 Analyzing strategic action patterns...")
 
@@ -305,7 +298,7 @@ class UnifiedActionFramework:
 
             # Calculate success rates by strategic context
             context_success_rates = {}
-            for feedback in self.feedback_history:  # noqa: B007
+            for feedback in self.feedback_history:
                 context = feedback.get("strategic_context", "unknown")
                 if context not in context_success_rates:
                     context_success_rates[context] = {"total": 0, "successful": 0}
@@ -320,7 +313,7 @@ class UnifiedActionFramework:
 
             # Identify top-performing patterns
             top_patterns = sorted(
-                context_success_rates.items(), key=lambda x: (x[1]["success_rate"], x[1]["total"]), reverse=True
+                context_success_rates.items(), key=lambda x: (x[1]["success_rate"], x[1]["total"]), reverse=True,
             )[:5]
 
             # Generate strategic insights,
@@ -360,15 +353,14 @@ class UnifiedActionFramework:
 
         except Exception as e:
             logger.error(f"Failed to analyze strategic patterns: {e}")
-            return {"error": f"Pattern analysis failed: {str(e)}"}
+            return {"error": f"Pattern analysis failed: {e!s}"}
 
     # Internal methods for strategic context generation
 
     async def _generate_strategic_rationale_async(
-        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None
+        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None,
     ) -> StrategicRationale:
         """Generate strategic rationale for an optimization."""
-
         rationale_id = f"rationale_{optimization.opportunity_id}"
 
         # Determine strategic context,
@@ -403,10 +395,9 @@ class UnifiedActionFramework:
         return rationale
 
     async def _generate_unified_context_async(
-        self, optimization: OptimizationOpportunity, strategic_rationale: StrategicRationale
+        self, optimization: OptimizationOpportunity, strategic_rationale: StrategicRationale,
     ) -> dict[str, Any]:
         """Generate unified intelligence context for the optimization."""
-
         unified_context = {
             "cross_correlations": [],
             "solution_precedents": [],
@@ -467,10 +458,9 @@ class UnifiedActionFramework:
         return unified_context
 
     def _generate_strategic_title(
-        self, optimization: OptimizationOpportunity, strategic_rationale: StrategicRationale
+        self, optimization: OptimizationOpportunity, strategic_rationale: StrategicRationale,
     ) -> str:
         """Generate strategic title for the PR."""
-
         context_prefixes = {
             StrategicContext.PROPHECY_VALIDATION: "🔮 Oracle Prophecy Validation:",
             StrategicContext.RISK_MITIGATION: "🛡️ Oracle Risk Mitigation:",
@@ -491,7 +481,6 @@ class UnifiedActionFramework:
         unified_context: dict[str, Any],
     ) -> str:
         """Generate comprehensive strategic PR description."""
-
         description_parts = [
             "## 🌟 Oracle Unified Intelligence - Strategic Autonomous Action",
             "",
@@ -526,7 +515,7 @@ class UnifiedActionFramework:
                         f"- Prophecy {pid}: Validates strategic approach"
                         for pid in strategic_rationale.related_prophecies[:3]
                     ),
-                ]
+                ],
             )
 
         # Add cross-correlations,
@@ -537,7 +526,7 @@ class UnifiedActionFramework:
                     "### 🔗 Cross-Correlations",
                     f"Found {len(unified_context['cross_correlations'])} strategic correlations in unified intelligence.",
                     f"Strategic Alignment: {unified_context.get('strategic_alignment', 'unknown').title()}",
-                ]
+                ],
             )
 
         # Add solution precedents,
@@ -547,7 +536,7 @@ class UnifiedActionFramework:
                     "",
                     "### 📚 Solution Precedents",
                     f"This optimization leverages {len(unified_context['solution_precedents'])} validated solution patterns:",
-                ]
+                ],
             )
 
             for precedent in unified_context["solution_precedents"][:3]:
@@ -556,7 +545,7 @@ class UnifiedActionFramework:
         # Add affected packages,
         if optimization.affected_packages:
             description_parts.extend(
-                ["", "### 📦 Affected Packages", "\n".join(f"- {pkg}" for pkg in optimization.affected_packages)]
+                ["", "### 📦 Affected Packages", "\n".join(f"- {pkg}" for pkg in optimization.affected_packages)],
             )
 
         # Add implementation plan,
@@ -566,7 +555,7 @@ class UnifiedActionFramework:
                     "",
                     "### 🛠️ Implementation Plan",
                     "\n".join(f"{i+1}. {step}" for i, step in enumerate(optimization.implementation_plan)),
-                ]
+                ],
             )
 
         # Add validation section,
@@ -592,16 +581,15 @@ class UnifiedActionFramework:
                 "- Unified intelligence enhancement",
                 "",
                 "*This PR was generated by the Oracle's Unified Action Framework with strategic context from the Prophecy Engine.*",
-            ]
+            ],
         )
 
         return "\n".join(description_parts)
 
     async def _perform_strategic_validation_async(
-        self, unified_pr: UnifiedPullRequest, optimization: OptimizationOpportunity
+        self, unified_pr: UnifiedPullRequest, optimization: OptimizationOpportunity,
     ) -> None:
         """Perform strategic validation of the unified PR."""
-
         # Strategic alignment validation,
         if unified_pr.strategic_rationale.confidence_level in [
             ActionConfidenceLevel.CERTAIN,
@@ -635,7 +623,6 @@ class UnifiedActionFramework:
         unified_context: dict[str, Any],
     ) -> float:
         """Calculate unified confidence score."""
-
         base_confidence = optimization.oracle_confidence
 
         # Strategic context boost,
@@ -662,29 +649,26 @@ class UnifiedActionFramework:
     # Helper methods for strategic context
 
     def _determine_strategic_context(
-        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None
+        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None,
     ) -> StrategicContext:
         """Determine the strategic context for an optimization."""
-
         if prophecy_context and prophecy_context.get("prophecy_ids"):
             return StrategicContext.PROPHECY_VALIDATION
 
         if optimization.optimization_type == OptimizationType.COST_REDUCTION:
             return StrategicContext.COST_OPTIMIZATION,
-        elif optimization.optimization_type == OptimizationType.PERFORMANCE_OPTIMIZATION:
+        if optimization.optimization_type == OptimizationType.PERFORMANCE_OPTIMIZATION:
             return StrategicContext.PERFORMANCE_ENHANCEMENT,
-        elif optimization.optimization_type == OptimizationType.SECURITY_HARDENING:
+        if optimization.optimization_type == OptimizationType.SECURITY_HARDENING:
             return StrategicContext.RISK_MITIGATION,
-        elif "compliance" in optimization.title.lower():
+        if "compliance" in optimization.title.lower():
             return StrategicContext.COMPLIANCE_ALIGNMENT,
-        else:
-            return StrategicContext.BUSINESS_VALUE_CREATION
+        return StrategicContext.BUSINESS_VALUE_CREATION
 
     def _calculate_confidence_level(
-        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None
+        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None,
     ) -> ActionConfidenceLevel:
         """Calculate the confidence level for an optimization."""
-
         confidence = optimization.oracle_confidence
 
         # Boost confidence if prophecy context exists,
@@ -693,18 +677,16 @@ class UnifiedActionFramework:
 
         if confidence >= 0.95:
             return ActionConfidenceLevel.CERTAIN,
-        elif confidence >= 0.85:
+        if confidence >= 0.85:
             return ActionConfidenceLevel.HIGH,
-        elif confidence >= 0.70:
+        if confidence >= 0.70:
             return ActionConfidenceLevel.MODERATE,
-        elif confidence >= 0.50:
+        if confidence >= 0.50:
             return ActionConfidenceLevel.EXPERIMENTAL,
-        else:
-            return ActionConfidenceLevel.SPECULATIVE
+        return ActionConfidenceLevel.SPECULATIVE
 
     def _generate_business_impact(self, optimization: OptimizationOpportunity) -> str:
         """Generate business impact description."""
-
         if optimization.business_value:
             return optimization.business_value
 
@@ -719,48 +701,42 @@ class UnifiedActionFramework:
 
     def _generate_cost_implications(self, optimization: OptimizationOpportunity) -> str:
         """Generate cost implications description."""
-
         if optimization.optimization_type == OptimizationType.COST_REDUCTION:
             return f"Projected monthly savings of ${optimization.estimated_effort_hours * 50} through optimization"
-        elif optimization.optimization_type == OptimizationType.PERFORMANCE_OPTIMIZATION:
+        if optimization.optimization_type == OptimizationType.PERFORMANCE_OPTIMIZATION:
             return "Reduces infrastructure costs through improved efficiency"
-        else:
-            return "Minimal direct cost impact, long-term maintenance savings expected"
+        return "Minimal direct cost impact, long-term maintenance savings expected"
 
     def _generate_performance_impact(self, optimization: OptimizationOpportunity) -> str:
         """Generate performance impact description."""
-
         if optimization.optimization_type == OptimizationType.PERFORMANCE_OPTIMIZATION:
             return "Expected 15-25% performance improvement based on similar optimizations"
-        elif optimization.optimization_type == OptimizationType.CODE_DEDUPLICATION:
+        if optimization.optimization_type == OptimizationType.CODE_DEDUPLICATION:
             return "Improved build times and reduced memory footprint"
-        else:
-            return "Indirect performance benefits through improved code quality"
+        return "Indirect performance benefits through improved code quality"
 
     def _generate_oracle_reasoning(
-        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None
+        self, optimization: OptimizationOpportunity, prophecy_context: dict[str, Any] | None,
     ) -> str:
         """Generate Oracle's strategic reasoning."""
-
         reasoning_parts = [
-            "The Oracle's unified intelligence identified this optimization through cross-correlation analysis."
+            "The Oracle's unified intelligence identified this optimization through cross-correlation analysis.",
         ]
 
         if prophecy_context:
             reasoning_parts.append(
-                f"This action directly validates {len(prophecy_context.get('prophecy_ids', []))} architectural prophecies."
+                f"This action directly validates {len(prophecy_context.get('prophecy_ids', []))} architectural prophecies.",
             )
 
         reasoning_parts.append(
             f"Historical analysis shows {optimization.optimization_type.value.replace('_', ' ')} optimizations ",
-            f"have an {optimization.oracle_confidence:.1%} success rate in similar contexts."
+            f"have an {optimization.oracle_confidence:.1%} success rate in similar contexts.",
         )
 
         return " ".join(reasoning_parts)
 
     def _calculate_business_value_score(self, optimization: OptimizationOpportunity) -> float:
         """Calculate business value score for an optimization."""
-
         base_score = 0.5
 
         # Priority boost
@@ -786,7 +762,6 @@ class UnifiedActionFramework:
 
     async def _update_strategic_learning_async(self, feedback_analysis: dict[str, Any]) -> None:
         """Update strategic learning models based on feedback."""
-
         # Extract learning signals
         outcome = feedback_analysis.get("outcome_type", "unknown")
         strategic_context = feedback_analysis.get("strategic_context", "unknown")
@@ -814,12 +789,11 @@ class UnifiedActionFramework:
             confidence_adjustment *= -1
 
         model["confidence_adjustments"].append(
-            {"adjustment": confidence_adjustment, "timestamp": datetime.utcnow().isoformat()}
+            {"adjustment": confidence_adjustment, "timestamp": datetime.utcnow().isoformat()},
         )
 
     async def _generate_learning_insights_async(self, feedback_analysis: dict[str, Any]) -> dict[str, Any]:
         """Generate learning insights from feedback analysis."""
-
         insights = {
             "learning_type": "strategic_feedback",
             "insights_generated": [],
@@ -831,7 +805,7 @@ class UnifiedActionFramework:
 
         if outcome == "success":
             insights["insights_generated"].append(
-                "Strategic approach validated - increase confidence for similar patterns"
+                "Strategic approach validated - increase confidence for similar patterns",
             )
             insights["strategic_recommendations"].append("Continue with similar strategic contexts")
         else:
@@ -842,7 +816,6 @@ class UnifiedActionFramework:
 
     def _generate_pattern_recommendations(self, context_success_rates: dict[str, dict]) -> list[str]:
         """Generate recommendations based on pattern analysis."""
-
         recommendations = []
 
         # Find best performing contexts
@@ -869,7 +842,6 @@ class UnifiedActionFramework:
 
     def _calculate_prophecy_validation_rate(self) -> float:
         """Calculate the rate of prophecy validation through actions."""
-
         prophecy_validations = [
             f for f in self.feedback_history if f.get("prophecy_validation", {}).get("validated", False)
         ]
@@ -878,9 +850,8 @@ class UnifiedActionFramework:
 
     def _calculate_avg_correlation_strength(self) -> float:
         """Calculate average cross-correlation strength."""
-
         correlations = []
-        for rationale in self.strategic_context_cache.values():  # noqa: B007
+        for rationale in self.strategic_context_cache.values():
             correlations.append(rationale.cross_correlation_strength)
 
         return sum(correlations) / len(correlations) if correlations else 0.0

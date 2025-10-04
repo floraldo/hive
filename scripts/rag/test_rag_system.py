@@ -1,5 +1,4 @@
-"""
-Test RAG system with a small subset of files to validate functionality.
+"""Test RAG system with a small subset of files to validate functionality.
 """
 
 import sys

@@ -1,5 +1,4 @@
-"""
-Mission Control Dashboard - Single Pane of Glass for Platform Health
+"""Mission Control Dashboard - Single Pane of Glass for Platform Health
 
 Comprehensive dashboard providing real-time visibility into platform
 health, performance, costs, and strategic metrics.
@@ -434,8 +433,7 @@ class DashboardData:
 
 
 class MissionControlDashboard:
-    """
-    Mission Control Dashboard - Platform Intelligence Hub
+    """Mission Control Dashboard - Platform Intelligence Hub
 
     Provides real-time, comprehensive view of platform health,
     performance, costs, and strategic recommendations.
@@ -455,7 +453,6 @@ class MissionControlDashboard:
 
     async def get_dashboard_data_async(self, force_refresh: bool = False) -> DashboardData:
         """Get complete dashboard data with caching."""
-
         # Check cache
         if not force_refresh and self._dashboard_cache and self._cache_expiry:
             if datetime.utcnow() < self._cache_expiry:
@@ -472,7 +469,6 @@ class MissionControlDashboard:
 
     async def _generate_dashboard_data_async(self) -> DashboardData:
         """Generate complete dashboard data."""
-
         # Gather all data in parallel
         health_task = asyncio.create_task(self._calculate_platform_health_async()),
         cost_task = asyncio.create_task(self._calculate_cost_intelligence_async()),
@@ -539,7 +535,6 @@ class MissionControlDashboard:
 
     async def _calculate_platform_health_async(self) -> PlatformHealthScore:
         """Calculate overall platform health score."""
-
         # Get health metrics for different components
         components = {}
 
@@ -595,7 +590,6 @@ class MissionControlDashboard:
 
     async def _calculate_component_health_async(self, component_name: str) -> ComponentHealth:
         """Calculate health for a specific component."""
-
         # Get recent metrics for this component
         try:
             # This is a simplified implementation
@@ -673,16 +667,14 @@ class MissionControlDashboard:
         """Convert numeric score to health status."""
         if score >= self.health_thresholds["excellent"]:
             return HealthStatus.EXCELLENT
-        elif score >= self.health_thresholds["good"]:
+        if score >= self.health_thresholds["good"]:
             return HealthStatus.GOOD
-        elif score >= self.health_thresholds["warning"]:
+        if score >= self.health_thresholds["warning"]:
             return HealthStatus.WARNING
-        else:
-            return HealthStatus.CRITICAL
+        return HealthStatus.CRITICAL
 
     async def _calculate_cost_intelligence_async(self) -> CostIntelligence:
         """Calculate cost intelligence metrics."""
-
         try:
             # Get cost metrics from the last 24 hours and month
             cost_metrics = await self.warehouse.query_metrics_async(
@@ -776,7 +768,6 @@ class MissionControlDashboard:
 
     async def _calculate_developer_velocity_async(self) -> DeveloperVelocity:
         """Calculate developer velocity metrics."""
-
         try:
             # Get CI/CD metrics
             await self.warehouse.query_metrics_async(
@@ -829,7 +820,6 @@ class MissionControlDashboard:
 
     async def _calculate_architectural_health_async(self) -> ArchitecturalHealth:
         """Calculate architectural health and compliance metrics."""
-
         try:
             # Get recent architectural metrics
             compliance_metrics = await self.warehouse.query_metrics_async(
@@ -997,7 +987,6 @@ class MissionControlDashboard:
 
     async def _calculate_customer_health_async(self) -> CustomerHealthScore:
         """Calculate customer health and satisfaction metrics."""
-
         try:
             # Get user engagement metrics
             engagement_metrics = await self.warehouse.query_metrics_async(
@@ -1136,7 +1125,6 @@ class MissionControlDashboard:
 
     async def _calculate_feature_performance_async(self) -> FeaturePerformanceMatrix:
         """Calculate feature adoption vs operational cost analysis."""
-
         try:
             # Get feature adoption metrics
             feature_metrics = await self.warehouse.query_metrics_async(
@@ -1221,7 +1209,6 @@ class MissionControlDashboard:
 
     async def _calculate_revenue_correlation_async(self) -> RevenueCorrelationData:
         """Calculate revenue and cost correlation analysis."""
-
         try:
             # Get business metrics
             revenue_metrics = await self.warehouse.query_metrics_async(
@@ -1317,7 +1304,6 @@ class MissionControlDashboard:
 
     async def _calculate_certification_readiness_async(self) -> CertificationReadiness:
         """Calculate comprehensive certification readiness for Operation Bedrock."""
-
         try:
             # Query certification metrics from the data warehouse
             cert_metrics = await self.warehouse.query_metrics_async(
@@ -1415,7 +1401,6 @@ class MissionControlDashboard:
 
     def _process_certification_metrics(self, metrics: list[Any]) -> list[ComponentScorecard]:
         """Process raw certification metrics into component scorecards."""
-
         # Group metrics by component
         component_metrics = {}
         for metric in metrics:
@@ -1439,7 +1424,6 @@ class MissionControlDashboard:
 
     def _create_component_scorecard(self, component_name: str, metrics: dict[Any, Any]) -> ComponentScorecard:
         """Create a component scorecard from its metrics."""
-
         # Extract overall certification score
         cert_metric = metrics.get(MetricType.CERTIFICATION_SCORE),
         overall_score = cert_metric.value if cert_metric else 0.0
@@ -1526,7 +1510,6 @@ class MissionControlDashboard:
 
     def _estimate_bedrock_effort(self, scorecards: list[ComponentScorecard]) -> int:
         """Estimate total effort in days for Operation Bedrock."""
-
         total_effort = 0
 
         for scorecard in scorecards:
@@ -1547,7 +1530,6 @@ class MissionControlDashboard:
 
     def _calculate_bedrock_progress(self, scorecards: list[ComponentScorecard]) -> float:
         """Calculate overall progress percentage for Operation Bedrock."""
-
         if not scorecards:
             return 0.0
 
@@ -1560,7 +1542,6 @@ class MissionControlDashboard:
 
     def _generate_certification_recommendations(self, scorecards: list[ComponentScorecard]) -> list[str]:
         """Generate top Oracle recommendations for certification improvement."""
-
         recommendations = []
 
         # Prioritize by urgency and impact
@@ -1590,7 +1571,6 @@ class MissionControlDashboard:
 
     def _identify_quick_wins(self, scorecards: list[ComponentScorecard]) -> list[str]:
         """Identify quick wins - low effort, high impact improvements."""
-
         quick_wins = []
 
         for scorecard in scorecards:
@@ -1610,7 +1590,6 @@ class MissionControlDashboard:
 
     async def _count_services_async(self) -> tuple[int, int]:
         """Count active and total services."""
-
         try:
             # Get recent health metrics
             health_metrics = await self.warehouse.query_metrics_async(
@@ -1638,7 +1617,6 @@ class MissionControlDashboard:
 
     async def generate_dashboard_html_async(self) -> str:
         """Generate HTML dashboard for display."""
-
         data = await self.get_dashboard_data_async()
 
         # This is a simplified HTML template
@@ -1844,12 +1822,11 @@ class MissionControlDashboard:
         """Get status class based on compliance score."""
         if compliance_score >= 90:
             return "excellent"
-        elif compliance_score >= 80:
+        if compliance_score >= 80:
             return "good"
-        elif compliance_score >= 70:
+        if compliance_score >= 70:
             return "warning"
-        else:
-            return "critical"
+        return "critical"
 
     def _generate_architectural_violations_html(self, arch_health: ArchitecturalHealth) -> str:
         """Generate HTML for architectural violations section."""
@@ -1903,12 +1880,11 @@ class MissionControlDashboard:
         """Get status class based on profit margin."""
         if profit_margin >= 30:
             return "excellent"
-        elif profit_margin >= 20:
+        if profit_margin >= 20:
             return "good"
-        elif profit_margin >= 10:
+        if profit_margin >= 10:
             return "warning"
-        else:
-            return "critical"
+        return "critical"
 
     def _generate_business_intelligence_html(self, data: DashboardData) -> str:
         """Generate HTML for business intelligence section."""

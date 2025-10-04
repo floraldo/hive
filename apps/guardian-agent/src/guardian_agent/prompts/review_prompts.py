@@ -70,8 +70,7 @@ Format your response as JSON:
         analysis_results: list[AnalysisResult],
         similar_patterns: list[dict[str, Any]] | None = None,
     ) -> str:
-        """
-        Build a comprehensive review prompt.
+        """Build a comprehensive review prompt.
 
         Args:
             file_path: Path to the file being reviewed
@@ -81,6 +80,7 @@ Format your response as JSON:
 
         Returns:
             Formatted prompt string
+
         """
         # Determine language
         language = self._get_language(file_path)
@@ -207,8 +207,7 @@ Format your response as JSON:
         return "\n".join(lines)
 
     def build_fix_prompt(self, violation_description: str, code_snippet: str) -> str:
-        """
-        Build a prompt for generating fix suggestions.
+        """Build a prompt for generating fix suggestions.
 
         Args:
             violation_description: Description of the violation
@@ -216,6 +215,7 @@ Format your response as JSON:
 
         Returns:
             Formatted fix prompt
+
         """
         prompt = f"""As an expert developer, provide a fix for the following issue:
 
@@ -241,8 +241,7 @@ Format as JSON:
         return prompt
 
     def build_explanation_prompt(self, code_snippet: str, question: str) -> str:
-        """
-        Build a prompt for explaining code.
+        """Build a prompt for explaining code.
 
         Args:
             code_snippet: Code to explain
@@ -250,6 +249,7 @@ Format as JSON:
 
         Returns:
             Formatted explanation prompt
+
         """
         prompt = f"""Explain the following code, focusing on: {question}
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Fix missing typing imports across the codebase.
+"""Fix missing typing imports across the codebase.
 Adds 'from typing import Optional, List, Dict, Any, Union' to files with NameError.
 """
 
@@ -10,27 +9,27 @@ from pathlib import Path
 
 def has_typing_imports(content: str) -> bool:
     """Check if file already has typing imports."""
-    return bool(re.search(r'^from typing import', content, re.MULTILINE))
+    return bool(re.search(r"^from typing import", content, re.MULTILINE))
 
 def needs_typing_fix(content: str) -> set[str]:
     """Detect which typing imports are used but not imported."""
     needed = set()
 
     # Common typing patterns
-    if re.search(r'\bOptional\[', content):
-        needed.add('Optional')
-    if re.search(r'\bList\[', content):
-        needed.add('List')
-    if re.search(r'\bDict\[', content):
-        needed.add('Dict')
-    if re.search(r'\bAny\b', content) and not re.search(r'from typing.*Any', content):
-        needed.add('Any')
-    if re.search(r'\bUnion\[', content):
-        needed.add('Union')
-    if re.search(r'\bTuple\[', content):
-        needed.add('Tuple')
-    if re.search(r'\bCallable\[', content):
-        needed.add('Callable')
+    if re.search(r"\bOptional\[", content):
+        needed.add("Optional")
+    if re.search(r"\bList\[", content):
+        needed.add("List")
+    if re.search(r"\bDict\[", content):
+        needed.add("Dict")
+    if re.search(r"\bAny\b", content) and not re.search(r"from typing.*Any", content):
+        needed.add("Any")
+    if re.search(r"\bUnion\[", content):
+        needed.add("Union")
+    if re.search(r"\bTuple\[", content):
+        needed.add("Tuple")
+    if re.search(r"\bCallable\[", content):
+        needed.add("Callable")
 
     return needed
 
@@ -42,7 +41,7 @@ def add_typing_imports(content: str, imports_needed: set[str]) -> str:
     import_line = f"from typing import {', '.join(sorted(imports_needed))}\n"
 
     # Find where to insert (after docstring, before first import or code)
-    lines = content.split('\n')
+    lines = content.split("\n")
     insert_pos = 0
     in_docstring = False
     docstring_char = None
@@ -51,7 +50,7 @@ def add_typing_imports(content: str, imports_needed: set[str]) -> str:
         stripped = line.strip()
 
         # Handle module docstring
-        if i == 0 or (i == 1 and lines[0].startswith('#!')):
+        if i == 0 or (i == 1 and lines[0].startswith("#!")):
             if stripped.startswith('"""') or stripped.startswith("'''"):
                 in_docstring = True
                 docstring_char = stripped[:3]
@@ -67,23 +66,23 @@ def add_typing_imports(content: str, imports_needed: set[str]) -> str:
             continue
 
         # Skip shebang and encoding
-        if stripped.startswith('#'):
+        if stripped.startswith("#"):
             insert_pos = i + 1
             continue
 
         # Found first import or code
-        if stripped and not stripped.startswith('#'):
+        if stripped and not stripped.startswith("#"):
             insert_pos = i
             break
 
     # Insert import
     lines.insert(insert_pos, import_line)
-    return '\n'.join(lines)
+    return "\n".join(lines)
 
 def fix_file(filepath: Path) -> bool:
     """Fix typing imports in a single file."""
     try:
-        content = filepath.read_text(encoding='utf-8')
+        content = filepath.read_text(encoding="utf-8")
 
         # Check if already has typing imports
         if has_typing_imports(content):
@@ -94,10 +93,10 @@ def fix_file(filepath: Path) -> bool:
 
             # Add to existing import
             content = re.sub(
-                r'(from typing import [^\n]+)',
+                r"(from typing import [^\n]+)",
                 lambda m: f"{m.group(1)}, {', '.join(sorted(imports_needed))}",
                 content,
-                count=1
+                count=1,
             )
         else:
             # No typing imports yet - check if needed
@@ -107,7 +106,7 @@ def fix_file(filepath: Path) -> bool:
 
             content = add_typing_imports(content, imports_needed)
 
-        filepath.write_text(content, encoding='utf-8')
+        filepath.write_text(content, encoding="utf-8")
         return True
 
     except Exception as e:
@@ -118,19 +117,19 @@ def main():
     """Fix typing imports across the codebase."""
     # Find all Python files with NameError in test collection
     error_patterns = [
-        'tests/rag/*.py',
-        'tests/unit/*.py',
-        'tests/**/*.py',
-        'packages/*/tests/**/*.py',
-        'apps/*/tests/**/*.py'
+        "tests/rag/*.py",
+        "tests/unit/*.py",
+        "tests/**/*.py",
+        "packages/*/tests/**/*.py",
+        "apps/*/tests/**/*.py",
     ]
 
     fixed_count = 0
     checked_count = 0
 
     for pattern in error_patterns:
-        for filepath in Path('.').glob(pattern):
-            if filepath.name.startswith('__'):
+        for filepath in Path(".").glob(pattern):
+            if filepath.name.startswith("__"):
                 continue
 
             checked_count += 1
@@ -140,5 +139,5 @@ def main():
 
     print(f"\nFixed {fixed_count} files out of {checked_count} checked")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

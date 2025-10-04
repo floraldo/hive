@@ -1,5 +1,4 @@
-"""
-Hive Cache - High-performance Redis-based caching for Hive platform.
+"""Hive Cache - High-performance Redis-based caching for Hive platform.
 
 This package provides intelligent caching solutions optimized for:
 - Claude API response caching with smart TTL
@@ -32,16 +31,16 @@ CacheManager = HiveCacheClient  # Deprecated: Use HiveCacheClient directly
 
 __version__ = "1.0.0"
 __all__ = [
-    "HiveCacheClient",
-    "get_cache_client",
-    "CacheManager",  # Deprecated alias
+    "CacheCircuitBreakerError",
     "CacheConfig",
-    "ClaudeAPICache",
-    "PerformanceCache",
+    "CacheConnectionError",
     # "CacheHealthMonitor",  # TEMP: Disabled
     "CacheError",
-    "CacheConnectionError",
-    "CacheTimeoutError",
-    "CacheCircuitBreakerError",
+    "CacheManager",  # Deprecated alias
     "CacheSerializationError",
+    "CacheTimeoutError",
+    "ClaudeAPICache",
+    "HiveCacheClient",
+    "PerformanceCache",
+    "get_cache_client",
 ]

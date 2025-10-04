@@ -6,4 +6,4 @@ measurement of review quality through GitHub reaction data.
 
 from guardian_agent.feedback.tracker import FeedbackRecord, FeedbackTracker
 
-__all__ = ["FeedbackTracker", "FeedbackRecord"]
+__all__ = ["FeedbackRecord", "FeedbackTracker"]

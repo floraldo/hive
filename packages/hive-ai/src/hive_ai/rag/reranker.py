@@ -1,5 +1,4 @@
-"""
-Cross-Encoder Re-ranking for RAG.
+"""Cross-Encoder Re-ranking for RAG.
 
 Implements two-stage retrieval with cross-encoder re-ranking for
 maximum precision. Uses bi-encoder for fast candidate retrieval,
@@ -52,25 +51,24 @@ class RerankerConfig:
 
     def __post_init__(self):
         """Validate configuration."""
-        assert self.candidate_count >= self.rerank_count >= self.final_count  # noqa: S101
-        assert self.batch_size > 0  # noqa: S101
-        assert 0.0 <= self.min_score <= 1.0  # noqa: S101
+        assert self.candidate_count >= self.rerank_count >= self.final_count
+        assert self.batch_size > 0
+        assert 0.0 <= self.min_score <= 1.0
 
 
 class CrossEncoderReranker:
-    """
-    Cross-encoder re-ranker for precise final ranking.
+    """Cross-encoder re-ranker for precise final ranking.
 
     Uses a cross-encoder model to re-rank the top candidates from
     bi-encoder retrieval, providing maximum precision for final results.
     """
 
     def __init__(self, config: RerankerConfig | None = None):
-        """
-        Initialize cross-encoder re-ranker.
+        """Initialize cross-encoder re-ranker.
 
         Args:
             config: Re-ranker configuration
+
         """
         self.config = config or RerankerConfig()
         self.model = None
@@ -108,8 +106,7 @@ class CrossEncoderReranker:
         chunks: list[dict[str, Any]],
         top_k: int | None = None,
     ) -> list[dict[str, Any]]:
-        """
-        Re-rank chunks using cross-encoder for precision.
+        """Re-rank chunks using cross-encoder for precision.
 
         Args:
             query: Search query
@@ -118,6 +115,7 @@ class CrossEncoderReranker:
 
         Returns:
             Re-ranked chunks with updated scores
+
         """
         if not self.config.enabled or not self.model:
             logger.debug("Re-ranking disabled, returning original chunks")
@@ -220,8 +218,7 @@ class CrossEncoderReranker:
         chunks: list[dict[str, Any]],
         top_k: int | None = None,
     ) -> dict[str, Any]:
-        """
-        Re-rank with detailed explanation of score changes.
+        """Re-rank with detailed explanation of score changes.
 
         Returns:
             {
@@ -232,6 +229,7 @@ class CrossEncoderReranker:
                     "score_changes": [...],
                 }
             }
+
         """
         # Store original rankings
         original_order = {chunk.get("metadata", {}).get("chunk_id", i): i for i, chunk in enumerate(chunks)}
@@ -287,7 +285,7 @@ class CrossEncoderReranker:
         # Use first 10 chunk IDs to keep key manageable
         ids_str = ",".join(chunk_ids[:10])
         content = f"{query}:{ids_str}"
-        return hashlib.md5(content.encode()).hexdigest()  # noqa: S324
+        return hashlib.md5(content.encode()).hexdigest()
 
     def _get_from_cache(self, key: str) -> list[tuple[int, float]] | None:
         """Get cached ranking if still valid."""
@@ -354,8 +352,7 @@ def create_reranker(
     enabled: bool = True,
     model_name: str = "cross-encoder/ms-marco-MiniLM-L-6-v2",
 ) -> CrossEncoderReranker:
-    """
-    Create cross-encoder re-ranker with sensible defaults.
+    """Create cross-encoder re-ranker with sensible defaults.
 
     Args:
         enabled: Enable re-ranking
@@ -363,6 +360,7 @@ def create_reranker(
 
     Returns:
         Configured CrossEncoderReranker
+
     """
     config = RerankerConfig(
         enabled=enabled,

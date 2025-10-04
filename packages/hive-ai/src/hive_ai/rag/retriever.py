@@ -1,5 +1,4 @@
-"""
-Enhanced RAG retriever with hybrid search and structured context generation.
+"""Enhanced RAG retriever with hybrid search and structured context generation.
 
 Combines semantic search, keyword search, and metadata filtering to provide
 high-quality code context for LLM agents.
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class EnhancedRAGRetriever:
-    """
-    Hybrid RAG retriever combining semantic and keyword search.
+    """Hybrid RAG retriever combining semantic and keyword search.
 
     Features:
     - Semantic search via vector similarity
@@ -40,13 +38,13 @@ class EnhancedRAGRetriever:
         vector_store: VectorStore | None = None,
         keyword_search: BM25KeywordSearch | None = None,
     ):
-        """
-        Initialize enhanced RAG retriever.
+        """Initialize enhanced RAG retriever.
 
         Args:
             embedding_generator: Embedding generator (creates default if None)
             vector_store: Vector store (creates default if None)
             keyword_search: Keyword search (creates default if None)
+
         """
         self.embedding_generator = embedding_generator or EmbeddingGenerator()
         self.vector_store = vector_store or VectorStore(embedding_dim=self.embedding_generator.embedding_dim)
@@ -58,11 +56,11 @@ class EnhancedRAGRetriever:
         logger.info("Initialized Enhanced RAG Retriever")
 
     def index_chunks(self, chunks: list[CodeChunk]) -> None:
-        """
-        Index chunks for retrieval.
+        """Index chunks for retrieval.
 
         Args:
             chunks: List of CodeChunks to index
+
         """
         if not chunks:
             logger.warning("No chunks to index")
@@ -82,14 +80,14 @@ class EnhancedRAGRetriever:
         logger.info(f"Successfully indexed {len(chunks)} chunks")
 
     def retrieve(self, query: str | RetrievalQuery) -> list[RetrievalResult]:
-        """
-        Retrieve relevant chunks for a query.
+        """Retrieve relevant chunks for a query.
 
         Args:
             query: Query string or RetrievalQuery object
 
         Returns:
             List of RetrievalResult objects sorted by relevance
+
         """
         # Convert string query to RetrievalQuery
         if isinstance(query, str):
@@ -118,8 +116,7 @@ class EnhancedRAGRetriever:
         query: str | RetrievalQuery,
         include_golden_rules: bool = True,
     ) -> StructuredContext:
-        """
-        Retrieve chunks and generate structured context for LLM prompts.
+        """Retrieve chunks and generate structured context for LLM prompts.
 
         Args:
             query: Query string or RetrievalQuery object
@@ -127,6 +124,7 @@ class EnhancedRAGRetriever:
 
         Returns:
             StructuredContext ready for prompt generation
+
         """
         # Convert string query to RetrievalQuery
         if isinstance(query, str):
@@ -161,20 +159,20 @@ class EnhancedRAGRetriever:
 
         logger.info(
             f"Generated structured context: {len(code_patterns)} patterns, "
-            f"{len(golden_rules)} rules, {retrieval_time:.1f}ms"
+            f"{len(golden_rules)} rules, {retrieval_time:.1f}ms",
         )
 
         return context
 
     def _hybrid_search(self, query: RetrievalQuery) -> list[RetrievalResult]:
-        """
-        Perform hybrid search combining semantic and keyword search.
+        """Perform hybrid search combining semantic and keyword search.
 
         Args:
             query: Retrieval query
 
         Returns:
             Merged and re-ranked results
+
         """
         # Generate query embedding
         query_embedding = self.embedding_generator.generate_embedding(query.query)
@@ -215,8 +213,7 @@ class EnhancedRAGRetriever:
         semantic_weight: float = 0.7,
         keyword_weight: float = 0.3,
     ) -> list[RetrievalResult]:
-        """
-        Merge semantic and keyword search results.
+        """Merge semantic and keyword search results.
 
         Uses weighted score combination with de-duplication.
 
@@ -228,6 +225,7 @@ class EnhancedRAGRetriever:
 
         Returns:
             Merged results sorted by combined score
+
         """
         # Build combined scores
         combined_scores: dict[str, tuple[CodeChunk, float, str]] = {}
@@ -269,14 +267,13 @@ class EnhancedRAGRetriever:
                     score=score,
                     retrieval_method=method,
                     rank=rank,
-                )
+                ),
             )
 
         return merged
 
     def _rerank_results(self, results: list[RetrievalResult], query: RetrievalQuery) -> list[RetrievalResult]:
-        """
-        Re-rank results using cross-encoder (placeholder for future implementation).
+        """Re-rank results using cross-encoder (placeholder for future implementation).
 
         Args:
             results: Initial retrieval results
@@ -284,6 +281,7 @@ class EnhancedRAGRetriever:
 
         Returns:
             Re-ranked results
+
         """
         # Placeholder: In production, use cross-encoder model for re-ranking
         # For now, just return top results unchanged
@@ -306,8 +304,7 @@ class EnhancedRAGRetriever:
         return filters
 
     def _get_relevant_golden_rules(self, query: str) -> list[RuleContext]:
-        """
-        Get relevant golden rules for the query.
+        """Get relevant golden rules for the query.
 
         This is a simplified version - in production, would use semantic matching
         against rule descriptions.
@@ -317,6 +314,7 @@ class EnhancedRAGRetriever:
 
         Returns:
             List of relevant RuleContext objects
+
         """
         # Placeholder: Load golden rules from hive-tests
         if self.golden_rules is None:
@@ -365,11 +363,11 @@ class EnhancedRAGRetriever:
         logger.info(f"Loaded {len(self.golden_rules)} golden rules")
 
     def save(self, path: Path | str) -> None:
-        """
-        Save retriever state to disk.
+        """Save retriever state to disk.
 
         Args:
             path: Directory to save state
+
         """
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
@@ -380,11 +378,11 @@ class EnhancedRAGRetriever:
         logger.info(f"Saved retriever state to {path}")
 
     def load(self, path: Path | str) -> None:
-        """
-        Load retriever state from disk.
+        """Load retriever state from disk.
 
         Args:
             path: Directory containing saved state
+
         """
         path = Path(path)
 

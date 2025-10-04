@@ -1,5 +1,4 @@
-"""
-CI/CD Performance Baseline Integration
+"""CI/CD Performance Baseline Integration
 
 Runs performance analysis and checks for regressions against stored baselines.
 Designed to run on every merge to main branch.
@@ -94,11 +93,11 @@ def load_baseline() -> dict[str, Any] | None:
 
 
 def compare_against_baseline(current: dict[str, Any], baseline: dict[str, Any]) -> tuple[bool, list[str]]:
-    """
-    Compare current metrics against baseline.
+    """Compare current metrics against baseline.
 
     Returns:
         (passed, regressions) where passed is True if no critical regressions detected
+
     """
     regressions = []
     passed = True
@@ -187,7 +186,7 @@ async def main():
         print(f"\nBaseline saved to: {BASELINE_FILE}")
         return 0
 
-    elif args.mode == "check":
+    if args.mode == "check":
         logger.info("Checking performance against baseline...")
 
         # Load existing baseline
@@ -216,11 +215,10 @@ async def main():
             print(f"   Throughput: {baseline.get('throughput', 0):.2f} → {current.get('throughput', 0):.2f} ops/s")
             print(f"   Error Rate: {baseline.get('error_rate', 0):.2%} → {current.get('error_rate', 0):.2%}")
             return 0
-        else:
-            print(f"❌ FAILED - Performance regressions detected (threshold: {REGRESSION_THRESHOLD * 100:.0f}%):")
-            for regression in regressions:
-                print(f"   • {regression}")
-            return 1
+        print(f"❌ FAILED - Performance regressions detected (threshold: {REGRESSION_THRESHOLD * 100:.0f}%):")
+        for regression in regressions:
+            print(f"   • {regression}")
+        return 1
 
 
 if __name__ == "__main__":

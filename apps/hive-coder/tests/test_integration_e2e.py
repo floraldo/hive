@@ -1,5 +1,4 @@
-"""
-End-to-end integration test: Architect → Coder → Generated Service
+"""End-to-end integration test: Architect → Coder → Generated Service
 
 This test demonstrates the complete Project Colossus flow:
 1. Architect generates ExecutionPlan from natural language
@@ -32,10 +31,9 @@ class TestE2EIntegration:
         return CoderAgent()
 
     def test_complete_flow_api_service(
-        self, architect: ArchitectAgent, coder: CoderAgent, tmp_path: Path
+        self, architect: ArchitectAgent, coder: CoderAgent, tmp_path: Path,
     ) -> None:
-        """
-        Test complete flow: natural language → ExecutionPlan → Generated Service
+        """Test complete flow: natural language → ExecutionPlan → Generated Service
 
         This is the core test for Project Colossus Milestone 2.
         """
@@ -68,8 +66,7 @@ class TestE2EIntegration:
         assert result.status in [ExecutionStatus.COMPLETED, ExecutionStatus.FAILED]
 
     def test_workflow_data_flow(self, architect: ArchitectAgent, coder: CoderAgent, tmp_path: Path) -> None:
-        """
-        Test data flows correctly through the workflow
+        """Test data flows correctly through the workflow
 
         Verifies:
         - Architect output matches Coder input
@@ -103,10 +100,9 @@ class TestE2EIntegration:
             assert task_result.task_id in plan_task_ids
 
     def test_multiple_services_independent(
-        self, architect: ArchitectAgent, coder: CoderAgent, tmp_path: Path
+        self, architect: ArchitectAgent, coder: CoderAgent, tmp_path: Path,
     ) -> None:
-        """
-        Test generating multiple independent services
+        """Test generating multiple independent services
 
         Verifies:
         - Services don't interfere with each other
@@ -117,7 +113,7 @@ class TestE2EIntegration:
         plan1 = architect.create_plan("Create 'auth-service' API", output_path=str(tmp_path / "auth-plan.json"))
 
         plan2 = architect.create_plan(
-            "Create 'notification-worker' event worker", output_path=str(tmp_path / "notification-plan.json")
+            "Create 'notification-worker' event worker", output_path=str(tmp_path / "notification-plan.json"),
         )
 
         # Verify plans are independent

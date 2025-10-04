@@ -1,5 +1,4 @@
-"""
-Task Models
+"""Task Models
 
 Data models for orchestration tasks.
 """
@@ -32,8 +31,7 @@ class TaskStatus(str, Enum):
 
 
 class Task(IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
-    """
-    Orchestration task model.
+    """Orchestration task model.
 
     Represents a unit of work to be executed by the orchestration system.
     """

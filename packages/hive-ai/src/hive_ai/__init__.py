@@ -1,5 +1,4 @@
-"""
-Hive AI - Advanced AI/ML Infrastructure for the Hive Platform
+"""Hive AI - Advanced AI/ML Infrastructure for the Hive Platform
 
 This package provides production-ready AI/ML capabilities including:
 - Multi-provider model management (Anthropic, OpenAI, local models)
@@ -48,40 +47,40 @@ logger = get_logger(__name__)
 __version__ = ("1.0.0",)
 
 __all__ = [
-    # Core configuration and exceptions
-    "AIConfig",
-    "ModelConfig",
-    "VectorConfig",
-    "PromptConfig",
-    "AIError",
-    "ModelError",
-    "VectorError",
-    "PromptError",
-    "CostLimitError",
-    "ModelUnavailableError",
-    # Model management
-    "ModelRegistry",
-    "ModelClient",
-    "ModelResponse",
-    "ModelPool",
-    "ModelMetrics",
-    "TokenUsage",
-    # Vector database
-    "VectorStore",
-    "EmbeddingManager",
-    "SemanticSearch",
-    "VectorMetrics",
-    # Prompt engineering
-    "PromptTemplate",
-    "PromptChain",
-    "PromptOptimizer",
-    "PromptRegistry",
-    # Observability
-    "ObservabilityManager",  # NEW unified interface
-    "AIMetricsCollector",
-    "ModelHealthChecker",
-    "CostManager",
     # Resilience (canonical hive-async patterns)
     "AICircuitBreaker",
+    # Core configuration and exceptions
+    "AIConfig",
+    "AIError",
+    "AIMetricsCollector",
     "AITimeoutManager",
+    "CostLimitError",
+    "CostManager",
+    "EmbeddingManager",
+    "ModelClient",
+    "ModelConfig",
+    "ModelError",
+    "ModelHealthChecker",
+    "ModelMetrics",
+    "ModelPool",
+    # Model management
+    "ModelRegistry",
+    "ModelResponse",
+    "ModelUnavailableError",
+    # Observability
+    "ObservabilityManager",  # NEW unified interface
+    "PromptChain",
+    "PromptConfig",
+    "PromptError",
+    "PromptOptimizer",
+    "PromptRegistry",
+    # Prompt engineering
+    "PromptTemplate",
+    "SemanticSearch",
+    "TokenUsage",
+    "VectorConfig",
+    "VectorError",
+    "VectorMetrics",
+    # Vector database
+    "VectorStore",
 ]

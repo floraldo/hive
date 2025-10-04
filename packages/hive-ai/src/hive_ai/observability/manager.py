@@ -1,5 +1,4 @@
-"""
-Unified observability manager for AI operations.
+"""Unified observability manager for AI operations.
 
 Composes metrics collection, health monitoring, and cost management
 into a single coherent interface for comprehensive AI observability.
@@ -48,8 +47,7 @@ class ObservabilityConfig:
 
 
 class ObservabilityManager:
-    """
-    Unified observability manager for AI operations.
+    """Unified observability manager for AI operations.
 
     Composes three core observability components:
     - AIMetricsCollector: Performance and usage metrics
@@ -66,13 +64,13 @@ class ObservabilityManager:
         registry: ModelRegistry | None = None,
         ai_config: Any = None,
     ):
-        """
-        Initialize unified observability manager.
+        """Initialize unified observability manager.
 
         Args:
             config: Observability configuration
             registry: ModelRegistry for health checks
             ai_config: AIConfig for component initialization
+
         """
         self.config = config or ObservabilityConfig()
         self.registry = registry
@@ -89,7 +87,7 @@ class ObservabilityManager:
             f"ObservabilityManager initialized: "
             f"metrics={self.config.enable_metrics}, "
             f"health={self.config.enable_health_checks}, "
-            f"cost={self.config.enable_cost_tracking}"
+            f"cost={self.config.enable_cost_tracking}",
         )
 
     def _initialize_components(self) -> None:
@@ -130,8 +128,7 @@ class ObservabilityManager:
         provider: str,
         metadata: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Start tracking an AI operation across all observability components.
+        """Start tracking an AI operation across all observability components.
 
         Args:
             operation_type: Type of operation (generation, embedding, etc.)
@@ -141,6 +138,7 @@ class ObservabilityManager:
 
         Returns:
             operation_id for tracking
+
         """
         operation_id = None
 
@@ -164,8 +162,7 @@ class ObservabilityManager:
         error_type: str | None = None,
         additional_metadata: dict[str, Any] | None = None,
     ) -> None:
-        """
-        End tracking an AI operation and record across all components.
+        """End tracking an AI operation and record across all components.
 
         Args:
             operation_id: Operation identifier from start_operation
@@ -174,6 +171,7 @@ class ObservabilityManager:
             cost: Cost in USD
             error_type: Type of error if failed
             additional_metadata: Additional metadata to record
+
         """
         # End metrics tracking
         if self._metrics_collector:
@@ -220,7 +218,7 @@ class ObservabilityManager:
         return self._metrics_collector.get_operation_metrics(operation_id)
 
     def get_metric_values(
-        self, metric_name: str, since: datetime | None = None, limit: int = 100
+        self, metric_name: str, since: datetime | None = None, limit: int = 100,
     ) -> list[MetricValue]:
         """Get values for a specific metric."""
         if not self._metrics_collector:
@@ -280,7 +278,7 @@ class ObservabilityManager:
         return self._cost_manager.check_budget(budget_name)
 
     def get_cost_summary(
-        self, period: BudgetPeriod = BudgetPeriod.DAILY, limit: int = 7
+        self, period: BudgetPeriod = BudgetPeriod.DAILY, limit: int = 7,
     ) -> list[CostSummary]:
         """Get cost summary for recent periods."""
         if not self._cost_manager:
@@ -290,8 +288,7 @@ class ObservabilityManager:
     # ==================== Unified Analytics ====================
 
     def get_unified_status(self) -> dict[str, Any]:
-        """
-        Get unified status across all observability components.
+        """Get unified status across all observability components.
 
         Returns comprehensive status including:
         - Current health status

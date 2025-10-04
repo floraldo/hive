@@ -1,5 +1,4 @@
-"""
-Vector store for semantic search using FAISS.
+"""Vector store for semantic search using FAISS.
 
 Provides efficient similarity search with persistence and metadata filtering.
 """
@@ -21,8 +20,7 @@ logger = get_logger(__name__)
 
 
 class VectorStore:
-    """
-    FAISS-based vector store for semantic code search.
+    """FAISS-based vector store for semantic code search.
 
     Features:
     - Efficient similarity search (cosine similarity)
@@ -32,11 +30,11 @@ class VectorStore:
     """
 
     def __init__(self, embedding_dim: int = 384):
-        """
-        Initialize vector store.
+        """Initialize vector store.
 
         Args:
             embedding_dim: Dimension of embeddings (default: 384 for all-MiniLM-L6-v2)
+
         """
         self.embedding_dim = embedding_dim
 
@@ -49,11 +47,11 @@ class VectorStore:
         logger.info(f"Initialized vector store with {embedding_dim}-dim embeddings")
 
     def add_chunks(self, chunks: list[CodeChunk]) -> None:
-        """
-        Add chunks to the vector store.
+        """Add chunks to the vector store.
 
         Args:
             chunks: List of CodeChunks with embeddings attached
+
         """
         if not chunks:
             return
@@ -85,8 +83,7 @@ class VectorStore:
         k: int = 5,
         filters: dict[str, Any] | None = None,
     ) -> list[RetrievalResult]:
-        """
-        Search for similar chunks.
+        """Search for similar chunks.
 
         Args:
             query_embedding: Query embedding vector
@@ -95,6 +92,7 @@ class VectorStore:
 
         Returns:
             List of RetrievalResult objects sorted by score
+
         """
         if self.index.ntotal == 0:
             logger.warning("Vector store is empty")
@@ -133,7 +131,7 @@ class VectorStore:
                     chunk=chunk,
                     score=float(score),
                     retrieval_method="semantic",
-                )
+                ),
             )
 
             # Stop once we have enough results
@@ -148,11 +146,11 @@ class VectorStore:
         return results
 
     def save(self, path: Path | str) -> None:
-        """
-        Save vector store to disk.
+        """Save vector store to disk.
 
         Args:
             path: Directory path to save index and metadata
+
         """
         path = Path(path)
         path.mkdir(parents=True, exist_ok=True)
@@ -169,11 +167,11 @@ class VectorStore:
         logger.info(f"Saved vector store to {path}")
 
     def load(self, path: Path | str) -> None:
-        """
-        Load vector store from disk.
+        """Load vector store from disk.
 
         Args:
             path: Directory path containing saved index and metadata
+
         """
         path = Path(path)
 
@@ -191,7 +189,7 @@ class VectorStore:
         chunks_path = path / "chunks.pkl"
         if chunks_path.exists():
             with open(chunks_path, "rb") as f:
-                self.chunks = pickle.load(f)  # noqa: S301
+                self.chunks = pickle.load(f)
         else:
             raise FileNotFoundError(f"Chunks metadata not found at {chunks_path}")
 

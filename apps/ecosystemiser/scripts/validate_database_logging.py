@@ -18,7 +18,7 @@ import importlib.util
 
 spec = importlib.util.spec_from_file_location(
     "database_metadata_service",
-    Path(__file__).parent.parent / "src" / "ecosystemiser" / "services" / "database_metadata_service.py"
+    Path(__file__).parent.parent / "src" / "ecosystemiser" / "services" / "database_metadata_service.py",
 )
 db_module = importlib.util.module_from_spec(spec)
 
@@ -88,7 +88,7 @@ def test_database_basic_operations():
 
         # Test 4: Query by solver type
         hybrid_runs = db_service.query_simulation_runs(
-            filters={"solver_type": "hybrid"}
+            filters={"solver_type": "hybrid"},
         )
         if hybrid_runs and len(hybrid_runs) > 0:
             print(f"[OK] Filtered by solver_type: {len(hybrid_runs)} hybrid runs found")
@@ -100,7 +100,7 @@ def test_database_basic_operations():
         ordered_runs = db_service.query_simulation_runs(
             filters={"study_id": "test_study"},
             order_by="total_cost",
-            limit=5
+            limit=5,
         )
         if ordered_runs:
             print(f"[OK] Ordered query works: {len(ordered_runs)} runs")
@@ -162,7 +162,7 @@ def test_logging_workflow():
 
         # Query all runs
         all_runs = db_service.query_simulation_runs(
-            filters={"study_id": "workflow_test"}
+            filters={"study_id": "workflow_test"},
         )
 
         if len(all_runs) == 3:
@@ -175,7 +175,7 @@ def test_logging_workflow():
         cheapest = db_service.query_simulation_runs(
             filters={"study_id": "workflow_test"},
             order_by="total_cost",
-            limit=1
+            limit=1,
         )
 
         if cheapest and cheapest[0].get("total_cost") == 100000.0:
@@ -186,7 +186,7 @@ def test_logging_workflow():
 
         # Query by solver type
         hybrid_runs = db_service.query_simulation_runs(
-            filters={"solver_type": "hybrid", "study_id": "workflow_test"}
+            filters={"solver_type": "hybrid", "study_id": "workflow_test"},
         )
 
         if len(hybrid_runs) == 2:  # runs 0 and 2 are hybrid
@@ -240,10 +240,9 @@ def main():
         print("\n[OK] All validation tests passed!")
         print("\nDatabase logging implementation is production-ready.")
         return 0
-    else:
-        print("\n[FAIL] Some validation tests failed.")
-        print("\nPlease review errors above and fix issues.")
-        return 1
+    print("\n[FAIL] Some validation tests failed.")
+    print("\nPlease review errors above and fix issues.")
+    return 1
 
 
 if __name__ == "__main__":

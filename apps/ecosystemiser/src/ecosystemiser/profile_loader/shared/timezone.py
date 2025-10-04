@@ -1,5 +1,4 @@
-"""
-Timezone handling utilities using modern zoneinfo (PEP 615).,
+"""Timezone handling utilities using modern zoneinfo (PEP 615).,
 
 Replaces pytz with standard library zoneinfo for better timezone handling
 fixes DST edge cases, and provides standardized UTC conversion.
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class TimezoneHandler:
-    """
-    Centralized timezone handling for climate data.,
+    """Centralized timezone handling for climate data.,
 
     Ensures all internal data uses UTC while supporting local time,
     for input/output when needed.
@@ -47,10 +45,9 @@ class TimezoneHandler:
 
     @staticmethod
     def normalize_to_utc(
-        timestamp: datetime | pd.Timestamp | pd.DatetimeIndex | np.datetime64, source_tz: str | None = None
+        timestamp: datetime | pd.Timestamp | pd.DatetimeIndex | np.datetime64, source_tz: str | None = None,
     ) -> datetime | pd.Timestamp | pd.DatetimeIndex:
-        """
-        Normalize any timestamp to UTC.
+        """Normalize any timestamp to UTC.
 
         Args:
             timestamp: Input timestamp (naive or aware),
@@ -58,6 +55,7 @@ class TimezoneHandler:
 
         Returns:
             UTC timestamp with timezone info,
+
         """
         # Handle different timestamp types
         if isinstance(timestamp, np.datetime64):
@@ -121,10 +119,9 @@ class TimezoneHandler:
 
     @staticmethod
     def localize_from_utc(
-        timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, target_tz: str
+        timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, target_tz: str,
     ) -> datetime | pd.Timestamp | pd.DatetimeIndex:
-        """
-        Convert UTC timestamp to local timezone.
+        """Convert UTC timestamp to local timezone.
 
         Args:
             timestamp: UTC timestamp,
@@ -132,6 +129,7 @@ class TimezoneHandler:
 
         Returns:
             Localized timestamp,
+
         """
         tz = TimezoneHandler._get_timezone(target_tz)
 
@@ -150,8 +148,7 @@ class TimezoneHandler:
 
     @staticmethod
     def _get_timezone(tz_name: str) -> ZoneInfo | timezone:
-        """
-        Get timezone object from name.,
+        """Get timezone object from name.,
 
         Handles aliases and special cases.,
         """
@@ -171,14 +168,14 @@ class TimezoneHandler:
 
     @staticmethod
     def ensure_utc_dataset(ds: xr.Dataset) -> xr.Dataset:
-        """
-        Ensure xarray Dataset uses UTC timestamps.
+        """Ensure xarray Dataset uses UTC timestamps.
 
         Args:
             ds: Input dataset
 
         Returns:
             Dataset with UTC timestamps,
+
         """
         if "time" not in ds.dims:
             return ds
@@ -225,8 +222,7 @@ class TimezoneHandler:
 
     @staticmethod
     def handle_dst_transition(timestamps: pd.DatetimeIndex, tz_name: str) -> pd.DatetimeIndex:
-        """
-        Handle DST transitions properly.
+        """Handle DST transitions properly.
 
         Args:
             timestamps: Timestamps that may cross DST boundaries
@@ -234,6 +230,7 @@ class TimezoneHandler:
 
         Returns:
             Properly handled timestamps,
+
         """
         tz = TimezoneHandler._get_timezone(tz_name)
 
@@ -251,26 +248,24 @@ class TimezoneHandler:
                     # Handle ambiguous times during DST transition
                     # Use infer to let pandas infer the correct side
                     return timestamps.tz_localize(tz, ambiguous="infer")
-                elif "nonexistent" in error_msg or "non-existent" in error_msg:
+                if "nonexistent" in error_msg or "non-existent" in error_msg:
                     # Handle non-existent times during DST transition
                     # Shift forward to the next valid time
                     return timestamps.tz_localize(tz, nonexistent="shift_forward")
-                else:
-                    # Unknown error, try with both settings
-                    try:
-                        return timestamps.tz_localize(tz, ambiguous="infer", nonexistent="shift_forward")
-                    except Exception as e:
-                        # Last resort - force UTC
-                        logger.warning(f"DST handling failed for {tz_name}, using UTC")
-                        return timestamps.tz_localize("UTC")
+                # Unknown error, try with both settings
+                try:
+                    return timestamps.tz_localize(tz, ambiguous="infer", nonexistent="shift_forward")
+                except Exception as e:
+                    # Last resort - force UTC
+                    logger.warning(f"DST handling failed for {tz_name}, using UTC")
+                    return timestamps.tz_localize("UTC")
         else:
             # Already has timezone, just convert
             return timestamps.tz_convert(tz)
 
     @staticmethod
     def get_timezone_offset(tz_name: str, timestamp: datetime | None = None) -> float:
-        """
-        Get timezone offset from UTC in hours.
+        """Get timezone offset from UTC in hours.
 
         Args:
             tz_name: Timezone name
@@ -278,6 +273,7 @@ class TimezoneHandler:
 
         Returns:
             Offset in hours,
+
         """
         if timestamp is None:
             timestamp = (datetime.now(UTC),)
@@ -298,8 +294,7 @@ class TimezoneHandler:
 
     @staticmethod
     def infer_timezone_from_coordinates(latitude: float, longitude: float) -> str:
-        """
-        Infer timezone from geographic coordinates.
+        """Infer timezone from geographic coordinates.
 
         Args:
             latitude: Latitude in degrees
@@ -307,6 +302,7 @@ class TimezoneHandler:
 
         Returns:
             Timezone name,
+
         """
         try:
             # Use timezonefinder if available
@@ -328,15 +324,13 @@ class TimezoneHandler:
 
         if offset_hours == 0:
             return "UTC"
-        elif offset_hours > 0:
+        if offset_hours > 0:
             return f"Etc/GMT-{offset_hours}"  # Note: signs are reversed in Etc/GMT
-        else:
-            return f"Etc/GMT+{abs(offset_hours)}"
+        return f"Etc/GMT+{abs(offset_hours)}"
 
     @staticmethod
     def validate_timezone_consistency(ds: xr.Dataset, expected_tz: str = "UTC") -> list[str]:
-        """
-        Validate timezone consistency in dataset.
+        """Validate timezone consistency in dataset.
 
         Args:
             ds: Dataset to validate
@@ -344,6 +338,7 @@ class TimezoneHandler:
 
         Returns:
             List of validation issues (empty if valid)
+
         """
         issues = []
 
@@ -382,10 +377,9 @@ class TimezoneHandler:
 
 
 def to_utc(
-    timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, source_tz: str | None = None
+    timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, source_tz: str | None = None,
 ) -> datetime | pd.Timestamp | pd.DatetimeIndex:
-    """
-    Convert timestamp to UTC.
+    """Convert timestamp to UTC.
 
     Args:
         timestamp: Input timestamp,
@@ -393,15 +387,15 @@ def to_utc(
 
     Returns:
         UTC timestamp,
+
     """
     return TimezoneHandler.normalize_to_utc(timestamp, source_tz)
 
 
 def from_utc(
-    timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, target_tz: str
+    timestamp: datetime | pd.Timestamp | pd.DatetimeIndex, target_tz: str,
 ) -> datetime | pd.Timestamp | pd.DatetimeIndex:
-    """
-    Convert UTC timestamp to local timezone.
+    """Convert UTC timestamp to local timezone.
 
     Args:
         timestamp: UTC timestamp,
@@ -409,26 +403,26 @@ def from_utc(
 
     Returns:
         Localized timestamp,
+
     """
     return TimezoneHandler.localize_from_utc(timestamp, target_tz)
 
 
 def ensure_utc(ds: xr.Dataset) -> xr.Dataset:
-    """
-    Ensure dataset uses UTC timestamps.
+    """Ensure dataset uses UTC timestamps.
 
     Args:
         ds: Input dataset
 
     Returns:
         Dataset with UTC timestamps,
+
     """
     return TimezoneHandler.ensure_utc_dataset(ds)
 
 
 def get_timezone_for_location(lat: float, lon: float) -> str:
-    """
-    Get timezone for geographic location.
+    """Get timezone for geographic location.
 
     Args:
         lat: Latitude
@@ -436,5 +430,6 @@ def get_timezone_for_location(lat: float, lon: float) -> str:
 
     Returns:
         Timezone name,
+
     """
     return TimezoneHandler.infer_timezone_from_coordinates(lat, lon)

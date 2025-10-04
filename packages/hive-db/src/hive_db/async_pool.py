@@ -1,5 +1,4 @@
-"""
-Async database connection pooling utilities for Hive applications.
+"""Async database connection pooling utilities for Hive applications.
 
 Provides high-performance async connection pooling using aiosqlite
 for non-blocking database operations, built on the generic hive-async pool.
@@ -42,8 +41,7 @@ def create_async_sqlite_pool(
     connection_timeout: float = 30.0,
     max_idle_time: float = 300.0,
 ) -> ConnectionPool[aiosqlite.Connection]:
-    """
-    Create an async SQLite connection pool using the generic hive-async pool.
+    """Create an async SQLite connection pool using the generic hive-async pool.
 
     Args:
         db_path: Path to the SQLite database file,
@@ -54,6 +52,7 @@ def create_async_sqlite_pool(
 
     Returns:
         Generic connection pool configured for SQLite
+
     """
     config = PoolConfig(
         min_size=min_connections,
@@ -71,8 +70,7 @@ def create_async_sqlite_pool(
 
 
 class AsyncDatabaseManager:
-    """
-    Manager for multiple async database connection pools.
+    """Manager for multiple async database connection pools.
 
     Provides a unified interface for accessing different SQLite databases
     asynchronously while maintaining connection pooling using the generic
@@ -80,8 +78,7 @@ class AsyncDatabaseManager:
     """
 
     async def get_pool_async(self, db_name: str, db_path: Path, **pool_kwargs) -> ConnectionPool[aiosqlite.Connection]:
-        """
-        Get or create an async connection pool for a specific database.
+        """Get or create an async connection pool for a specific database.
 
         Args:
             db_name: Unique identifier for the database,
@@ -90,6 +87,7 @@ class AsyncDatabaseManager:
 
         Returns:
             Generic connection pool for the specified database
+
         """
         if db_name not in self._pools:
             async with self._lock:
@@ -103,8 +101,7 @@ class AsyncDatabaseManager:
 
     @asynccontextmanager
     async def get_connection_async(self, db_name: str, db_path: Path, **pool_kwargs) -> None:
-        """
-        Get an async connection for a specific database.
+        """Get an async connection for a specific database.
 
         Args:
             db_name: Unique identifier for the database,
@@ -113,6 +110,7 @@ class AsyncDatabaseManager:
 
         Yields:
             aiosqlite.Connection: Database connection from appropriate pool
+
         """
         pool = await self.get_pool_async(db_name, db_path, **pool_kwargs)
         async with pool.connection() as conn:
@@ -184,8 +182,7 @@ class AsyncDatabaseManager:
 
 # Factory function for creating async database managers with explicit configuration
 async def create_async_database_manager_async() -> AsyncDatabaseManager:
-    """
-    Factory function to create a new AsyncDatabaseManager instance.
+    """Factory function to create a new AsyncDatabaseManager instance.
 
     This replaces the previous singleton pattern with explicit instantiation.
     Applications should create one AsyncDatabaseManager instance and inject it
@@ -200,6 +197,7 @@ async def create_async_database_manager_async() -> AsyncDatabaseManager:
 
         # Pass to services that need it
         service = MyAsyncService(db_manager=async_db_manager)
+
     """
     manager = AsyncDatabaseManager()
     logger.info("Async database manager created")

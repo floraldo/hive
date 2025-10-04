@@ -1,5 +1,4 @@
-"""
-Database Operations for Hive Orchestration
+"""Database Operations for Hive Orchestration
 
 Provides connection management and transaction utilities.
 """
@@ -17,11 +16,11 @@ logger = get_logger(__name__)
 
 
 def _get_default_db_path() -> Path:
-    """
-    Get the default database path for orchestration.
+    """Get the default database path for orchestration.
 
     Returns:
         Path: Path to hive-internal.db in the hive/db directory
+
     """
     # Default to hive/db/hive-internal.db (same as orchestrator)
     base_dir = Path.cwd()
@@ -43,8 +42,7 @@ def _get_default_db_path() -> Path:
 
 @contextmanager
 def get_connection(db_path: str | Path | None = None):
-    """
-    Get a database connection for orchestration operations.
+    """Get a database connection for orchestration operations.
 
     Args:
         db_path: Optional database path. If not provided, uses default hive-internal.db
@@ -56,6 +54,7 @@ def get_connection(db_path: str | Path | None = None):
         >>> with get_connection() as conn:
         ...     cursor = conn.cursor()
         ...     cursor.execute("SELECT * FROM tasks")
+
     """
     if db_path is None:
         db_path = _get_default_db_path()
@@ -66,8 +65,7 @@ def get_connection(db_path: str | Path | None = None):
 
 @contextmanager
 def transaction(db_path: str | Path | None = None):
-    """
-    Database transaction context manager.
+    """Database transaction context manager.
 
     Automatically commits on success or rolls back on error.
 
@@ -81,6 +79,7 @@ def transaction(db_path: str | Path | None = None):
         >>> with transaction() as conn:
         ...     conn.execute("INSERT INTO tasks ...")
         ...     # Auto-commits on exit, rolls back on exception
+
     """
     with get_connection(db_path) as conn:
         try:
@@ -94,8 +93,7 @@ def transaction(db_path: str | Path | None = None):
 
 
 def _row_to_dict(cursor, row) -> dict[str, Any]:
-    """
-    Convert a database row to a dictionary.
+    """Convert a database row to a dictionary.
 
     Args:
         cursor: Database cursor with description
@@ -103,6 +101,7 @@ def _row_to_dict(cursor, row) -> dict[str, Any]:
 
     Returns:
         dict: Row as dictionary with column names as keys
+
     """
     if row is None:
         return None
@@ -110,8 +109,8 @@ def _row_to_dict(cursor, row) -> dict[str, Any]:
 
 
 __all__ = [
+    "_get_default_db_path",
+    "_row_to_dict",
     "get_connection",
     "transaction",
-    "_row_to_dict",
-    "_get_default_db_path",
 ]

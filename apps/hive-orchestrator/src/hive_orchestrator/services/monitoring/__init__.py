@@ -1,5 +1,4 @@
-"""
-Monitoring Service
+"""Monitoring Service
 
 Provides predictive monitoring and alert generation integrated with hive-orchestrator.
 """
@@ -8,8 +7,8 @@ from .events import MonitoringCycleCompleteEvent, MonitoringHealthChangeEvent, P
 from .predictive_service import PredictiveMonitoringService
 
 __all__ = [
-    "PredictiveMonitoringService",
-    "PredictiveAlertEvent",
     "MonitoringCycleCompleteEvent",
     "MonitoringHealthChangeEvent",
+    "PredictiveAlertEvent",
+    "PredictiveMonitoringService",
 ]

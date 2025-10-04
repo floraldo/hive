@@ -1,5 +1,4 @@
-"""
-Knowledge Fragment Parser
+"""Knowledge Fragment Parser
 
 Extracts structured knowledge fragments from completed tasks:
 - Summary: Executive summary (2-3 sentences)
@@ -33,8 +32,7 @@ class KnowledgeFragment:
 
 
 class FragmentParser:
-    """
-    Parse completed tasks into structured knowledge fragments.
+    """Parse completed tasks into structured knowledge fragments.
 
     Implements Decision 2-B: Structured Knowledge Fragments architecture.
     Creates multiple vectors per task for granular, searchable knowledge.
@@ -42,11 +40,9 @@ class FragmentParser:
 
     def __init__(self):
         """Initialize the fragment parser."""
-        pass
 
     def parse_task(self, task: dict[str, Any]) -> list[KnowledgeFragment]:
-        """
-        Parse a completed task into knowledge fragments.
+        """Parse a completed task into knowledge fragments.
 
         Args:
             task: Task dictionary from orchestration DB
@@ -59,14 +55,15 @@ class FragmentParser:
             >>> fragments = parser.parse_task(task)
             >>> len(fragments)  # summary + N errors + M decisions
             5
+
         """
         fragments = []
 
         # Extract base metadata
-        task_id = task.get('id', 'unknown')
-        task_type = task.get('task_type', 'general')
-        status = task.get('status', 'completed')
-        timestamp = task.get('updated_at', task.get('created_at', ''))
+        task_id = task.get("id", "unknown")
+        task_type = task.get("task_type", "general")
+        status = task.get("status", "completed")
+        timestamp = task.get("updated_at", task.get("created_at", ""))
 
         # PROJECT CHIMERA Phase 3: Check if this task resolved an alert
         resolution_metadata = self._extract_resolution_metadata(task)
@@ -76,19 +73,19 @@ class FragmentParser:
         if summary:
             fragments.append(
                 KnowledgeFragment(
-                    fragment_type='summary',
+                    fragment_type="summary",
                     content=summary,
                     task_id=task_id,
                     task_type=task_type,
                     status=status,
                     timestamp=timestamp,
                     metadata={
-                        'title': task.get('title', ''),
-                        'priority': task.get('priority', 1),
-                        'assigned_worker': task.get('assigned_worker', ''),
-                        **resolution_metadata  # Include resolution info if present
-                    }
-                )
+                        "title": task.get("title", ""),
+                        "priority": task.get("priority", 1),
+                        "assigned_worker": task.get("assigned_worker", ""),
+                        **resolution_metadata,  # Include resolution info if present
+                    },
+                ),
             )
 
         # 2. ERROR FRAGMENTS
@@ -108,28 +105,27 @@ class FragmentParser:
             f"{sum(1 for f in fragments if f.fragment_type == 'summary')} summaries, "
             f"{sum(1 for f in fragments if f.fragment_type == 'error')} errors, "
             f"{sum(1 for f in fragments if f.fragment_type == 'decision')} decisions, "
-            f"{sum(1 for f in fragments if f.fragment_type == 'artifact')} artifacts"
+            f"{sum(1 for f in fragments if f.fragment_type == 'artifact')} artifacts",
         )
 
         return fragments
 
     def _generate_summary(self, task: dict[str, Any]) -> str:
-        """
-        Generate executive summary from task data.
+        """Generate executive summary from task data.
 
         For Phase 1, uses rule-based extraction. Phase 2 will use AI.
         """
-        title = task.get('title', 'Untitled task')
-        description = task.get('description', '')
-        status = task.get('status', 'completed')
+        title = task.get("title", "Untitled task")
+        description = task.get("description", "")
+        status = task.get("status", "completed")
 
         # Get run results if available
         result_snippet = ""
-        payload = task.get('payload')
+        payload = task.get("payload")
         if payload and isinstance(payload, str):
             try:
                 payload_data = json.loads(payload)
-                if 'result' in payload_data:
+                if "result" in payload_data:
                     result_snippet = f" Result: {str(payload_data['result'])[:100]}"
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -145,10 +141,9 @@ class FragmentParser:
         task_id: str,
         task_type: str,
         status: str,
-        timestamp: str
+        timestamp: str,
     ) -> list[KnowledgeFragment]:
-        """
-        Extract error fragments from task execution.
+        """Extract error fragments from task execution.
 
         Looks for errors in:
         - Task failure_reason field
@@ -158,43 +153,43 @@ class FragmentParser:
         fragments = []
 
         # Check task-level failure reason
-        if task.get('failure_reason'):
+        if task.get("failure_reason"):
             fragments.append(
                 KnowledgeFragment(
-                    fragment_type='error',
+                    fragment_type="error",
                     content=f"Task failure: {task['failure_reason']}",
                     task_id=task_id,
                     task_type=task_type,
                     status=status,
                     timestamp=timestamp,
                     metadata={
-                        'error_source': 'task',
-                        'title': task.get('title', '')
-                    }
-                )
+                        "error_source": "task",
+                        "title": task.get("title", ""),
+                    },
+                ),
             )
 
         # Extract from payload if present
-        payload = task.get('payload')
+        payload = task.get("payload")
         if payload and isinstance(payload, str):
             try:
                 payload_data = json.loads(payload)
-                if 'errors' in payload_data and isinstance(payload_data['errors'], list):
-                    for idx, error in enumerate(payload_data['errors']):
+                if "errors" in payload_data and isinstance(payload_data["errors"], list):
+                    for idx, error in enumerate(payload_data["errors"]):
                         error_text = error if isinstance(error, str) else str(error)
                         fragments.append(
                             KnowledgeFragment(
-                                fragment_type='error',
+                                fragment_type="error",
                                 content=f"Error #{idx + 1}: {error_text}",
                                 task_id=task_id,
                                 task_type=task_type,
                                 status=status,
                                 timestamp=timestamp,
                                 metadata={
-                                    'error_source': 'payload',
-                                    'error_index': idx
-                                }
-                            )
+                                    "error_source": "payload",
+                                    "error_index": idx,
+                                },
+                            ),
                         )
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -207,36 +202,35 @@ class FragmentParser:
         task_id: str,
         task_type: str,
         status: str,
-        timestamp: str
+        timestamp: str,
     ) -> list[KnowledgeFragment]:
-        """
-        Extract decision fragments from task metadata.
+        """Extract decision fragments from task metadata.
 
         Decisions are key architectural or design choices made during task execution.
         """
         fragments = []
 
         # Look for decisions in payload
-        payload = task.get('payload')
+        payload = task.get("payload")
         if payload and isinstance(payload, str):
             try:
                 payload_data = json.loads(payload)
-                if 'decisions' in payload_data and isinstance(payload_data['decisions'], list):
-                    for idx, decision in enumerate(payload_data['decisions']):
+                if "decisions" in payload_data and isinstance(payload_data["decisions"], list):
+                    for idx, decision in enumerate(payload_data["decisions"]):
                         decision_text = decision if isinstance(decision, str) else str(decision)
                         fragments.append(
                             KnowledgeFragment(
-                                fragment_type='decision',
+                                fragment_type="decision",
                                 content=decision_text,
                                 task_id=task_id,
                                 task_type=task_type,
                                 status=status,
                                 timestamp=timestamp,
                                 metadata={
-                                    'decision_index': idx,
-                                    'title': task.get('title', '')
-                                }
-                            )
+                                    "decision_index": idx,
+                                    "title": task.get("title", ""),
+                                },
+                            ),
                         )
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -249,17 +243,16 @@ class FragmentParser:
         task_id: str,
         task_type: str,
         status: str,
-        timestamp: str
+        timestamp: str,
     ) -> list[KnowledgeFragment]:
-        """
-        Extract artifact fragments (files, reports, outputs created).
+        """Extract artifact fragments (files, reports, outputs created).
 
         Artifacts link tasks to concrete deliverables.
         """
         fragments = []
 
         # Check generated_artifacts field (if already populated)
-        artifacts_json = task.get('generated_artifacts')
+        artifacts_json = task.get("generated_artifacts")
         if artifacts_json and isinstance(artifacts_json, str):
             try:
                 artifacts_list = json.loads(artifacts_json)
@@ -267,39 +260,39 @@ class FragmentParser:
                     for artifact_path in artifacts_list:
                         fragments.append(
                             KnowledgeFragment(
-                                fragment_type='artifact',
+                                fragment_type="artifact",
                                 content=f"Generated artifact: {artifact_path}",
                                 task_id=task_id,
                                 task_type=task_type,
                                 status=status,
                                 timestamp=timestamp,
                                 metadata={
-                                    'artifact_path': artifact_path,
-                                    'title': task.get('title', '')
-                                }
-                            )
+                                    "artifact_path": artifact_path,
+                                    "title": task.get("title", ""),
+                                },
+                            ),
                         )
             except (json.JSONDecodeError, TypeError):
                 pass
 
         # Also check payload for artifacts
-        payload = task.get('payload')
+        payload = task.get("payload")
         if payload and isinstance(payload, str):
             try:
                 payload_data = json.loads(payload)
-                if 'artifacts' in payload_data and isinstance(payload_data['artifacts'], list):
-                    for artifact in payload_data['artifacts']:
+                if "artifacts" in payload_data and isinstance(payload_data["artifacts"], list):
+                    for artifact in payload_data["artifacts"]:
                         artifact_str = artifact if isinstance(artifact, str) else str(artifact)
                         fragments.append(
                             KnowledgeFragment(
-                                fragment_type='artifact',
+                                fragment_type="artifact",
                                 content=f"Created: {artifact_str}",
                                 task_id=task_id,
                                 task_type=task_type,
                                 status=status,
                                 timestamp=timestamp,
-                                metadata={'artifact_source': 'payload'}
-                            )
+                                metadata={"artifact_source": "payload"},
+                            ),
                         )
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -307,8 +300,7 @@ class FragmentParser:
         return fragments
 
     def _extract_resolution_metadata(self, task: dict[str, Any]) -> dict[str, Any]:
-        """
-        Extract resolution action metadata if task resolved an alert.
+        """Extract resolution action metadata if task resolved an alert.
 
         PROJECT CHIMERA Phase 3: Track "what worked before" for automated recovery.
 
@@ -317,6 +309,7 @@ class FragmentParser:
 
         Returns:
             Dictionary with resolution metadata
+
         """
         metadata = {}
 

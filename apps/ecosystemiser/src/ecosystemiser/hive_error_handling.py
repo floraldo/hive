@@ -26,7 +26,7 @@ from ecosystemiser.core.errors import (  # Base classes; Simulation errors; Prof
 )
 
 # Legacy aliases for common patterns
-BaseError = EcoSystemiserError  # noqa: F811
+BaseError = EcoSystemiserError
 ConfigurationError = SimulationConfigError
 ResourceError = DatabaseError
 TimeoutError = SolverConvergenceError

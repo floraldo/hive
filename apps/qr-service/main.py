@@ -1,5 +1,4 @@
-"""
-QR Code Generator Service - Built with Hive Application Toolkit.
+"""QR Code Generator Service - Built with Hive Application Toolkit.
 
 Simple stateless API service for generating QR codes from text.
 Migrated to use hive-app-toolkit for production-grade quality.
@@ -90,4 +89,4 @@ async def generate_qr_code(request: QRRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)  # noqa: S104
+    uvicorn.run(app, host="0.0.0.0", port=8000)

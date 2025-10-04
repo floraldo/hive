@@ -1,5 +1,4 @@
-"""
-Metrics collection and analysis for vector database operations.
+"""Metrics collection and analysis for vector database operations.
 
 Provides comprehensive tracking of vector operations, search performance
 and usage patterns with integration to AI observability.
@@ -46,8 +45,7 @@ class VectorPerformanceStats:
 
 
 class VectorMetrics(MetricsCollectorInterface):
-    """
-    Comprehensive metrics collection for vector database operations.
+    """Comprehensive metrics collection for vector database operations.
 
     Tracks operation patterns, performance, and provides analytics
     for optimization and monitoring.
@@ -67,7 +65,7 @@ class VectorMetrics(MetricsCollectorInterface):
         latency_ms: int,
         success: bool,
         collection: str | None = None,
-        metadata: Optional[dict[str, Any]] = None
+        metadata: Optional[dict[str, Any]] = None,
     ) -> None:
         """Record vector database operation metrics."""
         timestamp = datetime.utcnow(),
@@ -79,7 +77,7 @@ class VectorMetrics(MetricsCollectorInterface):
             latency_ms=latency_ms,
             success=success,
             collection=collection,
-            metadata=metadata or {}
+            metadata=metadata or {},
         )
 
         # Store in recent operations queue,
@@ -103,11 +101,11 @@ class VectorMetrics(MetricsCollectorInterface):
         logger.debug(
             f"Recorded vector operation: {operation} ",
             f"({count} vectors, {latency_ms}ms, ",
-            f"{'success' if success else 'failure'})"
+            f"{'success' if success else 'failure'})",
         )
 
     async def record_model_usage_async(
-        self, model: str, tokens: Any, latency_ms: int, success: bool  # TokenUsage type
+        self, model: str, tokens: Any, latency_ms: int, success: bool,  # TokenUsage type
     ) -> None:
         """Record model usage (for MetricsCollectorInterface compatibility)."""
         # Convert model usage to vector operation for unified tracking,
@@ -116,7 +114,7 @@ class VectorMetrics(MetricsCollectorInterface):
             count=tokens.total_tokens if hasattr(tokens, "total_tokens") else 1,
             latency_ms=latency_ms,
             success=success,
-            metadata={"model": model}
+            metadata={"model": model},
         )
 
     def get_metrics_summary(self) -> dict[str, Any]:
@@ -135,7 +133,7 @@ class VectorMetrics(MetricsCollectorInterface):
             "total_vectors_processed": total_vectors,
             "avg_latency_ms": total_latency / total_ops if total_ops > 0 else 0.0,
             "success_rate": successful_ops / total_ops if total_ops > 0 else 0.0,
-            "time_range": "recent_1000_operations"
+            "time_range": "recent_1000_operations",
         }
 
     async def get_operation_performance_async(self, operation: str) -> VectorPerformanceStats:
@@ -174,7 +172,7 @@ class VectorMetrics(MetricsCollectorInterface):
             avg_latency_ms=avg_latency,
             success_rate=successful_operations / total_operations if total_operations > 0 else 0.0,
             operations_per_minute=ops_per_minute,
-            top_operations=top_operations
+            top_operations=top_operations,
         )
 
         # Cache for 2 minutes,
@@ -205,8 +203,8 @@ class VectorMetrics(MetricsCollectorInterface):
                     "timestamp": record.timestamp.isoformat(),
                     "latency_ms": record.latency_ms,
                     "count": record.count,
-                    "success": record.success
-                }
+                    "success": record.success,
+                },
             )
 
             # Hourly aggregation
@@ -225,8 +223,8 @@ class VectorMetrics(MetricsCollectorInterface):
             "performance_summary": {
                 "avg_latency_ms": sum(r.latency_ms for r in recent_records) / len(recent_records),
                 "success_rate": sum(1 for r in recent_records if r.success) / len(recent_records),
-                "total_vectors": sum(r.count for r in recent_records)
-            }
+                "total_vectors": sum(r.count for r in recent_records),
+            },
         }
 
         # Cache for 5 minutes
@@ -242,7 +240,7 @@ class VectorMetrics(MetricsCollectorInterface):
                 "collection": collection,
                 "operations": 0,
                 "vectors_processed": 0,
-                "error": "No operations found for this collection"
+                "error": "No operations found for this collection",
             }
 
         # Calculate collection-specific metrics
@@ -266,7 +264,7 @@ class VectorMetrics(MetricsCollectorInterface):
             "avg_latency_ms": total_latency / len(collection_records),
             "success_rate": successful_ops / len(collection_records),
             "operation_breakdown": dict(operation_counts),
-            "time_range": "recent_operations"
+            "time_range": "recent_operations",
         }
 
     async def get_top_slow_operations_async(self, limit: int = 10) -> list[dict[str, Any]]:
@@ -282,7 +280,7 @@ class VectorMetrics(MetricsCollectorInterface):
                 "count": record.count,
                 "success": record.success,
                 "collection": record.collection,
-                "metadata": record.metadata
+                "metadata": record.metadata,
             }
             for record in slow_operations
         ]
@@ -310,8 +308,8 @@ class VectorMetrics(MetricsCollectorInterface):
                     "operation": record.operation,
                     "collection": record.collection,
                     "latency_ms": record.latency_ms,
-                    "metadata": record.metadata
-                }
+                    "metadata": record.metadata,
+                },
             )
 
         total_operations = len(self._recent_operations),
@@ -323,7 +321,7 @@ class VectorMetrics(MetricsCollectorInterface):
             "errors_by_operation": dict(error_by_operation),
             "errors_by_collection": dict(error_by_collection),
             "recent_failures": recent_failures[-10:],  # Last 10 failures,
-            "recommendations": self._generate_error_recommendations(error_by_operation)
+            "recommendations": self._generate_error_recommendations(error_by_operation),
         }
 
     def _generate_error_recommendations(self, error_by_operation: dict[str, int]) -> list[str]:

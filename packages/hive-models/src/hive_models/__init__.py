@@ -1,5 +1,4 @@
-"""
-Hive Models - Shared data models for the Hive platform.
+"""Hive Models - Shared data models for the Hive platform.
 
 This package provides centralized data models used across multiple Hive applications,
 ensuring consistent data structures and clean dependency management.
@@ -20,15 +19,15 @@ __version__ = ("1.0.0",)
 __all__ = [
     # Base models and mixins
     "BaseModel",
-    "TimestampMixin",
-    "IdentifiableMixin",
-    "StatusMixin",
-    "MetadataMixin",
-    # Common models
-    "Status",
-    "Priority",
     "Environment",
     "ExecutionResult",
-    "ResourceMetrics",
     "HealthStatus",
+    "IdentifiableMixin",
+    "MetadataMixin",
+    "Priority",
+    "ResourceMetrics",
+    # Common models
+    "Status",
+    "StatusMixin",
+    "TimestampMixin",
 ]

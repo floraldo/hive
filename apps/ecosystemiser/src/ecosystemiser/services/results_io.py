@@ -22,7 +22,7 @@ class ResultsIO:
         self.supported_formats = ["json", "parquet", "csv", "pickle"]
 
     def save_results(
-        self, system, simulation_id: str, output_dir: Path, format: str = "json", metadata: dict | None = None
+        self, system, simulation_id: str, output_dir: Path, format: str = "json", metadata: dict | None = None,
     ) -> Path:
         """Save simulation results to file.
         Args:
@@ -33,6 +33,7 @@ class ResultsIO:
             metadata: Additional metadata to save,
         Returns:
             Path to saved results file,
+
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -71,6 +72,7 @@ class ResultsIO:
             file_path: Path to results file
         Returns:
             Dictionary containing results,
+
         """
         file_path = Path(file_path)
 
@@ -82,14 +84,13 @@ class ResultsIO:
 
         if ext == ".json":
             return self._load_json(file_path)
-        elif ext == ".parquet":
+        if ext == ".parquet":
             return self._load_parquet(file_path)
-        elif ext == ".csv":
+        if ext == ".csv":
             return self._load_csv(file_path)
-        elif ext in [".pkl", ".pickle"]:
+        if ext in [".pkl", ".pickle"]:
             return self._load_pickle(file_path)
-        else:
-            raise ValueError(f"Unsupported file format: {ext}")
+        raise ValueError(f"Unsupported file format: {ext}")
 
     def _extract_system_results(self, system) -> dict[str, Any]:
         """Extract results from system object.
@@ -98,13 +99,14 @@ class ResultsIO:
             system: Solved system object
         Returns:
             Dictionary containing all results,
+
         """
         results = {
             "system_id": system.system_id,
             "timesteps": system.N,
             "components": {},
             "flows": {},
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         # Extract component states
@@ -142,7 +144,7 @@ class ResultsIO:
                 comp_data["economic"] = {
                     "capex": component.economic.capex,
                     "opex_fix": component.economic.opex_fix,
-                    "opex_var": component.economic.opex_var
+                    "opex_var": component.economic.opex_var,
                 },
 
             results["components"][comp_name] = comp_data
@@ -152,7 +154,7 @@ class ResultsIO:
             flow_result = {
                 "source": flow_data["source"],
                 "target": flow_data["target"],
-                "type": flow_data["type"]
+                "type": flow_data["type"],
             }
 
             # Convert flow values - Enhanced CVXPY handling
@@ -260,7 +262,7 @@ class ResultsIO:
     def _load_pickle(self, path: Path) -> dict:
         """Load results from pickle."""
         with open(path, "rb") as f:
-            return pickle.load(f)  # noqa: S301
+            return pickle.load(f)
 
     def _flows_to_dataframe(self, flows: dict) -> pd.DataFrame:
         """Convert flows dictionary to DataFrame format.
@@ -269,6 +271,7 @@ class ResultsIO:
             flows: Dictionary of flow data
         Returns:
             DataFrame with flow time series,
+
         """
         data = []
 
@@ -282,8 +285,8 @@ class ResultsIO:
                             "source": flow_info["source"],
                             "target": flow_info["target"],
                             "type": flow_info["type"],
-                            "value": value
-                        }
+                            "value": value,
+                        },
                     )
 
         return pd.DataFrame(data)
@@ -294,6 +297,7 @@ class ResultsIO:
             df: DataFrame with flow data
         Returns:
             Dictionary of flows,
+
         """
         flows = {}
 
@@ -304,7 +308,7 @@ class ResultsIO:
                 "source": flow_df["source"].iloc[0],
                 "target": flow_df["target"].iloc[0],
                 "type": flow_df["type"].iloc[0],
-                "value": flow_df["value"].tolist()
+                "value": flow_df["value"].tolist(),
             },
 
         return flows
@@ -316,6 +320,7 @@ class ResultsIO:
             results: Results dictionary
         Returns:
             Summary DataFrame,
+
         """
         summary_data = []
 
@@ -332,8 +337,8 @@ class ResultsIO:
                             "target": flow_info["target"],
                             "mean": np.mean(values),
                             "max": np.max(values),
-                            "total": np.sum(values)
-                        }
+                            "total": np.sum(values),
+                        },
                     )
 
         # Summarize components
@@ -349,8 +354,8 @@ class ResultsIO:
                             "target": "-",
                             "mean": np.mean(levels),
                             "max": np.max(levels),
-                            "total": "-"
-                        }
+                            "total": "-",
+                        },
                     ),
 
         return pd.DataFrame(summary_data)

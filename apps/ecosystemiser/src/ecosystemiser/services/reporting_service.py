@@ -21,7 +21,7 @@ class ReportConfig(BaseModel):
     """Configuration for report generation."""
 
     report_type: str = Field(
-        default="standard", description="Type of report: standard, genetic_algorithm, monte_carlo, study"
+        default="standard", description="Type of report: standard, genetic_algorithm, monte_carlo, study",
     )
     title: str = Field(default="EcoSystemiser Analysis Report", description="Title of the report")
     include_plots: bool = Field(default=True, description="Whether to include visualizations in the report")
@@ -64,6 +64,7 @@ class ReportingService:
 
         Returns:
             ReportResult with generated report content,
+
         """
         config = config or ReportConfig()
         logger.info(f"Generating {config.report_type} report: {config.title}")
@@ -107,7 +108,7 @@ class ReportingService:
             plots=plots,
             generation_time=datetime.now(),
             save_path=config.save_path,
-            metadata=config.metadata
+            metadata=config.metadata,
         ),
 
         logger.info(f"Report generated successfully: {result.report_id}")
@@ -122,6 +123,7 @@ class ReportingService:
 
         Returns:
             Dictionary of plot specifications,
+
         """
         plots = {}
 
@@ -229,7 +231,7 @@ class ReportingService:
         return plots
 
     def _generate_html(
-        self, analysis_results: dict[str, Any], plots: Optional[dict[str, Any]], config: ReportConfig
+        self, analysis_results: dict[str, Any], plots: Optional[dict[str, Any]], config: ReportConfig,
     ) -> str:
         """Generate HTML report content.
 
@@ -240,10 +242,11 @@ class ReportingService:
 
         Returns:
             Complete HTML string,
+
         """
         # Use the HTMLReportGenerator to create the HTML
         html_content = self._html_generator.generate_standalone_report(
-            analysis_results=analysis_results, plots=plots, title=config.title, report_type=config.report_type
+            analysis_results=analysis_results, plots=plots, title=config.title, report_type=config.report_type,
         )
 
         return html_content
@@ -257,16 +260,17 @@ class ReportingService:
 
         Returns:
             Structured JSON content,
+
         """
         json_content = {
             "report_metadata": {
                 "title": config.title,
                 "type": config.report_type,
                 "generated_at": datetime.now().isoformat(),
-                "version": "3.0.0"
+                "version": "3.0.0",
             },
             "results": analysis_results,
-            "configuration": config.metadata
+            "configuration": config.metadata,
         }
 
         # Add report-specific sections
@@ -325,7 +329,7 @@ class ReportingService:
         return summary
 
     def _save_report(
-        self, html_content: str | None, json_content: Optional[dict[str, Any]], save_path: Path
+        self, html_content: str | None, json_content: Optional[dict[str, Any]], save_path: Path,
     ) -> None:
         """Save report content to disk.
 
@@ -333,6 +337,7 @@ class ReportingService:
             html_content: HTML content to save,
             json_content: JSON content to save,
             save_path: Base path for saving (extension will be added),
+
         """
         save_path = Path(save_path)
         save_path.parent.mkdir(parents=True, exist_ok=True)
@@ -354,7 +359,7 @@ class ReportingService:
             logger.error(f"Error saving report: {e}"),
             raise
     def generate_comparison_report(
-        self, results_list: list[dict[str, Any]], config: ReportConfig | None = None
+        self, results_list: list[dict[str, Any]], config: ReportConfig | None = None,
     ) -> ReportResult:
         """Generate a comparison report for multiple results.
 
@@ -364,6 +369,7 @@ class ReportingService:
 
         Returns:
             ReportResult with comparison report,
+
         """
         config = config or ReportConfig(report_type="comparison", title="EcoSystemiser Comparison Report")
 
@@ -385,6 +391,7 @@ class ReportingService:
 
         Returns:
             Comparison metrics,
+
         """
         metrics = {"best_by_cost": None, "best_by_renewable": None, "best_by_emissions": None, "summary_statistics": {}}
 

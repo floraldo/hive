@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from __future__ import annotations
 
 from hive_logging import get_logger
@@ -41,8 +40,7 @@ class AgentStatus(Enum):
 
 @dataclass
 class TaskEvent(BaseEvent):
-    """
-    Hive-specific task event.
+    """Hive-specific task event.
 
     Extends BaseEvent with Hive task orchestration properties.
     """
@@ -60,8 +58,7 @@ class TaskEvent(BaseEvent):
 
 @dataclass
 class AgentEvent(BaseEvent):
-    """
-    Hive-specific agent event.
+    """Hive-specific agent event.
 
     Extends BaseEvent with Hive agent orchestration properties.
     """
@@ -79,8 +76,7 @@ class AgentEvent(BaseEvent):
 
 @dataclass
 class WorkflowEvent(BaseEvent):
-    """
-    Hive-specific workflow event.
+    """Hive-specific workflow event.
 
     Extends BaseEvent with Hive workflow orchestration properties.
     """

@@ -1,5 +1,4 @@
-"""
-Context Retrieval Service
+"""Context Retrieval Service
 
 RAG-powered context injection for task-aware agents.
 Implements Decision 3-C: Flexible query strategy with 'fast' and 'deep' modes.
@@ -21,8 +20,7 @@ logger = get_logger(__name__)
 
 
 class ContextRetrievalService:
-    """
-    Retrieve task-relevant context from RAG knowledge base.
+    """Retrieve task-relevant context from RAG knowledge base.
 
     Implements Decision 1-C: Hybrid Dynamic Retrieval
     - Initial context pushed at task start
@@ -33,15 +31,15 @@ class ContextRetrievalService:
         self,
         vector_store: VectorStore,
         embedding_manager: EmbeddingManager,
-        config: AIConfig | None = None
+        config: AIConfig | None = None,
     ):
-        """
-        Initialize context retrieval service.
+        """Initialize context retrieval service.
 
         Args:
             vector_store: Vector database for semantic search
             embedding_manager: Embedding generator for query vectorization
             config: AI configuration (optional)
+
         """
         self.vector_store = vector_store
         self.embedding_manager = embedding_manager
@@ -53,11 +51,10 @@ class ContextRetrievalService:
         self,
         task_id: str,
         task: dict[str, Any] | None = None,
-        mode: str = 'fast',
-        top_k: int = 5
+        mode: str = "fast",
+        top_k: int = 5,
     ) -> str:
-        """
-        Retrieve task-relevant context from RAG.
+        """Retrieve task-relevant context from RAG.
 
         Implements Decision 3-C: Flexible query modes
         - 'fast': Simple query from task description (default)
@@ -78,6 +75,7 @@ class ContextRetrievalService:
             >>> print(context)
             🎯 abc12345 → ✅ deployment (2024-10-03)
             Summary: Deployed v2.1 to prod, zero downtime migration...
+
         """
         # Fetch task if not provided
         if task is None:
@@ -88,9 +86,9 @@ class ContextRetrievalService:
                 return ""
 
         # Generate query based on mode
-        if mode == 'fast':
+        if mode == "fast":
             query_text = self._generate_fast_query(task)
-        elif mode == 'deep':
+        elif mode == "deep":
             # Future: Use agent to refine query
             logger.info("Deep mode not yet implemented, falling back to fast mode")
             query_text = self._generate_fast_query(task)
@@ -101,7 +99,7 @@ class ContextRetrievalService:
         # Generate query embedding
         query_embedding_result = await self.embedding_manager.generate_embedding_async(
             query_text,
-            use_cache=True
+            use_cache=True,
         )
 
         # Query RAG with filters
@@ -114,14 +112,14 @@ class ContextRetrievalService:
         search_results = await self.vector_store.search_async(
             query_vector=query_embedding_result.vector,
             top_k=top_k,
-            filter_metadata=None  # ChromaDB filter syntax differs, skip for now
+            filter_metadata=None,  # ChromaDB filter syntax differs, skip for now
         )
 
         # Filter results manually (until ChromaDB filter syntax implemented)
         filtered_results = [
             r for r in search_results
-            if not r.get('metadata', {}).get('is_archived', False)
-            and r.get('metadata', {}).get('usage_context') == task.get('task_type', 'general')
+            if not r.get("metadata", {}).get("is_archived", False)
+            and r.get("metadata", {}).get("usage_context") == task.get("task_type", "general")
         ][:top_k]
 
         # Compress into token-efficient format
@@ -129,20 +127,19 @@ class ContextRetrievalService:
 
         logger.info(
             f"Retrieved context for task {task_id[:8]}: "
-            f"{len(filtered_results)} fragments, {len(context)} chars"
+            f"{len(filtered_results)} fragments, {len(context)} chars",
         )
 
         return context
 
     def _generate_fast_query(self, task: dict[str, Any]) -> str:
-        """
-        Generate simple query from task metadata.
+        """Generate simple query from task metadata.
 
         Fast mode: Task description + task type
         """
-        description = task.get('description', '')
-        task_type = task.get('task_type', 'general')
-        title = task.get('title', '')
+        description = task.get("description", "")
+        task_type = task.get("task_type", "general")
+        title = task.get("title", "")
 
         # Construct concise query
         query = f"{task_type}: {title}. {description[:200]}"
@@ -152,10 +149,9 @@ class ContextRetrievalService:
     def _compress_context(
         self,
         fragments: list[dict[str, Any]],
-        current_task: dict[str, Any]
+        current_task: dict[str, Any],
     ) -> str:
-        """
-        Use symbol system for 30-50% token reduction.
+        """Use symbol system for 30-50% token reduction.
 
         Implements MODE_Token_Efficiency.md symbol system.
         """
@@ -165,38 +161,38 @@ class ContextRetrievalService:
         context_blocks = []
 
         for frag in fragments:
-            metadata = frag.get('metadata', {})
-            content = frag.get('content', metadata.get('content', ''))
+            metadata = frag.get("metadata", {})
+            content = frag.get("content", metadata.get("content", ""))
 
             # Get fragment details
-            task_id = metadata.get('task_id', 'unknown')[:8]
-            status = metadata.get('status', 'unknown')
-            task_type = metadata.get('task_type', 'general')
-            timestamp = metadata.get('timestamp', '')[:10]  # YYYY-MM-DD
-            fragment_type = metadata.get('fragment_type', 'unknown')
+            task_id = metadata.get("task_id", "unknown")[:8]
+            status = metadata.get("status", "unknown")
+            task_type = metadata.get("task_type", "general")
+            timestamp = metadata.get("timestamp", "")[:10]  # YYYY-MM-DD
+            fragment_type = metadata.get("fragment_type", "unknown")
 
             # Status symbol
-            status_symbol = '✅' if status == 'completed' else '❌'
+            status_symbol = "✅" if status == "completed" else "❌"
 
             # Fragment type symbol
             type_symbol = {
-                'summary': '📋',
-                'error': '⚠️',
-                'decision': '🎯',
-                'artifact': '📦'
-            }.get(fragment_type, '📄')
+                "summary": "📋",
+                "error": "⚠️",
+                "decision": "🎯",
+                "artifact": "📦",
+            }.get(fragment_type, "📄")
 
             # Compressed format:
             # 📋 abc12345 → ✅ deployment (2024-10-03)
             # Summary: Deployed v2.1 to prod, zero downtime...
             context_blocks.append(
                 f"{type_symbol} {task_id} → {status_symbol} {task_type} ({timestamp})\n"
-                f"{content[:150]}{'...' if len(content) > 150 else ''}"
+                f"{content[:150]}{'...' if len(content) > 150 else ''}",
             )
 
         # Add temporal context
         from datetime import datetime
-        current_date = datetime.now().strftime('%Y-%m-%d')
+        current_date = datetime.now().strftime("%Y-%m-%d")
         header = f"📅 Context retrieved on {current_date}\n"
         header += f"🎯 Current task: {current_task.get('title', 'Untitled')}\n\n"
 
@@ -206,10 +202,9 @@ class ContextRetrievalService:
         self,
         query: str,
         top_k: int = 3,
-        filter_by_type: str | None = None
+        filter_by_type: str | None = None,
     ) -> str:
-        """
-        Direct knowledge search (for agent tools).
+        """Direct knowledge search (for agent tools).
 
         Allows agents to search RAG mid-task for specific information.
 
@@ -220,24 +215,25 @@ class ContextRetrievalService:
 
         Returns:
             Compressed search results
+
         """
         # Generate query embedding
         query_result = await self.embedding_manager.generate_embedding_async(
             query,
-            use_cache=True
+            use_cache=True,
         )
 
         # Search vector store
         search_results = await self.vector_store.search_async(
             query_vector=query_result.vector,
-            top_k=top_k
+            top_k=top_k,
         )
 
         # Filter by type if specified
         if filter_by_type:
             search_results = [
                 r for r in search_results
-                if r.get('metadata', {}).get('task_type') == filter_by_type
+                if r.get("metadata", {}).get("task_type") == filter_by_type
             ][:top_k]
 
         # Compress results
@@ -256,8 +252,7 @@ class ContextRetrievalService:
         mode: str = "fast",
         top_k: int = 5,
     ) -> dict[str, Any]:
-        """
-        Retrieve task context with God Mode RAG synergy.
+        """Retrieve task context with God Mode RAG synergy.
 
         Combines multiple knowledge sources:
         - Knowledge archive (thinking sessions, web searches)
@@ -277,6 +272,7 @@ class ContextRetrievalService:
             - 'combined_context': Formatted context string
             - 'sources': Breakdown by source type
             - 'metadata': Retrieval stats
+
         """
         from pathlib import Path
 
@@ -286,7 +282,7 @@ class ContextRetrievalService:
         # 1. Get standard code knowledge base context
         try:
             code_context = await self.get_context_for_task(
-                task_id=task_id, task={"description": task_description}, mode=mode, top_k=top_k
+                task_id=task_id, task={"description": task_description}, mode=mode, top_k=top_k,
             )
             if code_context:
                 combined_context_parts.append(f"## Code Knowledge\n{code_context}")
@@ -361,7 +357,7 @@ class ContextRetrievalService:
             formatted.append(
                 f"**{chunk.signature}** (score: {score:.2f})\n"
                 f"Type: {chunk.chunk_type.value} | Source: {chunk.file_path}\n"
-                f"{chunk.code[:200]}..."
+                f"{chunk.code[:200]}...",
             )
 
         return "\n\n".join(formatted)
@@ -376,7 +372,7 @@ class ContextRetrievalService:
             formatted.append(
                 f"**Run {run.id[:8]}** ({run.start_time})\n"
                 f"Status: {run.status} | Tests: {run.passed}/{run.total}\n"
-                f"Package: {run.package_name}"
+                f"Package: {run.package_name}",
             )
 
         return "\n\n".join(formatted)
@@ -388,8 +384,8 @@ class ContextRetrievalService:
 
         return {
             "service": "context_retrieval",
-            "vector_store_healthy": vector_health.get('healthy', False),
-            "embedding_stats": embedding_stats
+            "vector_store_healthy": vector_health.get("healthy", False),
+            "embedding_stats": embedding_stats,
         }
 
 

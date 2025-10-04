@@ -1,5 +1,4 @@
-"""
-Orchestration Event Types
+"""Orchestration Event Types
 
 Defines task, workflow, and agent event types for orchestration coordination.
 """
@@ -16,13 +15,13 @@ logger = get_logger(__name__)
 
 @dataclass
 class TaskEvent(BaseEvent):
-    """
-    Task lifecycle event for orchestration coordination.
+    """Task lifecycle event for orchestration coordination.
 
     Attributes:
         task_id: Task identifier
         event_type: Event type (e.g., "started", "completed", "failed")
         payload: Additional event data
+
     """
 
     task_id: str = ""
@@ -36,13 +35,13 @@ class TaskEvent(BaseEvent):
 
 @dataclass
 class WorkflowEvent(BaseEvent):
-    """
-    Workflow lifecycle event for multi-step orchestration.
+    """Workflow lifecycle event for multi-step orchestration.
 
     Attributes:
         workflow_id: Workflow identifier
         event_type: Event type (e.g., "phase_started", "completed")
         payload: Additional event data
+
     """
 
     workflow_id: str = ""
@@ -56,13 +55,13 @@ class WorkflowEvent(BaseEvent):
 
 @dataclass
 class AgentEvent(BaseEvent):
-    """
-    Agent lifecycle event for worker coordination.
+    """Agent lifecycle event for worker coordination.
 
     Attributes:
         agent_id: Agent/worker identifier
         event_type: Event type (e.g., "registered", "heartbeat", "offline")
         payload: Additional event data
+
     """
 
     agent_id: str = ""
@@ -74,4 +73,4 @@ class AgentEvent(BaseEvent):
         self.payload["agent_id"] = self.agent_id
 
 
-__all__ = ["TaskEvent", "WorkflowEvent", "AgentEvent"]
+__all__ = ["AgentEvent", "TaskEvent", "WorkflowEvent"]

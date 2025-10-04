@@ -1,5 +1,4 @@
-"""
-EcoSystemiser Logging Configuration.,
+"""EcoSystemiser Logging Configuration.,
 
 Extends hive-logging with EcoSystemiser-specific structured logging while maintaining
 compatibility with the existing structlog implementation.
@@ -14,7 +13,7 @@ from hive_logging import setup_logging as setup_hive_logging
 
 # Re-export structlog logger for EcoSystemiser components that need it
 try:
-    import structlog  # noqa: F401
+    import structlog
 
     from ecosystemiser.profile_loader.climate.logging_config import get_logger as get_structlog_logger
 
@@ -24,13 +23,13 @@ except ImportError:
 
 
 def setup_logging(log_level: str | None = None, log_format: str | None = None, use_structlog: bool = True) -> None:
-    """
-    Setup logging for EcoSystemiser with choice between hive-logging and structlog.
+    """Setup logging for EcoSystemiser with choice between hive-logging and structlog.
 
     Args:
         log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         log_format: Output format ('json' or 'console')
         use_structlog: Whether to use structlog (True) or hive-logging (False)
+
     """
     if use_structlog and STRUCTLOG_AVAILABLE:
         # Use existing structlog configuration for advanced features
@@ -48,8 +47,7 @@ def setup_logging(log_level: str | None = None, log_format: str | None = None, u
 
 
 def get_logger(name: str, use_structlog: bool | None = None) -> None:
-    """
-    Get a logger instance with automatic selection between structlog and hive-logging.
+    """Get a logger instance with automatic selection between structlog and hive-logging.
 
     Args:
         name: Logger name (usually __name__)
@@ -58,6 +56,7 @@ def get_logger(name: str, use_structlog: bool | None = None) -> None:
 
     Returns:
         Logger instance (either structlog or standard logging)
+
     """
     # Auto-detect based on module name if not specified
     if use_structlog is None:
@@ -66,13 +65,12 @@ def get_logger(name: str, use_structlog: bool | None = None) -> None:
 
     if use_structlog and STRUCTLOG_AVAILABLE:
         return get_structlog_logger(name)
-    else:
-        return get_hive_logger(name)
+    return get_hive_logger(name)
 
 
 # Re-export context management functions for structured logging
 __all__ = [
-    "setup_logging",
-    "get_logger",
     "STRUCTLOG_AVAILABLE",
+    "get_logger",
+    "setup_logging",
 ]

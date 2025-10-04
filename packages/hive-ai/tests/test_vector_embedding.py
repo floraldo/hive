@@ -9,6 +9,5 @@ class TestVectorEmbedding:
     @pytest.mark.core
     def test_embedding_generation(self):
         """Test embedding generation."""
-        pass
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

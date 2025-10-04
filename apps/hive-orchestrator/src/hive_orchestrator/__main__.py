@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from hive_logging import get_logger
 
 logger = get_logger(__name__)

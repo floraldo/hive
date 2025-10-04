@@ -1,5 +1,4 @@
-"""
-Worker Operations
+"""Worker Operations
 
 Core worker management operations for the Hive orchestration system.
 These functions provide the public API for worker registration, heartbeat,
@@ -21,8 +20,7 @@ def register_worker(
     capabilities: list[str] | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> bool:
-    """
-    Register a new worker in the orchestration system.
+    """Register a new worker in the orchestration system.
 
     Args:
         worker_id: Unique worker identifier
@@ -39,6 +37,7 @@ def register_worker(
         ...     role="executor",
         ...     capabilities=["python", "bash", "docker"],
         ... )
+
     """
     import json
 
@@ -66,8 +65,7 @@ def update_worker_heartbeat(
     worker_id: str,
     status: str | None = None,
 ) -> bool:
-    """
-    Update worker heartbeat timestamp and optional status.
+    """Update worker heartbeat timestamp and optional status.
 
     This should be called periodically by workers to indicate they are alive.
 
@@ -80,6 +78,7 @@ def update_worker_heartbeat(
 
     Example:
         >>> success = update_worker_heartbeat("worker-123", status="active")
+
     """
     from ..database import transaction
 
@@ -107,8 +106,7 @@ def update_worker_heartbeat(
 
 
 def get_active_workers(role: str | None = None) -> list[dict[str, Any]]:
-    """
-    Get all active workers, optionally filtered by role.
+    """Get all active workers, optionally filtered by role.
 
     Workers are considered active if they have sent a heartbeat within
     the configured timeout period.
@@ -123,6 +121,7 @@ def get_active_workers(role: str | None = None) -> list[dict[str, Any]]:
         >>> workers = get_active_workers(role="executor")
         >>> for worker in workers:
         ...     print(f"Worker {worker['id']}: {worker['capabilities']}")
+
     """
     import json
 
@@ -158,8 +157,7 @@ def get_active_workers(role: str | None = None) -> list[dict[str, Any]]:
 
 
 def get_worker(worker_id: str) -> dict[str, Any] | None:
-    """
-    Get worker information by ID.
+    """Get worker information by ID.
 
     Args:
         worker_id: Worker identifier
@@ -171,6 +169,7 @@ def get_worker(worker_id: str) -> dict[str, Any] | None:
         >>> worker = get_worker("worker-123")
         >>> if worker:
         ...     print(f"Worker status: {worker['status']}")
+
     """
     import json
 
@@ -190,8 +189,7 @@ def get_worker(worker_id: str) -> dict[str, Any] | None:
 
 
 def unregister_worker(worker_id: str) -> bool:
-    """
-    Unregister a worker from the orchestration system.
+    """Unregister a worker from the orchestration system.
 
     Args:
         worker_id: Worker identifier
@@ -201,6 +199,7 @@ def unregister_worker(worker_id: str) -> bool:
 
     Example:
         >>> success = unregister_worker("worker-123")
+
     """
     from ..database import transaction
 
@@ -217,9 +216,9 @@ def unregister_worker(worker_id: str) -> bool:
 
 
 __all__ = [
-    "register_worker",
-    "update_worker_heartbeat",
     "get_active_workers",
     "get_worker",
+    "register_worker",
     "unregister_worker",
+    "update_worker_heartbeat",
 ]

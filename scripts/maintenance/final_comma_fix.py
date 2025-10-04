@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal maintenance tooling.
 
-"""
-Final Comma Fix - Simple and direct
+"""Final Comma Fix - Simple and direct
 
 Parse compileall output, fix each file one by one
 """
@@ -19,8 +17,8 @@ def get_files_from_compileall():
     """Get list of files with errors from compileall"""
     result = subprocess.run(
         ["python", "-m", "compileall", "-q", "packages/", "apps/"],
-        capture_output=True,
-        text=True
+        check=False, capture_output=True,
+        text=True,
     )
 
     files = set()
@@ -36,16 +34,15 @@ def get_files_from_compileall():
 
 
 def fix_file_once(file_path):
-    """
-    Fix ONE error in a file.
+    """Fix ONE error in a file.
 
     Returns True if file now compiles, False if more errors remain
     """
     # Compile to get error
     result = subprocess.run(
         ["python", "-m", "py_compile", str(file_path)],
-        capture_output=True,
-        text=True
+        check=False, capture_output=True,
+        text=True,
     )
 
     if result.returncode == 0:
@@ -55,7 +52,7 @@ def fix_file_once(file_path):
     for line in result.stderr.splitlines():
         if "line" in line:
             import re
-            match = re.search(r'line (\d+)', line)
+            match = re.search(r"line (\d+)", line)
             if match:
                 error_line = int(match.group(1))
                 break
@@ -70,33 +67,33 @@ def fix_file_once(file_path):
     error_text = lines[error_idx].strip()
 
     # Fix based on pattern
-    if error_text.startswith('@') and error_text.endswith(','):
+    if error_text.startswith("@") and error_text.endswith(","):
         # @staticmethod, -> @staticmethod
-        lines[error_idx] = lines[error_idx].rstrip().rstrip(',') + '\n'
-    elif '{,' in lines[error_idx]:
+        lines[error_idx] = lines[error_idx].rstrip().rstrip(",") + "\n"
+    elif "{," in lines[error_idx]:
         # {, -> {
-        lines[error_idx] = lines[error_idx].replace('{,', '{')
-    elif '[,' in lines[error_idx]:
+        lines[error_idx] = lines[error_idx].replace("{,", "{")
+    elif "[," in lines[error_idx]:
         # [, -> [
-        lines[error_idx] = lines[error_idx].replace('[,', '[')
-    elif '(,' in lines[error_idx]:
+        lines[error_idx] = lines[error_idx].replace("[,", "[")
+    elif "(," in lines[error_idx]:
         # (, -> (
-        lines[error_idx] = lines[error_idx].replace('(,', '(')
+        lines[error_idx] = lines[error_idx].replace("(,", "(")
     else:
         # Missing comma on previous line
         prev_idx = error_line - 2
         if prev_idx >= 0:
             prev_line = lines[prev_idx]
-            if not prev_line.rstrip().endswith(','):
-                lines[prev_idx] = prev_line.rstrip() + ',' + '\n'
+            if not prev_line.rstrip().endswith(","):
+                lines[prev_idx] = prev_line.rstrip() + "," + "\n"
 
     # Write
-    file_path.write_text(''.join(lines), encoding="utf-8")
+    file_path.write_text("".join(lines), encoding="utf-8")
 
     # Check if fixed
     result = subprocess.run(
         ["python", "-m", "py_compile", str(file_path)],
-        capture_output=True
+        check=False, capture_output=True,
     )
 
     return result.returncode == 0
@@ -117,7 +114,7 @@ def main():
                 break
         else:
             print("    FAILED - max iterations")
-            subprocess.run(["git", "restore", str(file_path)])
+            subprocess.run(["git", "restore", str(file_path)], check=False)
             return 1
 
     print("\n" + "=" * 60)

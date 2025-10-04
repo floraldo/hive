@@ -49,9 +49,7 @@ class ErrorStats:
 
 
 class MonitoringErrorReporter(BaseErrorReporter):
-    """
-
-    Enhanced error reporter with monitoring integration.
+    """Enhanced error reporter with monitoring integration.
 
     Features:
     - Real-time error metrics
@@ -232,7 +230,6 @@ class MonitoringErrorReporter(BaseErrorReporter):
     ) -> None:
         """Trigger async alert callbacks."""
         # This would integrate with async monitoring systems
-        pass
 
     def _update_metrics(self, error_record: dict[str, Any]) -> None:
         """Update error metrics from error record."""
@@ -271,12 +268,11 @@ class MonitoringErrorReporter(BaseErrorReporter):
         """Determine component status from metrics."""
         if consecutive_failures >= self.alert_thresholds["consecutive_failures"]:
             return "critical"
-        elif health_score < 0.5:
+        if health_score < 0.5:
             return "degraded"
-        elif health_score < 0.8:
+        if health_score < 0.8:
             return "warning"
-        else:
-            return "healthy"
+        return "healthy"
 
     def record_success(self, component: str, response_time: float | None = None) -> None:
         """Record successful operation for component health tracking."""
@@ -411,7 +407,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         if format == "json":
             return json.dumps(export_data, indent=2, default=str)
-        elif format == "csv":
+        if format == "csv":
             # Simple CSV export for errors
             import csv
             import io
@@ -435,8 +431,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                 )
 
             return output.getvalue()
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")
 
     def clear_old_data(self, retention_period: timedelta = timedelta(days=7)) -> None:
         """Clear old error data beyond retention period."""
@@ -465,8 +460,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
         logger.info(f"Cleared {cleared_count} old error records")
 
     def get_error_rate_history(self, service_name: str | None = None, hours: int = 24) -> list[dict[str, Any]]:
-        """
-        Get error rate history for predictive analysis.
+        """Get error rate history for predictive analysis.
 
         Returns error rates as MetricPoint-compatible format for
         integration with PredictiveAnalysisRunner.
@@ -477,6 +471,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         Returns:
             List of metric points with timestamp, value, and metadata
+
         """
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
 
@@ -519,10 +514,9 @@ class MonitoringErrorReporter(BaseErrorReporter):
         return metric_points
 
     async def handle_error_async(
-        self, error: Exception, context: ErrorContext, suppress: bool = False
+        self, error: Exception, context: ErrorContext, suppress: bool = False,
     ) -> Exception | None:
-        """
-        Handle an error asynchronously with full context and monitoring.
+        """Handle an error asynchronously with full context and monitoring.
 
         Args:
             error: The exception that occurred
@@ -531,6 +525,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
 
         Returns:
             The processed error or None if suppressed
+
         """
         # Record error occurrence
         error_record = await self._record_error_async(error, context)
@@ -575,7 +570,7 @@ class MonitoringErrorReporter(BaseErrorReporter):
                     "error_details": error.details,
                     "recovery_suggestions": error.recovery_suggestions,
                     "original_error": str(error.original_error) if error.original_error else None,
-                }
+                },
             )
 
         return error_record
@@ -758,7 +753,7 @@ def handle_async_errors(
 
                         logger.info(
                             f"Retrying {operation_name or func.__name__} in {delay}s "
-                            f"(attempt {attempt + 1}/{max_retries})"
+                            f"(attempt {attempt + 1}/{max_retries})",
                         )
                         await asyncio.sleep(delay)
                     else:

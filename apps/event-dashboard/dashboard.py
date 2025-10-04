@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Real-time Event Dashboard for Hive V4.0 Event-Driven Architecture
+"""Real-time Event Dashboard for Hive V4.0 Event-Driven Architecture
 
 This dashboard provides live visualization of events flowing through the Hive system,
 enabling monitoring of workflow patterns, agent activity, and system health.
@@ -17,7 +16,7 @@ from rich.panel import Panel
 from rich.table import Table
 
 try:
-    from hive_orchestrator.core.bus import EventSubscriber, get_event_bus  # noqa: F401
+    from hive_orchestrator.core.bus import EventSubscriber, get_event_bus
 
     from hive_logging import get_logger
 except ImportError as e:
@@ -29,8 +28,7 @@ logger = get_logger(__name__)
 
 
 class EventDashboard:
-    """
-    Real-time dashboard for monitoring Hive event flow and system activity
+    """Real-time dashboard for monitoring Hive event flow and system activity
     """
 
     def __init__(self):

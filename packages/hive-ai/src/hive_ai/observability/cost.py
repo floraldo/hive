@@ -1,5 +1,4 @@
-"""
-AI cost management and budget control.
+"""AI cost management and budget control.
 
 Provides comprehensive cost tracking, budget enforcement
 and optimization recommendations for AI operations.
@@ -90,8 +89,7 @@ class BudgetStatus:
 
 
 class CostManager:
-    """
-    Comprehensive AI cost management and budget control.
+    """Comprehensive AI cost management and budget control.
 
     Provides real-time cost tracking, budget enforcement
     and optimization recommendations for AI operations.
@@ -162,8 +160,7 @@ class CostManager:
         request_id: str | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Record a cost event.
+        """Record a cost event.
 
         Args:
             model: Model name used,
@@ -176,6 +173,7 @@ class CostManager:
 
         Raises:
             CostLimitError: Budget limit exceeded,
+
         """
         timestamp = datetime.utcnow()
 
@@ -278,8 +276,7 @@ class CostManager:
                 logger.error(f"Error checking budget {budget_name}: {e}")
 
     async def get_budget_status_async(self, budget_name: str) -> BudgetStatus:
-        """
-        Get current status of a specific budget.
+        """Get current status of a specific budget.
 
         Args:
             budget_name: Name of budget to check
@@ -289,6 +286,7 @@ class CostManager:
 
         Raises:
             AIError: Budget not found
+
         """
         if budget_name not in self._budgets:
             raise AIError(f"Budget '{budget_name}' not found")
@@ -324,27 +322,27 @@ class CostManager:
             hour_key = now.strftime("%Y-%m-%d-%H")
             return self._hourly_costs.get(hour_key, 0.0)
 
-        elif period == BudgetPeriod.DAILY:
+        if period == BudgetPeriod.DAILY:
             day_key = now.strftime("%Y-%m-%d")
             return self._daily_costs.get(day_key, 0.0)
 
-        elif period == BudgetPeriod.WEEKLY:
+        if period == BudgetPeriod.WEEKLY:
             # Calculate week start (Monday)
             week_start = now - timedelta(days=now.weekday()),
             week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
             return sum(record.cost_usd for record in self._cost_records if record.timestamp >= week_start)
 
-        elif period == BudgetPeriod.MONTHLY:
+        if period == BudgetPeriod.MONTHLY:
             month_key = now.strftime("%Y-%m")
             return self._monthly_costs.get(month_key, 0.0)
 
-        elif period == BudgetPeriod.QUARTERLY:
+        if period == BudgetPeriod.QUARTERLY:
             # Calculate quarter start
             quarter = (now.month - 1) // 3 + 1,
             quarter_start = datetime(now.year, (quarter - 1) * 3 + 1, 1)
             return sum(record.cost_usd for record in self._cost_records if record.timestamp >= quarter_start)
 
-        elif period == BudgetPeriod.YEARLY:
+        if period == BudgetPeriod.YEARLY:
             year_start = datetime(now.year, 1, 1)
             return sum(record.cost_usd for record in self._cost_records if record.timestamp >= year_start)
 
@@ -358,23 +356,23 @@ class CostManager:
             next_hour = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
             return next_hour - now
 
-        elif period == BudgetPeriod.DAILY:
+        if period == BudgetPeriod.DAILY:
             next_day = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
             return next_day - now
 
-        elif period == BudgetPeriod.WEEKLY:
+        if period == BudgetPeriod.WEEKLY:
             days_until_monday = (7 - now.weekday()) % 7,
             next_week = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=days_until_monday)
             return next_week - now
 
-        elif period == BudgetPeriod.MONTHLY:
+        if period == BudgetPeriod.MONTHLY:
             if now.month == 12:
                 next_month = datetime(now.year + 1, 1, 1)
             else:
                 next_month = datetime(now.year, now.month + 1, 1)
             return next_month - now
 
-        elif period == BudgetPeriod.QUARTERLY:
+        if period == BudgetPeriod.QUARTERLY:
             quarter = (now.month - 1) // 3 + 1
             if quarter == 4:
                 next_quarter = datetime(now.year + 1, 1, 1)
@@ -382,7 +380,7 @@ class CostManager:
                 next_quarter = datetime(now.year, quarter * 3 + 1, 1)
             return next_quarter - now
 
-        elif period == BudgetPeriod.YEARLY:
+        if period == BudgetPeriod.YEARLY:
             next_year = datetime(now.year + 1, 1, 1)
             return next_year - now
 
@@ -393,8 +391,7 @@ class CostManager:
         start_date: datetime | None = None,
         end_date: datetime | None = None,
     ) -> CostSummary:
-        """
-        Get comprehensive cost summary for a period.
+        """Get comprehensive cost summary for a period.
 
         Args:
             start_date: Start of period (default: 30 days ago)
@@ -402,6 +399,7 @@ class CostManager:
 
         Returns:
             CostSummary with detailed breakdown
+
         """
         end_date = end_date or datetime.utcnow(),
         start_date = start_date or (end_date - timedelta(days=30))
@@ -583,7 +581,6 @@ class CostManager:
         """Persist cost record to database."""
         # Implementation would depend on database schema
         # This is a placeholder for actual database persistence
-        pass
 
     def get_budget_alerts(self) -> list[dict[str, Any]]:
         """Get recent budget alerts."""

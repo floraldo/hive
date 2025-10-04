@@ -1,5 +1,4 @@
-"""
-Tests for CoderAgent - main orchestrator.
+"""Tests for CoderAgent - main orchestrator.
 """
 
 from __future__ import annotations
@@ -67,7 +66,7 @@ class TestCoderAgent:
                     "task_type": "scaffold",
                     "description": "Generate project",
                     "dependencies": [{"task_id": "T999", "dependency_type": "sequential"}],
-                }
+                },
             ],
         }
 
@@ -92,7 +91,7 @@ class TestCoderAgent:
                     "description": "Add documentation",
                     "parameters": {},
                     "dependencies": [],
-                }
+                },
             ],
         }
 
@@ -114,7 +113,7 @@ class TestCoderAgent:
             "service_name": "summary-test",
             "service_type": "api",
             "tasks": [
-                {"task_id": "T001", "task_type": "documentation", "description": "Docs", "dependencies": []}
+                {"task_id": "T001", "task_type": "documentation", "description": "Docs", "dependencies": []},
             ],
         }
 

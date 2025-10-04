@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Golden Rules Validation Script for hive-ai package.
+"""Golden Rules Validation Script for hive-ai package.
 
 Validates compliance with all 18 Golden Rules for architectural governance.
 """
@@ -16,11 +15,11 @@ from hive_tests.architectural_validators import run_all_golden_rules
 
 
 def validate_hive_ai_compliance() -> bool:
-    """
-    Run Golden Rules validation specifically for hive-ai package.
+    """Run Golden Rules validation specifically for hive-ai package.
 
     Returns:
         bool: True if all rules pass, False otherwise
+
     """
     logger.info("VALIDATING hive-ai package against Golden Rules...")
     logger.info("=" * 60)

@@ -11,8 +11,7 @@ logger = get_logger(__name__)
 
 
 class ReviewHistory:
-    """
-    Manages historical review data for learning and improvement.
+    """Manages historical review data for learning and improvement.
 
     Stores review results, feedback, and patterns to improve
     future review quality.
@@ -121,8 +120,7 @@ class ReviewHistory:
         file_path: Path,
         review_result: Any,  # ReviewResult type
     ) -> int:
-        """
-        Store a review result.
+        """Store a review result.
 
         Args:
             file_path: Path to the reviewed file
@@ -130,6 +128,7 @@ class ReviewHistory:
 
         Returns:
             Review ID
+
         """
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
@@ -192,14 +191,14 @@ class ReviewHistory:
         feedback_text: str,
         violation_id: int | None = None,
     ) -> None:
-        """
-        Store feedback on a review.
+        """Store feedback on a review.
 
         Args:
             review_id: ID of the review
             feedback_type: Type of feedback (positive, negative, correction)
             feedback_text: The feedback text
             violation_id: Optional specific violation ID
+
         """
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
@@ -219,8 +218,7 @@ class ReviewHistory:
         logger.info("Stored %s feedback for review %d", feedback_type, review_id)
 
     async def get_similar_reviews(self, file_path: Path, limit: int = 5) -> list[dict[str, Any]]:
-        """
-        Get similar past reviews for learning.
+        """Get similar past reviews for learning.
 
         Args:
             file_path: Path to compare
@@ -228,6 +226,7 @@ class ReviewHistory:
 
         Returns:
             List of similar reviews
+
         """
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
@@ -264,13 +263,13 @@ class ReviewHistory:
             return reviews
 
     async def learn_team_preference(self, preference_key: str, preference_value: str, example: str) -> None:
-        """
-        Learn a team preference from feedback.
+        """Learn a team preference from feedback.
 
         Args:
             preference_key: Key identifying the preference
             preference_value: The preferred approach
             example: Example code showing the preference
+
         """
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
@@ -331,11 +330,11 @@ class ReviewHistory:
         logger.info("Learned team preference: %s", preference_key)
 
     async def get_team_preferences(self) -> dict[str, dict[str, Any]]:
-        """
-        Get all learned team preferences.
+        """Get all learned team preferences.
 
         Returns:
             Dictionary of preferences
+
         """
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
@@ -361,8 +360,7 @@ class ReviewHistory:
             return preferences
 
     async def get_violation_accuracy(self, violation_type: str, time_window_days: int = 30) -> dict[str, float]:
-        """
-        Get accuracy metrics for a violation type.
+        """Get accuracy metrics for a violation type.
 
         Args:
             violation_type: Type of violation to check
@@ -370,6 +368,7 @@ class ReviewHistory:
 
         Returns:
             Accuracy metrics
+
         """
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()
@@ -398,13 +397,13 @@ class ReviewHistory:
             }
 
     async def update_violation_status(self, violation_id: int, was_fixed: bool, fix_confirmed: bool) -> None:
-        """
-        Update violation status based on feedback.
+        """Update violation status based on feedback.
 
         Args:
             violation_id: ID of the violation
             was_fixed: Whether the violation was fixed
             fix_confirmed: Whether the fix was confirmed as correct
+
         """
         with SQLiteConnection(self.db_path) as conn:
             cursor = conn.cursor()

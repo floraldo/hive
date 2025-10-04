@@ -1,5 +1,4 @@
-"""
-Configuration validation and system health checks for Hive workspace.
+"""Configuration validation and system health checks for Hive workspace.
 
 This module provides comprehensive validation functions to ensure system
 integrity and catch configuration issues early.
@@ -19,15 +18,14 @@ logger = get_logger(__name__)
 class ValidationError(Exception):
     """Raised when system validation fails."""
 
-    pass
 
 
 def validate_python_environment() -> dict[str, any]:
-    """
-    Validate Python environment and interpreter requirements.
+    """Validate Python environment and interpreter requirements.
 
     Returns:
         Dictionary with validation results and recommendations
+
     """
     results = {
         "python_version": {
@@ -60,11 +58,11 @@ def validate_python_environment() -> dict[str, any]:
 
 
 def validate_project_structure() -> dict[str, any]:
-    """
-    Validate Hive project directory structure and required files.
+    """Validate Hive project directory structure and required files.
 
     Returns:
         Dictionary with structure validation results
+
     """
     try:
         root = find_project_root()
@@ -96,11 +94,11 @@ def validate_project_structure() -> dict[str, any]:
 
 
 def validate_database_connectivity() -> dict[str, any]:
-    """
-    Test database connectivity and basic operations.
+    """Test database connectivity and basic operations.
 
     Returns:
         Dictionary with database validation results
+
     """
     results = {"accessible": False, "tables_exist": False, "can_query": False, "issues": []}
 
@@ -142,11 +140,11 @@ def validate_database_connectivity() -> dict[str, any]:
 
 
 def validate_worker_requirements() -> dict[str, any]:
-    """
-    Validate that worker spawning requirements are met.
+    """Validate that worker spawning requirements are met.
 
     Returns:
         Dictionary with worker requirements validation
+
     """
     results = {"python_executable": False, "modules_importable": False, "environment_ready": False, "issues": []}
 
@@ -158,7 +156,7 @@ def validate_worker_requirements() -> dict[str, any]:
 
     # Check if worker module can be imported
     try:
-        import hive_orchestrator.worker  # noqa: F401
+        import hive_orchestrator.worker
 
         results["modules_importable"] = True
     except ImportError as e:
@@ -177,11 +175,11 @@ def validate_worker_requirements() -> dict[str, any]:
 
 
 def run_comprehensive_validation() -> tuple[bool, dict[str, any]]:
-    """
-    Run all validation checks and return comprehensive results.
+    """Run all validation checks and return comprehensive results.
 
     Returns:
         Tuple of (all_passed: bool, results: dict)
+
     """
     validation_results = {
         "timestamp": str(Path.cwd() / "validation_timestamp"),  # Simple timestamp,
@@ -225,8 +223,7 @@ def run_comprehensive_validation() -> tuple[bool, dict[str, any]]:
 
 
 def format_validation_report(results: dict[str, any], include_details: bool = True) -> str:
-    """
-    Format validation results into a human-readable report.
+    """Format validation results into a human-readable report.
 
     Args:
         results: Results from run_comprehensive_validation
@@ -234,6 +231,7 @@ def format_validation_report(results: dict[str, any], include_details: bool = Tr
 
     Returns:
         Formatted validation report string
+
     """
     lines = []
 

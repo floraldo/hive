@@ -1,5 +1,4 @@
-"""
-Hive Archivist - Intelligent Task & Memory Nexus
+"""Hive Archivist - Intelligent Task & Memory Nexus
 
 Proactive knowledge curator that transforms completed tasks into searchable
 knowledge fragments, enabling 80-90% token reduction through RAG-powered context injection.
@@ -38,11 +37,11 @@ from .services.librarian import LibrarianService
 __version__ = "1.0.0"
 
 __all__ = [
-    "__version__",
     "ArchivistService",
-    "LibrarianService",
     "CuratorService",
     "FragmentParser",
     "KnowledgeFragment",
+    "LibrarianService",
     "VectorIndexer",
+    "__version__",
 ]

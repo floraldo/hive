@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S607
 # Security: subprocess calls in this script use system tools (git) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal validation tooling.
 
-"""
-Golden Rules Validation Script for Hive Platform.
+"""Golden Rules Validation Script for Hive Platform.
 
 Validates compliance with 24 Golden Rules for architectural governance
 across the entire platform with tiered severity enforcement.
@@ -50,8 +48,7 @@ def _get_rule_count(severity: RuleSeverity) -> int:
 
 
 def get_changed_files() -> list[Path]:
-    """
-    Get list of changed Python files using git.
+    """Get list of changed Python files using git.
 
     Returns list of changed/staged Python files relative to HEAD.
     Falls back to all files if not in git repo.
@@ -89,14 +86,14 @@ def get_changed_files() -> list[Path]:
 
 
 def get_app_files(app_name: str) -> list[Path]:
-    """
-    Get all Python files for a specific app.
+    """Get all Python files for a specific app.
 
     Args:
         app_name: Name of the app (e.g., 'ecosystemiser', 'hive-orchestrator')
 
     Returns:
         List of Python files in the app directory
+
     """
     app_dir = project_root / "apps" / app_name
     if not app_dir.exists():
@@ -112,8 +109,7 @@ def validate_platform_compliance(
     engine: str = "ast",
     severity_level: RuleSeverity = RuleSeverity.INFO,
 ) -> bool:
-    """
-    Run Golden Rules validation across Hive platform.
+    """Run Golden Rules validation across Hive platform.
 
     Args:
         scope_files: Optional list of specific files to validate
@@ -123,6 +119,7 @@ def validate_platform_compliance(
 
     Returns:
         bool: True if all rules pass, False otherwise
+
     """
     if scope_files:
         logger.info(f"VALIDATING {len(scope_files)} files against Golden Rules...")
@@ -194,10 +191,9 @@ def validate_platform_compliance(
     if all_passed:
         logger.info("SUCCESS: ALL GOLDEN RULES PASSED - Platform is architecturally sound!")
         return True
-    else:
-        logger.error("FAIL: GOLDEN RULES VIOLATIONS DETECTED - Platform needs attention")
-        logger.error("Please fix the violations above to maintain architectural integrity")
-        return False
+    logger.error("FAIL: GOLDEN RULES VIOLATIONS DETECTED - Platform needs attention")
+    logger.error("Please fix the violations above to maintain architectural integrity")
+    return False
 
 
 def main():

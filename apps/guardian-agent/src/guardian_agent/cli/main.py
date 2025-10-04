@@ -162,7 +162,6 @@ def autofix(ctx: click.Context, file_path: str) -> None:
 @click.pass_context
 def oracle(ctx: click.Context) -> None:
     """Hive Oracle - Platform Intelligence and Strategic Insights."""
-    pass
 
 
 @oracle.command()
@@ -171,7 +170,6 @@ def oracle(ctx: click.Context) -> None:
 @click.pass_context
 def start(ctx: click.Context, daemon: bool, config: str | None) -> None:
     """Start the Hive Oracle Intelligence Service."""
-
     # Load Oracle configuration
     oracle_config = OracleConfig()
 
@@ -212,7 +210,6 @@ def start(ctx: click.Context, daemon: bool, config: str | None) -> None:
 @click.pass_context
 def genesis(ctx: click.Context) -> None:
     """Hive Genesis Agent - Oracle-Powered App Creation Engine."""
-    pass
 
 
 @genesis.command("create")
@@ -223,7 +220,6 @@ def genesis(ctx: click.Context) -> None:
 @click.pass_context
 def create_app(ctx: click.Context, name: str, description: str, path: str | None, no_oracle: bool) -> None:
     """Create a new Hive application with Oracle intelligence."""
-
     console.print("🔮 [bold blue]Hive Genesis Agent - Creating Application[/bold blue]")
     console.print(f"App Name: [bold]{name}[/bold]")
     console.print(f"Description: {description}")
@@ -244,7 +240,7 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
 
             # Create application
             with Progress(
-                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
             ) as progress:
                 task = (progress.add_task("Creating application...", total=None),)
 
@@ -272,7 +268,7 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
 
                 for feature in app_spec.features[:5]:  # Top 5 features
                     priority_icon = {"critical": "🚨", "high": "⚠️", "medium": "📋", "low": "💡", "future": "🔮"}.get(
-                        feature.priority.value, "📋"
+                        feature.priority.value, "📋",
                     )
 
                     business_value = (
@@ -313,7 +309,6 @@ def create_app(ctx: click.Context, name: str, description: str, path: str | None
 @click.pass_context
 def analyze_description(ctx: click.Context, description: str) -> None:
     """Analyze an app description without creating the application."""
-
     console.print("🔍 [bold blue]Analyzing Application Description[/bold blue]")
     console.print(f"Description: {description}")
 
@@ -372,7 +367,6 @@ def analyze_description(ctx: click.Context, description: str) -> None:
 @click.pass_context
 def list_templates(ctx: click.Context) -> None:
     """List available application templates and categories."""
-
     console.print("📋 [bold blue]Available Application Categories[/bold blue]")
 
     categories = [
@@ -397,14 +391,14 @@ def list_templates(ctx: click.Context) -> None:
 
     console.print("\n💡 [bold]Usage Examples:[/bold]")
     console.print(
-        "• [bold]Web App:[/bold] hive genesis create photo-gallery -d 'A web app for storing and tagging photos'"
+        "• [bold]Web App:[/bold] hive genesis create photo-gallery -d 'A web app for storing and tagging photos'",
     )
     console.print("• [bold]API Service:[/bold] hive genesis create user-api -d 'REST API for user management'")
     console.print(
-        "• [bold]AI Service:[/bold] hive genesis create text-analyzer -d 'AI service for text analysis and summarization'"
+        "• [bold]AI Service:[/bold] hive genesis create text-analyzer -d 'AI service for text analysis and summarization'",
     )
     console.print(
-        "• [bold]CLI Tool:[/bold] hive genesis create data-migrator -d 'Command-line tool for database migrations'"
+        "• [bold]CLI Tool:[/bold] hive genesis create data-migrator -d 'Command-line tool for database migrations'",
     )
 
 
@@ -489,12 +483,12 @@ def insights(ctx: click.Context, hours: int, format: str) -> None:
                         console.print(f"\n[{severity_color}]● {insight['title']}[/{severity_color}]")
                         console.print(f"  {insight['description']}")
                         console.print(
-                            f"  [dim]Confidence: {insight['confidence']:.0%} | Category: {insight['category']}[/dim]"
+                            f"  [dim]Confidence: {insight['confidence']:.0%} | Category: {insight['category']}[/dim]",
                         )
 
                 # Display recommendations
                 high_priority = recommendations.get("critical_recommendations", []) + recommendations.get(
-                    "high_priority_recommendations", []
+                    "high_priority_recommendations", [],
                 )
 
                 if high_priority:
@@ -504,7 +498,7 @@ def insights(ctx: click.Context, hours: int, format: str) -> None:
                         console.print(f"\n🔥 [bold]{rec['title']}[/bold]")
                         console.print(f"   {rec['description']}")
                         console.print(
-                            f"   [dim]Priority: {rec['priority'].upper()} | Impact: {rec['expected_impact'].upper()}[/dim]"
+                            f"   [dim]Priority: {rec['priority'].upper()} | Impact: {rec['expected_impact'].upper()}[/dim]",
                         )
 
                         if rec.get("implementation_steps"):
@@ -638,7 +632,6 @@ def costs(ctx: click.Context) -> None:
 @click.pass_context
 def prophecy(ctx: click.Context, design_doc_path: str) -> None:
     """Perform pre-emptive architectural review of a design document."""
-
     console.print("🔮 [bold blue]Oracle Architectural Prophecy Analysis[/bold blue]")
     console.print(f"Design Document: [bold]{design_doc_path}[/bold]")
 
@@ -647,7 +640,7 @@ def prophecy(ctx: click.Context, design_doc_path: str) -> None:
             oracle_service = OracleService()
 
             with Progress(
-                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
             ) as progress:
                 task = progress.add_task("Analyzing design intent and generating prophecies...", total=None)
 
@@ -695,7 +688,6 @@ def prophecy(ctx: click.Context, design_doc_path: str) -> None:
 @click.pass_context
 def prophecy_accuracy(ctx: click.Context) -> None:
     """Show prophecy accuracy report for continuous learning."""
-
     console.print("📊 [bold blue]Oracle Prophecy Accuracy Report[/bold blue]")
 
     async def show_accuracy():
@@ -741,7 +733,6 @@ def prophecy_accuracy(ctx: click.Context) -> None:
 @click.pass_context
 def design_intelligence(ctx: click.Context) -> None:
     """Show design intelligence summary and document complexity analysis."""
-
     console.print("📐 [bold blue]Oracle Design Intelligence Summary[/bold blue]")
 
     async def show_design_intelligence():
@@ -795,7 +786,6 @@ def design_intelligence(ctx: click.Context) -> None:
 @click.pass_context
 def ecosystem_analysis(ctx: click.Context, force_refresh: bool) -> None:
     """Perform comprehensive ecosystem optimization analysis."""
-
     console.print("🔄 [bold blue]Oracle Ecosystem Symbiosis Analysis[/bold blue]")
 
     async def analyze_ecosystem():
@@ -803,7 +793,7 @@ def ecosystem_analysis(ctx: click.Context, force_refresh: bool) -> None:
             oracle_service = OracleService()
 
             with Progress(
-                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
             ) as progress:
                 task = progress.add_task("Analyzing ecosystem patterns and optimizations...", total=None)
 
@@ -885,7 +875,6 @@ def ecosystem_analysis(ctx: click.Context, force_refresh: bool) -> None:
 @click.pass_context
 def generate_prs(ctx: click.Context, max_prs: int | None, dry_run: bool) -> None:
     """Generate autonomous pull requests for optimizations."""
-
     console.print("🤖 [bold blue]Oracle Autonomous PR Generation[/bold blue]")
 
     if dry_run:
@@ -896,7 +885,7 @@ def generate_prs(ctx: click.Context, max_prs: int | None, dry_run: bool) -> None
             oracle_service = OracleService()
 
             with Progress(
-                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
             ) as progress:
                 task = progress.add_task("Generating autonomous pull requests...", total=None)
 
@@ -986,7 +975,6 @@ def generate_prs(ctx: click.Context, max_prs: int | None, dry_run: bool) -> None
 @click.pass_context
 def symbiosis_status(ctx: click.Context) -> None:
     """Show comprehensive Symbiosis Engine status."""
-
     console.print("🔄 [bold blue]Oracle Symbiosis Engine Status[/bold blue]")
 
     async def show_symbiosis_status():
@@ -1044,7 +1032,6 @@ def symbiosis_status(ctx: click.Context) -> None:
 @click.pass_context
 def validate_optimization(ctx: click.Context, optimization_id: str) -> None:
     """Validate the impact of an implemented optimization."""
-
     console.print("🔍 [bold blue]Oracle Optimization Validation[/bold blue]")
     console.print(f"Optimization ID: [bold]{optimization_id}[/bold]")
 
@@ -1053,7 +1040,7 @@ def validate_optimization(ctx: click.Context, optimization_id: str) -> None:
             oracle_service = OracleService()
 
             with Progress(
-                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
             ) as progress:
                 task = progress.add_task("Validating optimization impact...", total=None)
 
@@ -1070,7 +1057,7 @@ def validate_optimization(ctx: click.Context, optimization_id: str) -> None:
             validation_summary = validation_result["optimization_validation"]
             console.print("\n🔍 [bold]Validation Results:[/bold]")
             console.print(
-                f"Status: {'✅ PASSED' if validation_summary['validation_status'] == 'passed' else '❌ FAILED'}"
+                f"Status: {'✅ PASSED' if validation_summary['validation_status'] == 'passed' else '❌ FAILED'}",
             )
             console.print(f"Oracle Confidence: {validation_summary['oracle_confidence']:.1%}")
             console.print(f"Validation Time: {validation_summary['validation_timestamp']}")
@@ -1135,8 +1122,7 @@ def architect(
     full_cycle: bool,
     wisdom_mode: bool,
 ) -> None:
-    """
-    The Oracle's Unified Architectural Intelligence Interface.
+    """The Oracle's Unified Architectural Intelligence Interface.
 
     This is the Oracle's ultimate command - synthesizing prophecy and symbiosis,
     into unified architectural wisdom. The single interface for all Oracle capabilities.
@@ -1148,8 +1134,8 @@ def architect(
       hive oracle architect --query "How to optimize database performance?"  # Wisdom query,
       hive oracle architect --generate-pr --opportunity-id opt_123  # Unified PR generation,
       hive oracle architect --wisdom-mode  # Interactive wisdom mode,
-    """
 
+    """
     console.print("🌟 [bold blue]Oracle Unified Architectural Intelligence[/bold blue]")
 
     if wisdom_mode:
@@ -1176,7 +1162,6 @@ def architect(
 
 async def interactive_wisdom_mode_async():
     """Enter interactive wisdom query mode."""
-
     console.print("🔮 [bold blue]Oracle Interactive Wisdom Mode[/bold blue]")
     console.print("Ask the Oracle anything about your architecture, and receive unified wisdom.")
     console.print("Type 'exit' to quit, 'help' for examples.\n")
@@ -1198,7 +1183,7 @@ async def interactive_wisdom_mode_async():
 
             # Process wisdom query
             with Progress(
-                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+                SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
             ) as progress:
                 task = (progress.add_task("Oracle consulting unified intelligence...", total=None),)
 
@@ -1222,7 +1207,6 @@ async def interactive_wisdom_mode_async():
 
 async def generate_unified_pr_async(opportunity_id: str):
     """Generate unified PR with strategic context."""
-
     console.print("🌟 [bold blue]Oracle Unified PR Generation[/bold blue]")
     console.print(f"Opportunity ID: [bold]{opportunity_id}[/bold]")
 
@@ -1230,7 +1214,7 @@ async def generate_unified_pr_async(opportunity_id: str):
         OracleService()
 
         with Progress(
-            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
         ) as progress:
             task = progress.add_task("Generating unified PR with strategic context...", total=None)
 
@@ -1261,7 +1245,6 @@ async def generate_unified_pr_async(opportunity_id: str):
 
 async def process_wisdom_query_async(query: str):
     """Process a natural language wisdom query."""
-
     console.print("🔮 [bold blue]Oracle Wisdom Query[/bold blue]")
     console.print(f"Query: [bold]{query}[/bold]")
 
@@ -1269,7 +1252,7 @@ async def process_wisdom_query_async(query: str):
         oracle_service = OracleService()
 
         with Progress(
-            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
         ) as progress:
             task = (progress.add_task("Oracle processing unified wisdom...", total=None),)
 
@@ -1289,7 +1272,6 @@ async def process_wisdom_query_async(query: str):
 
 async def perform_full_cycle_audit_async(design_doc: str, code_path: str):
     """Perform full-cycle audit combining design and code analysis."""
-
     console.print("🔄 [bold blue]Oracle Full-Cycle Architectural Audit[/bold blue]")
     console.print(f"Design Document: [bold]{design_doc}[/bold]")
     console.print(f"Code Path: [bold]{code_path}[/bold]")
@@ -1298,13 +1280,13 @@ async def perform_full_cycle_audit_async(design_doc: str, code_path: str):
         oracle_service = OracleService()
 
         with Progress(
-            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
         ) as progress:
             task = progress.add_task("Performing unified intelligence analysis...", total=None)
 
             # Perform unified analysis
             unified_result = await oracle_service.analyze_unified_intelligence_async(
-                design_doc_path=design_doc, code_path=code_path, query_type="unified"
+                design_doc_path=design_doc, code_path=code_path, query_type="unified",
             )
 
             progress.update(task, description="Full-cycle audit complete!")
@@ -1326,7 +1308,7 @@ async def perform_full_cycle_audit_async(design_doc: str, code_path: str):
         console.print("\n🧠 [bold]Knowledge Synthesis:[/bold]")
         console.print(f"Prophecy Data: {'✅ Ingested' if synthesis['prophecy_data_ingested'] else '❌ Not Available'}")
         console.print(
-            f"Symbiosis Data: {'✅ Ingested' if synthesis['symbiosis_data_ingested'] else '❌ Not Available'}"
+            f"Symbiosis Data: {'✅ Ingested' if synthesis['symbiosis_data_ingested'] else '❌ Not Available'}",
         )
         console.print(f"Unified Patterns: {synthesis['unified_patterns_found']}")
         console.print(f"Risk-Solution Mappings: {synthesis['risk_solution_mappings']}")
@@ -1363,7 +1345,6 @@ async def perform_full_cycle_audit_async(design_doc: str, code_path: str):
 
 async def perform_prophecy_analysis_async(design_doc: str):
     """Perform prophecy analysis on design document."""
-
     console.print("🔮 [bold blue]Oracle Prophecy Analysis[/bold blue]")
     console.print(f"Design Document: [bold]{design_doc}[/bold]")
 
@@ -1371,7 +1352,7 @@ async def perform_prophecy_analysis_async(design_doc: str):
         oracle_service = OracleService()
 
         with Progress(
-            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
         ) as progress:
             task = (progress.add_task("Analyzing design intent and generating prophecies...", total=None),)
 
@@ -1398,7 +1379,6 @@ async def perform_prophecy_analysis_async(design_doc: str):
 
 async def perform_symbiosis_analysis_async(code_path: str):
     """Perform symbiosis analysis on code path."""
-
     console.print("🔄 [bold blue]Oracle Symbiosis Analysis[/bold blue]")
     console.print(f"Code Path: [bold]{code_path}[/bold]")
 
@@ -1406,7 +1386,7 @@ async def perform_symbiosis_analysis_async(code_path: str):
         oracle_service = OracleService()
 
         with Progress(
-            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console
+            SpinnerColumn(), TextColumn("[progress.description]{task.description}"), console=console,
         ) as progress:
             task = (progress.add_task("Analyzing ecosystem patterns and optimizations...", total=None),)
 
@@ -1434,7 +1414,6 @@ async def perform_symbiosis_analysis_async(code_path: str):
 
 async def show_unified_status_async():
     """Show comprehensive unified intelligence status."""
-
     console.print("🌟 [bold blue]Oracle Unified Intelligence Status[/bold blue]")
 
     try:
@@ -1459,13 +1438,13 @@ async def show_unified_status_async():
         integration = unified_status["integration_status"]
         console.print("\n🔗 [bold]Integration Status:[/bold]")
         console.print(
-            f"Prophecy Engine: {'✅ Connected' if integration['prophecy_engine_connected'] else '❌ Disconnected'}"
+            f"Prophecy Engine: {'✅ Connected' if integration['prophecy_engine_connected'] else '❌ Disconnected'}",
         )
         console.print(
-            f"Symbiosis Engine: {'✅ Connected' if integration['symbiosis_engine_connected'] else '❌ Disconnected'}"
+            f"Symbiosis Engine: {'✅ Connected' if integration['symbiosis_engine_connected'] else '❌ Disconnected'}",
         )
         console.print(
-            f"Data Unification: {'✅ Connected' if integration['data_unification_connected'] else '❌ Disconnected'}"
+            f"Data Unification: {'✅ Connected' if integration['data_unification_connected'] else '❌ Disconnected'}",
         )
 
         # Display knowledge graph status if available
@@ -1484,7 +1463,7 @@ async def show_unified_status_async():
             console.print(f"Wisdom Synthesis: {'✅ Active' if synthesis['wisdom_synthesis_active'] else '❌ Inactive'}")
             console.print(f"Prophecy-Symbiosis Correlation: {synthesis['prophecy_symbiosis_correlation'].title()}")
             console.print(
-                f"Autonomous Learning: {'✅ Enabled' if synthesis['autonomous_learning_enabled'] else '❌ Disabled'}"
+                f"Autonomous Learning: {'✅ Enabled' if synthesis['autonomous_learning_enabled'] else '❌ Disabled'}",
             )
             console.print(f"Consciousness Level: {synthesis['unified_consciousness_level'].title()}")
 
@@ -1503,7 +1482,6 @@ async def show_unified_status_async():
 
 def display_wisdom_response(wisdom_response: dict[str, Any]):
     """Display Oracle wisdom response."""
-
     oracle_wisdom = wisdom_response["oracle_wisdom"]
     console.print("\n🔮 [bold]Oracle Wisdom:[/bold]")
     console.print(f"Knowledge Nodes: {oracle_wisdom['knowledge_nodes']}")
@@ -1553,7 +1531,6 @@ def display_wisdom_response(wisdom_response: dict[str, Any]):
 
 def show_wisdom_examples():
     """Show examples of wisdom queries."""
-
     console.print("\n🔮 [bold]Oracle Wisdom Query Examples:[/bold]")
     console.print("")
     console.print("Architecture & Design:")
@@ -1629,7 +1606,7 @@ def _display_text_results(result, verbose: bool) -> None:
 
     # Stats
     console.print(
-        f"\n[dim]Violations: {sum(result.violations_count.values())} | Suggestions: {result.suggestions_count} | Auto-fixable: {result.auto_fixable_count}[/dim]"
+        f"\n[dim]Violations: {sum(result.violations_count.values())} | Suggestions: {result.suggestions_count} | Auto-fixable: {result.auto_fixable_count}[/dim]",
     )
 
 

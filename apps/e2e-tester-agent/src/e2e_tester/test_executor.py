@@ -15,8 +15,7 @@ logger = get_logger(__name__)
 
 
 class TestExecutor:
-    """
-    Execute pytest-based E2E tests and generate reports.
+    """Execute pytest-based E2E tests and generate reports.
 
     Runs tests using pytest subprocess, parses results, and generates
     structured test reports for orchestration integration.
@@ -27,14 +26,15 @@ class TestExecutor:
             test_path="tests/e2e/test_google_login.py"
         )
         print(f"Status: {result.status}")
+
     """
 
     def __init__(self, screenshot_dir: Path | None = None) -> None:
-        """
-        Initialize test executor.
+        """Initialize test executor.
 
         Args:
             screenshot_dir: Directory for screenshot artifacts
+
         """
         self.logger = logger
 
@@ -53,8 +53,7 @@ class TestExecutor:
         capture_screenshots: bool = True,
         timeout: int = 120,
     ) -> TestResult:
-        """
-        Execute E2E test file.
+        """Execute E2E test file.
 
         Args:
             test_path: Path to pytest test file
@@ -70,6 +69,7 @@ class TestExecutor:
                 test_path="tests/e2e/test_google_login.py",
                 headless=True
             )
+
         """
         test_path = Path(test_path)
         self.logger.info(f"Executing test: {test_path}")
@@ -105,7 +105,7 @@ class TestExecutor:
         start_time = datetime.now()
 
         try:
-            result = subprocess.run(  # noqa: S603
+            result = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
@@ -131,7 +131,7 @@ class TestExecutor:
 
             self.logger.info(
                 f"Test completed: {test_result.status} "
-                f"({test_result.tests_passed}/{test_result.tests_run} passed)"
+                f"({test_result.tests_passed}/{test_result.tests_run} passed)",
             )
 
             return test_result
@@ -164,8 +164,7 @@ class TestExecutor:
         pattern: str = "test_*.py",
         **kwargs,
     ) -> list[TestResult]:
-        """
-        Execute all tests in directory matching pattern.
+        """Execute all tests in directory matching pattern.
 
         Args:
             test_dir: Directory containing test files
@@ -180,6 +179,7 @@ class TestExecutor:
                 test_dir=Path("tests/e2e"),
                 pattern="test_*.py"
             )
+
         """
         self.logger.info(f"Executing test suite: {test_dir}/{pattern}")
 
@@ -200,7 +200,7 @@ class TestExecutor:
 
         self.logger.info(
             f"Test suite completed: {total_passed}/{total_run} tests passed "
-            f"across {len(results)} files"
+            f"across {len(results)} files",
         )
 
         return results
@@ -211,8 +211,7 @@ class TestExecutor:
         output_path: Path,
         format: str = "json",
     ) -> None:
-        """
-        Generate test report file.
+        """Generate test report file.
 
         Args:
             result: Test execution result
@@ -225,6 +224,7 @@ class TestExecutor:
                 output_path=Path("reports/google_login.json"),
                 format="json"
             )
+
         """
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -232,7 +232,7 @@ class TestExecutor:
             report_data = result.model_dump(mode="json")
             output_path.write_text(
                 json.dumps(report_data, indent=2, default=str),
-                encoding="utf-8"
+                encoding="utf-8",
             )
 
         elif format == "html":

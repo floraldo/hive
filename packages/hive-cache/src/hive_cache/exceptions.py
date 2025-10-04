@@ -1,5 +1,4 @@
-"""
-Cache error handling using generic exception patterns.
+"""Cache error handling using generic exception patterns.
 
 DEPRECATED: Cache-specific exception classes removed in Project Essence Phase 2.
 Use generic exceptions from hive_errors with component tagging instead.
@@ -39,17 +38,17 @@ CacheConfigurationError = ConfigurationError
 
 __all__ = [
     "BaseError",
-    "ConnectionError",
-    "TimeoutError",
-    "CircuitBreakerOpenError",
-    "ValidationError",
-    "ConfigurationError",
+    "CacheCircuitBreakerError",
+    "CacheConfigurationError",
+    "CacheConnectionError",
     # Deprecated aliases
     "CacheError",
-    "CacheConnectionError",
-    "CacheTimeoutError",
-    "CacheCircuitBreakerError",
-    "CacheSerializationError",
     "CacheKeyError",
-    "CacheConfigurationError",
+    "CacheSerializationError",
+    "CacheTimeoutError",
+    "CircuitBreakerOpenError",
+    "ConfigurationError",
+    "ConnectionError",
+    "TimeoutError",
+    "ValidationError",
 ]

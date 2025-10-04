@@ -1,5 +1,4 @@
-"""
-Tests for Architect Agent - The Brain of Project Colossus.
+"""Tests for Architect Agent - The Brain of Project Colossus.
 
 Tests the complete flow from natural language → execution plan.
 """
@@ -171,7 +170,7 @@ class TestArchitectAgent:
                     "task_count": len(plan.tasks),
                     "duration_minutes": plan.total_estimated_duration_minutes,
                     "valid": all(validation.values()),
-                }
+                },
             )
 
         # All requirements should parse successfully
@@ -184,5 +183,5 @@ class TestArchitectAgent:
         for result in results:
             print(
                 f"\n{result['service_name']} ({result['service_type']}): "
-                f"{result['task_count']} tasks, {result['duration_minutes']} min"
+                f"{result['task_count']} tasks, {result['duration_minutes']} min",
             )

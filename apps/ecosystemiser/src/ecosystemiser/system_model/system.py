@@ -21,6 +21,7 @@ class System:
         Args:
             system_id: Unique identifier for this system
             n: Number of timesteps,
+
         """
         self.system_id = system_id
         self.N = n
@@ -54,6 +55,7 @@ class System:
 
         Args:
             component: Component instance to add,
+
         """
         self.components[component.name] = component
         (logger.debug(f"Added component: {component.name} ({component.type})"),)
@@ -63,6 +65,7 @@ class System:
 
         Args:
             component_name: Name of component to remove,
+
         """
         if component_name in self.components:
             self.components.pop(component_name)
@@ -83,6 +86,7 @@ class System:
             component2_name: Target component name
             flow_type: Type of flow ('electricity', 'heat', 'water')
             bidirectional: If True, create flow in both directions,
+
         """
         if flow_type not in self.flow_types:
             raise ValueError(f"Invalid flow type: {flow_type}. Must be one of: {list(self.flow_types.keys())}")
@@ -147,6 +151,7 @@ class System:
 
         Returns:
             Dictionary of flows of the specified type,
+
         """
         return {k: v for k, v in self.flows.items() if v["type"] == flow_type}
 
@@ -158,6 +163,7 @@ class System:
 
         Returns:
             List of components of the specified type,
+
         """
         return [comp for comp in self.components.values() if comp.type == component_type]
 
@@ -166,6 +172,7 @@ class System:
 
         Returns:
             List of validation issues (empty if valid)
+
         """
         issues = []
 
@@ -189,6 +196,7 @@ class System:
 
         Returns:
             Dictionary with system information,
+
         """
         info = {
             "system_id": self.system_id,
@@ -233,6 +241,7 @@ class System:
 
         Returns:
             List of constraints,
+
         """
         constraints = []
 
@@ -259,15 +268,15 @@ class System:
 
         Returns:
             Dictionary of component contributions to the objective,
+
         """
         if objective_type == "min_cost":
             return self.get_component_cost_contributions()
-        elif objective_type == "min_co2":
+        if objective_type == "min_co2":
             return self.get_component_emission_contributions()
-        elif objective_type == "min_grid":
+        if objective_type == "min_grid":
             return self.get_component_grid_usage()
-        else:
-            raise ValueError(f"Unknown objective type: {objective_type}")
+        raise ValueError(f"Unknown objective type: {objective_type}")
 
     def get_component_cost_contributions(self, timestep: int | None = None) -> dict[str, Any]:
         """Get cost contributions from all components.,
@@ -280,6 +289,7 @@ class System:
 
         Returns:
             Dictionary of component cost contributions,
+
         """
         cost_contributions = {}
 
@@ -338,6 +348,7 @@ class System:
 
         Returns:
             Dictionary of component emission contributions,
+
         """
         emission_contributions = {}
 
@@ -379,6 +390,7 @@ class System:
 
         Returns:
             Dictionary of grid usage variables for minimization,
+
         """
         grid_usage = {}
 
@@ -410,6 +422,7 @@ class System:
 
         Returns:
             List of validation warnings,
+
         """
         warnings = ([],)
         contributions = self.get_objective_contributions(objective_type)

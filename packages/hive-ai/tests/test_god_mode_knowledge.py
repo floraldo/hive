@@ -1,5 +1,4 @@
-"""
-Unit tests for KnowledgeArchivist and RAG synergy.
+"""Unit tests for KnowledgeArchivist and RAG synergy.
 
 Tests cover:
 - Thinking session archival
@@ -41,7 +40,7 @@ class TestKnowledgeArchivistInitialization:
         index_path = storage_path / "knowledge.faiss"
         index_path.touch()
 
-        with patch.object(VectorStore, 'load') as mock_load:
+        with patch.object(VectorStore, "load") as mock_load:
             KnowledgeArchivist(storage_path=storage_path)
 
             # Should attempt to load existing index
@@ -128,9 +127,9 @@ class TestThinkingSessionArchival:
                         "title": "Async Guide",
                         "url": "https://example.com/async",
                         "text": "Learn about async/await...",
-                    }
+                    },
                 ],
-            }
+            },
         ]
 
         await archivist.archive_thinking_session_async(
@@ -288,7 +287,7 @@ class TestPersistence:
         )
 
         # Mock the embedding generator
-        with patch.object(archivist.embedding_generator, 'generate_async', new_callable=AsyncMock) as mock_gen:
+        with patch.object(archivist.embedding_generator, "generate_async", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = np.random.rand(384)
 
             await archivist.archive_thinking_session_async(
@@ -337,7 +336,7 @@ class TestRAGContextRetrieval:
         )
 
         # Mock the standard context retrieval
-        with patch.object(service, 'get_context_for_task', new_callable=AsyncMock) as mock_get_context:
+        with patch.object(service, "get_context_for_task", new_callable=AsyncMock) as mock_get_context:
             mock_get_context.return_value = "Standard code context..."
 
             # Test augmented retrieval
@@ -377,11 +376,11 @@ class TestRAGContextRetrieval:
         )
 
         # Mock standard context
-        with patch.object(service, 'get_context_for_task', new_callable=AsyncMock) as mock_get_context:
+        with patch.object(service, "get_context_for_task", new_callable=AsyncMock) as mock_get_context:
             mock_get_context.return_value = ""
 
             # Change working directory for test
-            with patch('pathlib.Path') as mock_path:
+            with patch("pathlib.Path") as mock_path:
                 mock_path.return_value = archive_path
 
                 result = await service.get_augmented_context_for_task(
@@ -434,7 +433,7 @@ class TestErrorHandling:
         )
 
         # Should log error but not crash
-        with patch.object(archivist.embedding_generator, 'generate_async', new_callable=AsyncMock) as mock_gen:
+        with patch.object(archivist.embedding_generator, "generate_async", new_callable=AsyncMock) as mock_gen:
             mock_gen.return_value = np.random.rand(384)
 
             # This should complete without raising

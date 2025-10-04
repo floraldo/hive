@@ -1,5 +1,4 @@
-"""
-Coder Agent - The Hands of Project Colossus.
+"""Coder Agent - The Hands of Project Colossus.
 
 Executes ExecutionPlans from Architect Agent to generate production-ready services.
 
@@ -30,22 +29,22 @@ logger = get_logger(__name__)
 
 
 class CoderAgent:
-    """
-    The Coder Agent - Hands of Project Colossus.
+    """The Coder Agent - Hands of Project Colossus.
 
     Transforms ExecutionPlans into production-ready services using hive-app-toolkit.
 
     Example:
         agent = CoderAgent()
         result = agent.execute_plan("execution_plan.json", output_dir="generated/my-service")
+
     """
 
     def __init__(self, config: HiveConfig | None = None) -> None:
-        """
-        Initialize the Coder Agent.
+        """Initialize the Coder Agent.
 
         Args:
             config: Optional configuration (uses DI pattern)
+
         """
         self._config = config or create_config_from_sources()
         self.logger = logger
@@ -61,8 +60,7 @@ class CoderAgent:
         validate_output: bool = True,
         run_tests: bool = False,
     ) -> ExecutionResult:
-        """
-        Execute an ExecutionPlan to generate a service.
+        """Execute an ExecutionPlan to generate a service.
 
         Args:
             plan_file: Path to ExecutionPlan JSON file
@@ -80,6 +78,7 @@ class CoderAgent:
                 validate_output=True,
                 run_tests=True
             )
+
         """
         self.logger.info(f"Starting execution of plan: {plan_file}")
         start_time = time.time()
@@ -126,7 +125,7 @@ class CoderAgent:
                 if service_dir.exists():
                     self.logger.info("Running validation checks...")
                     result.validation = self.validator.validate(
-                        service_dir, run_tests=run_tests, run_type_check=False
+                        service_dir, run_tests=run_tests, run_type_check=False,
                     )
 
                     if not result.validation.is_valid():
@@ -151,7 +150,7 @@ class CoderAgent:
         self.logger.info(
             f"Execution complete: {result.status} - "
             f"{result.tasks_completed}/{result.total_tasks} tasks completed "
-            f"in {result.total_duration_seconds:.2f}s"
+            f"in {result.total_duration_seconds:.2f}s",
         )
 
         return result
@@ -165,13 +164,13 @@ class CoderAgent:
         return ExecutionPlan.from_json_file(str(plan_path))
 
     def validate_plan(self, plan: ExecutionPlan) -> dict[str, bool]:
-        """
-        Validate ExecutionPlan before execution.
+        """Validate ExecutionPlan before execution.
 
         Args:
             plan: ExecutionPlan to validate
 
         Returns:
             Validation results
+
         """
         return self.resolver.validate_dependencies(plan)

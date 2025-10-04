@@ -13,12 +13,12 @@ from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
 
 __all__ = [
     "BaseSolver",
-    "SolverConfig",
-    "SolverResult",
-    "SolverFactory",
-    "RuleBasedEngine",
-    "MILPSolver",
-    "RollingHorizonMILPSolver",
-    "RollingHorizonConfig",
     "HybridSolver",
+    "MILPSolver",
+    "RollingHorizonConfig",
+    "RollingHorizonMILPSolver",
+    "RuleBasedEngine",
+    "SolverConfig",
+    "SolverFactory",
+    "SolverResult",
 ]

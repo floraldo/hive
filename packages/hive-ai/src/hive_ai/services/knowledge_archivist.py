@@ -1,5 +1,4 @@
-"""
-Knowledge Archivist service for archiving agent experiences and web searches.
+"""Knowledge Archivist service for archiving agent experiences and web searches.
 
 Archives thinking sessions, web search results, and other agent experiences
 into the RAG vector store for future retrieval and context augmentation.
@@ -20,8 +19,7 @@ logger = get_logger(__name__)
 
 
 class KnowledgeArchivist:
-    """
-    Archives agent experiences into RAG for future retrieval.
+    """Archives agent experiences into RAG for future retrieval.
 
     Stores:
     - Thinking session logs
@@ -46,6 +44,7 @@ class KnowledgeArchivist:
             results=[...]
         )
         ```
+
     """
 
     def __init__(
@@ -60,6 +59,7 @@ class KnowledgeArchivist:
             vector_store: Vector store for RAG. If None, creates new one.
             embedding_generator: Embedding generator. If None, creates new one.
             storage_path: Path for vector store persistence. If None, uses default.
+
         """
         self.storage_path = storage_path or Path("data/knowledge_archive")
         self.storage_path.mkdir(parents=True, exist_ok=True)
@@ -90,8 +90,7 @@ class KnowledgeArchivist:
         final_solution: Any | None = None,
         success: bool = False,
     ) -> None:
-        """
-        Archive a complete thinking session to RAG.
+        """Archive a complete thinking session to RAG.
 
         Args:
             task_id: Unique task identifier.
@@ -100,6 +99,7 @@ class KnowledgeArchivist:
             web_searches: Optional list of web search results used.
             final_solution: Final solution if task was completed.
             success: Whether the task was completed successfully.
+
         """
         logger.info(f"Archiving thinking session for task {task_id}")
 
@@ -154,13 +154,13 @@ class KnowledgeArchivist:
         results: list[dict],
         task_id: str | None = None,
     ) -> None:
-        """
-        Archive web search results to RAG.
+        """Archive web search results to RAG.
 
         Args:
             query: The search query.
             results: List of search result dictionaries.
             task_id: Optional task ID for linking to thinking session.
+
         """
         logger.info(f"Archiving web search: '{query}' ({len(results)} results)")
 
@@ -179,8 +179,7 @@ class KnowledgeArchivist:
         query: str,
         results: list[dict],
     ) -> list[CodeChunk]:
-        """
-        Convert web search results to CodeChunks for archival.
+        """Convert web search results to CodeChunks for archival.
 
         Args:
             task_id: Task ID for linking.
@@ -189,6 +188,7 @@ class KnowledgeArchivist:
 
         Returns:
             List of CodeChunk objects ready for archival.
+
         """
         chunks: list[CodeChunk] = []
 
@@ -233,8 +233,7 @@ class KnowledgeArchivist:
         final_solution: Any | None,
         success: bool,
     ) -> str:
-        """
-        Format a thinking session into markdown for archival.
+        """Format a thinking session into markdown for archival.
 
         Args:
             task_id: Task identifier.
@@ -245,6 +244,7 @@ class KnowledgeArchivist:
 
         Returns:
             Formatted markdown string.
+
         """
         lines = [
             f"# Thinking Session: {task_id}",

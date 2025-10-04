@@ -1,5 +1,4 @@
-"""
-Simplified full codebase indexing script.
+"""Simplified full codebase indexing script.
 
 Demonstrates markdown chunking and full indexing without requiring
 full package installation.

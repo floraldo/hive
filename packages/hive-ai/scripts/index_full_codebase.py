@@ -1,5 +1,4 @@
-"""
-Full Hive codebase indexing with markdown architectural memory.
+"""Full Hive codebase indexing with markdown architectural memory.
 
 Indexes all Python and markdown files across packages/, apps/, scripts/
 for comprehensive RAG-powered code intelligence.

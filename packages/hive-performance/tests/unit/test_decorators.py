@@ -1,5 +1,4 @@
-"""
-Tests for decorator-based observability API.
+"""Tests for decorator-based observability API.
 
 Validates all decorators work correctly with sync/async functions,
 metrics collection, tracing, and error handling.

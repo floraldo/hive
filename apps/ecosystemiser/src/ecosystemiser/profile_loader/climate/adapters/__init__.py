@@ -14,9 +14,9 @@ from ecosystemiser.profile_loader.climate.adapters.pvgis import PVGISAdapter
 
 __all__ = [
     "BaseAdapter",
-    "NASAPowerAdapter",
-    "MeteostatAdapter",
-    "PVGISAdapter",
     # "ERA5Adapter",  # Disabled due to syntax errors
     "FileEPWAdapter",
+    "MeteostatAdapter",
+    "NASAPowerAdapter",
+    "PVGISAdapter",
 ]

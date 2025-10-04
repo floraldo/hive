@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Oracle Certification Mentor Integration for Golden Rules Validation.
+"""Oracle Certification Mentor Integration for Golden Rules Validation.
 
 Integrates the Oracle's Architect v2.0 certification capabilities with the existing
 Golden Rules validation system to provide intelligent mentorship and systematic
@@ -68,8 +67,7 @@ class PlatformCertificationStatus:
 
 
 class OracleCertificationMentor:
-    """
-    Oracle Certification Mentor - the evolved Oracle from Operation Bedrock.
+    """Oracle Certification Mentor - the evolved Oracle from Operation Bedrock.
 
     Provides intelligent, context-aware certification guidance based on:
     - Comprehensive Architect v2.0 knowledge base
@@ -123,11 +121,11 @@ class OracleCertificationMentor:
         }
 
     def assess_platform_certification(self) -> PlatformCertificationStatus:
-        """
-        Perform comprehensive Oracle certification assessment of the entire platform.
+        """Perform comprehensive Oracle certification assessment of the entire platform.
 
         Returns:
             PlatformCertificationStatus with detailed scoring and guidance
+
         """
         logger.info("Oracle performing comprehensive certification assessment...")
 
@@ -235,12 +233,11 @@ class OracleCertificationMentor:
         """Calculate severity based on violation count and impact score."""
         if violation_count >= 10 and impact_score >= 8.0:
             return "CRITICAL"
-        elif violation_count >= 5 or impact_score >= 7.0:
+        if violation_count >= 5 or impact_score >= 7.0:
             return "HIGH"
-        elif violation_count >= 2 or impact_score >= 5.0:
+        if violation_count >= 2 or impact_score >= 5.0:
             return "MEDIUM"
-        else:
-            return "LOW"
+        return "LOW"
 
     def _estimate_effort(self, rule_name: str, violations: list[str]) -> str:
         """Oracle-based effort estimation using historical patterns."""
@@ -250,18 +247,16 @@ class OracleCertificationMentor:
             base_hours = 2
             total_hours = base_hours + (violation_count * 0.3)
             return f"{int(total_hours)}-{int(total_hours * 1.5)} hours"
-        elif "Logging" in rule_name:
+        if "Logging" in rule_name:
             total_minutes = 30 + (violation_count * 6)
             if total_minutes < 60:
                 return f"{int(total_minutes)} minutes"
-            else:
-                return f"{int(total_minutes / 60)} hour{'s' if total_minutes >= 120 else ''}"
-        elif "Global State" in rule_name:
+            return f"{int(total_minutes / 60)} hour{'s' if total_minutes >= 120 else ''}"
+        if "Global State" in rule_name:
             days = 1 + (violation_count * 0.3)
             return f"{int(days)}-{int(days * 1.5)} days"
-        else:
-            hours = 1 + (violation_count * 0.5)
-            return f"{int(hours)}-{int(hours * 1.5)} hours"
+        hours = 1 + (violation_count * 0.5)
+        return f"{int(hours)}-{int(hours * 1.5)} hours"
 
     def _generate_oracle_guidance(self, rule_name: str, violations: list[str]) -> str:
         """Generate Oracle-specific guidance based on rule type and violations."""
@@ -400,12 +395,11 @@ def main():
     if status.overall_platform_score >= 80:
         logger.info("Platform meets certification standards")
         return 0
-    elif status.overall_platform_score >= 70:
+    if status.overall_platform_score >= 70:
         logger.warning("Platform needs improvement for certification")
         return 1
-    else:
-        logger.error("Platform requires critical attention for certification")
-        return 2
+    logger.error("Platform requires critical attention for certification")
+    return 2
 
 
 if __name__ == "__main__":

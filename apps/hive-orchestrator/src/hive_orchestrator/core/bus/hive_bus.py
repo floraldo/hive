@@ -1,5 +1,4 @@
-"""
-Hive-specific event bus implementation.
+"""Hive-specific event bus implementation.
 
 Extends the generic messaging toolkit with Hive orchestration capabilities:
 - Database-backed persistence
@@ -24,14 +23,12 @@ from .hive_events import AgentEvent, TaskEvent, WorkflowEvent
 class EventPublishError(BaseError):
     """Error raised when event publishing fails."""
 
-    pass
 
 logger = get_logger(__name__)
 
 
 class HiveEventBus(BaseBus):
-    """
-    Hive-specific event bus implementation.
+    """Hive-specific event bus implementation.
 
     Extends BaseBus with Hive orchestration features:
     - Persistent storage in Hive database
@@ -45,6 +42,7 @@ class HiveEventBus(BaseBus):
 
         Args:
             config: Event bus configuration dictionary
+
         """
         super().__init__()
         self.config = config if config is not None else {}
@@ -103,8 +101,7 @@ class HiveEventBus(BaseBus):
         event: BaseEvent | dict[str, Any],
         correlation_id: str | None = None,
     ) -> str:
-        """
-        Publish a Hive event with orchestration context.
+        """Publish a Hive event with orchestration context.
 
         Args:
             event: Hive event or event data dict,
@@ -112,6 +109,7 @@ class HiveEventBus(BaseBus):
 
         Returns:
             Event ID of the published event,
+
         """
         try:
             # Convert dict to Event if needed,
@@ -173,12 +171,11 @@ class HiveEventBus(BaseBus):
 
         if event_type.startswith("task."):
             return TaskEvent.from_dict(data)
-        elif event_type.startswith("agent."):
+        if event_type.startswith("agent."):
             return AgentEvent.from_dict(data)
-        elif event_type.startswith("workflow."):
+        if event_type.startswith("workflow."):
             return WorkflowEvent.from_dict(data)
-        else:
-            return BaseEvent.from_dict(data)
+        return BaseEvent.from_dict(data)
 
     def get_workflow_history(self, workflow_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for a workflow (coordination trace)"""

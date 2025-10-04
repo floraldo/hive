@@ -1,5 +1,4 @@
-"""
-Hive Guardian Agent - AI-powered code review automation and platform intelligence.
+"""Hive Guardian Agent - AI-powered code review automation and platform intelligence.
 
 This package provides intelligent code review capabilities and strategic
 platform intelligence leveraging the Hive platform's AI infrastructure.
@@ -18,12 +17,12 @@ from guardian_agent.review.engine import ReviewEngine
 __version__ = "0.2.0"  # Upgraded to reflect Oracle capabilities,
 
 __all__ = [
+    "GenesisAgent",
+    "GenesisConfig",
     "GuardianConfig",
+    "OracleConfig",
+    "OracleService",
     "ReviewEngine",
     "ReviewResult",
     "Violation",
-    "OracleService",
-    "OracleConfig",
-    "GenesisAgent",
-    "GenesisConfig",
 ]

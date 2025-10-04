@@ -1,5 +1,4 @@
-"""
-Requirement parsing models.
+"""Requirement parsing models.
 
 Structured representation of natural language requirements
 after NLP extraction.
@@ -22,8 +21,7 @@ class ServiceType(str, Enum):
 
 
 class ParsedRequirement(BaseModel):
-    """
-    Structured representation of a natural language requirement.
+    """Structured representation of a natural language requirement.
 
     Example input: "Create a 'feedback-service' API that stores user feedback"
     Parsed output:

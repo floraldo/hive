@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-"""
-Project Colossus - Dress Rehearsal E2E Test
+"""Project Colossus - Dress Rehearsal E2E Test
 
 This is the final validation: a "live-fire exercise" of the complete autonomous
 development pipeline with REAL filesystem generation.
@@ -38,16 +37,15 @@ logger = get_logger(__name__)
 
 
 class DressRehearsalTest:
-    """
-    Complete E2E test of Project Colossus autonomous development pipeline.
+    """Complete E2E test of Project Colossus autonomous development pipeline.
     """
 
     def __init__(self, output_dir: Path):
-        """
-        Initialize dress rehearsal test.
+        """Initialize dress rehearsal test.
 
         Args:
             output_dir: Directory for test output (will be cleaned)
+
         """
         self.output_dir = output_dir
         self.architect = ArchitectAgent()
@@ -74,11 +72,11 @@ class DressRehearsalTest:
         logger.info(f"Test output directory: {self.output_dir}")
 
     def test_architect_agent(self) -> bool:
-        """
-        Test 1: ArchitectAgent generates ExecutionPlan from natural language.
+        """Test 1: ArchitectAgent generates ExecutionPlan from natural language.
 
         Returns:
             True if plan generated successfully
+
         """
         logger.info("\n" + "=" * 80)
         logger.info("TEST 1: ARCHITECT AGENT - Natural Language -> ExecutionPlan")
@@ -117,11 +115,11 @@ class DressRehearsalTest:
             return False
 
     def test_coder_agent(self) -> bool:
-        """
-        Test 2: CoderAgent generates service code from ExecutionPlan.
+        """Test 2: CoderAgent generates service code from ExecutionPlan.
 
         Returns:
             True if code generated successfully
+
         """
         logger.info("\n" + "=" * 80)
         logger.info("TEST 2: CODER AGENT - ExecutionPlan -> Service Code")
@@ -165,13 +163,13 @@ class DressRehearsalTest:
             return False
 
     def inject_bug(self) -> bool:
-        """
-        Test 3: Inject intentional bug (missing import).
+        """Test 3: Inject intentional bug (missing import).
 
         This simulates a real-world scenario where generated code has errors.
 
         Returns:
             True if bug injected successfully
+
         """
         logger.info("\n" + "=" * 80)
         logger.info("TEST 3: BUG INJECTION - Introduce Missing Import Error")
@@ -231,11 +229,11 @@ class DressRehearsalTest:
             return False
 
     def test_validation_fails(self) -> bool:
-        """
-        Test 4: Validate that ruff detects the injected bug.
+        """Test 4: Validate that ruff detects the injected bug.
 
         Returns:
             True if validation correctly fails
+
         """
         logger.info("\n" + "=" * 80)
         logger.info("TEST 4: VALIDATION - Detect Injected Bug")
@@ -249,7 +247,7 @@ class DressRehearsalTest:
             # Run ruff check
             result = subprocess.run(
                 ["ruff", "check", str(self.service_dir)],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
             )
@@ -271,9 +269,8 @@ class DressRehearsalTest:
             if "F821" in output and "os" in output:
                 logger.info("Bug detected correctly: F821 undefined name 'os'")
                 return True
-            else:
-                logger.warning("Bug detected but error may be different than expected")
-                return True  # Still pass if validation failed
+            logger.warning("Bug detected but error may be different than expected")
+            return True  # Still pass if validation failed
 
         except subprocess.TimeoutExpired:
             logger.error("Ruff check timed out")
@@ -286,13 +283,13 @@ class DressRehearsalTest:
             return False
 
     def test_guardian_auto_fix(self) -> bool:
-        """
-        Test 5: GuardianAgent autonomously fixes the bug.
+        """Test 5: GuardianAgent autonomously fixes the bug.
 
         This is the core test: Can the Guardian detect, fix, and validate?
 
         Returns:
             True if auto-fix succeeds
+
         """
         logger.info("\n" + "=" * 80)
         logger.info("TEST 5: GUARDIAN AGENT - Autonomous Fix-Retry Loop")
@@ -316,7 +313,7 @@ class DressRehearsalTest:
             # Get validation errors
             result = subprocess.run(
                 ["ruff", "check", str(self.service_dir)],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
             )
@@ -373,7 +370,7 @@ class DressRehearsalTest:
             logger.info("\nRe-running validation...")
             result = subprocess.run(
                 ["ruff", "check", str(self.service_dir)],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
             )
@@ -382,21 +379,20 @@ class DressRehearsalTest:
                 logger.info("Validation PASSED after auto-fix!")
                 retry_manager.complete_session(session, "fixed")
                 return True
-            else:
-                logger.warning("Validation still failing after auto-fix")
-                logger.info("Remaining errors:")
-                for line in result.stdout.split("\n")[:5]:
-                    if line.strip():
-                        logger.info(f"  {line}")
+            logger.warning("Validation still failing after auto-fix")
+            logger.info("Remaining errors:")
+            for line in result.stdout.split("\n")[:5]:
+                if line.strip():
+                    logger.info(f"  {line}")
 
-                # Check if we should escalate
-                decision = escalation_logic.should_escalate(session)
-                if decision.should_escalate:
-                    logger.info(f"\nEscalation triggered: {decision.reason}")
-                    logger.info(f"Recommendation: {decision.recommendation}")
+            # Check if we should escalate
+            decision = escalation_logic.should_escalate(session)
+            if decision.should_escalate:
+                logger.info(f"\nEscalation triggered: {decision.reason}")
+                logger.info(f"Recommendation: {decision.recommendation}")
 
-                retry_manager.complete_session(session, "escalated")
-                return False
+            retry_manager.complete_session(session, "escalated")
+            return False
 
         except Exception as e:
             logger.error(f"Guardian auto-fix failed: {e}")
@@ -406,11 +402,11 @@ class DressRehearsalTest:
             return False
 
     def test_final_validation(self) -> bool:
-        """
-        Test 6: Final validation that service is clean.
+        """Test 6: Final validation that service is clean.
 
         Returns:
             True if final validation passes
+
         """
         logger.info("\n" + "=" * 80)
         logger.info("TEST 6: FINAL VALIDATION - Service Quality Check")
@@ -424,7 +420,7 @@ class DressRehearsalTest:
             # Run ruff check
             result = subprocess.run(
                 ["ruff", "check", str(self.service_dir)],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
             )
@@ -442,7 +438,7 @@ class DressRehearsalTest:
             for py_file in self.service_dir.rglob("*.py"):
                 result = subprocess.run(
                     ["python", "-m", "py_compile", str(py_file)],
-                    capture_output=True,
+                    check=False, capture_output=True,
                     text=True,
                     timeout=10,
                 )
@@ -452,8 +448,7 @@ class DressRehearsalTest:
             if syntax_errors:
                 logger.error(f"Syntax errors in: {', '.join(syntax_errors)}")
                 return False
-            else:
-                logger.info("Syntax validation: PASS")
+            logger.info("Syntax validation: PASS")
 
             return ruff_passed
 
@@ -462,11 +457,11 @@ class DressRehearsalTest:
             return False
 
     def run(self) -> bool:
-        """
-        Run complete dress rehearsal test.
+        """Run complete dress rehearsal test.
 
         Returns:
             True if all tests pass
+
         """
         self.setup()
 
@@ -513,10 +508,9 @@ class DressRehearsalTest:
             logger.info("\nDRESS REHEARSAL: SUCCESS")
             logger.info("Complete autonomous pipeline validated!")
             return True
-        else:
-            logger.info("\nDRESS REHEARSAL: PARTIAL SUCCESS")
-            logger.info(f"{total - passed_count} tests failed")
-            return False
+        logger.info("\nDRESS REHEARSAL: PARTIAL SUCCESS")
+        logger.info(f"{total - passed_count} tests failed")
+        return False
 
 
 def main():

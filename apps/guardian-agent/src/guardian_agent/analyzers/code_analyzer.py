@@ -12,8 +12,7 @@ logger = get_logger(__name__)
 
 
 class CodeAnalyzer:
-    """
-    Analyzes code using Python's AST for deep understanding.
+    """Analyzes code using Python's AST for deep understanding.
 
     Detects code smells, complexity issues, and structural problems.
     """
@@ -26,8 +25,7 @@ class CodeAnalyzer:
         self.max_nesting_depth = 4
 
     async def analyze(self, file_path: Path, content: str) -> AnalysisResult:
-        """
-        Analyze code content using AST.
+        """Analyze code content using AST.
 
         Args:
             file_path: Path to the file
@@ -35,6 +33,7 @@ class CodeAnalyzer:
 
         Returns:
             AnalysisResult with findings
+
         """
         start_time = (time.time(),)
         violations = ([],)

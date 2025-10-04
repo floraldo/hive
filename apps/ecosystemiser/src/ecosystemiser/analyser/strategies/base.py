@@ -26,6 +26,7 @@ class BaseAnalysis(ABC):
 
         Args:
             name: Optional name for the analysis strategy,
+
         """
         self.name = name or self.__class__.__name__
         self.results_data = None
@@ -45,8 +46,8 @@ class BaseAnalysis(ABC):
 
         Returns:
             Dictionary containing computed analysis results,
+
         """
-        pass
 
     def validate_input(self, results_data: dict[str, Any]) -> bool:
         """Validate that input data contains required fields.,
@@ -61,6 +62,7 @@ class BaseAnalysis(ABC):
 
         Raises:
             ValueError: If validation fails,
+
         """
         if not results_data:
             raise ValueError("Results data cannot be empty")
@@ -77,6 +79,7 @@ class BaseAnalysis(ABC):
 
         Returns:
             Preprocessed data ready for analysis,
+
         """
         return results_data
 
@@ -91,6 +94,7 @@ class BaseAnalysis(ABC):
 
         Returns:
             Postprocessed results,
+
         """
         # Round all numeric values to reasonable precision
         processed = {}
@@ -117,6 +121,7 @@ class BaseAnalysis(ABC):
 
         Returns:
             Dictionary containing processed analysis results,
+
         """
         logger.info(f"Executing {self.name} analysis")
 

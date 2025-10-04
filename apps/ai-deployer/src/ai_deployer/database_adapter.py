@@ -1,5 +1,4 @@
-"""
-Database adapter for deployment agent interactions
+"""Database adapter for deployment agent interactions
 """
 
 from __future__ import annotations
@@ -19,25 +18,22 @@ logger = get_logger(__name__)
 class DeploymentDatabaseError(BaseError):
     """Database-related deployment errors"""
 
-    pass
 
 
 class DatabaseAdapter:
-    """
-    Adapter for database operations specific to deployment agent
+    """Adapter for database operations specific to deployment agent
     """
 
     def __init__(self) -> None:
         """Initialize database adapter"""
         # Database connections are now managed per-operation via get_sqlite_connection()
-        pass
 
     def get_deployment_pending_tasks(self) -> list[dict[str, Any]]:
-        """
-        Get all tasks with deployment_pending status
+        """Get all tasks with deployment_pending status
 
         Returns:
             List of deployment task dictionaries
+
         """
         try:
             with get_sqlite_connection() as conn:
@@ -53,7 +49,7 @@ class DatabaseAdapter:
                     FROM tasks
                     WHERE status = 'deployment_pending'
                     ORDER BY priority DESC, created_at ASC
-                """
+                """,
                 )
 
                 rows = cursor.fetchall()
@@ -84,8 +80,7 @@ class DatabaseAdapter:
             raise DeploymentDatabaseError(f"Failed to get deployment tasks: {e}") from e
 
     def update_task_status(self, task_id: str, status: str, metadata: dict[str, Any] | None = None) -> bool:
-        """
-        Update task status and optionally metadata
+        """Update task status and optionally metadata
 
         Args:
             task_id: Task identifier
@@ -94,6 +89,7 @@ class DatabaseAdapter:
 
         Returns:
             True if update successful
+
         """
         try:
             with get_sqlite_connection() as conn:
@@ -147,14 +143,14 @@ class DatabaseAdapter:
             raise DeploymentDatabaseError(f"Failed to update task status: {e}") from e
 
     def get_task_by_id(self, task_id: str) -> dict[str, Any] | None:
-        """
-        Get task by ID
+        """Get task by ID
 
         Args:
             task_id: Task identifier
 
         Returns:
             Task dictionary or None if not found
+
         """
         try:
             with get_sqlite_connection() as conn:
@@ -195,8 +191,7 @@ class DatabaseAdapter:
             raise DeploymentDatabaseError(f"Failed to get task: {e}") from e
 
     def record_deployment_event(self, task_id: str, event_type: str, details: dict[str, Any]) -> bool:
-        """
-        Record deployment event for audit trail
+        """Record deployment event for audit trail
 
         Args:
             task_id: Task identifier
@@ -205,6 +200,7 @@ class DatabaseAdapter:
 
         Returns:
             True if recording successful
+
         """
         try:
             with get_sqlite_connection() as conn:
@@ -221,7 +217,7 @@ class DatabaseAdapter:
                         timestamp TEXT NOT NULL,
                         FOREIGN KEY (task_id) REFERENCES tasks (id)
                     )
-                """
+                """,
                 )
 
                 # Insert event
@@ -243,14 +239,14 @@ class DatabaseAdapter:
             raise DeploymentDatabaseError(f"Failed to record event: {e}") from e
 
     def get_deployment_history(self, task_id: str) -> list[dict[str, Any]]:
-        """
-        Get deployment history for a task
+        """Get deployment history for a task
 
         Args:
             task_id: Task identifier
 
         Returns:
             List of deployment events
+
         """
         try:
             with get_sqlite_connection() as conn:
@@ -281,11 +277,11 @@ class DatabaseAdapter:
             raise DeploymentDatabaseError(f"Failed to get deployment history: {e}") from e
 
     def get_deployment_stats(self) -> dict[str, Any]:
-        """
-        Get deployment statistics
+        """Get deployment statistics
 
         Returns:
             Dictionary with deployment statistics
+
         """
         try:
             with get_sqlite_connection() as conn:
@@ -298,7 +294,7 @@ class DatabaseAdapter:
                     FROM tasks
                     WHERE status IN ('deployed', 'deployment_failed', 'deploying', 'deployment_pending')
                     GROUP BY status
-                    """
+                    """,
                 )
 
                 status_counts = dict(cursor.fetchall())
@@ -310,7 +306,7 @@ class DatabaseAdapter:
                     FROM tasks
                     WHERE status = 'deployed'
                     AND updated_at > datetime('now', '-24 hours')
-                """
+                """,
                 )
 
                 recent_deployments = cursor.fetchone()[0]
@@ -326,14 +322,14 @@ class DatabaseAdapter:
             raise DeploymentDatabaseError(f"Failed to get deployment stats: {e}") from e
 
     def _parse_json_field(self, field_value: str | None) -> dict[str, Any]:
-        """
-        Safely parse JSON field value
+        """Safely parse JSON field value
 
         Args:
             field_value: Raw field value from database
 
         Returns:
             Parsed dictionary or empty dict if invalid
+
         """
         if not field_value:
             return {}

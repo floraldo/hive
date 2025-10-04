@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Database Index Optimization Script
+"""Database Index Optimization Script
 
 Adds optimized indexes to improve query performance by 25-40%.
 Safe to run multiple times - checks for existing indexes.
@@ -18,7 +17,6 @@ import hive_core_db
 
 def add_performance_indexes():
     """Add optimized indexes for better query performance."""
-
     conn = hive_core_db.get_connection()
     cursor = conn.cursor()
 
@@ -110,7 +108,6 @@ def add_performance_indexes():
 
 def check_index_usage():
     """Check which indexes are being used by queries."""
-
     conn = hive_core_db.get_connection()
     cursor = conn.cursor()
 

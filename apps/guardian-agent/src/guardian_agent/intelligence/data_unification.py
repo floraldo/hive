@@ -1,5 +1,4 @@
-"""
-Data Unification Layer - Single Source of Truth for Platform Intelligence
+"""Data Unification Layer - Single Source of Truth for Platform Intelligence
 
 Centralized storage and ingestion system for all operational data:
 - Production Shield alerts and metrics
@@ -114,8 +113,7 @@ class DataSource:
 
 
 class MetricsWarehouse:
-    """
-    Centralized storage for all platform operational metrics.
+    """Centralized storage for all platform operational metrics.
 
     Provides time-series storage with efficient querying,
     data retention policies, and analytics capabilities.
@@ -245,7 +243,6 @@ class MetricsWarehouse:
         limit: int = 1000,
     ) -> list[UnifiedMetric]:
         """Query metrics with flexible filtering."""
-
         # Build query conditions
         conditions = [],
         params = []
@@ -332,8 +329,7 @@ class MetricsWarehouse:
 
 
 class DataUnificationLayer:
-    """
-    Orchestrates data collection from all platform sources.
+    """Orchestrates data collection from all platform sources.
 
     Manages data pipelines, transformations, and ingestion
     into the unified metrics warehouse.
@@ -350,7 +346,6 @@ class DataUnificationLayer:
 
     def _register_default_sources(self) -> None:
         """Register default platform data sources."""
-
         # Production Shield monitoring
         self.register_source(
             DataSource(
@@ -665,51 +660,51 @@ class DataUnificationLayer:
                 ),
             ]
 
-        elif source.location == "internal://architectural_scan":
+        if source.location == "internal://architectural_scan":
             # Comprehensive architectural validation scan
             return await self._run_architectural_validation_async(source.name)
 
-        elif source.location == "internal://compliance_check":
+        if source.location == "internal://compliance_check":
             # Quick compliance check
             return await self._run_compliance_check_async(source.name)
 
-        elif source.location == "internal://user_analytics":
+        if source.location == "internal://user_analytics":
             # User engagement and behavior analytics
             return await self._collect_user_analytics_async(source.name)
 
-        elif source.location == "internal://feature_usage":
+        if source.location == "internal://feature_usage":
             # Feature adoption and usage metrics
             return await self._collect_feature_metrics_async(source.name)
 
-        elif source.location == "internal://business_kpis":
+        if source.location == "internal://business_kpis":
             # Business KPIs and revenue metrics
             return await self._collect_business_metrics_async(source.name)
 
-        elif source.location == "internal://customer_metrics":
+        if source.location == "internal://customer_metrics":
             # Customer satisfaction and support metrics
             return await self._collect_customer_metrics_async(source.name)
 
-        elif source.location == "internal://certification_audit":
+        if source.location == "internal://certification_audit":
             # Comprehensive certification assessment
             return await self._run_certification_audit_async(source.name)
 
-        elif source.location == "internal://code_quality":
+        if source.location == "internal://code_quality":
             # Code quality and security scanning
             return await self._collect_code_quality_metrics_async(source.name)
 
-        elif source.location == "internal://deployment_check":
+        if source.location == "internal://deployment_check":
             # Deployment readiness and CI/CD pipeline health
             return await self._collect_deployment_metrics_async(source.name)
 
-        elif source.location == "internal://toolkit_usage":
+        if source.location == "internal://toolkit_usage":
             # Toolkit utilization and platform integration
             return await self._collect_toolkit_metrics_async(source.name)
 
-        elif source.location == "internal://prophecy_engine":
+        if source.location == "internal://prophecy_engine":
             # Architectural prophecy generation and tracking
             return await self._collect_prophecy_metrics_async(source.name)
 
-        elif source.location == "internal://prophecy_validation":
+        if source.location == "internal://prophecy_validation":
             # Prophecy accuracy validation (retrospective analysis)
             return await self._collect_prophecy_accuracy_async(source.name)
 
@@ -1193,27 +1188,25 @@ class DataUnificationLayer:
 
         if any(high_rule in rule_name for high_rule in high_severity_rules):
             return "high"
-        elif any(med_rule in rule_name for med_rule in medium_severity_rules):
+        if any(med_rule in rule_name for med_rule in medium_severity_rules):
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _categorize_rule(self, rule_name: str) -> str:
         """Categorize rule by architectural concern."""
         if "Test" in rule_name:
             return "testing"
-        elif "State" in rule_name or "Global" in rule_name:
+        if "State" in rule_name or "Global" in rule_name:
             return "architecture"
-        elif "Dependency" in rule_name:
+        if "Dependency" in rule_name:
             return "dependencies"
-        elif "Error" in rule_name:
+        if "Error" in rule_name:
             return "reliability"
-        elif "Interface" in rule_name:
+        if "Interface" in rule_name:
             return "contracts"
-        elif "Package" in rule_name or "App" in rule_name:
+        if "Package" in rule_name or "App" in rule_name:
             return "organization"
-        else:
-            return "standards"
+        return "standards"
 
     # Transform functions for different data sources
     def transform_production_shield(self, metrics: list[UnifiedMetric], source: DataSource) -> list[UnifiedMetric]:
@@ -1527,12 +1520,11 @@ class DataUnificationLayer:
         """Determine certification level based on score."""
         if score >= 90:
             return "Senior Hive Architect"
-        elif score >= 80:
+        if score >= 80:
             return "Certified Hive Architect"
-        elif score >= 70:
+        if score >= 70:
             return "Associate Hive Architect"
-        else:
-            return "Non-Certified"
+        return "Non-Certified"
 
     def _simulate_criteria_scores(self, component_name: str, overall_score: float) -> dict[str, float]:
         """Simulate individual criteria scores based on component characteristics."""
@@ -1683,12 +1675,11 @@ class DataUnificationLayer:
         """Determine quality level based on score."""
         if score >= 90:
             return "excellent"
-        elif score >= 80:
+        if score >= 80:
             return "good"
-        elif score >= 70:
+        if score >= 70:
             return "acceptable"
-        else:
-            return "needs_improvement"
+        return "needs_improvement"
 
     async def _collect_deployment_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect deployment readiness and CI/CD pipeline health metrics."""
@@ -1787,12 +1778,11 @@ class DataUnificationLayer:
         """Determine deployment readiness level."""
         if score >= 90:
             return "production_ready"
-        elif score >= 80:
+        if score >= 80:
             return "staging_ready"
-        elif score >= 70:
+        if score >= 70:
             return "development_ready"
-        else:
-            return "not_ready"
+        return "not_ready"
 
     async def _collect_toolkit_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect toolkit utilization and platform integration metrics."""
@@ -1896,23 +1886,21 @@ class DataUnificationLayer:
         """Determine toolkit utilization level."""
         if score >= 90:
             return "exemplary"
-        elif score >= 80:
+        if score >= 80:
             return "proficient"
-        elif score >= 70:
+        if score >= 70:
             return "adequate"
-        else:
-            return "insufficient"
+        return "insufficient"
 
     def _get_integration_level(self, score: float) -> str:
         """Determine platform integration level."""
         if score >= 90:
             return "fully_integrated"
-        elif score >= 80:
+        if score >= 80:
             return "well_integrated"
-        elif score >= 70:
+        if score >= 70:
             return "partially_integrated"
-        else:
-            return "poorly_integrated"
+        return "poorly_integrated"
 
     def _calculate_integration_score(self, data: dict[str, Any]) -> float:
         """Calculate platform integration score based on usage patterns."""
@@ -1971,12 +1959,11 @@ class DataUnificationLayer:
         """Calculate what's needed to reach next certification level."""
         if score < 70:
             return f"Need {70 - score:.1f} points for Associate level"
-        elif score < 80:
+        if score < 80:
             return f"Need {80 - score:.1f} points for Certified level"
-        elif score < 90:
+        if score < 90:
             return f"Need {90 - score:.1f} points for Senior level"
-        else:
-            return "Already at Senior level"
+        return "Already at Senior level"
 
     def transform_code_quality_metrics(self, metrics: list[UnifiedMetric], source: DataSource) -> list[UnifiedMetric]:
         """Transform and enrich code quality metrics."""
@@ -2150,14 +2137,13 @@ class DataUnificationLayer:
         """Categorize design complexity based on score."""
         if score >= 10:
             return "very_high"
-        elif score >= 7:
+        if score >= 7:
             return "high"
-        elif score >= 4:
+        if score >= 4:
             return "medium"
-        elif score >= 2:
+        if score >= 2:
             return "low"
-        else:
-            return "very_low"
+        return "very_low"
 
     def _assess_extraction_quality(self, content: str) -> str:
         """Assess how well we can extract intent from the document."""
@@ -2180,12 +2166,11 @@ class DataUnificationLayer:
 
         if quality_score >= 15:
             return "excellent"
-        elif quality_score >= 10:
+        if quality_score >= 10:
             return "good"
-        elif quality_score >= 5:
+        if quality_score >= 5:
             return "fair"
-        else:
-            return "poor"
+        return "poor"
 
     async def _collect_prophecy_metrics_async(self, source_name: str) -> list[UnifiedMetric]:
         """Collect architectural prophecy generation and tracking metrics."""
@@ -2419,26 +2404,24 @@ class DataUnificationLayer:
         """Generate Oracle recommendation based on prophecy characteristics."""
         if prophecy_type == "performance_bottleneck":
             return "Consider implementing caching layer and database optimization early"
-        elif prophecy_type == "cost_overrun":
+        if prophecy_type == "cost_overrun":
             return "Implement cost monitoring and resource optimization from day one"
-        elif prophecy_type == "scalability_issue":
+        if prophecy_type == "scalability_issue":
             return "Design for horizontal scaling and implement load testing"
-        elif prophecy_type == "compliance_violation":
+        if prophecy_type == "compliance_violation":
             return "Ensure Golden Rules compliance before first commit"
-        elif prophecy_type == "security_vulnerability":
+        if prophecy_type == "security_vulnerability":
             return "Implement security best practices and regular audits"
-        else:
-            return f"Monitor {prophecy_type} closely and implement preventive measures"
+        return f"Monitor {prophecy_type} closely and implement preventive measures"
 
     def _generate_learning_action(self, accuracy: float) -> str:
         """Generate learning action based on prophecy accuracy."""
         if accuracy >= 0.9:
             return "Reinforce successful prediction patterns"
-        elif accuracy >= 0.7:
+        if accuracy >= 0.7:
             return "Minor adjustments to prediction model"
-        elif accuracy >= 0.5:
+        if accuracy >= 0.5:
             return "Moderate refinement of prediction algorithms"
-        elif accuracy > 0.0:
+        if accuracy > 0.0:
             return "Significant model improvements needed"
-        else:
-            return "Investigate false positive causes and adjust thresholds"
+        return "Investigate false positive causes and adjust thresholds"

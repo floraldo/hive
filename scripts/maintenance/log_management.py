@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Log Management Utility for Hive Platform V4.4
+"""Log Management Utility for Hive Platform V4.4
 
 Organizes scattered log files into a clean, structured hierarchy and provides
 cleanup capabilities for log file maintenance.
@@ -55,9 +54,9 @@ class LogOrganizer:
 
         logger.info("Scanning for log files...")
 
-        for log_file in self.hive_root.rglob("*.log"):  # noqa: B007
+        for log_file in self.hive_root.rglob("*.log"):
             # Skip excluded patterns
-            if any(re.search(pattern, str(log_file)) for pattern in exclude_patterns):  # noqa: B007
+            if any(re.search(pattern, str(log_file)) for pattern in exclude_patterns):
                 continue
 
             try:
@@ -99,7 +98,7 @@ class LogOrganizer:
             component = "ecosystemiser"
         elif "dashboard" in name:
             component = "dashboard"
-        elif any(app in path_str for app in ["ai-reviewer", "ai-planner"]):  # noqa: B007
+        elif any(app in path_str for app in ["ai-reviewer", "ai-planner"]):
             component = "apps"
         elif "test" in path_str:
             component = "tests"
@@ -113,7 +112,7 @@ class LogOrganizer:
             category = "stdout"
         elif "archive" in path_str:
             category = "archive"
-        elif any(test_indicator in path_str for test_indicator in ["test", "benchmark"]):  # noqa: B007
+        elif any(test_indicator in path_str for test_indicator in ["test", "benchmark"]):
             category = "tests"
         else:
             category = "application"
@@ -129,12 +128,12 @@ class LogOrganizer:
 
         # Create directories
         if not dry_run:
-            for dir_path in self.directories.values():  # noqa: B007
+            for dir_path in self.directories.values():
                 dir_path.mkdir(parents=True, exist_ok=True)
 
         logger.info(f"Organizing {len(log_files)} log files (dry_run={dry_run})")
 
-        for log_file in log_files:  # noqa: B007
+        for log_file in log_files:
             try:
                 target_path = self._get_target_path(log_file)
 
@@ -159,7 +158,6 @@ class LogOrganizer:
 
     def _get_target_path(self, log_file: LogFileInfo) -> Path:
         """Determine target path for a log file"""
-
         # Archive old files
         if log_file.modified < datetime.now() - timedelta(days=7):
             date_str = log_file.modified.strftime("%Y%m%d")
@@ -168,14 +166,13 @@ class LogOrganizer:
         # Current files go to category-based structure
         if log_file.category == "tests":
             return self.directories["tests"] / log_file.path.name
-        elif log_file.component == "apps":
+        if log_file.component == "apps":
             return self.directories["apps"] / log_file.path.name
-        elif log_file.component in ["worker"]:
+        if log_file.component in ["worker"]:
             return self.directories["workers"] / log_file.path.name
-        elif log_file.component in ["queen", "reviewer", "planner", "orchestrator", "dashboard"]:
+        if log_file.component in ["queen", "reviewer", "planner", "orchestrator", "dashboard"]:
             return self.directories["components"] / f"{log_file.component}.log"
-        else:
-            return self.directories["current"] / log_file.path.name
+        return self.directories["current"] / log_file.path.name
 
     def cleanup_old_logs(self, days_old: int = 30, dry_run: bool = True) -> dict[str, int]:
         """Clean up log files older than specified days"""
@@ -185,7 +182,7 @@ class LogOrganizer:
 
         logger.info(f"Cleaning up logs older than {days_old} days (dry_run={dry_run})")
 
-        for log_file in self.scan_log_files():  # noqa: B007
+        for log_file in self.scan_log_files():
             if log_file.modified < cutoff_date:
                 try:
                     logger.info(
@@ -212,7 +209,7 @@ class LogOrganizer:
 
         # Group by name and component
         file_groups = {}
-        for log_file in log_files:  # noqa: B007
+        for log_file in log_files:
             key = (log_file.component, log_file.path.stem.split("-")[0])  # Base name without IDs
             if key not in file_groups:
                 file_groups[key] = []
@@ -257,7 +254,7 @@ class LogOrganizer:
         by_category = {}
         by_component = {}
 
-        for log_file in log_files:  # noqa: B007
+        for log_file in log_files:
             by_category[log_file.category] = by_category.get(log_file.category, 0) + 1
             by_component[log_file.component] = by_component.get(log_file.component, 0) + 1
 

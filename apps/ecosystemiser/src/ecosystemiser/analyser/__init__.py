@@ -12,4 +12,4 @@ the Strategy Pattern for extensible analysis capabilities.
 from ecosystemiser.analyser.factory import AnalyserFactory
 from ecosystemiser.analyser.service import AnalyserService
 
-__all__ = ["AnalyserService", "AnalyserFactory"]
+__all__ = ["AnalyserFactory", "AnalyserService"]

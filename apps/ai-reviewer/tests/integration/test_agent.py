@@ -1,5 +1,4 @@
-"""
-Tests for the AI Reviewer autonomous agent
+"""Tests for the AI Reviewer autonomous agent
 """
 from datetime import datetime
 from unittest.mock import MagicMock, Mock
@@ -21,7 +20,7 @@ def mock_review_engine():
     """Create a mock review engine"""
     engine = Mock(spec=ReviewEngine)
     metrics = QualityMetrics(code_quality=80, test_coverage=75, documentation=70, security=85, architecture=80)
-    engine.review_task.return_value = ReviewResult(task_id='test-123', decision=ReviewDecision.APPROVE, metrics=metrics, summary='Code meets quality standards', issues=[], suggestions=[], confidence=0.85)
+    engine.review_task.return_value = ReviewResult(task_id="test-123", decision=ReviewDecision.APPROVE, metrics=metrics, summary="Code meets quality standards", issues=[], suggestions=[], confidence=0.85)
     return engine
 
 @pytest.fixture
@@ -29,9 +28,9 @@ def mock_adapter():
     """Create a mock database adapter"""
     adapter = Mock(spec=DatabaseAdapter)
     adapter.get_pending_reviews.return_value = []
-    adapter.get_task_code_files.return_value = {'main.py': 'def test(): pass'}
-    adapter.get_test_results.return_value = {'passed': True}
-    adapter.get_task_transcript.return_value = 'Task completed successfully'
+    adapter.get_task_code_files.return_value = {"main.py": "def test(): pass"}
+    adapter.get_test_results.return_value = {"passed": True}
+    adapter.get_task_transcript.return_value = "Task completed successfully"
     adapter.update_task_status.return_value = True
     return adapter
 
@@ -54,7 +53,7 @@ class TestReviewAgent:
         assert agent.review_engine == mock_review_engine
         assert agent.polling_interval == 30
         assert not agent.running
-        assert agent.stats['tasks_reviewed'] == 0
+        assert agent.stats["tasks_reviewed"] == 0
 
     @pytest.mark.crust
     def test_test_mode(self, mock_db, mock_review_engine):
@@ -76,29 +75,29 @@ class TestReviewAgent:
     async def test_process_single_task_async(self, agent, mock_adapter):
         """Test processing a single task"""
         mock_task = Mock(spec=Task)
-        mock_task.id = 'task-001'
-        mock_task.description = 'Test task'
+        mock_task.id = "task-001"
+        mock_task.description = "Test task"
         mock_task.status = TaskStatus.REVIEW_PENDING
         mock_adapter.get_pending_reviews.return_value = [mock_task]
         await agent._process_review_queue()
         mock_adapter.get_pending_reviews.assert_called_once()
         agent.review_engine.review_task.assert_called_once()
         mock_adapter.update_task_status.assert_called_once()
-        assert agent.stats['tasks_reviewed'] == 1
-        assert agent.stats['approved'] == 1
+        assert agent.stats["tasks_reviewed"] == 1
+        assert agent.stats["approved"] == 1
 
     @pytest.mark.crust
     @pytest.mark.asyncio
     async def test_review_task_approve_async(self, agent, mock_adapter):
         """Test reviewing a task that gets approved"""
         mock_task = Mock(spec=Task)
-        mock_task.id = 'approve-001'
-        mock_task.description = 'Good code'
+        mock_task.id = "approve-001"
+        mock_task.description = "Good code"
         await agent._review_task(mock_task)
-        agent.review_engine.review_task.assert_called_once_with(task_id='approve-001', task_description='Good code', code_files={'main.py': 'def test(): pass'}, test_results={'passed': True}, transcript='Task completed successfully')
+        agent.review_engine.review_task.assert_called_once_with(task_id="approve-001", task_description="Good code", code_files={"main.py": "def test(): pass"}, test_results={"passed": True}, transcript="Task completed successfully")
         mock_adapter.update_task_status.assert_called_once()
         call_args = mock_adapter.update_task_status.call_args[0]
-        assert call_args[0] == 'approve-001'
+        assert call_args[0] == "approve-001"
         assert call_args[1] == TaskStatus.APPROVED
 
     @pytest.mark.crust
@@ -106,74 +105,74 @@ class TestReviewAgent:
     async def test_review_task_reject_async(self, agent, mock_adapter, mock_review_engine):
         """Test reviewing a task that gets rejected"""
         metrics = QualityMetrics(code_quality=40, test_coverage=30, documentation=20, security=50, architecture=40)
-        mock_review_engine.review_task.return_value = ReviewResult(task_id='reject-001', decision=ReviewDecision.REJECT, metrics=metrics, summary='Code quality too low', issues=['No tests', 'Security issues'], suggestions=['Add tests', 'Fix security'], confidence=0.9)
+        mock_review_engine.review_task.return_value = ReviewResult(task_id="reject-001", decision=ReviewDecision.REJECT, metrics=metrics, summary="Code quality too low", issues=["No tests", "Security issues"], suggestions=["Add tests", "Fix security"], confidence=0.9)
         mock_task = Mock(spec=Task)
-        mock_task.id = 'reject-001'
-        mock_task.description = 'Poor code'
+        mock_task.id = "reject-001"
+        mock_task.description = "Poor code"
         await agent._review_task(mock_task)
         mock_adapter.update_task_status.assert_called_once()
         call_args = mock_adapter.update_task_status.call_args[0]
         assert call_args[1] == TaskStatus.REJECTED
-        assert agent.stats['rejected'] == 1
+        assert agent.stats["rejected"] == 1
 
     @pytest.mark.crust
     @pytest.mark.asyncio
     async def test_review_task_no_code_files_async(self, agent, mock_adapter):
         """Test handling task with no code files"""
         mock_task = Mock(spec=Task)
-        mock_task.id = 'empty-001'
-        mock_task.description = 'Empty task'
+        mock_task.id = "empty-001"
+        mock_task.description = "Empty task"
         mock_adapter.get_task_code_files.return_value = {}
         await agent._review_task(mock_task)
         mock_adapter.update_task_status.assert_called_once()
         call_args = mock_adapter.update_task_status.call_args[0]
         assert call_args[1] == TaskStatus.ESCALATED
-        assert agent.stats['escalated'] == 1
+        assert agent.stats["escalated"] == 1
 
     @pytest.mark.crust
     @pytest.mark.asyncio
     async def test_review_task_error_handling_async(self, agent, mock_adapter, mock_review_engine):
         """Test error handling during review"""
         mock_task = Mock(spec=Task)
-        mock_task.id = 'error-001'
-        mock_task.description = 'Error task'
-        mock_review_engine.review_task.side_effect = Exception('Review failed')
+        mock_task.id = "error-001"
+        mock_task.description = "Error task"
+        mock_review_engine.review_task.side_effect = Exception("Review failed")
         await agent._review_task(mock_task)
         mock_adapter.update_task_status.assert_called()
         call_args = mock_adapter.update_task_status.call_args[0]
         assert call_args[1] == TaskStatus.ESCALATED
-        assert agent.stats['errors'] == 1
+        assert agent.stats["errors"] == 1
 
     @pytest.mark.crust
     def test_update_stats_for_decision(self, agent):
         """Test statistics update for different decisions"""
         agent._update_stats_for_decision(ReviewDecision.APPROVE)
-        assert agent.stats['approved'] == 1
+        assert agent.stats["approved"] == 1
         agent._update_stats_for_decision(ReviewDecision.REJECT)
-        assert agent.stats['rejected'] == 1
+        assert agent.stats["rejected"] == 1
         agent._update_stats_for_decision(ReviewDecision.REWORK)
-        assert agent.stats['rework'] == 1
+        assert agent.stats["rework"] == 1
         agent._update_stats_for_decision(ReviewDecision.ESCALATE)
-        assert agent.stats['escalated'] == 1
+        assert agent.stats["escalated"] == 1
 
     @pytest.mark.crust
     def test_percentage_calculation(self, agent):
         """Test percentage calculation for statistics"""
-        assert agent._pct('approved') == 0
-        agent.stats['tasks_reviewed'] = 10
-        agent.stats['approved'] = 7
-        assert agent._pct('approved') == 70
-        agent.stats['rejected'] = 2
-        assert agent._pct('rejected') == 20
+        assert agent._pct("approved") == 0
+        agent.stats["tasks_reviewed"] = 10
+        agent.stats["approved"] = 7
+        assert agent._pct("approved") == 70
+        agent.stats["rejected"] = 2
+        assert agent._pct("rejected") == 20
 
     @pytest.mark.crust
     @pytest.mark.asyncio
     async def test_shutdown_async(self, agent):
         """Test graceful shutdown"""
-        agent.stats['start_time'] = datetime.now()
-        agent.stats['tasks_reviewed'] = 5
-        agent.stats['approved'] = 3
-        agent.stats['rejected'] = 2
+        agent.stats["start_time"] = datetime.now()
+        agent.stats["tasks_reviewed"] = 5
+        agent.stats["approved"] = 3
+        agent.stats["rejected"] = 2
         await agent._shutdown()
         assert True
 
@@ -200,9 +199,9 @@ class TestDatabaseAdapter:
         mock_query.filter.return_value = mock_query
         mock_query.order_by.return_value = mock_query
         mock_query.limit.return_value = mock_query
-        mock_query.all.return_value = ['task1', 'task2']
+        mock_query.all.return_value = ["task1", "task2"]
         result = adapter.get_pending_reviews(limit=5)
-        assert result == ['task1', 'task2']
+        assert result == ["task1", "task2"]
         mock_query.limit.assert_called_with(5)
 
     @pytest.mark.crust
@@ -212,16 +211,16 @@ class TestDatabaseAdapter:
         mock_session = MagicMock()
         mock_db.get_session.return_value.__enter__.return_value = mock_session
         mock_task = MagicMock(spec=Task)
-        mock_task.id = 'test-123'
+        mock_task.id = "test-123"
         mock_task.result_data = {}
         mock_task.metadata = {}
         mock_query = MagicMock()
         mock_session.query.return_value = mock_query
         mock_query.filter.return_value = mock_query
         mock_query.first.return_value = mock_task
-        review_data = {'score': 85, 'decision': 'approve'}
-        result = adapter.update_task_status('test-123', TaskStatus.APPROVED, review_data)
+        review_data = {"score": 85, "decision": "approve"}
+        result = adapter.update_task_status("test-123", TaskStatus.APPROVED, review_data)
         assert result
         assert mock_task.status == TaskStatus.APPROVED
-        assert mock_task.result_data['review'] == review_data
+        assert mock_task.result_data["review"] == review_data
         mock_session.commit.assert_called_once()

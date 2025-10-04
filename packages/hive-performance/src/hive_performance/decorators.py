@@ -1,5 +1,4 @@
-"""
-Decorator-based observability API for unified metrics and tracing.
+"""Decorator-based observability API for unified metrics and tracing.
 
 Provides zero-config decorators for instrumentation with optional config-driven backends.
 All decorators support both sync and async functions transparently.
@@ -20,6 +19,7 @@ Examples:
     async def query_database(sql):
         return await db.execute(sql)
     ```
+
 """
 
 from __future__ import annotations
@@ -58,8 +58,7 @@ class MetricData:
 
 
 class MetricsRegistry:
-    """
-    In-memory metrics registry for decorator-based observability.
+    """In-memory metrics registry for decorator-based observability.
 
     Zero-config storage with optional Prometheus export integration.
     Thread-safe for concurrent metric updates.
@@ -155,8 +154,7 @@ class SpanData:
 
 
 class TracingContext:
-    """
-    Simple tracing context for decorator-based spans.
+    """Simple tracing context for decorator-based spans.
 
     Zero-config storage with optional OpenTelemetry export integration.
     """
@@ -213,8 +211,7 @@ def get_tracing_context() -> TracingContext:
 
 
 def timed(metric_name: str, labels: dict[str, str] | None = None) -> Callable:
-    """
-    Track function execution time.
+    """Track function execution time.
 
     Records duration as histogram metric with min/max/avg statistics.
     Supports both sync and async functions transparently.
@@ -233,6 +230,7 @@ def timed(metric_name: str, labels: dict[str, str] | None = None) -> Callable:
         def get_value(key):
             return cache[key]
         ```
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -250,35 +248,33 @@ def timed(metric_name: str, labels: dict[str, str] | None = None) -> Callable:
                     logger.debug(f"Timed {func.__name__}: {duration:.4f}s", extra={"metric": metric_name})
 
             return async_wrapper
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                start = time.perf_counter()
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            start = time.perf_counter()
+            try:
+                result = func(*args, **kwargs)
+                return result
+            finally:
+                duration = time.perf_counter() - start
+                # Use asyncio.create_task if in event loop, otherwise skip metric
                 try:
-                    result = func(*args, **kwargs)
-                    return result
-                finally:
-                    duration = time.perf_counter() - start
-                    # Use asyncio.create_task if in event loop, otherwise skip metric
-                    try:
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(_metrics_registry.record_histogram(metric_name, duration, labels))
-                    except RuntimeError:
-                        # No event loop - log warning and skip metric
-                        logger.warning(
-                            f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)"
-                        )
-                    logger.debug(f"Timed {func.__name__}: {duration:.4f}s", extra={"metric": metric_name})
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(_metrics_registry.record_histogram(metric_name, duration, labels))
+                except RuntimeError:
+                    # No event loop - log warning and skip metric
+                    logger.warning(
+                        f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)",
+                    )
+                logger.debug(f"Timed {func.__name__}: {duration:.4f}s", extra={"metric": metric_name})
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
 
 def counted(metric_name: str, labels: dict[str, str] | None = None, increment: float = 1.0) -> Callable:
-    """
-    Count function calls.
+    """Count function calls.
 
     Increments counter metric each time function is called.
     Supports both sync and async functions transparently.
@@ -298,6 +294,7 @@ def counted(metric_name: str, labels: dict[str, str] | None = None, increment: f
         async def create_resource(data):
             return await db.insert(data)
         ```
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -309,27 +306,25 @@ def counted(metric_name: str, labels: dict[str, str] | None = None, increment: f
                 return await func(*args, **kwargs)
 
             return async_wrapper
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                try:
-                    loop = asyncio.get_running_loop()
-                    loop.create_task(_metrics_registry.record_counter(metric_name, increment, labels))
-                except RuntimeError:
-                    logger.warning(
-                        f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)"
-                    )
-                return func(*args, **kwargs)
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                loop = asyncio.get_running_loop()
+                loop.create_task(_metrics_registry.record_counter(metric_name, increment, labels))
+            except RuntimeError:
+                logger.warning(
+                    f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)",
+                )
+            return func(*args, **kwargs)
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
 
 def traced(span_name: str, attributes: dict[str, Any] | None = None) -> Callable:
-    """
-    Create distributed trace span for function execution.
+    """Create distributed trace span for function execution.
 
     Records span with start/end times and optional attributes.
     Captures exceptions and marks span as failed.
@@ -349,6 +344,7 @@ def traced(span_name: str, attributes: dict[str, Any] | None = None) -> Callable
         def fetch_data(url):
             return requests.get(url)
         ```
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -368,29 +364,27 @@ def traced(span_name: str, attributes: dict[str, Any] | None = None) -> Callable
                     raise
 
             return async_wrapper
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                span = _tracing_context.start_span(span_name, attributes)
-                try:
-                    result = func(*args, **kwargs)
-                    _tracing_context.end_span(span, status="OK")
-                    logger.debug(f"Traced {func.__name__}", extra={"span": span_name})
-                    return result
-                except Exception as e:
-                    _tracing_context.end_span(span, status="ERROR", exception=str(e))
-                    logger.error(f"Traced {func.__name__} failed: {e}", extra={"span": span_name})
-                    raise
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            span = _tracing_context.start_span(span_name, attributes)
+            try:
+                result = func(*args, **kwargs)
+                _tracing_context.end_span(span, status="OK")
+                logger.debug(f"Traced {func.__name__}", extra={"span": span_name})
+                return result
+            except Exception as e:
+                _tracing_context.end_span(span, status="ERROR", exception=str(e))
+                logger.error(f"Traced {func.__name__} failed: {e}", extra={"span": span_name})
+                raise
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
 
 def measure_memory(metric_name: str, labels: dict[str, str] | None = None) -> Callable:
-    """
-    Track memory usage during function execution.
+    """Track memory usage during function execution.
 
     Records peak memory delta as gauge metric.
     Supports both sync and async functions transparently.
@@ -409,6 +403,7 @@ def measure_memory(metric_name: str, labels: dict[str, str] | None = None) -> Ca
         def build_cache():
             return {k: expensive_computation(k) for k in keys}
         ```
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -428,35 +423,33 @@ def measure_memory(metric_name: str, labels: dict[str, str] | None = None) -> Ca
                     tracemalloc.stop()
 
             return async_wrapper
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
-                tracemalloc.start()
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            tracemalloc.start()
+            try:
+                result = func(*args, **kwargs)
+                current, peak = tracemalloc.get_traced_memory()
+                peak_mb = peak / 1024 / 1024  # Convert to MB
                 try:
-                    result = func(*args, **kwargs)
-                    current, peak = tracemalloc.get_traced_memory()
-                    peak_mb = peak / 1024 / 1024  # Convert to MB
-                    try:
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(_metrics_registry.record_gauge(metric_name, peak_mb, labels))
-                    except RuntimeError:
-                        logger.warning(
-                            f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)"
-                        )
-                    logger.debug(f"Memory peak {func.__name__}: {peak_mb:.2f}MB", extra={"metric": metric_name})
-                    return result
-                finally:
-                    tracemalloc.stop()
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(_metrics_registry.record_gauge(metric_name, peak_mb, labels))
+                except RuntimeError:
+                    logger.warning(
+                        f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)",
+                    )
+                logger.debug(f"Memory peak {func.__name__}: {peak_mb:.2f}MB", extra={"metric": metric_name})
+                return result
+            finally:
+                tracemalloc.stop()
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
 
 def track_errors(metric_name: str, labels: dict[str, str] | None = None) -> Callable:
-    """
-    Track error rates and exceptions.
+    """Track error rates and exceptions.
 
     Increments error counter when function raises exception.
     Logs exception details for debugging.
@@ -476,6 +469,7 @@ def track_errors(metric_name: str, labels: dict[str, str] | None = None) -> Call
         def query_database(sql):
             return db.execute(sql)  # Tracks if raises
         ```
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -497,30 +491,29 @@ def track_errors(metric_name: str, labels: dict[str, str] | None = None) -> Call
                     raise
 
             return async_wrapper
-        else:
 
-            @functools.wraps(func)
-            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+        @functools.wraps(func)
+        def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+            try:
+                result = func(*args, **kwargs)
+                return result
+            except Exception as e:
+                error_labels = (labels or {}).copy()
+                error_labels["error_type"] = type(e).__name__
                 try:
-                    result = func(*args, **kwargs)
-                    return result
-                except Exception as e:
-                    error_labels = (labels or {}).copy()
-                    error_labels["error_type"] = type(e).__name__
-                    try:
-                        loop = asyncio.get_running_loop()
-                        loop.create_task(_metrics_registry.record_counter(metric_name, 1.0, error_labels))
-                    except RuntimeError:
-                        logger.warning(
-                            f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)"
-                        )
-                    logger.error(
-                        f"Error in {func.__name__}: {e}",
-                        extra={"metric": metric_name, "traceback": traceback.format_exc()},
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(_metrics_registry.record_counter(metric_name, 1.0, error_labels))
+                except RuntimeError:
+                    logger.warning(
+                        f"Cannot record metric {metric_name} - no event loop (sync function in non-async context)",
                     )
-                    raise
+                logger.error(
+                    f"Error in {func.__name__}: {e}",
+                    extra={"metric": metric_name, "traceback": traceback.format_exc()},
+                )
+                raise
 
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
@@ -529,8 +522,7 @@ def track_errors(metric_name: str, labels: dict[str, str] | None = None) -> Call
 
 
 def get_metric_value(metric_name: str, labels: dict[str, str] | None = None) -> float | None:
-    """
-    Retrieve current value of a metric.
+    """Retrieve current value of a metric.
 
     Args:
         metric_name: Name of the metric
@@ -538,17 +530,18 @@ def get_metric_value(metric_name: str, labels: dict[str, str] | None = None) -> 
 
     Returns:
         Current metric value or None if not found
+
     """
     metric = _metrics_registry.get_metric(metric_name, labels)
     return metric.value if metric else None
 
 
 def get_all_metrics_summary() -> dict[str, dict[str, Any]]:
-    """
-    Get summary of all metrics.
+    """Get summary of all metrics.
 
     Returns:
         Dictionary mapping metric names to metric data
+
     """
     all_metrics = _metrics_registry.get_all_metrics()
     return {

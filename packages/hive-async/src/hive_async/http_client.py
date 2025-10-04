@@ -1,5 +1,4 @@
-"""
-Resilient HTTP client with circuit breaker protection.
+"""Resilient HTTP client with circuit breaker protection.
 
 Provides HTTP client wrapper with built-in circuit breaker, retry logic,
 and timeout management for external API calls.
@@ -37,8 +36,7 @@ logger = get_logger(__name__)
 
 
 class ResilientHttpClient:
-    """
-    HTTP client with circuit breaker protection for external APIs.
+    """HTTP client with circuit breaker protection for external APIs.
 
     Wraps requests/httpx/aiohttp with resilience patterns to prevent
     cascading failures from external service issues.
@@ -58,14 +56,14 @@ class ResilientHttpClient:
         default_timeout: float = 10.0,
         max_retries: int = 2,
     ):
-        """
-        Initialize resilient HTTP client.
+        """Initialize resilient HTTP client.
 
         Args:
             failure_threshold: Failures before circuit opens
             recovery_timeout: Seconds before attempting recovery
             default_timeout: Default request timeout in seconds
             max_retries: Maximum retry attempts
+
         """
         self.failure_threshold = failure_threshold
         self.recovery_timeout = recovery_timeout
@@ -102,8 +100,7 @@ class ResilientHttpClient:
         return parsed.netloc or "unknown"
 
     def get(self, url: str, timeout: float | None = None, **kwargs) -> requests.Response:
-        """
-        Make GET request with circuit breaker protection.
+        """Make GET request with circuit breaker protection.
 
         Args:
             url: Request URL
@@ -116,12 +113,12 @@ class ResilientHttpClient:
         Raises:
             CircuitBreakerOpenError: Circuit breaker is open
             requests.RequestException: HTTP errors
+
         """
         return self._request_with_resilience("GET", url, timeout=timeout, **kwargs)
 
     def post(self, url: str, timeout: float | None = None, **kwargs) -> requests.Response:
-        """
-        Make POST request with circuit breaker protection.
+        """Make POST request with circuit breaker protection.
 
         Args:
             url: Request URL
@@ -134,6 +131,7 @@ class ResilientHttpClient:
         Raises:
             CircuitBreakerOpenError: Circuit breaker is open
             requests.RequestException: HTTP errors
+
         """
         return self._request_with_resilience("POST", url, timeout=timeout, **kwargs)
 
@@ -219,11 +217,11 @@ class ResilientHttpClient:
         }
 
     def reset_circuit_breaker(self, domain: str | None = None) -> None:
-        """
-        Reset circuit breaker for domain.
+        """Reset circuit breaker for domain.
 
         Args:
             domain: Domain to reset (resets all if None)
+
         """
         if domain:
             if domain in self._circuit_breakers:
@@ -244,8 +242,7 @@ class ResilientHttpClient:
 
 
 class AsyncResilientHttpClient:
-    """
-    Async HTTP client with circuit breaker protection.
+    """Async HTTP client with circuit breaker protection.
 
     Requires aiohttp or httpx to be installed.
     """

@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-Comprehensive test runner for EcoSystemiser v3.0
+"""Comprehensive test runner for EcoSystemiser v3.0
 
 Consolidates all testing infrastructure into a single entry point.
 """
@@ -29,7 +27,7 @@ def run_command(cmd: list[str], description: str) -> dict[str, Any]:
     logger.info("=" * 60)
 
     start_time = time.time(),
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, check=False, capture_output=True, text=True)
     duration = time.time() - start_time
 
     if result.returncode == 0:
@@ -69,7 +67,6 @@ def run_integration_tests() -> dict[str, Any]:
 
 def run_all_tests(args: argparse.Namespace) -> None:
     """Run all test suites and generate summary."""
-
     logger.info("\n🧪 EcoSystemiser v3.0 - Comprehensive Test Suite")
     logger.info(f"Working directory: {Path.cwd()}")
     logger.info(f"Python: {sys.executable}")

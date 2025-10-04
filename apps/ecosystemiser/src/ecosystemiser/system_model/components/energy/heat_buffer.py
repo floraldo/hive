@@ -25,8 +25,8 @@ class HeatBufferTechnicalParams(StorageTechnicalParams):
     """Heat buffer-specific technical parameters extending storage archetype.,
 
 
-        This model inherits from StorageTechnicalParams and adds thermal storage-specific,
-        parameters for different fidelity levels.,
+    This model inherits from StorageTechnicalParams and adds thermal storage-specific,
+    parameters for different fidelity levels.,
     """
 
     # Core thermal storage power limits (SIMPLE fidelity)
@@ -85,8 +85,7 @@ class HeatBufferPhysicsSimple(BaseStoragePhysics):
     """
 
     def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
-        """
-        Implement SIMPLE heat buffer physics with roundtrip efficiency.,
+        """Implement SIMPLE heat buffer physics with roundtrip efficiency.,
 
         This matches the exact logic from BaseStorageComponent for numerical equivalence.,
         """
@@ -110,13 +109,13 @@ class HeatBufferPhysicsSimple(BaseStoragePhysics):
         return self.apply_bounds(next_state)
 
     def apply_bounds(self, energy_level: float) -> float:
-        """
-        Apply physical energy bounds (0 <= E <= E_max) for heat buffer.
+        """Apply physical energy bounds (0 <= E <= E_max) for heat buffer.
 
         Args:
             energy_level: Energy level to bound
         Returns:
             float: Bounded energy level,
+
         """
         E_max = self.params.technical.capacity_nominal
         return max(0.0, min(energy_level, E_max))
@@ -131,8 +130,7 @@ class HeatBufferPhysicsStandard(HeatBufferPhysicsSimple):
     """
 
     def rule_based_update_state(self, t: int, E_old: float, charge_power: float, discharge_power: float) -> float:
-        """
-        Implement STANDARD heat buffer physics with thermal losses.,
+        """Implement STANDARD heat buffer physics with thermal losses.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -172,8 +170,7 @@ class HeatBufferOptimizationSimple(BaseStorageOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for heat buffer optimization.,
+        """Create SIMPLE CVXPY constraints for heat buffer optimization.,
 
         Returns constraints for basic thermal storage without losses.,
         """
@@ -216,8 +213,7 @@ class HeatBufferOptimizationStandard(HeatBufferOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for heat buffer optimization.,
+        """Create STANDARD CVXPY constraints for heat buffer optimization.,
 
         Adds thermal loss terms to the energy balance constraints.,
         """
@@ -322,16 +318,15 @@ class HeatBuffer(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return HeatBufferPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return HeatBufferPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return HeatBufferPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return HeatBufferPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for HeatBuffer: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for HeatBuffer: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -339,20 +334,18 @@ class HeatBuffer(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return HeatBufferOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return HeatBufferOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return HeatBufferOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return HeatBufferOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for HeatBuffer optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for HeatBuffer optimization: {fidelity}")
 
     def rule_based_update_state(self, t: int, charge_power: float, discharge_power: float) -> None:
-        """
-        Delegate to physics strategy for state update.,
+        """Delegate to physics strategy for state update.,
 
         This maintains the same interface as BaseStorageComponent but,
         delegates the actual physics calculation to the strategy object.,

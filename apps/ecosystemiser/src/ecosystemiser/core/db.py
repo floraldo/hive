@@ -1,5 +1,4 @@
-"""
-EcoSystemiser Core Database Service.
+"""EcoSystemiser Core Database Service.
 
 This module extends the generic hive-db package with EcoSystemiser-specific
 database functionality, following the inherit→extend pattern.
@@ -18,11 +17,11 @@ logger = get_logger(__name__)
 
 
 def get_ecosystemiser_db_path() -> Path:
-    """
-    Get the path to the EcoSystemiser database.
+    """Get the path to the EcoSystemiser database.
 
     Returns:
         Path to ecosystemiser.db in the EcoSystemiser data directory.
+
     """
     # Check for environment variable override
     db_path_env = os.environ.get("ECOSYSTEMISER_DB_PATH")
@@ -39,14 +38,14 @@ def get_ecosystemiser_db_path() -> Path:
 
 @contextmanager
 def get_ecosystemiser_connection():
-    """
-    Get a context-managed connection to the EcoSystemiser database.
+    """Get a context-managed connection to the EcoSystemiser database.
 
     This extends hive_db's get_sqlite_connection with EcoSystemiser-specific
     configuration and path management.
 
     Yields:
         sqlite3.Connection: Database connection with row factory enabled.
+
     """
     db_path = get_ecosystemiser_db_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -60,14 +59,14 @@ def get_ecosystemiser_connection():
 
 @contextmanager
 def ecosystemiser_transaction():
-    """
-    Context manager for EcoSystemiser database transactions.
+    """Context manager for EcoSystemiser database transactions.
 
     This extends hive_db's sqlite_transaction with EcoSystemiser-specific
     database path and configuration.
 
     Yields:
         sqlite3.Connection: Connection with transaction support.
+
     """
     db_path = get_ecosystemiser_db_path()
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -84,8 +83,7 @@ def ecosystemiser_transaction():
 
 
 def get_db_connection(db_path: Path | None = None):
-    """
-    Legacy direct connection function.
+    """Legacy direct connection function.
 
     Args:
         db_path: Optional path to database (ignored, uses configured path)
@@ -96,6 +94,7 @@ def get_db_connection(db_path: Path | None = None):
     Note:
         This function is provided for backward compatibility.
         Use get_ecosystemiser_connection() context manager for new code.
+
     """
     logger.warning("Direct connection requested - consider using context managers")
     actual_db_path = get_ecosystemiser_db_path()
@@ -112,11 +111,11 @@ def get_db_connection(db_path: Path | None = None):
 
 
 def validate_ecosystemiser_database() -> bool:
-    """
-    Validate that the EcoSystemiser database is accessible and working.
+    """Validate that the EcoSystemiser database is accessible and working.
 
     Returns:
         True if database is accessible, False otherwise.
+
     """
     try:
         with get_ecosystemiser_connection() as conn:

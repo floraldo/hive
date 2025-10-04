@@ -1,5 +1,4 @@
-"""
-Processing pipeline manager for climate data.,
+"""Processing pipeline manager for climate data.,
 
 Manages the separation between preprocessing and postprocessing stages
 with configurable steps and proper error handling.
@@ -41,14 +40,14 @@ class ProcessingStep:
     required: bool = False
 
     def execute(self, ds: xr.Dataset) -> tuple[xr.Dataset, dict[str, Any]]:
-        """
-        Execute the processing step.
+        """Execute the processing step.
 
         Args:
             ds: Input dataset
 
         Returns:
             Tuple of (processed dataset, execution report)
+
         """
         if not self.enabled:
             return ds, {"skipped": True}
@@ -84,7 +83,7 @@ class ProcessingStep:
             return ds_result, report
 
         except Exception as e:
-            error_msg = f"Error in {self.name}: {str(e)}"
+            error_msg = f"Error in {self.name}: {e!s}"
             logger.error(error_msg)
 
             if self.required:
@@ -94,19 +93,18 @@ class ProcessingStep:
 
 
 class ProcessingPipeline:
-    """
-    Configurable processing pipeline for climate data.,
+    """Configurable processing pipeline for climate data.,
 
     Manages preprocessing (data quality/completeness) and,
     postprocessing (analytics/derived metrics) stages.,
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
-        """
-        Initialize processing pipeline with centralized configuration.
+        """Initialize processing pipeline with centralized configuration.
 
         Args:
             config: Configuration object (required via dependency injection)
+
         """
         self.config = config
 
@@ -247,14 +245,14 @@ class ProcessingPipeline:
         self.postprocessing_steps.append(step)
 
     def execute_preprocessing(self, ds: xr.Dataset) -> xr.Dataset:
-        """
-        Execute preprocessing pipeline.
+        """Execute preprocessing pipeline.
 
         Args:
             ds: Input dataset
 
         Returns:
             Preprocessed dataset,
+
         """
         logger.info("Starting preprocessing pipeline")
         ds_processed = ds.copy()
@@ -267,14 +265,14 @@ class ProcessingPipeline:
         return ds_processed
 
     def execute_postprocessing(self, ds: xr.Dataset) -> xr.Dataset:
-        """
-        Execute postprocessing pipeline.
+        """Execute postprocessing pipeline.
 
         Args:
             ds: Input dataset (should be preprocessed)
 
         Returns:
             Postprocessed dataset with analytics,
+
         """
         logger.info("Starting postprocessing pipeline")
         ds_processed = ds.copy()
@@ -292,8 +290,7 @@ class ProcessingPipeline:
         skip_preprocessing: bool = False,
         skip_postprocessing: bool = False,
     ) -> xr.Dataset:
-        """
-        Execute full pipeline.
+        """Execute full pipeline.
 
         Args:
             ds: Input dataset,
@@ -302,6 +299,7 @@ class ProcessingPipeline:
 
         Returns:
             Fully processed dataset,
+
         """
         self.execution_reports = []
 

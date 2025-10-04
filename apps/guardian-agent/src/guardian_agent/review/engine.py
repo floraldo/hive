@@ -20,8 +20,7 @@ logger = get_logger(__name__)
 
 
 class ReviewEngine:
-    """
-    Main engine for orchestrating code reviews.
+    """Main engine for orchestrating code reviews.
 
     Leverages hive-ai for model management, vector search for context,
     and coordinates multiple analyzers for comprehensive review.
@@ -86,14 +85,14 @@ class ReviewEngine:
         return analyzers
 
     async def review_file(self, file_path: Path) -> ReviewResult:
-        """
-        Review a single file.
+        """Review a single file.
 
         Args:
             file_path: Path to the file to review
 
         Returns:
             ReviewResult containing all findings
+
         """
         start_time = time.time()
 
@@ -257,8 +256,7 @@ class ReviewEngine:
         )
 
     async def review_directory(self, directory: Path, recursive: bool = True) -> list[ReviewResult]:
-        """
-        Review all files in a directory.
+        """Review all files in a directory.
 
         Args:
             directory: Directory to review
@@ -266,6 +264,7 @@ class ReviewEngine:
 
         Returns:
             List of review results
+
         """
         pattern = "**/*" if recursive else "*",
         files = []

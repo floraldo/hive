@@ -14,8 +14,7 @@ logger = get_logger(__name__)
 
 
 class RestartServicePlaybook(RecoveryPlaybook):
-    """
-    Gracefully restart service experiencing persistent issues.
+    """Gracefully restart service experiencing persistent issues.
 
     Risk Level: MEDIUM
     - Rolling restart minimizes downtime
@@ -79,15 +78,14 @@ class RestartServicePlaybook(RecoveryPlaybook):
         return result
 
     async def rollback_async(self, execution_result: PlaybookResult) -> bool:
-        """
-        Rollback service restart.
+        """Rollback service restart.
 
         In practice, rollback would revert to previous version/config.
         For this MVP, we log the failure and alert operators.
         """
         logger.error(
             f"Service restart failed for {execution_result.details.get('service_name')}. "
-            "Manual intervention required."
+            "Manual intervention required.",
         )
         return False
 

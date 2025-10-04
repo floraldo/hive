@@ -1,10 +1,8 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal RAG server tooling.
 
-"""
-RAG API Server Launcher.
+"""RAG API Server Launcher.
 
 Convenient script to start the RAG API server for autonomous agent access.
 

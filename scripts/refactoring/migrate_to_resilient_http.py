@@ -1,5 +1,4 @@
-"""
-Automated Migration to ResilientHttpClient
+"""Automated Migration to ResilientHttpClient
 
 Scans codebase for legacy requests.get/post/etc calls and automatically
 refactors them to use the new ResilientHttpClient with circuit breaker protection.
@@ -62,11 +61,11 @@ class HttpCallMigrator(ast.NodeTransformer):
 
 
 def analyze_file(file_path: Path) -> tuple[bool, int]:
-    """
-    Analyze a file for requests usage.
+    """Analyze a file for requests usage.
 
     Returns:
         (has_requests_calls, call_count)
+
     """
     try:
         content = file_path.read_text(encoding="utf-8")
@@ -94,8 +93,7 @@ def analyze_file(file_path: Path) -> tuple[bool, int]:
 
 
 def migrate_file(file_path: Path, dry_run: bool = True) -> bool:
-    """
-    Migrate a single file to use ResilientHttpClient.
+    """Migrate a single file to use ResilientHttpClient.
 
     Args:
         file_path: Path to file to migrate
@@ -103,6 +101,7 @@ def migrate_file(file_path: Path, dry_run: bool = True) -> bool:
 
     Returns:
         True if changes were made
+
     """
     try:
         content = file_path.read_text(encoding="utf-8")
@@ -165,8 +164,7 @@ def migrate_file(file_path: Path, dry_run: bool = True) -> bool:
 
 
 def scan_codebase(root_dir: Path, exclude_patterns: list[str] = None) -> list[Path]:
-    """
-    Scan codebase for files needing migration.
+    """Scan codebase for files needing migration.
 
     Args:
         root_dir: Root directory to scan
@@ -174,6 +172,7 @@ def scan_codebase(root_dir: Path, exclude_patterns: list[str] = None) -> list[Pa
 
     Returns:
         List of file paths needing migration
+
     """
     exclude_patterns = exclude_patterns or ["tests/", "archive/", "docs/", ".venv/", "venv/"]
 

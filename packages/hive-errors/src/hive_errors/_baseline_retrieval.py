@@ -12,10 +12,9 @@ logger = get_logger(__name__)
 async def get_historical_baseline_async(
     historical_enricher,
     service_name: str,
-    metric_type: str
+    metric_type: str,
 ) -> dict[str, float | None] | None:
-    """
-    Retrieve historical baseline statistics for a service/metric combination.
+    """Retrieve historical baseline statistics for a service/metric combination.
 
     PROJECT CHIMERA Phase 2: Context-Aware Thresholding
 
@@ -26,6 +25,7 @@ async def get_historical_baseline_async(
 
     Returns:
         Dictionary with mean, std_dev, and volatility_factor, or None if unavailable
+
     """
     if not historical_enricher:
         return None
@@ -48,7 +48,7 @@ async def get_historical_baseline_async(
         return {
             "mean": None,  # Not used yet - would be average historical value
             "std_dev": None,  # Not used yet - would be standard deviation
-            "volatility_factor": volatility_factor
+            "volatility_factor": volatility_factor,
         }
 
     except Exception as e:

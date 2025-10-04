@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Genesis Mandate Phase 2 Demonstration - Ecosystem Symbiosis (ASCII Version)
+"""Genesis Mandate Phase 2 Demonstration - Ecosystem Symbiosis (ASCII Version)
 
 This demonstration showcases the Oracle's Phase 2 evolution into an autonomous
 refactoring agent capable of identifying cross-package optimization opportunities
@@ -43,7 +42,6 @@ def print_symbiosis_icon() -> None:
 
 async def demonstrate_genesis_phase2_async():
     """Demonstrate the Genesis Mandate Phase 2 implementation."""
-
     print_header("GENESIS MANDATE - PHASE 2: ECOSYSTEM SYMBIOSIS")
     print("The Oracle's Evolution: From Prophetic Analysis to Autonomous Action")
     print()

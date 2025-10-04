@@ -13,8 +13,7 @@ COMPONENT_REGISTRY: dict[str, type["Component"]] = {}
 
 
 def register_component(name: str) -> None:
-    """
-    A class decorator that registers a component blueprint in the global registry.
+    """A class decorator that registers a component blueprint in the global registry.
 
     This decorator enables plug-and-play extensibility. New components simply
     need to use this decorator and they become available to the system.
@@ -29,6 +28,7 @@ def register_component(name: str) -> None:
         @register_component("Battery")
         class Battery(Component):
             pass
+
     """
 
     def decorator(cls: type["Component"]):
@@ -46,8 +46,7 @@ def register_component(name: str) -> None:
 
 
 def get_component_class(name: str) -> type["Component"]:
-    """
-    Retrieves a component class from the registry.
+    """Retrieves a component class from the registry.
 
     Args:
         name: The registered name of the component
@@ -57,6 +56,7 @@ def get_component_class(name: str) -> type["Component"]:
 
     Raises:
         ValueError: If the component name is not found in the registry,
+
     """
     if name not in COMPONENT_REGISTRY:
         available = list(COMPONENT_REGISTRY.keys())
@@ -65,31 +65,30 @@ def get_component_class(name: str) -> type["Component"]:
 
 
 def list_registered_components() -> dict[str, str]:
-    """
-    Lists all registered components with their class names.
+    """Lists all registered components with their class names.
 
     Returns:
         Dictionary mapping component names to their class names,
+
     """
     return {name: cls.__name__ for name, cls in COMPONENT_REGISTRY.items()}
 
 
 def is_component_registered(name: str) -> bool:
-    """
-    Checks if a component is registered.
+    """Checks if a component is registered.
 
     Args:
         name: The component name to check
 
     Returns:
         True if the component is registered, False otherwise,
+
     """
     return name in COMPONENT_REGISTRY
 
 
 def clear_registry() -> None:
-    """
-    Clears the component registry (useful for testing).
+    """Clears the component registry (useful for testing).
 
     Warning: This should only be used in test environments.,
     """

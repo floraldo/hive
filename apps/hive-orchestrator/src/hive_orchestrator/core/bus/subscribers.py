@@ -1,5 +1,4 @@
-"""
-Event subscription and handling for the Hive Event Bus
+"""Event subscription and handling for the Hive Event Bus
 
 Provides both synchronous and asynchronous event subscribers
 for flexible event handling patterns.

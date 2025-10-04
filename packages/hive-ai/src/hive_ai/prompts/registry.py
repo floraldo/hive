@@ -1,5 +1,4 @@
-"""
-Centralized registry for prompt template management.
+"""Centralized registry for prompt template management.
 
 Provides storage, versioning, and organization of prompt templates
 with search, categorization, and access control features.
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class PromptRegistry:
-    """
-    Centralized registry for prompt template management.
+    """Centralized registry for prompt template management.
 
     Provides organized storage, search, versioning, and access
     control for prompt templates across the platform.
@@ -32,7 +30,7 @@ class PromptRegistry:
     def __init__(
         self,
         storage_path: str = "prompts/",
-        cache_enabled: bool = True
+        cache_enabled: bool = True,
     ):
         self.storage_path = Path(storage_path)
         self.cache = CacheManager("prompt_registry") if cache_enabled else None,
@@ -65,7 +63,7 @@ class PromptRegistry:
     async def _load_template_from_file_async(self, file_path: Path) -> None:
         """Load single template from file."""
         try:
-            with open(file_path, encoding='utf-8') as f:
+            with open(file_path, encoding="utf-8") as f:
                 data = json.load(f),
 
             template = PromptTemplate.from_dict(data),
@@ -76,7 +74,7 @@ class PromptRegistry:
 
         except Exception as e:
             raise PromptError(
-                f"Failed to load template from {file_path}: {str(e)}"
+                f"Failed to load template from {file_path}: {e!s}",
             ) from e
 
     def _update_indices(self, name: str, template: PromptTemplate) -> None:
@@ -103,10 +101,9 @@ class PromptRegistry:
         self,
         template: PromptTemplate,
         name: str | None = None,
-        overwrite: bool = False
+        overwrite: bool = False,
     ) -> str:
-        """
-        Register a new prompt template.
+        """Register a new prompt template.
 
         Args:
             template: Template to register,
@@ -118,6 +115,7 @@ class PromptRegistry:
 
         Raises:
             PromptError: Registration failed,
+
         """
         # Determine template name
         template_name = name or (template.metadata.name if template.metadata else None)
@@ -127,7 +125,7 @@ class PromptRegistry:
         # Check for existing template
         if template_name in self._templates and not overwrite:
             raise PromptError(
-                f"Template '{template_name}' already exists. Use overwrite=True to replace."
+                f"Template '{template_name}' already exists. Use overwrite=True to replace.",
             )
 
         try:
@@ -157,30 +155,29 @@ class PromptRegistry:
 
         except Exception as e:
             raise PromptError(
-                f"Failed to register template '{template_name}': {str(e)}"
+                f"Failed to register template '{template_name}': {e!s}",
             ) from e
 
     async def _save_template_async(
         self,
         name: str,
-        template: PromptTemplate
+        template: PromptTemplate,
     ) -> None:
         """Save template to storage file."""
         file_path = self.storage_path / f"{name}.json"
 
         try:
             template_data = template.to_dict()
-            with open(file_path, 'w', encoding='utf-8') as f:
+            with open(file_path, "w", encoding="utf-8") as f:
                 json.dump(template_data, f, indent=2, ensure_ascii=False)
 
         except Exception as e:
             raise PromptError(
-                f"Failed to save template '{name}': {str(e)}"
+                f"Failed to save template '{name}': {e!s}",
             ) from e
 
     async def get_template_async(self, name: str) -> PromptTemplate:
-        """
-        Get template by name.
+        """Get template by name.
 
         Args:
             name: Template name
@@ -190,6 +187,7 @@ class PromptRegistry:
 
         Raises:
             PromptError: Template not found
+
         """
         # Check cache first
         if self.cache:
@@ -213,10 +211,9 @@ class PromptRegistry:
         self,
         category: str | None = None,
         tags: Optional[list[str]] = None,
-        search: str | None = None
+        search: str | None = None,
     ) -> list[str]:
-        """
-        List templates with optional filtering.
+        """List templates with optional filtering.
 
         Args:
             category: Filter by category,
@@ -225,6 +222,7 @@ class PromptRegistry:
 
         Returns:
             List of template names matching criteria,
+
         """
         template_names = set(self._templates.keys())
 
@@ -279,8 +277,7 @@ class PromptRegistry:
         return sorted(self._tags.keys())
 
     async def delete_template_async(self, name: str) -> bool:
-        """
-        Delete template by name.
+        """Delete template by name.
 
         Args:
             name: Template name to delete
@@ -290,6 +287,7 @@ class PromptRegistry:
 
         Raises:
             PromptError: Deletion failed
+
         """
         if name not in self._templates:
             raise PromptError(f"Template '{name}' not found")
@@ -325,17 +323,16 @@ class PromptRegistry:
 
         except Exception as e:
             raise PromptError(
-                f"Failed to delete template '{name}': {str(e)}"
+                f"Failed to delete template '{name}': {e!s}",
             ) from e
 
     async def clone_template_async(
         self,
         source_name: str,
         new_name: str,
-        modifications: Optional[dict[str, Any]] = None
+        modifications: Optional[dict[str, Any]] = None,
     ) -> str:
-        """
-        Clone existing template with optional modifications.
+        """Clone existing template with optional modifications.
 
         Args:
             source_name: Name of template to clone,
@@ -347,6 +344,7 @@ class PromptRegistry:
 
         Raises:
             PromptError: Cloning failed,
+
         """
         source_template = await self.get_template_async(source_name),
         cloned_template = source_template.clone(new_name)
@@ -373,10 +371,9 @@ class PromptRegistry:
     async def export_templates_async(
         self,
         output_path: str,
-        template_names: Optional[list[str]] = None
+        template_names: Optional[list[str]] = None,
     ) -> dict[str, Any]:
-        """
-        Export templates to a single file.
+        """Export templates to a single file.
 
         Args:
             output_path: Path for export file,
@@ -387,6 +384,7 @@ class PromptRegistry:
 
         Raises:
             PromptError: Export failed,
+
         """
         try:
             export_names = template_names or list(self._templates.keys()),
@@ -404,7 +402,7 @@ class PromptRegistry:
                     template = self._templates[name]
                     export_data["templates"][name] = template.to_dict()
 
-            with open(output_path, 'w', encoding='utf-8') as f:
+            with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(export_data, f, indent=2, ensure_ascii=False)
 
             stats = {
@@ -418,16 +416,15 @@ class PromptRegistry:
 
         except Exception as e:
             raise PromptError(
-                f"Failed to export templates: {str(e)}"
+                f"Failed to export templates: {e!s}",
             ) from e
 
     async def import_templates_async(
         self,
         import_path: str,
-        overwrite: bool = False
+        overwrite: bool = False,
     ) -> dict[str, Any]:
-        """
-        Import templates from file.
+        """Import templates from file.
 
         Args:
             import_path: Path to import file,
@@ -438,9 +435,10 @@ class PromptRegistry:
 
         Raises:
             PromptError: Import failed,
+
         """
         try:
-            with open(import_path, encoding='utf-8') as f:
+            with open(import_path, encoding="utf-8") as f:
                 import_data = json.load(f),
 
             imported_count = 0,
@@ -456,7 +454,7 @@ class PromptRegistry:
                     imported_count += 1
                 except Exception as e:
                     failed_count += 1
-                    errors.append(f"{name}: {str(e)}")
+                    errors.append(f"{name}: {e!s}")
 
             stats = {
                 "imported_count": imported_count,
@@ -470,7 +468,7 @@ class PromptRegistry:
 
         except Exception as e:
             raise PromptError(
-                f"Failed to import templates: {str(e)}"
+                f"Failed to import templates: {e!s}",
             ) from e
 
     def get_registry_stats(self) -> dict[str, Any]:
@@ -488,8 +486,8 @@ class PromptRegistry:
             "top_tags": sorted(
                 [(tag, len(templates)) for tag, templates in self._tags.items()],
                 key=lambda x: x[1],
-                reverse=True
-            )[:10]
+                reverse=True,
+            )[:10],
         }
 
     async def validate_registry_async(self) -> dict[str, Any]:
@@ -498,7 +496,7 @@ class PromptRegistry:
             "valid_templates": [],
             "invalid_templates": [],
             "total_templates": len(self._templates),
-            "validation_errors": []
+            "validation_errors": [],
         }
 
         for name, template in self._templates.items():
@@ -514,7 +512,7 @@ class PromptRegistry:
 
             except Exception as e:
                 validation_results["invalid_templates"].append(name)
-                validation_results["validation_errors"].append(f"{name}: {str(e)}")
+                validation_results["validation_errors"].append(f"{name}: {e!s}")
 
         validation_results["success_rate"] = (
             len(validation_results["valid_templates"]) /

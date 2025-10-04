@@ -1,5 +1,4 @@
-"""
-Configuration bridge between EcoSystemiser and Hive platform.
+"""Configuration bridge between EcoSystemiser and Hive platform.
 
 This module provides integration between EcoSystemiser's domain-specific
 configuration and the unified Hive configuration system, following the
@@ -17,8 +16,7 @@ logger = get_logger(__name__)
 
 
 class EcoSystemiserConfig:
-    """
-    Configuration bridge that inherits from Hive platform and extends with
+    """Configuration bridge that inherits from Hive platform and extends with
     domain-specific EcoSystemiser settings.
 
     Follows the inherit→extend pattern:

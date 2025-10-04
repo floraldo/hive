@@ -1,9 +1,7 @@
-# ruff: noqa: S607
 # Security: subprocess calls in this module use system tools (git) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-Pytest plugin for collecting test execution data.
+"""Pytest plugin for collecting test execution data.
 
 Hooks into pytest execution to capture comprehensive test results
 and store them in the test intelligence database.
@@ -125,12 +123,11 @@ class TestIntelligencePlugin:
         """Convert pytest report outcome to TestStatus."""
         if report.passed:
             return TestStatus.PASSED
-        elif report.failed:
+        if report.failed:
             return TestStatus.FAILED
-        elif report.skipped:
+        if report.skipped:
             return TestStatus.SKIPPED
-        else:
-            return TestStatus.ERROR
+        return TestStatus.ERROR
 
     def _extract_package_name(self, test_id: str) -> str:
         """Extract package name from test ID."""
@@ -138,7 +135,7 @@ class TestIntelligencePlugin:
         parts = test_id.split("/")
         if len(parts) >= 2 and parts[0] == "packages":
             return parts[1]
-        elif len(parts) >= 2 and parts[0] == "apps":
+        if len(parts) >= 2 and parts[0] == "apps":
             return parts[1]
         return "unknown"
 
@@ -148,24 +145,23 @@ class TestIntelligencePlugin:
 
         if "/unit/" in file_path_lower or "\\unit\\" in file_path_lower:
             return TestType.UNIT
-        elif "/integration/" in file_path_lower or "\\integration\\" in file_path_lower:
+        if "/integration/" in file_path_lower or "\\integration\\" in file_path_lower:
             return TestType.INTEGRATION
-        elif "/e2e/" in file_path_lower or "\\e2e\\" in file_path_lower:
+        if "/e2e/" in file_path_lower or "\\e2e\\" in file_path_lower:
             return TestType.E2E
-        elif "/smoke/" in file_path_lower or "\\smoke\\" in file_path_lower:
+        if "/smoke/" in file_path_lower or "\\smoke\\" in file_path_lower:
             return TestType.SMOKE
-        elif "/benchmark/" in file_path_lower or "\\benchmark\\" in file_path_lower:
+        if "/benchmark/" in file_path_lower or "\\benchmark\\" in file_path_lower:
             return TestType.BENCHMARK
-        elif "/resilience/" in file_path_lower or "\\resilience\\" in file_path_lower:
+        if "/resilience/" in file_path_lower or "\\resilience\\" in file_path_lower:
             return TestType.RESILIENCE
-        else:
-            return TestType.UNIT  # Default to unit test
+        return TestType.UNIT  # Default to unit test
 
     def _get_git_commit(self) -> str | None:
         """Get current git commit hash."""
         try:
             result = subprocess.run(
-                ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=2, check=False
+                ["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=2, check=False,
             )
             if result.returncode == 0:
                 return result.stdout.strip()

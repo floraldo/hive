@@ -1,5 +1,4 @@
-"""
-Database Schema for Hive Orchestration
+"""Database Schema for Hive Orchestration
 
 Defines the database schema for tasks, workers, runs, and execution plans.
 """
@@ -14,8 +13,7 @@ logger = get_logger(__name__)
 
 
 def init_db() -> None:
-    """
-    Initialize the orchestration database with required tables.
+    """Initialize the orchestration database with required tables.
 
     Creates tables for:
     - tasks: Task definitions and lifecycle
@@ -176,8 +174,7 @@ def init_db() -> None:
 
 
 def _apply_memory_nexus_migration(conn) -> None:
-    """
-    Migration: Add Memory Nexus columns to existing tasks table.
+    """Migration: Add Memory Nexus columns to existing tasks table.
 
     This migration adds columns for the Intelligent Task & Memory Nexus:
     - summary: AI-generated executive summary
@@ -193,7 +190,7 @@ def _apply_memory_nexus_migration(conn) -> None:
         "summary": "TEXT",
         "generated_artifacts": "TEXT",
         "related_document_ids": "TEXT",
-        "knowledge_fragments": "TEXT"
+        "knowledge_fragments": "TEXT",
     }
 
     for column_name, column_type in memory_columns.items():

@@ -1,5 +1,4 @@
-"""
-Unit tests for retry module.
+"""Unit tests for retry module.
 
 Tests retry functionality using the tenacity library:
 - AsyncRetryConfig configuration
@@ -54,12 +53,12 @@ class TestAsyncRetryError:
     @pytest.mark.core
     def test_async_retry_error_creation(self):
         """Test AsyncRetryError with original error and attempts."""
-        original = (ValueError('Original error'),)
+        original = (ValueError("Original error"),)
         error = AsyncRetryError(original, attempts=3)
         assert error.original_error is original
         assert error.attempts == 3
-        assert 'Failed after 3 attempts' in str(error)
-        assert 'Original error' in str(error)
+        assert "Failed after 3 attempts" in str(error)
+        assert "Original error" in str(error)
 
 @pytest.mark.core
 class TestRunAsyncWithRetry:
@@ -74,10 +73,10 @@ class TestRunAsyncWithRetry:
         async def success_func():
             nonlocal call_count
             call_count += 1
-            return 'success'
+            return "success"
         config = (AsyncRetryConfig(max_attempts=3),)
         result = await run_async_with_retry_async(success_func, config)
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 1
 
     @pytest.mark.core
@@ -90,11 +89,11 @@ class TestRunAsyncWithRetry:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
-                raise ValueError(f'Attempt {call_count}')
-            return 'success'
+                raise ValueError(f"Attempt {call_count}")
+            return "success"
         config = AsyncRetryConfig(max_attempts=5, min_wait=0.01, max_wait=0.1)
         result = await run_async_with_retry_async(eventually_success_func, config)
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 3
 
     @pytest.mark.core
@@ -106,7 +105,7 @@ class TestRunAsyncWithRetry:
         async def always_fails():
             nonlocal call_count
             call_count += 1
-            raise ValueError(f'Attempt {call_count}')
+            raise ValueError(f"Attempt {call_count}")
         config = AsyncRetryConfig(max_attempts=3, min_wait=0.01, max_wait=0.1)
         with pytest.raises(AsyncRetryError) as exc_info:
             await run_async_with_retry_async(always_fails, config)
@@ -123,9 +122,9 @@ class TestRunAsyncWithRetry:
         async def success_func():
             nonlocal call_count
             call_count += 1
-            return 'success'
+            return "success"
         result = await run_async_with_retry_async(success_func, None)
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 1
 
     @pytest.mark.core
@@ -138,11 +137,11 @@ class TestRunAsyncWithRetry:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
-                raise ValueError('Retry this')
-            return 'success'
+                raise ValueError("Retry this")
+            return "success"
         config = AsyncRetryConfig(max_attempts=3, min_wait=0.01, max_wait=0.1, retry_exceptions=ValueError)
         result = await run_async_with_retry_async(specific_exception_func, config)
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 2
 
     @pytest.mark.core
@@ -154,7 +153,7 @@ class TestRunAsyncWithRetry:
         async def stop_exception_func():
             nonlocal call_count
             call_count += 1
-            raise TypeError('Stop immediately')
+            raise TypeError("Stop immediately")
         config = AsyncRetryConfig(max_attempts=5, min_wait=0.01, max_wait=0.1, retry_exceptions=Exception, stop_on_exceptions=(TypeError,))
         with pytest.raises(TypeError):
             await run_async_with_retry_async(stop_exception_func, config)
@@ -174,7 +173,7 @@ class TestRetryWithArguments:
             nonlocal call_count
             call_count += 1
             if call_count < 2:
-                raise ValueError('Retry')
+                raise ValueError("Retry")
             return a + b
         config = AsyncRetryConfig(max_attempts=3, min_wait=0.01, max_wait=0.1)
         result = await run_async_with_retry_async(func_with_args, config, 5, 10)
@@ -191,7 +190,7 @@ class TestRetryWithArguments:
             nonlocal call_count
             call_count += 1
             if call_count < 2:
-                raise ValueError('Retry')
+                raise ValueError("Retry")
             return a * b
         config = AsyncRetryConfig(max_attempts=3, min_wait=0.01, max_wait=0.1)
         result = await run_async_with_retry_async(func_with_kwargs, config, 5, b=3)
@@ -211,7 +210,7 @@ class TestRetryTiming:
 
         async def failing_func():
             call_times.append(time.time())
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         config = AsyncRetryConfig(max_attempts=3, min_wait=0.05, max_wait=0.2, multiplier=2.0)
         with pytest.raises(AsyncRetryError):
             await run_async_with_retry_async(failing_func, config)
@@ -234,10 +233,10 @@ class TestRetryEdgeCases:
         async def func():
             nonlocal call_count
             call_count += 1
-            return 'success'
+            return "success"
         config = AsyncRetryConfig(max_attempts=1, min_wait=0.01)
         result = await run_async_with_retry_async(func, config)
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 1
 
     @pytest.mark.core
@@ -249,10 +248,10 @@ class TestRetryEdgeCases:
         async def async_func():
             nonlocal call_count
             call_count += 1
-            return 'success'
+            return "success"
         config = (AsyncRetryConfig(max_attempts=3),)
         result = await run_async_with_retry_async(async_func, config)
-        assert result == 'success'
+        assert result == "success"
         assert call_count == 1
 
 @pytest.mark.core
@@ -263,10 +262,10 @@ class TestRetryWithMocks:
     @pytest.mark.asyncio
     async def test_retry_with_async_mock(self):
         """Test retry with AsyncMock."""
-        mock_func = AsyncMock(side_effect=[ValueError('retry'), ValueError('retry'), 'success'])
+        mock_func = AsyncMock(side_effect=[ValueError("retry"), ValueError("retry"), "success"])
         config = AsyncRetryConfig(max_attempts=5, min_wait=0.01, max_wait=0.1)
         result = await run_async_with_retry_async(mock_func, config)
-        assert result == 'success'
+        assert result == "success"
         assert mock_func.call_count == 3
 
     @pytest.mark.core
@@ -279,10 +278,10 @@ class TestRetryWithMocks:
             attempt = len(attempts) + 1
             attempts.append(attempt)
             if attempt < 4:
-                raise ValueError(f'Attempt {attempt}')
-            return f'success after {attempt} attempts'
+                raise ValueError(f"Attempt {attempt}")
+            return f"success after {attempt} attempts"
         config = AsyncRetryConfig(max_attempts=5, min_wait=0.01, max_wait=0.1)
         result = await run_async_with_retry_async(track_attempts, config)
-        assert result == 'success after 4 attempts'
+        assert result == "success after 4 attempts"
         assert len(attempts) == 4
         assert attempts == [1, 2, 3, 4]

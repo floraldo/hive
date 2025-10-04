@@ -23,6 +23,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
     Returns:
         Configured Flask application,
+
     """
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -30,7 +31,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     if config:
         app.config.update(config)
     else:
-        app.config["SECRET_KEY"] = "ecosystemiser-reporting-key"  # noqa: S105
+        app.config["SECRET_KEY"] = "ecosystemiser-reporting-key"
         app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
     # Initialize services
@@ -283,6 +284,7 @@ def run_server(host: str = "127.0.0.1", port: int = 5000, debug: bool = False) -
         host: Host to bind to
         port: Port to bind to
         debug: Enable debug mode,
+
     """
     app = create_app()
     logger.info(f"Starting EcoSystemiser Reporting Server on {host}:{port}")

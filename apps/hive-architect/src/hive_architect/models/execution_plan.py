@@ -1,5 +1,4 @@
-"""
-ExecutionPlan model - The contract between Architect and Coder agents.
+"""ExecutionPlan model - The contract between Architect and Coder agents.
 
 This is the machine-readable task list that the Architect generates
 and the Coder Agent consumes to produce production code.
@@ -61,8 +60,7 @@ class ExecutionTask(BaseModel):
 
 
 class ExecutionPlan(BaseModel):
-    """
-    Complete execution plan for generating a service.
+    """Complete execution plan for generating a service.
 
     This is the contract between Architect and Coder:
     - Architect generates this from natural language requirements

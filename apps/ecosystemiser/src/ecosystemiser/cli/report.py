@@ -17,7 +17,6 @@ logger = get_logger(__name__)
 @click.group()
 def report() -> None:
     """Report generation and server commands."""
-    pass
 
 
 @report.command()
@@ -30,6 +29,7 @@ def analyze(results_file: str, output: str | None, strategies: tuple, output_for
 
     Args:
         results_file: Path to simulation results JSON file,
+
     """
     try:
         # Initialize analyser
@@ -128,6 +128,7 @@ def generate(results_file: str, output: str) -> None:
 
     Args:
         results_file: Path to simulation results JSON file,
+
     """
     try:
         # Run analysis

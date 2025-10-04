@@ -1,5 +1,4 @@
-"""
-Predictive Monitoring Service Implementation
+"""Predictive Monitoring Service Implementation
 
 Provides predictive failure analysis integrated with hive-orchestrator.
 Follows orchestrator service patterns for consistency.
@@ -25,8 +24,7 @@ logger = get_logger(__name__)
 
 
 class PredictiveMonitoringService(IMonitoringService):
-    """
-    Predictive monitoring service integrated with hive-orchestrator.
+    """Predictive monitoring service integrated with hive-orchestrator.
 
     Follows dependency injection pattern and orchestrator conventions.
     Emits events via hive-bus for cross-app coordination.
@@ -39,14 +37,14 @@ class PredictiveMonitoringService(IMonitoringService):
         health_monitor: HealthMonitorProtocol | None = None,
         bus: EventBusProtocol | None = None,
     ):
-        """
-        Initialize monitoring service.
+        """Initialize monitoring service.
 
         Args:
             alert_manager: Predictive alert manager instance (required)
             error_reporter: MonitoringErrorReporter instance (optional)
             health_monitor: HealthMonitor instance (optional)
             bus: Event bus for cross-app events (optional)
+
         """
         if not alert_manager:
             raise MonitoringConfigurationError("alert_manager is required")
@@ -67,11 +65,11 @@ class PredictiveMonitoringService(IMonitoringService):
         logger.info("PredictiveMonitoringService initialized")
 
     async def run_analysis_cycle(self) -> dict[str, Any]:
-        """
-        Run single predictive analysis cycle.
+        """Run single predictive analysis cycle.
 
         Returns:
             Analysis results with alerts and statistics
+
         """
         start_time = datetime.utcnow()
         logger.info("Starting predictive analysis cycle")
@@ -140,14 +138,14 @@ class PredictiveMonitoringService(IMonitoringService):
             return {"success": False, "error": str(e), "timestamp": start_time.isoformat()}
 
     async def start_continuous_monitoring(self, interval_minutes: int) -> None:
-        """
-        Start continuous monitoring with periodic analysis.
+        """Start continuous monitoring with periodic analysis.
 
         Args:
             interval_minutes: Interval between analysis cycles
 
         Raises:
             KeyboardInterrupt: When monitoring is stopped by user
+
         """
         logger.info(f"Starting continuous monitoring (interval: {interval_minutes} minutes)")
 
@@ -166,11 +164,11 @@ class PredictiveMonitoringService(IMonitoringService):
             logger.info(f"Final statistics: {stats}")
 
     async def _collect_metrics_async(self) -> dict[tuple[str, MetricType], list[MetricPoint]]:
-        """
-        Collect metrics from monitoring systems.
+        """Collect metrics from monitoring systems.
 
         Returns:
             Dictionary mapping (service, metric_type) to metric points
+
         """
         metrics = {}
 
@@ -204,11 +202,11 @@ class PredictiveMonitoringService(IMonitoringService):
         return metrics
 
     async def _emit_alert_event_async(self, alert: Any) -> None:
-        """
-        Emit alert event via event bus.
+        """Emit alert event via event bus.
 
         Args:
             alert: Predictive alert to emit
+
         """
         if not self._bus:
             return
@@ -240,23 +238,23 @@ class PredictiveMonitoringService(IMonitoringService):
             logger.warning(f"Failed to emit alert event: {e}")
 
     def get_metrics(self) -> dict[str, Any]:
-        """
-        Get monitoring service health metrics.
+        """Get monitoring service health metrics.
 
         Returns:
             Service metrics and statistics
+
         """
         return {**self.run_stats, "alert_manager_stats": self.alert_manager.get_stats() if self.alert_manager else {}}
 
     def get_component_health(self, component: str) -> dict[str, Any]:
-        """
-        Get health status for specific component.
+        """Get health status for specific component.
 
         Args:
             component: Component name
 
         Returns:
             Health metrics for component
+
         """
         if not self._error_reporter:
             return {"error": "error_reporter not configured"}

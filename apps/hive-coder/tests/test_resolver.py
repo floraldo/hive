@@ -1,5 +1,4 @@
-"""
-Tests for DependencyResolver - task ordering logic.
+"""Tests for DependencyResolver - task ordering logic.
 """
 
 from __future__ import annotations
@@ -136,7 +135,7 @@ class TestDependencyResolver:
                     "task_type": "scaffold",
                     "description": "Scaffold",
                     "dependencies": [{"task_id": "T999"}],
-                }
+                },
             ],
         }
 

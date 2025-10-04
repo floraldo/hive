@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-AST-Based Safe Comma Fixer - EXAMPLE TEMPLATE
+"""AST-Based Safe Comma Fixer - EXAMPLE TEMPLATE
 
 This demonstrates the CORRECT approach to fixing Python syntax issues:
 - Uses AST for context-aware understanding
@@ -39,7 +38,7 @@ class ASTSafeCommaFixer:
         shutil.copy2(backup_path, filepath)
 
     def validate_structure_preservation(
-        self, original_ast: ast.Module | None, new_ast: ast.Module
+        self, original_ast: ast.Module | None, new_ast: ast.Module,
     ) -> bool:
         """Verify AST structure hasn't changed unexpectedly."""
         if original_ast is None:
@@ -61,8 +60,7 @@ class ASTSafeCommaFixer:
         return True
 
     def fix_specific_patterns(self, tree: ast.Module) -> tuple[ast.Module, int]:
-        """
-        Fix ONLY specific, known-safe patterns using AST.
+        """Fix ONLY specific, known-safe patterns using AST.
 
         This is a TEMPLATE - implement actual fixes here.
         Example fixes you could implement:
@@ -132,10 +130,9 @@ class ASTSafeCommaFixer:
                     self.fixes_applied += fixes
                     print(f"✓ FIXED: {filepath} ({fixes} fixes)")
                     return True
-                else:
-                    # File was already broken - can't fix with AST
-                    print(f"✗ SKIP: {filepath} - syntax errors prevent AST parsing")
-                    return False
+                # File was already broken - can't fix with AST
+                print(f"✗ SKIP: {filepath} - syntax errors prevent AST parsing")
+                return False
 
             except SyntaxError as e:
                 # Fix introduced errors - ABORT

@@ -56,6 +56,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         Args:
             system: System to optimize
             config: Rolling horizon configuration,
+
         """
         super().__init__(system, config or RollingHorizonConfig())
         self.rh_config = config or RollingHorizonConfig()
@@ -78,6 +79,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             RollingHorizonResult with aggregated solution,
+
         """
         logger.info("Starting rolling horizon MILP optimization")
         logger.info(f"Total horizon: {self.system.N} timesteps")
@@ -201,6 +203,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             List of window specifications,
+
         """
         windows = [],
         current_start = 0,
@@ -239,6 +242,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             System configured for this window,
+
         """
         window_size = window["prediction_end"] - window["start"]
 
@@ -283,6 +287,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         Args:
             window_system: System for this window
             window: Window specification,
+
         """
         for comp_name, comp in window_system.components.items():
             if comp_name in self.storage_states and hasattr(comp, "E_init"):
@@ -301,6 +306,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             SolverResult for this window,
+
         """
         # Create standard MILP solver for this window
         milp_config = SolverConfig(
@@ -323,6 +329,7 @@ class RollingHorizonMILPSolver(BaseSolver):
         Args:
             solver: MILP solver to warmstart
             window: Current window specification,
+
         """
         if not self.window_results or not self.rh_config.warmstart:
             logger.debug("No previous solution for warmstart")
@@ -437,6 +444,7 @@ class RollingHorizonMILPSolver(BaseSolver):
             window_result: Result from window optimization
             window: Window specification
             window_idx: Index of this window,
+
         """
         if window_result.status not in ["optimal", "feasible"]:
             logger.warning(f"Cannot apply solution from window {window_idx}: status {window_result.status}")
@@ -498,6 +506,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             List of storage violations detected,
+
         """
         violations = []
 
@@ -577,6 +586,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             Dictionary of full solution arrays,
+
         """
         solution = {}
 
@@ -720,6 +730,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             Dictionary of validation metrics,
+
         """
         validation = {
             "storage_continuity_violations": 0,
@@ -794,6 +805,7 @@ class RollingHorizonMILPSolver(BaseSolver):
 
         Returns:
             Dictionary of solution vectors by component and variable,
+
         """
         solution_vectors = {}
 

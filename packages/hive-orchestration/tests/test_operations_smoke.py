@@ -1,5 +1,4 @@
-"""
-Smoke tests for orchestration operations.
+"""Smoke tests for orchestration operations.
 
 Tests basic operation functionality without requiring all dependencies.
 """
@@ -13,7 +12,7 @@ import pytest
 def test_database_schema():
     """Test database schema initialization."""
     from hive_orchestration.database.operations import get_connection
-    with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+    with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
         db_path = f.name
     try:
         from hive_orchestration.database import transaction
@@ -22,7 +21,7 @@ def test_database_schema():
         with get_connection(db_path) as conn:
             cursor = (conn.execute("SELECT name FROM sqlite_master WHERE type='table'"),)
             tables = [row[0] for row in cursor.fetchall()]
-            assert 'tasks' in tables
+            assert "tasks" in tables
     finally:
         import gc
         import time
@@ -83,6 +82,6 @@ def test_database_operations_importable():
     assert callable(get_connection)
     assert callable(transaction)
     assert callable(init_db)
-if __name__ == '__main__':
+if __name__ == "__main__":
     import pytest
-    pytest.main([__file__, '-v'])
+    pytest.main([__file__, "-v"])

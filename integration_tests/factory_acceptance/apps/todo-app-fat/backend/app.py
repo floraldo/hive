@@ -16,7 +16,7 @@ def init_db():
     conn = sqlite3.connect(str(DATABASE_PATH))
     cursor = conn.cursor()
     cursor.execute(
-        "CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, title TEXT NOT NULL, completed BOOLEAN DEFAULT FALSE)"
+        "CREATE TABLE IF NOT EXISTS todos (id INTEGER PRIMARY KEY, title TEXT NOT NULL, completed BOOLEAN DEFAULT FALSE)",
     )
     cursor.execute("INSERT OR IGNORE INTO todos (id, title, completed) VALUES (1, 'Complete FAT test', FALSE)")
     cursor.execute("INSERT OR IGNORE INTO todos (id, title, completed) VALUES (2, 'Test multi-component app', FALSE)")
@@ -32,7 +32,7 @@ def health_check():
             "service": "todo-backend",
             "generated_by": "hive_autonomous_agents",
             "test_type": "multi_component_fat",
-        }
+        },
     )
 
 
@@ -60,7 +60,7 @@ def create_todo():
         conn = sqlite3.connect(str(DATABASE_PATH))
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO todos (title, completed) VALUES (?, ?)", (data["title"], data.get("completed", False))
+            "INSERT INTO todos (title, completed) VALUES (?, ?)", (data["title"], data.get("completed", False)),
         )
         todo_id = cursor.lastrowid
         conn.commit()
@@ -120,4 +120,4 @@ def serve_frontend():
 if __name__ == "__main__":
     init_db()
     print("Starting Todo Backend on port 5003...")
-    app.run(host="0.0.0.0", port=5003, debug=False)  # noqa: S104
+    app.run(host="0.0.0.0", port=5003, debug=False)

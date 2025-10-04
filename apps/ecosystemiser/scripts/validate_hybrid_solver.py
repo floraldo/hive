@@ -9,6 +9,7 @@ Usage:
 
 Example:
     python scripts/validate_hybrid_solver.py --system config/systems/golden_residential_microgrid.yml --hours 168
+
 """
 
 import argparse
@@ -37,6 +38,7 @@ class HybridSolverValidator:
         Args:
             system_config_path: Path to system YAML config
             target_hours: Target simulation horizon (default 168 = 1 week)
+
         """
         self.system_config_path = system_config_path
         self.target_hours = target_hours
@@ -51,6 +53,7 @@ class HybridSolverValidator:
 
         Returns:
             Scale factor for profile extension
+
         """
         if target_hours <= base_hours:
             return 1
@@ -64,6 +67,7 @@ class HybridSolverValidator:
 
         Returns:
             dict: Validation results with performance metrics
+
         """
         logger.info("=" * 80)
         logger.info("HYBRID SOLVER PRODUCTION VALIDATION")

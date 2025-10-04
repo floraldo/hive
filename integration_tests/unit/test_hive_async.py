@@ -27,9 +27,9 @@ class TestCircuitState:
     @pytest.mark.crust
     def test_circuit_state_values(self):
         """Test CircuitState enum values."""
-        assert CircuitState.CLOSED.value == 'closed'
-        assert CircuitState.OPEN.value == 'open'
-        assert CircuitState.HALF_OPEN.value == 'half_open'
+        assert CircuitState.CLOSED.value == "closed"
+        assert CircuitState.OPEN.value == "open"
+        assert CircuitState.HALF_OPEN.value == "half_open"
 
 @pytest.mark.crust
 class TestAsyncCircuitBreaker:
@@ -54,9 +54,9 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker(failure_threshold=2)
 
         async def successful_operation():
-            return 'success'
+            return "success"
         result = await breaker.call_async(successful_operation)
-        assert result == 'success'
+        assert result == "success"
         assert breaker.failure_count == 0
         assert breaker.state == CircuitState.CLOSED
 
@@ -67,7 +67,7 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker(failure_threshold=2)
 
         async def failing_operation():
-            raise ValueError('Test failure')
+            raise ValueError("Test failure")
         with pytest.raises(ValueError):
             await breaker.call_async(failing_operation)
         assert breaker.failure_count == 1
@@ -85,7 +85,7 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker(failure_threshold=1)
 
         async def failing_operation():
-            raise ValueError('Test failure')
+            raise ValueError("Test failure")
         with pytest.raises(ValueError):
             await breaker.call_async(failing_operation)
         assert breaker.state == CircuitState.OPEN
@@ -99,10 +99,10 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker(failure_threshold=1, recovery_timeout=0.1)
 
         async def failing_operation():
-            raise ValueError('Test failure')
+            raise ValueError("Test failure")
 
         async def successful_operation():
-            return 'recovered'
+            return "recovered"
         with pytest.raises(ValueError):
             await breaker.call_async(failing_operation)
         assert breaker.state == CircuitState.OPEN
@@ -110,7 +110,7 @@ class TestAsyncCircuitBreaker:
             await breaker.call_async(successful_operation)
         await asyncio.sleep(0.2)
         result = await breaker.call_async(successful_operation)
-        assert result == 'recovered'
+        assert result == "recovered"
         assert breaker.state == CircuitState.CLOSED
         assert breaker.failure_count == 0
 
@@ -121,7 +121,7 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker(failure_threshold=1, recovery_timeout=0.1)
 
         async def failing_operation():
-            raise ValueError('Still failing')
+            raise ValueError("Still failing")
         with pytest.raises(ValueError):
             await breaker.call_async(failing_operation)
         await asyncio.sleep(0.2)
@@ -136,7 +136,7 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker(failure_threshold=1)
 
         async def failing_operation():
-            raise ValueError('Test failure')
+            raise ValueError("Test failure")
         with pytest.raises(ValueError):
             await breaker.call_async(failing_operation)
         assert breaker.state == CircuitState.OPEN
@@ -152,9 +152,9 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker()
 
         def sync_function():
-            return 'sync_result'
+            return "sync_result"
         result = await breaker.call_async(sync_function)
-        assert result == 'sync_result'
+        assert result == "sync_result"
 
     @pytest.mark.crust
     def test_circuit_breaker_status(self):
@@ -162,10 +162,10 @@ class TestAsyncCircuitBreaker:
         breaker = AsyncCircuitBreaker(failure_threshold=3, recovery_timeout=60)
         breaker.failure_count = 2
         status = breaker.get_status()
-        assert status['state'] == 'closed'
-        assert status['failure_count'] == 2
-        assert status['failure_threshold'] == 3
-        assert status['recovery_timeout'] == 60
+        assert status["state"] == "closed"
+        assert status["failure_count"] == 2
+        assert status["failure_threshold"] == 3
+        assert status["recovery_timeout"] == 60
 
 @pytest.mark.crust
 class TestAsyncTimeoutManager:
@@ -187,13 +187,13 @@ class TestAsyncTimeoutManager:
 
         async def quick_operation():
             await asyncio.sleep(0.01)
-            return 'completed'
-        result = await manager.run_with_timeout_async(quick_operation(), operation_name='test_op')
-        assert result == 'completed'
+            return "completed"
+        result = await manager.run_with_timeout_async(quick_operation(), operation_name="test_op")
+        assert result == "completed"
         stats = manager.get_statistics()
-        assert stats['active_tasks'] == 0
-        assert 'test_op' in stats['operation_stats']
-        assert stats['operation_stats']['test_op']['successful_calls'] == 1
+        assert stats["active_tasks"] == 0
+        assert "test_op" in stats["operation_stats"]
+        assert stats["operation_stats"]["test_op"]["successful_calls"] == 1
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -203,15 +203,15 @@ class TestAsyncTimeoutManager:
 
         async def slow_operation():
             await asyncio.sleep(1.0)
-            return 'too_slow'
+            return "too_slow"
         with pytest.raises(AsyncTimeoutError) as exc_info:
-            await manager.run_with_timeout_async(slow_operation(), operation_name='slow_op')
-        assert 'slow_op' in str(exc_info.value)
-        assert exc_info.value.operation == 'slow_op'
+            await manager.run_with_timeout_async(slow_operation(), operation_name="slow_op")
+        assert "slow_op" in str(exc_info.value)
+        assert exc_info.value.operation == "slow_op"
         assert exc_info.value.timeout_duration == 0.1
         stats = manager.get_statistics()
-        assert 'slow_op' in stats['operation_stats']
-        assert stats['operation_stats']['slow_op']['timeouts'] == 1
+        assert "slow_op" in stats["operation_stats"]
+        assert stats["operation_stats"]["slow_op"]["timeouts"] == 1
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -221,9 +221,9 @@ class TestAsyncTimeoutManager:
 
         async def slow_operation():
             await asyncio.sleep(1.0)
-            return 'too_slow'
-        result = await manager.run_with_timeout_async(slow_operation(), operation_name='slow_op', fallback='fallback_value')
-        assert result == 'fallback_value'
+            return "too_slow"
+        result = await manager.run_with_timeout_async(slow_operation(), operation_name="slow_op", fallback="fallback_value")
+        assert result == "fallback_value"
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -233,9 +233,9 @@ class TestAsyncTimeoutManager:
 
         async def medium_operation():
             await asyncio.sleep(0.2)
-            return 'completed'
+            return "completed"
         result = await manager.run_with_timeout_async(medium_operation(), timeout=0.5)
-        assert result == 'completed'
+        assert result == "completed"
         with pytest.raises(AsyncTimeoutError):
             await manager.run_with_timeout_async(medium_operation(), timeout=0.1)
 
@@ -247,7 +247,7 @@ class TestAsyncTimeoutManager:
 
         async def long_operation():
             await asyncio.sleep(10)
-            return 'done'
+            return "done"
         task1 = asyncio.create_task(manager.run_with_timeout_async(long_operation()))
         task2 = asyncio.create_task(manager.run_with_timeout_async(long_operation()))
         await asyncio.sleep(0.01)
@@ -259,16 +259,16 @@ class TestAsyncTimeoutManager:
     def test_timeout_manager_statistics(self):
         """Test timeout manager statistics tracking."""
         manager = AsyncTimeoutManager(default_timeout=5.0)
-        manager._update_stats('test_op', 0.5, success=True)
-        manager._update_stats('test_op', 0.3, success=True)
-        manager._update_stats('test_op', 1.0, success=False)
+        manager._update_stats("test_op", 0.5, success=True)
+        manager._update_stats("test_op", 0.3, success=True)
+        manager._update_stats("test_op", 1.0, success=False)
         stats = manager.get_statistics()
-        op_stats = stats['operation_stats']['test_op']
-        assert op_stats['total_calls'] == 3
-        assert op_stats['successful_calls'] == 2
-        assert op_stats['timeouts'] == 1
-        assert op_stats['success_rate'] == 2 / 3
-        assert op_stats['avg_time'] == (0.5 + 0.3 + 1.0) / 3
+        op_stats = stats["operation_stats"]["test_op"]
+        assert op_stats["total_calls"] == 3
+        assert op_stats["successful_calls"] == 2
+        assert op_stats["timeouts"] == 1
+        assert op_stats["success_rate"] == 2 / 3
+        assert op_stats["avg_time"] == (0.5 + 0.3 + 1.0) / 3
 
 @pytest.mark.crust
 class TestAsyncDecoratorPatterns:
@@ -282,10 +282,10 @@ class TestAsyncDecoratorPatterns:
         @async_circuit_breaker(failure_threshold=2, recovery_timeout=0.1)
         async def decorated_function(should_fail=False):
             if should_fail:
-                raise ValueError('Decorated failure')
-            return 'success'
+                raise ValueError("Decorated failure")
+            return "success"
         result = await decorated_function(should_fail=False)
-        assert result == 'success'
+        assert result == "success"
         with pytest.raises(ValueError):
             await decorated_function(should_fail=True)
         with pytest.raises(ValueError):
@@ -298,12 +298,12 @@ class TestAsyncDecoratorPatterns:
     async def test_async_timeout_decorator(self):
         """Test async timeout decorator."""
 
-        @async_timeout(seconds=0.1, operation_name='decorated_timeout_test')
+        @async_timeout(seconds=0.1, operation_name="decorated_timeout_test")
         async def decorated_function(delay=0.01):
             await asyncio.sleep(delay)
-            return 'completed'
+            return "completed"
         result = await decorated_function(delay=0.01)
-        assert result == 'completed'
+        assert result == "completed"
         with pytest.raises(AsyncTimeoutError):
             await decorated_function(delay=1.0)
 
@@ -313,16 +313,16 @@ class TestAsyncDecoratorPatterns:
         """Test composite async resilient decorator."""
         call_count = 0
 
-        @async_resilient(timeout=0.2, circuit_failure_threshold=2, circuit_recovery_timeout=0.1, operation_name='resilient_test')
+        @async_resilient(timeout=0.2, circuit_failure_threshold=2, circuit_recovery_timeout=0.1, operation_name="resilient_test")
         async def decorated_function(should_fail=False, delay=0.01):
             nonlocal call_count
             call_count += 1
             if should_fail:
-                raise ValueError(f'Failure #{call_count}')
+                raise ValueError(f"Failure #{call_count}")
             await asyncio.sleep(delay)
-            return f'success_{call_count}'
+            return f"success_{call_count}"
         result = await decorated_function()
-        assert result == 'success_1'
+        assert result == "success_1"
         with pytest.raises(AsyncTimeoutError):
             await decorated_function(delay=1.0)
         with pytest.raises(ValueError):
@@ -382,9 +382,9 @@ class TestAsyncRetryDecorator:
         async def sometimes_failing_function():
             nonlocal call_count
             call_count += 1
-            return f'success_{call_count}'
+            return f"success_{call_count}"
         result = await sometimes_failing_function()
-        assert result == 'success_1'
+        assert result == "success_1"
         assert call_count == 1
 
     @pytest.mark.crust
@@ -398,10 +398,10 @@ class TestAsyncRetryDecorator:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
-                raise ValueError(f'Attempt {call_count} failed')
-            return 'finally_succeeded'
+                raise ValueError(f"Attempt {call_count} failed")
+            return "finally_succeeded"
         result = await eventually_succeeding_function()
-        assert result == 'finally_succeeded'
+        assert result == "finally_succeeded"
         assert call_count == 3
 
     @pytest.mark.crust
@@ -414,7 +414,7 @@ class TestAsyncRetryDecorator:
         async def always_failing_function():
             nonlocal call_count
             call_count += 1
-            raise ValueError(f'Attempt {call_count} failed')
+            raise ValueError(f"Attempt {call_count} failed")
         with pytest.raises(ValueError):
             await always_failing_function()
         assert call_count == 2
@@ -430,10 +430,10 @@ class TestAsyncRetryDecorator:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
-                raise ConnectionError('Connection failed')
-            return 'connected'
+                raise ConnectionError("Connection failed")
+            return "connected"
         result = await connection_function()
-        assert result == 'connected'
+        assert result == "connected"
         assert call_count == 3
 
     @pytest.mark.crust
@@ -448,21 +448,21 @@ class TestAsyncRetryDecorator:
             nonlocal call_count
             call_count += 1
             if call_count == 1:
-                if error_type == 'value':
-                    raise ValueError('Value error')
-                elif error_type == 'type':
-                    raise TypeError('Type error')
-                elif error_type == 'runtime':
-                    raise RuntimeError('Runtime error')
-            return 'success'
-        result = await custom_retry_function('value')
-        assert result == 'success'
+                if error_type == "value":
+                    raise ValueError("Value error")
+                elif error_type == "type":
+                    raise TypeError("Type error")
+                elif error_type == "runtime":
+                    raise RuntimeError("Runtime error")
+            return "success"
+        result = await custom_retry_function("value")
+        assert result == "success"
         call_count = 0
-        result = await custom_retry_function('type')
-        assert result == 'success'
+        result = await custom_retry_function("type")
+        assert result == "success"
         call_count = 0
         with pytest.raises(RuntimeError):
-            await custom_retry_function('runtime')
+            await custom_retry_function("runtime")
         assert call_count == 1
 
 @pytest.mark.crust
@@ -478,15 +478,15 @@ class TestAsyncResourceManager:
 
         async def acquire_resource(name):
             acquired_resources.append(name)
-            return f'resource_{name}'
+            return f"resource_{name}"
 
         async def release_resource(resource):
             released_resources.append(resource)
         async with AsyncResourceManager() as manager:
-            resource1 = await manager.acquire_async('db', acquire_resource, 'database')
-            resource2 = await manager.acquire_async('cache', acquire_resource, 'cache')
-            assert resource1 == 'resource_database'
-            assert resource2 == 'resource_cache'
+            resource1 = await manager.acquire_async("db", acquire_resource, "database")
+            resource2 = await manager.acquire_async("cache", acquire_resource, "cache")
+            assert resource1 == "resource_database"
+            assert resource2 == "resource_cache"
             assert len(acquired_resources) == 2
 
     @pytest.mark.crust
@@ -495,13 +495,13 @@ class TestAsyncResourceManager:
         """Test async context decorator."""
         resources_used = []
 
-        @async_context('test_context')
+        @async_context("test_context")
         async def context_function():
-            resources_used.append('function_executed')
-            return 'context_result'
+            resources_used.append("function_executed")
+            return "context_result"
         result = await context_function()
-        assert result == 'context_result'
-        assert 'function_executed' in resources_used
+        assert result == "context_result"
+        assert "function_executed" in resources_used
 
 @pytest.mark.crust
 class TestTaskUtilities:
@@ -516,11 +516,11 @@ class TestTaskUtilities:
         async def tracked_task(task_id, delay=0.01):
             call_times.append((task_id, time.time()))
             await asyncio.sleep(delay)
-            return f'task_{task_id}'
+            return f"task_{task_id}"
         tasks = [tracked_task(i) for i in range(5)]
         results = await gather_with_concurrency(tasks, max_concurrency=2)
         assert len(results) == 5
-        assert all(f'task_{i}' in results for i in range(5))
+        assert all(f"task_{i}" in results for i in range(5))
         start_times = [t[1] for t in call_times]
         time_span = max(start_times) - min(start_times)
         assert time_span > 0
@@ -532,9 +532,9 @@ class TestTaskUtilities:
 
         async def quick_task():
             await asyncio.sleep(0.01)
-            return 'completed'
+            return "completed"
         result = await run_with_timeout(quick_task(), timeout=1.0)
-        assert result == 'completed'
+        assert result == "completed"
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -543,7 +543,7 @@ class TestTaskUtilities:
 
         async def slow_task():
             await asyncio.sleep(1.0)
-            return 'too_slow'
+            return "too_slow"
         with pytest.raises(asyncio.TimeoutError):
             await run_with_timeout(slow_task(), timeout=0.1)
 
@@ -580,33 +580,33 @@ class TestAdvancedTimeoutManager:
         @pytest.mark.crust
         async def test_operation():
             await asyncio.sleep(0.01)
-            return 'success'
-        result = await manager.execute_with_timeout_async(test_operation(), operation_name='test_op')
-        assert result == 'success'
+            return "success"
+        result = await manager.execute_with_timeout_async(test_operation(), operation_name="test_op")
+        assert result == "success"
         metrics = manager.get_metrics()
-        assert 'test_op' in metrics
-        assert metrics['test_op'].successful_operations == 1
+        assert "test_op" in metrics
+        assert metrics["test_op"].successful_operations == 1
 
     @pytest.mark.crust
     @pytest.mark.asyncio
     async def test_timeout_context_manager(self):
         """Test timeout context manager."""
-        async with timeout_context(timeout=1.0, operation_name='context_test'):
+        async with timeout_context(timeout=1.0, operation_name="context_test"):
             await asyncio.sleep(0.01)
-            result = 'context_success'
-        assert result == 'context_success'
+            result = "context_success"
+        assert result == "context_success"
 
     @pytest.mark.crust
     @pytest.mark.asyncio
     async def test_with_adaptive_timeout_decorator(self):
         """Test adaptive timeout decorator."""
 
-        @with_adaptive_timeout(base_timeout=0.5, operation_name='adaptive_test')
+        @with_adaptive_timeout(base_timeout=0.5, operation_name="adaptive_test")
         async def adaptive_function():
             await asyncio.sleep(0.01)
-            return 'adaptive_success'
+            return "adaptive_success"
         result = await adaptive_function()
-        assert result == 'adaptive_success'
+        assert result == "adaptive_success"
 
 @pytest.mark.crust
 class TestAsyncIntegration:
@@ -621,17 +621,17 @@ class TestAsyncIntegration:
 
         async def integrated_operation(should_fail=False, delay=0.01):
             if should_fail:
-                raise ValueError('Integrated failure')
+                raise ValueError("Integrated failure")
             await asyncio.sleep(delay)
-            return 'integrated_success'
+            return "integrated_success"
 
         async def wrapped_success():
-            return await breaker.call_async(lambda: timeout_manager.run_with_timeout_async(integrated_operation(), operation_name='integrated_test'))
+            return await breaker.call_async(lambda: timeout_manager.run_with_timeout_async(integrated_operation(), operation_name="integrated_test"))
         result = await wrapped_success()
-        assert result == 'integrated_success'
+        assert result == "integrated_success"
 
         async def wrapped_timeout():
-            return await breaker.call_async(lambda: timeout_manager.run_with_timeout_async(integrated_operation(delay=1.0), operation_name='timeout_test'))
+            return await breaker.call_async(lambda: timeout_manager.run_with_timeout_async(integrated_operation(delay=1.0), operation_name="timeout_test"))
         with pytest.raises(AsyncTimeoutError):
             await wrapped_timeout()
         with pytest.raises(AsyncTimeoutError):
@@ -650,10 +650,10 @@ class TestAsyncIntegration:
             nonlocal call_count
             call_count += 1
             if call_count < 3:
-                raise ValueError(f'Attempt {call_count}')
-            return 'retry_success'
+                raise ValueError(f"Attempt {call_count}")
+            return "retry_success"
         result = await integrated_retry_function()
-        assert result == 'retry_success'
+        assert result == "retry_success"
         assert call_count == 3
 
     @pytest.mark.crust
@@ -664,25 +664,25 @@ class TestAsyncIntegration:
 
         @async_resilient(timeout=0.5, circuit_failure_threshold=2, circuit_recovery_timeout=0.1)
         @async_retry(max_attempts=3, base_delay=0.01)
-        async def resilient_operation(mode='success'):
+        async def resilient_operation(mode="success"):
             nonlocal operation_count
             operation_count += 1
-            if mode == 'timeout':
+            if mode == "timeout":
                 await asyncio.sleep(1.0)
-            elif mode == 'failure' and operation_count < 3:
-                raise ValueError('Temporary failure')
-            elif mode == 'permanent_failure':
-                raise ValueError('Permanent failure')
-            return f'resilient_success_{operation_count}'
+            elif mode == "failure" and operation_count < 3:
+                raise ValueError("Temporary failure")
+            elif mode == "permanent_failure":
+                raise ValueError("Permanent failure")
+            return f"resilient_success_{operation_count}"
         operation_count = 0
-        result = await resilient_operation('success')
-        assert result == 'resilient_success_1'
+        result = await resilient_operation("success")
+        assert result == "resilient_success_1"
         operation_count = 0
-        result = await resilient_operation('failure')
-        assert result == 'resilient_success_3'
+        result = await resilient_operation("failure")
+        assert result == "resilient_success_3"
         operation_count = 0
         with pytest.raises(AsyncTimeoutError):
-            await resilient_operation('timeout')
+            await resilient_operation("timeout")
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -692,11 +692,11 @@ class TestAsyncIntegration:
         @async_resilient(timeout=0.2, circuit_failure_threshold=3)
         async def concurrent_operation(operation_id, delay=0.01):
             await asyncio.sleep(delay)
-            return f'concurrent_{operation_id}'
+            return f"concurrent_{operation_id}"
         tasks = [concurrent_operation(i, 0.01) for i in range(10)]
         results = await asyncio.gather(*tasks)
         assert len(results) == 10
-        assert all(f'concurrent_{i}' in results for i in range(10))
+        assert all(f"concurrent_{i}" in results for i in range(10))
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -705,9 +705,9 @@ class TestAsyncIntegration:
         cleanup_called = []
 
         async def cleanup_function():
-            cleanup_called.append('cleaned')
+            cleanup_called.append("cleaned")
         async with AsyncResourceManager() as manager:
             manager.add_cleanup_async(cleanup_function)
-            raise ValueError('Test failure')
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+            raise ValueError("Test failure")
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

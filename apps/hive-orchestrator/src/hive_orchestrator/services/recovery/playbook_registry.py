@@ -1,5 +1,4 @@
-"""
-Recovery Playbook Registry
+"""Recovery Playbook Registry
 
 PROJECT CHIMERA Phase 3: Self-Healing Feedback Loop
 Central registry for all recovery playbooks.
@@ -20,8 +19,7 @@ logger = get_logger(__name__)
 
 
 class RecoveryPlaybookRegistry:
-    """
-    Registry for recovery playbooks.
+    """Registry for recovery playbooks.
 
     Manages available playbooks and routes alerts to appropriate handlers.
     """
@@ -32,11 +30,11 @@ class RecoveryPlaybookRegistry:
         logger.info("RecoveryPlaybookRegistry initialized")
 
     def register(self, playbook: RecoveryPlaybook) -> None:
-        """
-        Register a recovery playbook.
+        """Register a recovery playbook.
 
         Args:
             playbook: RecoveryPlaybook instance to register
+
         """
         if playbook.playbook_id in self.playbooks:
             logger.warning(f"Playbook {playbook.playbook_id} already registered, replacing")
@@ -44,15 +42,15 @@ class RecoveryPlaybookRegistry:
         self.playbooks[playbook.playbook_id] = playbook
         logger.info(
             f"Registered playbook: {playbook.playbook_id} "
-            f"(handles {len(playbook.target_signatures)} signature patterns)"
+            f"(handles {len(playbook.target_signatures)} signature patterns)",
         )
 
     def unregister(self, playbook_id: str) -> None:
-        """
-        Unregister a playbook.
+        """Unregister a playbook.
 
         Args:
             playbook_id: ID of playbook to remove
+
         """
         if playbook_id in self.playbooks:
             del self.playbooks[playbook_id]
@@ -64,10 +62,9 @@ class RecoveryPlaybookRegistry:
         self,
         service_name: str,
         metric_type: str,
-        condition: str | None = None
+        condition: str | None = None,
     ) -> RecoveryPlaybook | None:
-        """
-        Find appropriate playbook for given alert attributes.
+        """Find appropriate playbook for given alert attributes.
 
         Args:
             service_name: Service name from alert
@@ -76,12 +73,13 @@ class RecoveryPlaybookRegistry:
 
         Returns:
             Matching RecoveryPlaybook or None if not found
+
         """
         for playbook in self.playbooks.values():
             if playbook.matches_alert(service_name, metric_type, condition):
                 logger.info(
                     f"Found matching playbook: {playbook.playbook_id} "
-                    f"for {service_name}/{metric_type}"
+                    f"for {service_name}/{metric_type}",
                 )
                 return playbook
 
@@ -89,8 +87,7 @@ class RecoveryPlaybookRegistry:
         return None
 
     def get_playbook(self, playbook_id: str) -> RecoveryPlaybook:
-        """
-        Get playbook by ID.
+        """Get playbook by ID.
 
         Args:
             playbook_id: Playbook identifier
@@ -100,6 +97,7 @@ class RecoveryPlaybookRegistry:
 
         Raises:
             PlaybookNotFoundError: If playbook doesn't exist
+
         """
         if playbook_id not in self.playbooks:
             raise PlaybookNotFoundError(f"Playbook not found: {playbook_id}")
@@ -107,11 +105,11 @@ class RecoveryPlaybookRegistry:
         return self.playbooks[playbook_id]
 
     def list_playbooks(self) -> list[dict[str, str]]:
-        """
-        List all registered playbooks.
+        """List all registered playbooks.
 
         Returns:
             List of playbook summaries
+
         """
         return [
             {

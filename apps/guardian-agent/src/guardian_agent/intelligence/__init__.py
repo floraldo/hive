@@ -1,5 +1,4 @@
-"""
-Hive Intelligence Initiative - Transform Guardian into Oracle
+"""Hive Intelligence Initiative - Transform Guardian into Oracle
 
 The Intelligence module transforms the Guardian Agent from a reactive
 protector into a proactive Oracle that provides strategic insights
@@ -13,13 +12,13 @@ from .oracle_service import OracleService
 from .recommendation_engine import RecommendationEngine, StrategicInsight
 
 __all__ = [
-    "DataUnificationLayer",
-    "MetricsWarehouse",
     "AnalyticsEngine",
+    "DataUnificationLayer",
     "InsightGenerator",
+    "MetricsWarehouse",
     "MissionControlDashboard",
+    "OracleService",
     "PlatformHealthScore",
     "RecommendationEngine",
     "StrategicInsight",
-    "OracleService",
 ]

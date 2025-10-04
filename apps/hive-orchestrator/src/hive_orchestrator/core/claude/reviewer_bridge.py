@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from __future__ import annotations
 
 from hive_logging import get_logger
@@ -58,7 +57,7 @@ class ReviewResponseValidator(PydanticValidator):
             suggestions=["Manual review required"],
             quality_score=0,
             metrics=ReviewMetrics(code_quality=0, security=0, testing=0, architecture=0, documentation=0),
-            confidence=0.0
+            confidence=0.0,
         )
 
 
@@ -76,10 +75,9 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         code_files: dict[str, str],
         test_results: dict[str, Any] | None = None,
         objective_analysis: dict[str, Any] | None = None,
-        transcript: str | None = None
+        transcript: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Perform robust code review with drift-resilient JSON contract
+        """Perform robust code review with drift-resilient JSON contract
 
         Args:
             task_id: Unique task identifier,
@@ -91,6 +89,7 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
 
         Returns:
             Validated review response or escalation on failure,
+
         """
         prompt = self._create_review_prompt(task_description, code_files, test_results, objective_analysis, transcript)
 
@@ -109,10 +108,9 @@ class ClaudeReviewerBridge(BaseClaludeBridge):
         code_files: dict[str, str],
         test_results: dict[str, Any] | None,
         objective_analysis: dict[str, Any] | None,
-        transcript: str | None
+        transcript: str | None,
     ) -> str:
         """Create comprehensive review prompt for Claude"""
-
         # Prepare code context,
         code_context = "",
         for filename, content in code_files.items():
@@ -167,8 +165,7 @@ Respond with ONLY the JSON object, no other text."""
         return prompt
 
     def _parse_unstructured_response(self, text: str) -> ClaudeReviewResponse:
-        """
-        Last resort: extract structured data from unstructured text
+        """Last resort: extract structured data from unstructured text
         This handles cases where Claude completely ignores JSON instructions
         """
         text_lower = text.lower()
@@ -212,7 +209,7 @@ Respond with ONLY the JSON object, no other text."""
                 security=quality_score - 5,
                 testing=quality_score - 10,
                 architecture=quality_score,
-                documentation=quality_score - 15
+                documentation=quality_score - 15,
             ),
             confidence=0.5,  # Lower confidence for parsed responses
         )
@@ -230,9 +227,9 @@ Respond with ONLY the JSON object, no other text."""
                 security=85,
                 testing=70,
                 architecture=75,
-                documentation=65
+                documentation=65,
             ),
-            confidence=0.9
+            confidence=0.9,
         )
         return json.dumps(mock_review.dict())
 

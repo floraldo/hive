@@ -1,5 +1,4 @@
-"""
-Enhanced Golden Rules Auto-Fixer
+"""Enhanced Golden Rules Auto-Fixer
 
 PROJECT VANGUARD Phase 3.1 - Expanded automation capabilities.
 
@@ -31,8 +30,7 @@ class EnhancedAutofixResult(AutofixResult):
 
 
 class TypeHintAnalyzer(ast.NodeVisitor):
-    """
-    Analyze functions for missing type hints.
+    """Analyze functions for missing type hints.
 
     Uses AST analysis and docstring parsing to infer appropriate types.
     """
@@ -93,11 +91,11 @@ class TypeHintAnalyzer(ast.NodeVisitor):
         self.generic_visit(node)
 
     def _infer_return_type(self, node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
-        """
-        Infer return type from function body and docstring.
+        """Infer return type from function body and docstring.
 
         Returns:
             Inferred type hint string
+
         """
         # Check docstring for return type
         docstring = ast.get_docstring(node)
@@ -110,13 +108,13 @@ class TypeHintAnalyzer(ast.NodeVisitor):
                 # Common patterns
                 if "bool" in return_desc.lower():
                     return "bool"
-                elif "int" in return_desc.lower():
+                if "int" in return_desc.lower():
                     return "int"
-                elif "str" in return_desc.lower():
+                if "str" in return_desc.lower():
                     return "str"
-                elif "dict" in return_desc.lower():
+                if "dict" in return_desc.lower():
                     return "dict[str, Any]"
-                elif "list" in return_desc.lower():
+                if "list" in return_desc.lower():
                     return "list[Any]"
 
         # Analyze return statements
@@ -142,14 +140,14 @@ class TypeHintAnalyzer(ast.NodeVisitor):
             return_type = return_types.pop()
             if return_type == "dict":
                 return "dict[str, Any]"
-            elif return_type == "list":
+            if return_type == "list":
                 return "list[Any]"
             return return_type
 
         # If multiple types or no returns found
         if len(return_types) == 0:
             return "None"
-        elif "None" in return_types and len(return_types) == 2:
+        if "None" in return_types and len(return_types) == 2:
             # Optional type
             other_type = (return_types - {"None"}).pop()
             return f"{other_type} | None"
@@ -159,22 +157,21 @@ class TypeHintAnalyzer(ast.NodeVisitor):
 
 
 class DocstringGenerator:
-    """
-    Generate template docstrings for functions.
+    """Generate template docstrings for functions.
 
     Creates Google-style docstrings with parameter and return information.
     """
 
     @staticmethod
     def generate_function_docstring(func_node: ast.FunctionDef | ast.AsyncFunctionDef) -> str:
-        """
-        Generate docstring for a function.
+        """Generate docstring for a function.
 
         Args:
             func_node: AST node for function
 
         Returns:
             Generated docstring text
+
         """
         lines = ['"""']
 
@@ -232,8 +229,7 @@ class DocstringGenerator:
 
 
 class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
-    """
-    Enhanced auto-fixer with additional capabilities.
+    """Enhanced auto-fixer with additional capabilities.
 
     Extends base GoldenRulesAutoFixer with:
     - Type hint automation
@@ -254,14 +250,14 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
         self.enhanced_results: list[EnhancedAutofixResult] = []
 
     def fix_type_hints(self, file_path: Path) -> EnhancedAutofixResult | None:
-        """
-        Add missing return type hints to functions.
+        """Add missing return type hints to functions.
 
         Args:
             file_path: Python file to process
 
         Returns:
             Result of fix operation or None if no changes needed
+
         """
         try:
             with open(file_path, encoding="utf-8") as f:
@@ -353,14 +349,14 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
             )
 
     def fix_docstrings(self, file_path: Path) -> EnhancedAutofixResult | None:
-        """
-        Generate docstrings for public functions without them.
+        """Generate docstrings for public functions without them.
 
         Args:
             file_path: Python file to process
 
         Returns:
             Result of fix operation or None if no changes needed
+
         """
         try:
             with open(file_path, encoding="utf-8") as f:
@@ -450,8 +446,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
             )
 
     def organize_imports(self, file_path: Path) -> EnhancedAutofixResult | None:
-        """
-        Organize imports into standard groups.
+        """Organize imports into standard groups.
 
         Groups:
         1. Standard library imports
@@ -464,6 +459,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
 
         Returns:
             Result of fix operation or None if no changes needed
+
         """
         try:
             with open(file_path, encoding="utf-8") as f:
@@ -608,8 +604,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
         enable_docstrings: bool = True,
         enable_import_org: bool = True,
     ) -> list[EnhancedAutofixResult]:
-        """
-        Apply all enhancement fixes across project.
+        """Apply all enhancement fixes across project.
 
         Args:
             enable_type_hints: Enable type hint automation
@@ -618,6 +613,7 @@ class EnhancedGoldenRulesAutoFixer(GoldenRulesAutoFixer):
 
         Returns:
             List of enhancement results
+
         """
         self.enhanced_results = []
 

@@ -1,5 +1,4 @@
-"""
-Main entry point for EcoSystemiser Platform.,
+"""Main entry point for EcoSystemiser Platform.,
 
 This module provides the FastAPI application and API routers for all modules:
 - Profile Loader (climate, demand)
@@ -365,7 +364,6 @@ def check_filesystem_health_async() -> bool:
 @app.get("/metrics", response_model=MonitoringResponse, tags=["Monitoring"])
 async def get_metrics_async() -> None:
     """Get system metrics and performance data"""
-
     # Get system metrics
     cpu_percent = (psutil.cpu_percent(interval=1),)
     memory = psutil.virtual_memory(),
@@ -434,7 +432,7 @@ if __name__ == "__main__":
     # Run the application
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",  # noqa: S104
+        host="0.0.0.0",
         port=8000,
         reload=settings.debug,
         log_level=settings.observability.log_level.lower(),

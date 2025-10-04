@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-EcoSystemiser CLI - Complete system simulation and climate profiles interface
+"""EcoSystemiser CLI - Complete system simulation and climate profiles interface
 """
 
 import json
@@ -21,19 +20,16 @@ logger = get_logger(__name__)
 @create_cli()
 def cli() -> None:
     """EcoSystemiser - Climate and Ecosystem Analysis Tool"""
-    pass
 
 
 @cli.group()
 def climate() -> None:
     """Climate profile commands"""
-    pass
 
 
 @cli.group()
 def simulate() -> None:
     """System simulation commands"""
-    pass
 
 
 @climate.command()
@@ -76,13 +72,13 @@ def get(
     seed: int,
     stats: bool,
 ) -> None:
-    """
-    Get climate profile for a location.
+    """Get climate profile for a location.
 
     Examples:
         ecosys climate get --loc "Lisbon, PT" --year 2019 --vars temp_air,ghi,wind_speed,
         ecosys climate get --loc "38.7,-9.1" --start 2019-01-01 --end 2019-12-31 --mode synthetic,
         ecosys climate get --file weather.epw --source epw --vars temp_air,ghi,
+
     """
     try:
         # Validate input based on source
@@ -224,12 +220,12 @@ def cache_info() -> None:
 )
 @option("--verbose", "-v", is_flag=True, help="Verbose output")
 def run(config: str, output: str | None, solver: str, verbose: bool) -> None:
-    """
-    Run a system simulation from configuration file.
+    """Run a system simulation from configuration file.
 
     Examples:
         ecosys simulate run config.yaml,
         ecosys simulate run config.yaml -o results.json --solver milp,
+
     """
     from ecosystemiser.services.simulation_service import SimulationService
 
@@ -279,11 +275,11 @@ def run(config: str, output: str | None, solver: str, verbose: bool) -> None:
 @simulate.command()
 @click.argument("config")
 def validate(config: str) -> None:
-    """
-    Validate a system configuration file.
+    """Validate a system configuration file.
 
     Examples:
         ecosys simulate validate config.yaml,
+
     """
     from ecosystemiser.services.simulation_service import SimulationService
 
@@ -325,13 +321,11 @@ def validate(config: str) -> None:
 @cli.group()
 def results() -> None:
     """Results management commands"""
-    pass
 
 
 @cli.group()
 def discover() -> None:
     """Design space exploration and optimization commands"""
-    pass
 
 
 @discover.command()
@@ -366,8 +360,7 @@ def optimize(
     report: bool,
     verbose: bool,
 ) -> None:
-    """
-    Run genetic algorithm optimization to find optimal system configurations.,
+    """Run genetic algorithm optimization to find optimal system configurations.,
 
     This command uses genetic algorithms (GA) or NSGA-II for multi-objective optimization,
     to explore the design space and find optimal component sizing and configurations.
@@ -384,6 +377,7 @@ def optimize(
 
         # With custom variables definition
         ecosys discover optimize config.yaml --variables variables.json --output results/,
+
     """
     import json
 
@@ -557,8 +551,7 @@ def uncertainty(
     workers: int,
     verbose: bool,
 ) -> None:
-    """
-    Run Monte Carlo uncertainty analysis to quantify system performance under uncertainty.,
+    """Run Monte Carlo uncertainty analysis to quantify system performance under uncertainty.,
 
     This command uses Monte Carlo sampling to propagate parameter uncertainties through,
     the system model and analyze the resulting distribution of key outputs.
@@ -575,6 +568,7 @@ def uncertainty(
 
         # Comprehensive analysis with risk metrics
         ecosys discover uncertainty config.yaml -u params.json --sensitivity --risk --output results/,
+
     """
     import json
 
@@ -764,8 +758,7 @@ def explore(
     workers: int,
     verbose: bool,
 ) -> None:
-    """
-    Comprehensive design space exploration for multi-objective optimization.,
+    """Comprehensive design space exploration for multi-objective optimization.,
 
     This command provides a unified interface for exploring the design space using,
     either genetic algorithms (NSGA-II) or Monte Carlo sampling. It automatically,
@@ -780,6 +773,7 @@ def explore(
 
         # Custom objectives and output
         ecosys discover explore config.yaml -v vars.json --objectives "cost,emissions,efficiency" -o results/,
+
     """
     import json
 
@@ -892,19 +886,18 @@ def explore(
 @cli.group()
 def report() -> None:
     """Report generation and server commands"""
-    pass
 
 
 @results.command()
 @click.argument("results_file", type=click.Path(exists=True))
 @option("--format", "-f", type=click.Choice(["summary", "detailed", "kpi"]), default="summary", help="Output format")
 def show(results_file: str, format: str) -> None:
-    """
-    Display simulation results.
+    """Display simulation results.
 
     Examples:
         ecosys results show results.json,
         ecosys results show results.json --format detailed,
+
     """
     from ecosystemiser.services.results_io import ResultsIO
 
@@ -1039,6 +1032,7 @@ def generate(study_file: str, output: str, study_type: str) -> None:
     Examples:
         ecosys report generate ga_optimization_123.json,
         ecosys report generate mc_uncertainty_456.json --output analysis.html,
+
     """
     import json
 

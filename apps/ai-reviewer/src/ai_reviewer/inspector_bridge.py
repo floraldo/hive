@@ -1,9 +1,7 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this module use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-Bridge to integrate inspect_run.py with the AI reviewer
+"""Bridge to integrate inspect_run.py with the AI reviewer
 """
 
 from __future__ import annotations
@@ -34,8 +32,7 @@ class InspectorBridge:
             logger.warning(f"inspect_run.py not found at {self.inspect_script}")
 
     def inspect_task_run(self, task_id: str, run_id: str | None = None) -> dict[str, Any]:
-        """
-        Run objective analysis on a task using inspect_run.py
+        """Run objective analysis on a task using inspect_run.py
 
         Args:
             task_id: Task identifier
@@ -43,6 +40,7 @@ class InspectorBridge:
 
         Returns:
             Dictionary containing objective analysis results
+
         """
         if not self.inspect_script.exists():
             return {
@@ -68,7 +66,7 @@ class InspectorBridge:
             cmd.extend(["--output", "json"])
 
             # Run the script
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)  # 1 minute timeout
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=60)  # 1 minute timeout
 
             if result.returncode == 0:
                 try:
@@ -104,14 +102,14 @@ class InspectorBridge:
         }
 
     def extract_code_quality_metrics(self, analysis: dict[str, Any]) -> dict[str, float]:
-        """
-        Extract standardized quality metrics from analysis
+        """Extract standardized quality metrics from analysis
 
         Args:
             analysis: Raw analysis from inspect_run.py
 
         Returns:
             Dictionary of normalized quality scores (0-100)
+
         """
         metrics = {
             "code_quality": 0.0,
@@ -173,14 +171,14 @@ class InspectorBridge:
             return metrics
 
     def get_review_summary(self, analysis: dict[str, Any]) -> str:
-        """
-        Generate a human-readable summary of the objective analysis
+        """Generate a human-readable summary of the objective analysis
 
         Args:
             analysis: Analysis results from inspect_run.py
 
         Returns:
             String summary for review report
+
         """
         if "error" in analysis:
             return f"Analysis failed: {analysis['error']}"

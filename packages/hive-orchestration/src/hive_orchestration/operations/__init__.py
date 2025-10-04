@@ -1,5 +1,4 @@
-"""
-Orchestration Operations
+"""Orchestration Operations
 
 This module contains the core operation implementations for task, worker,
 and execution plan management.
@@ -26,25 +25,25 @@ from .tasks import create_task, delete_task, get_queued_tasks, get_task, get_tas
 from .workers import get_active_workers, get_worker, register_worker, unregister_worker, update_worker_heartbeat
 
 __all__ = [
-    # Task operations
-    "create_task",
-    "get_task",
-    "update_task_status",
-    "get_tasks_by_status",
-    "get_queued_tasks",
-    "delete_task",
-    # Worker operations
-    "register_worker",
-    "update_worker_heartbeat",
-    "get_active_workers",
-    "get_worker",
-    "unregister_worker",
+    "check_subtask_dependencies",
+    "check_subtask_dependencies_batch",
     # Execution plan operations
     "create_planned_subtasks_from_plan",
+    # Task operations
+    "create_task",
+    "delete_task",
+    "get_active_workers",
     "get_execution_plan_status",
-    "check_subtask_dependencies",
-    "get_next_planned_subtask",
-    "mark_plan_execution_started",
-    "check_subtask_dependencies_batch",
     "get_execution_plan_status_cached",
+    "get_next_planned_subtask",
+    "get_queued_tasks",
+    "get_task",
+    "get_tasks_by_status",
+    "get_worker",
+    "mark_plan_execution_started",
+    # Worker operations
+    "register_worker",
+    "unregister_worker",
+    "update_task_status",
+    "update_worker_heartbeat",
 ]

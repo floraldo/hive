@@ -54,23 +54,23 @@ class TestScenario(BaseModel):
     # User journey
     actions: list[dict[str, Any]] = Field(
         default_factory=list,
-        description="Sequence of user actions"
+        description="Sequence of user actions",
     )
 
     # Expected outcomes
     success_assertions: list[dict[str, Any]] = Field(
         default_factory=list,
-        description="Assertions for successful scenario"
+        description="Assertions for successful scenario",
     )
     failure_assertions: list[dict[str, Any]] = Field(
         default_factory=list,
-        description="Assertions for failure scenario"
+        description="Assertions for failure scenario",
     )
 
     # Page objects
     page_elements: dict[str, str] = Field(
         default_factory=dict,
-        description="Mapping of element names to selectors"
+        description="Mapping of element names to selectors",
     )
 
 
@@ -94,13 +94,13 @@ class TestResult(BaseModel):
     # Artifacts
     screenshots: list[str] = Field(
         default_factory=list,
-        description="Paths to captured screenshots"
+        description="Paths to captured screenshots",
     )
 
     # Metadata
     timestamp: datetime = Field(
         default_factory=datetime.now,
-        description="Execution timestamp"
+        description="Execution timestamp",
     )
     browser_type: str = Field(default="chromium", description="Browser used")
     headless: bool = Field(default=True, description="Headless mode")
@@ -113,7 +113,7 @@ class GeneratedTest(BaseModel):
     test_name: str = Field(description="Name of generated test")
     page_object_code: str | None = Field(
         default=None,
-        description="Generated page object class (if applicable)"
+        description="Generated page object class (if applicable)",
     )
 
     # Generation metadata
@@ -121,14 +121,14 @@ class GeneratedTest(BaseModel):
     target_url: str = Field(description="Target URL")
     generated_at: datetime = Field(
         default_factory=datetime.now,
-        description="Generation timestamp"
+        description="Generation timestamp",
     )
 
     # AI metadata
     tokens_used: int | None = Field(default=None, description="Tokens consumed")
     reasoning_steps: int | None = Field(
         default=None,
-        description="Sequential thinking steps"
+        description="Sequential thinking steps",
     )
 
 
@@ -141,11 +141,11 @@ class E2ETaskConfig(BaseModel):
     # Generation options
     generate_page_object: bool = Field(
         default=True,
-        description="Generate page object pattern"
+        description="Generate page object pattern",
     )
     include_failure_tests: bool = Field(
         default=True,
-        description="Generate negative test cases"
+        description="Generate negative test cases",
     )
 
     # Execution options
@@ -154,15 +154,15 @@ class E2ETaskConfig(BaseModel):
     timeout: int = Field(default=30000, description="Timeout in milliseconds")
     capture_screenshots: bool = Field(
         default=True,
-        description="Capture screenshots on failure"
+        description="Capture screenshots on failure",
     )
 
     # Output
     output_path: Path | None = Field(
         default=None,
-        description="Path to save generated test"
+        description="Path to save generated test",
     )
     report_path: Path | None = Field(
         default=None,
-        description="Path to save execution report"
+        description="Path to save execution report",
     )

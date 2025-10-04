@@ -1,5 +1,4 @@
-"""
-Hive Scaffolder - Application Structure Generator
+"""Hive Scaffolder - Application Structure Generator
 
 Generates complete, Golden Rules-compliant application structures
 based on Oracle-advised specifications.
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class HiveScaffolder:
-    """
-    Generates complete Hive application structures with Golden Rules compliance.
+    """Generates complete Hive application structures with Golden Rules compliance.
 
     Creates directory structure, configuration files, stub implementations,
     and comprehensive documentation based on Oracle intelligence.
@@ -33,12 +31,12 @@ class HiveScaffolder:
         self.config = config
 
     async def generate_app_async(self, app_spec: AppSpec, target_path: Path) -> None:
-        """
-        Generate complete application structure based on specification.
+        """Generate complete application structure based on specification.
 
         Args:
             app_spec: Complete application specification from Genesis Agent
             target_path: Target directory for the new application
+
         """
         logger.info(f"Scaffolding application '{app_spec.name}' at {target_path}")
 
@@ -69,7 +67,6 @@ class HiveScaffolder:
 
     async def _create_directory_structure(self, target_path: Path, app_spec: AppSpec) -> None:
         """Create the standard Hive application directory structure."""
-
         directories = [
             target_path,
             target_path / "src" / app_spec.name.replace("-", "_"),
@@ -86,7 +83,6 @@ class HiveScaffolder:
 
     async def _generate_config_files(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate configuration files for the application."""
-
         # Generate pyproject.toml
         await self._generate_pyproject_toml(target_path, app_spec)
 
@@ -98,7 +94,6 @@ class HiveScaffolder:
 
     async def _generate_pyproject_toml(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate pyproject.toml with proper dependencies."""
-
         # Base dependencies
         dependencies = ["hive-logging>=0.1.0"]
 
@@ -142,7 +137,6 @@ class HiveScaffolder:
 
     async def _generate_hive_app_toml(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate hive-app.toml configuration."""
-
         hive_app_config = {
             "app": {
                 "name": app_spec.name,
@@ -181,7 +175,6 @@ class HiveScaffolder:
 
     async def _generate_app_config(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate application-specific configuration."""
-
         config_content = dedent(
             f''',
             """,
@@ -225,7 +218,6 @@ class HiveScaffolder:
 
     async def _generate_source_stubs(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate source code stubs based on identified features."""
-
         src_path = target_path / "src" / app_spec.name.replace("-", "_")
 
         # Generate __init__.py,
@@ -240,7 +232,6 @@ class HiveScaffolder:
 
     async def _generate_init_file(self, src_path: Path, app_spec: AppSpec) -> None:
         """Generate package __init__.py file."""
-
         init_content = dedent(
             f''',
             """,
@@ -267,7 +258,6 @@ class HiveScaffolder:
 
     async def _generate_main_file(self, src_path: Path, app_spec: AppSpec) -> None:
         """Generate main application entry point."""
-
         class_name = self._to_class_name(app_spec.name)
 
         if app_spec.category.value in ["web_application", "api_service"]:
@@ -285,7 +275,6 @@ class HiveScaffolder:
 
     def _generate_web_app_main(self, class_name: str, app_spec: AppSpec) -> str:
         """Generate web application main file."""
-
         return dedent(
             f''',
             """,
@@ -339,7 +328,6 @@ class HiveScaffolder:
 
     def _generate_cli_main(self, class_name: str, app_spec: AppSpec) -> str:
         """Generate CLI application main file."""
-
         return dedent(
             f''',
             """,
@@ -384,7 +372,6 @@ class HiveScaffolder:
 
     def _generate_service_main(self, class_name: str, app_spec: AppSpec) -> str:
         """Generate service application main file."""
-
         return dedent(
             f''',
             """,
@@ -447,7 +434,6 @@ class HiveScaffolder:
 
     def _generate_feature_todos(self, features: list[FeatureStub]) -> str:
         """Generate TODO comments for features."""
-
         todos = []
         for feature in features[:5]:  # Top 5 features
             priority_marker = {
@@ -467,7 +453,6 @@ class HiveScaffolder:
 
     async def _generate_feature_stub(self, src_path: Path, feature: FeatureStub, app_spec: AppSpec) -> None:
         """Generate a stub file for a specific feature."""
-
         # Convert feature name to valid Python module name
         module_name = feature.name.lower().replace(" ", "_").replace("-", "_")
         module_path = src_path / f"{module_name}.py"
@@ -543,7 +528,6 @@ class HiveScaffolder:
 
     def _generate_implementation_template(self, feature: FeatureStub) -> str:
         """Generate implementation template based on feature type."""
-
         feature_lower = feature.name.lower()
 
         if "auth" in feature_lower or "login" in feature_lower:
@@ -558,7 +542,7 @@ class HiveScaffolder:
             """,
             ).strip()
 
-        elif "upload" in feature_lower or "file" in feature_lower:
+        if "upload" in feature_lower or "file" in feature_lower:
             return dedent(
                 """,
                 # File upload implementation template,
@@ -570,7 +554,7 @@ class HiveScaffolder:
             """,
             ).strip()
 
-        elif "search" in feature_lower:
+        if "search" in feature_lower:
             return dedent(
                 """,
                 # Search implementation template,
@@ -582,7 +566,7 @@ class HiveScaffolder:
             """,
             ).strip()
 
-        elif "ai" in feature_lower or "smart" in feature_lower:
+        if "ai" in feature_lower or "smart" in feature_lower:
             return dedent(
                 """,
                 # AI feature implementation template,
@@ -594,9 +578,8 @@ class HiveScaffolder:
             """,
             ).strip()
 
-        else:
-            return dedent(
-                f""",
+        return dedent(
+            f""",
                 # {feature.name} implementation template,
                 # 1. Define feature requirements and specifications,
                 # 2. Design data models and API interfaces,
@@ -604,11 +587,10 @@ class HiveScaffolder:
                 # 4. Add error handling and validation,
                 # 5. Create comprehensive tests,
             """,
-            ).strip()
+        ).strip()
 
     async def _generate_test_stubs(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate test stubs for Golden Rules compliance."""
-
         tests_path = target_path / "tests"
 
         # Generate test __init__.py
@@ -625,7 +607,6 @@ class HiveScaffolder:
 
     async def _generate_main_test(self, tests_path: Path, app_spec: AppSpec) -> None:
         """Generate main application test file."""
-
         test_content = dedent(
             f''',
             """,
@@ -683,7 +664,6 @@ class HiveScaffolder:
 
     def _generate_test_todos(self, features: list[FeatureStub]) -> str:
         """Generate test TODO comments for features."""
-
         todos = []
         for feature in features[:5]:  # Top 5 features
             test_name = feature.name.lower().replace(" ", "_")
@@ -693,7 +673,6 @@ class HiveScaffolder:
 
     async def _generate_feature_test(self, tests_path: Path, feature: FeatureStub, app_spec: AppSpec) -> None:
         """Generate test stub for a specific feature."""
-
         module_name = feature.name.lower().replace(" ", "_").replace("-", "_")
         test_path = tests_path / f"test_{module_name}.py"
 
@@ -748,7 +727,6 @@ class HiveScaffolder:
 
     async def _generate_documentation(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate comprehensive documentation."""
-
         # Generate README.md,
         await self._generate_readme(target_path, app_spec)
 
@@ -760,7 +738,6 @@ class HiveScaffolder:
 
     async def _generate_readme(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate comprehensive README.md."""
-
         readme_content = dedent(
             f""",
             # {app_spec.name}
@@ -867,7 +844,6 @@ class HiveScaffolder:
 
     def _generate_feature_table(self, features: list[FeatureStub]) -> str:
         """Generate a table of features with priorities."""
-
         if not features:
             return "No specific features identified - implement core functionality."
 
@@ -889,7 +865,6 @@ class HiveScaffolder:
 
     def _generate_package_list(self, packages: list[str]) -> str:
         """Generate a list of recommended packages."""
-
         package_descriptions = {
             "hive-config": "Configuration management and environment handling",
             "hive-db": "Database operations and ORM integration",
@@ -907,7 +882,6 @@ class HiveScaffolder:
 
     def _generate_business_intelligence_section(self, app_spec: AppSpec) -> str:
         """Generate business intelligence insights section."""
-
         bi = app_spec.business_intelligence
         if not bi:
             return "No specific business intelligence data available."
@@ -927,7 +901,6 @@ class HiveScaffolder:
 
     def _generate_oracle_recommendations_section(self, app_spec: AppSpec) -> str:
         """Generate Oracle recommendations section."""
-
         recommendations = []
 
         # Add feature-specific recommendations
@@ -946,7 +919,6 @@ class HiveScaffolder:
 
     async def _generate_architecture_docs(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate architecture documentation."""
-
         docs_path = (target_path / "docs",)
 
         arch_content = dedent(
@@ -1000,7 +972,6 @@ class HiveScaffolder:
 
     def _generate_component_architecture(self, app_spec: AppSpec) -> str:
         """Generate component architecture documentation."""
-
         components = []
 
         for package in app_spec.recommended_packages:
@@ -1022,7 +993,6 @@ class HiveScaffolder:
 
     def _generate_data_flow_docs(self, app_spec: AppSpec) -> str:
         """Generate data flow documentation."""
-
         if "hive-db" in app_spec.recommended_packages:
             return dedent(
                 """,
@@ -1033,28 +1003,24 @@ class HiveScaffolder:
                 5. **Response Layer:** Returns processed results to clients,
             """,
             ).strip()
-        else:
-            return dedent(
-                """,
+        return dedent(
+            """,
                 1. **Input Layer:** Receives requests/data from users or external systems,
                 2. **Processing Layer:** Processes data according to application logic,
                 3. **Output Layer:** Returns processed results to clients,
             """,
-            ).strip()
+        ).strip()
 
     def _assess_scalability(self, app_spec: AppSpec) -> str:
         """Assess scalability characteristics."""
-
         if app_spec.category.value in ["web_application", "api_service"]:
             return "Horizontal scaling supported with load balancing"
-        elif app_spec.category.value == "background_service":
+        if app_spec.category.value == "background_service":
             return "Worker-based scaling with queue management"
-        else:
-            return "Standard application scaling patterns"
+        return "Standard application scaling patterns"
 
     async def _generate_feature_docs(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate feature-specific documentation."""
-
         docs_path = (target_path / "docs",)
 
         features_content = dedent(
@@ -1086,7 +1052,6 @@ class HiveScaffolder:
 
     def _generate_detailed_feature_docs(self, features: list[FeatureStub]) -> str:
         """Generate detailed feature documentation."""
-
         docs = ""
 
         for feature in features:
@@ -1112,7 +1077,6 @@ class HiveScaffolder:
 
     def _generate_implementation_roadmap(self, features: list[FeatureStub]) -> str:
         """Generate implementation roadmap."""
-
         roadmap = ""
 
         # Group by priority
@@ -1134,7 +1098,6 @@ class HiveScaffolder:
 
     def _generate_business_value_analysis(self, app_spec: AppSpec) -> str:
         """Generate business value analysis."""
-
         analysis = "Based on Oracle intelligence:\n\n"
 
         if app_spec.similar_apps_performance:
@@ -1150,7 +1113,6 @@ class HiveScaffolder:
 
     async def _generate_deployment_files(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate deployment configuration files."""
-
         k8s_path = target_path / "k8s"
 
         # Generate Dockerfile
@@ -1164,7 +1126,6 @@ class HiveScaffolder:
 
     async def _generate_dockerfile(self, target_path: Path, app_spec: AppSpec) -> None:
         """Generate Dockerfile for the application."""
-
         # Prepare Docker content outside f-string to avoid backslash issues
         expose_line = (
             "EXPOSE 8000"
@@ -1210,7 +1171,7 @@ class HiveScaffolder:
 
             # Run application
             CMD ["python", "-m", "{module_name}.main"]
-        """
+        """,
         ).strip()
 
         dockerfile_path = (target_path / "Dockerfile",)
@@ -1219,7 +1180,6 @@ class HiveScaffolder:
 
     async def _generate_k8s_manifests(self, k8s_path: Path, app_spec: AppSpec) -> None:
         """Generate Kubernetes deployment manifests."""
-
         # Generate deployment.yaml,
         deployment_content = dedent(
             f""",
@@ -1294,7 +1254,6 @@ class HiveScaffolder:
 
     async def _generate_deployment_scripts(self, scripts_path: Path, app_spec: AppSpec) -> None:
         """Generate deployment helper scripts."""
-
         # Generate build script,
         build_script = dedent(
             f""",

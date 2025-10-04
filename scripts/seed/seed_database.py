@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Database Seeding Script for Hive
+"""Database Seeding Script for Hive
 
 Creates clean, sample tasks directly in the database following the "Fresh Start" approach.
 This replaces the old JSON-based task files with database-native task creation.
@@ -20,7 +19,6 @@ from hive_logging import get_logger, setup_logging
 
 def setup_sample_tasks():
     """Create sample tasks for testing the Hive system with stateful workflows."""
-
     # Initialize logging
     setup_logging("hive_seeder")
     logger = get_logger(__name__)

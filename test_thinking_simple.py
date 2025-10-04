@@ -1,12 +1,10 @@
-"""
-Simple demonstration of the thinking logic without full agent initialization.
+"""Simple demonstration of the thinking logic without full agent initialization.
 Shows what the _think_tool does with structured reasoning.
 """
 
 
 def simulate_think_tool(prompt: str, max_thoughts: int = 5) -> dict:
-    """
-    Simplified version of BaseAgent._think_tool to demonstrate reasoning.
+    """Simplified version of BaseAgent._think_tool to demonstrate reasoning.
     This is the ACTUAL logic used by the agent.
     """
     # Parse prompt
@@ -71,13 +69,12 @@ def simulate_think_tool(prompt: str, max_thoughts: int = 5) -> dict:
             "max_thoughts": max_thoughts,
             "task_length": len(task_description),
             "requirements_count": len(requirements),
-        }
+        },
     }
 
 
 def demonstrate_sequential_thinking():
     """Demonstrate multi-step thinking on arithmetic problem."""
-
     print("=" * 80)
     print("SEQUENTIAL THINKING DEMONSTRATION - BaseAgent Logic")
     print("Problem: What is the sum of 2 + 2?")
@@ -110,7 +107,7 @@ def demonstrate_sequential_thinking():
 
         prompt_parts.append(
             "\nProvide your next step or final solution. "
-            "Mark complete when task is fully solved."
+            "Mark complete when task is fully solved.",
         )
 
         prompt = "\n".join(prompt_parts)
@@ -124,14 +121,14 @@ def demonstrate_sequential_thinking():
         print(f"Reasoning: {result['reasoning']}")
         print(f"Next Step: {result.get('next_step', 'N/A')}")
         print(f"Complete: {result['is_complete']}")
-        if result.get('solution'):
+        if result.get("solution"):
             print(f"Solution: {result['solution']}")
-            current_solution = result['solution']
+            current_solution = result["solution"]
 
         print(f"Metadata: {result['metadata']}")
         print()
 
-        if result['is_complete']:
+        if result["is_complete"]:
             print("=" * 80)
             print("TASK COMPLETED")
             print(f"Final Solution: {result['solution']}")

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Test the core architectural refactoring directly without going through complex imports.
+"""Test the core architectural refactoring directly without going through complex imports.
 
 This script validates that our inherit→extend pattern and Golden Rules compliance
 are working correctly.
@@ -103,8 +102,8 @@ try:
     events_source = inspect.getsource(events)
 
     # Look for relative imports (should be none in business logic)
-    relative_imports_errors = [line for line in errors_source.split('\n') if 'from .' in line and 'import' in line],
-    relative_imports_events = [line for line in events_source.split('\n') if 'from .' in line and 'import' in line]
+    relative_imports_errors = [line for line in errors_source.split("\n") if "from ." in line and "import" in line],
+    relative_imports_events = [line for line in events_source.split("\n") if "from ." in line and "import" in line]
 
     if relative_imports_errors or relative_imports_events:
         logger.info(f"⚠️  Found relative imports: {len(relative_imports_errors + relative_imports_events)}")

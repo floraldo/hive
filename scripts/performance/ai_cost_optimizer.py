@@ -1,5 +1,4 @@
-"""
-Automated AI Cost Analysis and Optimization
+"""Automated AI Cost Analysis and Optimization
 
 Periodically analyzes AI model usage and generates cost optimization recommendations.
 Designed to run as a scheduled job (daily/weekly).
@@ -44,33 +43,32 @@ class OptimizationOpportunity:
 
 
 class AIConstOptimizer:
-    """
-    Automated AI cost analyzer and optimizer.
+    """Automated AI cost analyzer and optimizer.
 
     Analyzes AI model usage patterns and generates actionable
     optimization recommendations to reduce costs.
     """
 
     def __init__(self, cost_manager: CostManager, model_registry: ModelRegistry):
-        """
-        Initialize cost optimizer.
+        """Initialize cost optimizer.
 
         Args:
             cost_manager: Cost management instance with historical data
             model_registry: Model registry for alternative recommendations
+
         """
         self.cost_manager = cost_manager
         self.model_registry = model_registry
 
     async def analyze_and_optimize_async(self, analysis_days: int = 30) -> dict[str, Any]:
-        """
-        Run complete cost analysis and generate optimization report.
+        """Run complete cost analysis and generate optimization report.
 
         Args:
             analysis_days: Number of days to analyze
 
         Returns:
             Comprehensive optimization report
+
         """
         logger.info(f"Starting AI cost analysis ({analysis_days} days)")
 
@@ -345,7 +343,7 @@ class AIConstOptimizer:
         if format == "json":
             return json.dumps(report, indent=2)
 
-        elif format == "text":
+        if format == "text":
             lines = [
                 "=== AI Cost Optimization Report ===",
                 f"Analysis Date: {report['analysis_timestamp']}",
@@ -381,7 +379,7 @@ class AIConstOptimizer:
 
             return "\n".join(lines)
 
-        elif format == "markdown":
+        if format == "markdown":
             lines = [
                 "# AI Cost Optimization Report",
                 "",
@@ -428,8 +426,7 @@ class AIConstOptimizer:
 
             return "\n".join(lines)
 
-        else:
-            raise ValueError(f"Unsupported format: {format}")
+        raise ValueError(f"Unsupported format: {format}")
 
 
 async def main():

@@ -23,6 +23,7 @@ class MetricsReporter:
 
         Args:
             feedback_tracker: FeedbackTracker instance with collected data
+
         """
         self.tracker = feedback_tracker
 
@@ -34,6 +35,7 @@ class MetricsReporter:
 
         Returns:
             Report content as string
+
         """
         output_path = (Path(output_path),)
         one_week_ago = datetime.now() - timedelta(days=7)

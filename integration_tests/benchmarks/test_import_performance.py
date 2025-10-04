@@ -1,5 +1,4 @@
-"""
-Performance benchmarks for import operations and package loading.
+"""Performance benchmarks for import operations and package loading.
 """
 import importlib
 import sys
@@ -17,7 +16,7 @@ class TestImportPerformance:
 
         def import_hive_packages():
             imported_modules = []
-            hive_packages = ['hive_db', 'hive_logging', 'hive_config', 'hive_tests']
+            hive_packages = ["hive_db", "hive_logging", "hive_config", "hive_tests"]
             for package_name in hive_packages:
                 try:
                     if package_name in sys.modules:
@@ -35,7 +34,7 @@ class TestImportPerformance:
         """Benchmark importing standard library modules."""
 
         def import_stdlib_modules():
-            stdlib_modules = ['os', 'sys', 'json', 'sqlite3', 'asyncio', 'datetime', 'pathlib', 'tempfile', 'subprocess', 'concurrent.futures']
+            stdlib_modules = ["os", "sys", "json", "sqlite3", "asyncio", "datetime", "pathlib", "tempfile", "subprocess", "concurrent.futures"]
             imported_count = 0
             for module_name in stdlib_modules:
                 try:
@@ -53,7 +52,7 @@ class TestImportPerformance:
 
         def dynamic_imports():
             import_count = 0
-            dynamic_modules = [('json', 'loads'), ('sqlite3', 'connect'), ('os.path', 'exists'), ('datetime', 'datetime'), ('pathlib', 'Path')]
+            dynamic_modules = [("json", "loads"), ("sqlite3", "connect"), ("os.path", "exists"), ("datetime", "datetime"), ("pathlib", "Path")]
             for module_name, attr_name in dynamic_modules:
                 try:
                     module = importlib.import_module(module_name)
@@ -75,7 +74,7 @@ class TestImportPerformance:
 
         def attribute_access():
             access_count = 0
-            attributes_to_test = [(os, 'path'), (sys, 'version'), (json, 'loads'), (sqlite3, 'connect'), (os.path, 'exists'), (sys, 'platform')]
+            attributes_to_test = [(os, "path"), (sys, "version"), (json, "loads"), (sqlite3, "connect"), (os.path, "exists"), (sys, "platform")]
             for module, attr_name in attributes_to_test:
                 if hasattr(module, attr_name):
                     getattr(module, attr_name)
@@ -90,7 +89,7 @@ class TestImportPerformance:
 
         def module_reload_test():
             reload_count = 0
-            modules_to_reload = ['json', 'os', 'sys']
+            modules_to_reload = ["json", "os", "sys"]
             for module_name in modules_to_reload:
                 try:
                     if module_name in sys.modules:
@@ -110,14 +109,14 @@ class TestImportPerformance:
 
         def discover_app_modules():
             discovered_modules = []
-            apps_dir = Path('/c/git/hive/apps')
+            apps_dir = Path("/c/git/hive/apps")
             if apps_dir.exists():
                 for app_dir in apps_dir.iterdir():
-                    if app_dir.is_dir() and (not app_dir.name.startswith('.')):
-                        src_dir = app_dir / 'src'
+                    if app_dir.is_dir() and (not app_dir.name.startswith(".")):
+                        src_dir = app_dir / "src"
                         if src_dir.exists():
-                            for py_file in src_dir.rglob('*.py'):
-                                if py_file.name != '__init__.py':
+                            for py_file in src_dir.rglob("*.py"):
+                                if py_file.name != "__init__.py":
                                     discovered_modules.append(str(py_file))
             return len(discovered_modules)
         result = benchmark(discover_app_modules)

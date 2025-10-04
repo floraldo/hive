@@ -1,5 +1,4 @@
-"""
-Health monitoring for AI models and providers.
+"""Health monitoring for AI models and providers.
 
 Provides comprehensive health checks, availability monitoring
 and performance degradation detection for AI infrastructure.
@@ -56,8 +55,7 @@ class ModelHealth:
 
 
 class ModelHealthChecker(BaseHealthMonitor):
-    """
-    AI model and provider health monitoring implementation.
+    """AI model and provider health monitoring implementation.
 
     Extends BaseHealthMonitor with AI-specific checks:
     - Provider connectivity and functionality
@@ -73,14 +71,14 @@ class ModelHealthChecker(BaseHealthMonitor):
         degradation_threshold: float = 0.8,
         unhealthy_threshold: float = 0.5,
     ):
-        """
-        Initialize model health checker.
+        """Initialize model health checker.
 
         Args:
             registry: ModelRegistry instance for model access
             check_interval: Seconds between health checks
             degradation_threshold: Success rate threshold for degraded status
             unhealthy_threshold: Success rate threshold for unhealthy status
+
         """
         # Initialize base class
         super().__init__(
@@ -110,13 +108,13 @@ class ModelHealthChecker(BaseHealthMonitor):
         self._health_check_configs = self._load_default_configs()
 
     async def _perform_component_health_check_async(self) -> HealthCheckResult:
-        """
-        Perform AI model/provider health checks.
+        """Perform AI model/provider health checks.
 
         Checks all configured providers and aggregates results.
 
         Returns:
             HealthCheckResult with overall model health status
+
         """
         all_healthy = True
         details = {}
@@ -143,7 +141,7 @@ class ModelHealthChecker(BaseHealthMonitor):
 
                 except Exception as e:
                     logger.error(f"Failed to check provider {provider}: {e}")
-                    errors.append(f"{provider}: {str(e)}")
+                    errors.append(f"{provider}: {e!s}")
                     all_healthy = False
 
             return HealthCheckResult(
@@ -240,8 +238,7 @@ class ModelHealthChecker(BaseHealthMonitor):
         logger.info(f"Stopped health monitoring for provider: {provider}")
 
     async def check_provider_health_async(self, provider: str) -> ProviderHealth:
-        """
-        Perform comprehensive health check for a provider.
+        """Perform comprehensive health check for a provider.
 
         Args:
             provider: Provider name to check
@@ -251,6 +248,7 @@ class ModelHealthChecker(BaseHealthMonitor):
 
         Raises:
             AIError: Health check failed
+
         """
         start_time = time.time()
 
@@ -314,14 +312,13 @@ class ModelHealthChecker(BaseHealthMonitor):
                     details={"check_type": "connectivity"},
                 )
 
-            else:
-                # No connectivity check available
-                return HealthCheckResult(
-                    status=HealthStatus.UNKNOWN,
-                    response_time_ms=0,
-                    timestamp=datetime.utcnow(),
-                    details={"check_type": "connectivity", "method": "unavailable"},
-                )
+            # No connectivity check available
+            return HealthCheckResult(
+                status=HealthStatus.UNKNOWN,
+                response_time_ms=0,
+                timestamp=datetime.utcnow(),
+                details={"check_type": "connectivity", "method": "unavailable"},
+            )
 
         except Exception as e:
             response_time_ms = (time.time() - start_time) * 1000
@@ -519,8 +516,7 @@ class ModelHealthChecker(BaseHealthMonitor):
         return error_checks / len(checks)
 
     async def check_model_health_async(self, model_name: str) -> ModelHealth:
-        """
-        Check health status for a specific model.
+        """Check health status for a specific model.
 
         Args:
             model_name: Name of model to check
@@ -530,6 +526,7 @@ class ModelHealthChecker(BaseHealthMonitor):
 
         Raises:
             AIError: Model health check failed,
+
         """
         try:
             # Get model configuration,
@@ -557,7 +554,7 @@ class ModelHealthChecker(BaseHealthMonitor):
             return health
 
         except Exception as e:
-            raise AIError(f"Model health check failed for '{model_name}': {str(e)}") from e
+            raise AIError(f"Model health check failed for '{model_name}': {e!s}") from e
 
     def _determine_model_status(self, provider_health: ProviderHealth, model_name: str) -> HealthStatus:
         """Determine model status based on provider health and model-specific factors."""
@@ -676,8 +673,7 @@ class ModelHealthChecker(BaseHealthMonitor):
         return alerts
 
     def get_metric_history(self, provider: str, metric_name: str, hours: int = 24) -> list[dict[str, Any]]:
-        """
-        Get historical health metrics for predictive analysis.
+        """Get historical health metrics for predictive analysis.
 
         Returns health metrics as MetricPoint-compatible format for
         integration with PredictiveAnalysisRunner.
@@ -689,6 +685,7 @@ class ModelHealthChecker(BaseHealthMonitor):
 
         Returns:
             List of metric points with timestamp, value, and metadata
+
         """
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
 

@@ -16,16 +16,14 @@ logger = get_logger(__name__)
 
 
 class ClaudeAPICache:
-    """
+    """Specialized cache for Claude API responses with intelligent TTL and optimization.
 
-        Specialized cache for Claude API responses with intelligent TTL and optimization.
-
-        Features:
-        - Smart cache key generation from prompts and parameters
-        - Response-size-aware TTL management
-        - Claude model-specific caching strategies
-        - Automatic cache warming for common prompts
-        - Response compression for large outputs
+    Features:
+    - Smart cache key generation from prompts and parameters
+    - Response-size-aware TTL management
+    - Claude model-specific caching strategies
+    - Automatic cache warming for common prompts
+    - Response compression for large outputs
     """
 
     def __init__(self, cache_client: HiveCacheClient, config: CacheConfig) -> None:
@@ -51,6 +49,7 @@ class ClaudeAPICache:
 
         Returns:
             ClaudeAPICache instance
+
         """
         cache_client = await get_cache_client_async(config)
         if config is None:
@@ -79,6 +78,7 @@ class ClaudeAPICache:
 
         Returns:
             Cache key string
+
         """
         # Create a normalized parameter dictionary
         cache_params = {
@@ -111,6 +111,7 @@ class ClaudeAPICache:
 
         Returns:
             Calculated TTL in seconds
+
         """
         if base_ttl is None:
             base_ttl = self.config.claude_default_ttl
@@ -151,6 +152,7 @@ class ClaudeAPICache:
 
         Returns:
             True if response should be cached
+
         """
         # Check response size
         response_text = response.get("content", [{}])[0].get("text", "")
@@ -194,6 +196,7 @@ class ClaudeAPICache:
 
         Returns:
             Cached response or None if not found
+
         """
         try:
             # Generate cache key
@@ -245,6 +248,7 @@ class ClaudeAPICache:
 
         Returns:
             True if response was cached successfully
+
         """
         try:
             # Check if response should be cached
@@ -310,6 +314,7 @@ class ClaudeAPICache:
 
         Returns:
             Claude API response (cached or fresh)
+
         """
         # Try cache first
         cached_response = await self.get_cached_response_async(prompt, model, max_tokens, temperature, system, **kwargs)
@@ -339,6 +344,7 @@ class ClaudeAPICache:
 
         Returns:
             Dictionary mapping prompt keys to cache success status
+
         """
         results = {}
 
@@ -372,6 +378,7 @@ class ClaudeAPICache:
 
         Returns:
             Number of keys invalidated
+
         """
         try:
             return await self.cache_client.delete_pattern(pattern, self.namespace)
@@ -384,6 +391,7 @@ class ClaudeAPICache:
 
         Returns:
             Cache statistics dictionary
+
         """
         # Get general cache metrics
         general_metrics = self.cache_client.get_metrics()
@@ -404,6 +412,7 @@ class ClaudeAPICache:
 
         Returns:
             Number of keys cleaned (0 since Redis auto-expires)
+
         """
         # Redis automatically handles TTL expiration
         # This method exists for interface compatibility

@@ -1,5 +1,4 @@
-"""
-Tests for composite decorator patterns.
+"""Tests for composite decorator patterns.
 
 Validates that composite decorators correctly combine multiple observability
 patterns and generate expected metrics.

@@ -54,7 +54,7 @@ class PerformanceBenchmark:
             "system_info": self._get_system_info(),
             "simulation_benchmarks": {},
             "milp_benchmarks": {},
-            "memory_benchmarks": {}
+            "memory_benchmarks": {},
         },
 
     def _get_system_info(self) -> dict[str, Any]:
@@ -64,12 +64,11 @@ class PerformanceBenchmark:
             "cpu_count_logical": psutil.cpu_count(logical=True),
             "memory_total_gb": round(psutil.virtual_memory().total / (1024**3), 2),
             "python_version": sys.version,
-            "platform": sys.platform
+            "platform": sys.platform,
         },
 
     def benchmark_simulation_service(self) -> dict[str, Any]:
-        """
-        Benchmark SimulationService.run_simulation across fidelity levels.,
+        """Benchmark SimulationService.run_simulation across fidelity levels.,
 
         Establishes baseline solve times for standard system configurations.,
         """
@@ -83,9 +82,9 @@ class PerformanceBenchmark:
                 "battery": {"capacity_kwh": 20.0, "power_kw": 5.0},
                 "heat_pump": {"capacity_kw": 8.0},
                 "power_demand": {"annual_kwh": 8000},
-                "heat_demand": {"annual_kwh": 12000}
+                "heat_demand": {"annual_kwh": 12000},
             },
-            "optimization": {"horizon_days": 7, "timestep_hours": 1}
+            "optimization": {"horizon_days": 7, "timestep_hours": 1},
         }
 
         simulation_results = {}
@@ -94,7 +93,7 @@ class PerformanceBenchmark:
         for fidelity in [
             FidelityLevel.FAST,
             FidelityLevel.BALANCED,
-            FidelityLevel.ACCURATE
+            FidelityLevel.ACCURATE,
         ]:
             logger.info(f"Benchmarking fidelity level: {fidelity.value}")
 
@@ -112,7 +111,7 @@ class PerformanceBenchmark:
                     system_config=system_config,
                     fidelity_level=fidelity,
                     start_date=datetime.now(),
-                    end_date=datetime.now() + timedelta(days=7)
+                    end_date=datetime.now() + timedelta(days=7),
                 )
                 end_time = time.perf_counter(),
                 solve_time = end_time - start_time
@@ -127,7 +126,7 @@ class PerformanceBenchmark:
                     "memory_delta_mb": round(end_memory - start_memory, 2),
                     "peak_memory_mb": round(peak_memory, 2),
                     "success": True,
-                    "objective_value": getattr(result, "objective_value", None)
+                    "objective_value": getattr(result, "objective_value", None),
                 },
 
                 logger.info(f"  {fidelity.value}: {solve_time:.3f}s, peak memory: {peak_memory:.1f}MB")
@@ -139,14 +138,13 @@ class PerformanceBenchmark:
                     "memory_delta_mb": None,
                     "peak_memory_mb": None,
                     "success": False,
-                    "error": str(e)
+                    "error": str(e),
                 },
 
         return simulation_results
 
     def benchmark_milp_warm_starting(self) -> dict[str, Any]:
-        """
-        Benchmark RollingHorizonMILPSolver with and without warm-starting.,
+        """Benchmark RollingHorizonMILPSolver with and without warm-starting.,
 
         Quantifies the performance impact of enhanced warm-starting logic.,
         """
@@ -162,8 +160,8 @@ class PerformanceBenchmark:
                 "battery": {"capacity_kwh": 30.0, "power_kw": 10.0},
                 "heat_pump": {"capacity_kw": 12.0},
                 "power_demand": {"annual_kwh": 10000},
-                "heat_demand": {"annual_kwh": 15000}
-            }
+                "heat_demand": {"annual_kwh": 15000},
+            },
         }
 
         milp_results = {}
@@ -181,7 +179,7 @@ class PerformanceBenchmark:
                 solver = RollingHorizonMILPSolver(
                     horizon_hours=scenario_config["horizon_days"] * 24,
                     timestep_hours=scenario_config["timestep_hours"],
-                    warm_start_enabled=warm_start_enabled
+                    warm_start_enabled=warm_start_enabled,
                 )
 
                 # Simulate multiple rolling windows
@@ -194,7 +192,7 @@ class PerformanceBenchmark:
                     # Run optimization window
                     solver.optimize_window(
                         start_hour=window_start * 24,
-                        system_config=scenario_config["system"]
+                        system_config=scenario_config["system"],
                     )
                     window_solve_time = time.perf_counter() - window_solve_start,
                     total_solve_time += window_solve_time,
@@ -229,7 +227,7 @@ class PerformanceBenchmark:
                     "window_count": 0,
                     "peak_memory_mb": None,
                     "success": False,
-                    "error": str(e)
+                    "error": str(e),
                 }
 
         # Calculate warm-start performance improvement
@@ -241,14 +239,13 @@ class PerformanceBenchmark:
                 improvement_percent = ((cold_time - warm_time) / cold_time) * 100,
                 milp_results["warm_start_improvement"] = {
                     "solve_time_improvement_percent": round(improvement_percent, 1),
-                    "solve_time_reduction_seconds": round(cold_time - warm_time, 3)
+                    "solve_time_reduction_seconds": round(cold_time - warm_time, 3),
                 },
 
         return milp_results
 
     def benchmark_memory_usage(self) -> dict[str, Any]:
-        """
-        Benchmark peak memory usage patterns for different operation types.,
+        """Benchmark peak memory usage patterns for different operation types.,
 
         Establishes baseline memory consumption for regression detection.,
         """
@@ -262,7 +259,7 @@ class PerformanceBenchmark:
             "large_system": {"days": 14, "timestep_hours": 1},
             "high_resolution": {
                 "days": 3,
-                "timestep_hours": 0.25
+                "timestep_hours": 0.25,
             },  # 15-minute resolution
         },
 
@@ -278,7 +275,7 @@ class PerformanceBenchmark:
                 system = builder.build_standard_system(
                     location={"latitude": 52.0, "longitude": 4.0},
                     horizon_days=config["days"],
-                    timestep_hours=config["timestep_hours"]
+                    timestep_hours=config["timestep_hours"],
                 )
 
                 # Simulate data loading and processing
@@ -287,7 +284,7 @@ class PerformanceBenchmark:
                     system_config=system,
                     fidelity_level=FidelityLevel.BALANCED,
                     start_date=datetime.now(),
-                    end_date=datetime.now() + timedelta(days=config["days"])
+                    end_date=datetime.now() + timedelta(days=config["days"]),
                 )
                 peak_memory = tracemalloc.get_traced_memory()[1] / (1024**2),
                 final_memory = psutil.Process().memory_info().rss / (1024**2)
@@ -299,7 +296,7 @@ class PerformanceBenchmark:
                     "final_memory_mb": round(final_memory, 2),
                     "memory_delta_mb": round(final_memory - initial_memory, 2),
                     "scenario_config": config,
-                    "success": True
+                    "success": True,
                 },
 
                 logger.info(f"  {scenario_name}: peak {peak_memory:.1f}MB, delta {final_memory - initial_memory:.1f}MB")
@@ -313,7 +310,7 @@ class PerformanceBenchmark:
                     "memory_delta_mb": None,
                     "scenario_config": config,
                     "success": False,
-                    "error": str(e)
+                    "error": str(e),
                 },
 
         return memory_results
@@ -364,7 +361,7 @@ class PerformanceBenchmark:
             for fidelity, result in self.results["simulation_benchmarks"].items():
                 if result["success"]:
                     logger.info(
-                        f"  {fidelity:12}: {result['solve_time_seconds']:6.3f}s, {result['peak_memory_mb']:6.1f}MB peak"
+                        f"  {fidelity:12}: {result['solve_time_seconds']:6.3f}s, {result['peak_memory_mb']:6.1f}MB peak",
                     )
                 else:
                     logger.error(f"  {fidelity:12}: FAILED")
@@ -377,7 +374,7 @@ class PerformanceBenchmark:
                     continue
                 if result["success"]:
                     logger.info(
-                        f"  {scenario:15}: {result['total_solve_time_seconds']:6.3f}s total, {result['average_window_solve_time_seconds']:6.3f}s avg/window"
+                        f"  {scenario:15}: {result['total_solve_time_seconds']:6.3f}s total, {result['average_window_solve_time_seconds']:6.3f}s avg/window",
                     )
                 else:
                     logger.error(f"  {scenario:15}: FAILED")
@@ -393,7 +390,7 @@ class PerformanceBenchmark:
             for scenario, result in self.results["memory_benchmarks"].items():
                 if result["success"]:
                     logger.info(
-                        f"  {scenario:15}: {result['peak_memory_mb']:6.1f}MB peak, {result['memory_delta_mb']:+6.1f}MB delta"
+                        f"  {scenario:15}: {result['peak_memory_mb']:6.1f}MB peak, {result['memory_delta_mb']:+6.1f}MB delta",
                     )
                 else:
                     logger.error(f"  {scenario:15}: FAILED")
@@ -407,7 +404,7 @@ def main() -> None:
     parser.add_argument(
         "--simulation-only",
         action="store_true",
-        help="Run only simulation service benchmarks"
+        help="Run only simulation service benchmarks",
     )
     parser.add_argument("--milp-only", action="store_true", help="Run only MILP solver benchmarks")
     parser.add_argument("--profile", action="store_true", help="Include detailed memory profiling")
@@ -421,7 +418,7 @@ def main() -> None:
     benchmark.run_all_benchmarks(
         simulation_only=args.simulation_only,
         milp_only=args.milp_only,
-        include_memory=args.profile
+        include_memory=args.profile,
     )
 
 

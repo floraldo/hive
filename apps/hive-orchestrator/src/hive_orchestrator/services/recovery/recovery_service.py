@@ -1,5 +1,4 @@
-"""
-Automated Recovery Service
+"""Automated Recovery Service
 
 PROJECT CHIMERA Phase 3: Self-Healing Feedback Loop
 Main service for automated recovery coordination.
@@ -21,8 +20,7 @@ logger = get_logger(__name__)
 
 
 class AutomatedRecoveryService:
-    """
-    Automated recovery service for predictive alerts.
+    """Automated recovery service for predictive alerts.
 
     Subscribes to PredictiveAlertEvent, evaluates safety, executes playbooks.
     """
@@ -34,14 +32,14 @@ class AutomatedRecoveryService:
         playbook_registry: RecoveryPlaybookRegistry | None = None,
         audit_logger: RecoveryAuditLogger | None = None,
     ):
-        """
-        Initialize recovery service.
+        """Initialize recovery service.
 
         Args:
             bus: Event bus for subscribing to alerts
             decision_engine: AutomationDecisionEngine instance
             playbook_registry: RecoveryPlaybookRegistry instance
             audit_logger: RecoveryAuditLogger instance
+
         """
         self.bus = bus
         self.playbook_registry = playbook_registry or RecoveryPlaybookRegistry()
@@ -70,17 +68,17 @@ class AutomatedRecoveryService:
         logger.info("AutomatedRecoveryService started - subscribed to monitoring.predictive_alert")
 
     async def _handle_alert_async(self, event: Any) -> None:
-        """
-        Handle incoming predictive alert event.
+        """Handle incoming predictive alert event.
 
         Args:
             event: PredictiveAlertEvent instance
+
         """
         self.stats["total_alerts_received"] += 1
 
         logger.info(
             f"Received predictive alert: {event.alert_id} "
-            f"({event.service_name}/{event.metric_type}, severity={event.severity})"
+            f"({event.service_name}/{event.metric_type}, severity={event.severity})",
         )
 
         try:
@@ -103,12 +101,12 @@ class AutomatedRecoveryService:
             logger.error(f"Error handling alert {event.alert_id}: {e}", exc_info=True)
 
     async def _execute_playbook_async(self, playbook_id: str, alert_event: Any) -> None:
-        """
-        Execute recovery playbook.
+        """Execute recovery playbook.
 
         Args:
             playbook_id: ID of playbook to execute
             alert_event: PredictiveAlertEvent instance
+
         """
         try:
             # Get playbook from registry
@@ -116,7 +114,7 @@ class AutomatedRecoveryService:
 
             logger.warning(
                 f"AUTOMATED RECOVERY: Executing playbook {playbook_id} "
-                f"for alert {alert_event.alert_id}"
+                f"for alert {alert_event.alert_id}",
             )
 
             # Execute playbook
@@ -129,13 +127,13 @@ class AutomatedRecoveryService:
             if result.success:
                 self.stats["executions_successful"] += 1
                 logger.info(
-                    f"Playbook {playbook_id} executed successfully for alert {alert_event.alert_id}"
+                    f"Playbook {playbook_id} executed successfully for alert {alert_event.alert_id}",
                 )
             else:
                 self.stats["executions_failed"] += 1
                 logger.error(
                     f"Playbook {playbook_id} execution failed for alert {alert_event.alert_id}: "
-                    f"{result.error_message}"
+                    f"{result.error_message}",
                 )
 
                 # Record failure for future safety checks
@@ -156,15 +154,15 @@ class AutomatedRecoveryService:
             logger.error(f"Playbook execution error: {e}", exc_info=True)
 
     async def _escalate_alert_async(self, alert_event: Any, reason: str | None) -> None:
-        """
-        Escalate alert to human intervention.
+        """Escalate alert to human intervention.
 
         Args:
             alert_event: PredictiveAlertEvent instance
             reason: Reason for escalation
+
         """
         logger.warning(
-            f"Alert {alert_event.alert_id} escalated to human intervention: {reason}"
+            f"Alert {alert_event.alert_id} escalated to human intervention: {reason}",
         )
 
         # In production, this would:

@@ -1,5 +1,4 @@
-"""
-Command-line interface for test intelligence.
+"""Command-line interface for test intelligence.
 
 Provides commands for analyzing test health, detecting flaky tests,
 and viewing failure trends.
@@ -60,13 +59,13 @@ def cmd_status(args):
         for health in package_health[:15]:  # Top 15 packages
             # Color code based on health
             if health.pass_rate >= 95:
-                pass_color = "green"  # noqa: S105
+                pass_color = "green"
                 status_icon = "[OK]"
             elif health.pass_rate >= 80:
-                pass_color = "yellow"  # noqa: S105
+                pass_color = "yellow"
                 status_icon = "[!]"
             else:
-                pass_color = "red"  # noqa: S105
+                pass_color = "red"
                 status_icon = "[X]"
 
             # Trend indicators

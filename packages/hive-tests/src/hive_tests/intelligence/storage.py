@@ -1,5 +1,4 @@
-"""
-SQLite storage layer for test intelligence data.
+"""SQLite storage layer for test intelligence data.
 
 Provides persistence for test runs, results, and analytics.
 """
@@ -20,11 +19,11 @@ class TestIntelligenceStorage:
     """SQLite-based storage for test intelligence data."""
 
     def __init__(self, db_path: Path | str = "data/test_intelligence.db"):
-        """
-        Initialize storage with database path.
+        """Initialize storage with database path.
 
         Args:
             db_path: Path to SQLite database file
+
         """
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -32,8 +31,7 @@ class TestIntelligenceStorage:
 
     @contextmanager
     def _get_connection(self):
-        """
-        Create database connection with optimizations and proper cleanup.
+        """Create database connection with optimizations and proper cleanup.
 
         Uses context manager for automatic connection cleanup and transaction management.
         """
@@ -116,7 +114,7 @@ class TestIntelligenceStorage:
                 CREATE INDEX IF NOT EXISTS idx_test_results_test_id ON test_results(test_id);
                 CREATE INDEX IF NOT EXISTS idx_test_results_package ON test_results(package_name);
                 CREATE INDEX IF NOT EXISTS idx_test_runs_timestamp ON test_runs(timestamp);
-            """
+            """,
             )
             conn.commit()
 

@@ -1,5 +1,4 @@
-"""
-Unit tests for EscalationLogic component.
+"""Unit tests for EscalationLogic component.
 
 Tests escalation decision making and reporting.
 """

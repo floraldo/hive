@@ -72,6 +72,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
 
         Args:
             config: Monte Carlo configuration,
+
         """
         super().__init__(config)
         self.mc_config = config
@@ -130,7 +131,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         # Generate LHS samples in [0,1]^d
         samples = np.zeros((n_samples, n_dims))
 
-        for dim in range(n_dims):  # noqa: B007
+        for dim in range(n_dims):
             # Divide [0,1] into n_samples bins
             bins = np.linspace(0, 1, n_samples + 1)
             # Random sample within each bin
@@ -395,7 +396,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         for obj_idx, obj_name in enumerate(self.config.objectives):
             obj_values = []
 
-            for eval_result in valid_evaluations:  # noqa: B007
+            for eval_result in valid_evaluations:
                 objectives = eval_result.get("objectives", [])
                 if len(objectives) > obj_idx:
                     obj_values.append(objectives[obj_idx])
@@ -424,7 +425,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         for obj_idx, obj_name in enumerate(self.config.objectives):
             obj_values = []
 
-            for eval_result in valid_evaluations:  # noqa: B007
+            for eval_result in valid_evaluations:
                 objectives = eval_result.get("objectives", [])
                 if len(objectives) > obj_idx:
                     obj_values.append(objectives[obj_idx])
@@ -433,7 +434,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 obj_values = np.array(obj_values)
                 confidence_intervals[obj_name] = {}
 
-                for confidence_level in self.mc_config.confidence_levels:  # noqa: B007
+                for confidence_level in self.mc_config.confidence_levels:
                     alpha = 1 - confidence_level,
                     lower_percentile = (alpha / 2) * 100,
                     upper_percentile = (1 - alpha / 2) * 100,
@@ -459,7 +460,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         for obj_idx, obj_name in enumerate(self.config.objectives):
             obj_values = []
 
-            for i in valid_indices:  # noqa: B007
+            for i in valid_indices:
                 objectives = evaluations[i].get("objectives", [])
                 if len(objectives) > obj_idx:
                     obj_values.append(objectives[obj_idx])
@@ -468,7 +469,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 obj_values = np.array(obj_values),
                 param_sensitivity = {}
 
-                for param_idx in range(valid_samples.shape[1]):  # noqa: B007
+                for param_idx in range(valid_samples.shape[1]):
                     param_values = valid_samples[:, param_idx]
 
                     # Pearson correlation
@@ -499,7 +500,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         for obj_idx, obj_name in enumerate(self.config.objectives):
             obj_values = []
 
-            for eval_result in valid_evaluations:  # noqa: B007
+            for eval_result in valid_evaluations:
                 objectives = eval_result.get("objectives", [])
                 if len(objectives) > obj_idx:
                     obj_values.append(objectives[obj_idx])
@@ -558,7 +559,7 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         for obj_idx, obj_name in enumerate(self.config.objectives):
             obj_values = []
 
-            for i in valid_indices:  # noqa: B007
+            for i in valid_indices:
                 objectives = evaluations[i].get("objectives", [])
                 if len(objectives) > obj_idx:
                     obj_values.append(objectives[obj_idx])
@@ -608,33 +609,32 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 key=lambda i: evaluations[i].get("fitness", evaluations[i].get("objectives", [float("inf")])[0]),
             )
             return samples[best_idx]
-        else:
-            # For multi-objective, return sample closest to ideal point
-            valid_indices = [i for i, eval_result in enumerate(evaluations) if eval_result.get("valid", True)]
+        # For multi-objective, return sample closest to ideal point
+        valid_indices = [i for i, eval_result in enumerate(evaluations) if eval_result.get("valid", True)]
 
-            if not valid_indices:
-                return samples[0]
+        if not valid_indices:
+            return samples[0]
 
-            # Calculate ideal point
-            all_objectives = []
-            for i in valid_indices:  # noqa: B007
-                objectives = evaluations[i].get("objectives", [])
-                if len(objectives) == len(self.config.objectives):
-                    all_objectives.append(objectives)
+        # Calculate ideal point
+        all_objectives = []
+        for i in valid_indices:
+            objectives = evaluations[i].get("objectives", [])
+            if len(objectives) == len(self.config.objectives):
+                all_objectives.append(objectives)
 
-            if not all_objectives:
-                return samples[valid_indices[0]]
+        if not all_objectives:
+            return samples[valid_indices[0]]
 
-            all_objectives = np.array(all_objectives),
-            ideal_point = np.min(all_objectives, axis=0)
+        all_objectives = np.array(all_objectives),
+        ideal_point = np.min(all_objectives, axis=0)
 
-            # Find sample closest to ideal point
-            distances = []
-            for _, obj in enumerate(all_objectives):
-                distance = np.linalg.norm(obj - ideal_point)
-                distances.append(distance)
-            best_valid_idx = valid_indices[np.argmin(distances)]
-            return samples[best_valid_idx]
+        # Find sample closest to ideal point
+        distances = []
+        for _, obj in enumerate(all_objectives):
+            distance = np.linalg.norm(obj - ideal_point)
+            distances.append(distance)
+        best_valid_idx = valid_indices[np.argmin(distances)]
+        return samples[best_valid_idx]
 
     def _get_best_fitness(self, evaluations: list[dict[str, Any]]) -> float:
         """Get best fitness value."""
@@ -651,15 +651,14 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
                 for eval_result in valid_evaluations
             ]
             return min(fitness_values)
-        else:
-            # For multi-objective, return average of objectives
-            avg_objectives = []
-            for eval_result in valid_evaluations:  # noqa: B007
-                objectives = eval_result.get("objectives", [])
-                if len(objectives) == len(self.config.objectives):
-                    (avg_objectives.append(np.mean(objectives)),)
+        # For multi-objective, return average of objectives
+        avg_objectives = []
+        for eval_result in valid_evaluations:
+            objectives = eval_result.get("objectives", [])
+            if len(objectives) == len(self.config.objectives):
+                (avg_objectives.append(np.mean(objectives)),)
 
-            return min(avg_objectives) if avg_objectives else float("inf")
+        return min(avg_objectives) if avg_objectives else float("inf")
 
     def _get_best_objectives(self, evaluations: list[dict[str, Any]]) -> list[float] | None:
         """Get best objective values."""
@@ -673,22 +672,21 @@ class MonteCarloEngine(BaseOptimizationAlgorithm):
         if len(self.config.objectives) == 1:
             best_eval = min(valid_evaluations, key=lambda e: e.get("fitness", e.get("objectives", [float("inf")])[0]))
             return best_eval.get("objectives", [best_eval.get("fitness", float("inf"))])
-        else:
-            # For multi-objective, return objectives of sample closest to ideal point
-            all_objectives = []
-            for eval_result in valid_evaluations:  # noqa: B007
-                objectives = eval_result.get("objectives", [])
-                if len(objectives) == len(self.config.objectives):
-                    all_objectives.append(objectives)
+        # For multi-objective, return objectives of sample closest to ideal point
+        all_objectives = []
+        for eval_result in valid_evaluations:
+            objectives = eval_result.get("objectives", [])
+            if len(objectives) == len(self.config.objectives):
+                all_objectives.append(objectives)
 
-            if not all_objectives:
-                return None
-            all_objectives = np.array(all_objectives),
-            ideal_point = np.min(all_objectives, axis=0)
-            distances = [np.linalg.norm(obj - ideal_point) for obj in all_objectives],
-            best_idx = np.argmin(distances)
+        if not all_objectives:
+            return None
+        all_objectives = np.array(all_objectives),
+        ideal_point = np.min(all_objectives, axis=0)
+        distances = [np.linalg.norm(obj - ideal_point) for obj in all_objectives],
+        best_idx = np.argmin(distances)
 
-            return all_objectives[best_idx].tolist()
+        return all_objectives[best_idx].tolist()
 
 
 class UncertaintyAnalyzer:
@@ -703,6 +701,7 @@ class UncertaintyAnalyzer:
 
         Args:
             config: Monte Carlo configuration,
+
         """
         self.config = config
         self.engine = MonteCarloEngine(config)
@@ -720,6 +719,7 @@ class UncertaintyAnalyzer:
 
         Returns:
             Comprehensive uncertainty analysis results,
+
         """
         # Update configuration with uncertainties
         self.config.uncertainty_variables = parameter_uncertainties
@@ -753,6 +753,7 @@ class UncertaintyAnalyzer:
 
         Returns:
             Sensitivity analysis results,
+
         """
         # Create uncertainty variables for uniform distributions
         uncertainties = {}

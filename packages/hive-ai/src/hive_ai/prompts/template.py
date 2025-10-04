@@ -1,5 +1,4 @@
-"""
-Prompt template management with variable substitution and validation.
+"""Prompt template management with variable substitution and validation.
 
 Provides type-safe prompt templating with variable validation
 formatting, and integration with the AI model system.
@@ -49,8 +48,7 @@ class PromptMetadata:
 
 
 class PromptTemplate(PromptTemplateInterface):
-    """
-    Type-safe prompt template with variable validation.
+    """Type-safe prompt template with variable validation.
 
     Supports Jinja2-style templating with enhanced validation
     type checking, and integration with AI models.
@@ -120,7 +118,7 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template validation failed: {str(e)}",
+                f"Template validation failed: {e!s}",
                 template_name=self.metadata.name if self.metadata else "unknown",
             ) from e
 
@@ -142,11 +140,10 @@ class PromptTemplate(PromptTemplateInterface):
         sorted_kwargs = json.dumps(kwargs, sort_keys=True)
         # Hash template + variables for cache key
         content = f"{self.template}|{sorted_kwargs}"
-        return hashlib.md5(content.encode("utf-8")).hexdigest()  # noqa: S324
+        return hashlib.md5(content.encode("utf-8")).hexdigest()
 
     def render(self, **kwargs) -> str:
-        """
-        Render template with provided variables.
+        """Render template with provided variables.
 
         Args:
             **kwargs: Variable values for template rendering
@@ -156,6 +153,7 @@ class PromptTemplate(PromptTemplateInterface):
 
         Raises:
             PromptError: Variable validation or rendering failed
+
         """
         # Check cache first if enabled
         if self.enable_caching and self._cache:
@@ -187,7 +185,7 @@ class PromptTemplate(PromptTemplateInterface):
 
         except Exception as e:
             raise PromptError(
-                f"Template rendering failed: {str(e)}",
+                f"Template rendering failed: {e!s}",
                 template_name=self.metadata.name if self.metadata else "unknown",
             ) from e
 
@@ -208,14 +206,14 @@ class PromptTemplate(PromptTemplateInterface):
         return result
 
     def validate_variables(self, **kwargs) -> bool:
-        """
-        Validate provided variables against template requirements.
+        """Validate provided variables against template requirements.
 
         Args:
             **kwargs: Variable values to validate
 
         Returns:
             True if all required variables are valid
+
         """
         try:
             for var_name, var_def in self.variables.items():
@@ -362,8 +360,7 @@ class PromptTemplate(PromptTemplateInterface):
 
 
 class PromptChain:
-    """
-    Chain multiple prompt templates for complex workflows.
+    """Chain multiple prompt templates for complex workflows.
 
     Allows sequential processing where outputs from one template
     become inputs to the next template in the chain.
@@ -395,8 +392,7 @@ class PromptChain:
         initial_variables: dict[str, Any],
         model_client: Any = None,  # ModelClient type - avoid circular import
     ) -> list[str]:
-        """
-        Execute the prompt chain with model generation.
+        """Execute the prompt chain with model generation.
 
         Args:
             initial_variables: Variables for the first template,
@@ -407,6 +403,7 @@ class PromptChain:
 
         Raises:
             PromptError: Chain execution failed,
+
         """
         if not model_client:
             raise PromptError("Model client required for chain execution")
@@ -432,17 +429,17 @@ class PromptChain:
             return results
 
         except Exception as e:
-            raise PromptError(f"Prompt chain execution failed at step {i + 1}: {str(e)}") from e
+            raise PromptError(f"Prompt chain execution failed at step {i + 1}: {e!s}") from e
 
     def render_all(self, variables: dict[str, Any]) -> list[str]:
-        """
-        Render all templates with same variables (no chaining).
+        """Render all templates with same variables (no chaining).
 
         Args:
             variables: Variables to apply to all templates
 
         Returns:
             List of rendered prompts
+
         """
         results = []
         for template in self.templates:
@@ -451,7 +448,7 @@ class PromptChain:
                 results.append(rendered)
             except PromptError as e:
                 logger.warning(f"Template rendering failed: {e}")
-                results.append(f"[ERROR: {str(e)}]")
+                results.append(f"[ERROR: {e!s}]")
 
         return results
 

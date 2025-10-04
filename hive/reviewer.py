@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
-# ruff: noqa: S607
 # Security: subprocess calls in this module use system tools (git) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-ReviewerCore - Queen's Internal Code Review Module
+"""ReviewerCore - Queen's Internal Code Review Module
 Provides quality assessment and iterative refinement capabilities
 """
 
@@ -28,8 +26,7 @@ class ReviewerCore:
         self.results_dir = self.hive_dir / "results"
 
     def review_task_output(self, task: dict[str, Any], worktree_path: Path) -> dict[str, Any]:
-        """
-        Review the output of a completed task
+        """Review the output of a completed task
 
         Returns:
             {
@@ -39,6 +36,7 @@ class ReviewerCore:
                 "improvements": [list of specific improvements needed],
                 "strengths": [list of things done well]
             }
+
         """
         task["id"]
         acceptance_criteria = task.get("acceptance", [])
@@ -127,7 +125,7 @@ class ReviewerCore:
         try:
             result = subprocess.run(
                 ["git", "diff", "--name-only", "HEAD"],
-                cwd=str(worktree_path),
+                check=False, cwd=str(worktree_path),
                 capture_output=True,
                 text=True,
             )
@@ -139,7 +137,7 @@ class ReviewerCore:
             # Also check for untracked files
             result = subprocess.run(
                 ["git", "ls-files", "--others", "--exclude-standard"],
-                cwd=str(worktree_path),
+                check=False, cwd=str(worktree_path),
                 capture_output=True,
                 text=True,
             )

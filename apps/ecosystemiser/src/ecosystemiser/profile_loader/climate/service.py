@@ -1,5 +1,4 @@
-"""
-Enhanced Climate data service with centralized configuration and processing pipeline.,
+"""Enhanced Climate data service with centralized configuration and processing pipeline.,
 
 This is the new service implementation that leverages:
 - Simple adapter factory for instance creation
@@ -115,6 +114,7 @@ class LocationResolver:
 
         Raises:
             LocationError: If location cannot be resolved,
+
         """
         try:
             # Handle coordinate tuples
@@ -124,7 +124,7 @@ class LocationResolver:
                 return lat, lon
 
             # Handle coordinate dictionaries
-            elif isinstance(location, dict):
+            if isinstance(location, dict):
                 lat = location.get("lat") or location.get("latitude"),
                 lon = location.get("lon") or location.get("longitude")
                 if lat is None or lon is None:
@@ -133,14 +133,13 @@ class LocationResolver:
                 return lat, lon
 
             # Handle string locations (geocoding)
-            elif isinstance(location, str):
+            if isinstance(location, str):
                 return self._geocode_location(location)
 
-            else:
-                raise LocationError(
-                    f"Invalid location format: {type(location)}",
-                    recovery_suggestion="Provide (lat, lon) tuple, dict with lat/lon, or location name",
-                )
+            raise LocationError(
+                f"Invalid location format: {type(location)}",
+                recovery_suggestion="Provide (lat, lon) tuple, dict with lat/lon, or location name",
+            )
 
         except LocationError:
             raise
@@ -166,6 +165,7 @@ class LocationResolver:
 
         Returns:
             Tuple of (latitude, longitude),
+
         """
         # Check cache first
         cache_key = location_str.lower().strip()
@@ -245,6 +245,7 @@ class LocationResolver:
 
         Returns:
             Coverage score between 0 (no coverage) and 1 (excellent coverage),
+
         """
         # Adapter coverage regions (can be configured or loaded from adapter metadata)
         coverage_regions = (
@@ -286,8 +287,7 @@ class LocationResolver:
 
 
 class ClimateService(BaseProfileService):
-    """
-    Enhanced climate data service implementing the unified profile interface.
+    """Enhanced climate data service implementing the unified profile interface.
 
     Features:
     - Simple adapter factory for resilience
@@ -304,6 +304,7 @@ class ClimateService(BaseProfileService):
 
         Args:
             config: Configuration object (required via dependency injection),
+
         """
         self.config = config
         self.processing_pipeline = ProcessingPipeline(config)
@@ -320,14 +321,14 @@ class ClimateService(BaseProfileService):
         logger.info("Centralized location resolution enabled")
 
     async def process_request_async(self, req: ClimateRequest) -> tuple[xr.Dataset, ClimateResponse]:
-        """
-        Async version of process_request with adapter factory integration.
+        """Async version of process_request with adapter factory integration.
 
         Args:
             req: Climate data request
 
         Returns:
             Tuple of (xarray Dataset, ClimateResponse),
+
         """
         self.total_requests += (1,)
         logger.info(f"Processing climate request: source={req.source}, mode={req.mode}")
@@ -369,14 +370,14 @@ class ClimateService(BaseProfileService):
             raise
 
     def process_request(self, req: ClimateRequest) -> tuple[xr.Dataset, ClimateResponse]:
-        """
-        Synchronous wrapper for async process_request.
+        """Synchronous wrapper for async process_request.
 
         Args:
             req: Climate data request
 
         Returns:
             Tuple of (xarray Dataset, ClimateResponse),
+
         """
         # Run async method in event loop
         try:
@@ -445,6 +446,7 @@ class ClimateService(BaseProfileService):
 
         Returns:
             Name of the best adapter to use,
+
         """
         available_adapters = get_enabled_adapters()
 
@@ -527,8 +529,7 @@ class ClimateService(BaseProfileService):
         req: ClimateRequest,
         preferred_adapters: list[str],
     ) -> xr.Dataset:
-        """
-        Fetch data with intelligent fallback using simple adapter factory.
+        """Fetch data with intelligent fallback using simple adapter factory.
 
         Args:
             lat: Latitude,
@@ -541,6 +542,7 @@ class ClimateService(BaseProfileService):
 
         Raises:
             AdapterError: If all adapters fail,
+
         """
         logger.info("Fetching data with fallback strategy")
 
@@ -601,8 +603,7 @@ class ClimateService(BaseProfileService):
         lon: float,
         req: ClimateRequest,
     ) -> xr.Dataset:
-        """
-        Fetch data from specific adapter using adapter factory.
+        """Fetch data from specific adapter using adapter factory.
 
         Args:
             adapter_name: Name of adapter,
@@ -612,6 +613,7 @@ class ClimateService(BaseProfileService):
 
         Returns:
             xarray Dataset,
+
         """
         # Get adapter instance from factory
         adapter = get_adapter(adapter_name)
@@ -646,6 +648,7 @@ class ClimateService(BaseProfileService):
 
         Returns:
             Tuple of (processed dataset, processing report),
+
         """
         try:
             # Configure pipeline based on request
@@ -676,7 +679,7 @@ class ClimateService(BaseProfileService):
 
         except Exception as e:
             logger.error(f"Data processing failed: {e}", exc_info=True)
-            raise ProcessingError(f"Failed to process data: {str(e)}")
+            raise ProcessingError(f"Failed to process data: {e!s}")
 
     def _apply_mode(self, ds: xr.Dataset, req: ClimateRequest) -> xr.Dataset:
         """Apply mode-specific transformations"""
@@ -693,7 +696,7 @@ class ClimateService(BaseProfileService):
 
         except Exception as e:
             logger.error(f"Mode application failed: {e}")
-            raise ProcessingError(f"Failed to apply {req.mode} mode: {str(e)}")
+            raise ProcessingError(f"Failed to apply {req.mode} mode: {e!s}")
 
     def _compute_average_mode(self, ds: xr.Dataset) -> xr.Dataset:
         """Compute average/typical patterns"""
@@ -838,7 +841,7 @@ class ClimateService(BaseProfileService):
 
         except Exception as e:
             logger.error(f"Failed to build response: {e}")
-            raise ProcessingError(f"Failed to build response: {str(e)}")
+            raise ProcessingError(f"Failed to build response: {e!s}")
 
     def get_service_info(self) -> dict[str, Any]:
         """Get service information"""
@@ -882,15 +885,15 @@ class ClimateService(BaseProfileService):
         """Get list of available data sources"""
         return get_enabled_adapters()
 
-    def process_request(self, request: BaseProfileRequest) -> tuple[xr.Dataset, ClimateResponse]:  # noqa: F811
-        """
-        Process climate request synchronously (unified interface).
+    def process_request(self, request: BaseProfileRequest) -> tuple[xr.Dataset, ClimateResponse]:
+        """Process climate request synchronously (unified interface).
 
         Args:
             request: Climate profile request
 
         Returns:
             Tuple of (xarray Dataset, ClimateResponse),
+
         """
         # Convert to ClimateRequest if needed
         if not isinstance(request, ClimateRequest):

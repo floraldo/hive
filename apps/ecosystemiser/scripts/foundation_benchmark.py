@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-EcoSystemiser Foundation Benchmark
+"""EcoSystemiser Foundation Benchmark
 
 Tests the foundational architecture after the v3.0 hardening:
 - App vs Hive config distinction
@@ -152,10 +151,9 @@ try:
             logger.info("\n🎉 Foundation benchmark PASSED!")
             logger.info("EcoSystemiser v3.0 architectural hardening is complete")
             return True
-        else:
-            logger.error("\n❌ Foundation benchmark FAILED")
-            logger.error(f"{total - passed} tests failed")
-            return False
+        logger.error("\n❌ Foundation benchmark FAILED")
+        logger.error(f"{total - passed} tests failed")
+        return False
 
     if __name__ == "__main__":
         success = benchmark_foundation()

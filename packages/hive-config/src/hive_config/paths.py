@@ -16,14 +16,14 @@ from pathlib import Path
 
 
 def _search_for_root(start_path: Path) -> Path:
-    """
-    Helper function to search for project root from a starting path.
+    """Helper function to search for project root from a starting path.
 
     Args:
         start_path: Path to start searching from
 
     Returns:
         Path to project root if found, None otherwise
+
     """
     current_path = start_path
 
@@ -48,8 +48,7 @@ def _search_for_root(start_path: Path) -> Path:
 
 @functools.lru_cache(maxsize=1)
 def get_project_root() -> Path:
-    """
-    Finds the absolute path to the project root by looking for the
+    """Finds the absolute path to the project root by looking for the
     main `pyproject.toml` file that defines the Poetry workspace.
 
     This function is cached, so it only runs the search once per process.
@@ -59,6 +58,7 @@ def get_project_root() -> Path:
 
     Raises:
         RuntimeError: If the project root cannot be found
+
     """
     # First, check environment variable override
     if env_root := os.environ.get("HIVE_PROJECT_ROOT"):
@@ -124,22 +124,21 @@ SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 
 
 def ensure_directory(path: Path) -> Path:
-    """
-    Ensure a directory exists, creating it if necessary.
+    """Ensure a directory exists, creating it if necessary.
 
     Args:
         path: The directory path to ensure exists
 
     Returns:
         Path: The same path, guaranteed to exist
+
     """
     path.mkdir(parents=True, exist_ok=True)
     return path
 
 
 def get_worker_workspace_dir(worker_id: str, task_id: str = None) -> Path:
-    """
-    Get the workspace directory for a specific worker and task.
+    """Get the workspace directory for a specific worker and task.
 
     Args:
         worker_id: The worker identifier (e.g., 'backend', 'frontend')
@@ -147,23 +146,23 @@ def get_worker_workspace_dir(worker_id: str, task_id: str = None) -> Path:
 
     Returns:
         Path: The workspace directory path
+
     """
     base_path = WORKTREES_DIR / worker_id
 
     if task_id:
         return base_path / task_id
-    else:
-        return base_path
+    return base_path
 
 
 def get_task_log_dir(task_id: str) -> Path:
-    """
-    Get the log directory for a specific task.
+    """Get the log directory for a specific task.
 
     Args:
         task_id: The task identifier
 
     Returns:
         Path: The task log directory path
+
     """
     return LOGS_DIR / task_id

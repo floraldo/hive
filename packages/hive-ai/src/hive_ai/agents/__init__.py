@@ -1,5 +1,4 @@
-"""
-AI agents with sequential thinking capabilities.
+"""AI agents with sequential thinking capabilities.
 
 This module provides the BaseAgent class with God Mode features including:
 - Multi-step sequential thinking loop (1-30 thoughts)

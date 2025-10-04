@@ -1,5 +1,4 @@
-"""
-Pytest configuration and fixtures for hive-orchestrator tests.
+"""Pytest configuration and fixtures for hive-orchestrator tests.
 
 Provides shared fixtures for configuration, database, and services
 following the dependency injection pattern.
@@ -24,8 +23,7 @@ from hive_config import (
 
 @pytest.fixture
 def hive_config() -> HiveConfig:
-    """
-    Production-like configuration for integration tests.
+    """Production-like configuration for integration tests.
 
     Uses actual configuration sources (files, environment variables)
     but suitable for testing environment.
@@ -35,8 +33,7 @@ def hive_config() -> HiveConfig:
 
 @pytest.fixture
 def mock_config() -> HiveConfig:
-    """
-    Isolated configuration for unit tests.
+    """Isolated configuration for unit tests.
 
     Uses in-memory database and mock mode for external services.
     Each test gets independent configuration instance.
@@ -71,8 +68,7 @@ def mock_config() -> HiveConfig:
 
 @pytest.fixture
 def test_db_config() -> DatabaseConfig:
-    """
-    Test database configuration.
+    """Test database configuration.
 
     Provides in-memory database for isolated testing.
     """
@@ -85,8 +81,7 @@ def test_db_config() -> DatabaseConfig:
 
 @pytest.fixture
 def custom_config():
-    """
-    Config factory for test-specific configuration needs.
+    """Config factory for test-specific configuration needs.
 
     Returns a function that creates HiveConfig with custom overrides.
 
@@ -121,8 +116,7 @@ def custom_config():
 
 @pytest.fixture(autouse=True)
 def reset_global_state():
-    """
-    Reset global state before each test.
+    """Reset global state before each test.
 
     This fixture runs automatically before each test to ensure
     clean state. Useful during migration from global config to DI.

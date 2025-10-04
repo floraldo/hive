@@ -217,6 +217,7 @@ def validate_fidelity_consistency(components: list[BaseTechnicalParams]) -> bool
 
     Returns:
         True if fidelity levels are consistent,
+
     """
     if not components:
         return True

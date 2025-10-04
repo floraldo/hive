@@ -1,5 +1,4 @@
-"""
-BaseApplication - Unified application lifecycle framework.
+"""BaseApplication - Unified application lifecycle framework.
 
 Provides standardized foundation for all Hive platform apps:
 - Automatic unified configuration loading
@@ -22,8 +21,7 @@ from hive_logging import get_logger
 
 
 class BaseApplication(ABC):
-    """
-    Base class for all Hive platform applications.
+    """Base class for all Hive platform applications.
 
     Provides unified lifecycle management, resource initialization,
     and graceful shutdown handling.
@@ -66,8 +64,7 @@ class BaseApplication(ABC):
     app_name: str
 
     def __init__(self, config: HiveConfig | None = None):
-        """
-        Initialize base application.
+        """Initialize base application.
 
         Args:
             config: Optional pre-loaded configuration (for testing).
@@ -75,6 +72,7 @@ class BaseApplication(ABC):
 
         Raises:
             ValueError: If app_name class variable not defined
+
         """
         # Validate app_name is defined
         if not hasattr(self, "app_name") or not self.app_name:
@@ -107,8 +105,7 @@ class BaseApplication(ABC):
     # ============================================================================
 
     def start(self) -> None:
-        """
-        Start the application (blocking).
+        """Start the application (blocking).
 
         This is the main entry point. Handles:
         1. Signal handler registration (SIGTERM, SIGINT)
@@ -120,6 +117,7 @@ class BaseApplication(ABC):
 
         Raises:
             Exception: If startup fails (after cleanup attempt)
+
         """
         try:
             # Run async startup
@@ -136,8 +134,7 @@ class BaseApplication(ABC):
             self.logger.info(f"{self.app_name} stopped")
 
     async def _async_start(self) -> None:
-        """
-        Async startup sequence.
+        """Async startup sequence.
 
         Internal method. Use start() instead.
         """
@@ -170,8 +167,7 @@ class BaseApplication(ABC):
             self._restore_signal_handlers()
 
     async def shutdown(self) -> None:
-        """
-        Graceful shutdown sequence.
+        """Graceful shutdown sequence.
 
         Guaranteed to run even if app crashes.
         Cleans up all resources in reverse order of initialization.
@@ -202,8 +198,7 @@ class BaseApplication(ABC):
             self._running = False
 
     def _register_signal_handlers(self) -> None:
-        """
-        Register signal handlers for graceful shutdown.
+        """Register signal handlers for graceful shutdown.
 
         Handles SIGTERM and SIGINT to trigger shutdown.
         """
@@ -241,8 +236,7 @@ class BaseApplication(ABC):
     # ============================================================================
 
     async def setup_resources(self) -> None:
-        """
-        Initialize platform resources.
+        """Initialize platform resources.
 
         Resources are created in dependency order:
         1. Database (most fundamental)
@@ -251,6 +245,7 @@ class BaseApplication(ABC):
 
         Raises:
             Exception: If resource setup fails (after cleanup attempt)
+
         """
         try:
             # Database
@@ -275,8 +270,7 @@ class BaseApplication(ABC):
             raise
 
     async def cleanup_resources(self) -> None:
-        """
-        Clean up platform resources.
+        """Clean up platform resources.
 
         Cleanup happens in reverse order of initialization.
         Continues even if individual cleanups fail (fail-safe design).
@@ -328,8 +322,7 @@ class BaseApplication(ABC):
     # ============================================================================
 
     async def _create_database_manager(self) -> Any:
-        """
-        Create database manager from config.
+        """Create database manager from config.
 
         Returns:
             DatabaseManager instance from hive-db
@@ -337,6 +330,7 @@ class BaseApplication(ABC):
         Raises:
             ImportError: If hive-db not available
             Exception: If database creation fails
+
         """
         try:
             from hive_db import create_database_manager
@@ -347,8 +341,7 @@ class BaseApplication(ABC):
             raise
 
     async def _create_cache_client(self) -> Any:
-        """
-        Create cache client from config.
+        """Create cache client from config.
 
         Returns:
             CacheClient instance from hive-cache
@@ -356,6 +349,7 @@ class BaseApplication(ABC):
         Raises:
             ImportError: If hive-cache not available
             Exception: If cache creation fails
+
         """
         try:
             from hive_cache import create_cache_client
@@ -366,8 +360,7 @@ class BaseApplication(ABC):
             raise
 
     async def _create_event_bus(self) -> Any:
-        """
-        Create event bus from config.
+        """Create event bus from config.
 
         Returns:
             EventBus instance from hive-bus
@@ -375,6 +368,7 @@ class BaseApplication(ABC):
         Raises:
             ImportError: If hive-bus not available
             Exception: If event bus creation fails
+
         """
         try:
             from hive_bus import create_event_bus
@@ -389,8 +383,7 @@ class BaseApplication(ABC):
     # ============================================================================
 
     async def health_check(self) -> dict[str, Any]:
-        """
-        Comprehensive health check.
+        """Comprehensive health check.
 
         Checks status of all initialized resources.
         Apps can override to add custom health checks.
@@ -409,6 +402,7 @@ class BaseApplication(ABC):
                 }
             }
             ```
+
         """
         health: dict[str, Any] = {
             "status": "healthy",
@@ -458,8 +452,7 @@ class BaseApplication(ABC):
 
     @abstractmethod
     async def initialize_services(self) -> None:
-        """
-        Initialize app-specific services.
+        """Initialize app-specific services.
 
         Called after setup_resources(), before run().
         Use self.config, self.db, self.cache, self.event_bus.
@@ -477,13 +470,12 @@ class BaseApplication(ABC):
 
         Raises:
             Exception: If service initialization fails
+
         """
-        pass
 
     @abstractmethod
     async def run(self) -> None:
-        """
-        Main application logic.
+        """Main application logic.
 
         Called after initialize_services().
         This is where the app does its work.
@@ -517,12 +509,11 @@ class BaseApplication(ABC):
 
         Raises:
             Exception: If main logic fails
+
         """
-        pass
 
     async def cleanup_services(self) -> None:
-        """
-        Optional: Clean up app-specific services.
+        """Optional: Clean up app-specific services.
 
         Called during shutdown, before cleanup_resources().
         Override if you have custom cleanup needs.
@@ -535,6 +526,7 @@ class BaseApplication(ABC):
                 if self.planning_service:
                     await self.planning_service.stop()
             ```
+
         """
         # Default implementation: no-op
         # Apps override this if they need custom service cleanup

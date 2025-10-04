@@ -22,8 +22,7 @@ from ecosystemiser.profile_loader.shared.models import BaseProfileRequest, BaseP
 
 
 class BaseProfileService(ABC):
-    """
-    Abstract base class for all profile services.,
+    """Abstract base class for all profile services.,
 
     This defines the unified interface that all profile loaders should implement,
     ensuring consistency between climate, demand, and future profile types.,
@@ -31,8 +30,7 @@ class BaseProfileService(ABC):
 
     @abstractmethod
     async def process_request_async(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, BaseProfileResponse]:
-        """
-        Process a profile data request asynchronously.
+        """Process a profile data request asynchronously.
 
         Args:
             request: Profile data request following the unified interface
@@ -42,13 +40,12 @@ class BaseProfileService(ABC):
 
         Raises:
             ProfileServiceError: If request processing fails,
+
         """
-        pass
 
     @abstractmethod
     def process_request(self, request: BaseProfileRequest) -> Tuple[xr.Dataset, BaseProfileResponse]:
-        """
-        Process a profile data request synchronously.
+        """Process a profile data request synchronously.
 
         Args:
             request: Profile data request following the unified interface
@@ -58,64 +55,60 @@ class BaseProfileService(ABC):
 
         Raises:
             ProfileServiceError: If request processing fails,
+
         """
-        pass
 
     @abstractmethod
     def validate_request(self, request: BaseProfileRequest) -> List[str]:
-        """
-        Validate a profile request and return any validation errors.
+        """Validate a profile request and return any validation errors.
 
         Args:
             request: Profile data request to validate
 
         Returns:
             List of validation error messages (empty if valid)
+
         """
-        pass
 
     @abstractmethod
     def get_available_sources(self) -> List[str]:
-        """
-        Get list of available data sources for this profile type.
+        """Get list of available data sources for this profile type.
 
         Returns:
             List of source identifiers,
+
         """
-        pass
 
     @abstractmethod
     def get_available_variables(self, source: str | None = None) -> dict[str, dict[str, str]]:
-        """
-        Get available variables for this profile type.
+        """Get available variables for this profile type.
 
         Args:
             source: Optional source filter
 
         Returns:
             Dictionary mapping variable names to metadata,
+
         """
-        pass
 
     @abstractmethod
     def get_source_coverage(self, source: str) -> dict[str, Any]:
-        """
-        Get geographical and temporal coverage for a data source.
+        """Get geographical and temporal coverage for a data source.
 
         Args:
             source: Source identifier
 
         Returns:
             Coverage information including spatial/temporal bounds,
+
         """
-        pass
 
     def get_service_info(self) -> dict[str, Any]:
-        """
-        Get information about this service.
+        """Get information about this service.
 
         Returns:
             Service metadata including capabilities and version,
+
         """
         return (
             {
@@ -139,16 +132,13 @@ class ProfileServiceError(Exception):
 class ProfileValidationError(BaseError):
     """Exception for profile request validation errors."""
 
-    pass
 
 
 class ProfileDataError(BaseError):
     """Exception for profile data processing errors."""
 
-    pass
 
 
 class ProfileSourceError(BaseError):
     """Exception for profile data source errors."""
 
-    pass

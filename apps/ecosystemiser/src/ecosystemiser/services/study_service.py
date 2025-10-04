@@ -109,6 +109,7 @@ class StudyService:
 
         Args:
             job_facade: Optional job facade, creates default if None:
+
         """
         self.job_facade = job_facade or JobFacade()
         self.event_bus = get_ecosystemiser_event_bus()
@@ -122,6 +123,7 @@ class StudyService:
 
         Returns:
             StudyResult with aggregated results,
+
         """
         logger.info(f"Starting {config.study_type} study: {config.study_id}")
         start_time = datetime.now()
@@ -208,7 +210,7 @@ class StudyService:
             except Exception as e_pub:
                 logger.debug(f"Could not publish study failed event: {e_pub}")
 
-            logger.error(f"Study failed: {config.study_id} - {str(e)}")
+            logger.error(f"Study failed: {config.study_id} - {e!s}")
             raise
 
     def run_genetic_algorithm_study(
@@ -228,6 +230,7 @@ class StudyService:
 
         Returns:
             Dictionary with results including best solution, convergence history
+
         """
         logger.info(f"Starting GA study: {study_id}")
 
@@ -280,7 +283,7 @@ class StudyService:
                     "worst_fitness": worst_fitness,
                     "fitness_std": fitness_std,
                     "diversity": diversity,
-                }
+                },
             )
 
             # Log to database
@@ -299,7 +302,7 @@ class StudyService:
 
             logger.info(
                 f"Generation {generation + 1}/{ga_config.max_generations}: "
-                f"best={best_fitness:.4f}, avg={avg_fitness:.4f}, diversity={diversity:.4f}"
+                f"best={best_fitness:.4f}, avg={avg_fitness:.4f}, diversity={diversity:.4f}",
             )
 
         # Get final best solution
@@ -332,7 +335,7 @@ class StudyService:
 
         logger.info(
             f"GA study completed: best_fitness={best_fitness_final:.4f}, "
-            f"cache_hit_rate={results['cache_statistics']['hit_rate']:.1f}%"
+            f"cache_hit_rate={results['cache_statistics']['hit_rate']:.1f}%",
         )
 
         return results
@@ -345,6 +348,7 @@ class StudyService:
 
         Returns:
             List of simulation configurations,
+
         """
         configs = []
 
@@ -393,6 +397,7 @@ class StudyService:
 
         Returns:
             List of simulation configurations with mixed-fidelity settings,
+
         """
         configs = []
 
@@ -516,7 +521,7 @@ class StudyService:
                         # Randomly assign fidelity levels
                         mixed_config = {}
                         for comp in target_components:
-                            mixed_config[comp] = random.choice(fidelity_levels)  # noqa: S311
+                            mixed_config[comp] = random.choice(fidelity_levels)
 
                         sim_config.output_config["mixed_fidelity_config"] = mixed_config
                         sim_config.output_config["sample_index"] = sample_idx
@@ -541,6 +546,7 @@ class StudyService:
 
         Returns:
             StudyResult with optimization results,
+
         """
         # This would implement optimization algorithms
         # For now, return empty result
@@ -563,6 +569,7 @@ class StudyService:
 
         Returns:
             StudyResult with optimization results,
+
         """
         logger.info(f"Starting genetic algorithm study: {config.study_id}")
         start_time = datetime.now()
@@ -656,6 +663,7 @@ class StudyService:
 
         Returns:
             StudyResult with uncertainty analysis results,
+
         """
         logger.info(f"Starting Monte Carlo study: {config.study_id}")
         start_time = datetime.now()
@@ -752,18 +760,18 @@ class StudyService:
 
         Returns:
             SystemConfigEncoder instance,
+
         """
         if config.optimization_variables:
             # Use custom parameter definitions
 
             return SystemConfigEncoder.from_parameter_list(config.optimization_variables)
-        else:
-            # Auto-detect from system configuration
+        # Auto-detect from system configuration
 
-            return SystemConfigEncoder.from_config(
-                config.base_config.system_config_path,
-                component_selection=None,  # Optimize all available components
-            )
+        return SystemConfigEncoder.from_config(
+            config.base_config.system_config_path,
+            component_selection=None,  # Optimize all available components
+        )
 
     def _create_fitness_function(self, config: StudyConfig, encoder: SystemConfigEncoder) -> Callable:
         """Create fitness function for optimization studies.
@@ -774,8 +782,8 @@ class StudyService:
 
         Returns:
             Fitness function that evaluates parameter vectors,
-        """
 
+        """
         # Load base system configuration once (cache for all evaluations)
         with open(config.base_config.system_config_path) as f:
             base_system_config = yaml.safe_load(f)
@@ -858,17 +866,16 @@ class StudyService:
                             "solver_metrics": result.solver_metrics,
                         },
                     }
-                else:
-                    # Simulation failed
-                    return {
-                        "objectives": (
-                            [float("inf")]
-                            * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
-                        ),
-                        "fitness": float("inf"),
-                        "valid": False,
-                        "error": result.error or "Simulation failed",
-                    }
+                # Simulation failed
+                return {
+                    "objectives": (
+                        [float("inf")]
+                        * (len(config.optimization_objective.split(",")) if config.optimization_objective else 1)
+                    ),
+                    "fitness": float("inf"),
+                    "valid": False,
+                    "error": result.error or "Simulation failed",
+                }
 
             except Exception as e:
                 logger.error(f"Fitness evaluation failed: {e}")
@@ -891,6 +898,7 @@ class StudyService:
 
         Returns:
             ConstraintHandler instance,
+
         """
         if config.optimization_constraints:
             # Create custom constraints
@@ -918,10 +926,9 @@ class StudyService:
                     handler.add_inequality_constraint(constraint_name, bounds_constraint)
 
             return handler
-        else:
-            # Use standard technical constraints
-            constraint_config = {"max_budget": (config.ga_config.get("max_budget") if config.ga_config else None)}
-            return TechnicalConstraintValidator.create_standard_constraints(encoder, constraint_config)
+        # Use standard technical constraints
+        constraint_config = {"max_budget": (config.ga_config.get("max_budget") if config.ga_config else None)}
+        return TechnicalConstraintValidator.create_standard_constraints(encoder, constraint_config)
 
     def _run_simulations(self, configs: list[SimulationConfig], study_config: StudyConfig) -> list[SimulationResult]:
         """Run multiple simulations, potentially in parallel.
@@ -932,6 +939,7 @@ class StudyService:
 
         Returns:
             List of simulation results,
+
         """
         results = []
 
@@ -978,6 +986,7 @@ class StudyService:
 
         Returns:
             SimulationResult
+
         """
         import uuid
         from datetime import datetime
@@ -997,7 +1006,7 @@ class StudyService:
                     "solver_type": getattr(config, "solver_type", "unknown"),
                     "simulation_status": "running",
                     "results_path": str(getattr(config, "output_dir", "")) if hasattr(config, "output_dir") else None,
-                }
+                },
             )
         except Exception as e:
             logger.warning(f"Failed to log pre-run status to database: {e}")
@@ -1028,7 +1037,7 @@ class StudyService:
                         "total_generation_kwh": result.kpis.get("total_generation_kwh"),
                         "total_demand_kwh": result.kpis.get("total_demand_kwh"),
                         "net_grid_usage_kwh": result.kpis.get("net_grid_usage_kwh"),
-                    }
+                    },
                 )
 
             # Add file paths if available
@@ -1058,6 +1067,7 @@ class StudyService:
 
         Returns:
             Aggregated study result,
+
         """
         successful = [r for r in results if r.status in ["optimal", "feasible"]]
         failed = [r for r in results if r.status == "error"]
@@ -1141,6 +1151,7 @@ class StudyService:
 
         Returns:
             Dictionary of summary statistics,
+
         """
         if not results:
             return {}
@@ -1188,6 +1199,7 @@ class StudyService:
 
         Returns:
             StudyResult with fidelity comparison,
+
         """
         # Load base configuration
 
@@ -1229,6 +1241,7 @@ class StudyService:
 
         Returns:
             StudyResult with mixed-fidelity comparison,
+
         """
         return self.run_fidelity_comparison(base_config_path=base_config_path, mixed_fidelity_configs=mixed_configs)
 
@@ -1241,6 +1254,7 @@ class StudyService:
 
         Returns:
             StudyResult with sensitivity analysis,
+
         """
         # Create base simulation config
         base_sim_config = SimulationConfig(
@@ -1288,6 +1302,7 @@ class StudyService:
 
         Returns:
             StudyResult with optimization results,
+
         """
         # Create base simulation config
 
@@ -1334,6 +1349,7 @@ class StudyService:
 
         Returns:
             StudyResult with uncertainty analysis results,
+
         """
         # Create base simulation config
 
@@ -1379,6 +1395,7 @@ class StudyService:
 
         Returns:
             StudyResult with design space exploration results,
+
         """
         if exploration_method.lower() == "nsga2":
             return self.run_genetic_algorithm_optimization(
@@ -1388,7 +1405,7 @@ class StudyService:
                 multi_objective=True,
                 **kwargs,
             )
-        elif exploration_method.lower() == "monte_carlo":
+        if exploration_method.lower() == "monte_carlo":
             # Convert design variables to uncertainty variables
 
             uncertainty_vars = {}
@@ -1405,8 +1422,7 @@ class StudyService:
                 objectives=objectives,
                 **kwargs,
             )
-        else:
-            raise ValueError(f"Unknown exploration method: {exploration_method}")
+        raise ValueError(f"Unknown exploration method: {exploration_method}")
 
     def run_optimization_and_uncertainty_analysis(
         self,
@@ -1435,6 +1451,7 @@ class StudyService:
 
         Returns:
             Dictionary with both GA and MC results, linked
+
         """
         ga_study_id = f"{study_id_prefix}_ga",
         mc_study_id = f"{study_id_prefix}_mc"

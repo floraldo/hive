@@ -45,8 +45,7 @@ class AsyncRetryError(Exception):
 
 
 async def run_async_with_retry_async(func: Callable, config: AsyncRetryConfig | None = None, *args, **kwargs) -> Any:
-    """
-    Retry an async function with configurable strategy.
+    """Retry an async function with configurable strategy.
 
     Args:
         func: Async function to retry
@@ -59,6 +58,7 @@ async def run_async_with_retry_async(func: Callable, config: AsyncRetryConfig | 
 
     Raises:
         AsyncRetryError: When all retry attempts are exhausted
+
     """
     if config is None:
         config = AsyncRetryConfig()
@@ -87,14 +87,14 @@ async def run_async_with_retry_async(func: Callable, config: AsyncRetryConfig | 
 
 
 def create_retry_decorator(config: AsyncRetryConfig | None = None) -> None:
-    """
-    Create a decorator for automatic retry of async functions.
+    """Create a decorator for automatic retry of async functions.
 
     Args:
         config: Retry configuration
 
     Returns:
         Decorator function
+
     """
 
     def decorator(func: Callable) -> dict[str, Any]:

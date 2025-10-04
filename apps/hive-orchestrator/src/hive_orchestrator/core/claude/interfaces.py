@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from __future__ import annotations
 
 from hive_logging import get_logger
@@ -26,8 +25,7 @@ class ClaudeServiceInterface(ABC):
         temperature: float = 0.7,
         **kwargs,
     ) -> dict[str, Any]:
-        """
-        Make an async call to Claude API.
+        """Make an async call to Claude API.
 
         Args:
             prompt: The prompt to send to Claude
@@ -37,18 +35,16 @@ class ClaudeServiceInterface(ABC):
 
         Returns:
             Response from Claude API
+
         """
-        pass
 
     @abstractmethod
     def get_metrics(self) -> dict[str, Any]:
         """Get service metrics"""
-        pass
 
     @abstractmethod
     def clear_cache(self) -> None:
         """Clear response cache"""
-        pass
 
 
 class PlannerBridgeInterface(ABC):
@@ -60,8 +56,7 @@ class PlannerBridgeInterface(ABC):
         task_description: str,
         context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """
-        Create a plan for the given task.
+        """Create a plan for the given task.
 
         Args:
             task_description: Description of the task
@@ -69,13 +64,12 @@ class PlannerBridgeInterface(ABC):
 
         Returns:
             Plan details
+
         """
-        pass
 
     @abstractmethod
     async def refine_plan_async(self, plan: dict[str, Any], feedback: str) -> dict[str, Any]:
-        """
-        Refine an existing plan based on feedback.
+        """Refine an existing plan based on feedback.
 
         Args:
             plan: Existing plan to refine
@@ -83,8 +77,8 @@ class PlannerBridgeInterface(ABC):
 
         Returns:
             Refined plan
+
         """
-        pass
 
 
 class ReviewerBridgeInterface(ABC):
@@ -97,8 +91,7 @@ class ReviewerBridgeInterface(ABC):
         language: str = "python",
         context: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Review code using Claude.
+        """Review code using Claude.
 
         Args:
             code: Code to review
@@ -107,13 +100,12 @@ class ReviewerBridgeInterface(ABC):
 
         Returns:
             Review results
+
         """
-        pass
 
     @abstractmethod
     async def suggest_improvements_async(self, code: str, issues: list[str]) -> dict[str, Any]:
-        """
-        Suggest improvements for identified issues.
+        """Suggest improvements for identified issues.
 
         Args:
             code: Code with issues
@@ -121,8 +113,8 @@ class ReviewerBridgeInterface(ABC):
 
         Returns:
             Improvement suggestions
+
         """
-        pass
 
 
 class MonitoringInterface(ABC):
@@ -131,14 +123,11 @@ class MonitoringInterface(ABC):
     @abstractmethod
     def record_metric(self, metric_name: str, value: float, tags: dict[str, str] | None = None) -> None:
         """Record a metric"""
-        pass
 
     @abstractmethod
     def start_span(self, operation_name: str) -> Any:
         """Start a monitoring span"""
-        pass
 
     @abstractmethod
     def get_health_status(self) -> dict[str, Any]:
         """Get health status"""
-        pass

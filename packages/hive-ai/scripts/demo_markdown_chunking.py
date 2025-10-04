@@ -1,5 +1,4 @@
-"""
-Standalone markdown chunking demonstration.
+"""Standalone markdown chunking demonstration.
 
 Shows the new markdown chunking capability without requiring
 full dependency installation.
@@ -63,7 +62,7 @@ def chunk_markdown(file_path: Path) -> list[SimpleChunk]:
                             line_end=line_num - 1,
                             purpose=purpose,
                             is_archived="archive" in str(file_path).lower(),
-                        )
+                        ),
                     )
 
             # Start new section
@@ -95,7 +94,7 @@ def chunk_markdown(file_path: Path) -> list[SimpleChunk]:
                     line_end=line_num - 1,
                     purpose=purpose,
                     is_archived="archive" in str(file_path).lower(),
-                )
+                ),
             )
 
     return chunks

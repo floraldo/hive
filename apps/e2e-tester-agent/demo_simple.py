@@ -38,7 +38,7 @@ def main():
         additional_context={
             "success_indicator": "User dashboard visible",
             "failure_indicator": "Error message displayed",
-        }
+        },
     )
 
     print("[OK] Parsed scenario:")
@@ -71,7 +71,7 @@ def main():
         additional_context={
             "success_indicator": "User dashboard visible",
             "failure_indicator": "Error message displayed",
-        }
+        },
     )
 
     print("[OK] Generated test:")

@@ -1,5 +1,4 @@
-"""
-Analytics & Insight Engine - Transform Data into Intelligence
+"""Analytics & Insight Engine - Transform Data into Intelligence
 
 Advanced analytics engine that processes unified metrics to generate
 intelligent insights, trend analysis, and predictive recommendations.
@@ -119,8 +118,7 @@ class Insight:
 
 
 class AnalyticsEngine:
-    """
-    Advanced analytics engine for platform intelligence.
+    """Advanced analytics engine for platform intelligence.
 
     Performs trend analysis, anomaly detection, correlation analysis,
     and generates actionable insights from unified metrics.
@@ -144,7 +142,6 @@ class AnalyticsEngine:
         hours: int = 24,
     ) -> list[TrendAnalysis]:
         """Analyze trends across specified metrics."""
-
         if not metric_types:
             metric_types = list(MetricType),
 
@@ -214,7 +211,6 @@ class AnalyticsEngine:
         time_period: timedelta,
     ) -> TrendAnalysis | None:
         """Analyze trend for a single metric."""
-
         if len(values) < 2:
             return None
 
@@ -313,7 +309,6 @@ class AnalyticsEngine:
         hours: int = 24,
     ) -> list[Anomaly]:
         """Detect anomalies in metrics using statistical methods."""
-
         if not metric_types:
             metric_types = list(MetricType),
 
@@ -397,12 +392,11 @@ class AnalyticsEngine:
         """Calculate severity based on z-score."""
         if z_score > 4:
             return SeverityLevel.CRITICAL
-        elif z_score > 3.5:
+        if z_score > 3.5:
             return SeverityLevel.HIGH
-        elif z_score > 3:
+        if z_score > 3:
             return SeverityLevel.MEDIUM
-        else:
-            return SeverityLevel.LOW
+        return SeverityLevel.LOW
 
     def _get_anomaly_causes(self, metric_type: MetricType, current: float, baseline: float) -> list[str]:
         """Get possible causes for anomalies."""
@@ -457,7 +451,6 @@ class AnalyticsEngine:
         hours: int = 24,
     ) -> list[Correlation]:
         """Find correlations between different metrics."""
-
         if not metric_types:
             metric_types = list(MetricType),
 
@@ -514,7 +507,6 @@ class AnalyticsEngine:
         series2: list[tuple[datetime, float]],
     ) -> Correlation | None:
         """Calculate correlation between two time series."""
-
         try:
             # Align time series (find common time points)
             dict1 = dict(series1),
@@ -580,8 +572,7 @@ class AnalyticsEngine:
 
 
 class InsightGenerator:
-    """
-    Generates high-level insights from analytics results.
+    """Generates high-level insights from analytics results.
 
     Combines trends, anomalies, and correlations into
     actionable strategic recommendations.
@@ -592,7 +583,6 @@ class InsightGenerator:
 
     async def generate_insights_async(self, hours: int = 24) -> list[Insight]:
         """Generate comprehensive insights from recent data."""
-
         insights = []
 
         # Get analytics results
@@ -633,7 +623,6 @@ class InsightGenerator:
 
     def _generate_performance_insights(self, trends: list[TrendAnalysis], anomalies: list[Anomaly]) -> list[Insight]:
         """Generate performance-related insights."""
-
         insights = []
 
         # Check for performance degradation trends
@@ -687,7 +676,6 @@ class InsightGenerator:
 
     def _generate_cost_insights(self, trends: list[TrendAnalysis], anomalies: list[Anomaly]) -> list[Insight]:
         """Generate cost-related insights."""
-
         insights = []
 
         # Check for cost trends
@@ -720,7 +708,6 @@ class InsightGenerator:
 
     def _generate_security_insights(self, anomalies: list[Anomaly]) -> list[Insight]:
         """Generate security-related insights."""
-
         insights = []
 
         # Check for security-related anomalies
@@ -751,7 +738,6 @@ class InsightGenerator:
 
     def _generate_quality_insights(self, trends: list[TrendAnalysis]) -> list[Insight]:
         """Generate code quality insights."""
-
         insights = []
 
         # Check for code quality trends
@@ -782,7 +768,6 @@ class InsightGenerator:
 
     def _generate_correlation_insights(self, correlations: list[Correlation]) -> list[Insight]:
         """Generate insights from correlations."""
-
         insights = []
 
         # Look for strong correlations that might indicate causation

@@ -35,6 +35,7 @@ class AnalyserFactory:
 
         Raises:
             TypeError: If strategy_class doesn't inherit from BaseAnalysis,
+
         """
         if not issubclass(strategy_class, BaseAnalysis):
             raise TypeError(f"Strategy class must inherit from BaseAnalysis, got {strategy_class}")
@@ -55,6 +56,7 @@ class AnalyserFactory:
 
         Raises:
             ValueError: If strategy name is not registered,
+
         """
         if name not in cls._strategies:
             available = ", ".join(cls._strategies.keys())
@@ -85,6 +87,7 @@ class AnalyserFactory:
 
         Returns:
             Dictionary mapping strategy names to instances,
+
         """
         strategies = ({},)
         config = config or {}
@@ -101,6 +104,7 @@ class AnalyserFactory:
 
         Returns:
             Dictionary mapping strategy names to descriptions,
+
         """
         info = {}
         for name, strategy_class in cls._strategies.items():
@@ -121,6 +125,7 @@ class AnalyserFactory:
 
         Returns:
             Dictionary of relevant strategy instances,
+
         """
         strategies = {}
 

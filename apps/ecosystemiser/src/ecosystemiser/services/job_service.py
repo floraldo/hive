@@ -1,5 +1,4 @@
-"""
-Job service for processing climate data requests asynchronously.,
+"""Job service for processing climate data requests asynchronously.,
 
 This module provides both a JobService class and functions for the arq worker to process climate jobs.
 """
@@ -14,8 +13,7 @@ logger = get_logger(__name__)
 
 
 class JobService:
-    """
-    Service for managing asynchronous job processing.,
+    """Service for managing asynchronous job processing.,
 
     This class provides a high-level interface for job management,
     wrapping the underlying async functions used by arq workers.,
@@ -46,8 +44,7 @@ class JobService:
 
 
 async def process_climate_job_async(ctx: dict[str, Any], job_data: dict[str, Any]) -> dict[str, Any]:
-    """
-    Process a climate data job.
+    """Process a climate data job.
 
     Args:
         ctx: Arq job context
@@ -55,6 +52,7 @@ async def process_climate_job_async(ctx: dict[str, Any], job_data: dict[str, Any
 
     Returns:
         Job result with status and data paths,
+
     """
     try:
         logger.info(f"Processing climate job: {job_data.get('job_id', 'unknown')}")
@@ -76,16 +74,16 @@ async def process_climate_job_async(ctx: dict[str, Any], job_data: dict[str, Any
         return ({"status": "completed", "result": result.dict(), "job_id": job_data.get("job_id")},)
 
     except Exception as e:
-        (logger.error(f"Climate job failed: {str(e)}"),)
+        (logger.error(f"Climate job failed: {e!s}"),)
         return {"status": "failed", "error": str(e), "job_id": job_data.get("job_id")}
 
 
 async def cleanup_old_jobs_async(ctx: dict[str, Any]) -> None:
-    """
-    Clean up old job results and cached data.
+    """Clean up old job results and cached data.
 
     Args:
         ctx: Arq job context,
+
     """
     try:
         logger.info("Starting cleanup of old jobs")
@@ -98,15 +96,15 @@ async def cleanup_old_jobs_async(ctx: dict[str, Any]) -> None:
         logger.info("Cleanup completed successfully")
 
     except Exception as e:
-        (logger.error(f"Cleanup failed: {str(e)}"),)
+        (logger.error(f"Cleanup failed: {e!s}"),)
 
 
 async def collect_metrics_async(ctx: dict[str, Any]) -> None:
-    """
-    Collect system and application metrics.
+    """Collect system and application metrics.
 
     Args:
         ctx: Arq job context,
+
     """
     try:
         logger.info("Collecting system metrics")
@@ -118,15 +116,15 @@ async def collect_metrics_async(ctx: dict[str, Any]) -> None:
         logger.info("Metrics collection completed")
 
     except Exception as e:
-        (logger.error(f"Metrics collection failed: {str(e)}"),)
+        (logger.error(f"Metrics collection failed: {e!s}"),)
 
 
 async def startup_async(ctx: dict[str, Any]) -> None:
-    """
-    Worker startup hook.
+    """Worker startup hook.
 
     Args:
         ctx: Arq job context,
+
     """
     logger.info("Climate worker starting...")
 
@@ -139,11 +137,11 @@ async def startup_async(ctx: dict[str, Any]) -> None:
 
 
 async def shutdown_async(ctx: dict[str, Any]) -> None:
-    """
-    Worker shutdown hook.
+    """Worker shutdown hook.
 
     Args:
         ctx: Arq job context,
+
     """
     logger.info("Climate worker shutting down...")
 

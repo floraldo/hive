@@ -1,5 +1,4 @@
-"""
-Unified App Configuration Loader
+"""Unified App Configuration Loader
 
 This module provides the load_config_for_app() function which is the
 recommended entry point for all Hive applications.
@@ -31,8 +30,7 @@ def load_config_for_app(
     use_env_files: bool = True,
     use_environment: bool = True,
 ) -> HiveConfig:
-    """
-    Unified configuration loader for Hive applications.
+    """Unified configuration loader for Hive applications.
 
     This is the ONE function apps should call to get their configuration.
     It replaces manual config creation and environment loading.
@@ -61,6 +59,7 @@ def load_config_for_app(
         >>> config = load_config_for_app("ai-planner")
         >>> db_path = config.database.path
         >>> claude_timeout = config.claude.timeout
+
     """
     # Start with base config from unified sources (Layers 1, 3, 4)
     config = create_config_from_sources(
@@ -108,15 +107,14 @@ def load_config_for_app(
     logger.debug(
         f"  - Package defaults: {use_package_defaults}"
         f"  - Env files: {use_env_files}"
-        f"  - Environment vars: {use_environment}"
+        f"  - Environment vars: {use_environment}",
     )
 
     return config
 
 
 def get_app_specific_config(app_name: str, config_keys: list[str]) -> dict[str, str]:
-    """
-    Get only specific configuration keys for an app.
+    """Get only specific configuration keys for an app.
 
     This is a convenience function for apps that only need a few config values.
 
@@ -136,6 +134,7 @@ def get_app_specific_config(app_name: str, config_keys: list[str]) -> dict[str, 
         ...     ["ANTHROPIC_API_KEY", "DATABASE_PATH"]
         ... )
         >>> api_key = config["ANTHROPIC_API_KEY"]
+
     """
     from .loader import get_required_keys
 

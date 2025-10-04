@@ -1,5 +1,4 @@
-"""
-Alert Validation Tracker
+"""Alert Validation Tracker
 
 Tracks predictive alert accuracy and manages false positive/true positive analysis.
 Part of PROJECT VANGUARD Phase A - Validation & Monitoring.
@@ -19,8 +18,7 @@ logger = get_logger(__name__)
 
 
 class AlertValidationTracker:
-    """
-    Track and analyze predictive alert accuracy.
+    """Track and analyze predictive alert accuracy.
 
     Maintains a validation database to track:
     - True Positives: Alerts that correctly predicted actual issues
@@ -85,8 +83,7 @@ class AlertValidationTracker:
         severity: str,
         metadata: dict | None = None,
     ) -> None:
-        """
-        Record a new predictive alert.
+        """Record a new predictive alert.
 
         Args:
             alert_id: Unique alert identifier
@@ -96,6 +93,7 @@ class AlertValidationTracker:
             confidence: Alert confidence score (0.0-1.0)
             severity: Alert severity (critical, high, medium, low)
             metadata: Additional alert context
+
         """
         alert_entry = {
             "alert_id": alert_id,
@@ -131,8 +129,7 @@ class AlertValidationTracker:
         description: str,
         related_alert_id: str | None = None,
     ) -> None:
-        """
-        Record an actual incident that occurred.
+        """Record an actual incident that occurred.
 
         Args:
             incident_id: Unique incident identifier
@@ -142,6 +139,7 @@ class AlertValidationTracker:
             severity: Incident severity
             description: Description of what happened
             related_alert_id: Alert ID if this incident was predicted
+
         """
         incident_entry = {
             "incident_id": incident_id,
@@ -163,13 +161,13 @@ class AlertValidationTracker:
         )
 
     def validate_alert(self, alert_id: str, outcome: str, notes: str | None = None) -> None:
-        """
-        Validate an alert's accuracy.
+        """Validate an alert's accuracy.
 
         Args:
             alert_id: Alert to validate
             outcome: Validation outcome (true_positive, false_positive)
             notes: Additional validation notes
+
         """
         if outcome not in ["true_positive", "false_positive"]:
             raise ValueError(f"Invalid outcome: {outcome}. Must be 'true_positive' or 'false_positive'")
@@ -234,14 +232,14 @@ class AlertValidationTracker:
             stats["accuracy"] = 0.0
 
     def detect_false_negatives(self, lookback_hours: int = 24) -> list[dict]:
-        """
-        Detect false negatives: incidents without prior alerts.
+        """Detect false negatives: incidents without prior alerts.
 
         Args:
             lookback_hours: How far back to check for alerts before incident
 
         Returns:
             List of potential false negative incidents
+
         """
         false_negatives = []
         cutoff_time = datetime.utcnow() - timedelta(hours=lookback_hours)
@@ -276,14 +274,14 @@ class AlertValidationTracker:
         return false_negatives
 
     def generate_validation_report(self, output_path: str | None = None) -> dict:
-        """
-        Generate comprehensive validation report.
+        """Generate comprehensive validation report.
 
         Args:
             output_path: Optional path to save report
 
         Returns:
             Report dictionary
+
         """
         stats = self.data["statistics"]
 
@@ -373,11 +371,11 @@ class AlertValidationTracker:
         return recommendations
 
     def export_for_tuning(self, output_path: str) -> None:
-        """
-        Export data in format suitable for algorithm tuning.
+        """Export data in format suitable for algorithm tuning.
 
         Args:
             output_path: Path to save tuning data
+
         """
         tuning_data = {
             "validated_alerts": [a for a in self.data["alerts"] if a["status"] == "validated"],

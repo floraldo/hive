@@ -1,5 +1,4 @@
-"""
-End-to-End Monitoring Integration Test
+"""End-to-End Monitoring Integration Test
 
 Validates the complete data flow from monitoring systems to predictive alerts.
 Part of PROJECT VANGUARD Phase A - Validation & Monitoring.
@@ -267,10 +266,9 @@ async def run_all_tests():
         print("\nAll integration tests PASSED")
         print("Monitoring integration is fully operational!")
         return 0
-    else:
-        print(f"\n{total - passed} integration test(s) FAILED")
-        print("Review logs for details.")
-        return 1
+    print(f"\n{total - passed} integration test(s) FAILED")
+    print("Review logs for details.")
+    return 1
 
 
 def main():

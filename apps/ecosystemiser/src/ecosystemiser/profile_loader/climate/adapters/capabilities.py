@@ -125,11 +125,11 @@ class AdapterCapabilities:
         frequency: str,
         location: tuple[float, float],
     ) -> tuple[bool, list[str]]:
-        """
-        Check if this adapter can fulfill a request.
+        """Check if this adapter can fulfill a request.
 
         Returns:
             Tuple of (can_fulfill, list_of_reasons_if_not)
+
         """
         reasons = []
 
@@ -236,8 +236,7 @@ class AdapterCapabilities:
 
 
 def compare_capabilities(adapters: list[AdapterCapabilities], variables: list[str], period: dict) -> dict[str, dict]:
-    """
-    Compare multiple adapters for a specific request.,
+    """Compare multiple adapters for a specific request.,
 
     Returns dict with adapter names as keys and comparison metrics.,
     """

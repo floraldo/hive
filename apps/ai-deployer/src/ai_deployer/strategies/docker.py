@@ -1,5 +1,4 @@
-"""
-Docker-based deployment strategy
+"""Docker-based deployment strategy
 """
 
 import asyncio
@@ -14,8 +13,7 @@ logger = get_logger(__name__)
 
 
 class DockerDeploymentStrategy(BaseDeploymentStrategy):
-    """
-    Docker-based deployment strategy for containerized applications
+    """Docker-based deployment strategy for containerized applications
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
@@ -24,14 +22,14 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
         self.strategy = DeploymentStrategy.ROLLING
 
     async def pre_deployment_checks_async(self, task: dict[str, Any]) -> dict[str, Any]:
-        """
-        Run pre-deployment checks for Docker deployment
+        """Run pre-deployment checks for Docker deployment
 
         Args:
             task: Deployment task
 
         Returns:
             Dictionary with check results
+
         """
         errors = []
 
@@ -68,8 +66,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "errors": [f"Pre-deployment check failed: {e}"]}
 
     async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
-        """
-        Execute Docker deployment
+        """Execute Docker deployment
 
         Args:
             task: Deployment task
@@ -77,6 +74,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
         Returns:
             Deployment result dictionary
+
         """
         try:
             logger.info(f"Starting Docker deployment {deployment_id}")
@@ -136,8 +134,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
         deployment_id: str,
         previous_deployment: dict[str, Any],
     ) -> dict[str, Any]:
-        """
-        Rollback Docker deployment to previous version
+        """Rollback Docker deployment to previous version
 
         Args:
             task: Deployment task
@@ -146,6 +143,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
 
         Returns:
             Rollback result dictionary
+
         """
         try:
             logger.info(f"Starting Docker rollback for deployment {deployment_id}")
@@ -192,12 +190,12 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "error": str(e)}
 
     async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
-        """
-        Run post-deployment actions for Docker deployment
+        """Run post-deployment actions for Docker deployment
 
         Args:
             task: Deployment task
             deployment_id: Deployment identifier
+
         """
         try:
             # Cleanup old Docker images (keep last 3 versions)

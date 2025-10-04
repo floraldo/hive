@@ -1,5 +1,4 @@
-"""
-Worker Pool Manager - Auto-Scaling Worker Fleet
+"""Worker Pool Manager - Auto-Scaling Worker Fleet
 
 Manages worker pool with:
 - Dynamic worker scaling based on queue depth
@@ -74,8 +73,7 @@ class WorkerInfo:
 
 
 class WorkerPoolManager:
-    """
-    Auto-scaling worker pool with health monitoring.
+    """Auto-scaling worker pool with health monitoring.
 
     Features:
     - Dynamic scaling based on queue depth
@@ -93,8 +91,7 @@ class WorkerPoolManager:
         scale_up_threshold: float = 0.8,
         scale_down_threshold: float = 0.2,
     ):
-        """
-        Initialize worker pool manager.
+        """Initialize worker pool manager.
 
         Args:
             min_workers: Minimum number of workers to maintain
@@ -102,6 +99,7 @@ class WorkerPoolManager:
             target_queue_per_worker: Target tasks per worker
             scale_up_threshold: Scale up when queue > threshold * capacity
             scale_down_threshold: Scale down when queue < threshold * capacity
+
         """
         self.min_workers = min_workers
         self.max_workers = max_workers
@@ -125,14 +123,13 @@ class WorkerPoolManager:
 
         logger.info(
             f"WorkerPoolManager initialized (min={min_workers}, max={max_workers}, "
-            f"target_queue_per_worker={target_queue_per_worker})"
+            f"target_queue_per_worker={target_queue_per_worker})",
         )
 
     async def register_worker(
-        self, worker_id: str, worker_type: str, metadata: dict[str, Any] | None = None
+        self, worker_id: str, worker_type: str, metadata: dict[str, Any] | None = None,
     ) -> bool:
-        """
-        Register a new worker.
+        """Register a new worker.
 
         Args:
             worker_id: Worker identifier
@@ -141,6 +138,7 @@ class WorkerPoolManager:
 
         Returns:
             True if registration successful, False otherwise
+
         """
         async with self._lock:
             if worker_id in self._workers:
@@ -148,14 +146,14 @@ class WorkerPoolManager:
                 return False
 
             worker_info = WorkerInfo(
-                worker_id=worker_id, worker_type=worker_type, metadata=metadata or {}
+                worker_id=worker_id, worker_type=worker_type, metadata=metadata or {},
             )
 
             self._workers[worker_id] = worker_info
 
             logger.info(
                 f"Worker {worker_id} ({worker_type}) registered "
-                f"(pool size: {len(self._workers)})"
+                f"(pool size: {len(self._workers)})",
             )
 
             # Emit registration event
@@ -168,7 +166,7 @@ class WorkerPoolManager:
                         "worker_type": worker_type,
                         "metadata": metadata or {},
                     },
-                )
+                ),
             )
 
             return True
@@ -182,8 +180,7 @@ class WorkerPoolManager:
         escalations: int,
         current_task: str | None = None,
     ) -> bool:
-        """
-        Update worker heartbeat and status.
+        """Update worker heartbeat and status.
 
         Args:
             worker_id: Worker identifier
@@ -195,6 +192,7 @@ class WorkerPoolManager:
 
         Returns:
             True if update successful, False otherwise
+
         """
         async with self._lock:
             if worker_id not in self._workers:
@@ -212,14 +210,14 @@ class WorkerPoolManager:
             return True
 
     async def mark_worker_offline(self, worker_id: str) -> bool:
-        """
-        Mark worker as offline.
+        """Mark worker as offline.
 
         Args:
             worker_id: Worker identifier
 
         Returns:
             True if status updated, False otherwise
+
         """
         async with self._lock:
             if worker_id not in self._workers:
@@ -230,14 +228,14 @@ class WorkerPoolManager:
             return True
 
     async def remove_worker(self, worker_id: str) -> bool:
-        """
-        Remove worker from pool.
+        """Remove worker from pool.
 
         Args:
             worker_id: Worker identifier
 
         Returns:
             True if worker removed, False otherwise
+
         """
         async with self._lock:
             if worker_id not in self._workers:
@@ -245,19 +243,19 @@ class WorkerPoolManager:
 
             del self._workers[worker_id]
             logger.info(
-                f"Worker {worker_id} removed from pool (pool size: {len(self._workers)})"
+                f"Worker {worker_id} removed from pool (pool size: {len(self._workers)})",
             )
             return True
 
     async def get_available_worker(self, worker_type: str | None = None) -> str | None:
-        """
-        Get an available worker for task assignment.
+        """Get an available worker for task assignment.
 
         Args:
             worker_type: Optional worker type filter
 
         Returns:
             Worker ID or None if no workers available
+
         """
         async with self._lock:
             # Filter workers
@@ -277,11 +275,11 @@ class WorkerPoolManager:
             return worker.worker_id
 
     async def check_worker_health(self) -> list[str]:
-        """
-        Check health of all workers and mark unhealthy ones offline.
+        """Check health of all workers and mark unhealthy ones offline.
 
         Returns:
             List of worker IDs that became offline
+
         """
         offline_workers = []
 
@@ -293,20 +291,20 @@ class WorkerPoolManager:
 
                     logger.warning(
                         f"Worker {worker_id} marked offline due to missing heartbeat "
-                        f"(last seen: {worker_info.last_heartbeat.isoformat()})"
+                        f"(last seen: {worker_info.last_heartbeat.isoformat()})",
                     )
 
         return offline_workers
 
     async def restart_worker(self, worker_id: str) -> bool:
-        """
-        Restart a failed worker (placeholder for actual restart logic).
+        """Restart a failed worker (placeholder for actual restart logic).
 
         Args:
             worker_id: Worker identifier
 
         Returns:
             True if restart initiated, False otherwise
+
         """
         async with self._lock:
             if worker_id not in self._workers:
@@ -317,7 +315,7 @@ class WorkerPoolManager:
             if not worker_info.can_restart:
                 logger.error(
                     f"Worker {worker_id} cannot be restarted "
-                    f"(max restarts {worker_info.max_restarts} reached)"
+                    f"(max restarts {worker_info.max_restarts} reached)",
                 )
                 return False
 
@@ -327,7 +325,7 @@ class WorkerPoolManager:
 
             logger.info(
                 f"Worker {worker_id} restart initiated "
-                f"(attempt {worker_info.restart_count}/{worker_info.max_restarts})"
+                f"(attempt {worker_info.restart_count}/{worker_info.max_restarts})",
             )
 
             # TODO: Actual worker restart logic (spawn new process)
@@ -336,14 +334,14 @@ class WorkerPoolManager:
             return True
 
     async def calculate_scaling_decision(self, queue_depth: int) -> tuple[str, int]:
-        """
-        Calculate if pool should scale up or down.
+        """Calculate if pool should scale up or down.
 
         Args:
             queue_depth: Current task queue depth
 
         Returns:
             Tuple of (action, count) where action is 'scale_up', 'scale_down', or 'no_change'
+
         """
         async with self._lock:
             current_workers = len([w for w in self._workers.values() if w.status != WorkerStatus.OFFLINE])
@@ -360,7 +358,7 @@ class WorkerPoolManager:
                 # Calculate how many workers needed
                 needed_workers = (queue_depth // self.target_queue_per_worker) + 1
                 scale_up_count = min(
-                    needed_workers - current_workers, self.max_workers - current_workers
+                    needed_workers - current_workers, self.max_workers - current_workers,
                 )
                 return ("scale_up", scale_up_count)
 
@@ -368,7 +366,7 @@ class WorkerPoolManager:
             if utilization < self.scale_down_threshold and current_workers > self.min_workers:
                 # Calculate how many workers can be removed
                 needed_workers = max(
-                    (queue_depth // self.target_queue_per_worker) + 1, self.min_workers
+                    (queue_depth // self.target_queue_per_worker) + 1, self.min_workers,
                 )
                 scale_down_count = min(current_workers - needed_workers, current_workers - self.min_workers)
                 if scale_down_count > 0:
@@ -377,10 +375,9 @@ class WorkerPoolManager:
             return ("no_change", 0)
 
     async def apply_scaling_decision(
-        self, action: str, count: int, worker_type: str = "qa"
+        self, action: str, count: int, worker_type: str = "qa",
     ) -> int:
-        """
-        Apply scaling decision (placeholder for actual scaling logic).
+        """Apply scaling decision (placeholder for actual scaling logic).
 
         Args:
             action: 'scale_up' or 'scale_down'
@@ -389,6 +386,7 @@ class WorkerPoolManager:
 
         Returns:
             Number of workers actually scaled
+
         """
         async with self._lock:
             if action == "scale_up":
@@ -400,7 +398,7 @@ class WorkerPoolManager:
 
                 return count
 
-            elif action == "scale_down":
+            if action == "scale_down":
                 # Find idle workers to remove
                 idle_workers = [
                     w for w in self._workers.values() if w.status == WorkerStatus.IDLE
@@ -437,11 +435,11 @@ class WorkerPoolManager:
         return len([w for w in self._workers.values() if w.is_available])
 
     async def get_metrics(self) -> dict[str, Any]:
-        """
-        Get worker pool metrics.
+        """Get worker pool metrics.
 
         Returns:
             Pool metrics dictionary
+
         """
         async with self._lock:
             # Worker status distribution

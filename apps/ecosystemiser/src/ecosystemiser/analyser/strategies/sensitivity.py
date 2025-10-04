@@ -16,12 +16,12 @@ class SensitivityAnalysis(BaseAnalysis):
     """Analyze parameter sensitivity and system robustness.
 
 
-        This strategy evaluates how system performance changes with
-        parameter variations, identifying:
-        - Most influential parameters
-        - Optimal parameter ranges
-        - System stability regions
-        - Trade-offs between objectives,
+    This strategy evaluates how system performance changes with
+    parameter variations, identifying:
+    - Most influential parameters
+    - Optimal parameter ranges
+    - System stability regions
+    - Trade-offs between objectives,
     """
 
     def __init__(self) -> None:
@@ -40,6 +40,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of sensitivity metrics,
+
         """
         analysis = {}
 
@@ -65,6 +66,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of sensitivity metrics,
+
         """
         metrics = ({},)
         all_results = results_data.get("all_results", [])
@@ -107,6 +109,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of available sensitivity metrics,
+
         """
         metrics = {}
 
@@ -128,6 +131,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Tuple of (parameter_data, kpi_data) dictionaries,
+
         """
         param_data = ({},)
         kpi_data = {}
@@ -161,6 +165,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Nested dictionary of sensitivity indices,
+
         """
         indices = {}
 
@@ -203,6 +208,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             List of influential parameters with their impact scores,
+
         """
         influential = []
 
@@ -238,6 +244,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of optimal configurations by objective,
+
         """
         optimal = {}
 
@@ -300,6 +307,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary describing trade-offs,
+
         """
         trade_offs = {}
 
@@ -348,6 +356,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of robustness metrics,
+
         """
         metrics = {}
 
@@ -388,6 +397,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of utilization metrics,
+
         """
         utilization = ({},)
         components = results_data.get("components", {})
@@ -418,6 +428,7 @@ class SensitivityAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of temporal sensitivity metrics,
+
         """
         metrics = ({},)
         flows = results_data.get("flows", {})

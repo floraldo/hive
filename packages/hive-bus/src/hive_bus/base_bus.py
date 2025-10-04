@@ -18,8 +18,7 @@ from .subscribers import BaseSubscriber
 
 
 class BaseBus(ABC):
-    """
-    Generic base event bus.
+    """Generic base event bus.
 
     Provides the fundamental pub/sub patterns that any event bus needs:
     - Subscription management
@@ -36,8 +35,7 @@ class BaseBus(ABC):
 
     @abstractmethod
     def publish(self, event: BaseEvent, **kwargs) -> str:
-        """
-        Publish an event to the bus.
+        """Publish an event to the bus.
 
         Args:
             event: Event to publish
@@ -45,8 +43,8 @@ class BaseBus(ABC):
 
         Returns:
             Event ID or publication reference
+
         """
-        pass
 
     def subscribe(
         self,
@@ -54,8 +52,7 @@ class BaseBus(ABC):
         callback: Callable[[BaseEvent], None],
         subscriber_name: str = "anonymous",
     ) -> str:
-        """
-        Subscribe to events matching a pattern.
+        """Subscribe to events matching a pattern.
 
         Args:
             event_pattern: Event type pattern (supports wildcards),
@@ -64,6 +61,7 @@ class BaseBus(ABC):
 
         Returns:
             Subscription ID
+
         """
         subscriber = BaseSubscriber(pattern=event_pattern, callback=callback, subscriber_name=subscriber_name)
 
@@ -75,14 +73,14 @@ class BaseBus(ABC):
         return subscriber.subscription_id
 
     def unsubscribe(self, subscription_id: str) -> bool:
-        """
-        Remove a subscription.
+        """Remove a subscription.
 
         Args:
             subscription_id: ID of subscription to remove
 
         Returns:
             True if subscription was found and removed
+
         """
         with self._subscriber_lock:
             for _pattern, subscribers in self._subscribers.items():
@@ -117,4 +115,3 @@ class BaseBus(ABC):
     @abstractmethod
     def _handle_subscriber_error(self, subscriber: BaseSubscriber, event: BaseEvent) -> None:
         """Handle subscriber callback errors. Override in subclasses."""
-        pass

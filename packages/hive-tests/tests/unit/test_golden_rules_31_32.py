@@ -1,5 +1,4 @@
-"""
-Unit tests for Golden Rules 31-32: Config Validators
+"""Unit tests for Golden Rules 31-32: Config Validators
 
 Tests the registry-based validators for:
 - Rule 31: Ruff Config Consistency
@@ -46,8 +45,8 @@ class TestRule31RuffConfigConsistency:
                 "ruff": {
                     "line-length": 120,
                     "select": ["E", "F", "I"],
-                }
-            }
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -67,8 +66,8 @@ class TestRule31RuffConfigConsistency:
                 "poetry": {
                     "name": "test-package",
                     "version": "0.1.0",
-                }
-            }
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -127,10 +126,10 @@ class TestRule32PythonVersionSpecification:
                 "poetry": {
                     "name": "test-package",
                     "dependencies": {
-                        "python": "^3.11"
-                    }
-                }
-            }
+                        "python": "^3.11",
+                    },
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -147,8 +146,8 @@ class TestRule32PythonVersionSpecification:
         config = {
             "project": {
                 "name": "test-package",
-                "requires-python": ">=3.11"
-            }
+                "requires-python": ">=3.11",
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -167,10 +166,10 @@ class TestRule32PythonVersionSpecification:
                 "poetry": {
                     "name": "test-package",
                     "dependencies": {
-                        "requests": "^2.28.0"
-                    }
-                }
-            }
+                        "requests": "^2.28.0",
+                    },
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -190,10 +189,10 @@ class TestRule32PythonVersionSpecification:
                 "poetry": {
                     "name": "test-package",
                     "dependencies": {
-                        "python": "^3.9"  # Wrong version
-                    }
-                }
-            }
+                        "python": "^3.9",  # Wrong version
+                    },
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -213,10 +212,10 @@ class TestRule32PythonVersionSpecification:
                 "poetry": {
                     "name": "test-package",
                     "dependencies": {
-                        "python": ">=3.11,<3.13"  # Valid but non-standard format
-                    }
-                }
-            }
+                        "python": ">=3.11,<3.13",  # Valid but non-standard format
+                    },
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -233,14 +232,14 @@ class TestRule32PythonVersionSpecification:
         pkg_dir = temp_project / "packages" / "good-package"
         pkg_dir.mkdir()
         (pkg_dir / "pyproject.toml").write_text(
-            toml.dumps({"tool": {"poetry": {"dependencies": {"python": "^3.11"}}}})
+            toml.dumps({"tool": {"poetry": {"dependencies": {"python": "^3.11"}}}}),
         )
 
         # Create app without version
         app_dir = temp_project / "apps" / "bad-app"
         app_dir.mkdir()
         (app_dir / "pyproject.toml").write_text(
-            toml.dumps({"tool": {"poetry": {"name": "bad-app"}}})
+            toml.dumps({"tool": {"poetry": {"name": "bad-app"}}}),
         )
 
         passed, violations = validate_python_version_in_pyproject(temp_project)
@@ -264,13 +263,13 @@ class TestIntegration:
                 "poetry": {
                     "name": "compliant-package",
                     "dependencies": {
-                        "python": "^3.11"
-                    }
+                        "python": "^3.11",
+                    },
                 },
                 "ruff": {
-                    "line-length": 120
-                }
-            }
+                    "line-length": 120,
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 
@@ -295,8 +294,8 @@ class TestIntegration:
                 "poetry": {
                     "name": "bad-package",
                     # Missing both python version and ruff config
-                }
-            }
+                },
+            },
         }
         pyproject_file.write_text(toml.dumps(config))
 

@@ -1,5 +1,4 @@
-"""
-Test Phase 3 instrumentation to validate metrics collection.
+"""Test Phase 3 instrumentation to validate metrics collection.
 
 Validates that hive-performance decorators are correctly applied and
 metrics are generated for hive-orchestrator functions.
@@ -51,10 +50,10 @@ class TestPhase3Instrumentation:
 
         # Verify decorators are applied
         assert hasattr(
-            AsyncQueen._handle_worker_success_async, "__wrapped__"
+            AsyncQueen._handle_worker_success_async, "__wrapped__",
         ), "_handle_worker_success_async not decorated"
         assert hasattr(
-            AsyncQueen._handle_worker_failure_async, "__wrapped__"
+            AsyncQueen._handle_worker_failure_async, "__wrapped__",
         ), "_handle_worker_failure_async not decorated"
 
     @pytest.mark.asyncio
@@ -66,10 +65,10 @@ class TestPhase3Instrumentation:
         assert hasattr(AsyncDatabaseOperations.create_task_async, "__wrapped__"), "create_task_async not decorated"
         assert hasattr(AsyncDatabaseOperations.get_task_async, "__wrapped__"), "get_task_async not decorated"
         assert hasattr(
-            AsyncDatabaseOperations.get_queued_tasks_async, "__wrapped__"
+            AsyncDatabaseOperations.get_queued_tasks_async, "__wrapped__",
         ), "get_queued_tasks_async not decorated"
         assert hasattr(
-            AsyncDatabaseOperations.batch_create_tasks_async, "__wrapped__"
+            AsyncDatabaseOperations.batch_create_tasks_async, "__wrapped__",
         ), "batch_create_tasks_async not decorated"
 
     @pytest.mark.asyncio
@@ -246,10 +245,10 @@ class TestPhase3Coverage:
             },
             "Failure Handling": {
                 "AsyncQueen._handle_worker_success_async": hasattr(
-                    AsyncQueen._handle_worker_success_async, "__wrapped__"
+                    AsyncQueen._handle_worker_success_async, "__wrapped__",
                 ),
                 "AsyncQueen._handle_worker_failure_async": hasattr(
-                    AsyncQueen._handle_worker_failure_async, "__wrapped__"
+                    AsyncQueen._handle_worker_failure_async, "__wrapped__",
                 ),
             },
             "Orchestration Loops": {
@@ -260,14 +259,14 @@ class TestPhase3Coverage:
             },
             "Database Operations": {
                 "AsyncDatabaseOperations.create_task_async": hasattr(
-                    AsyncDatabaseOperations.create_task_async, "__wrapped__"
+                    AsyncDatabaseOperations.create_task_async, "__wrapped__",
                 ),
                 "AsyncDatabaseOperations.get_task_async": hasattr(AsyncDatabaseOperations.get_task_async, "__wrapped__"),
                 "AsyncDatabaseOperations.get_queued_tasks_async": hasattr(
-                    AsyncDatabaseOperations.get_queued_tasks_async, "__wrapped__"
+                    AsyncDatabaseOperations.get_queued_tasks_async, "__wrapped__",
                 ),
                 "AsyncDatabaseOperations.batch_create_tasks_async": hasattr(
-                    AsyncDatabaseOperations.batch_create_tasks_async, "__wrapped__"
+                    AsyncDatabaseOperations.batch_create_tasks_async, "__wrapped__",
                 ),
             },
         }

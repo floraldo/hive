@@ -13,8 +13,7 @@ logger = get_logger(__name__)
 
 
 class PatternStore:
-    """
-    Manages storage and retrieval of code patterns for semantic search.
+    """Manages storage and retrieval of code patterns for semantic search.
 
     Stores embeddings of common patterns, anti-patterns, and best practices
     to enable context-aware code review suggestions.
@@ -52,8 +51,7 @@ class PatternStore:
         pattern_type: str,
         metadata: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Add a new pattern to the store.
+        """Add a new pattern to the store.
 
         Args:
             pattern_id: Unique identifier for the pattern
@@ -61,6 +59,7 @@ class PatternStore:
             embedding: Embedding vector
             pattern_type: Type of pattern (best_practice, anti_pattern, etc.)
             metadata: Additional metadata
+
         """
         # Add to in-memory storage
         self.patterns[pattern_id] = {"content": pattern_content, "type": pattern_type, "metadata": metadata or {}}
@@ -98,8 +97,7 @@ class PatternStore:
         pattern_type: str | None = None,
         threshold: float = 0.8,
     ) -> list[dict[str, Any]]:
-        """
-        Search for similar patterns.
+        """Search for similar patterns.
 
         Args:
             query_embedding: Query embedding vector
@@ -109,6 +107,7 @@ class PatternStore:
 
         Returns:
             List of similar patterns with similarity scores
+
         """
         # Search using vector store
         results = await self.vector_store.search(
@@ -140,8 +139,7 @@ class PatternStore:
         return enriched_results
 
     async def find_anti_patterns(self, code_embedding: np.ndarray, threshold: float = 0.75) -> list[dict[str, Any]]:
-        """
-        Find anti-patterns in the code.
+        """Find anti-patterns in the code.
 
         Args:
             code_embedding: Embedding of the code to check
@@ -149,6 +147,7 @@ class PatternStore:
 
         Returns:
             List of detected anti-patterns
+
         """
         return await self.search_similar_patterns(
             query_embedding=code_embedding,
@@ -158,8 +157,7 @@ class PatternStore:
         )
 
     async def find_best_practices(self, code_embedding: np.ndarray, context: str | None = None) -> list[dict[str, Any]]:
-        """
-        Find relevant best practices for the code.
+        """Find relevant best practices for the code.
 
         Args:
             code_embedding: Embedding of the code
@@ -167,6 +165,7 @@ class PatternStore:
 
         Returns:
             List of relevant best practices
+
         """
         results = await self.search_similar_patterns(
             query_embedding=code_embedding,
@@ -182,8 +181,7 @@ class PatternStore:
         return results
 
     async def get_fix_suggestions(self, violation_embedding: np.ndarray, violation_type: str) -> list[dict[str, Any]]:
-        """
-        Get fix suggestions for a violation.
+        """Get fix suggestions for a violation.
 
         Args:
             violation_embedding: Embedding of the violation
@@ -191,6 +189,7 @@ class PatternStore:
 
         Returns:
             List of fix suggestions
+
         """
         # Search for similar violations with fixes
         results = await self.search_similar_patterns(
@@ -207,7 +206,6 @@ class PatternStore:
 
     def initialize_default_patterns(self) -> None:
         """Initialize store with default patterns."""
-
         logger.info("Initializing default patterns...")
         # Note: In a real implementation, would generate embeddings for these
 

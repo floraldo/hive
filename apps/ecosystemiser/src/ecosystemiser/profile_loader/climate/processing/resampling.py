@@ -13,26 +13,24 @@ logger = get_logger(__name__)
 
 
 def get_aggregation_policy(var_type: Literal["state", "flux"]) -> str:
-    """
-    Get aggregation policy for variable type.
+    """Get aggregation policy for variable type.
 
     Args:
         var_type: Type of variable ("state" or "flux")
 
     Returns:
         Aggregation method name,
+
     """
     if var_type == "state":
         return "mean"
-    elif var_type == "flux":
+    if var_type == "flux":
         return "sum"  # Will be converted back to rate after aggregation
-    else:
-        return "mean"
+    return "mean"
 
 
 def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[str, str] = None) -> xr.Dataset:
-    """
-    Resample dataset to target resolution with proper aggregation.
+    """Resample dataset to target resolution with proper aggregation.
 
     Args:
         ds: xarray Dataset to resample
@@ -41,6 +39,7 @@ def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[st
 
     Returns:
         Resampled dataset,
+
     """
     # Build aggregation policy for each variable
     agg_policies = {}
@@ -103,8 +102,7 @@ def resample_dataset(ds: xr.Dataset, target_resolution: str, policy_map: dict[st
 
 
 def upsample_dataset(ds: xr.Dataset, target_resolution: str) -> xr.Dataset:
-    """
-    Upsample dataset to higher resolution using interpolation.
+    """Upsample dataset to higher resolution using interpolation.
 
     Args:
         ds: xarray Dataset to upsample
@@ -112,6 +110,7 @@ def upsample_dataset(ds: xr.Dataset, target_resolution: str) -> xr.Dataset:
 
     Returns:
         Upsampled dataset,
+
     """
     # Create new time index
     start = (ds.time.min().values,)

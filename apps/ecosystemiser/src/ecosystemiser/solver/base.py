@@ -43,6 +43,7 @@ class BaseSolver(ABC):
         Args:
             system: System object to solve
             config: Solver configuration,
+
         """
         self.system = system
         self.config = config or SolverConfig()
@@ -54,8 +55,8 @@ class BaseSolver(ABC):
 
         Returns:
             SolverResult object containing solution status and metrics,
+
         """
-        pass
 
     @abstractmethod
     def prepare_system(self) -> None:
@@ -64,7 +65,6 @@ class BaseSolver(ABC):
         This method should handle any solver-specific initialization,
         such as creating optimization variables or initializing arrays.,
         """
-        pass
 
     @abstractmethod
     def extract_results(self) -> None:
@@ -73,13 +73,13 @@ class BaseSolver(ABC):
         This method should convert solver-specific results into,
         standard numpy arrays in the system flows.,
         """
-        pass
 
     def validate_solution(self) -> bool:
         """Validate that the solution satisfies all constraints.
 
         Returns:
             True if solution is valid, False otherwise,
+
         """
         # Default implementation - can be overridden
         violations = []

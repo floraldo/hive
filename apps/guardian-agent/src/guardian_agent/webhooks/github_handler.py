@@ -16,8 +16,7 @@ logger = get_logger(__name__)
 
 
 class GitHubWebhookHandler:
-    """
-    Handles GitHub webhooks for automated PR reviews.
+    """Handles GitHub webhooks for automated PR reviews.
 
     Processes pull request events and posts review comments
     back to GitHub using the Guardian Agent.
@@ -41,8 +40,7 @@ class GitHubWebhookHandler:
         logger.info("GitHubWebhookHandler initialized")
 
     async def handle_webhook(self, payload: dict[str, Any], headers: dict[str, str]) -> dict[str, Any]:
-        """
-        Handle incoming GitHub webhook.
+        """Handle incoming GitHub webhook.
 
         Args:
             payload: Webhook payload
@@ -50,6 +48,7 @@ class GitHubWebhookHandler:
 
         Returns:
             Response data
+
         """
         # Verify webhook signature if secret is configured
         if self.webhook_secret and not self._verify_signature(payload, headers):
@@ -61,13 +60,12 @@ class GitHubWebhookHandler:
 
         if event_type == "pull_request":
             return await self._handle_pull_request(payload)
-        elif event_type == "pull_request_review_comment":
+        if event_type == "pull_request_review_comment":
             return await self._handle_review_comment(payload)
-        elif event_type == "issue_comment":
+        if event_type == "issue_comment":
             return await self._handle_issue_comment(payload)
-        else:
-            logger.info("Ignoring event type: %s", event_type)
-            return {"message": f"Event type {event_type} not handled"}, 200
+        logger.info("Ignoring event type: %s", event_type)
+        return {"message": f"Event type {event_type} not handled"}, 200
 
     async def _handle_pull_request(self, payload: dict[str, Any]) -> tuple[dict[str, Any], int]:
         """Handle pull request events."""
@@ -277,7 +275,7 @@ class GitHubWebhookHandler:
         # Look for feedback patterns
         if "correct" in body.lower() or "agree" in body.lower():
             return {"type": "positive", "comment_id": comment.get("id"), "body": body}
-        elif "incorrect" in body.lower() or "disagree" in body.lower():
+        if "incorrect" in body.lower() or "disagree" in body.lower():
             return {"type": "negative", "comment_id": comment.get("id"), "body": body}
 
         return None

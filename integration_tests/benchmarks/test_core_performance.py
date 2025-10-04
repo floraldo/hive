@@ -1,5 +1,4 @@
-"""
-Core performance benchmarks for standard operations.
+"""Core performance benchmarks for standard operations.
 """
 import asyncio
 import json
@@ -17,7 +16,7 @@ class TestCorePerformance:
     @pytest.fixture
     def sample_data(self):
         """Generate sample data for testing."""
-        return [{'id': i, 'name': f'item_{i}', 'value': i * 1.5} for i in range(1000)]
+        return [{"id": i, "name": f"item_{i}", "value": i * 1.5} for i in range(1000)]
 
     @pytest.mark.crust
     def test_json_serialization_performance(self, benchmark, sample_data):
@@ -35,7 +34,7 @@ class TestCorePerformance:
         """Benchmark file I/O operations."""
 
         def file_operations():
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.json') as f:
+            with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as f:
                 temp_file = f.name
                 json.dump(sample_data, f)
             try:
@@ -52,16 +51,16 @@ class TestCorePerformance:
         """Benchmark basic SQLite operations."""
 
         def sqlite_operations():
-            with tempfile.NamedTemporaryFile(suffix='.db', delete=False) as f:
+            with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
                 db_path = f.name
             try:
                 conn = sqlite3.connect(db_path)
                 cursor = conn.cursor()
-                cursor.execute('\n                    CREATE TABLE test_data (\n                        id INTEGER PRIMARY KEY,\n                        name TEXT,\n                        value REAL\n                    )\n                ')
+                cursor.execute("\n                    CREATE TABLE test_data (\n                        id INTEGER PRIMARY KEY,\n                        name TEXT,\n                        value REAL\n                    )\n                ")
                 for item in sample_data[:100]:
-                    cursor.execute('INSERT INTO test_data (id, name, value) VALUES (?, ?, ?)', (item['id'], item['name'], item['value']))
+                    cursor.execute("INSERT INTO test_data (id, name, value) VALUES (?, ?, ?)", (item["id"], item["name"], item["value"]))
                 conn.commit()
-                cursor.execute('SELECT COUNT(*) FROM test_data')
+                cursor.execute("SELECT COUNT(*) FROM test_data")
                 count = cursor.fetchone()[0]
                 conn.close()
                 return count
@@ -87,13 +86,13 @@ class TestCorePerformance:
         """Benchmark dictionary operations."""
 
         def dict_operations():
-            data_dict = {item['id']: item for item in sample_data}
+            data_dict = {item["id"]: item for item in sample_data}
             lookup_results = []
             for i in range(0, len(sample_data), 10):
                 if i in data_dict:
                     lookup_results.append(data_dict[i])
             for item in lookup_results:
-                data_dict[item['id']]['value'] *= 2
+                data_dict[item["id"]]["value"] *= 2
             return len(data_dict)
         result = benchmark(dict_operations)
         assert result == len(sample_data)
@@ -103,15 +102,15 @@ class TestCorePerformance:
         """Benchmark string manipulation operations."""
 
         def string_operations():
-            base_string = 'Hello, World! This is a test string for benchmarking.'
+            base_string = "Hello, World! This is a test string for benchmarking."
             results = []
             for i in range(1000):
-                formatted = f'Item {i}: {base_string}'
+                formatted = f"Item {i}: {base_string}"
                 upper_case = formatted.upper()
                 lower_case = upper_case.lower()
-                replaced = lower_case.replace('test', 'benchmark')
+                replaced = lower_case.replace("test", "benchmark")
                 words = replaced.split()
-                rejoined = ' '.join(words)
+                rejoined = " ".join(words)
                 results.append(len(rejoined))
             return sum(results)
         result = benchmark(string_operations)
@@ -144,12 +143,12 @@ class TestCorePerformance:
             with tempfile.TemporaryDirectory() as temp_dir:
                 base_path = Path(temp_dir)
                 for i in range(10):
-                    sub_dir = base_path / f'subdir_{i}'
+                    sub_dir = base_path / f"subdir_{i}"
                     sub_dir.mkdir()
                     for j in range(5):
-                        file_path = sub_dir / f'file_{j}.txt'
-                        file_path.write_text(f'Content for file {i}_{j}')
-                file_count = len(list(base_path.rglob('*.txt')))
+                        file_path = sub_dir / f"file_{j}.txt"
+                        file_path.write_text(f"Content for file {i}_{j}")
+                file_count = len(list(base_path.rglob("*.txt")))
                 return file_count
         result = benchmark(pathlib_operations)
         assert result == 50

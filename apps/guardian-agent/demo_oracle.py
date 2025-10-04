@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Hive Oracle Intelligence System Demo
+"""Hive Oracle Intelligence System Demo
 
 This script demonstrates the complete "Hive Intelligence Initiative" -
 the evolution of Guardian Agent from reactive protector to proactive Oracle.
@@ -86,7 +85,6 @@ from guardian_agent.intelligence.oracle_service import OracleConfig, OracleServi
 
 async def demo_oracle_intelligence_async():
     """Demonstrate the complete Oracle Intelligence system."""
-
     console.print(
         Panel.fit(
             "🔮 [bold blue]HIVE ORACLE INTELLIGENCE SYSTEM[/bold blue]\n",
@@ -140,7 +138,6 @@ async def demo_oracle_intelligence_async():
 
 async def demo_data_ingestion_async(oracle: OracleService):
     """Demonstrate the Data Unification Layer."""
-
     console.print("\n📊 [bold blue]Phase 1: Data Unification Layer[/bold blue]")
     console.print("Ingesting metrics from all platform sources...")
 
@@ -204,7 +201,6 @@ async def demo_data_ingestion_async(oracle: OracleService):
 
 async def demo_analytics_engine_async(oracle: OracleService):
     """Demonstrate the Analytics & Insight Engine."""
-
     console.print("\n🔍 [bold blue]Phase 2: Analytics & Insight Engine[/bold blue]")
     console.print("Analyzing trends, detecting anomalies, and generating insights...")
 
@@ -240,7 +236,6 @@ async def demo_analytics_engine_async(oracle: OracleService):
 
 async def demo_mission_control_async(oracle: OracleService):
     """Demonstrate the Mission Control Dashboard."""
-
     console.print("\n🎮 [bold blue]Phase 3: Mission Control Dashboard[/bold blue]")
     console.print("Generating single-pane-of-glass platform view...")
 
@@ -297,7 +292,6 @@ async def demo_mission_control_async(oracle: OracleService):
 
 async def demo_strategic_recommendations_async(oracle: OracleService):
     """Demonstrate the Strategic Recommendation Engine."""
-
     console.print("\n🎯 [bold blue]Phase 4: Strategic Recommendation Engine (Oracle)[/bold blue]")
     console.print("Generating strategic recommendations and GitHub issues...")
 
@@ -341,7 +335,6 @@ async def demo_strategic_recommendations_async(oracle: OracleService):
 
 async def demo_oracle_service_async(oracle: OracleService):
     """Demonstrate the complete Oracle Service."""
-
     console.print("\n🔮 [bold blue]Phase 5: Complete Oracle Service[/bold blue]")
     console.print("Demonstrating full Oracle intelligence capabilities...")
 

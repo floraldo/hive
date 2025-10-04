@@ -19,16 +19,16 @@ from .service_registry import ServiceInfo, ServiceRegistry
 
 __version__ = "1.0.0"
 __all__ = [
-    "ServiceRegistry",
-    "ServiceInfo",
     "DiscoveryClient",
-    "LoadBalancer",
-    "LoadBalancingStrategy",
     "HealthMonitor",
     "HealthStatus",
+    "LoadBalancer",
+    "LoadBalancingStrategy",
     "ServiceDiscoveryConfig",
     "ServiceDiscoveryError",
+    "ServiceHealthError",
+    "ServiceInfo",
     "ServiceNotFoundError",
     "ServiceRegistrationError",
-    "ServiceHealthError",
+    "ServiceRegistry",
 ]

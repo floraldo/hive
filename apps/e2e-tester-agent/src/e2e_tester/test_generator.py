@@ -15,8 +15,7 @@ logger = get_logger(__name__)
 
 
 class TestGenerator:
-    """
-    Generate E2E tests from feature descriptions.
+    """Generate E2E tests from feature descriptions.
 
     Uses scenario parsing and Jinja2 templates to generate pytest-based
     browser automation tests with page object pattern.
@@ -28,14 +27,15 @@ class TestGenerator:
             url="https://myapp.dev/login"
         )
         print(generated.test_code)
+
     """
 
     def __init__(self, template_dir: Path | None = None) -> None:
-        """
-        Initialize test generator.
+        """Initialize test generator.
 
         Args:
             template_dir: Path to Jinja2 templates (default: ./templates/)
+
         """
         self.logger = logger
 
@@ -63,8 +63,7 @@ class TestGenerator:
         additional_context: dict[str, str] | None = None,
         generate_page_object: bool = True,
     ) -> GeneratedTest:
-        """
-        Generate E2E test from feature description.
+        """Generate E2E test from feature description.
 
         Args:
             feature: Natural language feature description
@@ -83,6 +82,7 @@ class TestGenerator:
                     "success_indicator": "User dashboard visible"
                 }
             )
+
         """
         self.logger.info(f"Generating test for feature: {feature}")
 
@@ -126,8 +126,7 @@ class TestGenerator:
         output_path: Path,
         additional_context: dict[str, str] | None = None,
     ) -> GeneratedTest:
-        """
-        Generate E2E test and save to file.
+        """Generate E2E test and save to file.
 
         Args:
             feature: Natural language feature description
@@ -144,6 +143,7 @@ class TestGenerator:
                 url="https://myapp.dev/login",
                 output_path=Path("tests/e2e/test_google_login.py")
             )
+
         """
         # Generate test
         generated = self.generate_test(feature, url, additional_context)

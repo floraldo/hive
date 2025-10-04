@@ -1,5 +1,4 @@
-"""
-Retry Management for applying fixes and tracking attempts.
+"""Retry Management for applying fixes and tracking attempts.
 
 Manages the fix-retry loop with intelligent backoff and tracking.
 """
@@ -84,8 +83,7 @@ class FixSession:
 
 
 class RetryManager:
-    """
-    Manages the fix application and retry loop.
+    """Manages the fix application and retry loop.
 
     Responsibilities:
     - Apply generated fixes to files
@@ -95,19 +93,18 @@ class RetryManager:
     """
 
     def __init__(self, max_attempts: int = 3) -> None:
-        """
-        Initialize retry manager.
+        """Initialize retry manager.
 
         Args:
             max_attempts: Maximum number of fix attempts per task
+
         """
         self.max_attempts = max_attempts
         self.logger = logger
         self.active_sessions: dict[str, FixSession] = {}
 
     def start_session(self, task_id: str, service_dir: Path) -> FixSession:
-        """
-        Start a new fix session for a task.
+        """Start a new fix session for a task.
 
         Args:
             task_id: Task identifier
@@ -115,6 +112,7 @@ class RetryManager:
 
         Returns:
             New FixSession instance
+
         """
         session = FixSession(task_id=task_id, service_dir=service_dir, max_attempts=self.max_attempts)
 
@@ -124,8 +122,7 @@ class RetryManager:
         return session
 
     def apply_fix(self, session: FixSession, fix: GeneratedFix) -> bool:
-        """
-        Apply a generated fix to the appropriate file.
+        """Apply a generated fix to the appropriate file.
 
         Args:
             session: Current fix session
@@ -133,6 +130,7 @@ class RetryManager:
 
         Returns:
             True if fix applied successfully, False otherwise
+
         """
         self.logger.info(f"Applying {fix.fix_type} fix for {fix.error.error_code}")
 
@@ -163,8 +161,7 @@ class RetryManager:
             return False
 
     def _add_import(self, file_path: Path, fix: GeneratedFix) -> bool:
-        """
-        Add an import statement to the file.
+        """Add an import statement to the file.
 
         Strategy: Add import after any existing imports, or at top of file
         """
@@ -249,14 +246,14 @@ class RetryManager:
             return False
 
     def rollback_session(self, session: FixSession) -> bool:
-        """
-        Rollback all changes made in a session.
+        """Rollback all changes made in a session.
 
         Args:
             session: Session to rollback
 
         Returns:
             True if rollback successful
+
         """
         self.logger.warning(f"Rolling back session for task {session.task_id}")
 
@@ -274,12 +271,12 @@ class RetryManager:
         return success
 
     def complete_session(self, session: FixSession, status: str) -> None:
-        """
-        Mark a session as complete.
+        """Mark a session as complete.
 
         Args:
             session: Session to complete
             status: Final status ("fixed", "failed", "escalated")
+
         """
         session.end_time = datetime.now(UTC)
         session.final_status = status

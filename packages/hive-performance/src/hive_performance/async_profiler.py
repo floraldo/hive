@@ -84,8 +84,7 @@ class ProfileReport:
 
 
 class AsyncProfiler:
-    """
-    Advanced async operation profiler.
+    """Advanced async operation profiler.
 
     Features:
     - Real-time task monitoring
@@ -173,7 +172,7 @@ class AsyncProfiler:
         if self.sample_rate < 1.0:
             import random
 
-            if random.random() > self.sample_rate:  # noqa: S311
+            if random.random() > self.sample_rate:
                 return asyncio.Task(coro, loop=loop)
 
         # Create task with profiling
@@ -443,7 +442,7 @@ class AsyncProfiler:
                 indent=2,
             )
 
-        elif format == "text":
+        if format == "text":
             lines = [
                 "=== Async Performance Report ===",
                 f"Profile Duration: {report.profile_duration:.2f}s",
@@ -466,8 +465,7 @@ class AsyncProfiler:
 
             return "\n".join(lines)
 
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")
 
     def clear_history(self) -> None:
         """Clear profiling history."""

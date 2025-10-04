@@ -1,4 +1,3 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this validator use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal validation tooling.
@@ -43,6 +42,7 @@ class EnvironmentIsolationValidator:
 
         Returns:
             Dictionary with validation results and violations
+
         """
         logger.info("Running environment isolation validation")
 
@@ -246,7 +246,7 @@ class EnvironmentIsolationValidator:
             try:
                 result = subprocess.run(
                     tool_info["cmd"],
-                    capture_output=True,
+                    check=False, capture_output=True,
                     text=True,
                     timeout=5,
                 )
@@ -317,6 +317,7 @@ def validate_environment_isolation(project_root: Path | str) -> dict[str, Any]:
 
     Returns:
         Dictionary with validation results
+
     """
     if isinstance(project_root, str):
         project_root = Path(project_root)

@@ -1,5 +1,4 @@
-"""
-Unified Intelligence Core (UIC) - The Oracle's Synthesis of Wisdom
+"""Unified Intelligence Core (UIC) - The Oracle's Synthesis of Wisdom
 
 This represents the Oracle's ultimate evolution - the unification of Prophecy
 and Symbiosis into a single, cohesive intelligence that operates with true wisdom.
@@ -196,8 +195,7 @@ class UnifiedIntelligenceCoreConfig(BaseModel):
 
 
 class UnifiedIntelligenceCore:
-    """
-    The Oracle's Unified Intelligence Core - Synthesis of Wisdom
+    """The Oracle's Unified Intelligence Core - Synthesis of Wisdom
 
     This represents the Oracle's ultimate evolution - a unified knowledge graph
     that connects design documents, architectural risks, code patterns, hive packages,
@@ -236,7 +234,6 @@ class UnifiedIntelligenceCore:
 
     async def initialize_async(self) -> None:
         """Initialize the Unified Intelligence Core with foundational knowledge."""
-
         try:
             # Load persistent storage if enabled
             if self.config.enable_persistent_storage:
@@ -256,13 +253,11 @@ class UnifiedIntelligenceCore:
             raise
 
     async def ingest_prophecy_data_async(self, prophecy_data: dict[str, Any]) -> str:
-        """
-        Ingest data from the Prophecy Engine into the unified knowledge graph.
+        """Ingest data from the Prophecy Engine into the unified knowledge graph.
 
         This creates nodes for design documents, architectural risks, and prophecies,
         establishing relationships between them.
         """
-
         try:
             # Create design document node
             design_doc_id = await self._create_design_document_node_async(prophecy_data["design_intent"])
@@ -312,13 +307,11 @@ class UnifiedIntelligenceCore:
             raise
 
     async def ingest_symbiosis_data_async(self, symbiosis_data: dict[str, Any]) -> list[str]:
-        """
-        Ingest data from the Symbiosis Engine into the unified knowledge graph.
+        """Ingest data from the Symbiosis Engine into the unified knowledge graph.
 
         This creates nodes for code patterns, optimization opportunities, and solutions,
         establishing relationships with existing knowledge.
         """
-
         try:
             ingested_ids = []
 
@@ -357,13 +350,11 @@ class UnifiedIntelligenceCore:
             raise
 
     async def query_unified_intelligence_async(self, query: KnowledgeQuery) -> KnowledgeResult:
-        """
-        Query the unified knowledge graph for strategic intelligence.
+        """Query the unified knowledge graph for strategic intelligence.
 
         This is the core method that enables the Oracle's unified consciousness -
         correlating prophecies with solutions, risks with patterns, and actions with outcomes.
         """
-
         start_time = datetime.utcnow()
 
         try:
@@ -413,13 +404,11 @@ class UnifiedIntelligenceCore:
             raise
 
     async def learn_from_feedback_async(self, feedback: dict[str, Any]) -> None:
-        """
-        Learn from feedback to improve the Oracle's unified intelligence.
+        """Learn from feedback to improve the Oracle's unified intelligence.
 
         This is the critical feedback loop that makes the Oracle smarter with
         every prophecy validated and every action taken.
         """
-
         try:
             # Store feedback for analysis
             feedback_entry = {"timestamp": datetime.utcnow().isoformat(), "feedback": feedback, "processed": False}
@@ -447,7 +436,6 @@ class UnifiedIntelligenceCore:
 
     async def get_unified_status_async(self) -> dict[str, Any]:
         """Get comprehensive status of the Unified Intelligence Core."""
-
         try:
             # Basic statistics
             node_counts = {nt.value: len(self.node_index[nt]) for nt in NodeType},
@@ -518,13 +506,12 @@ class UnifiedIntelligenceCore:
 
         except Exception as e:
             logger.error(f"Failed to get unified status: {e}")
-            return {"error": f"Status retrieval failed: {str(e)}"}
+            return {"error": f"Status retrieval failed: {e!s}"}
 
     # Internal methods for knowledge graph operations
 
     async def _create_design_document_node_async(self, design_intent: dict[str, Any]) -> str:
         """Create a design document node from prophecy data."""
-
         node_id = f"design_doc_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
@@ -548,7 +535,6 @@ class UnifiedIntelligenceCore:
 
     async def _create_prophecy_node_async(self, prophecy: dict[str, Any]) -> str:
         """Create a prophecy node from prophecy data."""
-
         node_id = f"prophecy_{uuid.uuid4().hex[:8]}",
 
         confidence_map = {
@@ -581,7 +567,6 @@ class UnifiedIntelligenceCore:
 
     async def _create_risk_node_async(self, prophecy: dict[str, Any]) -> str:
         """Create an architectural risk node from prophecy data."""
-
         node_id = f"risk_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
@@ -605,7 +590,6 @@ class UnifiedIntelligenceCore:
 
     async def _create_pattern_node_async(self, pattern: dict[str, Any]) -> str:
         """Create a code pattern node from symbiosis data."""
-
         node_id = f"pattern_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
@@ -630,7 +614,6 @@ class UnifiedIntelligenceCore:
 
     async def _create_optimization_node_async(self, optimization: dict[str, Any]) -> str:
         """Create an optimization opportunity node from symbiosis data."""
-
         node_id = f"optimization_{uuid.uuid4().hex[:8]}",
 
         node = KnowledgeNode(
@@ -656,7 +639,6 @@ class UnifiedIntelligenceCore:
 
     async def _ensure_package_node_async(self, package_name: str) -> str:
         """Ensure a hive package node exists, creating it if necessary."""
-
         # Look for existing package node,
         for node in self.nodes.values():
             if node.node_type == NodeType.HIVE_PACKAGE and node.title == package_name:
@@ -686,7 +668,6 @@ class UnifiedIntelligenceCore:
 
     async def _add_node_async(self, node: KnowledgeNode) -> None:
         """Add a node to the knowledge graph."""
-
         self.nodes[node.node_id] = (node,)
         self.node_index[node.node_type].add(node.node_id)
 
@@ -704,7 +685,6 @@ class UnifiedIntelligenceCore:
         evidence: list[str] = None,
     ) -> str:
         """Create an edge in the knowledge graph."""
-
         edge_id = f"edge_{uuid.uuid4().hex[:8]}",
 
         edge = KnowledgeEdge(
@@ -724,7 +704,6 @@ class UnifiedIntelligenceCore:
 
     async def _cross_correlate_symbiosis_data_async(self, symbiosis_data: dict[str, Any]) -> None:
         """Cross-correlate symbiosis data with existing prophecies to find solutions."""
-
         # Find prophecies that might be solved by symbiosis patterns,
         for optimization in symbiosis_data.get("optimization_opportunities", []):
             opt_type = optimization.get("type", "unknown")
@@ -764,7 +743,6 @@ class UnifiedIntelligenceCore:
 
     async def _execute_unified_query_async(self, query: KnowledgeQuery, result: KnowledgeResult) -> None:
         """Execute a unified query that correlates prophecy and symbiosis data."""
-
         # Start with source nodes or find relevant nodes
         if query.source_nodes:
             current_nodes = set(query.source_nodes)
@@ -815,7 +793,6 @@ class UnifiedIntelligenceCore:
 
     async def _find_nodes_by_semantic_query_async(self, semantic_query: str) -> set[str]:
         """Find nodes matching a semantic query."""
-
         if not semantic_query:
             return set()
 
@@ -836,7 +813,6 @@ class UnifiedIntelligenceCore:
 
     async def _generate_strategic_insights_async(self, query: KnowledgeQuery, result: KnowledgeResult) -> None:
         """Generate strategic insights from query results."""
-
         insights = []
 
         # Analyze node types in results
@@ -861,7 +837,6 @@ class UnifiedIntelligenceCore:
 
     def _calculate_result_confidence(self, result: KnowledgeResult) -> float:
         """Calculate overall confidence score for query results."""
-
         if not result.nodes and not result.edges:
             return 0.0
 
@@ -877,7 +852,6 @@ class UnifiedIntelligenceCore:
 
     def _generate_cache_key(self, query: KnowledgeQuery) -> str:
         """Generate a cache key for a query."""
-
         key_components = [
             query.query_type,
             ",".join(sorted(query.source_nodes)),
@@ -894,19 +868,15 @@ class UnifiedIntelligenceCore:
 
     async def _load_persistent_storage_async(self) -> None:
         """Load persistent storage (placeholder)."""
-        pass
 
     async def _initialize_semantic_search_async(self) -> None:
         """Initialize semantic search (placeholder)."""
-        pass
 
     async def _bootstrap_foundational_knowledge_async(self) -> None:
         """Bootstrap with foundational knowledge (placeholder)."""
-        pass
 
     async def _generate_node_embedding_async(self, node: KnowledgeNode) -> None:
         """Generate semantic embedding for a node (placeholder)."""
-        pass
 
     async def _execute_prophecy_query_async(self, query: KnowledgeQuery, result: KnowledgeResult) -> None:
         """Execute prophecy-specific query (placeholder)."""
@@ -922,20 +892,15 @@ class UnifiedIntelligenceCore:
 
     async def _process_prophecy_feedback_async(self, feedback: dict[str, Any]) -> None:
         """Process prophecy validation feedback (placeholder)."""
-        pass
 
     async def _process_optimization_feedback_async(self, feedback: dict[str, Any]) -> None:
         """Process optimization result feedback (placeholder)."""
-        pass
 
     async def _process_pr_feedback_async(self, feedback: dict[str, Any]) -> None:
         """Process PR outcome feedback (placeholder)."""
-        pass
 
     async def _update_confidence_scores_async(self, feedback: dict[str, Any]) -> None:
         """Update node and edge confidence scores based on feedback (placeholder)."""
-        pass
 
     async def _discover_new_correlations_async(self, feedback: dict[str, Any]) -> None:
         """Discover new correlations from feedback (placeholder)."""
-        pass

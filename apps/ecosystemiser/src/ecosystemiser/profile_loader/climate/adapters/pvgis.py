@@ -214,12 +214,11 @@ class PVGISAdapter(BaseAdapter):
         # PVGIS has different endpoints for different data types
         if resolution == "1H":
             return await self._fetch_hourly_series_async(lat, lon, supported_vars, start_date, end_date, database)
-        elif resolution == "1D":
+        if resolution == "1D":
             return await self._fetch_daily_series_async(lat, lon, supported_vars, start_date, end_date, database)
-        elif resolution == "TMY":
+        if resolution == "TMY":
             return await self._fetch_tmy_async(lat, lon, supported_vars, database)
-        else:
-            raise ValueError(f"Unsupported resolution for PVGIS: {resolution}")
+        raise ValueError(f"Unsupported resolution for PVGIS: {resolution}")
 
     async def _transform_data_async(
         self,
@@ -263,7 +262,6 @@ class PVGISAdapter(BaseAdapter):
         resolution: str = "1H",
     ) -> xr.Dataset:
         """Fetch solar radiation data from PVGIS API"""
-
         # Filter out unsupported variables and warn
         supported_vars = []
         for var in variables:
@@ -285,18 +283,15 @@ class PVGISAdapter(BaseAdapter):
 
     def _select_database(self, lat: float, lon: float) -> str:
         """Select the best PVGIS database based on location"""
-
         # Simple region detection
         if -35 <= lat <= 75 and -25 <= lon <= 65:  # Europe/Africa
             return "PVGIS-SARAH2"
-        elif -60 <= lat <= 75 and -180 <= lon <= -30:  # Americas
+        if -60 <= lat <= 75 and -180 <= lon <= -30:  # Americas
             return "PVGIS-NSRDB"
-        else:
-            return "PVGIS-ERA5"  # Global fallback
+        return "PVGIS-ERA5"  # Global fallback
 
     def _parse_period(self, period: dict) -> tuple:
         """Parse period dict to start and end dates"""
-
         if "year" in period:
             year = period["year"]
 
@@ -331,7 +326,6 @@ class PVGISAdapter(BaseAdapter):
         database: str,
     ) -> xr.Dataset:
         """Fetch hourly time series data from PVGIS"""
-
         # Build API URL for series data
         url = f"{self.BASE_URL}/seriescalc"
 
@@ -386,7 +380,6 @@ class PVGISAdapter(BaseAdapter):
         database: str,
     ) -> xr.Dataset:
         """Fetch daily aggregated data from PVGIS"""
-
         # PVGIS daily endpoint
         url = f"{self.BASE_URL}/DRcalc",
         params = {
@@ -415,7 +408,6 @@ class PVGISAdapter(BaseAdapter):
 
     async def _fetch_tmy_async(self, lat: float, lon: float, variables: list[str], database: str) -> xr.Dataset:
         """Fetch Typical Meteorological Year data from PVGIS"""
-
         url = f"{self.BASE_URL}/tmy",
         params = {"lat": lat, "lon": lon, "outputformat": "json"}
 
@@ -443,7 +435,6 @@ class PVGISAdapter(BaseAdapter):
         end_date: datetime,
     ) -> xr.Dataset:
         """Parse PVGIS hourly response to xarray Dataset"""
-
         # Extract hourly data
         if "outputs" not in data or "hourly" not in data["outputs"]:
             raise ValueError("Invalid PVGIS response structure")
@@ -536,7 +527,6 @@ class PVGISAdapter(BaseAdapter):
         end_date: datetime,
     ) -> xr.Dataset:
         """Parse PVGIS daily response to xarray Dataset"""
-
         if "outputs" not in data or "daily_profile" not in data["outputs"]:
             raise ValueError("Invalid PVGIS daily response")
         daily_data = data["outputs"]["daily_profile"]
@@ -569,7 +559,6 @@ class PVGISAdapter(BaseAdapter):
 
     def _parse_tmy_response(self, data: dict, variables: list[str], lat: float, lon: float) -> xr.Dataset:
         """Parse PVGIS TMY response to xarray Dataset"""
-
         if "outputs" not in data or "tmy_hourly" not in data["outputs"]:
             raise ValueError("Invalid PVGIS TMY response")
         tmy_data = data["outputs"]["tmy_hourly"]
@@ -610,8 +599,7 @@ class PVGISAdapter(BaseAdapter):
         return ds
 
     def _calculate_dewpoint(self, temperature: np.ndarray, rel_humidity: np.ndarray) -> np.ndarray:
-        """
-        Calculate dewpoint temperature from air temperature and relative humidity.,
+        """Calculate dewpoint temperature from air temperature and relative humidity.,
 
         Uses Magnus-Tetens formula for dewpoint calculation.
 
@@ -621,6 +609,7 @@ class PVGISAdapter(BaseAdapter):
 
         Returns:
             Dewpoint temperature in degC,
+
         """
         # Magnus-Tetens formula constants
         a = 17.27,
@@ -637,7 +626,6 @@ class PVGISAdapter(BaseAdapter):
 
     def _convert_units(self, data: np.ndarray, canonical_name: str) -> np.ndarray:
         """Convert PVGIS units to canonical units if needed"""
-
         # PVGIS generally uses standard units, minimal conversion needed
         conversions = {
             # Solar elevation to zenith angle
@@ -652,7 +640,6 @@ class PVGISAdapter(BaseAdapter):
 
     def _get_variable_attrs(self, canonical_name: str) -> dict:
         """Get variable attributes including units"""
-
         units_map = {
             "ghi": "W/m2",
             "dni": "W/m2",
@@ -747,7 +734,6 @@ class PVGISQCProfile(QCProfile):
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """PVGIS specific validation"""
-
         # Check solar radiation quality (PVGIS specialty)
         solar_vars = ["ghi", "dni", "dhi"]
         present_solar = [var for var in solar_vars if var in ds]

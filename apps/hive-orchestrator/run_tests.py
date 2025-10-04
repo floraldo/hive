@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: E402, S603
-"""
-Test runner for Hive Orchestrator
+"""Test runner for Hive Orchestrator
 Runs integration tests and provides a simple test report.
 
 Note: Logger initialization before imports (E402).
@@ -31,7 +29,7 @@ def run_tests():
         # Try to run with pytest if available
         result = subprocess.run(
             [sys.executable, "-m", "pytest", str(test_dir), "-v", "--tb=short"],
-            capture_output=True,
+            check=False, capture_output=True,
             text=True,
         )
 
@@ -52,14 +50,13 @@ def run_tests():
 
         test_file = test_dir / "test_integration.py"
         if test_file.exists():
-            result = subprocess.run([sys.executable, str(test_file)], capture_output=True, text=True)
+            result = subprocess.run([sys.executable, str(test_file)], check=False, capture_output=True, text=True)
             logger.info(result.stdout)
             if result.stderr:
                 logger.info("STDERR:", result.stderr)
             return result.returncode
-        else:
-            logger.info("❌ Test file not found")
-            return 1
+        logger.info("❌ Test file not found")
+        return 1
 
 
 if __name__ == "__main__":

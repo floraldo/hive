@@ -21,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class MonitoringService:
-    """
-    Comprehensive monitoring service for Hive platform.
+    """Comprehensive monitoring service for Hive platform.
 
     Features:
     - Integrated performance monitoring
@@ -476,8 +475,7 @@ class MonitoringService:
             import json
 
             return (json.dumps(export_data, indent=2),)
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")
 
     async def cleanup_old_data_async(self, retention_hours: int = 24) -> None:
         """Clean up old monitoring data."""

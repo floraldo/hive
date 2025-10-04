@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607
-"""
-Hive Cleanup Script v2.0 - Database Edition
+"""Hive Cleanup Script v2.0 - Database Edition
 Clears all database tasks, runs, workers, logs, and results for a fresh start.
 Updated for database-driven architecture.
 
@@ -31,7 +29,7 @@ def run_command(cmd, description) -> None:
         import shlex
 
         cmd_args = shlex.split(cmd) if isinstance(cmd, str) else cmd
-        result = subprocess.run(cmd_args, capture_output=True, text=True)  # noqa: S603
+        result = subprocess.run(cmd_args, check=False, capture_output=True, text=True)
         if result.returncode == 0:
             logger.info(f"[OK] {description} completed")
         else:
@@ -125,10 +123,10 @@ def clean_git_branches(preserve=False) -> None:
     logger.info("Cleaning agent git branches...")
     try:
         # First, remove any worktrees
-        result = subprocess.run(["git", "worktree", "prune"], capture_output=True, text=True)
+        result = subprocess.run(["git", "worktree", "prune"], check=False, capture_output=True, text=True)
 
         # Get list of agent branches (cross-platform compatible)
-        result = subprocess.run(["git", "branch"], capture_output=True, text=True)
+        result = subprocess.run(["git", "branch"], check=False, capture_output=True, text=True)
         if result.returncode == 0:
             # Filter branches containing 'agent/' in Python instead of shell
             all_branches = (result.stdout.strip().split("\n"),)
@@ -174,7 +172,7 @@ def kill_processes() -> None:
                     # Use tasklist without shell=True
                     result = subprocess.run(
                         ["tasklist", "/FI", "IMAGENAME eq python.exe", "/FO", "CSV"],
-                        capture_output=True,
+                        check=False, capture_output=True,
                         text=True,
                         timeout=10,
                     )
@@ -187,7 +185,7 @@ def kill_processes() -> None:
                         result.stdout = ""
                 else:
                     # Unix/Linux approach
-                    result = subprocess.run(["pgrep", "-f", process_name], capture_output=True, text=True, timeout=10)
+                    result = subprocess.run(["pgrep", "-f", process_name], check=False, capture_output=True, text=True, timeout=10)
                 if result.returncode == 0 and result.stdout.strip():
                     logger.info(f"  Found running {process_name} processes")
                     # Kill processes (cross-platform)
@@ -195,12 +193,12 @@ def kill_processes() -> None:
                         # Use wmic without shell=True
                         kill_result = subprocess.run(
                             ["wmic", "process", "where", f"commandline like '%{process_name}%'", "delete"],
-                            capture_output=True,
+                            check=False, capture_output=True,
                             timeout=10,
                         )
                     else:
                         # Unix/Linux approach
-                        kill_result = subprocess.run(["pkill", "-f", process_name], capture_output=True, timeout=10)
+                        kill_result = subprocess.run(["pkill", "-f", process_name], check=False, capture_output=True, timeout=10)
                     if kill_result.returncode == 0:
                         logger.info(f"  [OK] Killed {process_name} processes")
                         killed_any = True
@@ -354,9 +352,8 @@ def main() -> None:
         if len(operations_success) > 0:
             logger.info("\n[READY] Ready for fresh start!")
             return 0
-        else:
-            logger.error("\n[WARNING] Some operations failed - check messages above")
-            return 1
+        logger.error("\n[WARNING] Some operations failed - check messages above")
+        return 1
 
     except KeyboardInterrupt:
         logger.info("\n[INFO] Cleanup interrupted by user")

@@ -1,5 +1,4 @@
-"""
-Archivist Service
+"""Archivist Service
 
 Unified service that combines Librarian (real-time) and Curator (scheduled) modes.
 Provides single entry point for all knowledge management operations.
@@ -24,8 +23,7 @@ logger = get_logger(__name__)
 
 
 class ArchivistService:
-    """
-    Unified knowledge management service.
+    """Unified knowledge management service.
 
     Modes:
     - 'librarian': Real-time event-driven indexing
@@ -35,19 +33,19 @@ class ArchivistService:
 
     def __init__(
         self,
-        mode: Literal['librarian', 'curator', 'both'] = 'librarian',
+        mode: Literal["librarian", "curator", "both"] = "librarian",
         bus: BaseBus | None = None,
         fragment_parser: FragmentParser | None = None,
-        vector_indexer: VectorIndexer | None = None
+        vector_indexer: VectorIndexer | None = None,
     ):
-        """
-        Initialize archivist service.
+        """Initialize archivist service.
 
         Args:
             mode: Operating mode ('librarian', 'curator', or 'both')
             bus: Event bus (required for librarian mode)
             fragment_parser: Fragment extraction logic
             vector_indexer: Vector storage logic
+
         """
         self.mode = mode
         self.fragment_parser = fragment_parser or FragmentParser()
@@ -57,43 +55,42 @@ class ArchivistService:
         self.librarian: LibrarianService | None = None
         self.curator: CuratorService | None = None
 
-        if mode in ('librarian', 'both'):
+        if mode in ("librarian", "both"):
             self.librarian = LibrarianService(
                 bus=bus,
                 fragment_parser=self.fragment_parser,
-                vector_indexer=self.vector_indexer
+                vector_indexer=self.vector_indexer,
             )
 
-        if mode in ('curator', 'both'):
+        if mode in ("curator", "both"):
             self.curator = CuratorService(
-                vector_indexer=self.vector_indexer
+                vector_indexer=self.vector_indexer,
             )
 
         logger.info(f"ArchivistService initialized in '{mode}' mode")
 
     async def start_async(self) -> None:
-        """
-        Start the archivist service.
+        """Start the archivist service.
 
         For 'librarian' mode: Subscribes to event bus
         For 'curator' mode: No-op (runs on schedule)
         For 'both': Starts librarian only (curator runs on demand)
         """
-        if self.mode == 'librarian' and self.librarian:
+        if self.mode == "librarian" and self.librarian:
             await self.librarian.start()
             logger.info("Librarian service started (real-time indexing active)")
 
-        elif self.mode == 'both' and self.librarian:
+        elif self.mode == "both" and self.librarian:
             await self.librarian.start()
             logger.info(
                 "Archivist started in dual mode: "
-                "Librarian active (real-time), Curator available (on-demand)"
+                "Librarian active (real-time), Curator available (on-demand)",
             )
 
-        elif self.mode == 'curator':
+        elif self.mode == "curator":
             logger.info(
                 "Curator mode - service ready. "
-                "Call run_maintenance_async() to execute scheduled maintenance"
+                "Call run_maintenance_async() to execute scheduled maintenance",
             )
 
     async def stop_async(self) -> None:
@@ -104,8 +101,7 @@ class ArchivistService:
         logger.info("Archivist service stopped")
 
     async def index_task_async(self, task_id: str) -> list[str]:
-        """
-        Manually index a task (useful for backfilling).
+        """Manually index a task (useful for backfilling).
 
         Args:
             task_id: Task ID to index
@@ -115,29 +111,30 @@ class ArchivistService:
 
         Raises:
             HiveError: If librarian not available or task not found
+
         """
         if not self.librarian:
             raise HiveError(
                 "Manual indexing requires librarian mode. "
-                "Initialize with mode='librarian' or mode='both'"
+                "Initialize with mode='librarian' or mode='both'",
             )
 
         return await self.librarian.index_task_async(task_id)
 
     async def run_maintenance_async(self) -> dict[str, Any]:
-        """
-        Run curator maintenance cycle.
+        """Run curator maintenance cycle.
 
         Returns:
             Maintenance results and statistics
 
         Raises:
             HiveError: If curator not available
+
         """
         if not self.curator:
             raise HiveError(
                 "Maintenance requires curator mode. "
-                "Initialize with mode='curator' or mode='both'"
+                "Initialize with mode='curator' or mode='both'",
             )
 
         return await self.curator.run_maintenance_async()
@@ -146,7 +143,7 @@ class ArchivistService:
         """Get comprehensive service statistics."""
         stats = {
             "mode": self.mode,
-            "services": {}
+            "services": {},
         }
 
         if self.librarian:

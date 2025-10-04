@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Demo: Oracle's Architectural Intelligence - The Self-Healing Platform
+"""Demo: Oracle's Architectural Intelligence - The Self-Healing Platform
 
 This demonstration shows how the Oracle has evolved to become the platform's
 architectural guardian, turning raw compliance data into strategic wisdom.
@@ -37,7 +36,6 @@ def print_recommendation(num, title, priority, effort, benefit):
 
 async def demo_architectural_oracle_async():
     """Demonstrate the Oracle's architectural intelligence capabilities."""
-
     print_header("🔮 ORACLE'S ARCHITECTURAL INTELLIGENCE DEMO")
     print("\nThe Guardian has evolved into the Oracle...")
     print("Transforming from reactive protection to proactive architectural wisdom")

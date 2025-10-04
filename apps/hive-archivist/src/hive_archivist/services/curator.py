@@ -1,5 +1,4 @@
-"""
-Curator Service
+"""Curator Service
 
 Scheduled knowledge maintenance service that runs deep analysis:
 - Identifies knowledge clusters and patterns
@@ -24,8 +23,7 @@ logger = get_logger(__name__)
 
 
 class CuratorService:
-    """
-    Scheduled knowledge maintenance and optimization service.
+    """Scheduled knowledge maintenance and optimization service.
 
     Runs deep analysis on the knowledge graph to:
     1. Identify and cluster similar tasks
@@ -38,15 +36,15 @@ class CuratorService:
         self,
         vector_indexer: VectorIndexer | None = None,
         archive_threshold_days: int = 90,
-        min_retrieval_count: int = 2
+        min_retrieval_count: int = 2,
     ):
-        """
-        Initialize curator service.
+        """Initialize curator service.
 
         Args:
             vector_indexer: Vector database for archival operations
             archive_threshold_days: Age threshold for archival (default: 90 days)
             min_retrieval_count: Min retrievals to keep active (default: 2)
+
         """
         self.vector_indexer = vector_indexer or VectorIndexer()
         self.archive_threshold_days = archive_threshold_days
@@ -54,22 +52,22 @@ class CuratorService:
 
         logger.info(
             f"CuratorService initialized (archive threshold: {archive_threshold_days} days, "
-            f"min retrievals: {min_retrieval_count})"
+            f"min retrievals: {min_retrieval_count})",
         )
 
     async def run_maintenance_async(self) -> dict[str, Any]:
-        """
-        Run full maintenance cycle.
+        """Run full maintenance cycle.
 
         Returns:
             Maintenance statistics and results
+
         """
         logger.info("Starting scheduled maintenance cycle")
         start_time = datetime.now()
 
         results = {
             "started_at": start_time.isoformat(),
-            "operations": {}
+            "operations": {},
         }
 
         # 1. Archive cold knowledge
@@ -77,13 +75,13 @@ class CuratorService:
             archived_count = await self._archive_cold_knowledge_async()
             results["operations"]["archive"] = {
                 "status": "success",
-                "fragments_archived": archived_count
+                "fragments_archived": archived_count,
             }
         except Exception as e:
             logger.error(f"Archive operation failed: {e}", exc_info=True)
             results["operations"]["archive"] = {
                 "status": "failed",
-                "error": str(e)
+                "error": str(e),
             }
 
         # 2. Identify knowledge clusters
@@ -91,13 +89,13 @@ class CuratorService:
             clusters = await self._identify_clusters_async()
             results["operations"]["clustering"] = {
                 "status": "success",
-                "clusters_found": len(clusters)
+                "clusters_found": len(clusters),
             }
         except Exception as e:
             logger.error(f"Clustering operation failed: {e}", exc_info=True)
             results["operations"]["clustering"] = {
                 "status": "failed",
-                "error": str(e)
+                "error": str(e),
             }
 
         # 3. Generate meta-summaries
@@ -105,13 +103,13 @@ class CuratorService:
             meta_summaries = await self._generate_meta_summaries_async()
             results["operations"]["meta_summaries"] = {
                 "status": "success",
-                "summaries_created": len(meta_summaries)
+                "summaries_created": len(meta_summaries),
             }
         except Exception as e:
             logger.error(f"Meta-summary generation failed: {e}", exc_info=True)
             results["operations"]["meta_summaries"] = {
                 "status": "failed",
-                "error": str(e)
+                "error": str(e),
             }
 
         # 4. Extract best practices
@@ -119,13 +117,13 @@ class CuratorService:
             best_practices = await self._extract_best_practices_async()
             results["operations"]["best_practices"] = {
                 "status": "success",
-                "practices_extracted": len(best_practices)
+                "practices_extracted": len(best_practices),
             }
         except Exception as e:
             logger.error(f"Best practice extraction failed: {e}", exc_info=True)
             results["operations"]["best_practices"] = {
                 "status": "failed",
-                "error": str(e)
+                "error": str(e),
             }
 
         # Finalize
@@ -140,25 +138,24 @@ class CuratorService:
         return results
 
     async def _archive_cold_knowledge_async(self) -> int:
-        """
-        Archive knowledge fragments that are old and rarely retrieved.
+        """Archive knowledge fragments that are old and rarely retrieved.
 
         Returns:
             Number of fragments archived
+
         """
         logger.info("Archiving cold knowledge...")
 
         archived_count = await self.vector_indexer.archive_old_fragments_async(
             age_threshold_days=self.archive_threshold_days,
-            min_retrieval_count=self.min_retrieval_count
+            min_retrieval_count=self.min_retrieval_count,
         )
 
         logger.info(f"Archived {archived_count} cold knowledge fragments")
         return archived_count
 
     async def _identify_clusters_async(self) -> list[dict[str, Any]]:
-        """
-        Identify clusters of similar tasks for pattern recognition.
+        """Identify clusters of similar tasks for pattern recognition.
 
         Returns:
             List of identified clusters with task_ids and common themes
@@ -167,6 +164,7 @@ class CuratorService:
         - Use vector similarity to group related tasks
         - Identify common error patterns
         - Group successful strategies by task type
+
         """
         logger.info("Identifying knowledge clusters...")
 
@@ -178,8 +176,7 @@ class CuratorService:
         return clusters
 
     async def _generate_meta_summaries_async(self) -> list[dict[str, Any]]:
-        """
-        Generate meta-summaries from task patterns.
+        """Generate meta-summaries from task patterns.
 
         Example:
             "All database migration tasks (15 instances) follow this pattern:
@@ -195,6 +192,7 @@ class CuratorService:
         - Analyze task clusters for common patterns
         - Use AI to generate high-level summaries
         - Store as special fragment_type='meta_summary'
+
         """
         logger.info("Generating meta-summaries...")
 
@@ -206,8 +204,7 @@ class CuratorService:
         return meta_summaries
 
     async def _extract_best_practices_async(self) -> list[dict[str, Any]]:
-        """
-        Extract best practices from successful task executions.
+        """Extract best practices from successful task executions.
 
         Identifies patterns in successful tasks (status='completed', no errors)
         and creates reusable best practice fragments.
@@ -220,6 +217,7 @@ class CuratorService:
         - Identify common decision patterns
         - Create fragment_type='best_practice' entries
         - Link to source task_ids for traceability
+
         """
         logger.info("Extracting best practices...")
 
@@ -236,7 +234,7 @@ class CuratorService:
             "service": "curator",
             "archive_threshold_days": self.archive_threshold_days,
             "min_retrieval_count": self.min_retrieval_count,
-            "status": "operational"
+            "status": "operational",
         }
 
 

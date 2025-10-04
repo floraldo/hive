@@ -48,9 +48,8 @@ def main():
         print()
 
         return 1
-    else:
-        print("\n✅ No syntax errors found!")
-        return 0
+    print("\n✅ No syntax errors found!")
+    return 0
 
 
 if __name__ == "__main__":

@@ -1,5 +1,4 @@
-"""
-Claude Service Implementation
+"""Claude Service Implementation
 Contains the business logic implementation for Claude API interactions.
 Separated from core interfaces to maintain clean architecture.
 """
@@ -195,10 +194,9 @@ class ResponseCache:
                     entry.hit_count += 1
                     logger.debug(f"Cache hit for key {key[:8]}... (hits: {entry.hit_count})")
                     return entry.response
-                else:
-                    # Remove expired entry
-                    del self.cache[key]
-                    logger.debug(f"Cache expired for key {key[:8]}...")
+                # Remove expired entry
+                del self.cache[key]
+                logger.debug(f"Cache expired for key {key[:8]}...")
 
         return None
 

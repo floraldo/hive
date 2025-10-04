@@ -1,5 +1,4 @@
-"""
-Common shared models used across multiple Hive applications.
+"""Common shared models used across multiple Hive applications.
 
 These models represent common concepts and data structures that are
 used throughout the platform.

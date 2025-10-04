@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal performance tooling.
 
-"""
-Unified Performance Runner - Consolidates All Performance Operations
+"""Unified Performance Runner - Consolidates All Performance Operations
 
 Replaces 8 separate performance scripts with a single unified interface:
 - ai_cost_optimizer.py → performance.py --ai-costs
@@ -64,7 +62,7 @@ def run_script(script_name: str, args: list[str]) -> int:
     print(f"Command: {' '.join(cmd)}")
     print(f"{'=' * 80}\n")
 
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd, check=False)
     return result.returncode
 
 

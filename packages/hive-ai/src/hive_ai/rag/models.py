@@ -1,5 +1,4 @@
-"""
-Data models for RAG system with rich metadata support.
+"""Data models for RAG system with rich metadata support.
 
 Provides enhanced code chunks with AST-derived metadata, operational context,
 and architectural memory for intelligent retrieval and context generation.
@@ -28,8 +27,7 @@ class ChunkType(Enum):
 
 @dataclass
 class CodeChunk:
-    """
-    Enhanced code chunk with operational metadata and architectural context.
+    """Enhanced code chunk with operational metadata and architectural context.
 
     Combines AST-derived code structure with operational metadata from
     scripts_metadata.json, USAGE_MATRIX.md, and architectural memory from
@@ -92,8 +90,7 @@ class CodeChunk:
         }
 
     def get_enriched_code(self) -> str:
-        """
-        Get enriched code for embedding generation.
+        """Get enriched code for embedding generation.
 
         Prepends signature and docstring to code for better semantic representation.
         """
@@ -135,8 +132,7 @@ class RuleContext:
 
 @dataclass
 class StructuredContext:
-    """
-    Structured context for agent prompt generation.
+    """Structured context for agent prompt generation.
 
     Provides code patterns, golden rules, and deprecation warnings
     in a format optimized for LLM consumption.
@@ -152,8 +148,7 @@ class StructuredContext:
     filters_applied: dict[str, Any] = field(default_factory=dict)
 
     def to_prompt_section(self) -> str:
-        """
-        Convert to formatted prompt section for LLM.
+        """Convert to formatted prompt section for LLM.
 
         Generates structured markdown sections with code patterns,
         golden rules, and deprecation warnings.

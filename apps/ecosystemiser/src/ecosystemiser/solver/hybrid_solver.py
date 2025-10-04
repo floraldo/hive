@@ -33,6 +33,7 @@ class HybridSolver(BaseSolver):
         Args:
             system: EnergySystem to optimize
             config: Configuration for surveyor phase (RollingHorizonMILPSolver)
+
         """
         super().__init__(system, config)
 
@@ -52,6 +53,7 @@ class HybridSolver(BaseSolver):
 
         Returns:
             SolverResult from surveyor phase (refined MILP solution)
+
         """
         start_time = time.time()
 
@@ -117,7 +119,7 @@ class HybridSolver(BaseSolver):
         except Exception as e:
             logger.error(f"Error in hybrid solver: {e}")
             result = SolverResult(
-                status="error", solve_time=time.time() - start_time, message=f"Hybrid solver error: {str(e)}"
+                status="error", solve_time=time.time() - start_time, message=f"Hybrid solver error: {e!s}",
             )
             self.result = result
             return result
@@ -130,6 +132,7 @@ class HybridSolver(BaseSolver):
 
         Returns:
             Dictionary mapping component names to their solution arrays
+
         """
         vectors = {}
 

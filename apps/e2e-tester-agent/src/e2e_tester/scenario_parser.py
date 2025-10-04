@@ -12,8 +12,7 @@ logger = get_logger(__name__)
 
 
 class ScenarioParser:
-    """
-    Parse feature descriptions into structured test scenarios.
+    """Parse feature descriptions into structured test scenarios.
 
     Extracts user actions, assertions, and page elements from natural
     language descriptions to generate test code.
@@ -24,6 +23,7 @@ class ScenarioParser:
             feature="User can login with Google OAuth",
             url="https://myapp.dev/login"
         )
+
     """
 
     # Action patterns
@@ -70,10 +70,9 @@ class ScenarioParser:
         self,
         feature: str,
         url: str,
-        additional_context: dict[str, str] | None = None
+        additional_context: dict[str, str] | None = None,
     ) -> TestScenario:
-        """
-        Parse feature description into structured test scenario.
+        """Parse feature description into structured test scenario.
 
         Args:
             feature: Natural language feature description
@@ -92,6 +91,7 @@ class ScenarioParser:
                     "failure_indicator": "Error message displayed"
                 }
             )
+
         """
         self.logger.info(f"Parsing feature: {feature}")
 
@@ -104,13 +104,13 @@ class ScenarioParser:
         # Generate success assertions
         success_assertions = self._generate_success_assertions(
             feature,
-            additional_context
+            additional_context,
         )
 
         # Generate failure assertions
         failure_assertions = self._generate_failure_assertions(
             feature,
-            additional_context
+            additional_context,
         )
 
         # Extract page elements
@@ -129,7 +129,7 @@ class ScenarioParser:
         self.logger.info(
             f"Parsed scenario: {len(actions)} actions, "
             f"{len(success_assertions)} success assertions, "
-            f"{len(page_elements)} elements"
+            f"{len(page_elements)} elements",
         )
 
         return scenario
@@ -176,7 +176,7 @@ class ScenarioParser:
     def _generate_success_assertions(
         self,
         feature: str,
-        context: dict[str, str] | None
+        context: dict[str, str] | None,
     ) -> list[dict[str, str]]:
         """Generate assertions for successful scenario."""
         assertions = []
@@ -221,7 +221,7 @@ class ScenarioParser:
     def _generate_failure_assertions(
         self,
         feature: str,
-        context: dict[str, str] | None
+        context: dict[str, str] | None,
     ) -> list[dict[str, str]]:
         """Generate assertions for failure scenario."""
         assertions = []
@@ -247,7 +247,7 @@ class ScenarioParser:
     def _extract_page_elements(
         self,
         feature: str,
-        actions: list[dict[str, str]]
+        actions: list[dict[str, str]],
     ) -> dict[str, str]:
         """Extract page elements and map to selectors."""
         elements = {}

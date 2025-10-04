@@ -1,5 +1,4 @@
-"""
-Main application entry point for the refactored climate platform.,
+"""Main application entry point for the refactored climate platform.,
 
 Initializes all components with the new architecture:
 - Centralized configuration
@@ -29,8 +28,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan_async(app: FastAPI) -> None:
-    """
-    Application lifespan manager.,
+    """Application lifespan manager.,
 
     Handles startup and shutdown tasks.,
     """
@@ -75,11 +73,11 @@ async def lifespan_async(app: FastAPI) -> None:
 
 
 def create_app() -> FastAPI:
-    """
-    Create and configure the FastAPI application.
+    """Create and configure the FastAPI application.
 
     Returns:
         Configured FastAPI app,
+
     """
     # Create app with lifespan manager
     app = FastAPI(
@@ -163,7 +161,7 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "ecosystemiser.profile_loader.climate.main:app",
-        host="0.0.0.0",  # noqa: S104
+        host="0.0.0.0",
         port=8000,
         reload=settings.debug,
         log_config={

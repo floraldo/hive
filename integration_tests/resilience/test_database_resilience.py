@@ -1,5 +1,4 @@
-"""
-Database Resilience Tests
+"""Database Resilience Tests
 
 Chaos engineering tests to validate database connection resilience:
 - Connection pool exhaustion scenarios
@@ -36,9 +35,9 @@ except ImportError:
 
         async def get_connection(self):
             if not self.is_healthy:
-                raise Exception('Database pool is unhealthy')
+                raise Exception("Database pool is unhealthy")
             if self.active_connections >= self.max_connections:
-                raise Exception('Connection pool exhausted')
+                raise Exception("Connection pool exhausted")
             self.active_connections += 1
             return MockDatabaseConnection()
 
@@ -69,29 +68,29 @@ class MockDatabaseConnection:
     async def execute(self, query: str, params: tuple=()):
         """Execute a database query"""
         if self.is_closed:
-            raise Exception('Connection is closed')
+            raise Exception("Connection is closed")
         if self.delay > 0:
             await asyncio.sleep(self.delay)
         if self.should_fail:
-            raise sqlite3.OperationalError('Database operation failed')
+            raise sqlite3.OperationalError("Database operation failed")
         return MockCursor()
 
     async def begin_transaction(self):
         """Begin a database transaction"""
         if self.transaction_active:
-            raise Exception('Transaction already active')
+            raise Exception("Transaction already active")
         self.transaction_active = True
 
     async def commit(self):
         """Commit the current transaction"""
         if not self.transaction_active:
-            raise Exception('No active transaction')
+            raise Exception("No active transaction")
         self.transaction_active = False
 
     async def rollback(self):
         """Rollback the current transaction"""
         if not self.transaction_active:
-            raise Exception('No active transaction')
+            raise Exception("No active transaction")
         self.transaction_active = False
 
     async def close(self):
@@ -128,7 +127,7 @@ class ResilientDatabaseService:
         """Execute query with resilience patterns"""
         if self.circuit_breaker_open:
             if time.time() - self.circuit_breaker_last_failure < self.circuit_breaker_timeout:
-                raise Exception('Circuit breaker is open - database unavailable')
+                raise Exception("Circuit breaker is open - database unavailable")
             else:
                 self.circuit_breaker_open = False
         last_exception = None
@@ -174,11 +173,11 @@ class TestDatabaseResilience:
     @pytest.fixture
     async def temp_database(self):
         """Create a temporary SQLite database for testing"""
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".db")
         temp_file.close()
         db_path = Path(temp_file.name)
         async with get_async_connection(str(db_path)) as conn:
-            await conn.execute(',\n                CREATE TABLE test_table (\n                    id INTEGER PRIMARY KEY,\n                    name TEXT NOT NULL,\n                    value INTEGER\n                )\n            ')
+            await conn.execute(",\n                CREATE TABLE test_table (\n                    id INTEGER PRIMARY KEY,\n                    name TEXT NOT NULL,\n                    value INTEGER\n                )\n            ")
             await conn.commit()
         yield str(db_path)
         db_path.unlink()
@@ -215,7 +214,7 @@ class TestDatabaseResilience:
         for _i in range(connection_pool.max_connections):
             conn = await connection_pool.get_connection()
             connections.append(conn)
-        with pytest.raises(Exception, match='Connection pool exhausted'):
+        with pytest.raises(Exception, match="Connection pool exhausted"):
             await connection_pool.get_connection()
         await connection_pool.return_connection(connections[0])
         new_conn = await connection_pool.get_connection()
@@ -234,11 +233,11 @@ class TestDatabaseResilience:
             nonlocal call_count
             call_count += 1
             if call_count <= 2:
-                raise sqlite3.OperationalError('Temporary database error')
+                raise sqlite3.OperationalError("Temporary database error")
             else:
                 return MockDatabaseConnection()
         resilient_service.pool.get_connection = failing_get_connection
-        result = await resilient_service.execute_with_resilience('SELECT 1')
+        result = await resilient_service.execute_with_resilience("SELECT 1")
         assert result is not None
         assert call_count == 3
 
@@ -248,15 +247,15 @@ class TestDatabaseResilience:
         """Test circuit breaker opens after repeated failures"""
 
         async def always_failing_get_connection():
-            raise sqlite3.OperationalError('Database is down')
+            raise sqlite3.OperationalError("Database is down")
         resilient_service.pool.get_connection = always_failing_get_connection
         for _i in range(6):
             with pytest.raises(Exception):
-                await resilient_service.execute_with_resilience('SELECT 1')
+                await resilient_service.execute_with_resilience("SELECT 1")
         assert resilient_service.circuit_breaker_open
         start_time = time.time()
-        with pytest.raises(Exception, match='Circuit breaker is open'):
-            await resilient_service.execute_with_resilience('SELECT 1')
+        with pytest.raises(Exception, match="Circuit breaker is open"):
+            await resilient_service.execute_with_resilience("SELECT 1")
         end_time = time.time()
         assert end_time - start_time < 0.1
 
@@ -272,13 +271,13 @@ class TestDatabaseResilience:
                 nonlocal call_count
                 call_count += 1
                 if call_count == 2:
-                    raise sqlite3.OperationalError('Query failed')
+                    raise sqlite3.OperationalError("Query failed")
                 return MockCursor()
 
         async def get_failing_connection():
             return FailingConnection()
         resilient_service.pool.get_connection = get_failing_connection
-        queries = [('INSERT INTO test_table (name, value) VALUES (?, ?)', ('test1', 100)), ('INSERT INTO test_table (name, value) VALUES (?, ?)', ('test2', 200)), ('INSERT INTO test_table (name, value) VALUES (?, ?)', ('test3', 300))]
+        queries = [("INSERT INTO test_table (name, value) VALUES (?, ?)", ("test1", 100)), ("INSERT INTO test_table (name, value) VALUES (?, ?)", ("test2", 200)), ("INSERT INTO test_table (name, value) VALUES (?, ?)", ("test3", 300))]
         with pytest.raises(sqlite3.OperationalError):
             await resilient_service.execute_transaction(queries)
         assert call_count == 2
@@ -297,7 +296,7 @@ class TestDatabaseResilience:
         resilient_service.pool.get_connection = mixed_speed_connections
         tasks = []
         for i in range(20):
-            task = await async_executor.submit(resilient_service.execute_with_resilience(f'SELECT {i}'))
+            task = await async_executor.submit(resilient_service.execute_with_resilience(f"SELECT {i}"))
             tasks.append(task)
         start_time = time.time()
         results = await async_executor.gather(*tasks, return_exceptions=True)
@@ -306,7 +305,7 @@ class TestDatabaseResilience:
         assert len(successful_results) == 20
         total_time = end_time - start_time
         assert total_time < 2.0
-        print(f'Completed 20 concurrent operations in {total_time:.2f} seconds')
+        print(f"Completed 20 concurrent operations in {total_time:.2f} seconds")
 
     @pytest.mark.crust
     @pytest.mark.asyncio
@@ -316,18 +315,18 @@ class TestDatabaseResilience:
 
         async def intermittent_failing_connection():
             if failure_mode:
-                raise sqlite3.OperationalError('Database temporarily unavailable')
+                raise sqlite3.OperationalError("Database temporarily unavailable")
             else:
                 return MockDatabaseConnection()
         resilient_service.pool.get_connection = intermittent_failing_connection
         for _i in range(6):
             with pytest.raises(Exception):
-                await resilient_service.execute_with_resilience('SELECT 1')
+                await resilient_service.execute_with_resilience("SELECT 1")
         assert resilient_service.circuit_breaker_open
         failure_mode = False
         await asyncio.sleep(0.1)
         resilient_service.circuit_breaker_timeout = 0.05
-        result = await resilient_service.execute_with_resilience('SELECT 1')
+        result = await resilient_service.execute_with_resilience("SELECT 1")
         assert result is not None
         assert not resilient_service.circuit_breaker_open
         assert resilient_service.circuit_breaker_failures == 0
@@ -365,12 +364,12 @@ class TestDatabaseResilience:
             return MetricsConnection()
         resilient_service.pool.get_connection = get_metrics_connection
         for i in range(10):
-            await resilient_service.execute_with_resilience(f'SELECT {i}')
+            await resilient_service.execute_with_resilience(f"SELECT {i}")
         assert operation_count == 10
         assert total_duration > 0
         avg_duration = total_duration / operation_count
-        print(f'Average operation duration: {avg_duration:.4f} seconds')
-        print(f'Total operations: {operation_count}')
-        print(f'Circuit breaker failures: {resilient_service.circuit_breaker_failures}')
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--asyncio-mode=auto'])
+        print(f"Average operation duration: {avg_duration:.4f} seconds")
+        print(f"Total operations: {operation_count}")
+        print(f"Circuit breaker failures: {resilient_service.circuit_breaker_failures}")
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--asyncio-mode=auto"])

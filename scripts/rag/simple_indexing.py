@@ -1,5 +1,4 @@
-"""
-Simple RAG indexing without complex dependencies.
+"""Simple RAG indexing without complex dependencies.
 Uses only core RAG components and sentence-transformers.
 """
 
@@ -48,7 +47,7 @@ def chunk_python(file_path):
                         "start_line": start_line,
                         "type": "python",
                         "name": node.name,
-                    }
+                    },
                 )
 
         if not chunks:
@@ -60,7 +59,7 @@ def chunk_python(file_path):
                     "start_line": 1,
                     "type": "python",
                     "name": file_path.stem,
-                }
+                },
             )
 
         return chunks
@@ -88,7 +87,7 @@ def chunk_markdown(file_path):
                             "file": str(file_path),
                             "type": "markdown",
                             "name": current_header or file_path.stem,
-                        }
+                        },
                     )
                 current_section = [line]
                 current_header = line.strip("# ")
@@ -102,7 +101,7 @@ def chunk_markdown(file_path):
                     "file": str(file_path),
                     "type": "markdown",
                     "name": current_header or file_path.stem,
-                }
+                },
             )
 
         return chunks
@@ -131,7 +130,7 @@ def chunk_yaml(file_path):
                             "file": str(file_path),
                             "type": "yaml",
                             "name": current_key or file_path.stem,
-                        }
+                        },
                     )
                 current_chunk = [line]
                 current_key = line.split(":")[0].strip()
@@ -145,7 +144,7 @@ def chunk_yaml(file_path):
                     "file": str(file_path),
                     "type": "yaml",
                     "name": current_key or file_path.stem,
-                }
+                },
             )
 
         return chunks
@@ -171,9 +170,9 @@ def chunk_toml(file_path):
             section_text = f"[{section}]\n"
             if isinstance(values, dict):
                 for k, v in values.items():
-                    section_text += f"{k} = {repr(v)}\n"
+                    section_text += f"{k} = {v!r}\n"
             else:
-                section_text += f"{section} = {repr(values)}\n"
+                section_text += f"{section} = {values!r}\n"
 
             chunks.append({"text": section_text, "file": str(file_path), "type": "toml", "name": section})
 

@@ -9,8 +9,7 @@ logger = get_logger(__name__)
 
 
 def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
-    """
-    Apply subset selection to dataset.
+    """Apply subset selection to dataset.
 
     Args:
         ds: Dataset to subset
@@ -24,6 +23,7 @@ def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
 
     Returns:
         Subset of dataset,
+
     """
     if not subset:
         return ds
@@ -87,8 +87,7 @@ def apply_subset(ds: xr.Dataset, subset: dict[str, str]) -> xr.Dataset:
 
 
 def extract_season(ds: xr.Dataset, season: str) -> xr.Dataset:
-    """
-    Extract seasonal subset from dataset.
+    """Extract seasonal subset from dataset.
 
     Args:
         ds: Dataset to subset
@@ -96,6 +95,7 @@ def extract_season(ds: xr.Dataset, season: str) -> xr.Dataset:
 
     Returns:
         Seasonal subset,
+
     """
     season_months = (
         {
@@ -118,8 +118,7 @@ def extract_season(ds: xr.Dataset, season: str) -> xr.Dataset:
 
 
 def extract_typical_periods(ds: xr.Dataset, period_type: str = "typical_week") -> xr.Dataset:
-    """
-    Extract typical periods from dataset.
+    """Extract typical periods from dataset.
 
     Args:
         ds: Dataset to analyze
@@ -128,6 +127,7 @@ def extract_typical_periods(ds: xr.Dataset, period_type: str = "typical_week") -
 
     Returns:
         Typical period subset,
+
     """
     if period_type == "typical_week":
         # Find week closest to annual average

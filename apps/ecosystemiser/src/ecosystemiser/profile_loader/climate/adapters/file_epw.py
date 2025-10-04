@@ -295,13 +295,11 @@ class FileEPWAdapter(BaseAdapter):
         resolution: str = "1H",
         file_path: str | None = None,
     ) -> xr.Dataset:
-        """
-        Import climate data from EPW file.
+        """Import climate data from EPW file.
 
         Note: The file_path should be provided in the period dict as:
         period = {"file": "/path/to/file.epw"} or {"url": "http://..."},
         """
-
         # Use base class fetch method
         ds = await super().fetch_async(location=(lat, lon), variables=variables, period=period, resolution=resolution)
 
@@ -313,7 +311,6 @@ class FileEPWAdapter(BaseAdapter):
 
     def _read_epw_file(self, file_path: str) -> str:
         """Read EPW file from local path"""
-
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"EPW file not found: {file_path}")
 
@@ -322,7 +319,6 @@ class FileEPWAdapter(BaseAdapter):
 
     async def _download_and_read_epw_async(self, url: str) -> str:
         """Download EPW file from URL"""
-
         self.logger.info(f"Downloading EPW file from {url}")
 
         try:
@@ -334,7 +330,6 @@ class FileEPWAdapter(BaseAdapter):
 
     def _parse_epw_data(self, epw_content: str) -> pd.DataFrame:
         """Parse EPW file content to DataFrame with robust error handling"""
-
         try:
             lines = epw_content.strip().split("\n")
 
@@ -386,7 +381,7 @@ class FileEPWAdapter(BaseAdapter):
                 df = pd.read_csv(StringIO(data_str), header=None, names=self.EPW_COLUMNS)
             except pd.errors.ParserError as e:
                 raise DataParseError(
-                    f"Failed to parse EPW CSV data: {str(e)}",
+                    f"Failed to parse EPW CSV data: {e!s}",
                     field="csv_data",
                     details={
                         "parser_error": str(e),
@@ -396,7 +391,7 @@ class FileEPWAdapter(BaseAdapter):
                 )
             except Exception as e:
                 raise DataParseError(
-                    f"Unexpected error parsing EPW data: {str(e)}",
+                    f"Unexpected error parsing EPW data: {e!s}",
                     field="data_parsing",
                     details={"error_type": type(e).__name__, "error": str(e)},
                 )
@@ -439,7 +434,7 @@ class FileEPWAdapter(BaseAdapter):
                 )
             except Exception as e:
                 raise DataParseError(
-                    f"Failed to create datetime index: {str(e)}",
+                    f"Failed to create datetime index: {e!s}",
                     field="datetime_creation",
                     details={"error": str(e), "sample_dates": df_time.head().to_dict()},
                 )
@@ -468,14 +463,13 @@ class FileEPWAdapter(BaseAdapter):
         except Exception as e:
             # Catch any other unexpected errors
             raise DataParseError(
-                f"Failed to parse EPW file: {str(e)}",
+                f"Failed to parse EPW file: {e!s}",
                 field="file_parsing",
                 details={"error_type": type(e).__name__, "error": str(e)},
             )
 
     def _filter_by_period(self, df: pd.DataFrame, period: dict) -> pd.DataFrame:
         """Filter DataFrame by period specification"""
-
         if "year" in period:
             year = period["year"]
 
@@ -495,7 +489,6 @@ class FileEPWAdapter(BaseAdapter):
 
     def _dataframe_to_xarray(self, df: pd.DataFrame, variables: list[str], lat: float, lon: float) -> xr.Dataset:
         """Convert EPW DataFrame to xarray Dataset with canonical names"""
-
         # Create Dataset
         ds = xr.Dataset(coords={"time": df.index})
         ds.attrs["latitude"] = lat
@@ -531,7 +524,6 @@ class FileEPWAdapter(BaseAdapter):
 
     def _clean_missing_values(self, data: np.ndarray, canonical_name: str) -> np.ndarray:
         """Clean missing value indicators in EPW data"""
-
         # EPW missing value indicators
         missing_values = (
             {
@@ -557,7 +549,6 @@ class FileEPWAdapter(BaseAdapter):
 
     def _convert_units(self, data: np.ndarray, canonical_name: str) -> np.ndarray:
         """Convert EPW units to canonical units"""
-
         conversions = (
             {
                 "cloud_cover": lambda x: x * 10,  # tenths to percentage
@@ -573,7 +564,6 @@ class FileEPWAdapter(BaseAdapter):
 
     def _resample_data(self, ds: xr.Dataset, resolution: str) -> xr.Dataset:
         """Resample data to different temporal resolution"""
-
         resampling_map = {"3H": "3H", "6H": "6H", "1D": "1D", "1M": "1MS"}
 
         if resolution in resampling_map:
@@ -596,7 +586,6 @@ class FileEPWAdapter(BaseAdapter):
 
     def _get_variable_attrs(self, canonical_name: str) -> dict:
         """Get variable attributes including units"""
-
         units_map = (
             {
                 "temp_air": "degC",
@@ -724,7 +713,6 @@ class EPWQCProfile(QCProfile):
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """EPW specific validation"""
-
         # Check for TMY-style processing artifacts
         if "temp_air" in ds:
             temp_data = ds["temp_air"].values

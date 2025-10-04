@@ -15,13 +15,13 @@ from .pool import ModelPool, PoolStats
 from .registry import ModelRegistry
 
 __all__ = [
+    "ModelClient",
+    "ModelMetrics",
+    "ModelPerformanceStats",
+    "ModelPool",
     # Core model management
     "ModelRegistry",
-    "ModelClient",
-    "ModelPool",
-    "ModelMetrics",
+    "ModelUsageRecord",
     # Data classes and statistics
     "PoolStats",
-    "ModelUsageRecord",
-    "ModelPerformanceStats",
 ]

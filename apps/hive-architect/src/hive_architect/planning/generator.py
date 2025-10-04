@@ -1,5 +1,4 @@
-"""
-Execution Plan Generator.
+"""Execution Plan Generator.
 
 Converts ParsedRequirement into ExecutionPlan with task breakdown.
 Selects appropriate templates from hive-app-toolkit based on service type.
@@ -18,13 +17,13 @@ logger = get_logger(__name__)
 
 
 class PlanGenerator:
-    """
-    Generate execution plans from parsed requirements.
+    """Generate execution plans from parsed requirements.
 
     Example:
         generator = PlanGenerator()
         plan = generator.generate(parsed_requirement)
         plan.to_json_file("execution_plan.json")
+
     """
 
     # Template mappings for hive-app-toolkit
@@ -39,17 +38,17 @@ class PlanGenerator:
         self.logger = logger
 
     def generate(self, requirement: ParsedRequirement) -> ExecutionPlan:
-        """
-        Generate execution plan from parsed requirement.
+        """Generate execution plan from parsed requirement.
 
         Args:
             requirement: Parsed natural language requirement
 
         Returns:
             ExecutionPlan with ordered tasks
+
         """
         self.logger.info(
-            f"Generating execution plan for: {requirement.service_name}"
+            f"Generating execution plan for: {requirement.service_name}",
         )
 
         plan_id = str(uuid.uuid4())
@@ -71,7 +70,7 @@ class PlanGenerator:
 
         self.logger.info(
             f"Generated plan {plan_id} with {len(tasks)} tasks "
-            f"(est. {plan.total_estimated_duration_minutes} minutes)"
+            f"(est. {plan.total_estimated_duration_minutes} minutes)",
         )
 
         return plan
@@ -93,7 +92,7 @@ class PlanGenerator:
                     "enable_database": requirement.enable_database,
                 },
                 estimated_duration_minutes=2,
-            )
+            ),
         )
 
         # Task 2: Define database models (if needed)
@@ -106,7 +105,7 @@ class PlanGenerator:
                     parameters=self._extract_model_params(requirement),
                     dependencies=[TaskDependency(task_id="T001")],
                     estimated_duration_minutes=5,
-                )
+                ),
             )
 
         # Task 3-N: Implement features
@@ -133,7 +132,7 @@ class PlanGenerator:
                     TaskDependency(task_id=task.task_id) for task in feature_tasks
                 ],
                 estimated_duration_minutes=8,
-            )
+            ),
         )
 
         # Task: Documentation (use next available ID)
@@ -150,7 +149,7 @@ class PlanGenerator:
                 },
                 dependencies=[TaskDependency(task_id=test_task_id)],
                 estimated_duration_minutes=5,
-            )
+            ),
         )
 
         return tasks
@@ -183,7 +182,7 @@ class PlanGenerator:
                     },
                     dependencies=[TaskDependency(task_id=depends_on)],
                     estimated_duration_minutes=10,
-                )
+                ),
             )
 
         return tasks
@@ -205,7 +204,7 @@ class PlanGenerator:
                 params["models"].append({"name": "User", "fields": ["id", "name", "email"]})
             elif "feedback" in feature.lower():
                 params["models"].append(
-                    {"name": "Feedback", "fields": ["id", "content", "user_id"]}
+                    {"name": "Feedback", "fields": ["id", "content", "user_id"]},
                 )
 
         return params

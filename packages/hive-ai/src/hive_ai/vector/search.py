@@ -1,5 +1,4 @@
-"""
-Semantic search engine combining embeddings and vector storage.
+"""Semantic search engine combining embeddings and vector storage.
 
 Provides high-level search interface with document indexing
 semantic queries, and result ranking with contextual relevance.
@@ -41,8 +40,7 @@ class SearchResult:
 
 
 class SemanticSearch:
-    """
-    High-level semantic search engine.
+    """High-level semantic search engine.
 
     Combines embedding generation and vector storage to provide
     intuitive search capabilities with document management.
@@ -52,7 +50,7 @@ class SemanticSearch:
         self,
         vector_config: VectorConfig,
         ai_config: Any,  # AIConfig import would be circular,
-        collection_name: str | None = None
+        collection_name: str | None = None,
     ):
         # Override collection name if provided,
         if collection_name:
@@ -66,10 +64,9 @@ class SemanticSearch:
     async def index_document_async(
         self,
         document: Document,
-        embedding_model: str | None = None
+        embedding_model: str | None = None,
     ) -> bool:
-        """
-        Index a single document for semantic search.
+        """Index a single document for semantic search.
 
         Args:
             document: Document to index,
@@ -80,6 +77,7 @@ class SemanticSearch:
 
         Raises:
             VectorError: Indexing failed,
+
         """
         try:
             start_time = datetime.utcnow()
@@ -88,7 +86,7 @@ class SemanticSearch:
             if document.embedding is None:
                 embedding_result = await self.embedding_manager.generate_embedding_async(
                     document.content,
-                    embedding_model
+                    embedding_model,
                 )
                 document.embedding = embedding_result.vector
 
@@ -103,7 +101,7 @@ class SemanticSearch:
             await self.vector_store.store_async(
                 vectors=[document.embedding],
                 metadata=[metadata],
-                ids=[document.id]
+                ids=[document.id],
             )
 
             # Record metrics,
@@ -112,7 +110,7 @@ class SemanticSearch:
                 operation="index_document",
                 count=1,
                 latency_ms=elapsed_ms,
-                success=True
+                success=True,
             )
 
             logger.debug(f"Indexed document: {document.id}"),
@@ -125,23 +123,22 @@ class SemanticSearch:
                 operation="index_document",
                 count=1,
                 latency_ms=elapsed_ms,
-                success=False
+                success=False,
             )
 
             raise VectorError(
-                f"Failed to index document {document.id}: {str(e)}",
+                f"Failed to index document {document.id}: {e!s}",
                 collection=self.config.collection_name,
-                operation="index_document"
+                operation="index_document",
             ) from e
 
     async def index_documents_async(
         self,
         documents: list[Document],
         batch_size: int = 32,
-        embedding_model: str | None = None
+        embedding_model: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Index multiple documents efficiently.
+        """Index multiple documents efficiently.
 
         Args:
             documents: List of documents to index,
@@ -153,6 +150,7 @@ class SemanticSearch:
 
         Raises:
             VectorError: Batch indexing failed,
+
         """
         if not documents:
             return {"indexed": 0, "failed": 0, "total": 0}
@@ -173,7 +171,7 @@ class SemanticSearch:
                 embedding_results = await self.embedding_manager.generate_batch_embeddings_async(
                     texts,
                     embedding_model,
-                    batch_size=len(texts)
+                    batch_size=len(texts),
                 )
 
                 # Prepare batch data
@@ -189,7 +187,7 @@ class SemanticSearch:
                     metadata = {
                         "content": doc.content,
                         "indexed_at": datetime.utcnow().isoformat(),
-                        **doc.metadata
+                        **doc.metadata,
                     }
                     metadata_list.append(metadata)
 
@@ -198,14 +196,14 @@ class SemanticSearch:
                     await self.vector_store.store_async(
                         vectors=vectors,
                         metadata=metadata_list,
-                        ids=ids
+                        ids=ids,
                     )
                     successful += len(batch)
                     logger.debug(f"Indexed batch {i//batch_size + 1}: {len(batch)} documents")
 
                 except Exception as e:
                     failed += len(batch)
-                    logger.error(f"Failed to index batch {i//batch_size + 1}: {str(e)}")
+                    logger.error(f"Failed to index batch {i//batch_size + 1}: {e!s}")
 
             # Record metrics
             elapsed_ms = int((datetime.utcnow() - start_time).total_seconds() * 1000)
@@ -213,7 +211,7 @@ class SemanticSearch:
                 operation="index_documents",
                 count=successful,
                 latency_ms=elapsed_ms,
-                success=failed == 0
+                success=failed == 0,
             )
 
             stats = {
@@ -229,9 +227,9 @@ class SemanticSearch:
 
         except Exception as e:
             raise VectorError(
-                f"Batch indexing failed: {str(e)}",
+                f"Batch indexing failed: {e!s}",
                 collection=self.config.collection_name,
-                operation="index_documents"
+                operation="index_documents",
             ) from e
 
     async def search_async(
@@ -240,10 +238,9 @@ class SemanticSearch:
         top_k: int = 10,
         filter_metadata: Optional[dict[str, Any]] = None,
         embedding_model: str | None = None,
-        include_explanations: bool = False
+        include_explanations: bool = False,
     ) -> list[SearchResult]:
-        """
-        Perform semantic search with ranking.
+        """Perform semantic search with ranking.
 
         Args:
             query: Search query text,
@@ -257,6 +254,7 @@ class SemanticSearch:
 
         Raises:
             VectorError: Search failed,
+
         """
         start_time = datetime.utcnow()
 
@@ -264,38 +262,38 @@ class SemanticSearch:
             # Generate query embedding
             query_embedding = await self.embedding_manager.generate_embedding_async(
                 query,
-                embedding_model
+                embedding_model,
             )
 
             # Search vector store
             vector_results = await self.vector_store.search_async(
                 query_vector=query_embedding.vector,
                 top_k=top_k,
-                filter_metadata=filter_metadata
+                filter_metadata=filter_metadata,
             )
 
             # Convert to SearchResult objects with ranking
             search_results = [],
             for rank, result in enumerate(vector_results):
                 document = Document(
-                    id=result['id'],
-                    content=result['metadata'].get('content', ''),
-                    metadata={k: v for k, v in result['metadata'].items() if k != 'content'},
-                    embedding=None  # Not returned in search
+                    id=result["id"],
+                    content=result["metadata"].get("content", ""),
+                    metadata={k: v for k, v in result["metadata"].items() if k != "content"},
+                    embedding=None,  # Not returned in search
                 )
 
                 explanation = None,
                 if include_explanations:
                     explanation = self._generate_explanation(
-                        query, document.content, result['score']
+                        query, document.content, result["score"],
                     )
 
                 search_results.append(SearchResult(
                     document=document,
-                    score=result['score'],
-                    similarity=result.get('similarity', result['score']),
+                    score=result["score"],
+                    similarity=result.get("similarity", result["score"]),
                     rank=rank + 1,
-                    explanation=explanation
+                    explanation=explanation,
                 ))
 
             # Record metrics,
@@ -304,7 +302,7 @@ class SemanticSearch:
                 operation="search",
                 count=len(search_results),
                 latency_ms=elapsed_ms,
-                success=True
+                success=True,
             )
 
             logger.debug(f"Search completed: {len(search_results)} results for '{query[:50]}...'"),
@@ -317,23 +315,22 @@ class SemanticSearch:
                 operation="search",
                 count=0,
                 latency_ms=elapsed_ms,
-                success=False
+                success=False,
             )
 
             raise VectorError(
-                f"Search failed for query '{query}': {str(e)}",
+                f"Search failed for query '{query}': {e!s}",
                 collection=self.config.collection_name,
-                operation="search"
+                operation="search",
             ) from e
 
     async def similar_documents_async(
         self,
         document_id: str,
         top_k: int = 10,
-        filter_metadata: Optional[dict[str, Any]] = None
+        filter_metadata: Optional[dict[str, Any]] = None,
     ) -> list[SearchResult]:
-        """
-        Find documents similar to a specific document.
+        """Find documents similar to a specific document.
 
         Args:
             document_id: ID of reference document,
@@ -345,6 +342,7 @@ class SemanticSearch:
 
         Raises:
             VectorError: Similar document search failed,
+
         """
         try:
             # First, we need to get the reference document's embedding
@@ -355,14 +353,14 @@ class SemanticSearch:
             # In a full implementation, we'd store and retrieve the vector directly
 
             raise NotImplementedError(
-                "Similar document search requires document vector storage implementation"
+                "Similar document search requires document vector storage implementation",
             )
 
         except Exception as e:
             raise VectorError(
-                f"Similar document search failed for {document_id}: {str(e)}",
+                f"Similar document search failed for {document_id}: {e!s}",
                 collection=self.config.collection_name,
-                operation="similar_documents"
+                operation="similar_documents",
             ) from e
 
     def _generate_explanation(self, query: str, content: str, score: float) -> str:
@@ -370,16 +368,14 @@ class SemanticSearch:
         # Simple explanation based on score
         if score > 0.9:
             return f"Very high similarity to query '{query[:30]}...'"
-        elif score > 0.7:
+        if score > 0.7:
             return f"High similarity to query '{query[:30]}...'"
-        elif score > 0.5:
+        if score > 0.5:
             return f"Moderate similarity to query '{query[:30]}...'"
-        else:
-            return f"Low similarity to query '{query[:30]}...'"
+        return f"Low similarity to query '{query[:30]}...'"
 
     async def delete_document_async(self, document_id: str) -> bool:
-        """
-        Delete document from search index.
+        """Delete document from search index.
 
         Args:
             document_id: ID of document to delete
@@ -389,6 +385,7 @@ class SemanticSearch:
 
         Raises:
             VectorError: Deletion failed
+
         """
         start_time = datetime.utcnow()
 
@@ -401,7 +398,7 @@ class SemanticSearch:
                 operation="delete_document",
                 count=1,
                 latency_ms=elapsed_ms,
-                success=success
+                success=success,
             )
 
             if success:
@@ -416,13 +413,13 @@ class SemanticSearch:
                 operation="delete_document",
                 count=1,
                 latency_ms=elapsed_ms,
-                success=False
+                success=False,
             )
 
             raise VectorError(
-                f"Failed to delete document {document_id}: {str(e)}",
+                f"Failed to delete document {document_id}: {e!s}",
                 collection=self.config.collection_name,
-                operation="delete_document"
+                operation="delete_document",
             ) from e
 
     async def get_search_stats_async(self) -> dict[str, Any]:
@@ -437,25 +434,25 @@ class SemanticSearch:
                     "name": self.config.collection_name,
                     "document_count": vector_info.get("count", 0),
                     "dimension": self.config.dimension,
-                    "provider": self.config.provider
+                    "provider": self.config.provider,
                 },
                 "health": {
                     "vector_store": vector_health.get("healthy", False),
-                    "embedding_manager": True  # Assume healthy if no errors
+                    "embedding_manager": True,  # Assume healthy if no errors
                 },
                 "embedding_stats": embedding_stats,
                 "configuration": {
                     "distance_metric": self.config.distance_metric,
                     "index_type": self.config.index_type,
-                    "max_connections": self.config.max_connections
-                }
+                    "max_connections": self.config.max_connections,
+                },
             }
 
         except Exception as e:
             logger.error(f"Failed to get search stats: {e}")
             return {
                 "error": str(e),
-                "collection": {"name": self.config.collection_name}
+                "collection": {"name": self.config.collection_name},
             }
 
     async def optimize_async(self) -> dict[str, Any]:
@@ -470,13 +467,13 @@ class SemanticSearch:
             return {
                 "vector_store": vector_optimization,
                 "embedding_cache_cleared": True,
-                "optimization_completed": True
+                "optimization_completed": True,
             }
 
         except Exception as e:
             return {
                 "error": str(e),
-                "optimization_completed": False
+                "optimization_completed": False,
             }
 
     async def close_async(self) -> None:

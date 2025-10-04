@@ -1,5 +1,4 @@
-"""
-Demand profile service implementing the unified profile interface.,
+"""Demand profile service implementing the unified profile interface.,
 
 This service handles loading and processing of energy demand profiles
 (electricity, heating, cooling, etc.) from various sources.
@@ -24,8 +23,7 @@ logger = get_logger(__name__)
 
 
 class DemandService(BaseProfileService):
-    """
-    Demand profile service with unified interface.,
+    """Demand profile service with unified interface.,
 
     Handles loading demand profiles from files, databases, and standard,
     profile libraries using the common profile service interface.,
@@ -66,14 +64,14 @@ class DemandService(BaseProfileService):
         return await loop.run_in_executor(None, self.process_request, request)
 
     def process_request(self, request: BaseProfileRequest) -> tuple[xr.Dataset, DemandResponse]:
-        """
-        Process demand profile request synchronously.
+        """Process demand profile request synchronously.
 
         Args:
             request: Demand profile request (should be DemandRequest)
 
         Returns:
             Tuple of (xarray Dataset, DemandResponse)
+
         """
         # Convert to DemandRequest if needed
         if not isinstance(request, DemandRequest):
@@ -159,28 +157,25 @@ class DemandService(BaseProfileService):
                 "resolution": "Variable",
                 "data_types": ["electricity", "heating", "cooling", "hot_water"],
             }
-        else:
-            return {"coverage": "Unknown"}
+        return {"coverage": "Unknown"}
 
     def _select_adapter(self, request: DemandRequest):
         """Select appropriate adapter for request."""
         if request.source:
             if request.source in self.adapters:
                 return self.adapters[request.source]
-            else:
-                # Map source to adapter
-                source_mapping = {
-                    "standard_profile": "file",  # For now, map to file adapter
-                    "smart_meter": "file",
-                    "scada": "file",
-                    "simulation": "file",
-                    "benchmark": "file",
-                }
-                adapter_name = source_mapping.get(request.source, "file")
-                return self.adapters[adapter_name]
-        else:
-            # Default to file adapter
-            return self.adapters["file"]
+            # Map source to adapter
+            source_mapping = {
+                "standard_profile": "file",  # For now, map to file adapter
+                "smart_meter": "file",
+                "scada": "file",
+                "simulation": "file",
+                "benchmark": "file",
+            }
+            adapter_name = source_mapping.get(request.source, "file")
+            return self.adapters[adapter_name]
+        # Default to file adapter
+        return self.adapters["file"]
 
     def _build_adapter_config(self, request: DemandRequest) -> dict[str, Any]:
         """Build configuration for selected adapter."""

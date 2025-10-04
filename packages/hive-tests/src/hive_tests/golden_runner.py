@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603
 # Security: subprocess calls in this runner use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal testing tooling.
 
-"""
-Golden Test Runner - Convenient CLI for running architectural tests
+"""Golden Test Runner - Convenient CLI for running architectural tests
 
 This provides a simple way to run golden rule tests either globally
 or for a specific app context.
@@ -55,7 +53,7 @@ def run_global_tests(verbose: bool = False, test_name: str | None = None):
     logger.info("Running global golden rule tests...")
     logger.info(f"Command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, capture_output=False, text=True)
+    result = subprocess.run(cmd, check=False, capture_output=False, text=True)
     return result.returncode
 
 
@@ -81,7 +79,7 @@ def run_app_tests(app_name: str, verbose: bool = False, test_name: str | None = 
     logger.info(f"Running golden rule tests for app: {app_name}")
     logger.info(f"Command: {' '.join(cmd)}")
 
-    result = subprocess.run(cmd, capture_output=False, text=True)
+    result = subprocess.run(cmd, check=False, capture_output=False, text=True)
     return result.returncode
 
 
@@ -136,8 +134,7 @@ Examples:
     # Run the appropriate tests
     if args.app:
         return run_app_tests(args.app, args.verbose, args.test)
-    else:
-        return run_global_tests(args.verbose, args.test)
+    return run_global_tests(args.verbose, args.test)
 
 
 if __name__ == "__main__":

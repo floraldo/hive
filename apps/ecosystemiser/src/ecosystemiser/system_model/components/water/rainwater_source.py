@@ -24,8 +24,8 @@ class RainwaterSourceTechnicalParams(GenerationTechnicalParams):
     """Rainwater source-specific technical parameters extending generation archetype.
 
 
-        This model inherits from GenerationTechnicalParams and adds rainwater harvesting-specific,
-        parameters for different fidelity levels.,
+    This model inherits from GenerationTechnicalParams and adds rainwater harvesting-specific,
+    parameters for different fidelity levels.,
     """
 
     # Rainwater harvesting parameters
@@ -83,8 +83,7 @@ class RainwaterSourcePhysicsSimple(BaseGenerationPhysics):
     """
 
     def rule_based_generate(self, t: int, profile_value: float) -> float:
-        """
-        Implement SIMPLE rainwater collection physics.
+        """Implement SIMPLE rainwater collection physics.
 
         Args:
             t: Current timestep
@@ -92,6 +91,7 @@ class RainwaterSourcePhysicsSimple(BaseGenerationPhysics):
 
         Returns:
             float: Available water collection in m³/h,
+
         """
         # Get component parameters
         area_m2 = self.params.technical.catchment_area_m2,
@@ -118,8 +118,7 @@ class RainwaterSourcePhysicsStandard(RainwaterSourcePhysicsSimple):
     """
 
     def rule_based_generate(self, t: int, profile_value: float) -> float:
-        """
-        Implement STANDARD rainwater collection physics with first flush diversion.,
+        """Implement STANDARD rainwater collection physics with first flush diversion.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -166,8 +165,7 @@ class RainwaterSourceOptimizationSimple(BaseGenerationOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for rainwater source optimization.,
+        """Create SIMPLE CVXPY constraints for rainwater source optimization.,
 
         Returns constraints for basic rainwater collection without losses.,
         """
@@ -213,8 +211,7 @@ class RainwaterSourceOptimizationStandard(RainwaterSourceOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for rainwater source optimization.,
+        """Create STANDARD CVXPY constraints for rainwater source optimization.,
 
         Adds first flush and filtration losses to the constraints.,
         """
@@ -322,16 +319,15 @@ class RainwaterSource(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return RainwaterSourcePhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return RainwaterSourcePhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return RainwaterSourcePhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return RainwaterSourcePhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for RainwaterSource: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for RainwaterSource: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -339,20 +335,18 @@ class RainwaterSource(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return RainwaterSourceOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return RainwaterSourceOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return RainwaterSourceOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return RainwaterSourceOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for RainwaterSource optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for RainwaterSource optimization: {fidelity}")
 
     def rule_based_generate(self, t: int) -> float:
-        """
-        Delegate to physics strategy for collection calculation.,
+        """Delegate to physics strategy for collection calculation.,
 
         This maintains the same interface as BaseGenerationComponent but,
         delegates the actual physics calculation to the strategy object.,

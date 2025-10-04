@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Standalone entry point for AI Planner Agent
+"""Standalone entry point for AI Planner Agent
 
 Intelligent task planning and workflow generation agent that monitors
 the planning_queue and generates executable plans for complex tasks.

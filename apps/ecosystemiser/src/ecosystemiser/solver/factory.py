@@ -39,6 +39,7 @@ class SolverFactory:
 
         Raises:
             ValueError: If solver type is unknown,
+
         """
         if solver_type not in cls._solvers:
             available = ", ".join(cls._solvers.keys())
@@ -53,6 +54,7 @@ class SolverFactory:
         Args:
             name: Name for the solver type
             solver_class: Solver class (must inherit from BaseSolver)
+
         """
         if not issubclass(solver_class, BaseSolver):
             raise TypeError(f"{solver_class} must inherit from BaseSolver")

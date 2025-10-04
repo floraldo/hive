@@ -13,8 +13,7 @@ logger = get_logger(__name__)
 
 
 class CodeEmbeddingGenerator:
-    """
-    Generates embeddings for code snippets to enable semantic search.
+    """Generates embeddings for code snippets to enable semantic search.
 
     Uses a combination of structural features and semantic understanding
     to create rich embeddings for code pattern matching.
@@ -36,8 +35,7 @@ class CodeEmbeddingGenerator:
         chunk_size: int = 50,
         overlap: int = 10,
     ) -> list[dict[str, Any]]:
-        """
-        Generate embeddings for a file using sliding window approach.
+        """Generate embeddings for a file using sliding window approach.
 
         Args:
             file_path: Path to the file
@@ -47,6 +45,7 @@ class CodeEmbeddingGenerator:
 
         Returns:
             List of embedding dictionaries with metadata
+
         """
         embeddings = ([],)
         lines = content.split("\n")
@@ -117,8 +116,7 @@ class CodeEmbeddingGenerator:
         pattern_type: str = "code",
         metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """
-        Generate embedding for a specific code pattern.
+        """Generate embedding for a specific code pattern.
 
         Args:
             pattern: The code pattern
@@ -127,6 +125,7 @@ class CodeEmbeddingGenerator:
 
         Returns:
             Embedding dictionary
+
         """
         # Check cache
         cache_key = self._get_cache_key(f"{pattern_type}:{pattern}")
@@ -227,7 +226,7 @@ class CodeEmbeddingGenerator:
 
     def _get_cache_key(self, content: str) -> str:
         """Generate cache key for content."""
-        return f"embedding:{hashlib.md5(content.encode()).hexdigest()}"  # noqa: S324
+        return f"embedding:{hashlib.md5(content.encode()).hexdigest()}"
 
     def _get_language(self, file_path: Path) -> str:
         """Determine language from file extension."""

@@ -1,10 +1,8 @@
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal RAG indexing tooling.
 
-"""
-Git-Aware Incremental RAG Indexing for Hive Codebase.
+"""Git-Aware Incremental RAG Indexing for Hive Codebase.
 
 This script detects changes since the last indexing and updates the RAG index
 incrementally, including git commit messages and file change histories as
@@ -95,8 +93,7 @@ class IncrementalIndexer:
         self.metadata_file.write_text(json.dumps(metadata, indent=2))
 
     def get_changed_files(self, since_commit: str | None = None) -> list[Path]:
-        """
-        Get files changed since last indexing or specified commit.
+        """Get files changed since last indexing or specified commit.
 
         Returns list of (file_path, change_type) tuples.
         """
@@ -169,8 +166,7 @@ class IncrementalIndexer:
         return False
 
     def extract_git_metadata(self, file_path: Path) -> dict[str, Any]:
-        """
-        Extract git metadata for a file.
+        """Extract git metadata for a file.
 
         Returns:
             {
@@ -179,6 +175,7 @@ class IncrementalIndexer:
                 "last_modified_date": str,
                 "total_commits": int,
             }
+
         """
         try:
             # Get last 5 commits for this file
@@ -214,7 +211,7 @@ class IncrementalIndexer:
                             "email": email,
                             "date": datetime.fromtimestamp(int(timestamp)).isoformat(),
                             "message": message,
-                        }
+                        },
                     )
 
             # Get total commit count
@@ -246,14 +243,14 @@ class IncrementalIndexer:
             }
 
     def index_git_commits(self, since_date: str | None = None) -> list[dict[str, Any]]:
-        """
-        Index git commit messages as searchable RAG context.
+        """Index git commit messages as searchable RAG context.
 
         Args:
             since_date: ISO date string (e.g., "2025-01-01")
 
         Returns:
             List of commit metadata dictionaries
+
         """
         try:
             cmd = [
@@ -340,11 +337,11 @@ class IncrementalIndexer:
         since_commit: str | None = None,
         force: bool = False,
     ) -> dict[str, Any]:
-        """
-        Run incremental indexing.
+        """Run incremental indexing.
 
         Returns:
             Statistics about the indexing run
+
         """
         start_time = time.time()
         logger.info("=" * 60)
@@ -428,7 +425,7 @@ class IncrementalIndexer:
                 "last_indexed_time": datetime.now().isoformat(),
                 "total_files": metadata.get("total_files", 0) + files_processed,
                 "total_chunks": metadata.get("total_chunks", 0) + chunks_created,
-            }
+            },
         )
         self.save_metadata(metadata)
         logger.info(f"Updated index metadata: {self.metadata_file}")

@@ -49,6 +49,7 @@ class FeedbackTracker:
 
         Args:
             db_path: Path to SQLite database file for feedback storage
+
         """
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,7 +77,7 @@ class FeedbackTracker:
                     rule_id TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
-                """
+                """,
             )
 
             # Index for querying by PR and comment
@@ -84,7 +85,7 @@ class FeedbackTracker:
                 """
                 CREATE INDEX IF NOT EXISTS idx_pr_comment
                 ON feedback_records(pr_number, comment_id)
-                """
+                """,
             )
 
             # Index for querying by feedback type
@@ -92,7 +93,7 @@ class FeedbackTracker:
                 """
                 CREATE INDEX IF NOT EXISTS idx_feedback_type
                 ON feedback_records(feedback_type)
-                """
+                """,
             )
 
             # Index for querying by timestamp
@@ -100,7 +101,7 @@ class FeedbackTracker:
                 """
                 CREATE INDEX IF NOT EXISTS idx_timestamp
                 ON feedback_records(feedback_timestamp)
-                """
+                """,
             )
 
             conn.commit()
@@ -133,6 +134,7 @@ class FeedbackTracker:
 
         Returns:
             Database record ID
+
         """
         if feedback_timestamp is None:
             feedback_timestamp = datetime.now()
@@ -177,6 +179,7 @@ class FeedbackTracker:
 
         Returns:
             Dictionary with counts for each feedback type
+
         """
         query = "SELECT feedback_type, COUNT(*) FROM feedback_records WHERE 1=1"
         params: list[str | int] = []
@@ -218,6 +221,7 @@ class FeedbackTracker:
 
         Returns:
             Dictionary with precision, acceptance rate, and clarity metrics
+
         """
         summary = (self.get_feedback_summary(since=since),)
 
@@ -261,6 +265,7 @@ class FeedbackTracker:
 
         Returns:
             List of feedback records
+
         """
         query = """
             SELECT comment_id, pr_number, file_path, line_number, comment_body,
@@ -288,7 +293,7 @@ class FeedbackTracker:
                     feedback_type=FeedbackType(row[6]),
                     feedback_timestamp=datetime.fromisoformat(row[7]),
                     rule_id=row[8],
-                )
+                ),
             )
 
         return records

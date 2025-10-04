@@ -1,5 +1,4 @@
-"""
-Escalation Logic for determining when to flag fixes for human review.
+"""Escalation Logic for determining when to flag fixes for human review.
 
 Analyzes fix session history and determines when autonomous fixes
 are no longer viable and human intervention is required.
@@ -39,8 +38,7 @@ class EscalationDecision:
 
 
 class EscalationLogic:
-    """
-    Determines when to escalate failed fixes to human review.
+    """Determines when to escalate failed fixes to human review.
 
     Analyzes:
     - Number of retry attempts
@@ -51,26 +49,26 @@ class EscalationLogic:
     """
 
     def __init__(self, max_attempts: int = 3, min_confidence_threshold: float = 0.7) -> None:
-        """
-        Initialize escalation logic.
+        """Initialize escalation logic.
 
         Args:
             max_attempts: Maximum retry attempts before escalation
             min_confidence_threshold: Minimum average confidence for auto-fixing
+
         """
         self.max_attempts = max_attempts
         self.min_confidence_threshold = min_confidence_threshold
         self.logger = logger
 
     def should_escalate(self, session: FixSession) -> EscalationDecision:
-        """
-        Determine if session should be escalated to human review.
+        """Determine if session should be escalated to human review.
 
         Args:
             session: Current fix session
 
         Returns:
             EscalationDecision with escalation recommendation
+
         """
         self.logger.info(f"Evaluating escalation for task {session.task_id}")
 
@@ -127,14 +125,14 @@ class EscalationLogic:
         )
 
     def _detect_regression(self, session: FixSession) -> bool:
-        """
-        Detect if fixes are making the situation worse.
+        """Detect if fixes are making the situation worse.
 
         Args:
             session: Fix session to analyze
 
         Returns:
             True if regression detected
+
         """
         # Simple heuristic: If we had a successful attempt followed by failures
         if session.attempt_count < 2:
@@ -157,8 +155,7 @@ class EscalationLogic:
         recommendation: str,
         session: FixSession,
     ) -> EscalationDecision:
-        """
-        Create escalation decision with diagnostic summary.
+        """Create escalation decision with diagnostic summary.
 
         Args:
             should_escalate: Whether to escalate
@@ -169,6 +166,7 @@ class EscalationLogic:
 
         Returns:
             Complete EscalationDecision
+
         """
         diagnostic_summary = self._create_diagnostic_summary(session)
 
@@ -182,20 +180,20 @@ class EscalationLogic:
 
         self.logger.info(
             f"Escalation decision for {session.task_id}: "
-            f"escalate={should_escalate}, reason={reason}, confidence={confidence:.2f}"
+            f"escalate={should_escalate}, reason={reason}, confidence={confidence:.2f}",
         )
 
         return decision
 
     def _create_diagnostic_summary(self, session: FixSession) -> dict:
-        """
-        Create diagnostic summary for human review.
+        """Create diagnostic summary for human review.
 
         Args:
             session: Fix session
 
         Returns:
             Dictionary with diagnostic information
+
         """
         summary = {
             "task_id": session.task_id,
@@ -229,8 +227,7 @@ class EscalationLogic:
         return summary
 
     def create_escalation_report(self, session: FixSession, decision: EscalationDecision) -> dict:
-        """
-        Create detailed escalation report for human review.
+        """Create detailed escalation report for human review.
 
         Args:
             session: Fix session
@@ -238,6 +235,7 @@ class EscalationLogic:
 
         Returns:
             Detailed report dictionary
+
         """
         report = {
             "task_id": session.task_id,
@@ -264,14 +262,14 @@ class EscalationLogic:
         return report
 
     def _recommend_next_steps(self, decision: EscalationDecision) -> list[str]:
-        """
-        Recommend next steps based on escalation decision.
+        """Recommend next steps based on escalation decision.
 
         Args:
             decision: Escalation decision
 
         Returns:
             List of recommended next steps
+
         """
         if not decision.should_escalate:
             return ["Continue with autonomous fix attempts", "Monitor for regression"]

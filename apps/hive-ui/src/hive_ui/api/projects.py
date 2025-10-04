@@ -50,8 +50,7 @@ async def create_project(
     request: CreateProjectRequest,
     background_tasks: BackgroundTasks,
 ) -> dict[str, str]:
-    """
-    Create new autonomous development project.
+    """Create new autonomous development project.
 
     This initiates the Colossus pipeline:
     1. Architect generates ExecutionPlan from requirement
@@ -64,6 +63,7 @@ async def create_project(
 
     Returns:
         Project ID and status URL
+
     """
     # Create project
     project_id = await orchestrator.create_project(
@@ -83,8 +83,7 @@ async def create_project(
 
 @router.get("/projects/{project_id}", response_model=ProjectResponse)
 async def get_project(project_id: str) -> ProjectResponse:
-    """
-    Get project status and details.
+    """Get project status and details.
 
     Args:
         project_id: Project identifier
@@ -94,6 +93,7 @@ async def get_project(project_id: str) -> ProjectResponse:
 
     Raises:
         HTTPException: If project not found
+
     """
     try:
         project = orchestrator.get_project_status(project_id)
@@ -104,11 +104,11 @@ async def get_project(project_id: str) -> ProjectResponse:
 
 @router.get("/projects", response_model=list[ProjectResponse])
 async def list_projects() -> list[ProjectResponse]:
-    """
-    List all projects.
+    """List all projects.
 
     Returns:
         List of all projects with their current status
+
     """
     projects = orchestrator.list_projects()
     return [ProjectResponse(**p) for p in projects]
@@ -116,8 +116,7 @@ async def list_projects() -> list[ProjectResponse]:
 
 @router.get("/projects/{project_id}/logs")
 async def get_project_logs(project_id: str) -> dict[str, Any]:
-    """
-    Get project execution logs.
+    """Get project execution logs.
 
     Args:
         project_id: Project identifier
@@ -127,6 +126,7 @@ async def get_project_logs(project_id: str) -> dict[str, Any]:
 
     Raises:
         HTTPException: If project not found
+
     """
     try:
         project = orchestrator.get_project_status(project_id)

@@ -1,5 +1,4 @@
-"""
-Base agent framework for autonomous AI operations.
+"""Base agent framework for autonomous AI operations.
 
 Provides foundation for building intelligent agents with state management
 tool integration, and workflow orchestration capabilities.
@@ -93,15 +92,14 @@ class AgentConfig:
 
 
 class BaseAgent(ABC):
-    """
-    Base class for AI agents.
+    """Base class for AI agents.
 
     Provides core functionality for autonomous agents including
     state management, tool integration, and communication.
     """
 
     def __init__(
-        self, config: AgentConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
+        self, config: AgentConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None,
     ) -> None:
         self.config = (config,)
         self.model_client = (model_client,)
@@ -147,7 +145,7 @@ class BaseAgent(ABC):
                 name="think",
                 description="Think about the current situation and plan next steps",
                 function=self._think_tool_async,
-            )
+            ),
         )
 
         self.add_tool(
@@ -155,11 +153,11 @@ class BaseAgent(ABC):
                 name="remember",
                 description="Store information in memory for later use",
                 function=self._remember_tool_async,
-            )
+            ),
         )
 
         self.add_tool(
-            AgentTool(name="recall", description="Retrieve information from memory", function=self._recall_tool_async)
+            AgentTool(name="recall", description="Retrieve information from memory", function=self._recall_tool_async),
         )
 
         self.add_tool(
@@ -167,7 +165,7 @@ class BaseAgent(ABC):
                 name="search_long_term_memory",
                 description="Search platform knowledge base for relevant historical information",
                 function=self._search_long_term_memory_async,
-            )
+            ),
         )
 
     async def _think_tool_async(self, prompt: str) -> str:
@@ -189,7 +187,7 @@ Thoughts:
         rendered_prompt = (thinking_prompt.render(agent_name=self.config.name, prompt=prompt),)
 
         response = await self.model_client.generate_async(
-            rendered_prompt, model=self.config.model, temperature=self.config.temperature
+            rendered_prompt, model=self.config.model, temperature=self.config.temperature,
         )
 
         # Store thinking in episodic memory,
@@ -200,7 +198,7 @@ Thoughts:
                     "prompt": prompt,
                     "thoughts": response.content,
                     "timestamp": datetime.utcnow().isoformat(),
-                }
+                },
             )
 
         return response.content
@@ -244,10 +242,9 @@ Thoughts:
     async def _search_long_term_memory_async(
         self,
         query: str,
-        top_k: int = 3
+        top_k: int = 3,
     ) -> str:
-        """
-        Search platform knowledge base for relevant information.
+        """Search platform knowledge base for relevant information.
 
         Tool for agents to query RAG mid-task for historical context.
 
@@ -261,6 +258,7 @@ Thoughts:
         Example agent usage:
             "I need to understand how we handled database migrations previously.
             Let me search_long_term_memory('database migration patterns')"
+
         """
         # Check if context service is available
         if not hasattr(self, "context_service") or self.context_service is None:
@@ -270,7 +268,7 @@ Thoughts:
             # Use context service to search knowledge base
             results = await self.context_service.search_knowledge_async(
                 query=query,
-                top_k=top_k
+                top_k=top_k,
             )
 
             if not results:
@@ -390,8 +388,7 @@ Thoughts:
         """Implementation-specific initialization logic."""
 
     async def run_async(self, input_data: Any | None = None) -> Any:
-        """
-        Execute the agent's main logic.
+        """Execute the agent's main logic.
 
         Args:
             input_data: Optional input data for the agent
@@ -401,6 +398,7 @@ Thoughts:
 
         Raises:
             AIError: Execution failed
+
         """
         if self.state not in [AgentState.INITIALIZED, AgentState.PAUSED]:
             msg = f"Agent must be initialized or paused to run, currently {self.state}"
@@ -429,7 +427,7 @@ Thoughts:
                     initial_context = await self.context_service.get_context_for_task(
                         task_id=input_data["task_id"],
                         task=input_data.get("task"),
-                        mode="fast"  # Decision 3-C: Fast mode by default
+                        mode="fast",  # Decision 3-C: Fast mode by default
                     )
 
                     # Inject context into agent memory
@@ -437,7 +435,7 @@ Thoughts:
                         await self._remember_tool_async(
                             key="task_context",
                             value=initial_context,
-                            memory_type="long_term"
+                            memory_type="long_term",
                         )
                         logger.info(f"Injected {len(initial_context)} chars of context for task {input_data['task_id'][:8]}")
 
@@ -553,8 +551,7 @@ Thoughts:
         }
 
     async def _manage_context_window(self, threshold: float = 0.8) -> None:
-        """
-        Smart context window management with archival.
+        """Smart context window management with archival.
 
         When context usage exceeds threshold:
         1. Extract oldest 20% of short-term memory
@@ -566,6 +563,7 @@ Thoughts:
 
         Args:
             threshold: Trigger cleanup when context usage exceeds this (0.0-1.0)
+
         """
         if not self.memory:
             return
@@ -587,7 +585,7 @@ Thoughts:
 
         logger.info(
             f"Context usage at {context_usage:.1%}, exceeding threshold {threshold:.1%}. "
-            "Archiving oldest memories..."
+            "Archiving oldest memories...",
         )
 
         # Extract oldest 20% of short-term memory
@@ -606,7 +604,7 @@ Thoughts:
             "archived_at": datetime.utcnow().isoformat(),
             "item_count": len(oldest_items),
             "summary": summary,
-            "items": {key: str(value)[:100] for key, value in oldest_items}  # truncate values
+            "items": {key: str(value)[:100] for key, value in oldest_items},  # truncate values
         }
 
         self.memory.long_term["archived_context"] = archive_data
@@ -617,7 +615,7 @@ Thoughts:
 
         logger.info(
             f"Archived {archive_count} items to long-term memory. "
-            f"Short-term memory reduced from {len(items_to_archive)} to {len(self.memory.short_term)} items"
+            f"Short-term memory reduced from {len(items_to_archive)} to {len(self.memory.short_term)} items",
         )
 
     async def export_state_async(self) -> dict[str, Any]:
@@ -680,8 +678,7 @@ Thoughts:
 
 
 class SimpleTaskAgent(BaseAgent):
-    """
-    Simple agent for single-task execution.
+    """Simple agent for single-task execution.
 
     Executes a single task with optional tools and returns a result.
     """
@@ -709,7 +706,7 @@ class SimpleTaskAgent(BaseAgent):
 
         # Generate response,
         response = await self.model_client.generate_async(
-            full_prompt, model=self.config.model, temperature=self.config.temperature, max_tokens=self.config.max_tokens
+            full_prompt, model=self.config.model, temperature=self.config.temperature, max_tokens=self.config.max_tokens,
         )
 
         self.current_iteration += (1,)

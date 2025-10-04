@@ -1,5 +1,4 @@
-"""
-Integration tests for Chimera workflow execution.
+"""Integration tests for Chimera workflow execution.
 
 Tests the complete autonomous TDD loop with E2E validation.
 """

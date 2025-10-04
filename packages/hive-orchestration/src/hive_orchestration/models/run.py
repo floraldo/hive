@@ -1,5 +1,4 @@
-"""
-Run Models
+"""Run Models
 
 Data models for task execution runs (execution attempts).
 """
@@ -27,8 +26,7 @@ class RunStatus(str, Enum):
 
 
 class Run(IdentifiableMixin, TimestampMixin):
-    """
-    Task execution run model.
+    """Task execution run model.
 
     Represents a single execution attempt of a task.
     """

@@ -14,14 +14,14 @@ logger = get_logger(__name__)
 
 
 def create_app(config: HiveArchitectConfig | None = None) -> FastAPI:
-    """
-    Create and configure FastAPI application.
+    """Create and configure FastAPI application.
 
     Args:
         config: Application configuration (optional, uses default if None)
 
     Returns:
         Configured FastAPI application
+
     """
     config = config or HiveArchitectConfig()
 

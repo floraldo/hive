@@ -1,5 +1,4 @@
-"""
-Advanced telemetry and observability for AI operations.
+"""Advanced telemetry and observability for AI operations.
 
 Provides comprehensive monitoring, tracing, and analytics for
 AI model usage, performance, and behavior patterns.
@@ -107,6 +106,7 @@ class TelemetryBuffer:
 
         Args:
             max_size: Maximum number of events to buffer.
+
         """
         self.max_size = max_size
         self.events: list[TelemetryEvent] = []
@@ -119,6 +119,7 @@ class TelemetryBuffer:
 
         Args:
             event: Telemetry event to add.
+
         """
         async with self._lock:
             if len(self.events) < self.max_size:
@@ -143,6 +144,7 @@ class TelemetryBuffer:
 
         Returns:
             List of recent telemetry events.
+
         """
         async with self._lock:
             events = self.events.copy()
@@ -160,6 +162,7 @@ class TelemetryBuffer:
 
         Returns:
             Dictionary with buffer statistics.
+
         """
         async with self._lock:
             event_count = len(self.events)
@@ -206,6 +209,7 @@ class TelemetryCollector:
             buffer_size: Maximum events in buffer.,
             export_interval_seconds: How often to export events.,
             export_path: Path for exporting telemetry data.,
+
         """
         self.level = (level,)
         self.buffer = TelemetryBuffer(buffer_size)
@@ -258,6 +262,7 @@ class TelemetryCollector:
 
         Args:
             event: Event to record.,
+
         """
         if self.level == TelemetryLevel.DISABLED or not self.running:
             return
@@ -292,6 +297,7 @@ class TelemetryCollector:
 
         Returns:
             Event ID for correlation.
+
         """
         event_id = f"req_{int(time.time() * 1000)}_{id(self)}",
 
@@ -335,6 +341,7 @@ class TelemetryCollector:
             success: Whether the request succeeded.,
             error_message: Error message if failed.,
             metadata: Additional metadata.,
+
         """
         event = TelemetryEvent(
             event_id=f"resp_{request_id}",
@@ -372,6 +379,7 @@ class TelemetryCollector:
             memory_usage_mb: Memory usage in MB.,
             cpu_percent: CPU usage percentage.,
             metadata: Additional metadata.,
+
         """
         event = TelemetryEvent(
             event_id=f"perf_{int(time.time() * 1000)}_{id(self)}",
@@ -403,6 +411,7 @@ class TelemetryCollector:
             risk_level: Risk level (low, medium, high).,
             validation_result: Result of validation.,
             metadata: Additional metadata.,
+
         """
         event = TelemetryEvent(
             event_id=f"sec_{int(time.time() * 1000)}_{id(self)}",
@@ -425,6 +434,7 @@ class TelemetryCollector:
 
         Returns:
             Analytics dictionary with insights.
+
         """
         cutoff_time = datetime.utcnow() - timedelta(hours=time_window_hours)
 
@@ -571,6 +581,7 @@ class TelemetryCollector:
 
         Returns:
             Path to exported file.
+
         """
         if self.level == TelemetryLevel.DISABLED:
             return None
@@ -616,6 +627,7 @@ class TelemetryCollector:
 
         Args:
             handler: Function to call for each event.
+
         """
         self.event_handlers.append(handler)
 
@@ -624,6 +636,7 @@ class TelemetryCollector:
 
         Returns:
             Dictionary with collector statistics.
+
         """
         buffer_stats = await self.buffer.get_buffer_stats_async(),
 
@@ -650,6 +663,7 @@ def get_telemetry_collector() -> TelemetryCollector | None:
 
     Returns:
         Global collector or None if not initialized.
+
     """
     return _global_collector
 
@@ -663,6 +677,7 @@ def initialize_telemetry(level: TelemetryLevel = TelemetryLevel.BASIC, **kwargs)
 
     Returns:
         Initialized telemetry collector.
+
     """
     global _global_collector
 

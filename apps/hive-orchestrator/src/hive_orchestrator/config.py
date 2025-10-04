@@ -1,4 +1,3 @@
-# ruff: noqa: E402
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -43,6 +42,7 @@ class HiveConfig:
         Args:
             env_vars: Optional dictionary of environment variables for DI.
                      If None, configuration uses defaults only.
+
         """
         self.config = self.DEFAULTS.copy()
         if env_vars:
@@ -53,6 +53,7 @@ class HiveConfig:
 
         Args:
             env_vars: Dictionary of environment variables
+
         """
         # Numeric overrides
         if "HIVE_WORKER_SPAWN_TIMEOUT" in env_vars:
@@ -152,5 +153,6 @@ def create_orchestrator_config(env_vars: dict[str, str] | None = None) -> HiveCo
 
         # Testing with defaults only
         config = create_orchestrator_config()
+
     """
     return HiveConfig(env_vars)

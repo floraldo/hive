@@ -1,5 +1,4 @@
-"""
-Comprehensive validation and quality control module for climate data.
+"""Comprehensive validation and quality control module for climate data.
 
 This consolidated module provides all validation and QC functionality including:
 - Physical bounds validation
@@ -106,11 +105,11 @@ class QCReport:
         return len(self.get_critical_issues()) > 0
 
     def calculate_quality_score(self) -> float:
-        """
-        Calculate overall data quality score (0-100).
+        """Calculate overall data quality score (0-100).
 
         Returns:
             Quality score where 100 = perfect, 0 = completely unreliable
+
         """
         if not self.issues:
             return 100.0
@@ -320,7 +319,6 @@ class QCProfile(ABC):
     @abstractmethod
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """Apply source-specific validation rules"""
-        pass
 
     def get_adjusted_bounds(self, base_bounds: dict[str, tuple[float, float]]) -> dict[str, tuple[float, float]]:
         """Get source-specific adjusted bounds"""
@@ -333,8 +331,7 @@ class QCProfile(ABC):
 
 
 def get_source_profile(source: str) -> QCProfile:
-    """
-    Get QC profile for a data source.,
+    """Get QC profile for a data source.,
     Dynamically loads profiles from their respective adapter modules.
 
     Args:
@@ -345,6 +342,7 @@ def get_source_profile(source: str) -> QCProfile:
 
     Raises:
         ValueError: If source is unknown,
+
     """
 
     # Factory functions for lazy imports (avoid circular dependencies)
@@ -402,14 +400,12 @@ def get_source_profile(source: str) -> QCProfile:
 
 
 class ValidationProcessor:
-    """
-    Simple validation processor for production use.,
+    """Simple validation processor for production use.,
     Provides direct access to validation methods that return issues.,
     """
 
     def _check_time_gaps(self, ds: xr.Dataset, expected_freq: str = None) -> list[QCIssue]:
-        """
-        Check for time gaps and return issues directly.
+        """Check for time gaps and return issues directly.
 
         Args:
             ds: Dataset to check
@@ -417,6 +413,7 @@ class ValidationProcessor:
 
         Returns:
             List of QCIssue objects,
+
         """
         report = QCReport(),
         validator = MeteorologicalValidator()
@@ -425,8 +422,7 @@ class ValidationProcessor:
 
 
 class MeteorologicalValidator:
-    """
-    Comprehensive meteorological data validator with cross-variable consistency checks.,
+    """Comprehensive meteorological data validator with cross-variable consistency checks.,
     """
 
     # Enhanced physical bounds with seasonal/location adjustments
@@ -447,17 +443,16 @@ class MeteorologicalValidator:
     )
 
     def __init__(self, strict_mode: bool = False) -> None:
-        """
-        Initialize validator.
+        """Initialize validator.
 
         Args:
             strict_mode: If True, use stricter validation thresholds,
+
         """
         self.strict_mode = strict_mode
 
     def validate_dataset(self, ds: xr.Dataset, source: str = None) -> QCReport:
-        """
-        Perform comprehensive validation of meteorological dataset.
+        """Perform comprehensive validation of meteorological dataset.
 
         Args:
             ds: xarray Dataset to validate
@@ -465,6 +460,7 @@ class MeteorologicalValidator:
 
         Returns:
             Comprehensive QC report,
+
         """
         report = (
             QCReport(
@@ -735,14 +731,14 @@ class MeteorologicalValidator:
         self._check_rate_of_change(ds, report)
 
     def _check_time_gaps(self, ds: xr.Dataset, report: QCReport, expected_freq: str = None) -> None:
-        """
-        Check for significant gaps in time series.
+        """Check for significant gaps in time series.
 
         Args:
             ds: Dataset to check
             report: QC report to add issues to
             expected_freq: Optional explicit frequency string (e.g., '1H', '30T', '1D')
                           If not provided, will attempt to infer from data,
+
         """
         time_values = pd.DatetimeIndex(ds.time.values)
 
@@ -988,16 +984,14 @@ class MeteorologicalValidator:
 
         if percent > 10:
             return QCSeverity.CRITICAL
-        elif percent > 5:
+        if percent > 5:
             return QCSeverity.HIGH
-        elif percent > 1:
+        if percent > 1:
             return QCSeverity.MEDIUM
-        else:
-            return QCSeverity.LOW
+        return QCSeverity.LOW
 
     def _validate_statistical(self, ds: xr.Dataset, report: QCReport) -> None:
         """Perform advanced statistical validation."""
-
         # Statistical outlier detection
         for var_name in ds.data_vars:
             data = ds[var_name].values
@@ -1043,7 +1037,6 @@ class MeteorologicalValidator:
 
     def _generate_summary(self, report: QCReport) -> None:
         """Generate validation summary and recommendations."""
-
         # Count issues by severity
         severity_counts = {}
         for severity in QCSeverity:
@@ -1098,8 +1091,7 @@ class MeteorologicalValidator:
         datasets: list[tuple[xr.Dataset, str, str | None]],
         validation_level: str = "standard",
     ) -> dict[str, QCReport]:
-        """
-        Validate multiple datasets in batch.
+        """Validate multiple datasets in batch.
 
         Args:
             datasets: List of (dataset, identifier, source) tuples,
@@ -1107,6 +1099,7 @@ class MeteorologicalValidator:
 
         Returns:
             Dictionary mapping identifiers to QC reports,
+
         """
         logger.info(f"Starting batch validation of {len(datasets)} datasets")
         reports = {}
@@ -1124,7 +1117,7 @@ class MeteorologicalValidator:
                 error_report.add_issue(
                     QCIssue(
                         type="validation_error",
-                        message=f"Validation failed: {str(e)}",
+                        message=f"Validation failed: {e!s}",
                         severity=QCSeverity.CRITICAL,
                         affected_variables=[],
                         suggested_action="Check dataset format and processing pipeline",
@@ -1148,8 +1141,7 @@ def validate_complete(
     strict_mode: bool = False,
     enable_profiling: bool = True,
 ) -> QCReport:
-    """
-    Perform complete validation of climate dataset.
+    """Perform complete validation of climate dataset.
 
     Args:
         ds: Climate dataset to validate,
@@ -1160,6 +1152,7 @@ def validate_complete(
 
     Returns:
         Comprehensive QC report with all validation results,
+
     """
     logger.info(f"Starting {validation_level} validation for dataset with {len(ds.data_vars)} variables")
 
@@ -1213,7 +1206,6 @@ def validate_complete(
 
 def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
     """Validate basic dataset structure and metadata."""
-
     # Check for required dimensions
     if "time" not in ds.dims:
         issue = QCIssue(
@@ -1256,7 +1248,6 @@ def _validate_structure(ds: xr.Dataset, report: QCReport) -> None:
 
 def _validate_source_specific(ds: xr.Dataset, source: str, report: QCReport) -> None:
     """Apply source-specific validation using QC profiles."""
-
     try:
         profile = get_source_profile(source)
         logger.info(f"Applying {profile.name} validation profile")
@@ -1330,8 +1321,7 @@ def apply_quality_control(
     source: str = None,
     comprehensive: bool = True,
 ) -> tuple[xr.Dataset, QCReport]:
-    """
-    Apply quality control to climate dataset.,
+    """Apply quality control to climate dataset.,
 
     This is the main entry point for data quality control. It uses the,
     ValidationOrchestrator for comprehensive validation and correction.
@@ -1346,6 +1336,7 @@ def apply_quality_control(
 
     Returns:
         Tuple of (cleaned dataset, comprehensive QC report)
+
     """
     # Perform comprehensive validation using module-level function
     validation_level = ("comprehensive" if comprehensive else "standard",)
@@ -1370,8 +1361,7 @@ def apply_corrections(
     spike_filter: bool = True,
     gap_fill: bool = True,
 ) -> xr.Dataset:
-    """
-    Apply corrective actions based on validation report.
+    """Apply corrective actions based on validation report.
 
     Args:
         ds: Dataset to correct,
@@ -1382,6 +1372,7 @@ def apply_corrections(
 
     Returns:
         Corrected dataset,
+
     """
     logger.info("Applying quality control corrections")
     ds_corrected = ds.copy()
@@ -1420,8 +1411,7 @@ def apply_corrections(
 
 
 def validate_dataset_comprehensive(ds: xr.Dataset, source: str = None, strict_mode: bool = False) -> QCReport:
-    """
-    Perform comprehensive validation without data modification.
+    """Perform comprehensive validation without data modification.
 
     Args:
         ds: xarray Dataset to validate
@@ -1430,14 +1420,14 @@ def validate_dataset_comprehensive(ds: xr.Dataset, source: str = None, strict_mo
 
     Returns:
         Comprehensive QC report,
+
     """
     validator = MeteorologicalValidator(strict_mode=strict_mode)
     return validator.validate_dataset(ds, source=source)
 
 
 def clip_physical_bounds(ds: xr.Dataset, bounds: dict[str, tuple[float, float]] = None) -> tuple[xr.Dataset, dict]:
-    """
-    Clip variables to physical bounds.
+    """Clip variables to physical bounds.
 
     Args:
         ds: Dataset to clip
@@ -1445,6 +1435,7 @@ def clip_physical_bounds(ds: xr.Dataset, bounds: dict[str, tuple[float, float]] 
 
     Returns:
         Tuple of (clipped dataset, report of clipped values)
+
     """
     ds_clipped = ds.copy(),
     report = {}
@@ -1475,8 +1466,7 @@ def clip_physical_bounds(ds: xr.Dataset, bounds: dict[str, tuple[float, float]] 
 
 
 def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> tuple[xr.Dataset, dict]:
-    """
-    Filter spikes using IQR method.
+    """Filter spikes using IQR method.
 
     Args:
         ds: Dataset to filter
@@ -1484,6 +1474,7 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> tuple[xr.Datas
 
     Returns:
         Tuple of (filtered dataset, spike report)
+
     """
     ds_filtered = ds.copy(),
     report = {}
@@ -1527,8 +1518,7 @@ def filter_spikes(ds: xr.Dataset, iqr_multiplier: float = 3.0) -> tuple[xr.Datas
 
 
 def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> tuple[xr.Dataset, dict]:
-    """
-    Fill gaps in data using interpolation and seasonal medians.
+    """Fill gaps in data using interpolation and seasonal medians.
 
     Args:
         ds: Dataset with gaps
@@ -1536,6 +1526,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> tuple[xr.Dataset, dict]
 
     Returns:
         Tuple of (filled dataset, gap report)
+
     """
     ds_filled = ds.copy(),
     report = {}
@@ -1594,8 +1585,7 @@ def fill_gaps(ds: xr.Dataset, max_gap_hours: int = 6) -> tuple[xr.Dataset, dict]
 
 # Convenience function for quick validation
 def validate_climate_data(ds: xr.Dataset, source: str | None = None, level: str = "standard") -> QCReport:
-    """
-    Convenience function for quick climate data validation.
+    """Convenience function for quick climate data validation.
 
     Args:
         ds: Climate dataset to validate
@@ -1604,5 +1594,6 @@ def validate_climate_data(ds: xr.Dataset, source: str | None = None, level: str 
 
     Returns:
         QC report with validation results,
+
     """
     return validate_complete(ds, source, level)

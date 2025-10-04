@@ -1,5 +1,4 @@
-"""
-Performance benchmarks for async operations.
+"""Performance benchmarks for async operations.
 """
 import asyncio
 import tempfile
@@ -16,7 +15,7 @@ class TestAsyncPerformance:
     @pytest.fixture
     def async_dataset(self):
         """Generate async test data."""
-        return [{'id': i, 'data': f'async_data_{i}'} for i in range(1000)]
+        return [{"id": i, "data": f"async_data_{i}"} for i in range(1000)]
 
     @pytest.mark.crust
     def test_async_file_operations(self, benchmark, async_dataset):
@@ -27,12 +26,12 @@ class TestAsyncPerformance:
             try:
                 tasks = []
                 for i in range(10):
-                    temp_file = tempfile.NamedTemporaryFile(mode='w', suffix=f'_async_{i}.txt', delete=False)
+                    temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=f"_async_{i}.txt", delete=False)
                     temp_files.append(temp_file.name)
                     temp_file.close()
 
                 async def write_file(file_path, data):
-                    async with aiofiles.open(file_path, 'w') as f:
+                    async with aiofiles.open(file_path, "w") as f:
                         await f.write(str(data))
                 for i, file_path in enumerate(temp_files):
                     task = write_file(file_path, async_dataset[i * 100:(i + 1) * 100])
@@ -67,7 +66,7 @@ class TestAsyncPerformance:
 
             async def simulate_db_operation(operation_id: int, delay: float=0.01):
                 await asyncio.sleep(delay)
-                return {'id': operation_id, 'result': f'operation_{operation_id}_complete'}
+                return {"id": operation_id, "result": f"operation_{operation_id}_complete"}
             tasks = [simulate_db_operation(i) for i in range(50)]
             results = await asyncio.gather(*tasks)
             return len(results)
@@ -127,7 +126,7 @@ class TestAsyncPerformance:
 
             async def producer():
                 for i in range(500):
-                    await queue.put(f'item_{i}')
+                    await queue.put(f"item_{i}")
 
             async def consumer():
                 items = []

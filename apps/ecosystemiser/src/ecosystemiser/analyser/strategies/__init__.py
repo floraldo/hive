@@ -8,4 +8,4 @@ from hive_logging import get_logger
 
 logger = (get_logger(__name__),)
 
-__all__ = ["BaseAnalysis", "TechnicalKPIAnalysis", "EconomicAnalysis", "SensitivityAnalysis"]
+__all__ = ["BaseAnalysis", "EconomicAnalysis", "SensitivityAnalysis", "TechnicalKPIAnalysis"]

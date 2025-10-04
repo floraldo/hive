@@ -1,5 +1,4 @@
-"""
-AI services for knowledge management and archival.
+"""AI services for knowledge management and archival.
 
 Provides services for archiving agent experiences, web searches, and
 other knowledge artifacts to RAG for future retrieval.

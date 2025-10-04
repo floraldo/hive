@@ -1,5 +1,4 @@
-"""
-Advanced resilience management combining timeout, circuit breaker, and retry patterns.
+"""Advanced resilience management combining timeout, circuit breaker, and retry patterns.
 
 This module provides the unified AsyncResilienceManager which consolidates:
 - Adaptive timeout management
@@ -88,8 +87,7 @@ class TimeoutMetrics:
 
 
 class AsyncResilienceManager:
-    """
-    Unified resilience manager combining timeout and circuit breaker patterns.
+    """Unified resilience manager combining timeout and circuit breaker patterns.
 
     Features:
     - Adaptive timeout adjustment based on historical performance
@@ -128,8 +126,7 @@ class AsyncResilienceManager:
         self._alert_callbacks: list[Callable] = []
 
     def get_timeout(self, operation_name: str, timeout_type: str = "default", retry_attempt: int = 0) -> float:
-        """
-        Get appropriate timeout for an operation.
+        """Get appropriate timeout for an operation.
 
         Args:
             operation_name: Name of the operation
@@ -138,6 +135,7 @@ class AsyncResilienceManager:
 
         Returns:
             Timeout value in seconds
+
         """
         # Get base timeout
         base_timeout = getattr(self.config, f"{timeout_type}_timeout", self.config.default_timeout)
@@ -168,8 +166,7 @@ class AsyncResilienceManager:
         *args,
         **kwargs,
     ) -> Any:
-        """
-        Execute operation with unified timeout and circuit breaker management.
+        """Execute operation with unified timeout and circuit breaker management.
 
         Args:
             operation: Async function to execute
@@ -186,6 +183,7 @@ class AsyncResilienceManager:
             CircuitBreakerOpenError: If circuit breaker is open
             AsyncTimeoutError: If operation times out
             Exception: Any exception from the operation
+
         """
         # Check circuit breaker state BEFORE execution
         if self.config.enable_circuit_breaker:
@@ -211,7 +209,7 @@ class AsyncResilienceManager:
                 result = await asyncio.wait_for(operation(*args, **kwargs), timeout=timeout)
             else:
                 result = await asyncio.wait_for(
-                    asyncio.to_thread(operation, *args, **kwargs), timeout=timeout
+                    asyncio.to_thread(operation, *args, **kwargs), timeout=timeout,
                 )
 
             # Record success
@@ -271,7 +269,7 @@ class AsyncResilienceManager:
                             "from_state": old_state.value,
                             "to_state": CircuitState.CLOSED.value,
                             "failure_count": 0,
-                        }
+                        },
                     )
                     logger.info(f"Circuit breaker for {operation_name} reset to CLOSED after successful recovery")
 
@@ -445,7 +443,7 @@ class AsyncResilienceManager:
                 "error_type": type(error).__name__,
                 "duration": duration,
                 "state_before": metrics.circuit_state.value if self.config.enable_circuit_breaker else "disabled",
-            }
+            },
         )
 
         # Circuit breaker logic
@@ -465,11 +463,11 @@ class AsyncResilienceManager:
                             "from_state": old_state.value,
                             "to_state": CircuitState.OPEN.value,
                             "failure_count": metrics.failure_count,
-                        }
+                        },
                     )
 
                     logger.warning(
-                        f"Circuit breaker OPENED for {operation_name} after {metrics.failure_count} failures"
+                        f"Circuit breaker OPENED for {operation_name} after {metrics.failure_count} failures",
                     )
 
         logger.warning(
@@ -535,7 +533,7 @@ class AsyncResilienceManager:
                     "from_state": old_state.value,
                     "to_state": CircuitState.CLOSED.value,
                     "failure_count": 0,
-                }
+                },
             )
 
             logger.info(f"Circuit breaker for {operation_name} manually reset to CLOSED")
@@ -573,8 +571,7 @@ class AsyncResilienceManager:
         metric_type: str = "failure_rate",
         hours: int = 24,
     ) -> list[dict[str, Any]]:
-        """
-        Get failure history for predictive analysis.
+        """Get failure history for predictive analysis.
 
         Returns failure metrics in MetricPoint-compatible format for
         integration with PredictiveAnalysisRunner.
@@ -586,6 +583,7 @@ class AsyncResilienceManager:
 
         Returns:
             List of metric points with timestamp, value, and metadata
+
         """
         metrics = self._operation_metrics.get(operation_name)
         if not metrics:
@@ -620,13 +618,13 @@ class AsyncResilienceManager:
                             "metric_type": "failure_rate",
                             "unit": "failures_per_hour",
                         },
-                    }
+                    },
                 )
 
             logger.debug(f"Retrieved {len(metric_points)} failure rate points for {operation_name}")
             return metric_points
 
-        elif metric_type == "state_changes":
+        if metric_type == "state_changes":
             # Get recent state transitions
             recent_transitions = [t for t in metrics.state_transitions if t["timestamp"] >= cutoff_time]
 
@@ -652,15 +650,14 @@ class AsyncResilienceManager:
                             "failure_count": transition["failure_count"],
                             "unit": "binary",
                         },
-                    }
+                    },
                 )
 
             logger.debug(f"Retrieved {len(metric_points)} state transition points for {operation_name}")
             return metric_points
 
-        else:
-            logger.warning(f"Unknown metric type: {metric_type}")
-            return []
+        logger.warning(f"Unknown metric type: {metric_type}")
+        return []
 
     def add_alert_callback(self, callback: Callable) -> None:
         """Add alert callback for timeout and failure events."""
@@ -775,8 +772,7 @@ class AsyncResilienceManager:
             import json
 
             return json.dumps(export_data, indent=2)
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")
 
 
 # Context manager for resilience operations

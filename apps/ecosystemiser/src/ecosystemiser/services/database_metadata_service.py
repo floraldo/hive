@@ -1,6 +1,4 @@
-# ruff: noqa: S608
-"""
-Database Metadata Service for simulation index management.
+"""Database Metadata Service for simulation index management.
 
 Note: S608 suppressed - dynamic SQL uses column names from controlled dicts with parameterized queries.
 """
@@ -24,6 +22,7 @@ class DatabaseMetadataService:
 
         Args:
             db_path: Path to SQLite database file. If None, uses default location.,
+
         """
         self.db_path = db_path or "data/simulation_index.sqlite"
         self._ensure_database_schema()
@@ -90,6 +89,7 @@ class DatabaseMetadataService:
 
         Returns:
             True if successful, False otherwise,
+
         """
         try:
             # Prepare data for insertion
@@ -140,7 +140,7 @@ class DatabaseMetadataService:
                             "flows_path",
                             "components_path",
                         ]
-                    }
+                    },
                 ),
                 "updated_at": datetime.now().isoformat(),
             }
@@ -221,6 +221,7 @@ class DatabaseMetadataService:
 
         Returns:
             List of simulation run records,
+
         """
         try:
             # Build query with filters
@@ -293,6 +294,7 @@ class DatabaseMetadataService:
 
         Returns:
             Dictionary with study statistics,
+
         """
         try:
             conn = get_sqlite_connection(db_path=self.db_path)
@@ -345,6 +347,7 @@ class DatabaseMetadataService:
 
         Returns:
             Dictionary with database statistics,
+
         """
         try:
             conn = (get_sqlite_connection(db_path=self.db_path),)
@@ -365,7 +368,7 @@ class DatabaseMetadataService:
                 SELECT solver_type, COUNT(*) as count,
                 FROM simulation_runs,
                 GROUP BY solver_type,
-            """
+            """,
                 ),
             )
             stats["solver_distribution"] = {row[0]: row[1] for row in cursor.fetchall()}
@@ -382,7 +385,7 @@ class DatabaseMetadataService:
                     AVG(renewable_fraction) as avg_renewable,
                 FROM simulation_runs,
                 WHERE total_cost IS NOT NULL AND renewable_fraction IS NOT NULL,
-            """
+            """,
             )
             performance_row = cursor.fetchone()
             if performance_row:
@@ -407,6 +410,7 @@ class DatabaseMetadataService:
 
         Returns:
             True if successful, False otherwise,
+
         """
         try:
             with sqlite_transaction(db_path=self.db_path) as conn:
@@ -422,9 +426,8 @@ class DatabaseMetadataService:
                 if cursor.rowcount > 0:
                     logger.info(f"Deleted simulation run: {run_id}")
                     return True
-                else:
-                    logger.warning(f"Simulation run not found: {run_id}")
-                    return False
+                logger.warning(f"Simulation run not found: {run_id}")
+                return False
 
         except Exception as e:
             logger.error(f"Failed to delete simulation run: {e}")
@@ -444,6 +447,7 @@ class DatabaseMetadataService:
 
         Returns:
             True if successful, False otherwise.
+
         """
         enhanced_schema_sql = """
         -- Enhance studies table for optimization support
@@ -587,6 +591,7 @@ class DatabaseMetadataService:
 
         Returns:
             True if successful, False otherwise.
+
         """
         try:
             study_data = {
@@ -639,6 +644,7 @@ class DatabaseMetadataService:
 
         Returns:
             run_id if successful, None otherwise.
+
         """
         try:
             run_id = (f"{study_id}_eval_{evaluation_number}",)
@@ -691,6 +697,7 @@ class DatabaseMetadataService:
 
         Returns:
             True if successful, False otherwise.
+
         """
         try:
             metric_id = (f"{study_id}_gen_{generation_number}",)
@@ -720,7 +727,7 @@ class DatabaseMetadataService:
             return False
 
     def update_study_status(
-        self, study_id: str, status: str, best_fitness: float | None = None, best_solution_id: str | None = None
+        self, study_id: str, status: str, best_fitness: float | None = None, best_solution_id: str | None = None,
     ) -> bool:
         """Update study status and best solution.
 
@@ -732,6 +739,7 @@ class DatabaseMetadataService:
 
         Returns:
             True if successful, False otherwise.
+
         """
         try:
             update_fields = (["status = ?"],)
@@ -767,6 +775,7 @@ class DatabaseMetadataService:
 
         Returns:
             Number of records cleaned up,
+
         """
         try:
             runs = (self.query_simulation_runs(),)

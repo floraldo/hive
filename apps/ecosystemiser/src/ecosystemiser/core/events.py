@@ -1,5 +1,4 @@
-"""
-EcoSystemiser-specific event types.,
+"""EcoSystemiser-specific event types.,
 
 Extends the generic messaging toolkit with EcoSystemiser-specific events:
 - Simulation lifecycle events
@@ -36,8 +35,7 @@ logger = get_logger(__name__)
 
 
 class EcoSystemiserEvent(BaseEvent):
-    """
-    Base event class for all EcoSystemiser events.,
+    """Base event class for all EcoSystemiser events.,
 
     Extends BaseEvent with simulation context and EcoSystemiser-specific,
     metadata fields.,
@@ -54,8 +52,7 @@ class EcoSystemiserEvent(BaseEvent):
         timestep: int | None = None,
         **kwargs,
     ):
-        """
-        Initialize an EcoSystemiser event.
+        """Initialize an EcoSystemiser event.
 
         Args:
             event_type: Type of event,
@@ -65,6 +62,7 @@ class EcoSystemiserEvent(BaseEvent):
             analysis_id: Associated analysis ID,
             optimization_id: Associated optimization ID,
             timestep: Simulation timestep if applicable,
+
         """
         super().__init__(event_type=event_type, source=source, payload=payload or {}, **kwargs)
 
@@ -551,16 +549,16 @@ class ProfileEvent(EcoSystemiserEvent):
 
 # Export main event classes
 __all__ = [
-    # Base event
-    "EcoSystemiserEvent",
-    # Simulation events
-    "SimulationEvent",
     # Analysis events
     "AnalysisEvent",
-    # Optimization events
-    "OptimizationEvent",
     # Component events
     "ComponentEvent",
+    # Base event
+    "EcoSystemiserEvent",
+    # Optimization events
+    "OptimizationEvent",
     # Profile events
     "ProfileEvent",
+    # Simulation events
+    "SimulationEvent",
 ]

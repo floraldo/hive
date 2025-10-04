@@ -29,8 +29,7 @@ class PerformanceMetrics:
 
 
 class CacheHealthMonitor(BaseHealthMonitor):
-    """
-    Redis cache health monitoring implementation.
+    """Redis cache health monitoring implementation.
 
     Extends BaseHealthMonitor with Redis-specific checks:
     - Redis ping connectivity
@@ -41,12 +40,12 @@ class CacheHealthMonitor(BaseHealthMonitor):
     """
 
     def __init__(self, cache_client: HiveCacheClient, config: CacheConfig) -> None:
-        """
-        Initialize cache health monitor.
+        """Initialize cache health monitor.
 
         Args:
             cache_client: HiveCacheClient instance to monitor
             config: Cache configuration
+
         """
         # Initialize base class
         super().__init__(
@@ -64,8 +63,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
         self.config = config
 
     async def _perform_component_health_check_async(self) -> HealthCheckResult:
-        """
-        Perform Redis-specific health checks.
+        """Perform Redis-specific health checks.
 
         Executes multiple Redis operations to verify cache health:
         - Ping connectivity
@@ -76,6 +74,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
 
         Returns:
             HealthCheckResult with Redis-specific details
+
         """
         errors = []
         details = {}
@@ -107,7 +106,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
                     ping_result.get("success", False),
                     set_get_result.get("success", False),
                     pattern_result.get("success", False),
-                ]
+                ],
             )
 
             return HealthCheckResult(
@@ -148,7 +147,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
         except Exception as e:
             return {
                 "success": False,
-                "error": str(e)
+                "error": str(e),
             }
 
     async def _test_set_get_async(self) -> dict[str, Any]:
@@ -159,7 +158,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
 
             # Test set,
             set_success = await self.cache_client.set(
-                test_key, test_value, ttl=60, namespace="health"
+                test_key, test_value, ttl=60, namespace="health",
             )
 
             # Test get,
@@ -179,7 +178,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
         except Exception as e:
             return {
                 "success": False,
-                "error": str(e)
+                "error": str(e),
             }
 
     async def _test_pattern_operations_async(self) -> dict[str, Any]:
@@ -192,19 +191,19 @@ class CacheHealthMonitor(BaseHealthMonitor):
 
             # Test pattern delete,
             deleted_count = await self.cache_client.delete_pattern(
-                "pattern_test_*", namespace="health"
+                "pattern_test_*", namespace="health",
             )
 
             return {
                 "success": deleted_count == len(test_keys),
                 "deleted_count": deleted_count,
-                "expected_count": len(test_keys)
+                "expected_count": len(test_keys),
             }
 
         except Exception as e:
             return {
                 "success": False,
-                "error": str(e)
+                "error": str(e),
             }
 
     async def _get_redis_info_async(self) -> dict[str, Any]:
@@ -225,12 +224,12 @@ class CacheHealthMonitor(BaseHealthMonitor):
                     "keyspace_hits": info.get("keyspace_hits"),
                     "keyspace_misses": info.get("keyspace_misses"),
                     "expired_keys": info.get("expired_keys"),
-                    "evicted_keys": info.get("evicted_keys")
+                    "evicted_keys": info.get("evicted_keys"),
                 }
 
         except Exception as e:
             return {
-                "error": str(e)
+                "error": str(e),
             }
 
     async def _get_connection_pool_stats_async(self) -> dict[str, Any]:
@@ -239,15 +238,15 @@ class CacheHealthMonitor(BaseHealthMonitor):
             pool = self.cache_client._redis_pool
 
             return {
-                "max_connections": pool._max_connections if hasattr(pool, '_max_connections') else "unknown",
-                "created_connections": pool.created_connections if hasattr(pool, 'created_connections') else "unknown",
-                "available_connections": pool.available_connections if hasattr(pool, 'available_connections') else "unknown",
-                "in_use_connections": pool.in_use_connections if hasattr(pool, 'in_use_connections') else "unknown",
+                "max_connections": pool._max_connections if hasattr(pool, "_max_connections") else "unknown",
+                "created_connections": pool.created_connections if hasattr(pool, "created_connections") else "unknown",
+                "available_connections": pool.available_connections if hasattr(pool, "available_connections") else "unknown",
+                "in_use_connections": pool.in_use_connections if hasattr(pool, "in_use_connections") else "unknown",
             }
 
         except Exception as e:
             return {
-                "error": str(e)
+                "error": str(e),
             }
 
     async def get_performance_metrics_async(self) -> PerformanceMetrics:
@@ -255,6 +254,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
 
         Returns:
             PerformanceMetrics object,
+
         """
         try:
             # Get cache client metrics,
@@ -272,7 +272,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
                 average_response_time_ms=0.0,  # Would need to track this separately,
                 cache_hit_rate=client_metrics.get("hit_rate_percent", 0.0),
                 connection_pool_usage=0.0,  # Would need pool monitoring,
-                memory_usage_bytes=0  # Would need Redis memory info
+                memory_usage_bytes=0,  # Would need Redis memory info
             )
 
         except Exception as e:
@@ -284,6 +284,7 @@ class CacheHealthMonitor(BaseHealthMonitor):
 
         Returns:
             Diagnostic report
+
         """
         issues = []
         recommendations = []
@@ -322,5 +323,5 @@ class CacheHealthMonitor(BaseHealthMonitor):
             "issues": issues,
             "recommendations": recommendations,
             "client_metrics": client_metrics,
-            "health_summary": self.get_health_summary()
+            "health_summary": self.get_health_summary(),
         }

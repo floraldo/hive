@@ -1,10 +1,8 @@
 #!/usr/bin/env python
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-Ultimate CLI Test Suite for EcoSystemiser
+"""Ultimate CLI Test Suite for EcoSystemiser
 Cross-platform, comprehensive end-to-end testing
 """
 
@@ -72,17 +70,15 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
                     f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}",
                 )
                 return True, elapsed
-            else:
-                logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (should have failed but succeeded){TColors.ENDC}")
-                return False, elapsed
-        else:
-            logger.info(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (completed in {elapsed:.2f}s){TColors.ENDC}")
-            # Print the last few lines of output for context
-            if result.stdout:
-                output_lines = result.stdout.strip().split("\n")
-                for line in output_lines[-3:]:
-                    logger.info(f"    {line}")
-            return True, elapsed
+            logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (should have failed but succeeded){TColors.ENDC}")
+            return False, elapsed
+        logger.info(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (completed in {elapsed:.2f}s){TColors.ENDC}")
+        # Print the last few lines of output for context
+        if result.stdout:
+            output_lines = result.stdout.strip().split("\n")
+            for line in output_lines[-3:]:
+                logger.info(f"    {line}")
+        return True, elapsed
 
     except FileNotFoundError:
         elapsed = time.time() - start_time
@@ -95,13 +91,12 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
         if expected_to_fail:
             logger.error(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}")
             return True, elapsed
-        else:
-            logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (exit code {e.returncode}){TColors.ENDC}")
-            logger.info("    --- STDERR ---")
-            if e.stderr:
-                for line in e.stderr.split("\n")[:5]:  # First 5 lines of error
-                    logger.info(f"    {line}")
-            return False, elapsed
+        logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (exit code {e.returncode}){TColors.ENDC}")
+        logger.info("    --- STDERR ---")
+        if e.stderr:
+            for line in e.stderr.split("\n")[:5]:  # First 5 lines of error
+                logger.info(f"    {line}")
+        return False, elapsed
 
 
 def verify_output_file(filepath: Path, test_name: str) -> bool:
@@ -121,7 +116,6 @@ def verify_output_file(filepath: Path, test_name: str) -> bool:
 
 def main() -> None:
     """Main function to run the test suite."""
-
     logger.info(f"{TColors.BOLD}========================================{TColors.ENDC}")
     logger.info(f"{TColors.BOLD}   EcoSystemiser CLI Test Suite{TColors.ENDC}")
     logger.info(f"{TColors.BOLD}   {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}{TColors.ENDC}")

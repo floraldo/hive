@@ -1,5 +1,4 @@
-"""
-Canonical base class for all service clients with connection pooling and resilience.
+"""Canonical base class for all service clients with connection pooling and resilience.
 
 This module provides the foundational BaseServiceClient that all domain-specific
 clients (cache, SSH, discovery, AI models) inherit from, eliminating duplicated
@@ -25,8 +24,7 @@ R = TypeVar("R")  # Return type
 
 
 class BaseServiceClient(ABC, Generic[T]):
-    """
-    Canonical base class for all service clients.
+    """Canonical base class for all service clients.
 
     Provides unified infrastructure for:
     - Connection pooling and lifecycle management
@@ -63,8 +61,7 @@ class BaseServiceClient(ABC, Generic[T]):
         timeout_manager: AsyncTimeoutManager | None = None,
         default_timeout: float = 30.0,
     ):
-        """
-        Initialize base service client.
+        """Initialize base service client.
 
         Args:
             pool: Connection pool for resource management
@@ -72,6 +69,7 @@ class BaseServiceClient(ABC, Generic[T]):
             metrics: Optional metrics collector (creates default if None)
             timeout_manager: Optional timeout manager (creates default if None)
             default_timeout: Default operation timeout in seconds
+
         """
         self._pool = pool
         self._default_timeout = default_timeout
@@ -80,7 +78,7 @@ class BaseServiceClient(ABC, Generic[T]):
         self._circuit_breaker = circuit_breaker or AsyncCircuitBreaker(
             failure_threshold=5,
             recovery_timeout=60,
-            name=self.service_name()
+            name=self.service_name(),
         )
 
         # Create metrics collector
@@ -93,7 +91,7 @@ class BaseServiceClient(ABC, Generic[T]):
 
         # Create timeout manager
         self._timeout_manager = timeout_manager or AsyncTimeoutManager(
-            default_timeout=default_timeout
+            default_timeout=default_timeout,
         )
 
         # Track client-level stats
@@ -107,12 +105,10 @@ class BaseServiceClient(ABC, Generic[T]):
 
     @abstractmethod
     def service_name(self) -> str:
-        """
-        Return unique service identifier for metrics and logging.
+        """Return unique service identifier for metrics and logging.
 
         Examples: "redis_cache", "ssh_deployment", "service_discovery"
         """
-        pass
 
     async def _execute_with_resilience_async(
         self,
@@ -120,8 +116,7 @@ class BaseServiceClient(ABC, Generic[T]):
         operation: Callable[[T], Awaitable[R]],
         timeout: float | None = None,
     ) -> R:
-        """
-        Core execution wrapper providing connection pooling, circuit breaking,
+        """Core execution wrapper providing connection pooling, circuit breaking,
         timeouts, and metrics collection.
 
         This is the canonical implementation pattern that all service clients use.
@@ -139,6 +134,7 @@ class BaseServiceClient(ABC, Generic[T]):
             AsyncTimeoutError: Operation timed out
             ConnectionError: Connection acquisition failed
             Any exception raised by the operation
+
         """
         self._stats["total_operations"] += 1
         timeout = timeout or self._default_timeout
@@ -147,7 +143,7 @@ class BaseServiceClient(ABC, Generic[T]):
         if self._circuit_breaker.is_open:
             self._stats["circuit_breaker_opens"] += 1
             logger.warning(
-                f"{self.service_name()}.{operation_name} blocked by circuit breaker"
+                f"{self.service_name()}.{operation_name} blocked by circuit breaker",
             )
             # Circuit breaker will raise CircuitBreakerOpenError
             await self._circuit_breaker.call_async(lambda: None)
@@ -158,7 +154,7 @@ class BaseServiceClient(ABC, Generic[T]):
             tags={
                 "service": self.service_name(),
                 "operation": operation_name,
-            }
+            },
         )
 
         try:
@@ -176,7 +172,7 @@ class BaseServiceClient(ABC, Generic[T]):
                 result = await self._timeout_manager.run_with_timeout_async(
                     circuit_protected(),
                     timeout=timeout,
-                    operation_name=f"{self.service_name()}.{operation_name}"
+                    operation_name=f"{self.service_name()}.{operation_name}",
                 )
 
                 # Track success
@@ -184,7 +180,7 @@ class BaseServiceClient(ABC, Generic[T]):
                 await self._metrics.end_operation_tracking_async(
                     start_id,
                     success=True,
-                    bytes_processed=self._estimate_bytes(result)
+                    bytes_processed=self._estimate_bytes(result),
                 )
 
                 return result
@@ -200,7 +196,7 @@ class BaseServiceClient(ABC, Generic[T]):
             await self._metrics.end_operation_tracking_async(start_id, success=False)
             logger.error(
                 f"{self.service_name()}.{operation_name} failed: {e}",
-                exc_info=True
+                exc_info=True,
             )
             raise
 
@@ -211,14 +207,13 @@ class BaseServiceClient(ABC, Generic[T]):
         if isinstance(result, (bytes, bytearray)):
             return len(result)
         if isinstance(result, str):
-            return len(result.encode('utf-8'))
-        if hasattr(result, '__len__'):
-            return len(str(result).encode('utf-8'))
+            return len(result.encode("utf-8"))
+        if hasattr(result, "__len__"):
+            return len(str(result).encode("utf-8"))
         return 0
 
     async def initialize_async(self) -> None:
-        """
-        Initialize the service client.
+        """Initialize the service client.
 
         Subclasses can override to add service-specific initialization.
         Default implementation initializes the connection pool.
@@ -228,8 +223,7 @@ class BaseServiceClient(ABC, Generic[T]):
         logger.info(f"{self.service_name()} client initialized")
 
     async def close_async(self) -> None:
-        """
-        Close the service client and cleanup resources.
+        """Close the service client and cleanup resources.
 
         Subclasses can override to add service-specific cleanup.
         Default implementation closes pool, metrics, and timeout manager.
@@ -240,8 +234,7 @@ class BaseServiceClient(ABC, Generic[T]):
         logger.info(f"{self.service_name()} client closed")
 
     async def health_check_async(self) -> dict[str, Any]:
-        """
-        Perform health check on the service.
+        """Perform health check on the service.
 
         Subclasses should override to implement service-specific health checks.
         Default implementation returns pool and circuit breaker status.

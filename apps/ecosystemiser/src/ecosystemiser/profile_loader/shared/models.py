@@ -45,8 +45,7 @@ class DataFrequency(Enum):
 
 
 class BaseProfileRequest(BaseModel):
-    """
-    Base class for all profile data requests.,
+    """Base class for all profile data requests.,
 
     Common attributes for any time series profile request.,
     """
@@ -145,8 +144,7 @@ class BaseProfileRequest(BaseModel):
 
 
 class BaseProfileResponse(BaseModel):
-    """
-    Base class for profile data responses.,
+    """Base class for profile data responses.,
 
     Common structure for returning profile data with metadata.,
     """
@@ -212,8 +210,7 @@ class BaseProfileResponse(BaseModel):
 
 
 class DataQuality(BaseModel):
-    """
-    Data quality metrics common to all profiles.,
+    """Data quality metrics common to all profiles.,
     """
 
     completeness: float  # Percentage of non-null values
@@ -225,8 +222,7 @@ class DataQuality(BaseModel):
 
 
 class LocationInfo(BaseModel):
-    """
-    Standard location information.,
+    """Standard location information.,
     """
 
     latitude: float

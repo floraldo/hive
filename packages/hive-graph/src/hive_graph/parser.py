@@ -1,5 +1,4 @@
-"""
-AST parser for extracting code structure into knowledge graph nodes and edges.
+"""AST parser for extracting code structure into knowledge graph nodes and edges.
 
 This module provides the infrastructure for parsing Python source files and
 extracting semantic information to populate a CodeGraph.
@@ -20,8 +19,7 @@ logger = get_logger(__name__)
 
 
 class ASTParser:
-    """
-    Parser for extracting knowledge graph entities from Python source code.
+    """Parser for extracting knowledge graph entities from Python source code.
 
     Uses Python's ast module to parse source files and extract:
     - File metadata
@@ -36,6 +34,7 @@ class ASTParser:
         >>> nodes, edges = parser.parse_file(Path("my_module.py"))
         >>> for node in nodes:
         ...     print(f"Found {type(node).__name__}: {node.get_id()}")
+
     """
 
     def __init__(self) -> None:
@@ -46,10 +45,9 @@ class ASTParser:
     def parse_file(
         self,
         file_path: Path,
-        module_name: str | None = None
+        module_name: str | None = None,
     ) -> tuple[list[Any], list[Edge]]:
-        """
-        Parse a Python file and extract code graph entities.
+        """Parse a Python file and extract code graph entities.
 
         Args:
             file_path: Path to the Python source file
@@ -73,6 +71,7 @@ class ASTParser:
             ... )
             >>> class_nodes = [n for n in nodes if isinstance(n, ClassDefinition)]
             >>> print(f"Found {len(class_nodes)} classes")
+
         """
         # TODO: Implement full AST parsing logic
         # Phase 2 implementation will include:
@@ -103,10 +102,9 @@ class ASTParser:
         self,
         directory: Path,
         package_name: str | None = None,
-        recursive: bool = True
+        recursive: bool = True,
     ) -> tuple[list[Any], list[Edge]]:
-        """
-        Parse all Python files in a directory.
+        """Parse all Python files in a directory.
 
         Args:
             directory: Path to directory to scan
@@ -123,6 +121,7 @@ class ASTParser:
             ...     package_name="hive_graph",
             ...     recursive=True
             ... )
+
         """
         # TODO: Implement directory traversal
         # 1. Find all .py files (optionally recursive)

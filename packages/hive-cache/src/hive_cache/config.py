@@ -157,6 +157,7 @@ class CacheConfig(BaseModel):
 
         Returns:
             Namespaced key with prefix
+
         """
         parts = [self.key_prefix.rstrip(self.key_separator), namespace, key]
         full_key = self.key_separator.join(parts)
@@ -178,6 +179,7 @@ class CacheConfig(BaseModel):
 
         Returns:
             TTL in seconds
+
         """
         namespace_ttls = {
             self.claude_cache_namespace: self.claude_default_ttl,

@@ -79,8 +79,7 @@ class SystemMetrics:
 
 
 class SystemMonitor:
-    """
-    Real-time system performance monitor.
+    """Real-time system performance monitor.
 
     Features:
     - Comprehensive system metrics collection
@@ -96,7 +95,7 @@ class SystemMonitor:
         collection_interval: float = 1.0,
         max_history: int = 3600,  # 1 hour at 1-second intervals
         enable_alerts: bool = True,
-        alert_thresholds: Optional[dict[str, float]] = None
+        alert_thresholds: Optional[dict[str, float]] = None,
     ):
         self.collection_interval = collection_interval
         self.max_history = max_history
@@ -274,7 +273,7 @@ class SystemMonitor:
             # Metadata
             timestamp=datetime.utcnow(),
             hostname=str(self._hostname),
-            platform=self._platform
+            platform=self._platform,
         )
 
         # Update previous values
@@ -324,7 +323,7 @@ class SystemMonitor:
         return self._metrics_history[-1] if self._metrics_history else None
 
     def get_metrics_history(
-        self, time_window: timedelta | None = None, max_points: int | None = None
+        self, time_window: timedelta | None = None, max_points: int | None = None,
     ) -> list[SystemMetrics]:
         """Get historical metrics data."""
         metrics_list = list(self._metrics_history)
@@ -360,7 +359,7 @@ class SystemMonitor:
             python_memory_rss=int(sum(m.python_memory_rss for m in metrics_list) / count),
             timestamp=datetime.utcnow(),
             hostname=metrics_list[0].hostname,
-            platform=metrics_list[0].platform
+            platform=metrics_list[0].platform,
         )
 
     def get_peak_metrics(self, time_window: timedelta) -> SystemMetrics | None:
@@ -385,7 +384,7 @@ class SystemMonitor:
             active_tasks=peak_tasks,
             timestamp=peak_metric.timestamp,
             hostname=peak_metric.hostname,
-            platform=peak_metric.platform
+            platform=peak_metric.platform,
         )
 
     def analyze_trends(self, time_window: timedelta) -> dict[str, float]:
@@ -412,7 +411,7 @@ class SystemMonitor:
             "cpu_trend": calculate_trend([m.cpu_percent for m in metrics_list]),
             "memory_trend": calculate_trend([m.memory_percent for m in metrics_list]),
             "disk_trend": calculate_trend([m.disk_percent for m in metrics_list]),
-            "tasks_trend": calculate_trend([float(m.active_tasks) for m in metrics_list])
+            "tasks_trend": calculate_trend([float(m.active_tasks) for m in metrics_list]),
         }
 
     def predict_resource_exhaustion(self, time_window: timedelta) -> dict[str, datetime | None]:
@@ -466,13 +465,13 @@ class SystemMonitor:
                         "memory_percent": m.memory_percent,
                         "disk_percent": m.disk_percent,
                         "active_tasks": m.active_tasks,
-                        "python_memory_mb": m.python_memory_rss // (1024 * 1024)
+                        "python_memory_mb": m.python_memory_rss // (1024 * 1024),
                     }
                     for m in metrics_list
                 ],
-                indent=2
+                indent=2,
             )
-        elif format == "csv":
+        if format == "csv":
             import csv
             import io
 
@@ -481,11 +480,10 @@ class SystemMonitor:
             writer.writerow(["timestamp", "cpu_percent", "memory_percent", "disk_percent", "active_tasks"])
             for m in metrics_list:
                 writer.writerow(
-                    [m.timestamp.isoformat(), m.cpu_percent, m.memory_percent, m.disk_percent, m.active_tasks]
+                    [m.timestamp.isoformat(), m.cpu_percent, m.memory_percent, m.disk_percent, m.active_tasks],
                 )
             return output.getvalue()
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")
 
     def clear_history(self) -> None:
         """Clear metrics history."""

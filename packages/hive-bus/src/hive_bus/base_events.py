@@ -19,8 +19,7 @@ from typing import Any
 
 @dataclass
 class BaseEvent:
-    """
-    Generic base event for any event-driven system.
+    """Generic base event for any event-driven system.
 
     Contains only the minimal, universal properties that any event needs:
     - Unique identifier
@@ -48,7 +47,7 @@ class BaseEvent:
             "source": self.source,
             "payload": self.payload,
             "metadata": self.metadata,
-            "correlation_id": self.correlation_id
+            "correlation_id": self.correlation_id,
         }
 
     @classmethod
@@ -63,5 +62,5 @@ class BaseEvent:
             source=data["source"],
             payload=data.get("payload", {}),
             metadata=data.get("metadata", {}),
-            correlation_id=data.get("correlation_id")
+            correlation_id=data.get("correlation_id"),
         )

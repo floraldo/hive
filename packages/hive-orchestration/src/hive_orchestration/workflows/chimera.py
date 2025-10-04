@@ -1,5 +1,4 @@
-"""
-Chimera Workflow - E2E Test-Driven Feature Development
+"""Chimera Workflow - E2E Test-Driven Feature Development
 
 Orchestrates the complete autonomous development loop:
 1. Generate E2E test (failing)
@@ -30,8 +29,7 @@ class ChimeraPhase(str, Enum):
 
 
 class ChimeraWorkflow(BaseModel):
-    """
-    Chimera workflow state machine.
+    """Chimera workflow state machine.
 
     Implements autonomous TDD loop with E2E validation.
 
@@ -41,6 +39,7 @@ class ChimeraWorkflow(BaseModel):
             target_url="https://myapp.dev/login",
             staging_url="https://staging.myapp.dev/login"
         )
+
     """
 
     # Feature definition
@@ -51,39 +50,39 @@ class ChimeraWorkflow(BaseModel):
     # Workflow state
     current_phase: ChimeraPhase = Field(
         default=ChimeraPhase.E2E_TEST_GENERATION,
-        description="Current workflow phase"
+        description="Current workflow phase",
     )
 
     # Phase artifacts
     test_path: str | None = Field(default=None, description="Path to generated E2E test")
     test_generation_result: dict[str, Any] | None = Field(
         default=None,
-        description="E2E test generation result"
+        description="E2E test generation result",
     )
 
     code_pr_id: str | None = Field(default=None, description="Pull request ID")
     code_commit_sha: str | None = Field(default=None, description="Code commit SHA")
     code_implementation_result: dict[str, Any] | None = Field(
         default=None,
-        description="Code implementation result"
+        description="Code implementation result",
     )
 
     review_decision: str | None = Field(default=None, description="Guardian review decision")
     review_result: dict[str, Any] | None = Field(
         default=None,
-        description="Guardian review result"
+        description="Guardian review result",
     )
 
     deployment_url: str | None = Field(default=None, description="Deployed staging URL")
     deployment_result: dict[str, Any] | None = Field(
         default=None,
-        description="Deployment result"
+        description="Deployment result",
     )
 
     validation_status: str | None = Field(default=None, description="E2E validation status")
     validation_result: dict[str, Any] | None = Field(
         default=None,
-        description="E2E validation result"
+        description="E2E validation result",
     )
 
     # Workflow metadata
@@ -92,11 +91,11 @@ class ChimeraWorkflow(BaseModel):
     error_message: str | None = Field(default=None, description="Error message if failed")
 
     def get_state_machine(self) -> dict[str, Any]:
-        """
-        Get state machine definition for workflow.
+        """Get state machine definition for workflow.
 
         Returns:
             State machine dict with transitions and actions
+
         """
         return {
             "states": {
@@ -154,12 +153,12 @@ class ChimeraWorkflow(BaseModel):
         }
 
     def transition_to(self, phase: ChimeraPhase, result: dict[str, Any] | None = None) -> None:
-        """
-        Transition workflow to new phase.
+        """Transition workflow to new phase.
 
         Args:
             phase: Target phase
             result: Result data from previous phase
+
         """
         self.current_phase = phase
 
@@ -201,11 +200,11 @@ class ChimeraWorkflow(BaseModel):
         return self.current_phase in (ChimeraPhase.COMPLETE, ChimeraPhase.FAILED)
 
     def get_next_action(self) -> dict[str, Any]:
-        """
-        Get next action to execute based on current phase.
+        """Get next action to execute based on current phase.
 
         Returns:
             Action dict with agent, action, and parameters
+
         """
         state_machine = self.get_state_machine()
         current_state = state_machine["states"][self.current_phase]
@@ -254,8 +253,7 @@ def create_chimera_task(
     staging_url: str | None = None,
     priority: int = 3,
 ) -> dict[str, Any]:
-    """
-    Create a Chimera workflow task.
+    """Create a Chimera workflow task.
 
     Args:
         feature_description: Natural language feature description
@@ -272,6 +270,7 @@ def create_chimera_task(
             target_url="https://myapp.dev/login",
             staging_url="https://staging.myapp.dev/login"
         )
+
     """
     workflow = ChimeraWorkflow(
         feature_description=feature_description,
@@ -293,4 +292,4 @@ def create_chimera_task(
     }
 
 
-__all__ = ["ChimeraWorkflow", "ChimeraPhase", "create_chimera_task"]
+__all__ = ["ChimeraPhase", "ChimeraWorkflow", "create_chimera_task"]

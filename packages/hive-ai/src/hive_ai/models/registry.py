@@ -1,5 +1,4 @@
-"""
-Model registry for managing AI model configurations and providers.
+"""Model registry for managing AI model configurations and providers.
 
 Provides centralized management of available models with
 dynamic registration and health monitoring.
@@ -18,8 +17,7 @@ logger = get_logger(__name__)
 
 
 class ModelRegistry:
-    """
-    Central registry for AI models and providers.
+    """Central registry for AI models and providers.
 
     Manages model configurations, provider instances, and
     health status with caching for performance.

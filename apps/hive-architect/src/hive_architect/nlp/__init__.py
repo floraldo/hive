@@ -1,5 +1,4 @@
-"""
-NLP module for parsing natural language requirements.
+"""NLP module for parsing natural language requirements.
 
 Extracts structured information from text descriptions of services.
 """

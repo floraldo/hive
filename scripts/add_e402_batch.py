@@ -35,7 +35,7 @@ for file_path in files:
         print(f"SKIP: {file_path} not found")
         continue
 
-    with open(full_path, encoding='utf-8') as f:
+    with open(full_path, encoding="utf-8") as f:
         lines = f.readlines()
 
     # Check if already has E402 noqa
@@ -64,7 +64,7 @@ for file_path in files:
         print(f"WARN: {file_path} - no suitable location found")
         continue
 
-    with open(full_path, "w", encoding='utf-8') as f:
+    with open(full_path, "w", encoding="utf-8") as f:
         f.writelines(lines)
 
 print("\nDone!")

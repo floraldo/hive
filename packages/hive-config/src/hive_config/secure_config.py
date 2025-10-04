@@ -1,5 +1,4 @@
-"""
-Secure Configuration Management for Production Environments
+"""Secure Configuration Management for Production Environments
 
 Provides encrypted secrets management for production deployments.
 Supports both plain .env files (development) and encrypted .env.prod files (production).
@@ -24,8 +23,7 @@ logger = get_logger(__name__)
 
 
 class SecureConfigLoader:
-    """
-    Secure configuration loader with enhanced encryption support
+    """Secure configuration loader with enhanced encryption support
 
     Supports:
     - Plain .env files for development
@@ -35,11 +33,11 @@ class SecureConfigLoader:
     """
 
     def __init__(self, master_key: str | None = None) -> None:
-        """
-        Initialize secure config loader
+        """Initialize secure config loader
 
         Args:
             master_key: Master key for decryption (defaults to HIVE_MASTER_KEY env var)
+
         """
         self.master_key = master_key or os.environ.get("HIVE_MASTER_KEY")
         self._legacy_cipher = None
@@ -68,8 +66,7 @@ class SecureConfigLoader:
             raise ValueError("Invalid master key provided")
 
     def encrypt_file(self, input_path: Path, output_path: Path | None = None) -> Path:
-        """
-        Encrypt a configuration file with random salt for enhanced security
+        """Encrypt a configuration file with random salt for enhanced security
 
         Args:
             input_path: Path to plain text config file
@@ -82,6 +79,7 @@ class SecureConfigLoader:
             - Uses random salt per encryption to prevent rainbow table attacks
             - Salt is stored with encrypted data for decryption
             - Maintains backward compatibility with legacy files
+
         """
         if not self.master_key:
             raise ValueError("No master key provided for encryption")
@@ -122,8 +120,7 @@ class SecureConfigLoader:
             raise
 
     def decrypt_file(self, encrypted_path: Path) -> str:
-        """
-        Decrypt a configuration file supporting both new and legacy formats
+        """Decrypt a configuration file supporting both new and legacy formats
 
         Args:
             encrypted_path: Path to encrypted config file
@@ -134,6 +131,7 @@ class SecureConfigLoader:
         Compatibility:
             - New format: Starts with 'HIVE' version flag, uses random salt
             - Legacy format: Uses static salt for backward compatibility
+
         """
         if not self.master_key:
             raise ValueError("No master key provided for decryption")
@@ -181,14 +179,14 @@ class SecureConfigLoader:
             raise ValueError("Failed to decrypt configuration - invalid key or corrupted file")
 
     def load_config(self, config_path: Path) -> dict[str, Any]:
-        """
-        Load configuration from file (plain or encrypted)
+        """Load configuration from file (plain or encrypted)
 
         Args:
             config_path: Path to configuration file
 
         Returns:
             Dictionary of configuration values
+
         """
         config = {}
 
@@ -223,8 +221,7 @@ class SecureConfigLoader:
         return config
 
     def load_secure_config(self, app_name: str, project_root: Path) -> dict[str, Any]:
-        """
-        Load configuration with production/development fallback
+        """Load configuration with production/development fallback
 
         Tries in order:
         1. .env.prod.encrypted (if master key available)
@@ -237,6 +234,7 @@ class SecureConfigLoader:
 
         Returns:
             Merged configuration dictionary
+
         """
         config = {}
 
@@ -270,12 +268,12 @@ class SecureConfigLoader:
 
 
 def encrypt_production_config(env_file: str = ".env.prod", output_file: str = None) -> None:
-    """
-    Utility function to encrypt production configuration with enhanced security
+    """Utility function to encrypt production configuration with enhanced security
 
     Args:
         env_file: Path to plain text env file
         output_file: Path for encrypted output (defaults to env_file + .encrypted)
+
     """
     # Ensure master key is set
     master_key = os.environ.get("HIVE_MASTER_KEY")
@@ -299,11 +297,11 @@ def encrypt_production_config(env_file: str = ".env.prod", output_file: str = No
 
 
 def generate_master_key() -> str:
-    """
-    Generate a secure master key for production use
+    """Generate a secure master key for production use
 
     Returns:
         URL-safe base64 encoded key
+
     """
     key = secrets.token_urlsafe(32)
     logger.info(f"Generated master key: {key}")

@@ -1,5 +1,4 @@
-"""
-Genesis Agent - The Hive App Creation Engine
+"""Genesis Agent - The Hive App Creation Engine
 
 The Genesis Agent is the capstone of the Hive Intelligence Initiative,
 transforming the Oracle from advisor to architect by automating the
@@ -131,8 +130,7 @@ class GenesisConfig(BaseModel):
 
 
 class GenesisAgent:
-    """
-    The Genesis Agent - Hive App Creation Engine
+    """The Genesis Agent - Hive App Creation Engine
 
     Transforms high-level app ideas into strategically-sound, architecturally-compliant
     application skeletons using the full power of the Oracle's intelligence.
@@ -147,8 +145,7 @@ class GenesisAgent:
         logger.info("Genesis Agent initialized - ready to create applications")
 
     async def create_app_async(self, name: str, description: str, target_path: Path | None = None) -> AppSpec:
-        """
-        Create a new Hive application with full Oracle intelligence integration.
+        """Create a new Hive application with full Oracle intelligence integration.
 
         Args:
             name: Application name (must be valid directory name)
@@ -157,6 +154,7 @@ class GenesisAgent:
 
         Returns:
             AppSpec: Complete specification of the created application
+
         """
         logger.info(f"Genesis Agent creating new app: {name}")
         logger.info(f"Description: {description}")
@@ -193,7 +191,6 @@ class GenesisAgent:
 
     async def _consult_oracle_async(self, analysis_result: dict[str, Any]) -> dict[str, Any]:
         """Consult the Oracle for strategic intelligence about the new application."""
-
         oracle_insights = {
             "business_intelligence": {},
             "feature_performance": {},
@@ -245,7 +242,6 @@ class GenesisAgent:
 
     def _analyze_feature_performance(self, feature_keywords: list[str], feature_matrix: Any) -> dict[str, Any]:
         """Analyze performance of similar features in existing apps."""
-
         performance_data = {}
 
         try:
@@ -300,16 +296,14 @@ class GenesisAgent:
         """Get recommendation based on feature performance."""
         if roi_score > 15 and adoption_rate > 70:
             return "HIGH_PRIORITY - Proven high-value feature"
-        elif roi_score > 10:
+        if roi_score > 10:
             return "MEDIUM_PRIORITY - Good ROI, consider promotion"
-        elif adoption_rate < 10:
+        if adoption_rate < 10:
             return "LOW_PRIORITY - Low adoption risk"
-        else:
-            return "STANDARD - Typical performance expected"
+        return "STANDARD - Typical performance expected"
 
     def _get_strategic_recommendations(self, analysis_result: dict[str, Any], dashboard_data: Any) -> list[str]:
         """Generate strategic recommendations based on Oracle intelligence."""
-
         recommendations = []
 
         try:
@@ -347,7 +341,6 @@ class GenesisAgent:
 
     def _calculate_oracle_confidence(self, dashboard_data: Any, analysis_result: dict[str, Any]) -> float:
         """Calculate Oracle's confidence in recommendations based on data availability."""
-
         confidence_factors = []
 
         try:
@@ -386,7 +379,6 @@ class GenesisAgent:
         oracle_insights: dict[str, Any],
     ) -> AppSpec:
         """Create comprehensive application specification."""
-
         # Determine app category
         category = self._determine_app_category(analysis_result)
 
@@ -418,29 +410,26 @@ class GenesisAgent:
 
     def _determine_app_category(self, analysis_result: dict[str, Any]) -> AppCategory:
         """Determine the most appropriate app category based on analysis."""
-
         keywords = analysis_result.get("keywords", [])
         analysis_result.get("features", [])
 
         # Simple keyword-based categorization
         if any(kw in ["api", "service", "endpoint"] for kw in keywords):
             return AppCategory.API_SERVICE
-        elif any(kw in ["web", "frontend", "ui", "dashboard"] for kw in keywords):
+        if any(kw in ["web", "frontend", "ui", "dashboard"] for kw in keywords):
             return AppCategory.WEB_APPLICATION
-        elif any(kw in ["ai", "ml", "intelligent", "smart"] for kw in keywords):
+        if any(kw in ["ai", "ml", "intelligent", "smart"] for kw in keywords):
             return AppCategory.AI_SERVICE
-        elif any(kw in ["cli", "command", "tool"] for kw in keywords):
+        if any(kw in ["cli", "command", "tool"] for kw in keywords):
             return AppCategory.CLI_TOOL
-        elif any(kw in ["process", "batch", "worker"] for kw in keywords):
+        if any(kw in ["process", "batch", "worker"] for kw in keywords):
             return AppCategory.BACKGROUND_SERVICE
-        elif any(kw in ["data", "analytics", "etl"] for kw in keywords):
+        if any(kw in ["data", "analytics", "etl"] for kw in keywords):
             return AppCategory.DATA_PROCESSOR
-        else:
-            return AppCategory.MICROSERVICE
+        return AppCategory.MICROSERVICE
 
     def _select_packages(self, analysis_result: dict[str, Any], oracle_insights: dict[str, Any]) -> list[str]:
         """Select appropriate hive-* packages based on analysis and Oracle insights."""
-
         packages = ["hive-config"]  # Always include base config,
         keywords = analysis_result.get("keywords", [])
         features = analysis_result.get("features", [])
@@ -477,7 +466,6 @@ class GenesisAgent:
         oracle_insights: dict[str, Any],
     ) -> list[FeatureStub]:
         """Generate feature stubs with Oracle-prioritized recommendations."""
-
         features = [],
         identified_features = analysis_result.get("features", [])
         feature_performance = oracle_insights.get("feature_performance", {})
@@ -521,7 +509,6 @@ class GenesisAgent:
 
     def _determine_feature_priority(self, perf_data: dict[str, Any]) -> Priority:
         """Determine feature priority based on Oracle performance data."""
-
         if not perf_data:
             return Priority.MEDIUM
 
@@ -530,18 +517,16 @@ class GenesisAgent:
 
         if roi_score > 15 and adoption_rate > 70:
             return Priority.CRITICAL
-        elif roi_score > 10 or adoption_rate > 60:
+        if roi_score > 10 or adoption_rate > 60:
             return Priority.HIGH
-        elif roi_score > 5 or adoption_rate > 30:
+        if roi_score > 5 or adoption_rate > 30:
             return Priority.MEDIUM
-        elif adoption_rate > 10:
+        if adoption_rate > 10:
             return Priority.LOW
-        else:
-            return Priority.FUTURE
+        return Priority.FUTURE
 
     def _generate_business_value(self, feature_name: str, perf_data: dict[str, Any]) -> str:
         """Generate business value justification for a feature."""
-
         if not perf_data:
             return f"Core functionality for {feature_name}"
 
@@ -552,16 +537,14 @@ class GenesisAgent:
             return (
                 f"High-value feature: Similar features show {roi_score:.1f} ROI score and {adoption_rate:.1f}% adoption"
             )
-        elif adoption_rate > 70:
+        if adoption_rate > 70:
             return f"Popular feature: {adoption_rate:.1f}% adoption rate in similar apps"
-        elif roi_score > 5:
+        if roi_score > 5:
             return f"Solid ROI: {roi_score:.1f} ROI score with moderate adoption"
-        else:
-            return f"Standard feature with {adoption_rate:.1f}% expected adoption"
+        return f"Standard feature with {adoption_rate:.1f}% expected adoption"
 
     def _estimate_effort(self, feature_name: str, perf_data: dict[str, Any]) -> str:
         """Estimate implementation effort for a feature."""
-
         # Simple effort estimation based on feature complexity
         complex_keywords = ["ai", "ml", "intelligent", "real-time", "analytics"]
         medium_keywords = ["user", "auth", "search", "upload", "social"]
@@ -570,14 +553,12 @@ class GenesisAgent:
 
         if any(kw in feature_lower for kw in complex_keywords):
             return "1-2 weeks"
-        elif any(kw in feature_lower for kw in medium_keywords):
+        if any(kw in feature_lower for kw in medium_keywords):
             return "3-5 days"
-        else:
-            return "1-2 days"
+        return "1-2 days"
 
     def _get_oracle_feature_recommendations(self, feature_name: str, perf_data: dict[str, Any]) -> list[str]:
         """Get Oracle-specific recommendations for implementing a feature."""
-
         recommendations = []
 
         if perf_data:

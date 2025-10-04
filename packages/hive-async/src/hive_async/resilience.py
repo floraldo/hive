@@ -1,5 +1,4 @@
-"""
-Async resilience patterns for fault tolerance.
+"""Async resilience patterns for fault tolerance.
 
 Provides circuit breakers, timeout management, and other resilience patterns
 specifically designed for async operations.
@@ -31,8 +30,7 @@ class CircuitState(Enum):
 
 
 class AsyncCircuitBreaker:
-    """
-    Async-optimized circuit breaker for fault tolerance.
+    """Async-optimized circuit breaker for fault tolerance.
 
     Prevents cascading failures by temporarily blocking operations
     when failure rate exceeds threshold.
@@ -149,8 +147,7 @@ class AsyncCircuitBreaker:
         }
 
     def get_failure_history(self, metric_type: str = "failure_rate", hours: int = 24) -> list[dict[str, Any]]:
-        """
-        Get failure history for predictive analysis.
+        """Get failure history for predictive analysis.
 
         Returns failure metrics as MetricPoint-compatible format for
         integration with PredictiveAnalysisRunner.
@@ -161,6 +158,7 @@ class AsyncCircuitBreaker:
 
         Returns:
             List of metric points with timestamp, value, and metadata
+
         """
         cutoff_time = datetime.utcnow() - timedelta(hours=hours)
 
@@ -197,7 +195,7 @@ class AsyncCircuitBreaker:
 
             return metric_points
 
-        elif metric_type == "state_changes":
+        if metric_type == "state_changes":
             # Get recent state transitions
             recent_transitions = [t for t in self._state_transitions if t["timestamp"] >= cutoff_time]
 
@@ -230,14 +228,12 @@ class AsyncCircuitBreaker:
 
             return metric_points
 
-        else:
-            logger.warning(f"Unknown metric type: {metric_type}")
-            return []
+        logger.warning(f"Unknown metric type: {metric_type}")
+        return []
 
 
 class AsyncTimeoutManager:
-    """
-    Enhanced timeout management for async operations.
+    """Enhanced timeout management for async operations.
 
     Provides centralized timeout handling with detailed error context
     and operation tracking.
@@ -255,8 +251,7 @@ class AsyncTimeoutManager:
         operation_name: str | None = None,
         fallback: Any | None = None,
     ) -> Any:
-        """
-        Run coroutine with timeout and enhanced error context.
+        """Run coroutine with timeout and enhanced error context.
 
         Args:
             coro: Coroutine to execute,
@@ -269,6 +264,7 @@ class AsyncTimeoutManager:
 
         Raises:
             AsyncTimeoutError: If operation times out and no fallback provided,
+
         """
         timeout = (timeout or self.default_timeout,)
         operation_name = operation_name or getattr(coro, "__name__", "unknown_operation")
@@ -348,13 +344,13 @@ class AsyncTimeoutManager:
 
 
 def async_circuit_breaker(failure_threshold: int = 5, recovery_timeout: int = 60, expected_exception: type = Exception):
-    """
-    Decorator to add circuit breaker protection to async functions.
+    """Decorator to add circuit breaker protection to async functions.
 
     Args:
         failure_threshold: Number of failures before opening circuit,
         recovery_timeout: Seconds to wait before attempting reset,
         expected_exception: Exception type that triggers circuit breaker,
+
     """
     breaker = AsyncCircuitBreaker(failure_threshold, recovery_timeout, expected_exception)
 
@@ -369,12 +365,12 @@ def async_circuit_breaker(failure_threshold: int = 5, recovery_timeout: int = 60
 
 
 def async_timeout(seconds: float, operation_name: str | None = None) -> None:
-    """
-    Decorator to add timeout protection to async functions.
+    """Decorator to add timeout protection to async functions.
 
     Args:
         seconds: Timeout duration
         operation_name: Name for monitoring (defaults to function name)
+
     """
 
     def decorator(func) -> Any:
@@ -401,14 +397,14 @@ def async_resilient(
     circuit_recovery_timeout: int = 60,
     operation_name: str | None = None,
 ):
-    """
-    Composite decorator providing both timeout and circuit breaker protection.
+    """Composite decorator providing both timeout and circuit breaker protection.
 
     Args:
         timeout: Operation timeout in seconds,
         circuit_failure_threshold: Failures before circuit opens,
         circuit_recovery_timeout: Circuit recovery time,
         operation_name: Operation name for monitoring,
+
     """
 
     def decorator(func) -> None:

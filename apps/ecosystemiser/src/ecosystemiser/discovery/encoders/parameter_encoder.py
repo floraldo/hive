@@ -65,6 +65,7 @@ class ParameterEncoder:
 
         Args:
             encoding_spec: Specification for parameter encoding,
+
         """
         self.spec = encoding_spec
         self.parameter_map = {param.name: param for param in self.spec.parameters}
@@ -77,6 +78,7 @@ class ParameterEncoder:
 
         Returns:
             Encoded parameter vector,
+
         """
         vector = np.zeros(self.spec.dimensions)
 
@@ -105,6 +107,7 @@ class ParameterEncoder:
 
         Returns:
             Updated system configuration,
+
         """
         if len(vector) != self.spec.dimensions:
             raise ValueError(f"Vector dimension {len(vector)} doesn't match expected {self.spec.dimensions}")
@@ -135,6 +138,7 @@ class ParameterEncoder:
 
         Returns:
             Parameter value,
+
         """
         # Navigate through nested dictionaries
         value = config
@@ -166,6 +170,7 @@ class ParameterEncoder:
             config: System configuration to modify
             param_spec: Parameter specification
             value: New parameter value,
+
         """
         # Ensure components section exists
         if "components" not in config:
@@ -203,6 +208,7 @@ class ParameterEncoder:
 
         Returns:
             Encoded value within bounds,
+
         """
         min_val, max_val = param_spec.bounds
 
@@ -230,6 +236,7 @@ class ParameterEncoder:
 
         Returns:
             Decoded parameter value,
+
         """
         min_val, max_val = param_spec.bounds
         value = encoded_value
@@ -254,6 +261,7 @@ class ParameterEncoder:
 
         Returns:
             True if valid, False otherwise,
+
         """
         if len(vector) != self.spec.dimensions:
             return False
@@ -270,6 +278,7 @@ class ParameterEncoder:
 
         Returns:
             Dictionary with parameter information,
+
         """
         info = {}
         for param in self.spec.parameters:
@@ -317,6 +326,7 @@ class SystemConfigEncoder(ParameterEncoder):
 
         Returns:
             SystemConfigEncoder instance,
+
         """
         # Load configuration
         with open(config_path) as f:
@@ -370,6 +380,7 @@ class SystemConfigEncoder(ParameterEncoder):
 
         Returns:
             List of ParameterSpec objects for this component,
+
         """
         parameters = []
 
@@ -434,6 +445,7 @@ class SystemConfigEncoder(ParameterEncoder):
 
         Returns:
             SystemConfigEncoder instance,
+
         """
         parameters = []
         for param_def in parameter_definitions:
@@ -455,6 +467,7 @@ class SystemConfigEncoder(ParameterEncoder):
 
         Returns:
             Dictionary of suggested bounds,
+
         """
         suggested_bounds = {}
 

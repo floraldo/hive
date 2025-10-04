@@ -1,5 +1,4 @@
-"""
-EcoSystemiser Climate Dashboard - Redirect to Isolated Version
+"""EcoSystemiser Climate Dashboard - Redirect to Isolated Version
 
 This file redirects to the isolated version to maintain architectural separation.
 The isolated version (app_isolated.py) does not import from the ecosystemiser package.

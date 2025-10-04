@@ -1,5 +1,4 @@
-"""
-Execution Plan Models
+"""Execution Plan Models
 
 Data models for execution plans and subtask orchestration.
 """
@@ -25,8 +24,7 @@ class PlanStatus(str, Enum):
 
 
 class ExecutionPlan(IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixin):
-    """
-    Execution plan model.
+    """Execution plan model.
 
     Represents a multi-step execution plan with dependencies.
     """
@@ -101,8 +99,7 @@ class ExecutionPlan(IdentifiableMixin, TimestampMixin, StatusMixin, MetadataMixi
 
 
 class SubTask(BaseModel):
-    """
-    Subtask definition within an execution plan.
+    """Subtask definition within an execution plan.
 
     Lighter weight than full Task model, used for plan definition.
     """
@@ -121,4 +118,4 @@ class SubTask(BaseModel):
         return len(self.dependencies) > 0
 
 
-__all__ = ["ExecutionPlan", "SubTask", "PlanStatus"]
+__all__ = ["ExecutionPlan", "PlanStatus", "SubTask"]

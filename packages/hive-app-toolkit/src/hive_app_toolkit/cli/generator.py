@@ -23,8 +23,7 @@ class ServiceType(Enum):
 
 
 class ApplicationGenerator:
-    """
-    Generate production-ready Hive applications from blueprints.
+    """Generate production-ready Hive applications from blueprints.
 
     Provides methods to:
     - Generate new services from templates
@@ -37,8 +36,7 @@ class ApplicationGenerator:
         self.template_manager = TemplateManager()
 
     async def generate(self, config: dict[str, Any]) -> dict[str, Any]:
-        """
-        Generate a new Hive application.
+        """Generate a new Hive application.
 
         Args:
             config: Generation configuration containing:
@@ -55,6 +53,7 @@ class ApplicationGenerator:
 
         Returns:
             Dictionary with generation results
+
         """
         app_name = config["app_name"]
         service_type = config["service_type"]
@@ -99,14 +98,14 @@ class ApplicationGenerator:
         }
 
     async def add_api_foundation(self, output_dir: Path) -> dict[str, Any]:
-        """
-        Add API foundation to an existing application.
+        """Add API foundation to an existing application.
 
         Args:
             output_dir: Target directory
 
         Returns:
             Dictionary with modified files
+
         """
         logger.info(f"Adding API foundation to {output_dir}")
 
@@ -142,8 +141,7 @@ class ApplicationGenerator:
         return {"files_modified": files_modified}
 
     async def add_kubernetes_manifests(self, output_dir: Path, namespace: str = "hive-platform") -> dict[str, Any]:
-        """
-        Add Kubernetes manifests to an existing application.
+        """Add Kubernetes manifests to an existing application.
 
         Args:
             output_dir: Target directory
@@ -151,6 +149,7 @@ class ApplicationGenerator:
 
         Returns:
             Dictionary with created files
+
         """
         logger.info(f"Adding Kubernetes manifests to {output_dir}")
 
@@ -181,8 +180,7 @@ class ApplicationGenerator:
         return {"files_created": files_created}
 
     async def add_cicd_pipeline(self, output_dir: Path, registry: str = "ghcr.io") -> dict[str, Any]:
-        """
-        Add CI/CD pipeline to an existing application.
+        """Add CI/CD pipeline to an existing application.
 
         Args:
             output_dir: Target directory
@@ -190,6 +188,7 @@ class ApplicationGenerator:
 
         Returns:
             Dictionary with created files
+
         """
         logger.info(f"Adding CI/CD pipeline to {output_dir}")
 
@@ -234,14 +233,14 @@ jobs:
         return {"files_created": files_created}
 
     async def get_integration_status(self, output_dir: Path) -> dict[str, Any]:
-        """
-        Get integration status of Hive toolkit components.
+        """Get integration status of Hive toolkit components.
 
         Args:
             output_dir: Target directory
 
         Returns:
             Status information dictionary
+
         """
         logger.info(f"Checking integration status for {output_dir}")
 
@@ -318,11 +317,11 @@ jobs:
         # Add K8s/Docker defaults
         context.setdefault("resources", {
             "requests": {"cpu": "500m", "memory": "1Gi"},
-            "limits": {"cpu": "2000m", "memory": "4Gi"}
+            "limits": {"cpu": "2000m", "memory": "4Gi"},
         })
         context.setdefault("health_check", {
             "liveness": {"initial_delay": 10, "period": 30, "timeout": 5, "failure_threshold": 3},
-            "readiness": {"initial_delay": 15, "period": 10, "timeout": 5, "failure_threshold": 3}
+            "readiness": {"initial_delay": 15, "period": 10, "timeout": 5, "failure_threshold": 3},
         })
         context.setdefault("image_repository", "ghcr.io/hive")
         context.setdefault("image_tag", "latest")

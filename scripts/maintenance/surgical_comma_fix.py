@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal maintenance tooling.
 
-"""
-Surgical Comma Fix - Simple, reliable, transparent
+"""Surgical Comma Fix - Simple, reliable, transparent
 
 For each file with error:
 1. Get exact error line from py_compile
@@ -24,23 +22,23 @@ def get_error_line(file_path: Path) -> int:
     """Get line number of first syntax error, or 0 if no error"""
     result = subprocess.run(
         ["python", "-m", "py_compile", str(file_path)],
-        capture_output=True,
-        text=True
+        check=False, capture_output=True,
+        text=True,
     )
 
     if result.returncode == 0:
         return 0
 
-    match = re.search(r'line (\d+)', result.stderr)
+    match = re.search(r"line (\d+)", result.stderr)
     return int(match.group(1)) if match else 0
 
 
 def fix_file(file_path: Path) -> bool:
-    """
-    Fix ALL comma errors in a file.
+    """Fix ALL comma errors in a file.
 
     Returns:
         True if all errors fixed successfully
+
     """
     max_iterations = 20  # Safety limit
     iteration = 0
@@ -67,13 +65,13 @@ def fix_file(file_path: Path) -> bool:
         error_line_text = lines[error_idx].strip()
 
         # Pattern 1: Decorator with trailing comma (@staticmethod,)
-        if error_line_text.startswith('@') and error_line_text.endswith(','):
-            lines[error_idx] = lines[error_idx].rstrip().rstrip(',') + '\n'
-            file_path.write_text(''.join(lines), encoding="utf-8")
+        if error_line_text.startswith("@") and error_line_text.endswith(","):
+            lines[error_idx] = lines[error_idx].rstrip().rstrip(",") + "\n"
+            file_path.write_text("".join(lines), encoding="utf-8")
         # Pattern 2: Opening brace/bracket/paren with comma ({, or [, or (,)
-        elif '{,' in lines[error_idx] or '[,' in lines[error_idx] or '(,' in lines[error_idx]:
-            lines[error_idx] = lines[error_idx].replace('{,', '{').replace('[,', '[').replace('(,', '(')
-            file_path.write_text(''.join(lines), encoding="utf-8")
+        elif "{," in lines[error_idx] or "[," in lines[error_idx] or "(," in lines[error_idx]:
+            lines[error_idx] = lines[error_idx].replace("{,", "{").replace("[,", "[").replace("(,", "(")
+            file_path.write_text("".join(lines), encoding="utf-8")
         else:
             # Add comma to line BEFORE error
             fix_idx = error_line - 2
@@ -84,9 +82,9 @@ def fix_file(file_path: Path) -> bool:
                 return False
 
             line = lines[fix_idx]
-            if not line.rstrip().endswith(','):
-                lines[fix_idx] = line.rstrip() + ',' + '\n'
-                file_path.write_text(''.join(lines), encoding="utf-8")
+            if not line.rstrip().endswith(","):
+                lines[fix_idx] = line.rstrip() + "," + "\n"
+                file_path.write_text("".join(lines), encoding="utf-8")
 
     # If we hit max iterations, something is wrong
     print("  [ERROR] Max iterations reached")

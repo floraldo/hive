@@ -39,6 +39,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of calculated economic metrics,
+
         """
         metrics = {}
 
@@ -85,6 +86,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             Total CAPEX,
+
         """
         capex = (0,)
         components = results_data.get("components", {})
@@ -129,6 +131,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             Annual OPEX,
+
         """
         opex = (0,)
         components = results_data.get("components", {})
@@ -174,6 +177,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of energy economic metrics,
+
         """
         metrics = ({},)
         flows = results_data.get("flows", {})
@@ -224,6 +228,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             LCOE in $/kWh,
+
         """
         # Calculate total discounted costs
         total_cost = capex
@@ -263,6 +268,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             NPV in currency units,
+
         """
         # Initial investment (negative cash flow)
         npv = -capex
@@ -286,6 +292,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             Payback period in years,
+
         """
         # Annual savings (compared to baseline)
         annual_savings = -energy_metrics.get("annual_net_energy_cost", 0)
@@ -305,6 +312,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             Dictionary of component costs,
+
         """
         component_costs = ({},)
         components = results_data.get("components", {})
@@ -345,6 +353,7 @@ class EconomicAnalysis(BaseAnalysis):
 
         Returns:
             Sum of matching flows,
+
         """
         total = 0
 

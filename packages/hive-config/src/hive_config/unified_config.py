@@ -1,5 +1,4 @@
-"""
-Unified Hive Configuration System
+"""Unified Hive Configuration System
 Provides centralized configuration management for all Hive components
 """
 
@@ -99,8 +98,7 @@ class LoggingConfig(BaseModel):
 
 
 class HiveConfig(BaseModel):
-    """
-    Unified Hive configuration
+    """Unified Hive configuration
 
     This is the master configuration object that contains all settings
     for the entire Hive system.
@@ -123,14 +121,14 @@ class HiveConfig(BaseModel):
 
     @classmethod
     def from_file(cls, config_path: Path) -> HiveConfig:
-        """
-        Load configuration from a JSON file
+        """Load configuration from a JSON file
 
         Args:
             config_path: Path to the configuration file
 
         Returns:
             HiveConfig instance
+
         """
         if not config_path.exists():
             logger.warning(f"Config file not found: {config_path}, using defaults")
@@ -151,14 +149,14 @@ class HiveConfig(BaseModel):
 
     @classmethod
     def from_environment(cls) -> HiveConfig:
-        """
-        Load configuration from environment variables
+        """Load configuration from environment variables
 
         Environment variables should be prefixed with HIVE_
         e.g., HIVE_DATABASE_PATH, HIVE_CLAUDE_TIMEOUT, etc.
 
         Returns:
             HiveConfig instance
+
         """
         config_data = {}
 
@@ -207,11 +205,11 @@ class HiveConfig(BaseModel):
             return cls()
 
     def to_file(self, config_path: Path) -> None:
-        """
-        Save configuration to a JSON file
+        """Save configuration to a JSON file
 
         Args:
             config_path: Path where to save the configuration
+
         """
         config_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -221,14 +219,14 @@ class HiveConfig(BaseModel):
         logger.info(f"Configuration saved to {config_path}")
 
     def get_component_config(self, component: str) -> dict[str, Any]:
-        """
-        Get configuration for a specific component
+        """Get configuration for a specific component
 
         Args:
             component: Component name (e.g., 'ai-planner', 'hive-orchestrator')
 
         Returns:
             Component-specific configuration dictionary
+
         """
         component_mappings = {
             "ai-planner": {
@@ -261,11 +259,11 @@ class HiveConfig(BaseModel):
         return component_mappings.get(component, {})
 
     def validate(self) -> list[str]:
-        """
-        Validate the configuration
+        """Validate the configuration
 
         Returns:
             List of validation errors (empty if valid)
+
         """
         errors = []
 
@@ -291,10 +289,9 @@ class HiveConfig(BaseModel):
 def create_config_from_sources(
     config_path: Path | None = None,
     use_environment: bool = True,
-    use_package_defaults: bool = True
+    use_package_defaults: bool = True,
 ) -> HiveConfig:
-    """
-    Create a Hive configuration instance from various sources.
+    """Create a Hive configuration instance from various sources.
 
     Configuration hierarchy (lowest to highest precedence):
     1. Package defaults (config.defaults.toml in each hive-* package)
@@ -311,6 +308,7 @@ def create_config_from_sources(
 
     Returns:
         HiveConfig instance
+
     """
     config_data = {}
 

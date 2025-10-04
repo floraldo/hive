@@ -1,5 +1,4 @@
-"""
-Test intelligence analysis engine.
+"""Test intelligence analysis engine.
 
 Provides statistical analysis, trend detection, flaky test identification,
 and failure pattern clustering.
@@ -18,17 +17,16 @@ class TestIntelligenceAnalyzer:
     """Analyzes test history to generate actionable insights."""
 
     def __init__(self, storage: TestIntelligenceStorage | None = None):
-        """
-        Initialize analyzer with storage.
+        """Initialize analyzer with storage.
 
         Args:
             storage: Test intelligence storage instance
+
         """
         self.storage = storage or TestIntelligenceStorage()
 
     def detect_flaky_tests(self, min_runs: int = 10, threshold: float = 0.2) -> list[FlakyTestResult]:
-        """
-        Detect tests with intermittent failures (flaky tests).
+        """Detect tests with intermittent failures (flaky tests).
 
         Args:
             min_runs: Minimum number of runs to consider
@@ -36,6 +34,7 @@ class TestIntelligenceAnalyzer:
 
         Returns:
             List of flaky test results
+
         """
         # Get recent runs
         recent_runs = self.storage.get_recent_runs(limit=30)
@@ -80,7 +79,7 @@ class TestIntelligenceAnalyzer:
                         first_seen=min(r.id for r in history),  # Simplified - use run timestamp
                         last_seen=max(r.id for r in history),
                         error_messages=list(set(error_messages)),
-                    )
+                    ),
                 )
 
         # Sort by fail rate (most flaky first)
@@ -88,14 +87,14 @@ class TestIntelligenceAnalyzer:
         return flaky_tests
 
     def analyze_package_health(self, days: int = 7) -> list[PackageHealthReport]:
-        """
-        Analyze health trends for each package.
+        """Analyze health trends for each package.
 
         Args:
             days: Number of days to analyze
 
         Returns:
             List of package health reports
+
         """
         cutoff_date = datetime.now() - timedelta(days=days)
         recent_runs = self.storage.get_recent_runs(limit=100)
@@ -168,7 +167,7 @@ class TestIntelligenceAnalyzer:
                     flaky_count=len(package_flaky),
                     trend_direction=trend_direction,
                     trend_percentage=trend_pct,
-                )
+                ),
             )
 
         # Sort by pass rate (worst first)
@@ -176,14 +175,14 @@ class TestIntelligenceAnalyzer:
         return health_reports
 
     def detect_slow_tests(self, top_n: int = 20) -> list[tuple[str, float]]:
-        """
-        Identify slowest tests by average duration.
+        """Identify slowest tests by average duration.
 
         Args:
             top_n: Number of slow tests to return
 
         Returns:
             List of (test_id, avg_duration_ms) tuples
+
         """
         recent_runs = self.storage.get_recent_runs(limit=30)
 
@@ -203,11 +202,11 @@ class TestIntelligenceAnalyzer:
         return avg_durations[:top_n]
 
     def cluster_failure_patterns(self) -> list[FailurePattern]:
-        """
-        Cluster similar failure messages to identify common root causes.
+        """Cluster similar failure messages to identify common root causes.
 
         Returns:
             List of failure patterns
+
         """
         recent_runs = self.storage.get_recent_runs(limit=30)
 
@@ -241,7 +240,7 @@ class TestIntelligenceAnalyzer:
                     last_seen=datetime.now(),
                     packages_affected=packages,
                     suggested_root_cause=self._suggest_root_cause(signature),
-                )
+                ),
             )
 
         # Sort by occurrence count
@@ -268,13 +267,13 @@ class TestIntelligenceAnalyzer:
 
         if "tuple" in signature_lower and "not support" in signature_lower:
             return "Possible Pydantic migration issue - check for tuple wrapping"
-        elif "modulenotfounderror" in signature_lower:
+        if "modulenotfounderror" in signature_lower:
             return "Missing module - check package dependencies and editable installations"
-        elif "sqlite" in signature_lower and "locked" in signature_lower:
+        if "sqlite" in signature_lower and "locked" in signature_lower:
             return "Database concurrency issue - check for parallel test execution"
-        elif "timeout" in signature_lower:
+        if "timeout" in signature_lower:
             return "Performance issue - check for slow operations or deadlocks"
-        elif "validation" in signature_lower:
+        if "validation" in signature_lower:
             return "Data validation failure - check model schemas and test data"
 
         return None

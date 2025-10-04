@@ -1,5 +1,4 @@
-"""
-Data models for Coder Agent results and status tracking.
+"""Data models for Coder Agent results and status tracking.
 """
 
 from __future__ import annotations

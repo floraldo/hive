@@ -40,10 +40,9 @@ class TaskManager:
         self,
         coro: Awaitable[T],
         task_id: str | None = None,
-        timeout: float | None = None
+        timeout: float | None = None,
     ) -> str:
-        """
-        Submit a task for execution.
+        """Submit a task for execution.
 
         Args:
             coro: Coroutine to execute
@@ -52,6 +51,7 @@ class TaskManager:
 
         Returns:
             Task ID
+
         """
         if task_id is None:
             self._task_counter += 1
@@ -100,7 +100,7 @@ class TaskManager:
 
         try:
             await self.active_tasks[task_id]
-        except Exception:  # noqa: S110 - Error is stored in TaskResult
+        except Exception:
             pass
 
         return self.completed_tasks[task_id]
@@ -133,7 +133,7 @@ class TaskManager:
         self.completed_tasks[task_id] = TaskResult(
             task_id=task_id,
             success=False,
-            error=asyncio.CancelledError("Task was cancelled")
+            error=asyncio.CancelledError("Task was cancelled"),
         )
 
         return True
@@ -151,7 +151,7 @@ class TaskManager:
             "completed_count": len(self.completed_tasks),
             "max_concurrent": self.max_concurrent,
             "active_tasks": list(self.active_tasks.keys()),
-            "success_rate": self._calculate_success_rate()
+            "success_rate": self._calculate_success_rate(),
         }
 
     def _calculate_success_rate(self) -> float | None:
@@ -180,10 +180,9 @@ class TaskManager:
 
 
 async def gather_with_concurrency_async(
-    *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False
+    *coros: Awaitable[T], max_concurrent: int = 10, return_exceptions: bool = False,
 ) -> list[Any]:
-    """
-    Gather coroutines with concurrency limit.
+    """Gather coroutines with concurrency limit.
 
     Args:
         *coros: Coroutines to execute
@@ -192,6 +191,7 @@ async def gather_with_concurrency_async(
 
     Returns:
         List of results in the same order as input coroutines
+
     """
     semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -207,10 +207,9 @@ async def run_with_timeout_and_retry_async(
     coro: Awaitable[T],
     timeout: float,
     max_retries: int = 3,
-    backoff_factor: float = 1.0
+    backoff_factor: float = 1.0,
 ) -> T:
-    """
-    Run a coroutine with timeout and retry logic.
+    """Run a coroutine with timeout and retry logic.
 
     Args:
         coro: Coroutine to execute
@@ -223,6 +222,7 @@ async def run_with_timeout_and_retry_async(
 
     Raises:
         Last exception if all retries fail
+
     """
     last_exception = None
 

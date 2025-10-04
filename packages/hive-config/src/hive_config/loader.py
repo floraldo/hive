@@ -1,5 +1,4 @@
-"""
-Secure configuration loader for Hive applications.
+"""Secure configuration loader for Hive applications.
 
 Implements hierarchical configuration loading with proper precedence:
 1. .env.global (Hive system secrets) - LOWEST priority
@@ -21,8 +20,7 @@ logger = get_logger(__name__)
 
 
 def load_config_for_app(app_name: str) -> AppConfig:
-    """
-    Load configuration for an app with secure hierarchy.
+    """Load configuration for an app with secure hierarchy.
 
     Based on user feedback: All API keys from current root .env become global shared.
     Local app .env files contain only app-specific settings like ports, cache dirs, etc.
@@ -38,6 +36,7 @@ def load_config_for_app(app_name: str) -> AppConfig:
 
     Returns:
         AppConfig object with loaded configuration and source tracking
+
     """
     root = find_project_root()
     config = {}
@@ -82,8 +81,7 @@ def load_config_for_app(app_name: str) -> AppConfig:
 
 
 def get_required_keys(app_name: str, required: list[str]) -> dict[str, str]:
-    """
-    Get only required keys for an app, raising error if missing.
+    """Get only required keys for an app, raising error if missing.
 
     This is the secure way for apps to request only the configuration they need.
 
@@ -96,6 +94,7 @@ def get_required_keys(app_name: str, required: list[str]) -> dict[str, str]:
 
     Raises:
         ValueError: If any required keys are missing
+
     """
     config = load_config_for_app(app_name)
 
@@ -114,11 +113,11 @@ def get_required_keys(app_name: str, required: list[str]) -> dict[str, str]:
 
 
 def get_global_api_keys() -> dict[str, str | None]:
-    """
-    Get all global API keys that are available for sharing across apps.
+    """Get all global API keys that are available for sharing across apps.
 
     Returns:
         Dictionary of available API keys from shared configuration
+
     """
     try:
         root = find_project_root()
@@ -146,14 +145,14 @@ def get_global_api_keys() -> dict[str, str | None]:
 
 
 def audit_app_config(app_name: str) -> dict:
-    """
-    Generate a security audit report for an app's configuration.
+    """Generate a security audit report for an app's configuration.
 
     Args:
         app_name: Name of the application to audit
 
     Returns:
         Audit report with configuration sources and security information
+
     """
     try:
         config = load_config_for_app(app_name)

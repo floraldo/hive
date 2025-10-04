@@ -1,5 +1,4 @@
-"""
-Unified adapter factory with dynamic registration and centralized configuration.,
+"""Unified adapter factory with dynamic registration and centralized configuration.,
 
 This module provides the factory pattern for creating climate data adapters
 with support for:
@@ -25,8 +24,7 @@ _adapter_instances: dict[str, BaseAdapter] = {}
 
 
 def register_adapter(name: str) -> None:
-    """
-    Decorator for registering adapters dynamically.
+    """Decorator for registering adapters dynamically.
 
     Usage:
         @register_adapter("nasa_power")
@@ -48,8 +46,7 @@ def get_adapter(
     custom_config: dict[str, Any] | None = None,
     force_new: bool = False,
 ) -> BaseAdapter:
-    """
-    Create or retrieve an adapter instance using centralized settings.
+    """Create or retrieve an adapter instance using centralized settings.
 
     Args:
         adapter_name: Name of the adapter to create,
@@ -62,6 +59,7 @@ def get_adapter(
 
     Raises:
         ValueError: If adapter not found or disabled,
+
     """
     # Check if adapter is registered
     if adapter_name not in _adapter_registry:
@@ -180,4 +178,4 @@ def _auto_register_adapters() -> None:
 
 
 # Export main functions
-__all__ = ["register_adapter", "get_adapter", "list_available_adapters", "get_enabled_adapters", "cleanup"]
+__all__ = ["cleanup", "get_adapter", "get_enabled_adapters", "list_available_adapters", "register_adapter"]

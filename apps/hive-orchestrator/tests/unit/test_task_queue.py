@@ -1,5 +1,4 @@
-"""
-Unit Tests for TaskQueueManager
+"""Unit Tests for TaskQueueManager
 
 Tests priority-based task scheduling:
 - Task enqueue/dequeue with priorities
@@ -46,7 +45,7 @@ class TestQueuedTask:
         task = Task(id="test-123", title="Test", description="Test")
         started_at = datetime.now(UTC) - timedelta(seconds=70)
         queued_task = QueuedTask(
-            task=task, started_at=started_at, timeout_seconds=60
+            task=task, started_at=started_at, timeout_seconds=60,
         )
 
         assert queued_task.is_timeout is True
@@ -181,7 +180,7 @@ class TestTaskQueueManager:
             await queue_manager.mark_in_progress(sample_task.id)
 
             success = await queue_manager.mark_failed(
-                sample_task.id, "Test error", retry=True
+                sample_task.id, "Test error", retry=True,
             )
 
             assert success is True
@@ -200,7 +199,7 @@ class TestTaskQueueManager:
             await queue_manager.mark_in_progress(sample_task.id)
 
             success = await queue_manager.mark_failed(
-                sample_task.id, "Test error", retry=False
+                sample_task.id, "Test error", retry=False,
             )
 
             assert success is True

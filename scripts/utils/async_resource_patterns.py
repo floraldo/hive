@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Async Resource Management Best Practices for Hive Platform
+"""Async Resource Management Best Practices for Hive Platform
 
 Common patterns and utilities for proper async resource management.
 """
@@ -113,7 +112,6 @@ class AsyncStateLock:
 # Example usage patterns
 async def example_proper_resource_management():
     """Example of proper async resource management"""
-
     # 1. Task management
     task_manager = TaskManager()
     task = task_manager.create_task(some_async_operation())

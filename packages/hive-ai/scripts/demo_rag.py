@@ -1,5 +1,4 @@
-"""
-Demo script for Hive RAG system.
+"""Demo script for Hive RAG system.
 
 Demonstrates end-to-end RAG functionality:
 1. Chunk code files

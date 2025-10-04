@@ -1,5 +1,4 @@
-"""
-QA Worker Event Types
+"""QA Worker Event Types
 
 Event definitions for autonomous QA worker fleet coordination.
 """
@@ -13,8 +12,7 @@ from hive_bus import BaseEvent
 
 @dataclass
 class QATaskEvent(BaseEvent):
-    """
-    QA task lifecycle event for worker coordination.
+    """QA task lifecycle event for worker coordination.
 
     Attributes:
         task_id: Task identifier
@@ -26,6 +24,7 @@ class QATaskEvent(BaseEvent):
             - violations_remaining: Number of violations that need escalation
             - execution_time_ms: Time taken to process task
             - files_processed: Number of files checked/fixed
+
     """
 
     task_id: str = ""
@@ -41,8 +40,7 @@ class QATaskEvent(BaseEvent):
 
 @dataclass
 class WorkerHeartbeat(BaseEvent):
-    """
-    Worker health monitoring heartbeat.
+    """Worker health monitoring heartbeat.
 
     Attributes:
         worker_id: Worker identifier
@@ -53,6 +51,7 @@ class WorkerHeartbeat(BaseEvent):
             - violations_fixed: Total violations auto-fixed
             - escalations: Total escalations to HITL
             - uptime_seconds: Worker uptime in seconds
+
     """
 
     worker_id: str = ""
@@ -68,8 +67,7 @@ class WorkerHeartbeat(BaseEvent):
 
 @dataclass
 class WorkerRegistration(BaseEvent):
-    """
-    Worker registration event when worker comes online.
+    """Worker registration event when worker comes online.
 
     Attributes:
         worker_id: Worker identifier
@@ -79,6 +77,7 @@ class WorkerRegistration(BaseEvent):
             - capabilities: List of auto-fixable violation types
             - version: Worker software version
             - workspace: Worker workspace path
+
     """
 
     worker_id: str = ""
@@ -96,8 +95,7 @@ class WorkerRegistration(BaseEvent):
 
 @dataclass
 class EscalationEvent(BaseEvent):
-    """
-    Escalation event when worker cannot auto-fix an issue.
+    """Escalation event when worker cannot auto-fix an issue.
 
     Attributes:
         task_id: Task that needs escalation
@@ -109,6 +107,7 @@ class EscalationEvent(BaseEvent):
             - attempts: Number of fix attempts made
             - files: Affected file paths
             - details: Additional context for HITL review
+
     """
 
     task_id: str = ""
@@ -125,8 +124,8 @@ class EscalationEvent(BaseEvent):
 
 
 __all__ = [
+    "EscalationEvent",
     "QATaskEvent",
     "WorkerHeartbeat",
     "WorkerRegistration",
-    "EscalationEvent",
 ]

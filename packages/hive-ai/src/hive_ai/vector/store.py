@@ -1,5 +1,4 @@
-"""
-Vector database store implementation with multi-provider support.
+"""Vector database store implementation with multi-provider support.
 
 Provides unified interface for vector operations across different
 vector database providers with hive-db integration patterns.
@@ -33,7 +32,6 @@ class BaseVectorProvider(ABC):
         ids: list[str] | None = None,
     ) -> list[str]:
         """Store vectors in the database."""
-        pass
 
     @abstractmethod
     async def search_vectors_async(
@@ -43,22 +41,18 @@ class BaseVectorProvider(ABC):
         filter_metadata: dict[str, Any] | None = None,
     ) -> list[dict[str, Any]]:
         """Search for similar vectors."""
-        pass
 
     @abstractmethod
     async def delete_vectors_async(self, ids: list[str]) -> bool:
         """Delete vectors by IDs."""
-        pass
 
     @abstractmethod
     async def get_collection_info_async(self) -> dict[str, Any]:
         """Get information about the collection."""
-        pass
 
     @abstractmethod
     async def health_check_async(self) -> bool:
         """Check provider health."""
-        pass
 
 
 class ChromaProvider(BaseVectorProvider):
@@ -104,7 +98,7 @@ class ChromaProvider(BaseVectorProvider):
                 )
             except Exception as e:
                 raise VectorError(
-                    f"Failed to connect to ChromaDB: {str(e)}",
+                    f"Failed to connect to ChromaDB: {e!s}",
                     collection=self.config.collection_name,
                     operation="connect",
                 ) from e
@@ -132,7 +126,7 @@ class ChromaProvider(BaseVectorProvider):
 
         except Exception as e:
             raise VectorError(
-                f"Failed to store vectors: {str(e)}",
+                f"Failed to store vectors: {e!s}",
                 collection=self.config.collection_name,
                 operation="store",
             ) from e
@@ -166,7 +160,7 @@ class ChromaProvider(BaseVectorProvider):
 
         except Exception as e:
             raise VectorError(
-                f"Failed to search vectors: {str(e)}",
+                f"Failed to search vectors: {e!s}",
                 collection=self.config.collection_name,
                 operation="search",
             ) from e
@@ -181,7 +175,7 @@ class ChromaProvider(BaseVectorProvider):
             return True
 
         except Exception as e:
-            logger.error(f"Failed to delete vectors: {str(e)}")
+            logger.error(f"Failed to delete vectors: {e!s}")
             return False
 
     async def get_collection_info_async(self) -> dict[str, Any]:
@@ -199,7 +193,7 @@ class ChromaProvider(BaseVectorProvider):
 
         except Exception as e:
             raise VectorError(
-                f"Failed to get collection info: {str(e)}",
+                f"Failed to get collection info: {e!s}",
                 collection=self.config.collection_name,
                 operation="info",
             ) from e
@@ -220,8 +214,7 @@ class ChromaProvider(BaseVectorProvider):
 
 
 class VectorStore(VectorStoreInterface):
-    """
-    Unified vector store with multi-provider support.
+    """Unified vector store with multi-provider support.
 
     Provides consistent interface across vector database providers
     with caching, circuit breaker, and hive-db integration.

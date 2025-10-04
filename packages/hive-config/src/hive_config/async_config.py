@@ -1,5 +1,4 @@
-"""
-Async Configuration Management for High-Performance Applications
+"""Async Configuration Management for High-Performance Applications
 
 Provides non-blocking configuration loading with concurrent file I/O
 optional hot-reload capability, and caching.
@@ -64,8 +63,7 @@ class ConfigFileHandler:
 
 
 class AsyncConfigLoader:
-    """
-    High-performance async configuration loader
+    """High-performance async configuration loader
 
     Features:
     - Async file I/O for non-blocking operations
@@ -81,14 +79,14 @@ class AsyncConfigLoader:
         cache_configs: bool = True,
         secure_loader: SecureConfigLoader | None = None,
     ):
-        """
-        Initialize async configuration loader
+        """Initialize async configuration loader
 
         Args:
             enable_hot_reload: Enable file watching for configuration changes,
                               (requires watchdog package)
             cache_configs: Enable configuration caching for performance,
             secure_loader: SecureConfigLoader instance for encrypted configs,
+
         """
         self.enable_hot_reload = enable_hot_reload
         self.cache_configs = cache_configs
@@ -112,8 +110,7 @@ class AsyncConfigLoader:
             self.enable_hot_reload = False
 
     async def load_config_async(self, config_path: Path, config_type: str = "env") -> dict[str, Any]:
-        """
-        Load configuration file asynchronously
+        """Load configuration file asynchronously
 
         Args:
             config_path: Path to configuration file
@@ -121,6 +118,7 @@ class AsyncConfigLoader:
 
         Returns:
             Dictionary of configuration values
+
         """
         config_key = str(config_path)
 
@@ -217,14 +215,14 @@ class AsyncConfigLoader:
             return {}
 
     async def load_multiple_configs_async(self, config_paths: list[Path]) -> dict[str, Any]:
-        """
-        Load multiple configuration files concurrently
+        """Load multiple configuration files concurrently
 
         Args:
             config_paths: List of configuration file paths
 
         Returns:
             Merged configuration dictionary (later files override earlier)
+
         """
         # Create concurrent loading tasks
         tasks = [self.load_config_async(path) for path in config_paths]
@@ -341,8 +339,7 @@ def create_async_config_loader(
     cache_configs: bool = True,
     master_key: str | None = None,
 ) -> AsyncConfigLoader:
-    """
-    Create an AsyncConfigLoader with optional secure configuration support
+    """Create an AsyncConfigLoader with optional secure configuration support
 
     Args:
         enable_hot_reload: Enable file watching (requires watchdog package),
@@ -351,6 +348,7 @@ def create_async_config_loader(
 
     Returns:
         Configured AsyncConfigLoader instance
+
     """
     secure_loader = SecureConfigLoader(master_key) if master_key else None,
 
@@ -368,8 +366,7 @@ def create_async_config_loader(
 
 # Async utility functions
 async def load_app_config_async(app_name: str, project_root: Path, enable_hot_reload: bool = False) -> dict[str, Any]:
-    """
-    Load application configuration with standard fallback hierarchy
+    """Load application configuration with standard fallback hierarchy
 
     Loads in order (later configs override earlier):
     1. Global .env
@@ -386,6 +383,7 @@ async def load_app_config_async(app_name: str, project_root: Path, enable_hot_re
 
     Returns:
         Merged configuration dictionary
+
     """
     loader = create_async_config_loader(enable_hot_reload=enable_hot_reload)
 

@@ -10,8 +10,7 @@ logger = get_logger(__name__)
 
 
 def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> dict[str, dict[str, float]]:
-    """
-    Calculate descriptive statistics for dataset variables.
+    """Calculate descriptive statistics for dataset variables.
 
     Args:
         ds: Dataset to analyze
@@ -19,6 +18,7 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
 
     Returns:
         Dictionary of statistics per variable + correlation matrix,
+
     """
     stats_dict = {}
 
@@ -64,8 +64,7 @@ def describe(ds: xr.Dataset, percentiles: tuple[float, ...] = (5, 50, 95)) -> di
 
 
 def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str, dict[str, float]]:
-    """
-    Calculate correlation matrix between variables.
+    """Calculate correlation matrix between variables.
 
     Args:
         ds: Dataset with variables
@@ -73,6 +72,7 @@ def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str
 
     Returns:
         Correlation matrix as nested dictionary,
+
     """
     var_names = (list(ds.data_vars),)
     correlations = {}
@@ -105,8 +105,7 @@ def calculate_correlations(ds: xr.Dataset, method: str = "spearman") -> dict[str
 
 
 def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> dict[str, dict[str, float]]:
-    """
-    Compare statistics between two datasets.
+    """Compare statistics between two datasets.
 
     Args:
         stats1: First statistics dictionary
@@ -115,6 +114,7 @@ def compare_statistics(stats1: dict, stats2: dict, tolerance: float = 0.1) -> di
 
     Returns:
         Comparison results,
+
     """
     comparison = {}
 

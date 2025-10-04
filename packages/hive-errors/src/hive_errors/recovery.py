@@ -25,8 +25,7 @@ class RecoveryStatus(Enum):
 
 
 class RecoveryStrategy(ABC):
-    """
-    Generic base recovery strategy.
+    """Generic base recovery strategy.
 
     Provides fundamental recovery patterns that can be extended
     for any system's specific recovery needs.
@@ -34,8 +33,7 @@ class RecoveryStrategy(ABC):
 
     @abstractmethod
     def attempt_recovery(self, error: Exception, context: dict | None = None) -> RecoveryStatus:
-        """
-        Attempt recovery from an error.
+        """Attempt recovery from an error.
 
         Args:
             error: The exception to recover from
@@ -43,8 +41,8 @@ class RecoveryStrategy(ABC):
 
         Returns:
             RecoveryStatus indicating the outcome
+
         """
-        pass
 
     def reset(self) -> None:
         """Reset recovery attempt counter"""
@@ -75,5 +73,4 @@ class RetryStrategy(RecoveryStrategy):
         except Exception:
             if self.attempt_count >= self.max_attempts:
                 return RecoveryStatus.FAILED
-            else:
-                return RecoveryStatus.PARTIAL
+            return RecoveryStatus.PARTIAL

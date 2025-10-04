@@ -12,8 +12,7 @@ logger = get_logger(__name__)
 
 
 class GoldenRulesAnalyzer:
-    """
-    Analyzes code against the Hive platform's Golden Rules.
+    """Analyzes code against the Hive platform's Golden Rules.
 
     Integrates with the existing AST-based validator and SAFE autofix capabilities.
     Uses only AST-based transformations (NO REGEX code modification).
@@ -43,8 +42,7 @@ class GoldenRulesAnalyzer:
         }
 
     async def analyze(self, file_path: Path, content: str) -> AnalysisResult:
-        """
-        Analyze file against Golden Rules.
+        """Analyze file against Golden Rules.
 
         Args:
             file_path: Path to the file
@@ -52,6 +50,7 @@ class GoldenRulesAnalyzer:
 
         Returns:
             AnalysisResult with Golden Rules violations
+
         """
         start_time = time.time(),
         violations = [],
@@ -177,14 +176,14 @@ class GoldenRulesAnalyzer:
         return suggestions
 
     async def get_autofix_preview(self, file_path: Path) -> str | None:
-        """
-        Get a preview of what autofix would change.
+        """Get a preview of what autofix would change.
 
         Args:
             file_path: Path to the file
 
         Returns:
             Preview of changes or None if no fixes available
+
         """
         try:
             # Run autofix in dry-run mode

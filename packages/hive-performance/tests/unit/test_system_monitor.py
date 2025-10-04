@@ -19,7 +19,7 @@ class TestSystemMonitor:
         """Test system metrics monitoring."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'get_system_metrics'):
+        if hasattr(monitor, "get_system_metrics"):
             metrics = await monitor.get_system_metrics()
             assert isinstance(metrics, dict) or metrics is None
 
@@ -27,7 +27,7 @@ class TestSystemMonitor:
     def test_monitor_configuration(self):
         """Test monitor accepts configuration parameters."""
         from hive_performance.system_monitor import SystemMonitor
-        config = {'monitoring_interval': 5.0, 'enable_cpu_monitoring': True, 'enable_memory_monitoring': True, 'enable_disk_monitoring': True}
+        config = {"monitoring_interval": 5.0, "enable_cpu_monitoring": True, "enable_memory_monitoring": True, "enable_disk_monitoring": True}
         monitor = SystemMonitor(**config)
         assert monitor is not None
 
@@ -37,7 +37,7 @@ class TestSystemMonitor:
         """Test CPU monitoring functionality."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'get_cpu_usage'):
+        if hasattr(monitor, "get_cpu_usage"):
             cpu_usage = await monitor.get_cpu_usage()
             assert isinstance(cpu_usage, (int, float)) or cpu_usage is None
 
@@ -47,7 +47,7 @@ class TestSystemMonitor:
         """Test memory monitoring functionality."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'get_memory_usage'):
+        if hasattr(monitor, "get_memory_usage"):
             memory_usage = await monitor.get_memory_usage()
             assert isinstance(memory_usage, dict) or memory_usage is None
 
@@ -57,7 +57,7 @@ class TestSystemMonitor:
         """Test disk monitoring functionality."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'get_disk_usage'):
+        if hasattr(monitor, "get_disk_usage"):
             disk_usage = await monitor.get_disk_usage()
             assert isinstance(disk_usage, dict) or disk_usage is None
 
@@ -67,7 +67,7 @@ class TestSystemMonitor:
         """Test network monitoring functionality."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'get_network_stats'):
+        if hasattr(monitor, "get_network_stats"):
             network_stats = await monitor.get_network_stats()
             assert isinstance(network_stats, dict) or network_stats is None
 
@@ -77,7 +77,7 @@ class TestSystemMonitor:
         """Test process monitoring functionality."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'get_process_stats'):
+        if hasattr(monitor, "get_process_stats"):
             process_stats = await monitor.get_process_stats()
             assert isinstance(process_stats, list) or process_stats is None
 
@@ -87,9 +87,9 @@ class TestSystemMonitor:
         """Test system monitoring alerts."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'set_alert_threshold'):
-            monitor.set_alert_threshold('cpu', 90.0)
-        if hasattr(monitor, 'check_alerts'):
+        if hasattr(monitor, "set_alert_threshold"):
+            monitor.set_alert_threshold("cpu", 90.0)
+        if hasattr(monitor, "check_alerts"):
             alerts = await monitor.check_alerts()
             assert isinstance(alerts, list) or alerts is None
 
@@ -99,8 +99,8 @@ class TestSystemMonitor:
         """Test monitor lifecycle management."""
         from hive_performance.system_monitor import SystemMonitor
         monitor = SystemMonitor()
-        if hasattr(monitor, 'start_monitoring'):
+        if hasattr(monitor, "start_monitoring"):
             await monitor.start_monitoring()
-        if hasattr(monitor, 'stop_monitoring'):
+        if hasattr(monitor, "stop_monitoring"):
             await monitor.stop_monitoring()
         assert True

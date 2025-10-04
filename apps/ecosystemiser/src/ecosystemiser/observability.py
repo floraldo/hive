@@ -1,5 +1,4 @@
-"""
-Observability configuration with Prometheus metrics and OpenTelemetry tracing.,
+"""Observability configuration with Prometheus metrics and OpenTelemetry tracing.,
 
 Provides comprehensive monitoring and tracing capabilities:
 - Prometheus metrics for monitoring
@@ -257,12 +256,12 @@ def shutdown_observability() -> None:
 
 
 def track_time(metric: Histogram, labels: dict[str, str] | None = None) -> None:
-    """
-    Decorator to track execution time with Prometheus histogram.
+    """Decorator to track execution time with Prometheus histogram.
 
     Args:
         metric: Prometheus Histogram metric
         labels: Labels for the metric,
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -303,12 +302,12 @@ def track_time(metric: Histogram, labels: dict[str, str] | None = None) -> None:
 
 
 def count_calls(metric: Counter, labels: dict[str, str] | None = None) -> None:
-    """
-    Decorator to count function calls.
+    """Decorator to count function calls.
 
     Args:
         metric: Prometheus Counter metric
         labels: Labels for the metric,
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -339,15 +338,15 @@ def count_calls(metric: Counter, labels: dict[str, str] | None = None) -> None:
 
 @contextmanager
 def trace_span(
-    name: str, attributes: dict[str, Any] | None = None, record_exception: bool = True
+    name: str, attributes: dict[str, Any] | None = None, record_exception: bool = True,
 ) -> Generator[Any, None, None]:
-    """
-    Context manager for creating OpenTelemetry spans.
+    """Context manager for creating OpenTelemetry spans.
 
     Args:
         name: Span name,
         attributes: Span attributes,
         record_exception: Whether to record exceptions,
+
     """
     tracer = (_observability_manager.tracer,)
     if not tracer:
@@ -368,11 +367,11 @@ def trace_span(
 
 
 def track_adapter_request(adapter_name: str) -> None:
-    """
-    Decorator for tracking adapter requests.
+    """Decorator for tracking adapter requests.
 
     Args:
         adapter_name: Name of the adapter,
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -409,11 +408,11 @@ def track_adapter_request(adapter_name: str) -> None:
 
 
 def track_cache_operation(cache_level: str) -> None:
-    """
-    Decorator for tracking cache operations.
+    """Decorator for tracking cache operations.
 
     Args:
         cache_level: Cache level (memory, disk, redis)
+
     """
 
     def decorator(func: Callable) -> Callable:
@@ -449,11 +448,11 @@ def track_cache_operation(cache_level: str) -> None:
 
 
 def get_metrics() -> bytes:
-    """
-    Generate Prometheus metrics for scraping.
+    """Generate Prometheus metrics for scraping.
 
     Returns:
         Metrics in Prometheus text format,
+
     """
     # Update system metrics
     try:
@@ -503,21 +502,21 @@ class ClimateMetricsCollector:
 
 # Export main components
 __all__ = [
-    "init_observability",
-    "shutdown_observability",
-    "get_metrics",
-    "track_time",
+    "ClimateMetricsCollector",
+    "adapter_latency_seconds",
+    "adapter_requests_total",
+    "cache_hits_total",
+    "cache_misses_total",
     "count_calls",
+    "get_metrics",
+    "http_request_duration_seconds",
+    "http_requests_total",
+    "init_observability",
+    "job_processing_duration_seconds",
+    "job_queue_depth",
+    "shutdown_observability",
     "trace_span",
     "track_adapter_request",
     "track_cache_operation",
-    "ClimateMetricsCollector",
-    "http_requests_total",
-    "http_request_duration_seconds",
-    "adapter_requests_total",
-    "adapter_latency_seconds",
-    "cache_hits_total",
-    "cache_misses_total",
-    "job_queue_depth",
-    "job_processing_duration_seconds",
+    "track_time",
 ]

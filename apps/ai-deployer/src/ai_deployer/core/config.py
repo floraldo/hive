@@ -20,7 +20,6 @@ except ImportError:
     class HiveConfig(BaseModel):
         """Minimal hive config for fallback"""
 
-        pass
 
     def create_config_from_sources() -> HiveConfig:
         """Fallback config loader"""
@@ -80,14 +79,14 @@ class AIDeployerConfig(HiveConfig):
 
 
 def load_config(base_config: dict | None = None) -> AIDeployerConfig:
-    """
-    Load AI Deployer configuration extending hive config.
+    """Load AI Deployer configuration extending hive config.
 
     Args:
         base_config: Optional base configuration dict to use instead of global config
 
     Returns:
         AIDeployerConfig: Complete configuration with hive base + deployer extensions
+
     """
     # Load base hive configuration or use provided config (DI pattern)
     if base_config:

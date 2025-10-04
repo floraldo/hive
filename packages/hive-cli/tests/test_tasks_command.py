@@ -1,5 +1,4 @@
-"""
-Unit tests for tasks command --since filter functionality.
+"""Unit tests for tasks command --since filter functionality.
 
 Tests the time parsing utility and CLI integration for filtering tasks
 by creation date using relative time strings.

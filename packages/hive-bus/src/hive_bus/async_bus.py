@@ -1,5 +1,4 @@
-"""
-Async Event Bus for High-Performance Event-Driven Architecture
+"""Async Event Bus for High-Performance Event-Driven Architecture
 
 Provides async pub/sub with priority queues, event replay, and timeout handling.
 """
@@ -31,8 +30,7 @@ class EventPriority(IntEnum):
 
 @dataclass
 class AsyncEvent:
-    """
-    Async event with priority and metadata
+    """Async event with priority and metadata
 
     Attributes:
         event_type: Type/name of the event
@@ -43,6 +41,7 @@ class AsyncEvent:
         correlation_id: ID for tracking related events
         retry_count: Number of retry attempts
         metadata: Additional event metadata
+
     """
 
     event_type: str
@@ -64,7 +63,7 @@ class AsyncEvent:
             "timestamp": self.timestamp,
             "correlation_id": self.correlation_id,
             "retry_count": self.retry_count,
-            "metadata": self.metadata
+            "metadata": self.metadata,
         }
 
     @classmethod
@@ -78,13 +77,12 @@ class AsyncEvent:
             timestamp=data.get("timestamp", time.time()),
             correlation_id=data.get("correlation_id"),
             retry_count=data.get("retry_count", 0),
-            metadata=data.get("metadata", {})
+            metadata=data.get("metadata", {}),
         )
 
 
 class AsyncEventBus:
-    """
-    High-performance async event bus with priority queues and replay support
+    """High-performance async event bus with priority queues and replay support
 
     Features:
     - Async pub/sub with asyncio.Queue
@@ -100,16 +98,16 @@ class AsyncEventBus:
         max_queue_size: int = 1000,
         default_timeout: float = 30.0,
         enable_replay: bool = True,
-        max_replay_events: int = 100
+        max_replay_events: int = 100,
     ):
-        """
-        Initialize async event bus
+        """Initialize async event bus
 
         Args:
             max_queue_size: Maximum size for event queues,
             default_timeout: Default timeout for event handlers,
             enable_replay: Whether to enable event replay,
             max_replay_events: Maximum events to store for replay,
+
         """
         self._handlers: dict[str, List[Callable]] = defaultdict(list),
         self._queues: dict[str, asyncio.PriorityQueue] = {},
@@ -144,7 +142,7 @@ class AsyncEventBus:
         self._running = False
 
         # Cancel dead letter queue task,
-        if hasattr(self, '_dlq_task') and self._dlq_task:
+        if hasattr(self, "_dlq_task") and self._dlq_task:
             self._dlq_task.cancel()
             try:
                 await self._dlq_task,
@@ -165,15 +163,15 @@ class AsyncEventBus:
         self,
         event_type: str,
         handler: Callable[[AsyncEvent], Coroutine[Any, Any, None]],
-        priority: EventPriority = EventPriority.NORMAL
+        priority: EventPriority = EventPriority.NORMAL,
     ):
-        """
-        Subscribe to an event type
+        """Subscribe to an event type
 
         Args:
             event_type: Type of event to subscribe to,
             handler: Async function to handle the event,
             priority: Priority level for this handler,
+
         """
         if not asyncio.iscoroutinefunction(handler):
             raise ValueError(f"Handler {handler.__name__} must be an async function")
@@ -194,7 +192,7 @@ class AsyncEventBus:
     def unsubscribe(
         self,
         event_type: str,
-        handler: Callable[[AsyncEvent], Coroutine[Any, Any, None]]
+        handler: Callable[[AsyncEvent], Coroutine[Any, Any, None]],
     ):
         """Unsubscribe from an event type"""
         if event_type in self._handlers:
@@ -216,10 +214,9 @@ class AsyncEventBus:
         data: dict[str, Any],
         priority: EventPriority = EventPriority.NORMAL,
         correlation_id: str | None = None,
-        timeout: float | None = None
+        timeout: float | None = None,
     ) -> str:
-        """
-        Publish an event asynchronously
+        """Publish an event asynchronously
 
         Args:
             event_type: Type of event to publish,
@@ -230,12 +227,13 @@ class AsyncEventBus:
 
         Returns:
             Event ID of published event,
+
         """
         event = AsyncEvent(
             event_type=event_type,
             data=data,
             priority=priority,
-            correlation_id=correlation_id
+            correlation_id=correlation_id,
         )
 
         # Store in replay buffer if enabled,
@@ -250,7 +248,7 @@ class AsyncEventBus:
                 # Use priority value for queue ordering (lower value = higher priority)
                 await asyncio.wait_for(
                     self._queues[event_type].put((event.priority.value, event.timestamp, event)),
-                    timeout=timeout or self._default_timeout
+                    timeout=timeout or self._default_timeout,
                 )
                 self._stats["events_published"] += 1
                 logger.debug(f"Published event {event.event_id} of type {event_type}")
@@ -269,10 +267,9 @@ class AsyncEventBus:
     async def publish_batch_async(
         self,
         events: List[tuple[str, dict[str, Any], EventPriority]],
-        correlation_id: str | None = None
+        correlation_id: str | None = None,
     ) -> List[str]:
-        """
-        Publish multiple events in batch
+        """Publish multiple events in batch
 
         Args:
             events: List of (event_type, data, priority) tuples,
@@ -280,6 +277,7 @@ class AsyncEventBus:
 
         Returns:
             List of event IDs,
+
         """
         event_ids = [],
         correlation_id = correlation_id or str(uuid4())
@@ -289,7 +287,7 @@ class AsyncEventBus:
                 event_type=event_type,
                 data=data,
                 priority=priority,
-                correlation_id=correlation_id
+                correlation_id=correlation_id,
             )
             event_ids.append(event_id)
 
@@ -309,7 +307,7 @@ class AsyncEventBus:
                     try:
                         await asyncio.wait_for(
                             handler_async(event),
-                            timeout=self._default_timeout
+                            timeout=self._default_timeout,
                         )
                         self._stats["events_processed"] += 1
                     except TimeoutError:
@@ -322,8 +320,8 @@ class AsyncEventBus:
                                 (
                                     EventPriority.LOW.value,
                                     event.timestamp,
-                                    event
-                                )
+                                    event,
+                                ),
                             )
                         else:
                             # Send to dead letter queue,
@@ -338,8 +336,8 @@ class AsyncEventBus:
                                 (
                                     EventPriority.LOW.value,
                                     event.timestamp,
-                                    event
-                                )
+                                    event,
+                                ),
                             )
                         else:
                             # Send to dead letter queue,
@@ -357,11 +355,11 @@ class AsyncEventBus:
             try:
                 event = await asyncio.wait_for(
                     self._dead_letter_queue.get(),
-                    timeout=5.0
+                    timeout=5.0,
                 )
                 logger.warning(
                     f"Dead letter event: {event.event_id} of type {event.event_type}, ",
-                    f"retry count: {event.retry_count}"
+                    f"retry count: {event.retry_count}",
                 )
                 # Could implement retry logic or persistence here,
             except TimeoutError:
@@ -374,10 +372,9 @@ class AsyncEventBus:
         self,
         event_types: Optional[List[str]] = None,
         correlation_id: str | None = None,
-        since_timestamp: float | None = None
+        since_timestamp: float | None = None,
     ) -> int:
-        """
-        Replay events from buffer
+        """Replay events from buffer
 
         Args:
             event_types: Optional list of event types to replay,
@@ -386,6 +383,7 @@ class AsyncEventBus:
 
         Returns:
             Number of events replayed,
+
         """
         if not self._enable_replay:
             logger.warning("Event replay is disabled")
@@ -406,7 +404,7 @@ class AsyncEventBus:
                 event_type=event.event_type,
                 data=event.data,
                 priority=event.priority,
-                correlation_id=event.correlation_id
+                correlation_id=event.correlation_id,
             )
             replayed += 1
 
@@ -420,17 +418,16 @@ class AsyncEventBus:
             "queue_sizes": {event_type: queue.qsize() for event_type, queue in self._queues.items()},
             "dead_letter_queue_size": self._dead_letter_queue.qsize(),
             "replay_buffer_size": len(self._replay_buffer),
-            "handler_count": sum(len(handlers) for handlers in self._handlers.values())
+            "handler_count": sum(len(handlers) for handlers in self._handlers.values()),
         }
 
     async def wait_for_event_async(
         self,
         event_type: str,
         predicate: Optional[Callable[[AsyncEvent], bool]] = None,
-        timeout: float = 30.0
+        timeout: float = 30.0,
     ) -> AsyncEvent | None:
-        """
-        Wait for a specific event
+        """Wait for a specific event
 
         Args:
             event_type: Type of event to wait for,
@@ -439,6 +436,7 @@ class AsyncEventBus:
 
         Returns:
             Matching event or None if timeout
+
         """
         received_event = None,
         event_received = asyncio.Event()

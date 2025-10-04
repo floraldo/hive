@@ -1,5 +1,4 @@
-"""
-Planning module for generating execution plans.
+"""Planning module for generating execution plans.
 
 Converts parsed requirements into executable task lists.
 """

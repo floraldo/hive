@@ -1,5 +1,4 @@
-"""
-RAG-Enhanced PR Comment Engine - Read-Only Guardian Integration.
+"""RAG-Enhanced PR Comment Engine - Read-Only Guardian Integration.
 
 This is the SAFE first integration of RAG with Guardian Agent. Instead of
 automatically fixing code, the Guardian posts intelligent comments on PRs
@@ -70,11 +69,11 @@ class PRComment:
     confidence_score: float = 0.0
 
     def to_github_comment(self) -> str:
-        """
-        Format as GitHub PR comment markdown.
+        """Format as GitHub PR comment markdown.
 
         Returns:
             GitHub-flavored markdown comment
+
         """
         lines = [f"**{self.title}**", ""]
 
@@ -106,7 +105,7 @@ class PRComment:
         lines.append("---")
         lines.append(
             f"*Guardian Agent with RAG • Confidence: {self.confidence_score:.0%} • "
-            f"Retrieved: {len(self.rag_patterns_used)} patterns in {self.retrieval_time_ms:.0f}ms*"
+            f"Retrieved: {len(self.rag_patterns_used)} patterns in {self.retrieval_time_ms:.0f}ms*",
         )
 
         return "\n".join(lines)
@@ -139,8 +138,7 @@ class PRCommentBatch:
 
 
 class RAGEnhancedCommentEngine:
-    """
-    RAG-Enhanced PR comment engine for Guardian Agent.
+    """RAG-Enhanced PR comment engine for Guardian Agent.
 
     This is the SAFE read-only integration that posts intelligent comments
     on PRs without modifying code.
@@ -154,11 +152,11 @@ class RAGEnhancedCommentEngine:
     """
 
     def __init__(self, rag_index_path: Path | None = None):
-        """
-        Initialize RAG-enhanced comment engine.
+        """Initialize RAG-enhanced comment engine.
 
         Args:
             rag_index_path: Path to RAG index (defaults to data/rag_index)
+
         """
         # Initialize RAG query engine
         self.query_engine = QueryEngine()
@@ -195,8 +193,7 @@ class RAGEnhancedCommentEngine:
         pr_files: list[tuple[str, str]],
         pr_number: int,
     ) -> PRCommentBatch:
-        """
-        Analyze PR files and generate intelligent comments.
+        """Analyze PR files and generate intelligent comments.
 
         This is the main entry point for read-only PR review.
 
@@ -206,6 +203,7 @@ class RAGEnhancedCommentEngine:
 
         Returns:
             PRCommentBatch with all generated comments
+
         """
         start_time = time.time()
         comment_batch = PRCommentBatch(pr_number=pr_number, files_analyzed=len(pr_files))
@@ -258,8 +256,7 @@ class RAGEnhancedCommentEngine:
         pattern_type: str,
         context: str,
     ) -> PRComment | None:
-        """
-        Generate comment for detected pattern using RAG context.
+        """Generate comment for detected pattern using RAG context.
 
         Args:
             file_path: File being reviewed
@@ -269,6 +266,7 @@ class RAGEnhancedCommentEngine:
 
         Returns:
             PRComment if relevant context found, None otherwise
+
         """
         if not self.rag_available:
             return None
@@ -309,8 +307,7 @@ class RAGEnhancedCommentEngine:
         file_path: str,
         diff: str,
     ) -> list[PRComment]:
-        """
-        Check for deprecated patterns in diff.
+        """Check for deprecated patterns in diff.
 
         Args:
             file_path: File being reviewed
@@ -318,6 +315,7 @@ class RAGEnhancedCommentEngine:
 
         Returns:
             List of deprecation warning comments
+
         """
         if not self.rag_available:
             return []
@@ -344,17 +342,17 @@ class RAGEnhancedCommentEngine:
                         deprecation_warnings=[warning],
                         retrieval_time_ms=result.retrieval_time_ms,
                         confidence_score=0.8,
-                    )
+                    ),
                 )
 
         return comments
 
     def _detect_patterns_in_diff(self, diff: str) -> list[tuple[str, int, str]]:
-        """
-        Detect code patterns in diff that warrant RAG-enhanced comments.
+        """Detect code patterns in diff that warrant RAG-enhanced comments.
 
         Returns:
             List of (pattern_type, line_number, context) tuples
+
         """
         patterns = []
         lines = diff.split("\n")
@@ -395,10 +393,9 @@ class RAGEnhancedCommentEngine:
         """Determine comment type from RAG context."""
         if context.golden_rules:
             return "golden_rule_violation"
-        elif context.deprecation_warnings:
+        if context.deprecation_warnings:
             return "deprecation_warning"
-        else:
-            return "suggestion"
+        return "suggestion"
 
     def _generate_comment_text(self, pattern_type: str, context: Any) -> tuple[str, str]:
         """Generate comment title and message from pattern and context."""

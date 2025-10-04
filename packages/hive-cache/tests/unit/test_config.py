@@ -13,7 +13,7 @@ class TestCacheConfig:
             from hive_cache import config
             assert config is not None
         except ImportError:
-            pytest.skip('Config module not found as separate module')
+            pytest.skip("Config module not found as separate module")
 
     @pytest.mark.core
     def test_cache_configuration_defaults(self):
@@ -21,9 +21,9 @@ class TestCacheConfig:
         try:
             from hive_cache.config import CacheConfig
             config = CacheConfig()
-            assert hasattr(config, 'ttl') or hasattr(config, 'max_size')
+            assert hasattr(config, "ttl") or hasattr(config, "max_size")
         except ImportError:
-            pytest.skip('CacheConfig not found as separate class')
+            pytest.skip("CacheConfig not found as separate class")
 
     @pytest.mark.core
     def test_cache_settings_validation(self):

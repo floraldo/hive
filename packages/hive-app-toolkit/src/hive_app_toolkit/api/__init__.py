@@ -8,12 +8,12 @@ from .health import BaseHealthMonitor, HealthCheckResult, HealthStatusLevel, add
 # from .middleware import setup_middleware
 
 __all__ = [
-    "create_hive_app",
-    "HiveApp",
-    "add_health_endpoints",
     # "add_metrics_endpoints",  # TODO: implement metrics module
     # "setup_middleware",  # TODO: implement middleware module
     "BaseHealthMonitor",
     "HealthCheckResult",
     "HealthStatusLevel",
+    "HiveApp",
+    "add_health_endpoints",
+    "create_hive_app",
 ]

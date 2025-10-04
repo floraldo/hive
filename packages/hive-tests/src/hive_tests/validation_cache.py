@@ -1,5 +1,4 @@
-"""
-Smart caching layer for Golden Rules validation results.
+"""Smart caching layer for Golden Rules validation results.
 
 Uses SHA256 file hashing to cache validation results.
 Provides 95% speed improvement for repeated validations.
@@ -67,8 +66,7 @@ class ValidationCache:
             return ""
 
     def get_cached_result(self, file_path: Path, rule_name: str) -> tuple[bool, list[str]] | None:
-        """
-        Get cached validation result if available and fresh.
+        """Get cached validation result if available and fresh.
 
         Args:
             file_path: File to check
@@ -76,6 +74,7 @@ class ValidationCache:
 
         Returns:
             Tuple of (passed, violations) if cached, None if not cached or stale
+
         """
         file_hash = self._compute_file_hash(file_path)
         if not file_hash:
@@ -101,14 +100,14 @@ class ValidationCache:
         return (bool(passed), violations)
 
     def cache_result(self, file_path: Path, rule_name: str, passed: bool, violations: list[str]) -> None:
-        """
-        Cache validation result for file.
+        """Cache validation result for file.
 
         Args:
             file_path: File validated
             rule_name: Golden rule name
             passed: Whether validation passed
             violations: List of violation messages
+
         """
         file_hash = self._compute_file_hash(file_path)
         if not file_hash:
@@ -134,14 +133,14 @@ class ValidationCache:
         conn.close()
 
     def clear_cache(self, older_than_days: int | None = None) -> int:
-        """
-        Clear cache entries.
+        """Clear cache entries.
 
         Args:
             older_than_days: If specified, only clear entries older than this many days
 
         Returns:
             Number of entries deleted
+
         """
         conn = sqlite3.connect(self.db_path)
 
@@ -157,11 +156,11 @@ class ValidationCache:
         return deleted
 
     def get_stats(self) -> dict:
-        """
-        Get cache statistics.
+        """Get cache statistics.
 
         Returns:
             Dictionary with cache statistics
+
         """
         conn = (sqlite3.connect(self.db_path),)
         cursor = (conn.execute("SELECT COUNT(*) FROM validation_results"),)

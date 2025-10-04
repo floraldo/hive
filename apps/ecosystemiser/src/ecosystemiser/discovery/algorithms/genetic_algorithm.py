@@ -49,6 +49,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         Raises:
             ValueError: If configuration parameters are invalid
+
         """
         super().__init__(config)
         self.ga_config = config
@@ -69,6 +70,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         Raises:
             ValueError: If any configuration parameter is invalid
+
         """
         # Validate rates
         if not 0 <= config.mutation_rate <= 1:
@@ -113,6 +115,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         Returns:
             Dict with cache hits, misses, and hit rate
+
         """
         total_accesses = (self._cache_hits + self._cache_misses,)
         hit_rate = (self._cache_hits / total_accesses * 100) if total_accesses > 0 else 0.0
@@ -211,7 +214,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         if self._cache_hits + self._cache_misses > 0:
             cache_hit_rate = self._cache_hits / (self._cache_hits + self._cache_misses) * 100
             logger.debug(
-                f"Fitness cache: {self._cache_hits} hits, {self._cache_misses} misses ({cache_hit_rate:.1f}% hit rate)"
+                f"Fitness cache: {self._cache_hits} hits, {self._cache_misses} misses ({cache_hit_rate:.1f}% hit rate)",
             )
 
         return evaluations
@@ -222,7 +225,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         if self._fitness_function is None:
             raise RuntimeError(
                 "Fitness function not set. Call optimize() instead of update_population() directly, "
-                "or set self._fitness_function before calling this method."
+                "or set self._fitness_function before calling this method.",
             )
 
         # Selection
@@ -251,10 +254,9 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         """Select parents for reproduction."""
         if self.ga_config.selection_method == "tournament":
             return self._tournament_selection(evaluations)
-        elif self.ga_config.selection_method == "roulette":
+        if self.ga_config.selection_method == "roulette":
             return self._roulette_selection(evaluations)
-        else:
-            return self._rank_selection(evaluations)
+        return self._rank_selection(evaluations)
 
     def _tournament_selection(self, evaluations: list[dict[str, Any]]) -> np.ndarray:
         """Tournament selection for parent selection."""
@@ -324,6 +326,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         Returns:
             Offspring population
+
         """
         # Calculate adaptive rates based on population diversity
         adapted_mutation, adapted_crossover = self._adapt_rates(parents, generation)
@@ -355,10 +358,9 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         """Crossover operation between two parents."""
         if self.ga_config.crossover_method == "sbx":
             return self._simulated_binary_crossover(parent1, parent2)
-        elif self.ga_config.crossover_method == "uniform":
+        if self.ga_config.crossover_method == "uniform":
             return self._uniform_crossover(parent1, parent2)
-        else:
-            return self._arithmetic_crossover(parent1, parent2)
+        return self._arithmetic_crossover(parent1, parent2)
 
     def _simulated_binary_crossover(self, parent1: np.ndarray, parent2: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Simulated binary crossover (SBX)."""
@@ -406,19 +408,20 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         Returns:
             Mutated individual
+
         """
         if self.ga_config.mutation_method == "polynomial":
             return self._polynomial_mutation(individual, mutation_rate)
-        elif self.ga_config.mutation_method == "uniform":
+        if self.ga_config.mutation_method == "uniform":
             return self._uniform_mutation(individual, mutation_rate)
-        else:
-            return self._gaussian_mutation(individual, mutation_rate)
+        return self._gaussian_mutation(individual, mutation_rate)
 
     def _calculate_diversity(self, population: np.ndarray) -> float:
         """Calculate population diversity as average pairwise distance.
 
         Returns:
             Diversity metric (0 = no diversity, higher = more diverse)
+
         """
         if len(population) < 2:
             return 0.0
@@ -451,6 +454,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         Returns:
             Adapted (mutation_rate, crossover_rate)
+
         """
         diversity = self._calculate_diversity(population)
 
@@ -476,7 +480,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
 
         logger.debug(
             f"Generation {generation}: diversity={normalized_diversity:.3f}, "
-            f"mutation_rate={adapted_mutation:.3f}, crossover_rate={adapted_crossover:.3f}"
+            f"mutation_rate={adapted_mutation:.3f}, crossover_rate={adapted_crossover:.3f}",
         )
 
         return adapted_mutation, adapted_crossover
@@ -487,6 +491,7 @@ class GeneticAlgorithm(BaseOptimizationAlgorithm):
         Args:
             individual: Individual to mutate
             mutation_rate: Optional override for mutation rate
+
         """
         eta = 20.0  # Distribution index,
         mutated = (individual.copy(),)
@@ -569,6 +574,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
 
         Args:
             config: Genetic algorithm configuration,
+
         """
         super().__init__(config)
         self.ga_config = config
@@ -775,7 +781,7 @@ class NSGAIIOptimizer(BaseOptimizationAlgorithm):
         for obj_a, obj_b in zip(objectives_a, objectives_b, strict=False):
             if obj_a > obj_b:  # A is worse in this objective
                 return False
-            elif obj_a < obj_b:  # A is better in this objective
+            if obj_a < obj_b:  # A is better in this objective
                 at_least_one_better = True
 
         return at_least_one_better

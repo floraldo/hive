@@ -1,5 +1,4 @@
-"""
-Unit tests for ErrorAnalyzer component.
+"""Unit tests for ErrorAnalyzer component.
 
 Tests error parsing from pytest, ruff, mypy output.
 """

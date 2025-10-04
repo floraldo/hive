@@ -1,6 +1,4 @@
-# ruff: noqa: S608
-"""
-Core Event Bus implementation for Hive
+"""Core Event Bus implementation for Hive
 
 Provides a database-backed event bus for reliable inter-agent communication.
 The bus makes the implicit choreography pattern explicit and adds full
@@ -25,11 +23,9 @@ from hive_logging import get_logger
 # Event bus specific errors
 class EventPublishError(BaseError):
     """Error raised when event publishing fails."""
-    pass
 
 class EventSubscribeError(BaseError):
     """Error raised when event subscription fails."""
-    pass
 
 # Async imports for Phase 4.1
 try:
@@ -48,8 +44,7 @@ logger = get_logger(__name__)
 
 
 class EventBus:
-    """
-    Database-backed event bus for inter-agent communication
+    """Database-backed event bus for inter-agent communication
 
     Features:
     - Persistent event storage in SQLite
@@ -64,6 +59,7 @@ class EventBus:
 
         Args:
             config: Event bus configuration dictionary
+
         """
         self.config = config if config is not None else {}
         self._subscribers: dict[str, list[EventSubscriber]] = {}
@@ -130,8 +126,7 @@ class EventBus:
             conn.commit()
 
     def publish(self, event: Event | dict[str, Any], correlation_id: str | None = None) -> str:
-        """
-        Publish an event to the bus
+        """Publish an event to the bus
 
         Args:
             event: Event object or event data dict
@@ -142,6 +137,7 @@ class EventBus:
 
         Raises:
             EventPublishError: If publishing fails
+
         """
         try:
             # Convert dict to Event if needed
@@ -189,8 +185,7 @@ class EventBus:
         callback: Callable[[Event], None],
         subscriber_name: str = "anonymous",
     ) -> str:
-        """
-        Subscribe to events matching a pattern
+        """Subscribe to events matching a pattern
 
         Args:
             event_pattern: Event type pattern (supports wildcards)
@@ -199,6 +194,7 @@ class EventBus:
 
         Returns:
             Subscription ID,
+
         """
         try:
             subscriber = EventSubscriber(pattern=event_pattern, callback=callback, subscriber_name=subscriber_name)
@@ -215,14 +211,14 @@ class EventBus:
             raise EventSubscribeError(f"Failed to subscribe: {e}") from e
 
     def unsubscribe(self, subscription_id: str) -> bool:
-        """
-        Remove a subscription
+        """Remove a subscription
 
         Args:
             subscription_id: ID of subscription to remove
 
         Returns:
             True if subscription was found and removed
+
         """
         with self._subscriber_lock:
             for _pattern, subscribers in self._subscribers.items():
@@ -262,8 +258,7 @@ class EventBus:
         since: datetime | None = None,
         limit: int = 100,
     ) -> list[Event]:
-        """
-        Query events from the bus
+        """Query events from the bus
 
         Args:
             event_type: Filter by event type,
@@ -274,6 +269,7 @@ class EventBus:
 
         Returns:
             List of matching events,
+
         """
         query_parts = (["SELECT * FROM events WHERE 1=1"],)
         params = []
@@ -330,8 +326,7 @@ class EventBus:
     if ASYNC_AVAILABLE:
 
         async def publish_async(self, event: Event, correlation_id: str = None) -> str:
-            """
-            Async version of publish for high-performance event publishing.
+            """Async version of publish for high-performance event publishing.
 
             Args:
                 event: Event to publish
@@ -339,6 +334,7 @@ class EventBus:
 
             Returns:
                 Event ID of published event
+
             """
             try:
                 # Set correlation ID if provided
@@ -383,8 +379,7 @@ class EventBus:
             source_agent: str = None,
             limit: int = 100,
         ) -> list[Event]:
-            """
-            Async version of get_events for high-performance event retrieval.
+            """Async version of get_events for high-performance event retrieval.
 
             Args:
                 event_type: Filter by event type
@@ -394,6 +389,7 @@ class EventBus:
 
             Returns:
                 List of matching events
+
             """
             try:
                 # Build dynamic query
@@ -443,14 +439,14 @@ class EventBus:
                 return []
 
         async def get_event_history_async(self, correlation_id: str) -> list[Event]:
-            """
-            Async version of get_event_history for workflow tracing.
+            """Async version of get_event_history for workflow tracing.
 
             Args:
                 correlation_id: Correlation ID to trace
 
             Returns:
                 List of events in chronological order
+
             """
             try:
                 async with get_async_connection() as conn:

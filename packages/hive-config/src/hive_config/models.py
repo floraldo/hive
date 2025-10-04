@@ -22,8 +22,7 @@ class ConfigSources(Enum):
 
 @dataclass
 class AppConfig:
-    """
-    Secure, hierarchical configuration for Hive apps.
+    """Secure, hierarchical configuration for Hive apps.
 
     Tracks configuration values and their sources for security auditing
     and debugging purposes.

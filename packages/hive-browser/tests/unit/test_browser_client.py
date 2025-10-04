@@ -79,7 +79,7 @@ class TestBrowserNavigation:
 
         mock_browser.new_page.assert_called_once()
         mock_page.goto.assert_called_once_with(
-            "https://example.com", wait_until="domcontentloaded", timeout=30000
+            "https://example.com", wait_until="domcontentloaded", timeout=30000,
         )
         assert page == mock_page
 
@@ -118,7 +118,7 @@ class TestBrowserNavigation:
         browser.goto_url("https://example.com", timeout=60000)
 
         mock_page.goto.assert_called_once_with(
-            "https://example.com", wait_until="domcontentloaded", timeout=60000
+            "https://example.com", wait_until="domcontentloaded", timeout=60000,
         )
 
 

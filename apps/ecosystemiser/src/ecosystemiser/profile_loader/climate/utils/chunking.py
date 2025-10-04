@@ -1,5 +1,4 @@
-"""
-Utilities for chunked data processing to manage memory usage.
+"""Utilities for chunked data processing to manage memory usage.
 """
 
 from collections.abc import Generator
@@ -18,8 +17,7 @@ def split_date_range(
     end_date: datetime,
     chunk_days: int = 365,
 ) -> list[tuple[datetime, datetime]]:
-    """
-    Split a date range into chunks to prevent memory issues.
+    """Split a date range into chunks to prevent memory issues.
 
     Args:
         start_date: Start of the period,
@@ -28,6 +26,7 @@ def split_date_range(
 
     Returns:
         List of (start, end) date tuples for each chunk,
+
     """
     chunks = ([],)
     current_start = start_date
@@ -41,8 +40,7 @@ def split_date_range(
 
 
 def process_in_chunks(ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: int = 365) -> xr.Dataset:
-    """
-    Process large dataset in memory-efficient chunks.
+    """Process large dataset in memory-efficient chunks.
 
     Args:
         ds: Input dataset
@@ -51,6 +49,7 @@ def process_in_chunks(ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: in
 
     Returns:
         Chunked dataset ready for lazy processing,
+
     """
     # Rechunk the dataset for memory efficiency
     if "time" in ds.dims:
@@ -68,8 +67,7 @@ def process_in_chunks(ds: xr.Dataset, chunk_size: str = "100MB", time_chunks: in
 
 
 def concatenate_chunked_results(chunks: list[xr.Dataset], dim: str = "time") -> xr.Dataset:
-    """
-    Efficiently concatenate chunked datasets.
+    """Efficiently concatenate chunked datasets.
 
     Args:
         chunks: List of dataset chunks
@@ -77,6 +75,7 @@ def concatenate_chunked_results(chunks: list[xr.Dataset], dim: str = "time") -> 
 
     Returns:
         Combined dataset,
+
     """
     if not chunks:
         raise ValueError("No chunks to concatenate")
@@ -99,14 +98,14 @@ def concatenate_chunked_results(chunks: list[xr.Dataset], dim: str = "time") -> 
 
 
 def estimate_memory_usage(ds: xr.Dataset) -> float:
-    """
-    Estimate memory usage of a dataset in MB.
+    """Estimate memory usage of a dataset in MB.
 
     Args:
         ds: Dataset to estimate
 
     Returns:
         Estimated memory usage in MB,
+
     """
     total_size = 0
 
@@ -121,8 +120,7 @@ def estimate_memory_usage(ds: xr.Dataset) -> float:
 
 
 def create_time_chunks_generator(ds: xr.Dataset, chunk_days: int = 30) -> Generator[xr.Dataset, None, None]:
-    """
-    Generate time chunks from a dataset for streaming processing.
+    """Generate time chunks from a dataset for streaming processing.
 
     Args:
         ds: Input dataset
@@ -130,6 +128,7 @@ def create_time_chunks_generator(ds: xr.Dataset, chunk_days: int = 30) -> Genera
 
     Yields:
         Dataset chunks,
+
     """
     if "time" not in ds.dims:
         yield (ds,)
@@ -148,8 +147,7 @@ def create_time_chunks_generator(ds: xr.Dataset, chunk_days: int = 30) -> Genera
 
 
 def apply_chunked_operation(ds: xr.Dataset, operation: callable, chunk_days: int = 30, **kwargs) -> xr.Dataset:
-    """
-    Apply an operation to a dataset in chunks and combine results.
+    """Apply an operation to a dataset in chunks and combine results.
 
     Args:
         ds: Input dataset
@@ -159,6 +157,7 @@ def apply_chunked_operation(ds: xr.Dataset, operation: callable, chunk_days: int
 
     Returns:
         Processed dataset,
+
     """
     results = []
 

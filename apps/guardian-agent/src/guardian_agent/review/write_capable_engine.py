@@ -1,9 +1,7 @@
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this module use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-Write-Capable Guardian Engine.
+"""Write-Capable Guardian Engine.
 
 Extends RAGEnhancedCommentEngine with the ability to propose and apply
 safe code changes. Integrates with RAG for context-aware improvements.
@@ -32,8 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 class WriteCapableEngine(RAGEnhancedCommentEngine):
-    """
-    Guardian engine capable of proposing and applying code changes.
+    """Guardian engine capable of proposing and applying code changes.
 
     Extends read-only RAG engine with write capabilities, implementing
     progressive safety levels and comprehensive validation.
@@ -46,14 +43,14 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
         safety_gates: list[SafetyGate] | None = None,
         proposals_dir: str | Path | None = None,
     ):
-        """
-        Initialize write-capable engine.
+        """Initialize write-capable engine.
 
         Args:
             rag_index_dir: RAG index directory
             write_config: Write mode configuration
             safety_gates: Custom safety gates (uses standard if None)
             proposals_dir: Directory to store change proposals
+
         """
         super().__init__(rag_index_dir=rag_index_dir)
 
@@ -81,8 +78,7 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
         pr_title: str,
         pr_description: str,
     ) -> dict[str, Any]:
-        """
-        Analyze PR and generate both comments and change proposals.
+        """Analyze PR and generate both comments and change proposals.
 
         Returns:
             {
@@ -90,6 +86,7 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
                 "proposals": [...],  # Change proposals for safe fixes
                 "metrics": {...}
             }
+
         """
         # Get traditional comments
         result = await self.analyze_pr(
@@ -137,8 +134,7 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
         comment: dict[str, Any],
         pr_number: int,
     ) -> ChangeProposal | None:
-        """
-        Generate change proposal from detected issue.
+        """Generate change proposal from detected issue.
 
         Uses RAG to find similar patterns and generate safe fix.
         """
@@ -199,11 +195,11 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
         return proposal
 
     async def _validate_proposal(self, proposal: ChangeProposal) -> bool:
-        """
-        Validate proposal through all applicable safety gates.
+        """Validate proposal through all applicable safety gates.
 
         Returns:
             True if proposal passes all gates
+
         """
         for gate in self.safety_gates:
             if not gate.applies_to(proposal):
@@ -225,8 +221,7 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
         proposal_id: str,
         approved_by: str,
     ) -> bool:
-        """
-        Approve a change proposal.
+        """Approve a change proposal.
 
         Args:
             proposal_id: Proposal identifier
@@ -234,6 +229,7 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
 
         Returns:
             True if approved successfully
+
         """
         proposal = self._load_proposal(proposal_id)
         if not proposal:
@@ -275,8 +271,7 @@ class WriteCapableEngine(RAGEnhancedCommentEngine):
         self,
         proposal_id: str,
     ) -> bool:
-        """
-        Apply an approved change proposal.
+        """Apply an approved change proposal.
 
         Creates git commit for rollback capability.
         """
@@ -408,11 +403,11 @@ Proposal ID: {proposal.proposal_id}
         line_number: int,
         rag_context: str,
     ) -> tuple[str, str]:
-        """
-        Generate code fix based on category and context.
+        """Generate code fix based on category and context.
 
         Returns:
             (old_code, new_code) tuple
+
         """
         # Read file
         try:
@@ -471,7 +466,7 @@ Proposal ID: {proposal.proposal_id}
     ) -> str:
         """Generate unique proposal ID."""
         content = f"{file_path}:{line_number}:{category.value}:{datetime.now().isoformat()}"
-        return hashlib.md5(content.encode()).hexdigest()[:12]  # noqa: S324
+        return hashlib.md5(content.encode()).hexdigest()[:12]
 
     def _save_proposal(self, proposal: ChangeProposal) -> None:
         """Save proposal to disk."""

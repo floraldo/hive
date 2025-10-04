@@ -1,3 +1,2 @@
-"""
-Test suite for auto_fix module.
+"""Test suite for auto_fix module.
 """

@@ -1,5 +1,4 @@
-"""
-Unit tests for resilience module (AsyncCircuitBreaker).
+"""Unit tests for resilience module (AsyncCircuitBreaker).
 
 Tests circuit breaker functionality:
 - State transitions (CLOSED → OPEN → HALF_OPEN → CLOSED)
@@ -26,9 +25,9 @@ class TestCircuitState:
     @pytest.mark.core
     def test_circuit_states(self):
         """Test that all circuit states are defined."""
-        assert CircuitState.CLOSED.value == 'closed'
-        assert CircuitState.OPEN.value == 'open'
-        assert CircuitState.HALF_OPEN.value == 'half_open'
+        assert CircuitState.CLOSED.value == "closed"
+        assert CircuitState.OPEN.value == "open"
+        assert CircuitState.HALF_OPEN.value == "half_open"
 
 @pytest.mark.core
 class TestAsyncCircuitBreakerInitialization:
@@ -41,7 +40,7 @@ class TestAsyncCircuitBreakerInitialization:
         assert cb.failure_threshold == 5
         assert cb.recovery_timeout == 60
         assert cb.expected_exception is Exception
-        assert cb.name == 'default'
+        assert cb.name == "default"
         assert cb.failure_count == 0
         assert cb.last_failure_time is None
         assert cb.state == CircuitState.CLOSED
@@ -49,11 +48,11 @@ class TestAsyncCircuitBreakerInitialization:
     @pytest.mark.core
     def test_custom_initialization(self):
         """Test circuit breaker with custom values."""
-        cb = AsyncCircuitBreaker(failure_threshold=3, recovery_timeout=30, expected_exception=ValueError, name='test_breaker')
+        cb = AsyncCircuitBreaker(failure_threshold=3, recovery_timeout=30, expected_exception=ValueError, name="test_breaker")
         assert cb.failure_threshold == 3
         assert cb.recovery_timeout == 30
         assert cb.expected_exception is ValueError
-        assert cb.name == 'test_breaker'
+        assert cb.name == "test_breaker"
         assert cb.state == CircuitState.CLOSED
 
 @pytest.mark.core
@@ -67,9 +66,9 @@ class TestCircuitBreakerStates:
         cb = AsyncCircuitBreaker(failure_threshold=3)
 
         async def success_func():
-            return 'success'
+            return "success"
         result = await cb.call_async(success_func)
-        assert result == 'success'
+        assert result == "success"
         assert cb.state == CircuitState.CLOSED
         assert cb.failure_count == 0
 
@@ -80,7 +79,7 @@ class TestCircuitBreakerStates:
         cb = AsyncCircuitBreaker(failure_threshold=3)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _i in range(3):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -94,17 +93,17 @@ class TestCircuitBreakerStates:
         cb = AsyncCircuitBreaker(failure_threshold=2)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(2):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
         assert cb.state == CircuitState.OPEN
 
         async def any_func():
-            return 'should not execute'
+            return "should not execute"
         with pytest.raises(CircuitBreakerOpenError) as exc_info:
             await cb.call_async(any_func)
-        assert 'Circuit breaker is OPEN' in str(exc_info.value)
+        assert "Circuit breaker is OPEN" in str(exc_info.value)
         assert exc_info.value.failure_count == 2
 
     @pytest.mark.core
@@ -114,7 +113,7 @@ class TestCircuitBreakerStates:
         cb = AsyncCircuitBreaker(failure_threshold=2, recovery_timeout=1)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(2):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -122,9 +121,9 @@ class TestCircuitBreakerStates:
         await asyncio.sleep(1.1)
 
         async def success_func():
-            return 'success'
+            return "success"
         result = await cb.call_async(success_func)
-        assert result == 'success'
+        assert result == "success"
         assert cb.state == CircuitState.CLOSED
         assert cb.failure_count == 0
 
@@ -135,7 +134,7 @@ class TestCircuitBreakerStates:
         cb = AsyncCircuitBreaker(failure_threshold=2, recovery_timeout=1)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(2):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -156,7 +155,7 @@ class TestCircuitBreakerFailureHandling:
         cb = AsyncCircuitBreaker(failure_threshold=5)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for i in range(3):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -170,10 +169,10 @@ class TestCircuitBreakerFailureHandling:
         cb = AsyncCircuitBreaker(failure_threshold=5)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
 
         async def success_func():
-            return 'success'
+            return "success"
         for _ in range(3):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -189,7 +188,7 @@ class TestCircuitBreakerFailureHandling:
         cb = AsyncCircuitBreaker(failure_threshold=3, expected_exception=ValueError)
 
         async def wrong_exception_func():
-            raise TypeError('Not counted')
+            raise TypeError("Not counted")
         with pytest.raises(TypeError):
             await cb.call_async(wrong_exception_func)
         assert cb.failure_count == 0
@@ -206,7 +205,7 @@ class TestCircuitBreakerRecovery:
         cb = AsyncCircuitBreaker(failure_threshold=2, recovery_timeout=2)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(2):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -216,9 +215,9 @@ class TestCircuitBreakerRecovery:
         await asyncio.sleep(2.1)
 
         async def success_func():
-            return 'success'
+            return "success"
         result = await cb.call_async(success_func)
-        assert result == 'success'
+        assert result == "success"
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -227,7 +226,7 @@ class TestCircuitBreakerRecovery:
         cb = AsyncCircuitBreaker(failure_threshold=2)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(2):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -250,7 +249,7 @@ class TestCircuitBreakerProperties:
         assert not cb.is_open
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(2):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
@@ -259,13 +258,13 @@ class TestCircuitBreakerProperties:
     @pytest.mark.core
     def test_get_status(self):
         """Test get_status method."""
-        cb = AsyncCircuitBreaker(failure_threshold=3, recovery_timeout=30, name='test_breaker')
+        cb = AsyncCircuitBreaker(failure_threshold=3, recovery_timeout=30, name="test_breaker")
         status = cb.get_status()
-        assert status['state'] == 'closed'
-        assert status['failure_count'] == 0
-        assert status['failure_threshold'] == 3
-        assert status['recovery_timeout'] == 30
-        assert status['last_failure_time'] is None
+        assert status["state"] == "closed"
+        assert status["failure_count"] == 0
+        assert status["failure_threshold"] == 3
+        assert status["recovery_timeout"] == 30
+        assert status["last_failure_time"] is None
 
 @pytest.mark.core
 class TestCircuitBreakerConcurrency:
@@ -279,7 +278,7 @@ class TestCircuitBreakerConcurrency:
 
         async def failing_func():
             await asyncio.sleep(0.01)
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         tasks = []
         for _ in range(10):
             tasks.append(cb.call_async(failing_func))
@@ -295,11 +294,11 @@ class TestCircuitBreakerConcurrency:
 
         async def success_func():
             await asyncio.sleep(0.01)
-            return 'success'
+            return "success"
 
         async def failing_func():
             await asyncio.sleep(0.01)
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         tasks = []
         for i in range(10):
             if i % 2 == 0:
@@ -307,7 +306,7 @@ class TestCircuitBreakerConcurrency:
             else:
                 tasks.append(cb.call_async(failing_func))
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        successes = ([r for r in results if r == 'success'],)
+        successes = ([r for r in results if r == "success"],)
         failures = [r for r in results if isinstance(r, ValueError)]
         assert len(successes) == 5
         assert len(failures) == 5
@@ -324,15 +323,15 @@ class TestCircuitBreakerFailureHistory:
         cb = AsyncCircuitBreaker(failure_threshold=3)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(3):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
         assert len(cb._failure_history) == 3
         for failure in cb._failure_history:
-            assert 'timestamp' in failure
-            assert failure['error_type'] == 'ValueError'
-            assert 'state_before' in failure
+            assert "timestamp" in failure
+            assert failure["error_type"] == "ValueError"
+            assert "state_before" in failure
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -341,12 +340,12 @@ class TestCircuitBreakerFailureHistory:
         cb = AsyncCircuitBreaker(failure_threshold=2)
 
         async def failing_func():
-            raise ValueError('Test error')
+            raise ValueError("Test error")
         for _ in range(2):
             with pytest.raises(ValueError):
                 await cb.call_async(failing_func)
         assert len(cb._state_transitions) >= 1
         transition = cb._state_transitions[-1]
-        assert transition['to_state'] == 'open'
-        assert transition['failure_count'] == 2
-        assert 'timestamp' in transition
+        assert transition["to_state"] == "open"
+        assert transition["failure_count"] == 2
+        assert "timestamp" in transition

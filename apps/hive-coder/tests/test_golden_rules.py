@@ -1,5 +1,4 @@
-"""
-Golden Rules compliance tests for hive-coder.
+"""Golden Rules compliance tests for hive-coder.
 """
 
 from __future__ import annotations

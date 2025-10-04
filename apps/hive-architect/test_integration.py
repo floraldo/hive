@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Integration test for Architect Agent - Manual execution test.
+"""Integration test for Architect Agent - Manual execution test.
 
 Tests the complete flow from natural language → execution plan
 without requiring package installation.
@@ -17,7 +16,6 @@ from hive_architect.agent import ArchitectAgent
 
 def test_architect_agent():
     """Test Architect Agent with 5 sample requirements"""
-
     # Sample requirements from Project Colossus plan
     test_requirements = [
         "Create a 'feedback-service' API that stores user feedback",
@@ -67,7 +65,7 @@ def test_architect_agent():
                     "duration_minutes": plan.total_estimated_duration_minutes,
                     "valid": all_valid,
                     "confidence": parsed.confidence_score,
-                }
+                },
             )
 
             # Show task breakdown
@@ -84,7 +82,7 @@ def test_architect_agent():
                     "requirement": requirement,
                     "error": str(e),
                     "valid": False,
-                }
+                },
             )
 
     # Summary

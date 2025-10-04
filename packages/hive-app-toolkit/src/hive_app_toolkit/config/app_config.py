@@ -9,7 +9,7 @@ from typing import Any
 class APIConfig:
     """API-related configuration."""
 
-    host: str = "0.0.0.0"  # noqa: S104
+    host: str = "0.0.0.0"
     port: int = 8000
     workers: int = 4
     enable_docs: bool = True
@@ -88,8 +88,7 @@ class CostControlConfig:
 
 @dataclass
 class HiveAppConfig:
-    """
-    Comprehensive configuration for Hive applications.
+    """Comprehensive configuration for Hive applications.
 
     Provides sensible defaults for production-ready applications
     while allowing customization for specific needs.
@@ -191,12 +190,12 @@ class HiveAppConfig:
 
     @classmethod
     def from_environment(cls, prefix: str = "HIVE_", config_file: str | None = None) -> "HiveAppConfig":
-        """
-        Load configuration from environment variables.
+        """Load configuration from environment variables.
 
         Args:
             prefix: Environment variable prefix,
             config_file: Optional config file path,
+
         """
         import os
 
@@ -237,14 +236,13 @@ class HiveAppConfig:
         """Convert environment variable string to target type."""
         if target_type is bool:
             return value.lower() in ("true", "1", "yes", "on")
-        elif target_type is int:
+        if target_type is int:
             return int(value)
-        elif target_type is float:
+        if target_type is float:
             return float(value)
-        elif target_type is list:
+        if target_type is list:
             return [item.strip() for item in value.split(",")]
-        else:
-            return value
+        return value
 
     def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""

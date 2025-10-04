@@ -79,6 +79,7 @@ class JobFacade:
 
         Args:
             max_workers: Maximum number of concurrent workers for job execution,
+
         """
         self.event_bus = get_ecosystemiser_event_bus()
         self.executor = ThreadPoolExecutor(max_workers=max_workers)
@@ -107,10 +108,11 @@ class JobFacade:
 
         Returns:
             JobResult with simulation results or status,
+
         """
         # Create job request
         request = JobRequest(
-            job_type=JobType.SIMULATION, config=config, correlation_id=correlation_id, timeout_seconds=timeout
+            job_type=JobType.SIMULATION, config=config, correlation_id=correlation_id, timeout_seconds=timeout,
         )
 
         logger.info(f"Submitting simulation job {request.job_id}")
@@ -121,26 +123,25 @@ class JobFacade:
                 SimulationEvent(
                     event_type="simulation_requested",
                     data={"job_id": request.job_id, "correlation_id": correlation_id, "config": config},
-                )
+                ),
             ),
         )
 
         if blocking:
             # Execute synchronously (current implementation)
             return self._execute_simulation_sync(request)
-        else:
-            # Submit for async execution (future enhancement)
-            future = self.executor.submit(self._execute_simulation_sync, request)
+        # Submit for async execution (future enhancement)
+        future = self.executor.submit(self._execute_simulation_sync, request)
 
-            # Return pending status immediately
-            result = JobResult(
-                job_id=request.job_id,
-                job_type=JobType.SIMULATION,
-                status=JobStatus.PENDING,
-                metadata={"future": future},
-            )
-            self._jobs[request.job_id] = (result,)
-            return result
+        # Return pending status immediately
+        result = JobResult(
+            job_id=request.job_id,
+            job_type=JobType.SIMULATION,
+            status=JobStatus.PENDING,
+            metadata={"future": future},
+        )
+        self._jobs[request.job_id] = (result,)
+        return result
 
     def _execute_simulation_sync(self, request: JobRequest) -> JobResult:
         """Execute a simulation job synchronously.
@@ -150,6 +151,7 @@ class JobFacade:
 
         Returns:
             JobResult with simulation results,
+
         """
         # Lazy import to avoid circular dependency
         if self._simulation_service is None:
@@ -161,7 +163,7 @@ class JobFacade:
         try:
             # Update job status
             self._jobs[request.job_id] = JobResult(
-                job_id=request.job_id, job_type=JobType.SIMULATION, status=JobStatus.RUNNING, started_at=started_at
+                job_id=request.job_id, job_type=JobType.SIMULATION, status=JobStatus.RUNNING, started_at=started_at,
             )
 
             # Execute simulation
@@ -192,7 +194,7 @@ class JobFacade:
                             "status": "success",
                             "execution_time": execution_time,
                         },
-                    )
+                    ),
                 ),
             )
 
@@ -212,7 +214,7 @@ class JobFacade:
                     SimulationEvent(
                         event_type="simulation_failed",
                         data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": "timeout"},
-                    )
+                    ),
                 ),
             )
 
@@ -232,7 +234,7 @@ class JobFacade:
                 SimulationEvent(
                     event_type="simulation_failed",
                     data={"job_id": request.job_id, "correlation_id": request.correlation_id, "error": str(e)},
-                )
+                ),
             )
 
         # Store result
@@ -256,24 +258,24 @@ class JobFacade:
 
         Returns:
             JobResult with analysis results or status,
+
         """
         # Create job request
         request = JobRequest(
-            job_type=JobType.ANALYSIS, config=config, correlation_id=correlation_id, timeout_seconds=timeout
+            job_type=JobType.ANALYSIS, config=config, correlation_id=correlation_id, timeout_seconds=timeout,
         )
 
         logger.info(f"Submitting analysis job {request.job_id}")
 
         if blocking:
             return self._execute_analysis_sync(request)
-        else:
-            # Future: Submit for async execution
-            future = self.executor.submit(self._execute_analysis_sync, request)
-            result = JobResult(
-                job_id=request.job_id, job_type=JobType.ANALYSIS, status=JobStatus.PENDING, metadata={"future": future}
-            )
-            self._jobs[request.job_id] = (result,)
-            return result
+        # Future: Submit for async execution
+        future = self.executor.submit(self._execute_analysis_sync, request)
+        result = JobResult(
+            job_id=request.job_id, job_type=JobType.ANALYSIS, status=JobStatus.PENDING, metadata={"future": future},
+        )
+        self._jobs[request.job_id] = (result,)
+        return result
 
     def _execute_analysis_sync(self, request: JobRequest) -> JobResult:
         """Execute an analysis job synchronously.
@@ -283,6 +285,7 @@ class JobFacade:
 
         Returns:
             JobResult with analysis results,
+
         """
         # Lazy import to avoid circular dependency
         if self._analyser_service is None:
@@ -330,6 +333,7 @@ class JobFacade:
 
         Returns:
             JobResult if found, None otherwise,
+
         """
         return self._jobs.get(job_id)
 
@@ -346,6 +350,7 @@ class JobFacade:
         Raises:
             TimeoutError: If timeout is exceeded
             KeyError: If job ID not found,
+
         """
         if job_id not in self._jobs:
             raise KeyError(f"Job {job_id} not found")
@@ -373,6 +378,7 @@ class JobFacade:
 
         Returns:
             True if cancelled, False if not found or already complete,
+
         """
         if job_id not in self._jobs:
             return False
@@ -401,13 +407,13 @@ class JobFacade:
 
         Returns:
             JobResult with job results or status,
+
         """
         if job_type == JobType.SIMULATION:
             return self.submit_simulation_job(config)
-        elif job_type == JobType.ANALYSIS:
+        if job_type == JobType.ANALYSIS:
             return self.submit_analysis_job(config)
-        else:
-            raise ValueError(f"Unsupported job type: {job_type}")
+        raise ValueError(f"Unsupported job type: {job_type}")
 
     def get_job_result(self, job_id: str) -> JobResult | None:
         """Get the result of a completed job.
@@ -417,6 +423,7 @@ class JobFacade:
 
         Returns:
             JobResult if found and complete, None otherwise,
+
         """
         job = self.get_job_status(job_id)
         if job and job.status == JobStatus.COMPLETED:
@@ -431,6 +438,7 @@ class JobFacade:
 
         Returns:
             SimulationResult
+
         """
         # Convert config to dict if needed
         if hasattr(config, "dict"):
@@ -451,7 +459,7 @@ class JobFacade:
                 # The dict should be compatible with SimulationResult
                 return SimulationResult(**result.result)
             return result.result
-        elif result.status == JobStatus.FAILED:
+        if result.status == JobStatus.FAILED:
             raise RuntimeError(f"Simulation failed: {result.error}")
         else:
             raise RuntimeError(f"Unexpected job status: {result.status}")
@@ -461,6 +469,7 @@ class JobFacade:
 
         Args:
             wait: If True, wait for pending jobs to complete,
+
         """
         logger.info("Shutting down JobFacade")
         self.executor.shutdown(wait=wait)

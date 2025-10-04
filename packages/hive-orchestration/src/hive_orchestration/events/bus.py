@@ -1,5 +1,4 @@
-"""
-Orchestration Event Bus
+"""Orchestration Event Bus
 
 Provides get_async_event_bus() for task, workflow, and agent coordination events.
 This is a thin wrapper around hive-bus for orchestration-specific needs.
@@ -18,8 +17,7 @@ _event_bus_instance: BaseBus | None = None
 
 
 def get_async_event_bus() -> BaseBus:
-    """
-    Get the async event bus instance for orchestration.
+    """Get the async event bus instance for orchestration.
 
     Returns:
         BaseBus: Event bus for publishing/subscribing to orchestration events
@@ -35,6 +33,7 @@ def get_async_event_bus() -> BaseBus:
             payload={"worker": "worker-1"}
         ))
         ```
+
     """
     global _event_bus_instance
 

@@ -1,5 +1,4 @@
-"""
-Validate the RAG index with real queries against the full codebase.
+"""Validate the RAG index with real queries against the full codebase.
 """
 
 import json
@@ -25,19 +24,19 @@ def validate_index():
     print(f"  FAISS index: {index.ntotal} vectors, {index.d} dimensions")
 
     # Load chunks
-    with open(index_dir / "chunks.json", encoding='utf-8') as f:
+    with open(index_dir / "chunks.json", encoding="utf-8") as f:
         chunks = json.load(f)
     print(f"  Chunks: {len(chunks)}")
 
     # Load metadata
-    with open(index_dir / "metadata.json", encoding='utf-8') as f:
+    with open(index_dir / "metadata.json", encoding="utf-8") as f:
         metadata = json.load(f)
     print(f"  Model: {metadata['embedding_model']}")
     print(f"  Files indexed: {metadata['total_files']}")
 
     # Load embedding model
     print("\nLoading embedding model...")
-    model = SentenceTransformer(metadata['embedding_model'])
+    model = SentenceTransformer(metadata["embedding_model"])
 
     # Test queries
     test_queries = [
@@ -69,7 +68,7 @@ def validate_index():
         query_embedding = model.encode([query], convert_to_numpy=True)
 
         # Search
-        distances, indices = index.search(query_embedding.astype('float32'), k=5)
+        distances, indices = index.search(query_embedding.astype("float32"), k=5)
 
         # Show results
         print("  Top 5 Results:")
@@ -80,7 +79,7 @@ def validate_index():
             print(f"       Type: {chunk['type']}, Name: {chunk.get('name', 'N/A')}")
             if rank == 1:
                 # Show snippet of top result
-                text = chunk['text'][:150].replace('\n', ' ')
+                text = chunk["text"][:150].replace("\n", " ")
                 print(f"       Snippet: {text}...")
 
     # Statistics
@@ -91,7 +90,7 @@ def validate_index():
     # Count by type
     type_counts = {}
     for chunk in chunks:
-        chunk_type = chunk.get('type', 'unknown')
+        chunk_type = chunk.get("type", "unknown")
         type_counts[chunk_type] = type_counts.get(chunk_type, 0) + 1
 
     print("\nChunks by Type:")
@@ -101,8 +100,8 @@ def validate_index():
     # Count by file type
     file_counts = {}
     for chunk in chunks:
-        file_path = chunk['file']
-        ext = Path(file_path).suffix or 'none'
+        file_path = chunk["file"]
+        ext = Path(file_path).suffix or "none"
         file_counts[ext] = file_counts.get(ext, 0) + 1
 
     print("\nChunks by File Extension:")

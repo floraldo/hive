@@ -13,7 +13,7 @@ from .ssh import SSHDeploymentStrategy
 
 __all__ = [
     "BaseDeploymentStrategy",
-    "SSHDeploymentStrategy",
     "DockerDeploymentStrategy",
     "KubernetesDeploymentStrategy",
+    "SSHDeploymentStrategy",
 ]

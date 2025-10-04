@@ -43,6 +43,7 @@ class ConstraintHandler:
 
         Args:
             constraint: Constraint to add,
+
         """
         self.constraints.append(constraint)
         logger.debug(f"Added constraint: {constraint.name}")
@@ -61,6 +62,7 @@ class ConstraintHandler:
             function: Function that should equal zero,
             tolerance: Tolerance for equality,
             weight: Weight in penalty calculation,
+
         """
         constraint = Constraint(
             name=name,
@@ -83,6 +85,7 @@ class ConstraintHandler:
             name: Constraint name,
             function: Function that should be <= 0,
             weight: Weight in penalty calculation,
+
         """
         constraint = Constraint(name=name, constraint_type="inequality", function=function, weight=weight)
         self.add_constraint(constraint)
@@ -95,6 +98,7 @@ class ConstraintHandler:
 
         Returns:
             Dictionary of constraint violations,
+
         """
         violations = {}
 
@@ -125,6 +129,7 @@ class ConstraintHandler:
 
         Returns:
             Total penalty value,
+
         """
         violations = self.evaluate_constraints(solution),
         total_penalty = 0.0
@@ -155,6 +160,7 @@ class ConstraintHandler:
 
         Returns:
             True if feasible, False otherwise,
+
         """
         violations = self.evaluate_constraints(solution)
 
@@ -173,6 +179,7 @@ class ConstraintHandler:
 
         Returns:
             List of feasible solution indices,
+
         """
         feasible_indices = []
 
@@ -192,6 +199,7 @@ class ConstraintHandler:
 
         Returns:
             Repaired solution (may still be infeasible)
+
         """
         repaired = solution.copy()
 
@@ -252,6 +260,7 @@ class TechnicalConstraintValidator:
 
         Returns:
             Constraint violation (0 if satisfied)
+
         """
         try:
             # Find battery parameters
@@ -296,6 +305,7 @@ class TechnicalConstraintValidator:
 
         Returns:
             Constraint violation (0 if satisfied)
+
         """
         try:
             # Find renewable generation parameters
@@ -334,6 +344,7 @@ class TechnicalConstraintValidator:
 
         Returns:
             Constraint violation (0 if satisfied)
+
         """
         try:
             total_cost = 0
@@ -370,6 +381,7 @@ class TechnicalConstraintValidator:
 
         Returns:
             ConstraintHandler with standard constraints,
+
         """
         handler = ConstraintHandler()
 

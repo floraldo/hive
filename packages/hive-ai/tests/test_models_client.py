@@ -9,6 +9,5 @@ class TestModelsClient:
     @pytest.mark.core
     def test_client_initialization(self):
         """Test client initialization."""
-        pass
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

@@ -1,5 +1,4 @@
-"""
-Unit tests for FixGenerator component.
+"""Unit tests for FixGenerator component.
 
 Tests fix generation for various error types.
 """

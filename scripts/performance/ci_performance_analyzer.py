@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-CI/CD Performance & Cost Analyzer
+"""CI/CD Performance & Cost Analyzer
 
 Analyzes GitHub Actions performance metrics and identifies optimization opportunities:
 - Pipeline runtime analysis

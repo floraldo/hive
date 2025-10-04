@@ -9,6 +9,5 @@ class TestPromptsTemplate:
     @pytest.mark.core
     def test_template_rendering(self):
         """Test template rendering."""
-        pass
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])

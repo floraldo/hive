@@ -1,5 +1,4 @@
-"""
-Metadata loader for operational context and architectural memory.
+"""Metadata loader for operational context and architectural memory.
 
 Loads and parses metadata from:
 - scripts_metadata.json (script purposes, dependencies, execution types)
@@ -19,20 +18,19 @@ logger = get_logger(__name__)
 
 
 class MetadataLoader:
-    """
-    Load operational metadata and architectural memory for code chunks.
+    """Load operational metadata and architectural memory for code chunks.
 
     Provides context about script purposes, usage patterns, deprecation
     reasons, and migration notes to enrich RAG retrieval results.
     """
 
     def __init__(self, project_root: Path | None = None):
-        """
-        Initialize metadata loader.
+        """Initialize metadata loader.
 
         Args:
             project_root: Root directory of Hive project.
                          Defaults to auto-detection.
+
         """
         self.project_root = project_root or self._find_project_root()
         self.scripts_metadata: dict[str, Any] = {}
@@ -94,11 +92,11 @@ class MetadataLoader:
                 logger.error(f"Failed to load USAGE_MATRIX.md: {e}")
 
     def _parse_usage_matrix(self, content: str) -> dict[str, Any]:
-        """
-        Parse USAGE_MATRIX.md to extract usage contexts.
+        """Parse USAGE_MATRIX.md to extract usage contexts.
 
         Returns:
             Dictionary mapping script paths to usage contexts.
+
         """
         usage_data = ({},)
         current_section = None
@@ -143,11 +141,11 @@ class MetadataLoader:
                 logger.error(f"Failed to load archive README: {e}")
 
     def _parse_archive_readme(self, content: str) -> dict[str, Any]:
-        """
-        Parse archive README to extract deprecation reasons.
+        """Parse archive README to extract deprecation reasons.
 
         Returns:
             Dictionary mapping script paths to deprecation info.
+
         """
         deprecation_data = {}
 
@@ -169,14 +167,14 @@ class MetadataLoader:
         return deprecation_data
 
     def get_file_metadata(self, file_path: Path | str) -> dict[str, Any]:
-        """
-        Get comprehensive metadata for a file.
+        """Get comprehensive metadata for a file.
 
         Args:
             file_path: Path to the file (absolute or relative to project root)
 
         Returns:
             Dictionary with operational and architectural metadata
+
         """
         file_path_str = str(file_path)
 
@@ -202,7 +200,7 @@ class MetadataLoader:
                     "purpose": script_meta.get("purpose"),
                     "execution_type": script_meta.get("execution_type"),
                     "dependencies": script_meta.get("dependencies", []),
-                }
+                },
             )
 
         # Check usage matrix
@@ -212,7 +210,7 @@ class MetadataLoader:
                 {
                     "usage_context": usage_meta.get("usage_context"),
                     "description": usage_meta.get("description"),
-                }
+                },
             )
 
         # Check archive notes
@@ -222,7 +220,7 @@ class MetadataLoader:
                 {
                     "deprecation_reason": archive_meta.get("deprecation_reason"),
                     "is_archived": True,
-                }
+                },
             )
 
         return metadata

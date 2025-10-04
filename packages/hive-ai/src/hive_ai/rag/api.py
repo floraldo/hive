@@ -1,5 +1,4 @@
-"""
-RAG API for Autonomous Agents.
+"""RAG API for Autonomous Agents.
 
 FastAPI server providing direct access to the RAG knowledge base for
 autonomous agents in the Hive platform. Designed for tool use by agents
@@ -158,8 +157,7 @@ app = FastAPI(
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check() -> HealthResponse:
-    """
-    Health check endpoint.
+    """Health check endpoint.
 
     Returns system status and index availability.
     """
@@ -183,8 +181,7 @@ async def health_check() -> HealthResponse:
 
 @app.post("/query", response_model=QueryResponse)
 async def query_rag(request: QueryRequest) -> QueryResponse | StreamingResponse:
-    """
-    Query the RAG knowledge base.
+    """Query the RAG knowledge base.
 
     This is the primary endpoint for autonomous agents to retrieve
     context-aware information about the codebase.
@@ -205,6 +202,7 @@ async def query_rag(request: QueryRequest) -> QueryResponse | StreamingResponse:
             "formatting_style": "instructional"
         }
         ```
+
     """
     start_time = time.time()
     app_state.total_queries += 1
@@ -277,17 +275,17 @@ async def query_rag(request: QueryRequest) -> QueryResponse | StreamingResponse:
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Query failed: {str(e)}",
+            detail=f"Query failed: {e!s}",
         )
 
 
 @app.get("/stats")
 async def get_stats() -> dict[str, Any]:
-    """
-    Get API usage statistics.
+    """Get API usage statistics.
 
     Returns:
         Usage statistics including total queries and performance metrics
+
     """
     uptime = time.time() - app_state.start_time
 
@@ -301,8 +299,7 @@ async def get_stats() -> dict[str, Any]:
 
 @app.post("/reload-index")
 async def reload_index() -> dict[str, str]:
-    """
-    Reload the RAG index from disk.
+    """Reload the RAG index from disk.
 
     Useful after running incremental indexing to pick up new changes
     without restarting the server.
@@ -312,15 +309,14 @@ async def reload_index() -> dict[str, str]:
             # Reload index
             app_state.query_engine._load_index()
             return {"status": "success", "message": "Index reloaded successfully"}
-        else:
-            raise HTTPException(
-                status_code=503,
-                detail="Query engine not initialized",
-            )
+        raise HTTPException(
+            status_code=503,
+            detail="Query engine not initialized",
+        )
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to reload index: {str(e)}",
+            detail=f"Failed to reload index: {e!s}",
         )
 
 
@@ -356,7 +352,7 @@ if __name__ == "__main__":
 
     uvicorn.run(
         "hive_ai.rag.api:app",
-        host="0.0.0.0",  # noqa: S104
+        host="0.0.0.0",
         port=8765,
         reload=True,
         log_level="info",

@@ -1,6 +1,4 @@
-# ruff: noqa: S603
-"""
-Unified Claude CLI Bridge
+"""Unified Claude CLI Bridge
 Central implementation for all Claude API interactions
 
 Note: Subprocess usage for Claude CLI is intentional (S603).
@@ -37,17 +35,16 @@ class ClaudeBridgeConfig:
 
 
 class BaseClaludeBridge(ABC):
-    """
-    Base class for all Claude CLI integrations
+    """Base class for all Claude CLI integrations
     Provides common functionality for finding and calling Claude
     """
 
     def __init__(self, config: ClaudeBridgeConfig | None = None) -> None:
-        """
-        Initialize the bridge
+        """Initialize the bridge
 
         Args:
             config: Bridge configuration
+
         """
         self.config = config or ClaudeBridgeConfig()
         self.json_extractor = JsonExtractor()
@@ -62,11 +59,11 @@ class BaseClaludeBridge(ABC):
                 raise ClaudeNotFoundError("Claude CLI not found and fallback disabled")
 
     def _find_claude_cmd(self) -> str | None:
-        """
-        Find Claude CLI command on the system
+        """Find Claude CLI command on the system
 
         Returns:
             Path to Claude executable or None if not found
+
         """
         # Check common locations
         possible_paths = [
@@ -77,7 +74,7 @@ class BaseClaludeBridge(ABC):
             Path("/usr/local/bin/claude"),  # macOS/Linux system install,
             Path("/usr/bin/claude"),
             Path("claude.cmd"),
-            Path("claude")
+            Path("claude"),
         ]
 
         for path in possible_paths:
@@ -88,7 +85,7 @@ class BaseClaludeBridge(ABC):
         # Try system PATH
         try:
             cmd = "where" if os.name == "nt" else "which",
-            result = subprocess.run([cmd, "claude"], capture_output=True, text=True, timeout=5)
+            result = subprocess.run([cmd, "claude"], check=False, capture_output=True, text=True, timeout=5)
 
             if result.returncode == 0:
                 claude_path = result.stdout.strip().split("\n")[0]
@@ -102,8 +99,7 @@ class BaseClaludeBridge(ABC):
         return None
 
     def _execute_claude(self, prompt: str) -> str:
-        """
-        Execute Claude CLI with the given prompt
+        """Execute Claude CLI with the given prompt
 
         Args:
             prompt: The prompt to send to Claude
@@ -114,6 +110,7 @@ class BaseClaludeBridge(ABC):
         Raises:
             ClaudeTimeoutError: If execution times out
             ClaudeResponseError: If Claude returns an error
+
         """
         if self.config.mock_mode:
             return self._create_mock_response(prompt)
@@ -140,9 +137,9 @@ class BaseClaludeBridge(ABC):
 
             result = subprocess.run(
                 cmd,
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
-                timeout=self.config.timeout
+                timeout=self.config.timeout,
             )
 
             if result.returncode != 0:
@@ -157,7 +154,7 @@ class BaseClaludeBridge(ABC):
             logger.error(error_msg)
             raise ClaudeTimeoutError(error_msg) from e
         except Exception as e:
-            error_msg = f"Unexpected error executing Claude: {str(e)}"
+            error_msg = f"Unexpected error executing Claude: {e!s}"
             logger.error(error_msg)
             raise ClaudeResponseError(error_msg) from e
 
@@ -166,10 +163,9 @@ class BaseClaludeBridge(ABC):
         prompt: str,
         validator: BaseResponseValidator | None = None,
         extraction_strategies: list[JsonExtractionStrategy] | None = None,
-        context: dict[str, Any] | None = None
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """
-        Call Claude and get validated response
+        """Call Claude and get validated response
 
         Args:
             prompt: The prompt to send to Claude,
@@ -179,6 +175,7 @@ class BaseClaludeBridge(ABC):
 
         Returns:
             Validated response dictionary,
+
         """
         try:
             # Execute Claude,
@@ -213,10 +210,9 @@ class BaseClaludeBridge(ABC):
         self,
         prompt: str,
         validator: BaseResponseValidator | None = None,
-        context: dict[str, Any] | None = None
+        context: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        """
-        Call Claude with retry logic
+        """Call Claude with retry logic
 
         Args:
             prompt: The prompt to send to Claude,
@@ -225,6 +221,7 @@ class BaseClaludeBridge(ABC):
 
         Returns:
             Validated response dictionary,
+
         """
         last_error = None
 
@@ -242,28 +239,26 @@ class BaseClaludeBridge(ABC):
         # All retries failed,
         if self.config.fallback_enabled:
             return self._create_fallback_response(
-                f"All {self.config.max_retries} attempts failed: {last_error}", context
+                f"All {self.config.max_retries} attempts failed: {last_error}", context,
             )
 
         raise last_error
 
     @abstractmethod
     def _create_mock_response(self, prompt: str) -> str:
-        """
-        Create a mock response for testing
+        """Create a mock response for testing
 
         Args:
             prompt: The prompt that was sent
 
         Returns:
             Mock response text
+
         """
-        pass
 
     @abstractmethod
     def _create_fallback_response(self, error_message: str, context: dict[str, Any] | None) -> dict[str, Any]:
-        """
-        Create a fallback response when Claude is unavailable
+        """Create a fallback response when Claude is unavailable
 
         Args:
             error_message: Error that triggered the fallback
@@ -271,5 +266,5 @@ class BaseClaludeBridge(ABC):
 
         Returns:
             Fallback response dictionary
+
         """
-        pass

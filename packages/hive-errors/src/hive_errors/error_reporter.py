@@ -1,5 +1,4 @@
-"""
-Generic error reporting base class.
+"""Generic error reporting base class.
 
 Provides reusable patterns for error reporting and metrics
 that can be extended for any system.
@@ -13,8 +12,7 @@ from .base_exceptions import BaseError
 
 
 class BaseErrorReporter(ABC):
-    """
-    Generic base error reporter.
+    """Generic base error reporter.
 
     Provides fundamental error reporting patterns:
     - Error metrics collection
@@ -31,8 +29,7 @@ class BaseErrorReporter(ABC):
         context: dict[str, Any] | None = None,
         additional_info: dict[str, Any] | None = None,
     ) -> str:
-        """
-        Report an error with context.
+        """Report an error with context.
 
         Args:
             error: The exception to report,
@@ -41,8 +38,8 @@ class BaseErrorReporter(ABC):
 
         Returns:
             Error ID for tracking
+
         """
-        pass
 
     def _build_error_record(
         self,

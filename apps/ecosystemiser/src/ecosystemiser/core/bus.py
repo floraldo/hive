@@ -1,5 +1,4 @@
-"""
-EcoSystemiser-specific event bus implementation.,
+"""EcoSystemiser-specific event bus implementation.,
 
 Extends the generic messaging toolkit with EcoSystemiser capabilities:
 - Database-backed persistence in ecosystemiser.db
@@ -53,8 +52,7 @@ logger = get_logger(__name__)
 
 
 class EcoSystemiserEventBus(BaseBus):
-    """
-    EcoSystemiser-specific event bus implementation.,
+    """EcoSystemiser-specific event bus implementation.,
 
     Extends BaseBus with EcoSystemiser simulation features:
     - Persistent storage in EcoSystemiser database
@@ -160,8 +158,7 @@ class EcoSystemiserEventBus(BaseBus):
         )
 
     def publish(self, event: BaseEvent | dict[str, Any], correlation_id: str | None = None) -> str:
-        """
-        Publish an EcoSystemiser event with simulation context.
+        """Publish an EcoSystemiser event with simulation context.
 
         Args:
             event: EcoSystemiser event or event data dict
@@ -169,6 +166,7 @@ class EcoSystemiserEventBus(BaseBus):
 
         Returns:
             Event ID of the published event,
+
         """
         try:
             # Convert dict to Event if needed
@@ -232,25 +230,24 @@ class EcoSystemiserEventBus(BaseBus):
 
         if event_type.startswith("simulation."):
             return SimulationEvent.from_dict(data)
-        elif event_type.startswith("analysis."):
+        if event_type.startswith("analysis."):
             return AnalysisEvent.from_dict(data)
-        elif event_type.startswith("optimization."):
+        if event_type.startswith("optimization."):
             return OptimizationEvent.from_dict(data)
-        else:
-            # Default to base event
-            if not hasattr(BaseEvent, "from_dict"):
-                # Create BaseEvent manually if from_dict doesn't exist
-                event = BaseEvent(
-                    event_type=data.get("event_type", "unknown"),
-                    source=data.get("source", "ecosystemiser"),
-                    payload=data.get("payload", {}),
-                )
-                event.event_id = data.get("event_id", str(uuid.uuid4()))
-                event.timestamp = data.get("timestamp", datetime.now(UTC))
-                event.correlation_id = data.get("correlation_id")
-                event.metadata = data.get("metadata", {})
-                return event
-            return BaseEvent.from_dict(data)
+        # Default to base event
+        if not hasattr(BaseEvent, "from_dict"):
+            # Create BaseEvent manually if from_dict doesn't exist
+            event = BaseEvent(
+                event_type=data.get("event_type", "unknown"),
+                source=data.get("source", "ecosystemiser"),
+                payload=data.get("payload", {}),
+            )
+            event.event_id = data.get("event_id", str(uuid.uuid4()))
+            event.timestamp = data.get("timestamp", datetime.now(UTC))
+            event.correlation_id = data.get("correlation_id")
+            event.metadata = data.get("metadata", {})
+            return event
+        return BaseEvent.from_dict(data)
 
     def get_simulation_history(self, simulation_id: str, limit: int = 50) -> list[BaseEvent]:
         """Get all events for a simulation"""

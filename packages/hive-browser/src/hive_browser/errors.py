@@ -8,7 +8,6 @@ from hive_errors import BaseError
 class BrowserError(BaseError):
     """Base class for browser-related errors."""
 
-    pass
 
 
 class NavigationError(BrowserError):

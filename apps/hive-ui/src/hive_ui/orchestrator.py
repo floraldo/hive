@@ -181,20 +181,20 @@ class ProjectOrchestrator:
         return project
 
     async def _run_architect(self, project: dict[str, Any]) -> None:
-        """Run Architect Agent to generate ExecutionPlan."""
+        """Run Architect Service to generate ExecutionPlan."""
         logger.info(f"Running Architect for project {project['id']}")
 
-        # Import Architect Agent
-        from hive_architect.agent import ArchitectAgent
+        # Import Architect Service from orchestrator
+        from hive_orchestrator.services.colossus import ArchitectService
 
-        # Create agent
-        architect = ArchitectAgent()
+        # Create service
+        architect = ArchitectService(config=self.config)
 
         # Generate plan
         plan_file = Path(project["workspace"]) / "execution_plan.json"
-        plan = architect.create_plan(
-            requirement_text=project["requirement"],
-            output_path=str(plan_file),
+        plan = await architect.create_plan_from_requirement(
+            requirement=project["requirement"],
+            output_path=plan_file,
         )
 
         project["plan_file"] = str(plan_file)
@@ -202,18 +202,18 @@ class ProjectOrchestrator:
         logger.info(f"Plan generated for {project['id']}: {plan.service_name}")
 
     async def _run_coder(self, project: dict[str, Any]) -> None:
-        """Run Coder Agent to implement service."""
+        """Run Coder Service to implement service."""
         logger.info(f"Running Coder for project {project['id']}")
 
-        # Import Coder Agent
-        from hive_coder.agent import CoderAgent
+        # Import Coder Service from orchestrator
+        from hive_orchestrator.services.colossus import CoderService
 
-        # Create agent
-        coder = CoderAgent()
+        # Create service
+        coder = CoderService(config=self.config)
 
         # Execute plan
         output_dir = Path(project["workspace"]) / "service"
-        result = coder.execute_plan(
+        result = await coder.execute_plan(
             plan_file=Path(project["plan_file"]),
             output_dir=output_dir,
         )

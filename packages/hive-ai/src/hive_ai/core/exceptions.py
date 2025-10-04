@@ -30,6 +30,7 @@ class AIError(BaseError):
             model: Name of the model that caused the error.,
             provider: Name of the AI provider (anthropic, openai, etc.).,
             **kwargs: Additional context passed to BaseError.,
+
         """
         super().__init__(message, component="hive-ai", **kwargs)
         self.model = model
@@ -59,6 +60,7 @@ class ModelError(BaseError):
             provider: Name of the AI provider.,
             request_id: Unique identifier for the failed request.,
             **kwargs: Additional context passed to BaseError.,
+
         """
         super().__init__(message, model, provider, **kwargs)
         self.request_id = request_id
@@ -78,6 +80,7 @@ class VectorError(BaseError):
             collection: Name of the vector collection involved.,
             operation: Type of vector operation that failed.,
             **kwargs: Additional context passed to BaseError.,
+
         """
         super().__init__(message, **kwargs)
         self.collection = collection
@@ -104,6 +107,7 @@ class PromptError(BaseError):
             template_name: Name of the template that failed.,
             missing_variables: List of required variables that were missing.,
             **kwargs: Additional context passed to BaseError.,
+
         """
         super().__init__(message, **kwargs)
         self.template_name = template_name
@@ -125,6 +129,7 @@ class CostLimitError(BaseError):
             limit: The spending limit that was exceeded.,
             period: Time period for the limit (daily, monthly).,
             **kwargs: Additional context passed to BaseError.,
+
         """
         super().__init__(message, **kwargs)
         self.current_cost = current_cost
@@ -148,6 +153,7 @@ class ModelUnavailableError(BaseError):
             provider: Name of the AI provider.,
             available_models: List of available model alternatives.,
             **kwargs: Additional context passed to BaseError.,
+
         """
         super().__init__(message, model, provider, **kwargs)
         self.available_models = available_models or []
@@ -159,7 +165,6 @@ class APIError(BaseError):
     Raised when external AI API calls fail or return errors.
     """
 
-    pass
 
 
 class RateLimitError(BaseError):
@@ -168,4 +173,3 @@ class RateLimitError(BaseError):
     Raised when AI API rate limits are exceeded.
     """
 
-    pass

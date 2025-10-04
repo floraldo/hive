@@ -1,5 +1,4 @@
-"""
-EcoSystemiser Configuration Module
+"""EcoSystemiser Configuration Module
 
 Configuration bridge between EcoSystemiser and Hive platform following
 the inherit→extend architectural pattern.

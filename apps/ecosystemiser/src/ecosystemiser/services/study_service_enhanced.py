@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 
 
 def apply_parameter_to_config(
-    config_dict: dict[str, Any], component_name: str, parameter_path: str, value: Any
+    config_dict: dict[str, Any], component_name: str, parameter_path: str, value: Any,
 ) -> dict[str, Any]:
     """Apply a parameter value to a system configuration dictionary.
 
@@ -25,6 +25,7 @@ def apply_parameter_to_config(
 
     Returns:
         Modified configuration dictionary,
+
     """
     # Deep copy to avoid modifying original
     config = copy.deepcopy(config_dict)
@@ -70,6 +71,7 @@ def generate_parameter_report(parameter_settings: dict[str, Any], results: dict[
 
     Returns:
         Report dictionary with parameter influence analysis,
+
     """
     report = {
         "parameters": parameter_settings,
@@ -93,7 +95,7 @@ class ParametricSweepEnhancement:
 
     @staticmethod
     def create_battery_capacity_sweep(
-        base_capacity: float, num_points: int = 5, range_factor: float = 2.0
+        base_capacity: float, num_points: int = 5, range_factor: float = 2.0,
     ) -> list[float]:
         """Create a sweep of battery capacity values.
 
@@ -104,6 +106,7 @@ class ParametricSweepEnhancement:
 
         Returns:
             List of capacity values to sweep,
+
         """
         import numpy as np
 
@@ -122,6 +125,7 @@ class ParametricSweepEnhancement:
 
         Returns:
             List of capacity values to sweep,
+
         """
         import numpy as np
 
@@ -137,6 +141,7 @@ class ParametricSweepEnhancement:
 
         Returns:
             List of efficiency values (0.7 to 0.98)
+
         """
         import numpy as np
 
@@ -151,6 +156,7 @@ class ParametricSweepEnhancement:
 
         Returns:
             Analysis report with parameter sensitivities,
+
         """
         analysis = (
             {
@@ -227,7 +233,7 @@ class ParametricSweepEnhancement:
 
             if most_influential:
                 analysis["recommendations"].append(
-                    f"Parameter '{most_influential}' has the highest impact on system performance"
+                    f"Parameter '{most_influential}' has the highest impact on system performance",
                 )
                 analysis["recommendations"].append(f"Consider fine-tuning '{most_influential}' for optimization")
 

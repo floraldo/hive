@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal maintenance tooling.
 
-"""
-Unified Maintenance Runner - Consolidates All Maintenance Operations
+"""Unified Maintenance Runner - Consolidates All Maintenance Operations
 
 Replaces 6 separate maintenance scripts with a single unified interface:
 - automated_hygiene.py → maintain.py --hygiene
@@ -63,7 +61,7 @@ def run_script(script_name: str, args: list[str]) -> int:
     print(f"Command: {' '.join(cmd)}")
     print(f"{'=' * 80}\n")
 
-    result = subprocess.run(cmd)
+    result = subprocess.run(cmd, check=False)
     return result.returncode
 
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Centralized Log Intelligence System
+"""Centralized Log Intelligence System
 
 Automated log analysis and trend detection for production environments:
 - Log aggregation and parsing from multiple sources

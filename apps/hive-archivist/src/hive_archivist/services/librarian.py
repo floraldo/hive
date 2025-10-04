@@ -1,5 +1,4 @@
-"""
-Librarian Service
+"""Librarian Service
 
 Real-time knowledge indexing service that listens to task.completed events
 and automatically indexes knowledge fragments into the RAG system.
@@ -24,8 +23,7 @@ logger = get_logger(__name__)
 
 
 class LibrarianService:
-    """
-    Real-time knowledge indexing service.
+    """Real-time knowledge indexing service.
 
     Listens for task.completed events and automatically:
     1. Parses task into knowledge fragments
@@ -38,15 +36,15 @@ class LibrarianService:
         self,
         bus: BaseBus | None = None,
         fragment_parser: FragmentParser | None = None,
-        vector_indexer: VectorIndexer | None = None
+        vector_indexer: VectorIndexer | None = None,
     ):
-        """
-        Initialize librarian service.
+        """Initialize librarian service.
 
         Args:
             bus: Event bus for listening to task completions
             fragment_parser: Fragment extraction logic
             vector_indexer: Vector storage logic
+
         """
         self.bus = bus  # Will be injected by orchestrator
         self.fragment_parser = fragment_parser or FragmentParser()
@@ -58,8 +56,7 @@ class LibrarianService:
         logger.info("LibrarianService initialized")
 
     async def start(self) -> None:
-        """
-        Start the librarian service.
+        """Start the librarian service.
 
         Subscribes to task.completed events and begins real-time indexing.
         """
@@ -70,7 +67,7 @@ class LibrarianService:
         if not self.bus:
             raise HiveError(
                 "LibrarianService requires event bus. "
-                "Pass bus instance or use LibrarianService.start_with_bus()"
+                "Pass bus instance or use LibrarianService.start_with_bus()",
             )
 
         # Subscribe to task completion events
@@ -91,13 +88,13 @@ class LibrarianService:
         logger.info(f"LibrarianService stopped. Total tasks indexed: {self.tasks_indexed}")
 
     async def _handle_task_completed(self, event: dict[str, Any]) -> None:
-        """
-        Handle task.completed event.
+        """Handle task.completed event.
 
         Args:
             event: Event payload containing task_id and metadata
+
         """
-        task_id = event.get('task_id')
+        task_id = event.get("task_id")
         if not task_id:
             logger.error("task.completed event missing task_id")
             return
@@ -108,8 +105,7 @@ class LibrarianService:
             logger.error(f"Failed to index task {task_id}: {e}", exc_info=True)
 
     async def index_task_async(self, task_id: str) -> list[str]:
-        """
-        Index a completed task into the knowledge base.
+        """Index a completed task into the knowledge base.
 
         Args:
             task_id: ID of the task to index
@@ -119,6 +115,7 @@ class LibrarianService:
 
         Raises:
             HiveError: If task not found or indexing fails
+
         """
         logger.info(f"Indexing task {task_id[:8]}...")
 
@@ -141,7 +138,7 @@ class LibrarianService:
 
         self.tasks_indexed += 1
         logger.info(
-            f"Successfully indexed task {task_id[:8]} → {len(vector_ids)} vectors created"
+            f"Successfully indexed task {task_id[:8]} → {len(vector_ids)} vectors created",
         )
 
         return vector_ids
@@ -150,10 +147,9 @@ class LibrarianService:
         self,
         task_id: str,
         fragments: list,
-        vector_ids: list[str]
+        vector_ids: list[str],
     ) -> None:
-        """
-        Update task DB with knowledge fragment metadata.
+        """Update task DB with knowledge fragment metadata.
 
         Stores:
         - related_document_ids: Vector IDs for retrieval
@@ -162,46 +158,46 @@ class LibrarianService:
         """
         # Build knowledge_fragments JSON
         knowledge_data = {
-            'summaries': [],
-            'errors': [],
-            'decisions': [],
-            'artifacts': []
+            "summaries": [],
+            "errors": [],
+            "decisions": [],
+            "artifacts": [],
         }
 
         for fragment in fragments:
             fragment_entry = {
-                'content': fragment.content[:200],  # truncate for storage
-                'timestamp': fragment.timestamp,
-                'metadata': fragment.metadata
+                "content": fragment.content[:200],  # truncate for storage
+                "timestamp": fragment.timestamp,
+                "metadata": fragment.metadata,
             }
 
-            if fragment.fragment_type == 'summary':
-                knowledge_data['summaries'].append(fragment_entry)
-            elif fragment.fragment_type == 'error':
-                knowledge_data['errors'].append(fragment_entry)
-            elif fragment.fragment_type == 'decision':
-                knowledge_data['decisions'].append(fragment_entry)
-            elif fragment.fragment_type == 'artifact':
-                knowledge_data['artifacts'].append(fragment_entry)
+            if fragment.fragment_type == "summary":
+                knowledge_data["summaries"].append(fragment_entry)
+            elif fragment.fragment_type == "error":
+                knowledge_data["errors"].append(fragment_entry)
+            elif fragment.fragment_type == "decision":
+                knowledge_data["decisions"].append(fragment_entry)
+            elif fragment.fragment_type == "artifact":
+                knowledge_data["artifacts"].append(fragment_entry)
 
         # Extract summary for quick reference
         summary = None
         for fragment in fragments:
-            if fragment.fragment_type == 'summary':
+            if fragment.fragment_type == "summary":
                 summary = fragment.content
                 break
 
         # Update task in DB
         update_data = {
-            'related_document_ids': json.dumps(vector_ids),
-            'knowledge_fragments': json.dumps(knowledge_data),
-            'summary': summary
+            "related_document_ids": json.dumps(vector_ids),
+            "knowledge_fragments": json.dumps(knowledge_data),
+            "summary": summary,
         }
 
         success = tasks.update_task_status(
             task_id=task_id,
-            status=tasks.get_task(task_id)['status'],  # keep existing status
-            metadata=update_data
+            status=tasks.get_task(task_id)["status"],  # keep existing status
+            metadata=update_data,
         )
 
         if success:
@@ -217,7 +213,7 @@ class LibrarianService:
             "service": "librarian",
             "status": "running" if self.running else "stopped",
             "tasks_indexed": self.tasks_indexed,
-            **indexer_stats
+            **indexer_stats,
         }
 
 

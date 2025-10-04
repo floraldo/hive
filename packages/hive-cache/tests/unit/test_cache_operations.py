@@ -1,5 +1,4 @@
-"""
-Comprehensive unit tests for hive_cache core operations.
+"""Comprehensive unit tests for hive_cache core operations.
 
 Tests focus on critical cache client and performance cache functionality
 without requiring real Redis (uses mocking for isolation).
@@ -10,7 +9,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-pytest_plugins = ('pytest_asyncio',)
+pytest_plugins = ("pytest_asyncio",)
 
 @pytest.mark.core
 class TestCacheClientBasics:
@@ -21,7 +20,7 @@ class TestCacheClientBasics:
         """Test cache_client module can be imported."""
         from hive_cache import cache_client
         assert cache_client is not None
-        assert hasattr(cache_client, 'HiveCacheClient')
+        assert hasattr(cache_client, "HiveCacheClient")
 
     @pytest.mark.core
     def test_cache_config_import(self):
@@ -34,9 +33,9 @@ class TestCacheClientBasics:
         """Test CacheConfig has sensible defaults."""
         from hive_cache.config import CacheConfig
         config = CacheConfig()
-        assert hasattr(config, 'redis_url')
-        assert hasattr(config, 'default_ttl')
-        assert hasattr(config, 'circuit_breaker_enabled')
+        assert hasattr(config, "redis_url")
+        assert hasattr(config, "default_ttl")
+        assert hasattr(config, "circuit_breaker_enabled")
 
     @pytest.mark.core
     def test_cache_client_initialization(self):
@@ -47,9 +46,9 @@ class TestCacheClientBasics:
         client = HiveCacheClient(config)
         assert client is not None
         assert client.config is config
-        assert hasattr(client, '_metrics')
-        assert client._metrics['hits'] == 0
-        assert client._metrics['misses'] == 0
+        assert hasattr(client, "_metrics")
+        assert client._metrics["hits"] == 0
+        assert client._metrics["misses"] == 0
 
     @pytest.mark.core
     def test_cache_metrics_initialization(self):
@@ -58,11 +57,11 @@ class TestCacheClientBasics:
         from hive_cache.config import CacheConfig
         config = (CacheConfig(),)
         client = HiveCacheClient(config)
-        assert 'hits' in client._metrics
-        assert 'misses' in client._metrics
-        assert 'sets' in client._metrics
-        assert 'deletes' in client._metrics
-        assert 'errors' in client._metrics
+        assert "hits" in client._metrics
+        assert "misses" in client._metrics
+        assert "sets" in client._metrics
+        assert "deletes" in client._metrics
+        assert "errors" in client._metrics
 
 @pytest.mark.core
 class TestPerformanceCacheBasics:
@@ -73,7 +72,7 @@ class TestPerformanceCacheBasics:
         """Test performance_cache module can be imported."""
         from hive_cache import performance_cache
         assert performance_cache is not None
-        assert hasattr(performance_cache, 'PerformanceCache')
+        assert hasattr(performance_cache, "PerformanceCache")
 
     @pytest.mark.core
     def test_performance_cache_initialization(self):
@@ -85,7 +84,7 @@ class TestPerformanceCacheBasics:
         perf_cache = PerformanceCache(cache_client, CacheConfig())
         assert perf_cache is not None
         assert perf_cache.cache_client is cache_client
-        assert hasattr(perf_cache, 'perf_metrics')
+        assert hasattr(perf_cache, "perf_metrics")
 
     @pytest.mark.core
     def test_performance_metrics_initialization(self):
@@ -95,12 +94,12 @@ class TestPerformanceCacheBasics:
         from hive_cache.performance_cache import PerformanceCache
         cache_client = (HiveCacheClient(CacheConfig()),)
         perf_cache = PerformanceCache(cache_client, CacheConfig())
-        assert perf_cache.perf_metrics['total_function_calls'] == 0
-        assert perf_cache.perf_metrics['cache_hits'] == 0
-        assert perf_cache.perf_metrics['cache_misses'] == 0
-        assert perf_cache.perf_metrics['total_computation_time_saved'] == 0.0
-        assert perf_cache.perf_metrics['average_computation_time'] == 0.0
-        assert perf_cache.perf_metrics['expensive_operations_cached'] == 0
+        assert perf_cache.perf_metrics["total_function_calls"] == 0
+        assert perf_cache.perf_metrics["cache_hits"] == 0
+        assert perf_cache.perf_metrics["cache_misses"] == 0
+        assert perf_cache.perf_metrics["total_computation_time_saved"] == 0.0
+        assert perf_cache.perf_metrics["average_computation_time"] == 0.0
+        assert perf_cache.perf_metrics["expensive_operations_cached"] == 0
 
 @pytest.mark.core
 class TestFunctionKeyGeneration:
@@ -119,7 +118,7 @@ class TestFunctionKeyGeneration:
         perf_cache = PerformanceCache(cache_client, CacheConfig())
         key = perf_cache._generate_function_key(sample_function, args=(1, 2))
         assert isinstance(key, str)
-        assert 'sample_function' in key
+        assert "sample_function" in key
         assert len(key) > 0
 
     @pytest.mark.core
@@ -133,8 +132,8 @@ class TestFunctionKeyGeneration:
             return x + y
         cache_client = (HiveCacheClient(CacheConfig()),)
         perf_cache = PerformanceCache(cache_client, CacheConfig())
-        key1 = perf_cache._generate_function_key(sample_function, args=(5,), kwargs={'y': 10})
-        key2 = perf_cache._generate_function_key(sample_function, args=(5,), kwargs={'y': 20})
+        key1 = perf_cache._generate_function_key(sample_function, args=(5,), kwargs={"y": 10})
+        key2 = perf_cache._generate_function_key(sample_function, args=(5,), kwargs={"y": 20})
         assert key1 != key2
 
     @pytest.mark.core
@@ -148,8 +147,8 @@ class TestFunctionKeyGeneration:
             return 42
         cache_client = (HiveCacheClient(CacheConfig()),)
         perf_cache = PerformanceCache(cache_client, CacheConfig())
-        key = perf_cache._generate_function_key(sample_function, key_prefix='myprefix')
-        assert key.startswith('myprefix')
+        key = perf_cache._generate_function_key(sample_function, key_prefix="myprefix")
+        assert key.startswith("myprefix")
 
 @pytest.mark.core
 class TestTTLCalculation:
@@ -242,8 +241,8 @@ class TestCacheExceptions:
     def test_cache_exception_instantiation(self):
         """Test cache exceptions can be instantiated."""
         from hive_cache.exceptions import CacheError
-        error = CacheError('Test error message')
-        assert str(error) == 'Test error message'
+        error = CacheError("Test error message")
+        assert str(error) == "Test error message"
 
 @pytest.mark.core
 class TestPerformanceStatsTracking:
@@ -258,15 +257,15 @@ class TestPerformanceStatsTracking:
         from hive_cache.performance_cache import PerformanceCache
         cache_client = (HiveCacheClient(CacheConfig()),)
         perf_cache = PerformanceCache(cache_client, CacheConfig())
-        cache_client.get_metrics = Mock(return_value={'test': 'metrics'})
+        cache_client.get_metrics = Mock(return_value={"test": "metrics"})
         stats = await perf_cache.get_performance_stats_async()
         assert isinstance(stats, dict)
-        assert 'cache_hit_rate_percent' in stats
-        assert 'namespace' in stats
-        assert 'total_function_calls' in stats
-        assert 'cache_hits' in stats
-        assert 'cache_misses' in stats
-        assert stats['cache_hit_rate_percent'] == 0
+        assert "cache_hit_rate_percent" in stats
+        assert "namespace" in stats
+        assert "total_function_calls" in stats
+        assert "cache_hits" in stats
+        assert "cache_misses" in stats
+        assert stats["cache_hit_rate_percent"] == 0
 
 @pytest.mark.core
 class TestCacheWarming:
@@ -275,11 +274,11 @@ class TestCacheWarming:
     @pytest.mark.core
     def test_warm_cache_function_config_structure(self):
         """Test cache warming function config structure."""
-        function_config = {'function': lambda x: x * 2, 'args': (5,), 'kwargs': {}, 'key_prefix': 'test'}
-        assert 'function' in function_config
-        assert 'args' in function_config
-        assert 'kwargs' in function_config
-        assert 'key_prefix' in function_config
+        function_config = {"function": lambda x: x * 2, "args": (5,), "kwargs": {}, "key_prefix": "test"}
+        assert "function" in function_config
+        assert "args" in function_config
+        assert "kwargs" in function_config
+        assert "key_prefix" in function_config
 
 @pytest.mark.core
 class TestBatchOperations:
@@ -288,12 +287,12 @@ class TestBatchOperations:
     @pytest.mark.core
     def test_batch_operation_structure(self):
         """Test batch operation dictionary structure."""
-        operation = {'key': 'test_key', 'computation': lambda: 42, 'args': (), 'kwargs': {}, 'ttl': 3600}
-        assert 'key' in operation
-        assert 'computation' in operation
-        assert 'args' in operation
-        assert 'kwargs' in operation
-        assert 'ttl' in operation
+        operation = {"key": "test_key", "computation": lambda: 42, "args": (), "kwargs": {}, "ttl": 3600}
+        assert "key" in operation
+        assert "computation" in operation
+        assert "args" in operation
+        assert "kwargs" in operation
+        assert "ttl" in operation
 
 @pytest.mark.core
 class TestCacheInvalidation:
@@ -342,16 +341,16 @@ class TestImportIntegrity:
     def test_main_init_imports(self):
         """Test main package __init__ imports."""
         import hive_cache
-        assert hasattr(hive_cache, 'HiveCacheClient') or True
+        assert hasattr(hive_cache, "HiveCacheClient") or True
         assert hive_cache is not None
 
     @pytest.mark.core
     def test_all_modules_importable(self):
         """Test all modules can be imported without errors."""
-        modules_to_test = ['hive_cache.cache_client', 'hive_cache.performance_cache', 'hive_cache.config', 'hive_cache.exceptions', 'hive_cache.health']
+        modules_to_test = ["hive_cache.cache_client", "hive_cache.performance_cache", "hive_cache.config", "hive_cache.exceptions", "hive_cache.health"]
         for module_name in modules_to_test:
             try:
                 __import__(module_name)
                 assert True
             except ImportError as e:
-                pytest.fail(f'Failed to import {module_name}: {e}')
+                pytest.fail(f"Failed to import {module_name}: {e}")

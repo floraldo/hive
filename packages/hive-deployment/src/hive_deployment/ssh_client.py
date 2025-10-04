@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-SSH utility module for Hive Deployment.
+"""SSH utility module for Hive Deployment.
 Adapted from SmartHoodsOptimisationTool Apper project.
 """
 from __future__ import annotations
@@ -17,18 +16,17 @@ logger = get_logger(__name__)
 
 
 class SSHClient:
-    """
-    SSH client for Hive deployments.
+    """SSH client for Hive deployments.
 
     Compatible with deployment utilities and remote operations.
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
-        """
-        Initialize an SSH client from a configuration dictionary.
+        """Initialize an SSH client from a configuration dictionary.
 
         Args:
             config: SSH configuration dictionary containing connection parameters
+
         """
         self.config = config
         self.host = config.get("host")
@@ -42,11 +40,11 @@ class SSHClient:
         self.sftp = None
 
     def connect(self) -> bool:
-        """
-        Establish an SSH connection.
+        """Establish an SSH connection.
 
         Returns:
             bool: True if connection is successful
+
         """
         if self.client and self.client.get_transport() and self.client.get_transport().is_active():
             logger.debug("SSH connection already active")
@@ -65,7 +63,7 @@ class SSHClient:
                 "hostname": self.host,
                 "port": self.port,
                 "username": self.username,
-                "timeout": self.connect_timeout
+                "timeout": self.connect_timeout,
             }
 
             if self.password:
@@ -78,39 +76,37 @@ class SSHClient:
             return True
 
         except paramiko.AuthenticationException as e:
-            logger.error(f"Authentication failed: {str(e)}")
+            logger.error(f"Authentication failed: {e!s}")
             return False
         except paramiko.SSHException as e:
-            logger.error(f"SSH error: {str(e)}")
+            logger.error(f"SSH error: {e!s}")
             return False
         except Exception as e:
-            logger.error(f"Connection error: {str(e)}")
+            logger.error(f"Connection error: {e!s}")
             return False
 
     def close(self) -> None:
-        """
-        Close the SSH connection.
+        """Close the SSH connection.
         """
         if self.sftp:
             try:
                 self.sftp.close()
                 logger.debug("SFTP connection closed")
             except Exception as e:
-                logger.warning(f"Error closing SFTP: {str(e)}")
+                logger.warning(f"Error closing SFTP: {e!s}")
 
         if self.client:
             try:
                 self.client.close()
                 logger.debug("SSH connection closed")
             except Exception as e:
-                logger.warning(f"Error closing SSH connection: {str(e)}")
+                logger.warning(f"Error closing SSH connection: {e!s}")
 
         self.client = None
         self.sftp = None
 
     def execute_command(self, command: str, sudo: bool = False) -> tuple[int, str, str]:
-        """
-        Execute a command on the remote server.
+        """Execute a command on the remote server.
 
         Args:
             command: Command to execute
@@ -118,6 +114,7 @@ class SSHClient:
 
         Returns:
             Tuple[int, str, str]: (exit_code, stdout, stderr)
+
         """
         if not self.client or not self.client.get_transport() or not self.client.get_transport().is_active():
             if not self.connect():
@@ -149,22 +146,20 @@ class SSHClient:
                 exit_code = channel.recv_exit_status()
                 channel.close()
                 return exit_code, output.strip(), error.strip()
-            else:
-                # Regular command execution
-                stdin, stdout, stderr = self.client.exec_command(command)
-                exit_code = stdout.channel.recv_exit_status()
-                return (
-                    exit_code,
-                    stdout.read().decode().strip(),
-                    stderr.read().decode().strip()
-                )
+            # Regular command execution
+            stdin, stdout, stderr = self.client.exec_command(command)
+            exit_code = stdout.channel.recv_exit_status()
+            return (
+                exit_code,
+                stdout.read().decode().strip(),
+                stderr.read().decode().strip(),
+            )
         except Exception as e:
-            logger.error(f"Error executing command: {str(e)}")
+            logger.error(f"Error executing command: {e!s}")
             return 1, "", str(e)
 
     def upload_file(self, content: bytes | str, remote_path: str, sudo: bool = False) -> bool:
-        """
-        Upload content to a remote file.
+        """Upload content to a remote file.
 
         Args:
             content: File content (bytes or string)
@@ -173,6 +168,7 @@ class SSHClient:
 
         Returns:
             bool: True if successful
+
         """
         if not self.client or not self.client.get_transport() or not self.client.get_transport().is_active():
             if not self.connect():
@@ -192,7 +188,7 @@ class SSHClient:
 
             if sudo:
                 # Upload to /tmp then move with sudo
-                temp_path = f"/tmp/temp_file_{int(time.time())}"  # noqa: S108
+                temp_path = f"/tmp/temp_file_{int(time.time())}"
                 with self.sftp.file(temp_path, "wb") as f:
                     f.write(content)
                 self.execute_command(f"mv {temp_path} {remote_path}", sudo=True)
@@ -203,20 +199,20 @@ class SSHClient:
             logger.info(f"Uploaded file to {remote_path}")
             return True
         except Exception as e:
-            logger.error(f"Failed to upload file to {remote_path}: {str(e)}")
+            logger.error(f"Failed to upload file to {remote_path}: {e!s}")
             return False
 
 
 # Function to create an SSH client from a config dictionary
 def create_ssh_client_from_config(config: dict[str, Any]) -> SSHClient:
-    """
-    Create an SSH client from a configuration dictionary.
+    """Create an SSH client from a configuration dictionary.
 
     Args:
         config: Dictionary containing SSH configuration with 'ssh' key
 
     Returns:
         SSHClient: Configured SSH client
+
     """
     ssh_config = config.get("ssh", {})
     if not ssh_config.get("host") or not ssh_config.get("username"):

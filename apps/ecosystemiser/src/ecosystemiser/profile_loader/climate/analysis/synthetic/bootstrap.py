@@ -19,9 +19,7 @@ def multivariate_block_bootstrap(
     seed: int | None = None,
     target_length: str | None = "1Y",
 ) -> xr.Dataset:
-    """
-
-    Generate synthetic climate data using seasonal block bootstrap.,
+    """Generate synthetic climate data using seasonal block bootstrap.,
 
     Preserves intra-block correlations between variables.
 
@@ -35,6 +33,7 @@ def multivariate_block_bootstrap(
 
     Returns:
         Synthetic dataset with same variables as input,
+
     """
     if seed is not None:
         np.random.seed(seed)
@@ -76,8 +75,7 @@ def multivariate_block_bootstrap(
 
 
 def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins: int) -> list:
-    """
-    Partition dataset into blocks labeled by season.
+    """Partition dataset into blocks labeled by season.
 
     Args:
         ds: Dataset to partition
@@ -86,6 +84,7 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
 
     Returns:
         List of (block_data, season_label) tuples,
+
     """
     blocks = []
 
@@ -123,8 +122,7 @@ def partition_into_blocks(ds: xr.Dataset, block_size: pd.Timedelta, season_bins:
 
 
 def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list:
-    """
-    Sample blocks with replacement, respecting seasonal distribution.
+    """Sample blocks with replacement, respecting seasonal distribution.
 
     Args:
         blocks: List of (block_data, season) tuples
@@ -133,6 +131,7 @@ def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list
 
     Returns:
         List of sampled blocks,
+
     """
     # Organize blocks by season
     blocks_by_season = {s: [] for s in range(n_seasons)}
@@ -172,8 +171,7 @@ def sample_blocks_by_season(blocks: list, n_blocks: int, n_seasons: int) -> list
 
 
 def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
-    """
-    Concatenate blocks with overlap-save smoothing.
+    """Concatenate blocks with overlap-save smoothing.
 
     Args:
         blocks: List of block datasets
@@ -181,6 +179,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
 
     Returns:
         Concatenated dataset,
+
     """
     if not blocks:
         raise ValueError("No blocks to concatenate")
@@ -224,8 +223,7 @@ def concatenate_blocks(blocks: list, overlap_hours: int) -> xr.Dataset:
 
 
 def ensure_continuity(ds: xr.Dataset, start_time: np.datetime64) -> xr.Dataset:
-    """
-    Ensure continuous time index starting from specified time.
+    """Ensure continuous time index starting from specified time.
 
     Args:
         ds: Dataset to process
@@ -233,6 +231,7 @@ def ensure_continuity(ds: xr.Dataset, start_time: np.datetime64) -> xr.Dataset:
 
     Returns:
         Dataset with continuous time index,
+
     """
     # Get original frequency
     time_diff = (pd.Series(ds.time.values).diff().mode()[0],)

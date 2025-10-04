@@ -5,4 +5,4 @@ logger = get_logger(__name__)
 """Parameter encoding and constraint handling for optimization."""
 
 
-__all__ = ["ParameterEncoderSystemConfigEncoder", "ConstraintHandlerTechnicalConstraintValidator"]
+__all__ = ["ConstraintHandlerTechnicalConstraintValidator", "ParameterEncoderSystemConfigEncoder"]

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal maintenance tooling.
 
-"""
-Repository Hygiene - Consolidated Cleanup Tool
+"""Repository Hygiene - Consolidated Cleanup Tool
 
 This script consolidates the functionality of multiple cleanup scripts:
 - automated_hygiene.py
@@ -89,7 +87,7 @@ class RepositoryHygieneScanner:
                                         "line": line_num,
                                         "type": comment_type,
                                         "comment": match.group(1).strip(),
-                                    }
+                                    },
                                 )
                                 self.stats["todos_found"] += 1
 
@@ -128,7 +126,7 @@ class RepositoryHygieneScanner:
 
                 if branch_name in merged_branches:
                     self.findings["stale_branches"].append(
-                        {"name": branch_name, "type": "merged", "action": "Can be safely deleted"}
+                        {"name": branch_name, "type": "merged", "action": "Can be safely deleted"},
                     )
 
         except Exception as e:
@@ -178,7 +176,7 @@ class RepositoryHygieneScanner:
                     "",
                     f"Found {len(self.findings['backup_files'])} backup files to clean:",
                     "",
-                ]
+                ],
             )
             for backup_file in self.findings["backup_files"][:10]:
                 report_lines.append(f"- {backup_file.relative_to(self.repo_root)}")
@@ -211,7 +209,7 @@ class RepositoryHygieneScanner:
                     "",
                     "These branches can be deleted:",
                     "",
-                ]
+                ],
             )
 
             for branch in self.findings["stale_branches"][:10]:

@@ -1,5 +1,4 @@
-"""
-Structured, configurable logging utilities for Hive applications.
+"""Structured, configurable logging utilities for Hive applications.
 """
 
 from __future__ import annotations
@@ -27,8 +26,7 @@ def setup_logging(
     log_file_path: str | None = None,
     json_format: bool = False,
 ) -> None:
-    """
-    Configure the root logger for an application. This should be called once at startup.
+    """Configure the root logger for an application. This should be called once at startup.
 
     Args:
         name: The name of the application, used for the log file name if not provided.,
@@ -36,6 +34,7 @@ def setup_logging(
         log_to_file: If True, logs will be written to a file.,
         log_file_path: The full path to the log file. If None, defaults to 'logs/{name}.log'.,
         json_format: If True, logs will be formatted as JSON.,
+
     """
     log_level = os.environ.get("LOG_LEVEL", level).upper()
 
@@ -87,8 +86,7 @@ def setup_logging(
 
 
 def get_logger(name: str, level: str | None = None) -> logging.Logger:
-    """
-    Get a logger instance. Assumes setup_logging() has already been called for applications
+    """Get a logger instance. Assumes setup_logging() has already been called for applications
     or provides basic configuration for standalone use.
 
     Args:
@@ -97,6 +95,7 @@ def get_logger(name: str, level: str | None = None) -> logging.Logger:
 
     Returns:
         Configured logger instance.
+
     """
     logger = logging.getLogger(name)
 

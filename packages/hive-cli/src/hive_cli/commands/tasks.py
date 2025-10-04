@@ -1,5 +1,4 @@
-"""
-Tasks CLI Command
+"""Tasks CLI Command
 
 API-first interface for Hive orchestration task management.
 Implements Decision 6-C: Dual-Purpose API and UI.
@@ -24,8 +23,7 @@ logger = get_logger(__name__)
 
 
 def parse_relative_time(time_str: str) -> datetime:
-    """
-    Parse relative time strings into absolute datetime objects.
+    """Parse relative time strings into absolute datetime objects.
 
     Supports formats like:
     - '2d' or '2days' for 2 days ago
@@ -41,27 +39,28 @@ def parse_relative_time(time_str: str) -> datetime:
 
     Raises:
         ValueError: If time_str format is invalid
+
     """
-    pattern = r'^(\d+)(d|day|days|h|hour|hours|m|min|minute|minutes|w|week|weeks)$'
+    pattern = r"^(\d+)(d|day|days|h|hour|hours|m|min|minute|minutes|w|week|weeks)$"
     match = re.match(pattern, time_str.lower())
 
     if not match:
         raise ValueError(
             f"Invalid time format: '{time_str}'. "
-            "Expected formats: 2d, 1h, 30m, 1w"
+            "Expected formats: 2d, 1h, 30m, 1w",
         )
 
     amount = int(match.group(1))
     unit = match.group(2)
 
     # Map units to timedelta
-    if unit in ('d', 'day', 'days'):
+    if unit in ("d", "day", "days"):
         delta = timedelta(days=amount)
-    elif unit in ('h', 'hour', 'hours'):
+    elif unit in ("h", "hour", "hours"):
         delta = timedelta(hours=amount)
-    elif unit in ('m', 'min', 'minute', 'minutes'):
+    elif unit in ("m", "min", "minute", "minutes"):
         delta = timedelta(minutes=amount)
-    elif unit in ('w', 'week', 'weeks'):
+    elif unit in ("w", "week", "weeks"):
         delta = timedelta(weeks=amount)
     else:
         raise ValueError(f"Unsupported time unit: {unit}")
@@ -72,46 +71,44 @@ def parse_relative_time(time_str: str) -> datetime:
 @click.group(name="tasks")
 def tasks_group():
     """Manage Hive orchestration tasks."""
-    pass
 
 
 @tasks_group.command(name="list")
 @click.option(
     "--status",
-    type=click.Choice(['queued', 'assigned', 'in_progress', 'completed', 'failed', 'cancelled']),
-    help="Filter by task status"
+    type=click.Choice(["queued", "assigned", "in_progress", "completed", "failed", "cancelled"]),
+    help="Filter by task status",
 )
 @click.option(
     "--user",
     "--worker",
     "assigned_worker",
-    help="Filter by assigned worker/user"
+    help="Filter by assigned worker/user",
 )
 @click.option(
     "--limit",
     type=int,
     default=10,
-    help="Maximum number of tasks to return"
+    help="Maximum number of tasks to return",
 )
 @click.option(
     "--since",
     type=str,
-    help="Filter tasks created since relative time (e.g., 2d, 1h, 30m)"
+    help="Filter tasks created since relative time (e.g., 2d, 1h, 30m)",
 )
 @click.option(
     "--pretty",
     is_flag=True,
-    help="Display human-readable table (default: JSON)"
+    help="Display human-readable table (default: JSON)",
 )
 def list_tasks(
     status: str | None,
     assigned_worker: str | None,
     limit: int,
     since: str | None,
-    pretty: bool
+    pretty: bool,
 ):
-    """
-    List orchestration tasks with optional filters.
+    """List orchestration tasks with optional filters.
 
     Examples:
         # JSON output (API-first, default)
@@ -134,6 +131,7 @@ def list_tasks(
 
         # Filter by worker
         hive tasks list --user worker-1 --pretty
+
     """
     try:
         # Parse --since filter if provided
@@ -161,15 +159,15 @@ def list_tasks(
         if assigned_worker:
             task_list = [
                 t for t in task_list
-                if t.get('assigned_worker') == assigned_worker
+                if t.get("assigned_worker") == assigned_worker
             ]
 
         # Filter by creation time if --since specified
         if since_timestamp:
             task_list = [
                 t for t in task_list
-                if t.get('created_at') and
-                datetime.fromisoformat(str(t['created_at']).replace('Z', '+00:00')).replace(tzinfo=None) >= since_timestamp
+                if t.get("created_at") and
+                datetime.fromisoformat(str(t["created_at"]).replace("Z", "+00:00")).replace(tzinfo=None) >= since_timestamp
             ]
 
         # Output format decision: API-first (JSON default)
@@ -190,11 +188,10 @@ def list_tasks(
 @click.option(
     "--pretty",
     is_flag=True,
-    help="Display human-readable format (default: JSON)"
+    help="Display human-readable format (default: JSON)",
 )
 def show_task(task_id: str, pretty: bool):
-    """
-    Show detailed information about a specific task.
+    """Show detailed information about a specific task.
 
     Examples:
         # JSON output (default)
@@ -202,6 +199,7 @@ def show_task(task_id: str, pretty: bool):
 
         # Human-readable format
         hive tasks show abc123 --pretty
+
     """
     try:
         task = task_ops.get_task(task_id)
@@ -226,8 +224,7 @@ def show_task(task_id: str, pretty: bool):
 
 
 def _render_pretty_table(task_list: list[dict[str, Any]]) -> None:
-    """
-    Render tasks as human-readable table using rich.
+    """Render tasks as human-readable table using rich.
 
     Color coding:
     - queued: yellow
@@ -256,23 +253,23 @@ def _render_pretty_table(task_list: list[dict[str, Any]]) -> None:
 
     # Add rows with color-coded status
     status_colors = {
-        'queued': 'yellow',
-        'assigned': 'cyan',
-        'in_progress': 'blue',
-        'completed': 'green',
-        'failed': 'red',
-        'cancelled': 'dim'
+        "queued": "yellow",
+        "assigned": "cyan",
+        "in_progress": "blue",
+        "completed": "green",
+        "failed": "red",
+        "cancelled": "dim",
     }
 
     for task in task_list:
-        task_id = task.get('id', 'unknown')[:8]
-        title = task.get('title', 'Untitled')[:40]
-        status = task.get('status', 'unknown')
-        priority = str(task.get('priority', 1))
-        worker = task.get('assigned_worker', 'unassigned')[:15]
-        created = task.get('created_at', '')[:10]  # YYYY-MM-DD
+        task_id = task.get("id", "unknown")[:8]
+        title = task.get("title", "Untitled")[:40]
+        status = task.get("status", "unknown")
+        priority = str(task.get("priority", 1))
+        worker = task.get("assigned_worker", "unassigned")[:15]
+        created = task.get("created_at", "")[:10]  # YYYY-MM-DD
 
-        status_color = status_colors.get(status, 'white')
+        status_color = status_colors.get(status, "white")
         status_display = f"[{status_color}]{status}[/{status_color}]"
 
         table.add_row(
@@ -281,7 +278,7 @@ def _render_pretty_table(task_list: list[dict[str, Any]]) -> None:
             status_display,
             priority,
             worker,
-            created
+            created,
         )
 
     console.print(table)
@@ -300,19 +297,19 @@ def _render_task_detail(task: dict[str, Any]) -> None:
     console = Console()
 
     # Basic info
-    task_id = task.get('id', 'unknown')
-    title = task.get('title', 'Untitled')
-    status = task.get('status', 'unknown')
-    description = task.get('description', 'No description')
+    task_id = task.get("id", "unknown")
+    title = task.get("title", "Untitled")
+    status = task.get("status", "unknown")
+    description = task.get("description", "No description")
 
     # Status color
     status_colors = {
-        'queued': 'yellow',
-        'in_progress': 'blue',
-        'completed': 'green',
-        'failed': 'red'
+        "queued": "yellow",
+        "in_progress": "blue",
+        "completed": "green",
+        "failed": "red",
     }
-    status_color = status_colors.get(status, 'white')
+    status_color = status_colors.get(status, "white")
 
     # Build detail text
     details = f"""
@@ -330,11 +327,11 @@ def _render_task_detail(task: dict[str, Any]) -> None:
     """.strip()
 
     # Memory nexus info (if available)
-    if task.get('summary'):
+    if task.get("summary"):
         details += f"\n\n[bold cyan]AI Summary:[/bold cyan]\n{task['summary']}"
 
-    if task.get('related_document_ids'):
-        doc_ids = json.loads(task['related_document_ids']) if isinstance(task['related_document_ids'], str) else task['related_document_ids']
+    if task.get("related_document_ids"):
+        doc_ids = json.loads(task["related_document_ids"]) if isinstance(task["related_document_ids"], str) else task["related_document_ids"]
         details += f"\n\n[bold cyan]Knowledge Fragments:[/bold cyan] {len(doc_ids)} indexed"
 
     panel = Panel(details, title=f"Task Details: {title[:40]}", border_style="cyan")

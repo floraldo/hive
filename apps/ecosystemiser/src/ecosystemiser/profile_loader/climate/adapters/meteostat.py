@@ -120,7 +120,7 @@ class MeteostatAdapter(BaseAdapter):
     def _check_meteostat(self) -> bool:
         """Check if meteostat library is available"""
         try:
-            import meteostat  # noqa: F401
+            import meteostat
 
             return True
         except ImportError:
@@ -236,7 +236,6 @@ class MeteostatAdapter(BaseAdapter):
         resolution: str = "1H",
     ) -> xr.Dataset:
         """Fetch climate data from Meteostat API"""
-
         if not self._meteostat_available:
             raise DataFetchError(
                 "Meteostat library not installed. Install with: pip install meteostat",
@@ -271,7 +270,7 @@ class MeteostatAdapter(BaseAdapter):
 
         except Exception as e:
             self.logger.error(f"Error fetching Meteostat data: {e}")
-            raise DataFetchError(f"Failed to fetch data from Meteostat: {str(e)}", adapter_name="meteostat") from e
+            raise DataFetchError(f"Failed to fetch data from Meteostat: {e!s}", adapter_name="meteostat") from e
 
     def _parse_period(self, period: dict) -> tuple:
         """Parse period dict to start and end dates"""
@@ -298,7 +297,6 @@ class MeteostatAdapter(BaseAdapter):
 
     def _dataframe_to_xarray(self, df: pd.DataFrame, variables: list[str], lat: float, lon: float) -> xr.Dataset:
         """Convert Meteostat DataFrame to xarray Dataset"""
-
         # Create Dataset with time coordinate
         ds = xr.Dataset(coords={"time": df.index})
 
@@ -343,7 +341,6 @@ class MeteostatAdapter(BaseAdapter):
 
     def _convert_units(self, data: np.ndarray, canonical_name: str, meteo_name: str) -> np.ndarray:
         """Convert Meteostat units to canonical units"""
-
         conversions = (
             {
                 # Meteostat provides mm (total precipitation for the period)
@@ -381,7 +378,6 @@ class MeteostatAdapter(BaseAdapter):
 
     def _process_special_variables(self, ds: xr.Dataset, df: pd.DataFrame, special_vars: list[str]) -> xr.Dataset:
         """Process special variables that need custom handling"""
-
         for var in special_vars:
             if var == "cloud_cover" and "coco" in df.columns:
                 # Convert weather condition code to cloud cover percentage
@@ -434,8 +430,7 @@ class MeteostatAdapter(BaseAdapter):
         return ds
 
     def _get_angstrom_coefficients(self, latitude: float) -> tuple[float, float]:
-        """
-        Get region-specific Ångström-Prescott coefficients based on latitude.,
+        """Get region-specific Ångström-Prescott coefficients based on latitude.,
 
         These coefficients are calibrated for different climate zones and improve,
         solar radiation estimation accuracy compared to global constants.
@@ -450,8 +445,8 @@ class MeteostatAdapter(BaseAdapter):
             - Prescott, J.A. (1940). "Evaporation from a water surface in relation to solar radiation"
             - Ångström, A. (1924). "Solar and terrestrial radiation"
             - Regional calibrations from multiple meteorological studies,
-        """
 
+        """
         # Region-specific coefficients based on climate zones and latitude bands
         # Values calibrated from meteorological station data worldwide
         abs_lat = abs(latitude)
@@ -461,39 +456,38 @@ class MeteostatAdapter(BaseAdapter):
             # Calibrated for Scandinavia, northern Canada, Antarctica
             return (0.20, 0.45)
 
-        elif abs_lat >= 50:  # Sub-polar regions
+        if abs_lat >= 50:  # Sub-polar regions
             # Moderate atmospheric conditions, seasonal variations
             # Calibrated for northern Europe, southern Chile/Argentina
             return (0.22, 0.48)
 
-        elif abs_lat >= 40:  # Temperate regions
+        if abs_lat >= 40:  # Temperate regions
             # Standard mid-latitude conditions
             # Calibrated for continental Europe, central North America
             return (0.25, 0.50)
 
-        elif abs_lat >= 30:  # Subtropical regions
+        if abs_lat >= 30:  # Subtropical regions
             # Higher solar elevation, moderate humidity
             # Calibrated for Mediterranean, southern USA, northern Africa
             return (0.28, 0.52)
 
-        elif abs_lat >= 20:  # Tropical-subtropical transition
+        if abs_lat >= 20:  # Tropical-subtropical transition
             # High solar elevation, variable humidity
             # Calibrated for Mexico, northern India, Sahara margins
             return (0.30, 0.54)
 
-        elif abs_lat >= 10:  # Tropical regions
+        if abs_lat >= 10:  # Tropical regions
             # High humidity, frequent clouds, high atmospheric water vapor
             # Calibrated for central Africa, northern South America
             return (0.26, 0.48)
 
-        else:  # Equatorial regions (|lat| < 10deg)
-            # Very high humidity, frequent convective clouds
-            # Calibrated for Amazon, Congo Basin, Indonesia
-            return (0.24, 0.46)
+        # Equatorial regions (|lat| < 10deg)
+        # Very high humidity, frequent convective clouds
+        # Calibrated for Amazon, Congo Basin, Indonesia
+        return (0.24, 0.46)
 
     def _sunshine_to_ghi(self, sunshine_minutes: np.ndarray, timestamps: np.ndarray, latitude: float) -> np.ndarray:
-        """
-                Convert sunshine duration to GHI using Ångström-Prescott model.,
+        """Convert sunshine duration to GHI using Ångström-Prescott model.,
 
         This implements a more accurate solar radiation model based on sunshine duration
                 and solar geometry calculations.,
@@ -568,7 +562,6 @@ class MeteostatAdapter(BaseAdapter):
 
     def _apply_quality_control(self, ds: xr.Dataset) -> xr.Dataset:
         """Apply quality control checks to the dataset"""
-
         for var_name in ds.data_vars:
             da = ds[var_name]
 
@@ -599,7 +592,6 @@ class MeteostatAdapter(BaseAdapter):
 
     def _get_variable_attrs(self, canonical_name: str) -> dict:
         """Get variable attributes including units"""
-
         units_map = (
             {
                 "temp_air": "degC",
@@ -703,7 +695,6 @@ class MeteostatQCProfile(QCProfile):
 
     def validate_source_specific(self, ds: xr.Dataset, report: QCReport) -> None:
         """Meteostat specific validation"""
-
         # Check for excessive data gaps (common with station data)
         for var_name in ds.data_vars:
             data = ds[var_name].values,

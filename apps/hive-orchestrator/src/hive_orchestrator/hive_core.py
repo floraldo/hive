@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-# ruff: noqa: E402
-"""
-HiveCore - Streamlined Hive Manager
+"""HiveCore - Streamlined Hive Manager
 Unified task management with built-in cleanup and configuration
 """
 
@@ -73,6 +71,7 @@ class HiveCore:
 
         Returns:
             Dict containing the merged configuration with guaranteed minimum keys
+
         """
         config_file = self.root / "hive_config.json"
 
@@ -189,7 +188,6 @@ class HiveCore:
 
     def load_task_queue(self) -> list[str]:
         """Load task queue from database"""
-
         try:
             tasks = hive_core_db.get_queued_tasks(limit=1000)
             return [task["id"] for task in tasks]
@@ -200,7 +198,6 @@ class HiveCore:
     def save_task_queue(self, queue: list[str]) -> None:
         """Save task queue - No-op since database manages queue through task status"""
         # Database manages queue state through task status - no explicit queue file needed
-        pass
 
     def load_task(self, task_id: str) -> dict[str, Any] | None:
         """Load task data by ID from database"""

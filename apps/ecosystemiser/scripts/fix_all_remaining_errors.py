@@ -1,4 +1,3 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this script use sys.executable with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
@@ -63,7 +62,7 @@ def process_file(file_path: Path) -> tuple[bool, list[str]]:
 def validate_syntax(file_path: Path) -> tuple[bool, str]:
     """Validate Python syntax of a file."""
     try:
-        result = subprocess.run([sys.executable, "-m", "py_compile", str(file_path)], capture_output=True, text=True)
+        result = subprocess.run([sys.executable, "-m", "py_compile", str(file_path)], check=False, capture_output=True, text=True)
         if result.returncode == 0:
             return True, ""
         return False, result.stderr

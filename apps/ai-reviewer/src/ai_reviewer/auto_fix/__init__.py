@@ -1,5 +1,4 @@
-"""
-Auto-Fix Module for Guardian Agent
+"""Auto-Fix Module for Guardian Agent
 
 Provides autonomous error detection, fix generation, and retry management.
 
@@ -23,6 +22,7 @@ Example:
     # Apply and retry
     manager = RetryManager(max_attempts=3)
     success = manager.apply_fix(file_path, fix)
+
 """
 
 from .error_analyzer import ErrorAnalyzer, ErrorSeverity, ParsedError, ValidationTool
@@ -33,14 +33,14 @@ from .retry_manager import FixAttempt, FixSession, RetryManager
 __all__ = [
     "ErrorAnalyzer",
     "ErrorSeverity",
-    "ParsedError",
-    "ValidationTool",
-    "FixGenerator",
-    "GeneratedFix",
-    "RetryManager",
-    "FixAttempt",
-    "FixSession",
-    "EscalationLogic",
     "EscalationDecision",
+    "EscalationLogic",
     "EscalationReason",
+    "FixAttempt",
+    "FixGenerator",
+    "FixSession",
+    "GeneratedFix",
+    "ParsedError",
+    "RetryManager",
+    "ValidationTool",
 ]

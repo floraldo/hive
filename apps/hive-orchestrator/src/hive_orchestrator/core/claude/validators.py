@@ -1,5 +1,4 @@
-"""
-Response validation utilities for Claude outputs
+"""Response validation utilities for Claude outputs
 """
 from __future__ import annotations
 
@@ -19,35 +18,33 @@ class BaseResponseValidator(ABC):
     @abstractmethod
     def validate(self, data: dict[str, Any]) -> BaseModel | None:
         """Validate response data against a schema"""
-        pass
 
     @abstractmethod
     def create_fallback(self, error_message: str, context: dict[str, Any]) -> BaseModel:
         """Create a fallback response when validation fails"""
-        pass
 
 
 class PydanticValidator(BaseResponseValidator):
     """Validator using Pydantic models"""
 
     def __init__(self, model_class: type[BaseModel]) -> None:
-        """
-        Initialize with a Pydantic model class
+        """Initialize with a Pydantic model class
 
         Args:
             model_class: The Pydantic model to validate against
+
         """
         self.model_class = model_class
 
     def validate(self, data: dict[str, Any]) -> BaseModel | None:
-        """
-        Validate data against the Pydantic model
+        """Validate data against the Pydantic model
 
         Args:
             data: Dictionary to validate
 
         Returns:
             Validated model instance or None on failure
+
         """
         try:
             return self.model_class(**data)
@@ -56,8 +53,7 @@ class PydanticValidator(BaseResponseValidator):
             return None
 
     def create_fallback(self, error_message: str, context: dict[str, Any]) -> BaseModel:
-        """
-        Create a fallback response with default values
+        """Create a fallback response with default values
 
         Args:
             error_message: Error that triggered the fallback
@@ -65,6 +61,7 @@ class PydanticValidator(BaseResponseValidator):
 
         Returns:
             Fallback model instance with default values
+
         """
         # Create instance with minimal required fields
         # Use context to populate fields where possible
@@ -101,8 +98,7 @@ class PydanticValidator(BaseResponseValidator):
 
 
 class ResponseValidator:
-    """
-    Main validation utility with fallback support
+    """Main validation utility with fallback support
     """
 
     def __init__(self, validator: BaseResponseValidator) -> None:
@@ -112,10 +108,9 @@ class ResponseValidator:
         self,
         data: dict[str, Any],
         context: dict[str, Any] | None = None,
-        use_fallback: bool = True
+        use_fallback: bool = True,
     ) -> BaseModel | None:
-        """
-        Validate response with optional fallback
+        """Validate response with optional fallback
 
         Args:
             data: Response data to validate,
@@ -124,6 +119,7 @@ class ResponseValidator:
 
         Returns:
             Validated model or fallback (if enabled) or None,
+
         """
         # Try to validate the response,
         validated = self.validator.validate(data)

@@ -59,8 +59,7 @@ class GridPhysicsSimple:
         self.params = params
 
     def rule_based_import(self, power_requested: float, max_import: float) -> float:
-        """
-        Calculate actual power import in SIMPLE mode.
+        """Calculate actual power import in SIMPLE mode.
 
         Args:
             power_requested: Power requested from grid [kW]
@@ -68,13 +67,13 @@ class GridPhysicsSimple:
 
         Returns:
             Actual power imported [kW],
+
         """
         # Simple clipping to max import
         return min(power_requested, max_import)
 
     def rule_based_export(self, power_available: float, max_export: float) -> float:
-        """
-        Calculate actual power export in SIMPLE mode.
+        """Calculate actual power export in SIMPLE mode.
 
         Args:
             power_available: Power available for export [kW]
@@ -82,6 +81,7 @@ class GridPhysicsSimple:
 
         Returns:
             Actual power exported [kW],
+
         """
         # Simple clipping to max export
         return min(power_available, max_export)
@@ -96,8 +96,7 @@ class GridPhysicsStandard(GridPhysicsSimple):
     """
 
     def rule_based_import(self, power_requested: float, max_import: float) -> float:
-        """
-        Calculate actual power import with transmission losses.,
+        """Calculate actual power import with transmission losses.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -133,8 +132,7 @@ class GridOptimizationSimple:
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for grid optimization.,
+        """Create SIMPLE CVXPY constraints for grid optimization.,
 
         Returns constraints for basic grid operation without losses.,
         """
@@ -159,8 +157,7 @@ class GridOptimizationStandard(GridOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for grid optimization.,
+        """Create STANDARD CVXPY constraints for grid optimization.,
 
         Adds grid loss awareness to the constraints.,
         """
@@ -251,16 +248,15 @@ class Grid(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return GridPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return GridPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return GridPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return GridPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for Grid: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for Grid: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -268,16 +264,15 @@ class Grid(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return GridOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return GridOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return GridOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return GridOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for Grid optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for Grid optimization: {fidelity}")
 
     def add_optimization_vars(self, N: int) -> None:
         """Create CVXPY optimization variables."""
@@ -293,8 +288,7 @@ class Grid(Component):
         return self.optimization.set_constraints()
 
     def rule_based_import(self, power: float) -> float:
-        """
-        Delegate to physics strategy for import calculation.,
+        """Delegate to physics strategy for import calculation.,
 
         This maintains the same interface but delegates the actual,
         physics calculation to the strategy object.,
@@ -302,8 +296,7 @@ class Grid(Component):
         return self.physics.rule_based_import(power, self.P_max_import)
 
     def rule_based_export(self, power: float) -> float:
-        """
-        Delegate to physics strategy for export calculation.,
+        """Delegate to physics strategy for export calculation.,
 
         This maintains the same interface but delegates the actual,
         physics calculation to the strategy object.,

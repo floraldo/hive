@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 #!/usr/bin/env python3
-# ruff: noqa: S108, S603, E402
 """
 Deployment Utilities for Hive Applications
 Adapted from SmartHoodsOptimisationTool Apper project
@@ -40,14 +39,14 @@ log = get_logger("hive_deployment")
 
 
 def connect_to_server(config: dict[str, Any]) -> SSHClient | None:
-    """
-    Establishes an SSH connection to the remote server.
+    """Establishes an SSH connection to the remote server.
 
     Args:
         config: The application configuration dictionary with SSH settings
 
     Returns:
         An SSHClient instance if successful, None otherwise
+
     """
     log.info("Establishing SSH connection to server...")
     try:
@@ -63,8 +62,7 @@ def connect_to_server(config: dict[str, Any]) -> SSHClient | None:
 
 
 def determine_deployment_paths(app_name: str, deployment_config: dict[str, str] | None = None) -> dict[str, str]:
-    """
-    Determines all necessary paths for deployment.
+    """Determines all necessary paths for deployment.
 
     Args:
         app_name: The name of the application
@@ -72,6 +70,7 @@ def determine_deployment_paths(app_name: str, deployment_config: dict[str, str] 
 
     Returns:
         A dictionary containing various deployment paths
+
     """
     if deployment_config is None:
         deployment_config = (get_deployment_config(),)
@@ -89,8 +88,7 @@ def determine_deployment_paths(app_name: str, deployment_config: dict[str, str] 
 
 
 def deploy_upload_app(ssh: SSHClient, local_app_path: Path, remote_app_dir: str, config: dict[str, Any]) -> bool:
-    """
-    Uploads the application files to the remote server.
+    """Uploads the application files to the remote server.
 
     Args:
         ssh: The SSH client
@@ -100,6 +98,7 @@ def deploy_upload_app(ssh: SSHClient, local_app_path: Path, remote_app_dir: str,
 
     Returns:
         True if successful, False otherwise
+
     """
     log.info(f"Uploading application files from {local_app_path} to {remote_app_dir}...")
     try:
@@ -110,8 +109,7 @@ def deploy_upload_app(ssh: SSHClient, local_app_path: Path, remote_app_dir: str,
 
 
 def deploy_setup_venv(ssh: SSHClient, venv_path: str, req_path: str, config: dict[str, Any]) -> bool:
-    """
-    Sets up a virtual environment and installs dependencies.
+    """Sets up a virtual environment and installs dependencies.
 
     Args:
         ssh: The SSH client
@@ -121,6 +119,7 @@ def deploy_setup_venv(ssh: SSHClient, venv_path: str, req_path: str, config: dic
 
     Returns:
         True if successful, False otherwise
+
     """
     log.info(f"Setting up virtual environment at {venv_path}...")
 
@@ -160,8 +159,7 @@ def deploy_setup_venv(ssh: SSHClient, venv_path: str, req_path: str, config: dic
 
 
 def deploy_update_env_file(ssh: SSHClient, env_file_path: str, port: int, config: dict[str, Any]) -> bool:
-    """
-    Updates the environment file with the port assignment.
+    """Updates the environment file with the port assignment.
 
     Args:
         ssh: The SSH client
@@ -171,6 +169,7 @@ def deploy_update_env_file(ssh: SSHClient, env_file_path: str, port: int, config
 
     Returns:
         True if successful, False otherwise
+
     """
     log.info(f"Updating environment file {env_file_path} with port {port}...")
 
@@ -198,8 +197,7 @@ def deploy_set_permissions(
     config: dict[str, Any],
     deployment_config: dict[str, str] | None = None,
 ) -> bool:
-    """
-    Sets the appropriate permissions for the application files.
+    """Sets the appropriate permissions for the application files.
 
     Args:
         ssh: The SSH client,
@@ -208,6 +206,7 @@ def deploy_set_permissions(
 
     Returns:
         True if successful, False otherwise,
+
     """
     log.info(f"Setting permissions for {remote_app_dir}...")
 
@@ -274,8 +273,7 @@ def deploy_systemd_service(
     custom_exec_start: str = None,
     deployment_config: dict[str, str] | None = None,
 ) -> bool:
-    """
-    Creates and enables a systemd service for the application.
+    """Creates and enables a systemd service for the application.
 
     Args:
         ssh: The SSH client,
@@ -291,6 +289,7 @@ def deploy_systemd_service(
 
     Returns:
         True if successful, False otherwise,
+
     """
     log.info(f"Creating systemd service file for {app_name}...")
 
@@ -451,8 +450,7 @@ WantedBy=multi-user.target"""
 
 
 def deploy_nginx_config(ssh: SSHClient, app_name: str, nginx_conf_path: str, port: int, config: dict[str, Any]) -> bool:
-    """
-    Creates an Nginx configuration snippet for the application.
+    """Creates an Nginx configuration snippet for the application.
 
     Args:
         ssh: The SSH client,
@@ -463,6 +461,7 @@ def deploy_nginx_config(ssh: SSHClient, app_name: str, nginx_conf_path: str, por
 
     Returns:
         True if successful, False otherwise,
+
     """
     log.info(f"Creating Nginx configuration snippet for {app_name}...")
 
@@ -537,8 +536,7 @@ def verify_deployment(
     wait_time: int = 5,
     expected_content: str = None,
 ) -> bool:
-    """
-    Verifies that the application is running correctly after deployment.
+    """Verifies that the application is running correctly after deployment.
 
     Args:
         ssh: The SSH client,
@@ -551,6 +549,7 @@ def verify_deployment(
 
     Returns:
         True if verification passes, False otherwise,
+
     """
     import requests
 
@@ -613,8 +612,7 @@ def execute_deployment_steps(
     start_port: int = 5001,
     max_ports: int = 50,
 ) -> bool:
-    """
-    Executes all deployment steps for an application, handling errors and logging.
+    """Executes all deployment steps for an application, handling errors and logging.
 
     Args:
         app_name: The name of the application,
@@ -627,6 +625,7 @@ def execute_deployment_steps(
 
     Returns:
         True if the deployment was successful, False otherwise,
+
     """
     log.info(f"--- Starting Deployment for {app_name} ---")
 
@@ -730,8 +729,7 @@ def execute_deployment_steps(
 
 
 def deploy_application(ssh: SSHClient, app_name: str, local_app_path: Path, config: dict[str, Any], **kwargs) -> bool:
-    """
-    High-level function to deploy an application.
+    """High-level function to deploy an application.
 
     Args:
         ssh: The SSH client connection,
@@ -742,6 +740,7 @@ def deploy_application(ssh: SSHClient, app_name: str, local_app_path: Path, conf
 
     Returns:
         True if the deployment was successful, False otherwise,
+
     """
     return execute_deployment_steps(app_name=app_name, local_app_path=local_app_path, config=config, **kwargs)
 
@@ -752,8 +751,7 @@ def rollback_deployment(
     config: dict[str, Any],
     deployment_config: dict[str, str] | None = None,
 ) -> bool:
-    """
-    Rollback a failed deployment by stopping services and optionally removing files.
+    """Rollback a failed deployment by stopping services and optionally removing files.
 
     Args:
         ssh: The SSH client connection,
@@ -762,6 +760,7 @@ def rollback_deployment(
 
     Returns:
         True if the rollback was successful, False otherwise,
+
     """
     log.info(f"Starting rollback for {app_name}")
 

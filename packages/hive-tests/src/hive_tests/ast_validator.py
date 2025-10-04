@@ -1,5 +1,4 @@
-"""
-Single-Pass AST-Based Validator System
+"""Single-Pass AST-Based Validator System
 
 This module implements a high-performance, single-pass validation system that
 traverses the codebase once and applies multiple Golden Rules simultaneously.
@@ -57,8 +56,7 @@ class FileContext:
 
 
 class GoldenRuleVisitor(ast.NodeVisitor):
-    """
-    AST visitor that applies multiple Golden Rules during a single traversal.
+    """AST visitor that applies multiple Golden Rules during a single traversal.
     Each rule can subscribe to specific AST node types.
     """
 
@@ -600,8 +598,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
             )
 
     def _validate_unified_config_enforcement(self, node: ast.Call) -> None:
-        """
-        Golden Rule 37: Enforce Unified Configuration Loading
+        """Golden Rule 37: Enforce Unified Configuration Loading
 
         Prevents direct os.getenv() calls and config file I/O outside hive-config.
         Forces all configuration to go through the unified system.
@@ -642,9 +639,9 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 # Check if opening a config file
                 if isinstance(node.args[0], ast.Constant):
                     filename = str(node.args[0].value)
-                    if any(filename.endswith(ext) for ext in ['.toml', '.yaml', '.yml', '.json', '.env']):
+                    if any(filename.endswith(ext) for ext in [".toml", ".yaml", ".yml", ".json", ".env"]):
                         # Check if it's a config file (contains 'config' in name or path)
-                        if 'config' in filename.lower() or '.env' in filename:
+                        if "config" in filename.lower() or ".env" in filename:
                             self.add_violation(
                                 "rule-37",
                                 "Unified Config Enforcement",
@@ -685,19 +682,19 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         # Exempt locations
         # 1. Directories
         if any(pattern in file_str for pattern in [
-            'packages/hive-config/',  # The config system itself
-            'scripts/',                # Build/deployment scripts
-            '/tests/',                 # Test directories
-            '/archive/',              # Archived code
+            "packages/hive-config/",  # The config system itself
+            "scripts/",                # Build/deployment scripts
+            "/tests/",                 # Test directories
+            "/archive/",              # Archived code
         ]):
             return True
 
         # 2. Specific filenames
-        if filename in ['conftest.py', 'setup.py']:
+        if filename in ["conftest.py", "setup.py"]:
             return True
 
         # 3. Test files (filename starts with test_)
-        if filename.startswith('test_'):
+        if filename.startswith("test_"):
             return True
 
         return False
@@ -741,8 +738,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
 
 
 class EnhancedValidator:
-    """
-    Enhanced single-pass validator system with suppression support,
+    """Enhanced single-pass validator system with suppression support,
     """
 
     def __init__(self, project_root: Path) -> None:
@@ -751,12 +747,12 @@ class EnhancedValidator:
 
     def validate_all(self) -> tuple[bool, dict[str, list[str]]]:
         (
-            """
-        Run all Golden Rules validation in a single pass
+            """Run all Golden Rules validation in a single pass
 
         Returns:
             Tuple of (all_passed, violations_by_rule)
-        """
+
+            """
         )
         self.violations = []
 
@@ -1567,7 +1563,7 @@ class EnhancedValidator:
             for component_dir in base_dir.iterdir():
                 if not component_dir.is_dir():
                     continue
-                if component_dir.name.startswith('.'):
+                if component_dir.name.startswith("."):
                     continue
 
                 pyproject_toml = component_dir / "pyproject.toml"

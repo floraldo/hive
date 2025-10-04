@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Enhanced Queen with Robust AI Planner Integration
+"""Enhanced Queen with Robust AI Planner Integration
 
 Extends QueenLite with improved integration for AI Planner → Queen → Worker pipeline.
 Provides reliable task handoff, status synchronization, and error recovery.
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class QueenPlanningEnhanced(QueenLite):
-    """
-    Enhanced Queen with robust AI Planner integration.
+    """Enhanced Queen with robust AI Planner integration.
 
     Extends QueenLite to provide:
     - Reliable planning queue monitoring
@@ -319,14 +317,13 @@ class QueenPlanningEnhanced(QueenLite):
 
                 logger.info(f"✅ Enhanced: Spawned app task {task_id} (PID: {process.pid})")
                 return True
-            else:
-                # Revert on failure
-                hive_core_db.update_task_status(
-                    task_id,
-                    "queued",
-                    {"assignee": None, "assigned_at": None, "current_phase": None},
-                )
-                return False
+            # Revert on failure
+            hive_core_db.update_task_status(
+                task_id,
+                "queued",
+                {"assignee": None, "assigned_at": None, "current_phase": None},
+            )
+            return False
 
         except Exception as e:
             logger.error(f"Error processing enhanced app task {task_id}: {e}")
@@ -387,14 +384,13 @@ class QueenPlanningEnhanced(QueenLite):
 
                 logger.info(f"✅ Enhanced: Spawned {worker} for {task_id} (PID: {process.pid})")
                 return True
-            else:
-                # Revert on failure
-                hive_core_db.update_task_status(
-                    task_id,
-                    "queued",
-                    {"assignee": None, "assigned_at": None, "current_phase": None},
-                )
-                return False
+            # Revert on failure
+            hive_core_db.update_task_status(
+                task_id,
+                "queued",
+                {"assignee": None, "assigned_at": None, "current_phase": None},
+            )
+            return False
 
         except Exception as e:
             logger.error(f"Error processing enhanced worker task {task_id}: {e}")

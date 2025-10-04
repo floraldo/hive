@@ -1,5 +1,4 @@
-"""
-End-to-End Integration Test for AI Planner → Queen → Worker Pipeline
+"""End-to-End Integration Test for AI Planner → Queen → Worker Pipeline
 
 Tests the complete autonomous task execution flow in a simulated environment
 to validate that all components work together correctly.
@@ -18,19 +17,19 @@ from typing import Any
 import pytest
 
 test_root = Path(__file__).parent.parent
-sys.path.insert(0, str(test_root / 'apps' / 'hive-orchestrator' / 'src'))
-sys.path.insert(0, str(test_root / 'apps' / 'ai-planner' / 'src'))
+sys.path.insert(0, str(test_root / "apps" / "hive-orchestrator" / "src"))
+sys.path.insert(0, str(test_root / "apps" / "ai-planner" / "src"))
 
 class EndToEndIntegrationTest:
     """Complete end-to-end test of the AI Planner → Queen → Worker pipeline"""
 
     def setup_method(self):
         """Setup test environment"""
-        self.temp_db_fd, self.temp_db_path = tempfile.mkstemp(suffix='.db')
+        self.temp_db_fd, self.temp_db_path = tempfile.mkstemp(suffix=".db")
         os.close(self.temp_db_fd)
         self.init_test_database()
-        self.mock_config = {'max_parallel_per_role': {'backend': 2, 'frontend': 1, 'infra': 1}, 'orchestration': {'status_refresh_seconds': 1, 'task_retry_limit': 2, 'graceful_shutdown_seconds': 5}, 'worker_timeout_minutes': 30, 'zombie_detection_minutes': 5}
-        self.test_stats = {'tasks_created': 0, 'plans_generated': 0, 'subtasks_created': 0, 'tasks_completed': 0, 'errors': []}
+        self.mock_config = {"max_parallel_per_role": {"backend": 2, "frontend": 1, "infra": 1}, "orchestration": {"status_refresh_seconds": 1, "task_retry_limit": 2, "graceful_shutdown_seconds": 5}, "worker_timeout_minutes": 30, "zombie_detection_minutes": 5}
+        self.test_stats = {"tasks_created": 0, "plans_generated": 0, "subtasks_created": 0, "tasks_completed": 0, "errors": []}
 
     def teardown_method(self):
         """Cleanup test environment"""
@@ -54,28 +53,28 @@ class EndToEndIntegrationTest:
         """Create a task in the planning queue"""
         task_id = str(uuid.uuid4())
         conn = self.get_test_connection()
-        conn.execute('\n            INSERT INTO planning_queue (id, task_description, priority, requestor, context_data)\n            VALUES (?, ?, ?, ?, ?)\n        ', (task_id, description, priority, 'test_system', json.dumps(context or {})))
+        conn.execute("\n            INSERT INTO planning_queue (id, task_description, priority, requestor, context_data)\n            VALUES (?, ?, ?, ?, ?)\n        ", (task_id, description, priority, "test_system", json.dumps(context or {})))
         conn.commit()
         conn.close()
-        self.test_stats['tasks_created'] += 1
+        self.test_stats["tasks_created"] += 1
         return task_id
 
     def simulate_ai_planner_processing(self, task_id: str) -> str:
         """Simulate AI Planner processing a task and generating an execution plan"""
         conn = self.get_test_connection()
         conn.execute("\n            UPDATE planning_queue\n            SET status = 'assigned', assigned_agent = 'ai-planner-test'\n            WHERE id = ?\n        ", (task_id,))
-        plan_id = f'plan_{uuid.uuid4()}'
-        plan_data = {'plan_id': plan_id, 'task_id': task_id, 'plan_name': 'Test Authentication Implementation', 'sub_tasks': [{'id': 'auth_design', 'title': 'Design Authentication Schema', 'description': 'Create database schema and API design for authentication', 'assignee': 'worker:backend', 'complexity': 'medium', 'estimated_duration': 30, 'workflow_phase': 'design', 'required_skills': ['database_design', 'api_design'], 'deliverables': ['auth_schema.sql', 'auth_api.yaml'], 'dependencies': []}, {'id': 'auth_impl', 'title': 'Implement Authentication Service', 'description': 'Implement JWT-based authentication service', 'assignee': 'worker:backend', 'complexity': 'medium', 'estimated_duration': 45, 'workflow_phase': 'implementation', 'required_skills': ['python', 'jwt', 'flask'], 'deliverables': ['auth_service.py', 'test_auth.py'], 'dependencies': ['auth_design']}, {'id': 'auth_frontend', 'title': 'Create Login UI', 'description': 'Create login form and authentication UI components', 'assignee': 'worker:frontend', 'complexity': 'simple', 'estimated_duration': 25, 'workflow_phase': 'implementation', 'required_skills': ['react', 'javascript', 'css'], 'deliverables': ['LoginForm.jsx', 'AuthProvider.jsx'], 'dependencies': ['auth_design']}], 'metrics': {'total_estimated_duration': 100, 'complexity_breakdown': {'simple': 1, 'medium': 2}}, 'status': 'generated', 'created_at': datetime.now(UTC).isoformat()}
-        conn.execute('\n            INSERT INTO execution_plans (id, planning_task_id, plan_data, estimated_complexity, estimated_duration, status)\n            VALUES (?, ?, ?, ?, ?, ?)\n        ', (plan_id, task_id, json.dumps(plan_data), 'medium', 100, 'generated'))
-        for sub_task in plan_data['sub_tasks']:
+        plan_id = f"plan_{uuid.uuid4()}"
+        plan_data = {"plan_id": plan_id, "task_id": task_id, "plan_name": "Test Authentication Implementation", "sub_tasks": [{"id": "auth_design", "title": "Design Authentication Schema", "description": "Create database schema and API design for authentication", "assignee": "worker:backend", "complexity": "medium", "estimated_duration": 30, "workflow_phase": "design", "required_skills": ["database_design", "api_design"], "deliverables": ["auth_schema.sql", "auth_api.yaml"], "dependencies": []}, {"id": "auth_impl", "title": "Implement Authentication Service", "description": "Implement JWT-based authentication service", "assignee": "worker:backend", "complexity": "medium", "estimated_duration": 45, "workflow_phase": "implementation", "required_skills": ["python", "jwt", "flask"], "deliverables": ["auth_service.py", "test_auth.py"], "dependencies": ["auth_design"]}, {"id": "auth_frontend", "title": "Create Login UI", "description": "Create login form and authentication UI components", "assignee": "worker:frontend", "complexity": "simple", "estimated_duration": 25, "workflow_phase": "implementation", "required_skills": ["react", "javascript", "css"], "deliverables": ["LoginForm.jsx", "AuthProvider.jsx"], "dependencies": ["auth_design"]}], "metrics": {"total_estimated_duration": 100, "complexity_breakdown": {"simple": 1, "medium": 2}}, "status": "generated", "created_at": datetime.now(UTC).isoformat()}
+        conn.execute("\n            INSERT INTO execution_plans (id, planning_task_id, plan_data, estimated_complexity, estimated_duration, status)\n            VALUES (?, ?, ?, ?, ?, ?)\n        ", (plan_id, task_id, json.dumps(plan_data), "medium", 100, "generated"))
+        for sub_task in plan_data["sub_tasks"]:
             subtask_id = f"subtask_{plan_id}_{sub_task['id']}"
-            payload = {'parent_plan_id': plan_id, 'subtask_id': sub_task['id'], 'complexity': sub_task['complexity'], 'estimated_duration': sub_task['estimated_duration'], 'workflow_phase': sub_task['workflow_phase'], 'required_skills': sub_task['required_skills'], 'deliverables': sub_task['deliverables'], 'dependencies': sub_task['dependencies'], 'assignee': sub_task['assignee']}
-            conn.execute('\n                INSERT INTO tasks (\n                    id, title, description, task_type, priority, status,\n                    assignee, payload, created_at, updated_at\n                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\n            ', (subtask_id, sub_task['title'], sub_task['description'], 'planned_subtask', 50, 'queued', sub_task['assignee'], json.dumps(payload)))
-            self.test_stats['subtasks_created'] += 1
+            payload = {"parent_plan_id": plan_id, "subtask_id": sub_task["id"], "complexity": sub_task["complexity"], "estimated_duration": sub_task["estimated_duration"], "workflow_phase": sub_task["workflow_phase"], "required_skills": sub_task["required_skills"], "deliverables": sub_task["deliverables"], "dependencies": sub_task["dependencies"], "assignee": sub_task["assignee"]}
+            conn.execute("\n                INSERT INTO tasks (\n                    id, title, description, task_type, priority, status,\n                    assignee, payload, created_at, updated_at\n                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)\n            ", (subtask_id, sub_task["title"], sub_task["description"], "planned_subtask", 50, "queued", sub_task["assignee"], json.dumps(payload)))
+            self.test_stats["subtasks_created"] += 1
         conn.execute("\n            UPDATE planning_queue SET status = 'planned', completed_at = CURRENT_TIMESTAMP WHERE id = ?\n        ", (task_id,))
         conn.commit()
         conn.close()
-        self.test_stats['plans_generated'] += 1
+        self.test_stats["plans_generated"] += 1
         return plan_id
 
     def get_ready_subtasks(self) -> list[dict[str, Any]]:
@@ -85,15 +84,15 @@ class EndToEndIntegrationTest:
         rows = cursor.fetchall()
         subtasks = []
         for row in rows:
-            subtask = {'id': row[0], 'title': row[1], 'description': row[2], 'task_type': row[3], 'priority': row[4], 'status': row[5], 'assignee': row[6], 'payload': json.loads(row[10]) if row[10] else {}, 'created_at': row[11]}
-            payload = subtask['payload']
-            dependencies = payload.get('dependencies', [])
+            subtask = {"id": row[0], "title": row[1], "description": row[2], "task_type": row[3], "priority": row[4], "status": row[5], "assignee": row[6], "payload": json.loads(row[10]) if row[10] else {}, "created_at": row[11]}
+            payload = subtask["payload"]
+            dependencies = payload.get("dependencies", [])
             dependencies_met = True
             if dependencies:
                 for dep_id in dependencies:
-                    dep_cursor = conn.execute("\n                        SELECT status FROM tasks\n                        WHERE json_extract(payload, '$.subtask_id') = ?\n                        AND json_extract(payload, '$.parent_plan_id') = ?\n                    ", (dep_id, payload.get('parent_plan_id')))
+                    dep_cursor = conn.execute("\n                        SELECT status FROM tasks\n                        WHERE json_extract(payload, '$.subtask_id') = ?\n                        AND json_extract(payload, '$.parent_plan_id') = ?\n                    ", (dep_id, payload.get("parent_plan_id")))
                     dep_row = dep_cursor.fetchone()
-                    if not dep_row or dep_row[0] != 'completed':
+                    if not dep_row or dep_row[0] != "completed":
                         dependencies_met = False
                         break
             if dependencies_met:
@@ -109,12 +108,12 @@ class EndToEndIntegrationTest:
         conn = self.get_test_connection()
         processed_tasks = []
         for subtask in ready_subtasks:
-            task_id = subtask['id']
+            task_id = subtask["id"]
             conn.execute("\n                UPDATE tasks\n                SET status = 'assigned', assigned_at = CURRENT_TIMESTAMP\n                WHERE id = ?\n            ", (task_id,))
             conn.execute("\n                UPDATE tasks\n                SET status = 'in_progress', started_at = CURRENT_TIMESTAMP\n                WHERE id = ?\n            ", (task_id,))
-            run_id = f'run_{uuid.uuid4()}'
-            conn.execute('\n                INSERT INTO runs (id, task_id, worker_id, phase, status)\n                VALUES (?, ?, ?, ?, ?)\n            ', (run_id, task_id, 'test_worker', 'apply', 'running'))
-            processed_tasks.append({'task_id': task_id, 'run_id': run_id, 'title': subtask['title']})
+            run_id = f"run_{uuid.uuid4()}"
+            conn.execute("\n                INSERT INTO runs (id, task_id, worker_id, phase, status)\n                VALUES (?, ?, ?, ?, ?)\n            ", (run_id, task_id, "test_worker", "apply", "running"))
+            processed_tasks.append({"task_id": task_id, "run_id": run_id, "title": subtask["title"]})
         conn.commit()
         conn.close()
         return processed_tasks
@@ -122,14 +121,14 @@ class EndToEndIntegrationTest:
     def simulate_worker_completion(self, task_id: str, run_id: str, success: bool=True):
         """Simulate worker completing a task"""
         conn = self.get_test_connection()
-        result = {'status': 'success' if success else 'failed', 'output': 'Task completed successfully' if success else 'Task failed with error', 'timestamp': datetime.now(UTC).isoformat()}
-        conn.execute('\n            UPDATE runs\n            SET status = ?, result = ?, completed_at = CURRENT_TIMESTAMP\n            WHERE id = ?\n        ', ('completed' if success else 'failed', json.dumps(result), run_id))
-        task_status = 'completed' if success else 'failed'
-        conn.execute('\n            UPDATE tasks\n            SET status = ?, completed_at = CURRENT_TIMESTAMP\n            WHERE id = ?\n        ', (task_status, task_id))
+        result = {"status": "success" if success else "failed", "output": "Task completed successfully" if success else "Task failed with error", "timestamp": datetime.now(UTC).isoformat()}
+        conn.execute("\n            UPDATE runs\n            SET status = ?, result = ?, completed_at = CURRENT_TIMESTAMP\n            WHERE id = ?\n        ", ("completed" if success else "failed", json.dumps(result), run_id))
+        task_status = "completed" if success else "failed"
+        conn.execute("\n            UPDATE tasks\n            SET status = ?, completed_at = CURRENT_TIMESTAMP\n            WHERE id = ?\n        ", (task_status, task_id))
         conn.commit()
         conn.close()
         if success:
-            self.test_stats['tasks_completed'] += 1
+            self.test_stats["tasks_completed"] += 1
 
     def check_plan_completion(self, plan_id: str) -> dict[str, Any]:
         """Check if an execution plan is complete"""
@@ -139,39 +138,39 @@ class EndToEndIntegrationTest:
         total_tasks = len(statuses)
         if total_tasks == 0:
             conn.close()
-            return {'complete': False, 'progress': 0, 'total_tasks': 0}
-        completed_tasks = sum(1 for s in statuses if s == 'completed')
-        failed_tasks = sum(1 for s in statuses if s == 'failed')
-        in_progress_tasks = sum(1 for s in statuses if s in ['assigned', 'in_progress'])
+            return {"complete": False, "progress": 0, "total_tasks": 0}
+        completed_tasks = sum(1 for s in statuses if s == "completed")
+        failed_tasks = sum(1 for s in statuses if s == "failed")
+        in_progress_tasks = sum(1 for s in statuses if s in ["assigned", "in_progress"])
         progress = completed_tasks / total_tasks * 100
         is_complete = completed_tasks == total_tasks
         conn.close()
-        return {'complete': is_complete, 'progress': progress, 'total_tasks': total_tasks, 'completed_tasks': completed_tasks, 'failed_tasks': failed_tasks, 'in_progress_tasks': in_progress_tasks}
+        return {"complete": is_complete, "progress": progress, "total_tasks": total_tasks, "completed_tasks": completed_tasks, "failed_tasks": failed_tasks, "in_progress_tasks": in_progress_tasks}
 
     @pytest.mark.crust
     def test_complete_pipeline(self):
         """Test the complete AI Planner → Queen → Worker pipeline"""
-        print('\n🚀 Starting End-to-End Integration Test')
-        print('\n📋 Step 1: Creating planning task...')
-        task_description = 'Implement complete authentication system with JWT tokens'
-        planning_task_id = self.create_planning_task(task_description, priority=75, context={'complexity': 'high', 'estimated_hours': 8})
-        print(f'✅ Created planning task: {planning_task_id}')
-        print('\n🤖 Step 2: AI Planner processing...')
+        print("\n🚀 Starting End-to-End Integration Test")
+        print("\n📋 Step 1: Creating planning task...")
+        task_description = "Implement complete authentication system with JWT tokens"
+        planning_task_id = self.create_planning_task(task_description, priority=75, context={"complexity": "high", "estimated_hours": 8})
+        print(f"✅ Created planning task: {planning_task_id}")
+        print("\n🤖 Step 2: AI Planner processing...")
         plan_id = self.simulate_ai_planner_processing(planning_task_id)
-        print(f'✅ Generated execution plan: {plan_id}')
+        print(f"✅ Generated execution plan: {plan_id}")
         print(f"   Created {self.test_stats['subtasks_created']} subtasks")
-        print('\n👑 Step 3: Queen processing cycles...')
+        print("\n👑 Step 3: Queen processing cycles...")
         cycle = 0
         max_cycles = 10
         while cycle < max_cycles:
             cycle += 1
-            print(f'\n   Cycle {cycle}:')
+            print(f"\n   Cycle {cycle}:")
             ready_subtasks = self.get_ready_subtasks()
-            print(f'   📝 Found {len(ready_subtasks)} ready subtasks')
+            print(f"   📝 Found {len(ready_subtasks)} ready subtasks")
             if not ready_subtasks:
-                print('   ⏸️ No ready subtasks, checking plan completion...')
+                print("   ⏸️ No ready subtasks, checking plan completion...")
                 completion = self.check_plan_completion(plan_id)
-                if completion['complete']:
+                if completion["complete"]:
                     print(f"   🎉 Plan completed! {completion['completed_tasks']}/{completion['total_tasks']} tasks done")
                     break
                 else:
@@ -179,62 +178,62 @@ class EndToEndIntegrationTest:
                     time.sleep(0.1)
                     continue
             processed = self.simulate_queen_processing()
-            print(f'   🔄 Queen processed {len(processed)} subtasks')
+            print(f"   🔄 Queen processed {len(processed)} subtasks")
             for task_info in processed:
                 print(f"   ⚙️ Worker executing: {task_info['title']}")
-                self.simulate_worker_completion(task_info['task_id'], task_info['run_id'], success=True)
+                self.simulate_worker_completion(task_info["task_id"], task_info["run_id"], success=True)
                 print(f"   ✅ Completed: {task_info['title']}")
             completion = self.check_plan_completion(plan_id)
             print(f"   📊 Plan progress: {completion['progress']:.1f}% ({completion['completed_tasks']}/{completion['total_tasks']})")
-        print('\n🔍 Step 4: Verifying final state...')
+        print("\n🔍 Step 4: Verifying final state...")
         final_completion = self.check_plan_completion(plan_id)
-        assert final_completion['complete'], f"Plan should be complete but is {final_completion['progress']:.1f}% done"
-        assert final_completion['failed_tasks'] == 0, f"No tasks should fail but {final_completion['failed_tasks']} failed"
-        assert self.test_stats['tasks_completed'] == 3, f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
-        print('✅ All assertions passed!')
-        print('📊 Final Statistics:')
+        assert final_completion["complete"], f"Plan should be complete but is {final_completion['progress']:.1f}% done"
+        assert final_completion["failed_tasks"] == 0, f"No tasks should fail but {final_completion['failed_tasks']} failed"
+        assert self.test_stats["tasks_completed"] == 3, f"Should complete 3 tasks but completed {self.test_stats['tasks_completed']}"
+        print("✅ All assertions passed!")
+        print("📊 Final Statistics:")
         print(f"   Planning tasks created: {self.test_stats['tasks_created']}")
         print(f"   Execution plans generated: {self.test_stats['plans_generated']}")
         print(f"   Subtasks created: {self.test_stats['subtasks_created']}")
         print(f"   Tasks completed: {self.test_stats['tasks_completed']}")
         print(f"   Errors: {len(self.test_stats['errors'])}")
-        print('\n🎉 End-to-End Integration Test PASSED!')
+        print("\n🎉 End-to-End Integration Test PASSED!")
 
     @pytest.mark.crust
     def test_dependency_resolution(self):
         """Test that dependencies are properly resolved"""
-        print('\n🔗 Testing Dependency Resolution...')
-        planning_task_id = self.create_planning_task('Test dependency resolution')
+        print("\n🔗 Testing Dependency Resolution...")
+        planning_task_id = self.create_planning_task("Test dependency resolution")
         self.simulate_ai_planner_processing(planning_task_id)
         ready_subtasks = self.get_ready_subtasks()
-        ready_titles = [task['title'] for task in ready_subtasks]
-        print(f'Initially ready tasks: {ready_titles}')
-        assert 'Design Authentication Schema' in ready_titles, 'Design task should be ready (no dependencies)'
-        assert 'Implement Authentication Service' not in ready_titles, 'Implementation should not be ready (has dependencies)'
-        assert 'Create Login UI' not in ready_titles, 'Frontend should not be ready (has dependencies)'
-        design_task = next(task for task in ready_subtasks if 'Design' in task['title'])
+        ready_titles = [task["title"] for task in ready_subtasks]
+        print(f"Initially ready tasks: {ready_titles}")
+        assert "Design Authentication Schema" in ready_titles, "Design task should be ready (no dependencies)"
+        assert "Implement Authentication Service" not in ready_titles, "Implementation should not be ready (has dependencies)"
+        assert "Create Login UI" not in ready_titles, "Frontend should not be ready (has dependencies)"
+        design_task = next(task for task in ready_subtasks if "Design" in task["title"])
         self.simulate_queen_processing()
-        self.simulate_worker_completion(design_task['id'], f'run_{uuid.uuid4()}', success=True)
+        self.simulate_worker_completion(design_task["id"], f"run_{uuid.uuid4()}", success=True)
         ready_subtasks = self.get_ready_subtasks()
-        ready_titles = [task['title'] for task in ready_subtasks]
-        print(f'After design completion: {ready_titles}')
-        assert 'Implement Authentication Service' in ready_titles, 'Implementation should now be ready'
-        assert 'Create Login UI' in ready_titles, 'Frontend should now be ready'
-        print('✅ Dependency resolution test passed!')
+        ready_titles = [task["title"] for task in ready_subtasks]
+        print(f"After design completion: {ready_titles}")
+        assert "Implement Authentication Service" in ready_titles, "Implementation should now be ready"
+        assert "Create Login UI" in ready_titles, "Frontend should now be ready"
+        print("✅ Dependency resolution test passed!")
 
     @pytest.mark.crust
     def test_error_recovery(self):
         """Test error handling and recovery mechanisms"""
-        print('\n🛠️ Testing Error Recovery...')
-        planning_task_id = self.create_planning_task('Test error recovery')
+        print("\n🛠️ Testing Error Recovery...")
+        planning_task_id = self.create_planning_task("Test error recovery")
         plan_id = self.simulate_ai_planner_processing(planning_task_id)
         ready_subtasks = self.get_ready_subtasks()
         first_task = ready_subtasks[0]
         self.simulate_queen_processing()
-        self.simulate_worker_completion(first_task['id'], f'run_{uuid.uuid4()}', success=False)
+        self.simulate_worker_completion(first_task["id"], f"run_{uuid.uuid4()}", success=False)
         completion = self.check_plan_completion(plan_id)
-        assert completion['failed_tasks'] == 1, f"Should have 1 failed task but got {completion['failed_tasks']}"
-        print('✅ Error recovery test passed! Failed tasks properly tracked.')
+        assert completion["failed_tasks"] == 1, f"Should have 1 failed task but got {completion['failed_tasks']}"
+        print("✅ Error recovery test passed! Failed tasks properly tracked.")
 
     def run_all_tests(self):
         """Run all integration tests"""
@@ -242,10 +241,10 @@ class EndToEndIntegrationTest:
             self.test_complete_pipeline()
             self.test_dependency_resolution()
             self.test_error_recovery()
-            print('\n🏆 ALL INTEGRATION TESTS PASSED!')
+            print("\n🏆 ALL INTEGRATION TESTS PASSED!")
             return True
         except Exception as e:
-            print(f'\n❌ INTEGRATION TEST FAILED: {e}')
+            print(f"\n❌ INTEGRATION TEST FAILED: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -257,10 +256,10 @@ def test_end_to_end_integration():
     test.setup_method()
     try:
         success = test.run_all_tests()
-        assert success, 'End-to-end integration test failed'
+        assert success, "End-to-end integration test failed"
     finally:
         test.teardown_method()
-if __name__ == '__main__':
+if __name__ == "__main__":
     test = EndToEndIntegrationTest()
     test.setup_method()
     try:

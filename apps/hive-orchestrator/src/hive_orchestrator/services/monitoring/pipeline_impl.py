@@ -1,5 +1,4 @@
-"""
-Pipeline Monitoring Implementation
+"""Pipeline Monitoring Implementation
 Contains the business logic for pipeline monitoring.
 Separated from core interfaces to maintain clean architecture.
 """
@@ -240,22 +239,18 @@ class BaseMonitoringService(ABC):
     @abstractmethod
     def get_or_create_monitor(self, pipeline_name: str) -> PipelineMonitor:
         """Get existing monitor or create new one for pipeline."""
-        pass
 
     @abstractmethod
     def remove_monitor(self, pipeline_name: str) -> bool:
         """Remove monitor for specified pipeline."""
-        pass
 
     @abstractmethod
     def get_monitor_status(self, pipeline_name: str) -> dict[str, Any] | None:
         """Get current status of pipeline monitor."""
-        pass
 
     @abstractmethod
     def get_all_monitors_status(self) -> dict[str, dict[str, Any]]:
         """Get status of all active monitors."""
-        pass
 
 
 class MonitoringService(BaseMonitoringService):

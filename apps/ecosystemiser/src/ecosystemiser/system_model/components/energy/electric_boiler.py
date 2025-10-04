@@ -76,8 +76,7 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
     """
 
     def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
-        """
-        Calculate conversion capacities for SIMPLE electric boiler physics.,
+        """Calculate conversion capacities for SIMPLE electric boiler physics.,
 
         For electric boiler: electricity → heat with efficiency < 1,
         """
@@ -97,8 +96,7 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
         )
 
     def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
-        """
-        Calculate actual input/output for requested heat output.
+        """Calculate actual input/output for requested heat output.
 
         Args:
             t: Current timestep
@@ -108,6 +106,7 @@ class ElectricBoilerPhysicsSimple(BaseConversionPhysics):
 
         Returns:
             dict: {'input_required': float, 'output_delivered': float},
+
         """
         capacity = self.rule_based_conversion_capacity(t, from_medium, to_medium)
 
@@ -139,8 +138,7 @@ class ElectricBoilerPhysicsStandard(ElectricBoilerPhysicsSimple):
     """
 
     def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
-        """
-        Calculate conversion capacities with heat exchanger effects.,
+        """Calculate conversion capacities with heat exchanger effects.,
 
         First applies SIMPLE physics, then adds STANDARD-specific effects.,
         """
@@ -182,8 +180,7 @@ class ElectricBoilerOptimizationSimple(BaseConversionOptimization):
         self.component = component_instance
 
     def set_constraints(self) -> list:
-        """
-        Create SIMPLE CVXPY constraints for electric boiler optimization.,
+        """Create SIMPLE CVXPY constraints for electric boiler optimization.,
 
         Returns constraints for basic electric-to-heat conversion.,
         """
@@ -217,8 +214,7 @@ class ElectricBoilerOptimizationStandard(ElectricBoilerOptimizationSimple):
     """
 
     def set_constraints(self) -> list:
-        """
-        Create STANDARD CVXPY constraints for electric boiler optimization.,
+        """Create STANDARD CVXPY constraints for electric boiler optimization.,
 
         Adds heat exchanger and modulation constraints.,
         """
@@ -317,16 +313,15 @@ class ElectricBoiler(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return ElectricBoilerPhysicsSimple(self.params)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return ElectricBoilerPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD physics (can be extended later)
             return ElectricBoilerPhysicsStandard(self.params)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD physics (can be extended later)
             return ElectricBoilerPhysicsStandard(self.params)
-        else:
-            raise ValueError(f"Unknown fidelity level for ElectricBoiler: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for ElectricBoiler: {fidelity}")
 
     def _get_optimization_strategy(self):
         """Factory method: Select optimization strategy based on fidelity level."""
@@ -334,20 +329,18 @@ class ElectricBoiler(Component):
 
         if fidelity == FidelityLevel.SIMPLE:
             return ElectricBoilerOptimizationSimple(self.params, self)
-        elif fidelity == FidelityLevel.STANDARD:
+        if fidelity == FidelityLevel.STANDARD:
             return ElectricBoilerOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.DETAILED:
+        if fidelity == FidelityLevel.DETAILED:
             # For now, DETAILED uses STANDARD optimization (can be extended later)
             return ElectricBoilerOptimizationStandard(self.params, self)
-        elif fidelity == FidelityLevel.RESEARCH:
+        if fidelity == FidelityLevel.RESEARCH:
             # For now, RESEARCH uses STANDARD optimization (can be extended later)
             return ElectricBoilerOptimizationStandard(self.params, self)
-        else:
-            raise ValueError(f"Unknown fidelity level for ElectricBoiler optimization: {fidelity}")
+        raise ValueError(f"Unknown fidelity level for ElectricBoiler optimization: {fidelity}")
 
     def rule_based_conversion_capacity(self, t: int, from_medium: str, to_medium: str) -> dict:
-        """
-        Delegate to physics strategy for conversion capacity calculation.,
+        """Delegate to physics strategy for conversion capacity calculation.,
 
         This maintains the same interface as BaseConversionComponent but,
         delegates the actual physics calculation to the strategy object.,
@@ -355,8 +348,7 @@ class ElectricBoiler(Component):
         return self.physics.rule_based_conversion_capacity(t, from_medium, to_medium)
 
     def rule_based_conversion_dispatch(self, t: int, requested_output: float, from_medium: str, to_medium: str) -> dict:
-        """
-        Delegate to physics strategy for conversion dispatch calculation.,
+        """Delegate to physics strategy for conversion dispatch calculation.,
 
         This maintains the same interface as BaseConversionComponent but,
         delegates the actual physics calculation to the strategy object.,
@@ -384,6 +376,7 @@ class ElectricBoiler(Component):
 
         Returns:
             (heat_output, electricity_input)
+
         """
         if heat_demand <= 0:
             return 0.0, 0.0

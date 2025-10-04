@@ -26,7 +26,7 @@ class EnhancedResultsIO:
         simulation_id: str,
         output_dir: Path,
         study_id: str | None = None,
-        metadata: dict | None = None
+        metadata: dict | None = None,
     ) -> Path:
         """Save simulation results in structured directory format.,
 
@@ -47,6 +47,7 @@ class EnhancedResultsIO:
 
         Returns:
             Path to created run directory,
+
         """
         output_dir = Path(output_dir),
         study_id = study_id or "default_study"
@@ -100,7 +101,7 @@ class EnhancedResultsIO:
                     "total_flows": len(results["flows"]),
                     "total_components": len(results["components"]),
                     "simulation_status": "completed",
-                }
+                },
             }
 
             kpis_path = run_dir / "kpis.json"
@@ -119,7 +120,7 @@ class EnhancedResultsIO:
                     "total_flows": len(results["flows"]),
                     "total_components": len(results["components"]),
                     "simulation_status": "completed_with_kpi_errors",
-                }
+                },
             }
 
             kpis_path = run_dir / "kpis.json"
@@ -141,7 +142,7 @@ class EnhancedResultsIO:
             "timesteps": system.N,
             "components": {},
             "flows": {},
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         # Extract component states with enhanced CVXPY handling
@@ -183,7 +184,7 @@ class EnhancedResultsIO:
             flow_result = {
                 "source": flow_data["source"],
                 "target": flow_data["target"],
-                "type": flow_data["type"]
+                "type": flow_data["type"],
             }
 
             # Enhanced flow value extraction
@@ -225,8 +226,8 @@ class EnhancedResultsIO:
                             "source": flow_info["source"],
                             "target": flow_info["target"],
                             "type": flow_info["type"],
-                            "value": value
-                        }
+                            "value": value,
+                        },
                     )
         df = pd.DataFrame(data)
 
@@ -257,8 +258,8 @@ class EnhancedResultsIO:
                             "medium": comp_data["medium"],
                             "variable": "energy_level",
                             "value": energy,
-                            "unit": "kWh"
-                        }
+                            "unit": "kWh",
+                        },
                     )
 
             # Generation profiles
@@ -272,8 +273,8 @@ class EnhancedResultsIO:
                             "medium": comp_data["medium"],
                             "variable": "generation",
                             "value": generation,
-                            "unit": "kW"
-                        }
+                            "unit": "kW",
+                        },
                     )
         df = pd.DataFrame(data)
 
@@ -297,6 +298,7 @@ class EnhancedResultsIO:
 
         Returns:
             Dictionary containing all results and metadata,
+
         """
         run_dir = Path(run_dir)
 
@@ -344,7 +346,7 @@ class EnhancedResultsIO:
                 "source": flow_df["source"].iloc[0],
                 "target": flow_df["target"].iloc[0],
                 "type": flow_df["type"].iloc[0],
-                "value": flow_df["value"].tolist()
+                "value": flow_df["value"].tolist(),
             },
 
         return flows
@@ -357,7 +359,7 @@ class EnhancedResultsIO:
             comp_df = df[df["component_name"] == comp_name],
             comp_data = {
                 "type": comp_df["type"].iloc[0],
-                "medium": comp_df["medium"].iloc[0]
+                "medium": comp_df["medium"].iloc[0],
             }
 
             # Extract energy levels
@@ -382,6 +384,7 @@ class EnhancedResultsIO:
 
         Returns:
             Summary dictionary suitable for database storage,
+
         """
         run_dir = Path(run_dir),
         summary = {}
@@ -399,8 +402,8 @@ class EnhancedResultsIO:
                             "system_id": config.get("system_id"),
                             "timesteps": config.get("timesteps"),
                             "timestamp": config.get("timestamp"),
-                            "solver_type": config.get("solver_type", "unknown")
-                        }
+                            "solver_type": config.get("solver_type", "unknown"),
+                        },
                     )
 
             # Load key KPIs
@@ -421,8 +424,8 @@ class EnhancedResultsIO:
                             "total_generation_kwh": kpis.get("total_generation_kwh"),
                             "total_demand_kwh": kpis.get("total_demand_kwh"),
                             "net_grid_usage_kwh": kpis.get("net_grid_usage_kwh"),
-                            "simulation_status": kpi_data.get("summary", {}).get("simulation_status", "unknown")
-                        }
+                            "simulation_status": kpi_data.get("summary", {}).get("simulation_status", "unknown"),
+                        },
                     )
 
             # Add file paths for reference

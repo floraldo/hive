@@ -1,5 +1,4 @@
-"""
-SSH-based deployment strategy using hive-deployment package
+"""SSH-based deployment strategy using hive-deployment package
 """
 
 import asyncio
@@ -16,8 +15,7 @@ logger = get_logger(__name__)
 
 
 class SSHDeploymentStrategy(BaseDeploymentStrategy):
-    """
-    SSH-based deployment strategy for traditional server deployments
+    """SSH-based deployment strategy for traditional server deployments
     """
 
     def __init__(self, config: dict[str, Any]) -> None:
@@ -26,14 +24,14 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         self.strategy = DeploymentStrategy.DIRECT
 
     async def pre_deployment_checks_async(self, task: dict[str, Any]) -> dict[str, Any]:
-        """
-        Run pre-deployment checks for SSH deployment
+        """Run pre-deployment checks for SSH deployment
 
         Args:
             task: Deployment task
 
         Returns:
             Dictionary with check results
+
         """
         errors = []
 
@@ -68,8 +66,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "errors": [f"Pre-deployment check failed: {e}"]}
 
     async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
-        """
-        Execute SSH deployment
+        """Execute SSH deployment
 
         Args:
             task: Deployment task
@@ -77,6 +74,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
         Returns:
             Deployment result dictionary
+
         """
         try:
             logger.info(f"Starting SSH deployment {deployment_id}")
@@ -140,8 +138,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
         deployment_id: str,
         previous_deployment: dict[str, Any],
     ) -> dict[str, Any]:
-        """
-        Rollback SSH deployment to previous version
+        """Rollback SSH deployment to previous version
 
         Args:
             task: Deployment task
@@ -150,6 +147,7 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
 
         Returns:
             Rollback result dictionary
+
         """
         try:
             logger.info(f"Starting rollback for deployment {deployment_id}")
@@ -193,12 +191,12 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
             return {"success": False, "error": str(e)}
 
     async def post_deployment_actions_async(self, task: dict[str, Any], deployment_id: str) -> None:
-        """
-        Run post-deployment actions for SSH deployment
+        """Run post-deployment actions for SSH deployment
 
         Args:
             task: Deployment task
             deployment_id: Deployment identifier
+
         """
         try:
             # Cleanup old backups (keep last 5)
@@ -292,12 +290,10 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
     async def _cleanup_old_backups_async(self, task: dict[str, Any]) -> None:
         """Cleanup old deployment backups"""
         # Implementation would clean up old backup directories
-        pass
 
     async def _update_monitoring_config_async(self, task: dict[str, Any]) -> None:
         """Update monitoring configuration"""
         # Implementation would update monitoring configs
-        pass
 
     async def _send_deployment_notifications_async(
         self,
@@ -307,4 +303,3 @@ class SSHDeploymentStrategy(BaseDeploymentStrategy):
     ) -> None:
         """Send deployment notifications"""
         # Implementation would send notifications via email, Slack, etc.
-        pass

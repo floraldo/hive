@@ -1,5 +1,4 @@
-"""
-Robust JSON extraction and parsing utilities
+"""Robust JSON extraction and parsing utilities
 """
 
 import json
@@ -28,7 +27,6 @@ class BaseExtractor(ABC):
     @abstractmethod
     def extract(self, text: str) -> dict[str, Any] | None:
         """Extract JSON from text"""
-        pass
 
 
 class PureJsonExtractor(BaseExtractor):
@@ -76,8 +74,7 @@ class RegexObjectExtractor(BaseExtractor):
 
 
 class JsonExtractor:
-    """
-    Main JSON extraction utility with multiple strategies
+    """Main JSON extraction utility with multiple strategies
     """
 
     def __init__(self) -> None:
@@ -88,8 +85,7 @@ class JsonExtractor:
         }
 
     def extract_json(self, text: str, strategies: list[JsonExtractionStrategy] | None = None) -> dict[str, Any] | None:
-        """
-        Extract JSON from text using multiple strategies
+        """Extract JSON from text using multiple strategies
 
         Args:
             text: Input text containing JSON
@@ -97,6 +93,7 @@ class JsonExtractor:
 
         Returns:
             Extracted JSON dict or None if extraction fails
+
         """
         if not text:
             return None
@@ -120,8 +117,7 @@ class JsonExtractor:
         return None
 
     def extract_multiple(self, text: str, max_items: int = 10) -> list[dict[str, Any]]:
-        """
-        Extract multiple JSON objects from text
+        """Extract multiple JSON objects from text
 
         Args:
             text: Input text containing multiple JSON objects
@@ -129,6 +125,7 @@ class JsonExtractor:
 
         Returns:
             List of extracted JSON dictionaries
+
         """
         results = []
 

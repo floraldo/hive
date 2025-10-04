@@ -22,9 +22,9 @@ class TestMonitoringService:
         """Test monitoring service start/stop lifecycle."""
         from hive_performance.monitoring_service import MonitoringService
         service = MonitoringService()
-        if hasattr(service, 'start_async'):
+        if hasattr(service, "start_async"):
             await service.start_async()
-        if hasattr(service, 'stop_async'):
+        if hasattr(service, "stop_async"):
             await service.stop_async()
         assert True
 
@@ -32,7 +32,7 @@ class TestMonitoringService:
     def test_service_configuration(self):
         """Test service accepts configuration parameters."""
         from hive_performance.monitoring_service import MonitoringService
-        config = {'collection_interval': 1.0, 'analysis_interval': 300.0, 'enable_profiling': True}
+        config = {"collection_interval": 1.0, "analysis_interval": 300.0, "enable_profiling": True}
         service = MonitoringService(**config)
         assert service is not None
 
@@ -42,7 +42,7 @@ class TestMonitoringService:
         """Test service collects monitoring data."""
         from hive_performance.monitoring_service import MonitoringService
         service = MonitoringService()
-        if hasattr(service, 'collect_metrics_async'):
+        if hasattr(service, "collect_metrics_async"):
             metrics = await service.collect_metrics_async()
             assert isinstance(metrics, dict) or metrics is None
 
@@ -51,7 +51,7 @@ class TestMonitoringService:
         """Test service integrates with performance components."""
         from hive_performance.monitoring_service import MonitoringService
         service = MonitoringService()
-        assert hasattr(service, 'metrics_collector') or hasattr(service, 'profiler')
+        assert hasattr(service, "metrics_collector") or hasattr(service, "profiler")
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -70,7 +70,7 @@ class TestMonitoringService:
         """Test monitoring service alerting capabilities."""
         from hive_performance.monitoring_service import MonitoringService
         service = MonitoringService(enable_alerts=True)
-        if hasattr(service, 'add_alert_handler'):
+        if hasattr(service, "add_alert_handler"):
             mock_handler = Mock()
             service.add_alert_handler(mock_handler)
         assert True

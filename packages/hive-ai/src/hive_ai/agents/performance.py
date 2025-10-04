@@ -1,5 +1,4 @@
-"""
-Performance optimization for God Mode agents.
+"""Performance optimization for God Mode agents.
 
 Provides:
 - Embedding caching to reduce redundant API calls
@@ -22,8 +21,7 @@ logger = get_logger(__name__)
 
 
 class EmbeddingCache:
-    """
-    LRU cache for embeddings to reduce redundant API calls.
+    """LRU cache for embeddings to reduce redundant API calls.
 
     Caches embeddings with TTL and size limits for optimal memory usage.
     """
@@ -34,6 +32,7 @@ class EmbeddingCache:
         Args:
             max_size: Maximum number of cached embeddings (LRU eviction).
             ttl_seconds: Time-to-live for cached entries in seconds.
+
         """
         self.max_size = max_size
         self.ttl = timedelta(seconds=ttl_seconds)
@@ -55,6 +54,7 @@ class EmbeddingCache:
 
         Returns:
             Cached embedding or None if not found/expired.
+
         """
         cache_key = self._hash_content(content)
 
@@ -83,6 +83,7 @@ class EmbeddingCache:
         Args:
             content: Content that was embedded.
             embedding: The embedding vector.
+
         """
         cache_key = self._hash_content(content)
 
@@ -109,6 +110,7 @@ class EmbeddingCache:
 
         Returns:
             Dictionary with hits, misses, hit_rate, size.
+
         """
         total_requests = self._hits + self._misses
         hit_rate = self._hits / total_requests if total_requests > 0 else 0.0
@@ -123,8 +125,7 @@ class EmbeddingCache:
 
 
 class WebSearchCache:
-    """
-    Cache for web search results to reduce API calls.
+    """Cache for web search results to reduce API calls.
 
     Caches search results with TTL for cost and latency optimization.
     """
@@ -135,6 +136,7 @@ class WebSearchCache:
         Args:
             max_size: Maximum number of cached search results.
             ttl_seconds: Time-to-live for cached results (default 30 min).
+
         """
         self.max_size = max_size
         self.ttl = timedelta(seconds=ttl_seconds)
@@ -158,6 +160,7 @@ class WebSearchCache:
 
         Returns:
             Cached results or None if not found/expired.
+
         """
         cache_key = self._generate_key(query, num_results)
 
@@ -187,6 +190,7 @@ class WebSearchCache:
             query: Search query.
             num_results: Number of results.
             results: Search results to cache.
+
         """
         cache_key = self._generate_key(query, num_results)
 
@@ -215,8 +219,7 @@ class WebSearchCache:
 
 
 class CircuitBreaker:
-    """
-    Circuit breaker pattern for API call protection.
+    """Circuit breaker pattern for API call protection.
 
     Prevents cascading failures by opening circuit after threshold failures.
     """
@@ -233,6 +236,7 @@ class CircuitBreaker:
             failure_threshold: Number of failures before opening circuit.
             recovery_timeout_seconds: Time to wait before attempting recovery.
             half_open_attempts: Number of test attempts in half-open state.
+
         """
         self.failure_threshold = failure_threshold
         self.recovery_timeout = timedelta(seconds=recovery_timeout_seconds)
@@ -245,7 +249,7 @@ class CircuitBreaker:
 
         logger.info(
             f"Initialized CircuitBreaker "
-            f"(threshold={failure_threshold}, timeout={recovery_timeout_seconds}s)"
+            f"(threshold={failure_threshold}, timeout={recovery_timeout_seconds}s)",
         )
 
     def can_execute(self) -> bool:
@@ -253,6 +257,7 @@ class CircuitBreaker:
 
         Returns:
             True if circuit allows execution, False if open.
+
         """
         if self.state == "closed":
             return True
@@ -292,7 +297,7 @@ class CircuitBreaker:
         if self.state == "closed" and self.failure_count >= self.failure_threshold:
             logger.warning(
                 f"Circuit breaker OPENED after {self.failure_count} failures "
-                f"(recovery in {self.recovery_timeout.total_seconds()}s)"
+                f"(recovery in {self.recovery_timeout.total_seconds()}s)",
             )
             self.state = "open"
 
@@ -312,8 +317,7 @@ class CircuitBreaker:
 
 
 class BatchArchiver:
-    """
-    Batch processor for archival operations.
+    """Batch processor for archival operations.
 
     Collects archival requests and processes them in batches for efficiency.
     """
@@ -324,6 +328,7 @@ class BatchArchiver:
         Args:
             batch_size: Number of items to batch before processing.
             flush_interval_seconds: Max time to wait before auto-flushing.
+
         """
         self.batch_size = batch_size
         self.flush_interval = flush_interval_seconds
@@ -334,7 +339,7 @@ class BatchArchiver:
 
         logger.info(
             f"Initialized BatchArchiver "
-            f"(batch_size={batch_size}, flush_interval={flush_interval_seconds}s)"
+            f"(batch_size={batch_size}, flush_interval={flush_interval_seconds}s)",
         )
 
     async def add(self, item: dict[str, Any]) -> None:
@@ -342,6 +347,7 @@ class BatchArchiver:
 
         Args:
             item: Archival item to queue.
+
         """
         async with self._lock:
             self._queue.append(item)

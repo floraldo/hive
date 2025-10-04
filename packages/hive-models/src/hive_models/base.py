@@ -1,5 +1,4 @@
-"""
-Base models and mixins for Hive platform data structures.
+"""Base models and mixins for Hive platform data structures.
 
 Provides foundational classes and mixins that other models can inherit from.
 """
@@ -16,8 +15,7 @@ from pydantic import ConfigDict, Field
 
 
 class BaseModel(PydanticBaseModel):
-    """
-    Base model for all Hive platform data models.
+    """Base model for all Hive platform data models.
 
     Provides common configuration and behavior for all models.
     """
@@ -84,12 +82,12 @@ class StatusMixin(BaseModel):
     status_updated_at: datetime | None = Field(default=None, description="Timestamp when status was last changed")
 
     def update_status(self, status: str, message: str | None = None) -> None:
-        """
-        Update the status with optional message.
+        """Update the status with optional message.
 
         Args:
             status: New status value
             message: Optional status message
+
         """
         self.status = status
         self.status_message = message

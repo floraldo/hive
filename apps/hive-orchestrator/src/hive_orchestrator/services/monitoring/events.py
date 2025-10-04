@@ -1,5 +1,4 @@
-"""
-Monitoring Service Events
+"""Monitoring Service Events
 
 Event types emitted by the predictive monitoring service for cross-app coordination.
 Follows hive-bus BaseEvent pattern for compatibility.
@@ -16,8 +15,7 @@ from hive_bus import BaseEvent
 
 @dataclass
 class PredictiveAlertEvent(BaseEvent):
-    """
-    Event emitted when predictive monitoring generates an alert.
+    """Event emitted when predictive monitoring generates an alert.
 
     Other apps can subscribe to these events to:
     - Take automated remediation actions
@@ -36,8 +34,7 @@ class PredictiveAlertEvent(BaseEvent):
         recommended_actions: list[str] | None = None,
         **kwargs,
     ):
-        """
-        Initialize predictive alert event.
+        """Initialize predictive alert event.
 
         Args:
             alert_id: Unique alert identifier
@@ -47,6 +44,7 @@ class PredictiveAlertEvent(BaseEvent):
             prediction: Prediction details (failure_probability, estimated_time, etc.)
             recommended_actions: Suggested remediation steps
             **kwargs: Additional BaseEvent parameters
+
         """
         payload = {
             "alert_id": alert_id,
@@ -97,8 +95,7 @@ class PredictiveAlertEvent(BaseEvent):
 
 @dataclass
 class MonitoringCycleCompleteEvent(BaseEvent):
-    """
-    Event emitted when a monitoring analysis cycle completes.
+    """Event emitted when a monitoring analysis cycle completes.
 
     Used for coordination with other systems that need to know
     when monitoring has completed its periodic check.
@@ -113,8 +110,7 @@ class MonitoringCycleCompleteEvent(BaseEvent):
         timestamp: datetime | None = None,
         **kwargs,
     ):
-        """
-        Initialize cycle complete event.
+        """Initialize cycle complete event.
 
         Args:
             cycle_id: Unique cycle identifier
@@ -123,6 +119,7 @@ class MonitoringCycleCompleteEvent(BaseEvent):
             duration_seconds: Cycle execution duration
             timestamp: Cycle completion time
             **kwargs: Additional BaseEvent parameters
+
         """
         payload = {
             "cycle_id": cycle_id,
@@ -162,8 +159,7 @@ class MonitoringCycleCompleteEvent(BaseEvent):
 
 @dataclass
 class MonitoringHealthChangeEvent(BaseEvent):
-    """
-    Event emitted when monitoring service health status changes.
+    """Event emitted when monitoring service health status changes.
 
     Used for monitoring the monitor - ensures the monitoring service
     itself is healthy and operational.
@@ -176,14 +172,14 @@ class MonitoringHealthChangeEvent(BaseEvent):
         reason: str,
         **kwargs,
     ):
-        """
-        Initialize health change event.
+        """Initialize health change event.
 
         Args:
             previous_status: Previous health status (healthy, degraded, unhealthy)
             current_status: Current health status
             reason: Reason for status change
             **kwargs: Additional BaseEvent parameters
+
         """
         payload = {
             "previous_status": previous_status,

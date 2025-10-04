@@ -1,10 +1,8 @@
-# ruff: noqa: S603, S607
 # Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal performance benchmarking tooling.
 
-"""
-Benchmark script for Golden Rules validation performance.
+"""Benchmark script for Golden Rules validation performance.
 
 Measures:
 - Full validation time (baseline)
@@ -25,7 +23,7 @@ def run_command(cmd: list[str]) -> tuple[float, str]:
     start = time.time()
     result = subprocess.run(
         cmd,
-        cwd=project_root,
+        check=False, cwd=project_root,
         capture_output=True,
         text=True,
     )
@@ -37,7 +35,7 @@ def get_changed_files() -> int:
     """Get count of changed files."""
     result = subprocess.run(
         ["git", "diff", "--name-only", "--diff-filter=ACMR"],
-        cwd=project_root,
+        check=False, cwd=project_root,
         capture_output=True,
         text=True,
     )

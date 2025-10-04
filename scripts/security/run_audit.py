@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-Security Audit Runner - Consolidated Security Tool
+"""Security Audit Runner - Consolidated Security Tool
 
 This script consolidates the functionality of multiple security scripts:
 - audit_dependencies.py
@@ -100,7 +99,7 @@ class SecurityAuditor:
 
         if not sensitive_files:
             self.audit_results.append(
-                SecurityAuditResult("file_permissions", "PASS", "No sensitive files found", "INFO")
+                SecurityAuditResult("file_permissions", "PASS", "No sensitive files found", "INFO"),
             )
             return
 
@@ -117,7 +116,7 @@ class SecurityAuditor:
                             f"Sensitive file {file_path.name} is readable by others ({file_mode})",
                             "HIGH",
                             {"file_path": str(file_path), "permissions": file_mode},
-                        )
+                        ),
                     )
                 else:
                     self.audit_results.append(
@@ -126,12 +125,12 @@ class SecurityAuditor:
                             "PASS",
                             f"Sensitive file {file_path.name} has secure permissions",
                             "INFO",
-                        )
+                        ),
                     )
 
             except Exception as e:
                 self.audit_results.append(
-                    SecurityAuditResult("file_permissions", "FAIL", f"Error checking permissions: {str(e)}", "MEDIUM")
+                    SecurityAuditResult("file_permissions", "FAIL", f"Error checking permissions: {e!s}", "MEDIUM"),
                 )
 
     def audit_environment_variables(self) -> None:
@@ -155,11 +154,11 @@ class SecurityAuditor:
                     f"Found {len(suspicious_vars)} suspicious environment variables",
                     "MEDIUM",
                     {"suspicious_vars": suspicious_vars},
-                )
+                ),
             )
         else:
             self.audit_results.append(
-                SecurityAuditResult("environment_variables", "PASS", "No suspicious environment variables", "INFO")
+                SecurityAuditResult("environment_variables", "PASS", "No suspicious environment variables", "INFO"),
             )
 
     def scan_logs_for_secrets(self, max_files: int = 10) -> None:
@@ -198,7 +197,7 @@ class SecurityAuditor:
                                         "line": line_num,
                                         "type": secret_type,
                                         "masked_value": masked_value,
-                                    }
+                                    },
                                 )
 
             except Exception:
@@ -212,11 +211,11 @@ class SecurityAuditor:
                     f"Found {len(leaked_secrets)} potential secret leaks",
                     "CRITICAL",
                     {"leaked_secrets": leaked_secrets},
-                )
+                ),
             )
         else:
             self.audit_results.append(
-                SecurityAuditResult("log_secret_scan", "PASS", f"No secrets found in {len(log_files)} files", "INFO")
+                SecurityAuditResult("log_secret_scan", "PASS", f"No secrets found in {len(log_files)} files", "INFO"),
             )
 
     def audit_configuration_compliance(self) -> None:
@@ -247,7 +246,7 @@ class SecurityAuditor:
                                     "file": str(config_file.relative_to(self.project_root)),
                                     "issue": description,
                                     "severity": "HIGH" if "ssl" in description.lower() else "MEDIUM",
-                                }
+                                },
                             )
 
             except Exception:
@@ -263,7 +262,7 @@ class SecurityAuditor:
                         f"Found {len(high_severity)} high-severity issues",
                         "HIGH",
                         {"issues": compliance_issues},
-                    )
+                    ),
                 )
             else:
                 self.audit_results.append(
@@ -273,11 +272,11 @@ class SecurityAuditor:
                         f"Found {len(compliance_issues)} compliance issues",
                         "MEDIUM",
                         {"issues": compliance_issues},
-                    )
+                    ),
                 )
         else:
             self.audit_results.append(
-                SecurityAuditResult("configuration_compliance", "PASS", "No compliance issues detected", "INFO")
+                SecurityAuditResult("configuration_compliance", "PASS", "No compliance issues detected", "INFO"),
             )
 
     def _report_results(self) -> bool:

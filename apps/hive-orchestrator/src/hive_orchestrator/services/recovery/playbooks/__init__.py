@@ -6,10 +6,10 @@ from .restart_service import RestartServicePlaybook
 from .scale_pool import ScalePoolPlaybook
 
 __all__ = [
-    "RecoveryPlaybook",
+    "ClearCachePlaybook",
     "PlaybookResult",
     "PlaybookSignature",
-    "ClearCachePlaybook",
+    "RecoveryPlaybook",
     "RestartServicePlaybook",
     "ScalePoolPlaybook",
 ]

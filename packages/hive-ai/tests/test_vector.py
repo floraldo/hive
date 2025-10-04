@@ -1,5 +1,4 @@
-"""
-Comprehensive tests for hive-ai vector database components.
+"""Comprehensive tests for hive-ai vector database components.
 
 Tests VectorStore, EmbeddingManager, SemanticSearch, and VectorMetrics
 with property-based testing.
@@ -29,7 +28,7 @@ def vector_data(draw, dimension=None):
 @st.composite
 def document_data(draw):
     """Generate valid document data."""
-    return {'id': draw(st.text(min_size=1, max_size=50)), 'content': draw(st.text(min_size=10, max_size=1000)), 'metadata': draw(st.dictionaries(st.text(min_size=1, max_size=20), st.one_of(st.text(), st.integers(), st.floats(allow_nan=False))))}
+    return {"id": draw(st.text(min_size=1, max_size=50)), "content": draw(st.text(min_size=10, max_size=1000)), "metadata": draw(st.dictionaries(st.text(min_size=1, max_size=20), st.one_of(st.text(), st.integers(), st.floats(allow_nan=False))))}
 
 @pytest.mark.core
 class TestVectorStore:
@@ -38,16 +37,16 @@ class TestVectorStore:
     @pytest.fixture
     def vector_config(self):
         """Vector configuration for testing."""
-        return VectorConfig(provider='chroma', collection_name='test_collection', dimension=128)
+        return VectorConfig(provider="chroma", collection_name="test_collection", dimension=128)
 
     @pytest.fixture
     def mock_chroma_provider(self):
         """Mock ChromaDB provider for testing."""
         provider = Mock()
-        provider.store_vectors_async = AsyncMock(return_value=['id1', 'id2'])
-        provider.search_vectors_async = AsyncMock(return_value=[{'id': 'id1', 'distance': 0.1, 'metadata': {'content': 'test content'}, 'score': 0.9}])
+        provider.store_vectors_async = AsyncMock(return_value=["id1", "id2"])
+        provider.search_vectors_async = AsyncMock(return_value=[{"id": "id1", "distance": 0.1, "metadata": {"content": "test content"}, "score": 0.9}])
         provider.delete_vectors_async = AsyncMock(return_value=True)
-        provider.get_collection_info_async = AsyncMock(return_value={'name': 'test_collection', 'count': 100, 'dimension': 128, 'provider': 'chroma'})
+        provider.get_collection_info_async = AsyncMock(return_value={"name": "test_collection", "count": 100, "dimension": 128, "provider": "chroma"})
         provider.health_check_async = AsyncMock(return_value=True)
         return provider
 
@@ -65,9 +64,9 @@ class TestVectorStore:
         store = VectorStore(vector_config)
         store._provider = mock_chroma_provider
         vectors = [[0.1, 0.2, 0.3] * 42 + [0.4, 0.5]]
-        metadata = ([{'content': 'test'}],)
+        metadata = ([{"content": "test"}],)
         result = await store.store_async(vectors, metadata)
-        assert result == ['id1', 'id2']
+        assert result == ["id1", "id2"]
         mock_chroma_provider.store_vectors_async.assert_called_once()
 
     @pytest.mark.core
@@ -76,8 +75,8 @@ class TestVectorStore:
         """Test vector storage with dimension mismatch."""
         store = VectorStore(vector_config)
         vectors = [[0.1, 0.2, 0.3]]
-        metadata = [{'content': 'test'}]
-        with pytest.raises(VectorError, match='dimension'):
+        metadata = [{"content": "test"}]
+        with pytest.raises(VectorError, match="dimension"):
             await store.store_async(vectors, metadata)
 
     @pytest.mark.core
@@ -89,8 +88,8 @@ class TestVectorStore:
         query_vector = ([0.1] * 128,)
         results = await store.search_async(query_vector, top_k=5)
         assert len(results) == 1
-        assert results[0]['id'] == 'id1'
-        assert results[0]['score'] == 0.9
+        assert results[0]["id"] == "id1"
+        assert results[0]["score"] == 0.9
         mock_chroma_provider.search_vectors_async.assert_called_once()
 
     @pytest.mark.core
@@ -99,7 +98,7 @@ class TestVectorStore:
         """Test vector search with dimension mismatch."""
         store = VectorStore(vector_config)
         query_vector = [0.1, 0.2, 0.3]
-        with pytest.raises(VectorError, match='dimension'):
+        with pytest.raises(VectorError, match="dimension"):
             await store.search_async(query_vector)
 
     @pytest.mark.core
@@ -108,9 +107,9 @@ class TestVectorStore:
         """Test vector deletion."""
         store = VectorStore(vector_config)
         store._provider = mock_chroma_provider
-        result = await store.delete_async(['id1', 'id2'])
+        result = await store.delete_async(["id1", "id2"])
         assert result is True
-        mock_chroma_provider.delete_vectors_async.assert_called_once_with(['id1', 'id2'])
+        mock_chroma_provider.delete_vectors_async.assert_called_once_with(["id1", "id2"])
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -119,19 +118,19 @@ class TestVectorStore:
         store = VectorStore(vector_config)
         store._provider = mock_chroma_provider
         health = await store.health_check_async()
-        assert health['healthy'] is True
-        assert health['provider'] == 'chroma'
-        assert health['collection'] == 'test_collection'
+        assert health["healthy"] is True
+        assert health["provider"] == "chroma"
+        assert health["collection"] == "test_collection"
 
     @pytest.mark.core
     @given(vector_data(dimension=128), st.lists(st.dictionaries(st.text(min_size=1), st.text()), min_size=1, max_size=1))
     @pytest.mark.asyncio
     async def test_store_vectors_property_async(self, vector, metadata_list):
         """Property-based test for vector storage."""
-        config = VectorConfig(provider='chroma', dimension=128)
+        config = VectorConfig(provider="chroma", dimension=128)
         store = VectorStore(config)
         mock_provider = Mock()
-        mock_provider.store_vectors_async = AsyncMock(return_value=['test_id'])
+        mock_provider.store_vectors_async = AsyncMock(return_value=["test_id"])
         store._provider = mock_provider
         try:
             result = await store.store_async([vector], metadata_list)
@@ -153,7 +152,7 @@ class TestEmbeddingManager:
     def mock_model_client(self):
         """Mock ModelClient for testing."""
         client = Mock()
-        client.generate_async = AsyncMock(return_value=Mock(content='Generated response', tokens_used=50, cost=0.001))
+        client.generate_async = AsyncMock(return_value=Mock(content="Generated response", tokens_used=50, cost=0.001))
         return client
 
     @pytest.fixture
@@ -167,11 +166,11 @@ class TestEmbeddingManager:
     @pytest.mark.asyncio
     async def test_generate_embedding_success_async(self, embedding_manager):
         """Test successful embedding generation."""
-        with patch.object(embedding_manager, '_simulate_embedding') as mock_simulate:
+        with patch.object(embedding_manager, "_simulate_embedding") as mock_simulate:
             mock_simulate.return_value = [0.1] * 1536
-            result = await embedding_manager.generate_embedding_async('test text')
+            result = await embedding_manager.generate_embedding_async("test text")
             assert isinstance(result, EmbeddingResult)
-            assert result.text == 'test text'
+            assert result.text == "test text"
             assert len(result.vector) == 1536
             assert result.cache_hit is False
 
@@ -179,18 +178,18 @@ class TestEmbeddingManager:
     @pytest.mark.asyncio
     async def test_generate_embedding_empty_text_async(self, embedding_manager):
         """Test embedding generation with empty text."""
-        with pytest.raises(VectorError, match='empty text'):
-            await embedding_manager.generate_embedding_async('')
+        with pytest.raises(VectorError, match="empty text"):
+            await embedding_manager.generate_embedding_async("")
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_generate_embedding_caching_async(self, embedding_manager):
         """Test embedding caching behavior."""
-        with patch.object(embedding_manager, '_simulate_embedding') as mock_simulate:
+        with patch.object(embedding_manager, "_simulate_embedding") as mock_simulate:
             mock_simulate.return_value = [0.1] * 1536
-            result1 = await embedding_manager.generate_embedding_async('test text')
+            result1 = await embedding_manager.generate_embedding_async("test text")
             assert result1.cache_hit is False
-            result2 = await embedding_manager.generate_embedding_async('test text')
+            result2 = await embedding_manager.generate_embedding_async("test text")
             assert result2.cache_hit is True
             assert result1.vector == result2.vector
 
@@ -198,8 +197,8 @@ class TestEmbeddingManager:
     @pytest.mark.asyncio
     async def test_generate_batch_embeddings_async(self, embedding_manager):
         """Test batch embedding generation."""
-        texts = ['text 1', 'text 2', 'text 3']
-        with patch.object(embedding_manager, '_simulate_embedding') as mock_simulate:
+        texts = ["text 1", "text 2", "text 3"]
+        with patch.object(embedding_manager, "_simulate_embedding") as mock_simulate:
             mock_simulate.return_value = [0.1] * 1536
             results = await embedding_manager.generate_batch_embeddings_async(texts)
             assert len(results) == 3
@@ -211,20 +210,19 @@ class TestEmbeddingManager:
     @pytest.mark.asyncio
     async def test_search_similar_texts_async(self, embedding_manager):
         """Test similar text search."""
-        query_text = ('search query',)
-        candidate_texts = ['similar text', 'different content', 'another text']
-        with patch.object(embedding_manager, '_simulate_embedding') as mock_simulate:
+        query_text = ("search query",)
+        candidate_texts = ["similar text", "different content", "another text"]
+        with patch.object(embedding_manager, "_simulate_embedding") as mock_simulate:
 
             def mock_embedding(text):
-                if 'similar' in text:
+                if "similar" in text:
                     return [0.9] * 1536
-                else:
-                    return [0.1] * 1536
+                return [0.1] * 1536
             mock_simulate.side_effect = mock_embedding
             results = await embedding_manager.search_similar_texts_async(query_text, candidate_texts, top_k=2)
             assert len(results) <= 2
-            assert all('similarity' in result for result in results)
-            assert all(0 <= result['similarity'] <= 1 for result in results)
+            assert all("similarity" in result for result in results)
+            assert all(0 <= result["similarity"] <= 1 for result in results)
 
     @pytest.mark.core
     @pytest.mark.asyncio
@@ -270,7 +268,7 @@ class TestSemanticSearch:
     @pytest.fixture
     def vector_config(self):
         """Vector configuration for testing."""
-        return VectorConfig(provider='chroma', collection_name='search_test', dimension=128)
+        return VectorConfig(provider="chroma", collection_name="search_test", dimension=128)
 
     @pytest.fixture
     def ai_config(self):
@@ -281,18 +279,18 @@ class TestSemanticSearch:
     def mock_vector_store(self):
         """Mock VectorStore for testing."""
         store = Mock()
-        store.store_async = AsyncMock(return_value=['doc1'])
-        store.search_async = AsyncMock(return_value=[{'id': 'doc1', 'distance': 0.1, 'metadata': {'content': 'test content', 'indexed_at': '2024-01-01'}, 'score': 0.9}])
+        store.store_async = AsyncMock(return_value=["doc1"])
+        store.search_async = AsyncMock(return_value=[{"id": "doc1", "distance": 0.1, "metadata": {"content": "test content", "indexed_at": "2024-01-01"}, "score": 0.9}])
         store.delete_async = AsyncMock(return_value=True)
-        store.get_info_async = AsyncMock(return_value={'name': 'search_test', 'count': 1, 'dimension': 128})
+        store.get_info_async = AsyncMock(return_value={"name": "search_test", "count": 1, "dimension": 128})
         return store
 
     @pytest.fixture
     def mock_embedding_manager(self):
         """Mock EmbeddingManager for testing."""
         manager = Mock()
-        manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text='test', vector=[0.1] * 128, model='test-model', tokens_used=10, cache_hit=False))
-        manager.generate_batch_embeddings_async = AsyncMock(return_value=[EmbeddingResult(text='doc content', vector=[0.1] * 128, model='test-model', tokens_used=10, cache_hit=False)])
+        manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text="test", vector=[0.1] * 128, model="test-model", tokens_used=10, cache_hit=False))
+        manager.generate_batch_embeddings_async = AsyncMock(return_value=[EmbeddingResult(text="doc content", vector=[0.1] * 128, model="test-model", tokens_used=10, cache_hit=False)])
         return manager
 
     @pytest.fixture
@@ -307,7 +305,7 @@ class TestSemanticSearch:
     @pytest.mark.asyncio
     async def test_index_document_success_async(self, semantic_search):
         """Test successful document indexing."""
-        document = Document(id='doc1', content='Test document content', metadata={'category': 'test'})
+        document = Document(id="doc1", content="Test document content", metadata={"category": "test"})
         result = await semantic_search.index_document_async(document)
         assert result is True
         semantic_search.vector_store.store_async.assert_called_once()
@@ -316,21 +314,21 @@ class TestSemanticSearch:
     @pytest.mark.asyncio
     async def test_index_documents_batch_async(self, semantic_search):
         """Test batch document indexing."""
-        documents = [Document(id='doc1', content='Content 1', metadata={}), Document(id='doc2', content='Content 2', metadata={}), Document(id='doc3', content='Content 3', metadata={})]
+        documents = [Document(id="doc1", content="Content 1", metadata={}), Document(id="doc2", content="Content 2", metadata={}), Document(id="doc3", content="Content 3", metadata={})]
         stats = await semantic_search.index_documents_async(documents)
-        assert stats['indexed'] == 3
-        assert stats['failed'] == 0
-        assert stats['total'] == 3
-        assert stats['success_rate'] == 1.0
+        assert stats["indexed"] == 3
+        assert stats["failed"] == 0
+        assert stats["total"] == 3
+        assert stats["success_rate"] == 1.0
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_search_success_async(self, semantic_search):
         """Test successful semantic search."""
-        results = await semantic_search.search_async(query='test query', top_k=5)
+        results = await semantic_search.search_async(query="test query", top_k=5)
         assert len(results) == 1
         assert isinstance(results[0], SearchResult)
-        assert results[0].document.id == 'doc1'
+        assert results[0].document.id == "doc1"
         assert results[0].score == 0.9
         assert results[0].rank == 1
 
@@ -338,42 +336,42 @@ class TestSemanticSearch:
     @pytest.mark.asyncio
     async def test_search_with_explanations_async(self, semantic_search):
         """Test search with explanations enabled."""
-        results = await semantic_search.search_async(query='test query', include_explanations=True)
+        results = await semantic_search.search_async(query="test query", include_explanations=True)
         assert len(results) == 1
         assert results[0].explanation is not None
-        assert 'similarity' in results[0].explanation.lower()
+        assert "similarity" in results[0].explanation.lower()
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_delete_document_async(self, semantic_search):
         """Test document deletion."""
-        result = await semantic_search.delete_document_async('doc1')
+        result = await semantic_search.delete_document_async("doc1")
         assert result is True
-        semantic_search.vector_store.delete_async.assert_called_once_with(['doc1'])
+        semantic_search.vector_store.delete_async.assert_called_once_with(["doc1"])
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_get_search_stats_async(self, semantic_search):
         """Test search statistics."""
         stats = await semantic_search.get_search_stats_async()
-        assert 'collection' in stats
-        assert 'health' in stats
-        assert 'embedding_stats' in stats
-        assert stats['collection']['name'] == 'search_test'
+        assert "collection" in stats
+        assert "health" in stats
+        assert "embedding_stats" in stats
+        assert stats["collection"]["name"] == "search_test"
 
     @pytest.mark.core
     @given(document_data())
     @pytest.mark.asyncio
     async def test_document_indexing_property_async(self, doc_data):
         """Property-based test for document indexing."""
-        vector_config = VectorConfig(provider='chroma', dimension=128)
+        vector_config = VectorConfig(provider="chroma", dimension=128)
         ai_config = (AIConfig(),)
         search = SemanticSearch(vector_config, ai_config)
         search.vector_store = Mock()
-        search.vector_store.store_async = AsyncMock(return_value=[doc_data['id']])
+        search.vector_store.store_async = AsyncMock(return_value=[doc_data["id"]])
         search.embedding_manager = Mock()
-        search.embedding_manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text=doc_data['content'], vector=[0.1] * 128, model='test', tokens_used=10, cache_hit=False))
-        document = Document(id=doc_data['id'], content=doc_data['content'], metadata=doc_data['metadata'])
+        search.embedding_manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text=doc_data["content"], vector=[0.1] * 128, model="test", tokens_used=10, cache_hit=False))
+        document = Document(id=doc_data["id"], content=doc_data["content"], metadata=doc_data["metadata"])
         try:
             result = await search.index_document_async(document)
             assert isinstance(result, bool)
@@ -393,19 +391,19 @@ class TestVectorMetrics:
     @pytest.mark.asyncio
     async def test_record_vector_operation_async(self, metrics):
         """Test recording vector operations."""
-        await metrics.record_vector_operation_async(operation='search', count=5, latency_ms=1500, success=True, collection='test_collection')
+        await metrics.record_vector_operation_async(operation="search", count=5, latency_ms=1500, success=True, collection="test_collection")
         summary = metrics.get_metrics_summary()
-        assert summary['total_operations'] == 1
-        assert summary['successful_operations'] == 1
-        assert summary['success_rate'] == 1.0
+        assert summary["total_operations"] == 1
+        assert summary["successful_operations"] == 1
+        assert summary["success_rate"] == 1.0
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_get_operation_performance_async(self, metrics):
         """Test operation performance statistics."""
         for i in range(5):
-            await metrics.record_vector_operation_async(operation='search', count=10, latency_ms=1000 + i * 100, success=i < 4)
-        stats = await metrics.get_operation_performance_async('search')
+            await metrics.record_vector_operation_async(operation="search", count=10, latency_ms=1000 + i * 100, success=i < 4)
+        stats = await metrics.get_operation_performance_async("search")
         assert stats.total_operations == 5
         assert stats.successful_operations == 4
         assert stats.success_rate == 0.8
@@ -416,37 +414,37 @@ class TestVectorMetrics:
     async def test_get_performance_trends_async(self, metrics):
         """Test performance trends analysis."""
         for _i in range(10):
-            await metrics.record_vector_operation_async(operation='store', count=1, latency_ms=500, success=True)
+            await metrics.record_vector_operation_async(operation="store", count=1, latency_ms=500, success=True)
         trends = await metrics.get_performance_trends_async(hours=1)
-        assert 'time_period_hours' in trends
-        assert 'total_records' in trends
-        assert 'performance_summary' in trends
+        assert "time_period_hours" in trends
+        assert "total_records" in trends
+        assert "performance_summary" in trends
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_get_collection_metrics_async(self, metrics):
         """Test collection-specific metrics."""
-        collection_name = 'test_collection'
-        await metrics.record_vector_operation_async(operation='search', count=5, latency_ms=1000, success=True, collection=collection_name)
+        collection_name = "test_collection"
+        await metrics.record_vector_operation_async(operation="search", count=5, latency_ms=1000, success=True, collection=collection_name)
         collection_metrics = await metrics.get_collection_metrics_async(collection_name)
-        assert collection_metrics['collection'] == collection_name
-        assert collection_metrics['total_operations'] == 1
-        assert collection_metrics['total_vectors_processed'] == 5
+        assert collection_metrics["collection"] == collection_name
+        assert collection_metrics["total_operations"] == 1
+        assert collection_metrics["total_vectors_processed"] == 5
 
     @pytest.mark.core
     @pytest.mark.asyncio
     async def test_error_analysis_async(self, metrics):
         """Test error analysis functionality."""
-        await metrics.record_vector_operation_async(operation='search', count=1, latency_ms=1000, success=False)
-        await metrics.record_vector_operation_async(operation='store', count=1, latency_ms=2000, success=False)
+        await metrics.record_vector_operation_async(operation="search", count=1, latency_ms=1000, success=False)
+        await metrics.record_vector_operation_async(operation="store", count=1, latency_ms=2000, success=False)
         error_analysis = await metrics.get_error_analysis_async()
-        assert error_analysis['total_failures'] == 2
-        assert error_analysis['failure_rate'] == 1.0
-        assert 'errors_by_operation' in error_analysis
-        assert 'recommendations' in error_analysis
+        assert error_analysis["total_failures"] == 2
+        assert error_analysis["failure_rate"] == 1.0
+        assert "errors_by_operation" in error_analysis
+        assert "recommendations" in error_analysis
 
     @pytest.mark.core
-    @given(st.lists(st.tuples(st.sampled_from(['search', 'store', 'delete']), st.integers(min_value=1, max_value=100), st.integers(min_value=100, max_value=5000), st.booleans()), min_size=1, max_size=50))
+    @given(st.lists(st.tuples(st.sampled_from(["search", "store", "delete"]), st.integers(min_value=1, max_value=100), st.integers(min_value=100, max_value=5000), st.booleans()), min_size=1, max_size=50))
     @pytest.mark.asyncio
     async def test_metrics_aggregation_property_async(self, operations):
         """Property-based test for metrics aggregation."""
@@ -461,12 +459,12 @@ class TestVectorMetrics:
                 successful_operations += 1
             total_vectors += count
         summary = metrics.get_metrics_summary()
-        assert summary['total_operations'] == total_operations
-        assert summary['successful_operations'] == successful_operations
-        assert summary['total_vectors_processed'] == total_vectors
+        assert summary["total_operations"] == total_operations
+        assert summary["successful_operations"] == successful_operations
+        assert summary["total_vectors_processed"] == total_vectors
         if total_operations > 0:
             expected_success_rate = successful_operations / total_operations
-            assert abs(summary['success_rate'] - expected_success_rate) < 0.001
+            assert abs(summary["success_rate"] - expected_success_rate) < 0.001
 
 @pytest.mark.core
 class TestVectorIntegration:
@@ -476,20 +474,20 @@ class TestVectorIntegration:
     @pytest.mark.asyncio
     async def test_full_search_pipeline_simulation_async(self):
         """Test complete search pipeline with mocked components."""
-        vector_config = VectorConfig(provider='chroma', dimension=128)
+        vector_config = VectorConfig(provider="chroma", dimension=128)
         ai_config = AIConfig()
         search = SemanticSearch(vector_config, ai_config)
         search.vector_store = Mock()
-        search.vector_store.store_async = AsyncMock(return_value=['doc1', 'doc2'])
-        search.vector_store.search_async = AsyncMock(return_value=[{'id': 'doc1', 'distance': 0.1, 'metadata': {'content': 'Python programming guide', 'category': 'tech'}, 'score': 0.9}, {'id': 'doc2', 'distance': 0.3, 'metadata': {'content': 'JavaScript tutorial', 'category': 'tech'}, 'score': 0.7}])
+        search.vector_store.store_async = AsyncMock(return_value=["doc1", "doc2"])
+        search.vector_store.search_async = AsyncMock(return_value=[{"id": "doc1", "distance": 0.1, "metadata": {"content": "Python programming guide", "category": "tech"}, "score": 0.9}, {"id": "doc2", "distance": 0.3, "metadata": {"content": "JavaScript tutorial", "category": "tech"}, "score": 0.7}])
         search.embedding_manager = Mock()
-        search.embedding_manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text='test', vector=[0.1] * 128, model='test-model', tokens_used=10, cache_hit=False))
-        search.embedding_manager.generate_batch_embeddings_async = AsyncMock(return_value=[EmbeddingResult(text='Python programming guide', vector=[0.1] * 128, model='test-model', tokens_used=15, cache_hit=False), EmbeddingResult(text='JavaScript tutorial', vector=[0.2] * 128, model='test-model', tokens_used=12, cache_hit=False)])
-        documents = [Document(id='doc1', content='Python programming guide', metadata={'category': 'tech'}), Document(id='doc2', content='JavaScript tutorial', metadata={'category': 'tech'})]
+        search.embedding_manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text="test", vector=[0.1] * 128, model="test-model", tokens_used=10, cache_hit=False))
+        search.embedding_manager.generate_batch_embeddings_async = AsyncMock(return_value=[EmbeddingResult(text="Python programming guide", vector=[0.1] * 128, model="test-model", tokens_used=15, cache_hit=False), EmbeddingResult(text="JavaScript tutorial", vector=[0.2] * 128, model="test-model", tokens_used=12, cache_hit=False)])
+        documents = [Document(id="doc1", content="Python programming guide", metadata={"category": "tech"}), Document(id="doc2", content="JavaScript tutorial", metadata={"category": "tech"})]
         indexing_stats = await search.index_documents_async(documents)
-        assert indexing_stats['indexed'] == 2
-        assert indexing_stats['success_rate'] == 1.0
-        search_results = await search.search_async('programming languages', top_k=2)
+        assert indexing_stats["indexed"] == 2
+        assert indexing_stats["success_rate"] == 1.0
+        search_results = await search.search_async("programming languages", top_k=2)
         assert len(search_results) == 2
         assert search_results[0].score > search_results[1].score
 
@@ -499,21 +497,21 @@ class TestVectorIntegration:
     @pytest.mark.asyncio
     async def test_search_consistency_property_async(self, documents_data):
         """Property-based test for search result consistency."""
-        vector_config = VectorConfig(provider='chroma', dimension=128)
+        vector_config = VectorConfig(provider="chroma", dimension=128)
         ai_config = (AIConfig(),)
         search = SemanticSearch(vector_config, ai_config)
         search.vector_store = Mock()
         search.vector_store.search_async = AsyncMock(return_value=[])
         search.embedding_manager = Mock()
-        search.embedding_manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text='query', vector=[0.1] * 128, model='test', tokens_used=5, cache_hit=False))
+        search.embedding_manager.generate_embedding_async = AsyncMock(return_value=EmbeddingResult(text="query", vector=[0.1] * 128, model="test", tokens_used=5, cache_hit=False))
         try:
-            results = await search.search_async('test query', top_k=5)
+            results = await search.search_async("test query", top_k=5)
             assert isinstance(results, list)
             assert len(results) >= 0
             for result in results:
-                assert hasattr(result, 'document')
-                assert hasattr(result, 'score')
-                assert hasattr(result, 'rank')
+                assert hasattr(result, "document")
+                assert hasattr(result, "score")
+                assert hasattr(result, "rank")
                 assert 0 <= result.score <= 1
         except VectorError:
             pass

@@ -23,6 +23,7 @@ class ComponentRepository:
         Args:
             data_source: Source type ('file' or 'database') - defaults to 'database'
             base_path: Base path for file-based loading,
+
         """
         self.data_source = data_source
         self.loaders = {"file": FileLoader(base_path), "database": SQLiteLoader()}
@@ -39,6 +40,7 @@ class ComponentRepository:
 
         Raises:
             FileNotFoundError: If component data not found,
+
         """
         if component_id in self._cache:
             return self._cache[component_id]
@@ -59,6 +61,7 @@ class ComponentRepository:
 
         Returns:
             List of component IDs,
+
         """
         loader = self.loaders.get(self.data_source)
         if not loader:
@@ -79,6 +82,7 @@ class FileLoader:
 
         Args:
             base_path: Base path for component library,
+
         """
         if base_path is None:
             base_path = Path(__file__).parent / "library"
@@ -96,6 +100,7 @@ class FileLoader:
         Raises:
             FileNotFoundError: If YAML file not found
             ValueError: If YAML file is malformed,
+
         """
         # Search in energy and water subdirectories
         for category in ["energy", "water"]:
@@ -130,6 +135,7 @@ class FileLoader:
 
         Returns:
             List of component IDs,
+
         """
         components = [],
         categories = [category] if category else ["energy", "water"]
@@ -151,6 +157,7 @@ class SQLiteLoader:
 
         Args:
             db_path: Path to SQLite database file. Defaults to ecosystemiser.db,
+
         """
         if db_path is None:
             db_path = get_ecosystemiser_db_path()
@@ -175,7 +182,7 @@ class SQLiteLoader:
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
-                """
+                """,
                 )
 
                 # Create indexes for performance
@@ -200,6 +207,7 @@ class SQLiteLoader:
         Raises:
             FileNotFoundError: If component not found in database
             ValueError: If component data is malformed,
+
         """
         try:
             with ecosystemiser_transaction() as conn:
@@ -213,7 +221,7 @@ class SQLiteLoader:
                 data = {
                     "component_class": row["component_class"],
                     "technical": json.loads(row["technical_data"]),
-                    "category": row["category"]
+                    "category": row["category"],
                 }
 
                 # Add optional fields if present
@@ -243,13 +251,14 @@ class SQLiteLoader:
 
         Returns:
             List of component IDs,
+
         """
         try:
             with ecosystemiser_transaction() as conn:
                 if category:
                     cursor = conn.execute(
                         "SELECT id FROM components WHERE category = ? ORDER BY id",
-                        (category)
+                        (category),
                     )
                 else:
                     cursor = conn.execute("SELECT id FROM components ORDER BY id"),
@@ -270,6 +279,7 @@ class SQLiteLoader:
 
         Raises:
             ValueError: If component data is invalid,
+
         """
         try:
             # Validate required fields
@@ -304,8 +314,8 @@ class SQLiteLoader:
                         component_class,
                         technical_data,
                         economic_data,
-                        metadata_json
-                    )
+                        metadata_json,
+                    ),
                 ),
 
                 logger.info(f"Saved component to database: {component_id}")
@@ -323,6 +333,7 @@ class SQLiteLoader:
 
         Returns:
             Number of components migrated,
+
         """
         migrated_count = 0
         try:

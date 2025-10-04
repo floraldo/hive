@@ -15,8 +15,7 @@ from typing import Any
 
 
 class BaseError(Exception):
-    """
-    Generic base exception for any system.
+    """Generic base exception for any system.
 
     Contains only the minimal, universal properties that any system error needs:
     - Error message
@@ -59,36 +58,30 @@ class BaseError(Exception):
 class ConfigurationError(BaseError):
     """Generic configuration-related error"""
 
-    pass
 
 
 class ConnectionError(BaseError):
     """Generic connection-related error"""
 
-    pass
 
 
 class ValidationError(BaseError):
     """Generic validation-related error"""
 
-    pass
 
 
 class TimeoutError(BaseError):
     """Generic timeout-related error"""
 
-    pass
 
 
 class ResourceError(BaseError):
     """Generic resource-related error (memory, disk, etc.)"""
 
-    pass
 
 
 class CircuitBreakerOpenError(BaseError):
-    """
-    Error raised when circuit breaker is open and preventing operation execution.
+    """Error raised when circuit breaker is open and preventing operation execution.
 
     This error indicates that the circuit breaker has detected too many failures
     and is preventing further operations to allow the system to recover.
@@ -115,8 +108,7 @@ class CircuitBreakerOpenError(BaseError):
 
 
 class AsyncTimeoutError(BaseError):
-    """
-    Enhanced timeout error for async operations with additional context.
+    """Enhanced timeout error for async operations with additional context.
 
     Extends the standard asyncio.TimeoutError to provide more detailed
     information about the timeout context and recovery suggestions.
@@ -143,8 +135,7 @@ class AsyncTimeoutError(BaseError):
 
 
 class RetryExhaustedError(BaseError):
-    """
-    Error raised when all retry attempts have been exhausted.
+    """Error raised when all retry attempts have been exhausted.
 
     Provides detailed information about the retry attempts and
     the original error that caused the retries to fail.
@@ -179,8 +170,7 @@ class RetryExhaustedError(BaseError):
 
 
 class PoolExhaustedError(BaseError):
-    """
-    Error raised when connection or resource pool is exhausted.
+    """Error raised when connection or resource pool is exhausted.
 
     This error indicates that all connections/resources in a pool
     are currently in use and no new ones can be created.
@@ -207,20 +197,16 @@ class PoolExhaustedError(BaseError):
 
 
 class APIError(BaseError):
-    """
-    Generic API-related error.
+    """Generic API-related error.
 
     Raised when external API calls fail or return errors.
     """
 
-    pass
 
 
 class RateLimitError(BaseError):
-    """
-    Rate limit exceeded error.
+    """Rate limit exceeded error.
 
     Raised when API rate limits are exceeded.
     """
 
-    pass

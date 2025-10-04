@@ -1,5 +1,4 @@
-"""
-Workflow orchestration engine for multi-agent systems.
+"""Workflow orchestration engine for multi-agent systems.
 
 Provides coordination and execution management for complex workflows
 involving multiple agents, tasks, and dependencies.
@@ -98,15 +97,14 @@ class WorkflowResult:
 
 
 class WorkflowOrchestrator:
-    """
-    Orchestrates complex multi-agent workflows.
+    """Orchestrates complex multi-agent workflows.
 
     Manages agent coordination, task execution, dependency resolution
     and failure handling for sophisticated AI workflows.
     """
 
     def __init__(
-        self, config: WorkflowConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
+        self, config: WorkflowConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None,
     ) -> None:
         self.config = config,
         self.model_client = model_client,
@@ -173,7 +171,7 @@ class WorkflowOrchestrator:
         task_id: str | None = None,
         task_sequence_id: str | None = None,
         dependencies: list[str] | None = None,
-        timeout_seconds: int = 300
+        timeout_seconds: int = 300,
     ) -> str:
         """Create and add a workflow step."""
         step = WorkflowStep(
@@ -183,7 +181,7 @@ class WorkflowOrchestrator:
             task_id=task_id,
             task_sequence_id=task_sequence_id,
             dependencies=dependencies or [],
-            timeout_seconds=timeout_seconds
+            timeout_seconds=timeout_seconds,
         )
         return self.add_step(step)
 
@@ -302,8 +300,7 @@ class WorkflowOrchestrator:
         return execution_levels
 
     async def execute_async(self, input_data: Any | None = None) -> WorkflowResult:
-        """
-        Execute the workflow.
+        """Execute the workflow.
 
         Args:
             input_data: Optional input data for the workflow
@@ -313,6 +310,7 @@ class WorkflowOrchestrator:
 
         Raises:
             AIError: Workflow execution failed
+
         """
         if self.status != WorkflowStatus.INITIALIZED:
             msg = f"Workflow must be initialized to execute, currently {self.status}"
@@ -331,8 +329,8 @@ class WorkflowOrchestrator:
                     metadata={
                         "workflow_id": self.id,
                         "workflow_name": self.config.name,
-                        "total_steps": len(self.steps)
-                    }
+                        "total_steps": len(self.steps),
+                    },
                 )
             else:
                 operation_id = None
@@ -367,8 +365,8 @@ class WorkflowOrchestrator:
                         "completed_steps": len(self.completed_steps),
                         "failed_steps": len(self.failed_steps),
                         "success_rate": success_rate,
-                        "duration_seconds": duration
-                    }
+                        "duration_seconds": duration,
+                    },
                 )
 
             # Create result
@@ -382,12 +380,12 @@ class WorkflowOrchestrator:
                 failed_steps=len(self.failed_steps),
                 total_steps=len(self.steps),
                 step_results=self.step_results.copy(),
-                metadata={"execution_strategy": self.config.execution_strategy.value, "success_rate": success_rate}
+                metadata={"execution_strategy": self.config.execution_strategy.value, "success_rate": success_rate},
             )
 
             logger.info(
                 f"Workflow {self.id} finished: {self.status.value} ",
-                f"({len(self.completed_steps)}/{len(self.steps)} steps completed)"
+                f"({len(self.completed_steps)}/{len(self.steps)} steps completed)",
             )
 
             return result
@@ -408,8 +406,8 @@ class WorkflowOrchestrator:
                         "completed_steps": len(self.completed_steps),
                         "failed_steps": len(self.failed_steps),
                         "duration_seconds": duration,
-                        "error": error_msg
-                    }
+                        "error": error_msg,
+                    },
                 )
 
             logger.exception(error_msg)
@@ -466,7 +464,7 @@ class WorkflowOrchestrator:
                 dependency_results = self._get_step_dependency_results(step),
 
                 result = await asyncio.wait_for(
-                    task._execute_with_retry(agent, step_input, dependency_results), timeout=step.timeout_seconds
+                    task._execute_with_retry(agent, step_input, dependency_results), timeout=step.timeout_seconds,
                 )
 
                 self.step_results[step_id] = result
@@ -476,7 +474,7 @@ class WorkflowOrchestrator:
                 task_sequence = self.task_sequences[step.task_sequence_id],
 
                 results = await asyncio.wait_for(
-                    task_sequence.execute_async(agent, step_input), timeout=step.timeout_seconds
+                    task_sequence.execute_async(agent, step_input), timeout=step.timeout_seconds,
                 )
 
                 self.step_results[step_id] = results
@@ -529,7 +527,7 @@ class WorkflowOrchestrator:
             "completed_steps": list(self.completed_steps),
             "failed_steps": list(self.failed_steps),
             "step_results": self.step_results.copy(),
-            "workflow_status": self.status.value
+            "workflow_status": self.status.value,
         }
 
         self.checkpoints.append(checkpoint)
@@ -588,7 +586,7 @@ class WorkflowOrchestrator:
             "agents": len(self.agents),
             "tasks": len(self.tasks),
             "task_sequences": len(self.task_sequences),
-            "checkpoints": len(self.checkpoints)
+            "checkpoints": len(self.checkpoints),
         }
 
     async def export_workflow_data_async(self) -> dict[str, Any]:
@@ -603,8 +601,8 @@ class WorkflowOrchestrator:
                     "execution_strategy": self.config.execution_strategy.value,
                     "max_concurrent_steps": self.config.max_concurrent_steps,
                     "global_timeout_seconds": self.config.global_timeout_seconds,
-                    "failure_tolerance": self.config.failure_tolerance
-                }
+                    "failure_tolerance": self.config.failure_tolerance,
+                },
             },
             "execution_data": {
                 "status": self.status.value,
@@ -612,7 +610,7 @@ class WorkflowOrchestrator:
                 "end_time": self.end_time.isoformat() if self.end_time else None,
                 "completed_steps": list(self.completed_steps),
                 "failed_steps": list(self.failed_steps),
-                "step_results": self.step_results
+                "step_results": self.step_results,
             },
             "components": {
                 "agents": [await agent.export_state_async() for agent in self.agents.values()],
@@ -626,12 +624,12 @@ class WorkflowOrchestrator:
                         "task_id": step.task_id,
                         "task_sequence_id": step.task_sequence_id,
                         "dependencies": step.dependencies,
-                        "metadata": step.metadata
+                        "metadata": step.metadata,
                     }
                     for step_id, step in self.steps.items()
-                }
+                },
             },
-            "checkpoints": self.checkpoints
+            "checkpoints": self.checkpoints,
         }
 
     async def close_async(self) -> None:

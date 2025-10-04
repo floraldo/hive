@@ -15,19 +15,19 @@ from .search import Document, SearchResult, SemanticSearch
 from .store import BaseVectorProvider, ChromaProvider, VectorStore
 
 __all__ = [
-    # Core vector database
-    "VectorStore",
     "BaseVectorProvider",
     "ChromaProvider",
+    "Document",
     # Embedding management
     "EmbeddingManager",
     "EmbeddingResult",
+    "SearchResult",
     # Semantic search
     "SemanticSearch",
-    "Document",
-    "SearchResult",
     # Metrics and monitoring
     "VectorMetrics",
     "VectorOperationRecord",
     "VectorPerformanceStats",
+    # Core vector database
+    "VectorStore",
 ]

@@ -1,5 +1,4 @@
-"""
-Unit tests for pools module (ConnectionPool).
+"""Unit tests for pools module (ConnectionPool).
 
 Tests connection pooling functionality:
 - Pool initialization and configuration
@@ -27,7 +26,7 @@ class MockConnection:
         self.closed = False
 
     def __repr__(self):
-        return f'MockConnection({self.conn_id})'
+        return f"MockConnection({self.conn_id})"
 
 @pytest.mark.core
 class TestPoolConfig:
@@ -127,7 +126,7 @@ class TestConnectionPool:
         def health_check(conn: MockConnection) -> bool:
             return conn.healthy
         config = PoolConfig(min_size=1, max_size=3)
-        pool = ConnectionPool(create_connection=create_conn, close_connection=lambda c: setattr(c, 'closed', True), health_check=health_check, config=config)
+        pool = ConnectionPool(create_connection=create_conn, close_connection=lambda c: setattr(c, "closed", True), health_check=health_check, config=config)
         async with pool:
             conn1 = await pool.acquire_async()
             assert conn1.healthy
@@ -148,11 +147,11 @@ class TestConnectionPool:
             conn_counter += 1
             return MockConnection(conn_counter)
         config = PoolConfig(min_size=2, max_size=5)
-        pool = ConnectionPool(create_connection=create_conn, close_connection=lambda c: setattr(c, 'closed', True), config=config)
+        pool = ConnectionPool(create_connection=create_conn, close_connection=lambda c: setattr(c, "closed", True), config=config)
         await pool.initialize_async()
         await pool.acquire_async()
         await pool.close_async()
-        with pytest.raises(RuntimeError, match='Pool is closed'):
+        with pytest.raises(RuntimeError, match="Pool is closed"):
             await pool.acquire_async()
 
     @pytest.mark.core
@@ -230,7 +229,7 @@ class TestAsyncConnectionManager:
         manager = AsyncConnectionManager(acquire_func=acquire, release_func=release)
         with pytest.raises(ValueError):
             async with manager:
-                raise ValueError('Test error')
+                raise ValueError("Test error")
         assert release_called
         assert mock_conn.closed
 

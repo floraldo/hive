@@ -9,6 +9,5 @@ class TestPromptsOptimizer:
     @pytest.mark.core
     def test_optimization(self):
         """Test prompt optimization."""
-        pass
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
