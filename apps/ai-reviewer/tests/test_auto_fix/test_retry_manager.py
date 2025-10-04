@@ -219,7 +219,7 @@ def get_path():
         manager.apply_fix(session, fix)
 
         # Save original content
-        original_content = (tmp_service_dir / "main.py").read_text(encoding="utf-8")
+        (tmp_service_dir / "main.py").read_text(encoding="utf-8")
 
         # Verify backup exists
         backup_file = tmp_service_dir / "main.py.bak"
@@ -231,7 +231,7 @@ def get_path():
         assert success is True
 
         # Verify content restored
-        restored_content = (tmp_service_dir / "main.py").read_text(encoding="utf-8")
+        (tmp_service_dir / "main.py").read_text(encoding="utf-8")
 
         # Backup should be removed after rollback
         assert not backup_file.exists()

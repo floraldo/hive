@@ -79,7 +79,7 @@ class TestEscalationLogic:
         session = retry_manager.start_session("task_123", tmp_service_dir)
 
         # Add 2 attempts with low confidence (< 0.7 threshold)
-        for i in range(2):
+        for _i in range(2):
             error = ParsedError(
                 tool=ValidationTool.RUFF,
                 file_path="main.py",
@@ -113,7 +113,7 @@ class TestEscalationLogic:
         session = retry_manager.start_session("task_123", tmp_service_dir)
 
         # Add 2 attempts with critical severity
-        for i in range(2):
+        for _i in range(2):
             error = ParsedError(
                 tool=ValidationTool.PYTEST,
                 file_path="main.py",
