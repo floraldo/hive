@@ -1,5 +1,19 @@
-# Simple pre-commit configuration for Hive platform
-# Focused on preventing syntax errors that plague AI agents
+# Strict Pre-Commit Configuration for QA Agent
+# Comprehensive validation - enforces all quality standards
+#
+# Purpose: Maintain platform quality through rigorous validation
+# Target: QA agent (Agent 4) focused on technical debt cleanup
+#
+# Installation:
+#   pre-commit install  # installs this config by default
+#
+# Philosophy:
+#   - Enforce: All quality gates (ruff, Golden Rules, syntax)
+#   - Block: Any violations that could accumulate as technical debt
+#   - Clean: Ensure every commit maintains zero-violation standard
+#
+# For Feature Agents, use the fast profile instead:
+#   pre-commit install -c .pre-commit-config.fast.yaml
 
 repos:
   # Ruff - Fast Python linter (formatting DISABLED to prevent trailing comma issues)
