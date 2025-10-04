@@ -16,14 +16,16 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic import BaseModel, Field
 
 from hive_logging import get_logger
 
 from .data_unification import MetricType, UnifiedMetric
-from .oracle_service import OracleService
+
+if TYPE_CHECKING:
+    from .oracle_service import OracleService
 
 logger = get_logger(__name__)
 
@@ -109,6 +111,9 @@ class ArchitecturalProphecy:
     impact_description: str
     time_to_manifestation: str  # e.g., "within 3 months"
 
+    # Context (required field - must come before optional fields)
+    design_intent: DesignIntent
+
     # Evidence and reasoning
     evidence_sources: list[str] = field(default_factory=list)
     similar_cases: list[str] = field(default_factory=list)
@@ -130,8 +135,7 @@ class ArchitecturalProphecy:
     confidence_factors: list[str] = field(default_factory=list)
     uncertainty_factors: list[str] = field(default_factory=list)
 
-    # Context
-    design_intent: DesignIntent
+    # Additional context
     related_components: list[str] = field(default_factory=list)
     affected_golden_rules: list[str] = field(default_factory=list)
 
@@ -146,9 +150,9 @@ class ProphecyReport:
     """Comprehensive prophetic analysis of a design intent."""
 
     # Overall assessment
-    design_intent: DesignIntent
-    overall_risk_level: ProphecySeverity
-    total_prophecies: int
+    design_intent: DesignIntent | None = None
+    overall_risk_level: ProphecySeverity | None = None
+    total_prophecies: int = 0
 
     # Prophecy breakdown
     prophecies: list[ArchitecturalProphecy] = field(default_factory=list)
