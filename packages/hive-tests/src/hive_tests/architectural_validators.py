@@ -23,8 +23,7 @@ gravity across the entire platform.
 
 
 class RuleSeverity(Enum):
-    """
-    Severity levels for Golden Rules.
+    """Severity levels for Golden Rules.
 
     CRITICAL: Never compromise - system breaks, security issues, deployment failures
     ERROR: Fix before merge - technical debt, maintainability issues
@@ -52,8 +51,7 @@ def validate_dependency_graph(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule: Graph-Based Dependency Validation
+    """Golden Rule: Graph-Based Dependency Validation
 
     Uses knowledge graph analysis to detect both direct and transitive
     architectural violations that simple AST checks cannot find.
@@ -71,6 +69,7 @@ def validate_dependency_graph(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     try:
         from hive_tests.dependency_graph_validator import HIVE_ARCHITECTURAL_RULES, DependencyGraphValidator
@@ -109,7 +108,7 @@ def validate_dependency_graph(
 
             file_location = f"{violation.file_path}:{violation.line_number}" if violation.file_path else "N/A"
             violations_list.append(
-                f"{file_location}: [{violation.rule.severity}] {violation}"
+                f"{file_location}: [{violation.rule.severity}] {violation}",
             )
 
     except Exception as e:
@@ -126,8 +125,7 @@ def validate_dependency_graph(
 
 
 def validate_ruff_config_in_pyproject(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
-    """
-    Golden Rule 31: Ruff Config Consistency
+    """Golden Rule 31: Ruff Config Consistency
 
     Ensures all pyproject.toml files contain [tool.ruff] configuration.
 
@@ -137,6 +135,7 @@ def validate_ruff_config_in_pyproject(project_root: Path, scope_files: list[Path
 
     Returns:
         Tuple of (passed, violations)
+
     """
     violations = []
     pyproject_files = []
@@ -158,8 +157,7 @@ def validate_ruff_config_in_pyproject(project_root: Path, scope_files: list[Path
 
 
 def validate_python_version_in_pyproject(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
-    """
-    Golden Rule 32: Python Version Specification
+    """Golden Rule 32: Python Version Specification
 
     Ensures all pyproject.toml files specify Python version ^3.11.
 
@@ -169,6 +167,7 @@ def validate_python_version_in_pyproject(project_root: Path, scope_files: list[P
 
     Returns:
         Tuple of (passed, violations)
+
     """
     violations = []
     pyproject_files = []
@@ -187,7 +186,7 @@ def validate_python_version_in_pyproject(project_root: Path, scope_files: list[P
             if not has_poetry_format and not has_pep621_format:
                 violations.append(
                     f"{relative_path}: Missing Python version specification (Rule 32) - "
-                    f"Expected 'python = \"^3.11\"' or 'requires-python = \">=3.11\"'"
+                    f"Expected 'python = \"^3.11\"' or 'requires-python = \">=3.11\"'",
                 )
 
         except Exception as e:
@@ -204,8 +203,7 @@ def validate_python_version_in_pyproject(project_root: Path, scope_files: list[P
 
 
 def validate_environment_isolation_rules(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
-    """
-    Golden Rules 25-30: Environment Isolation
+    """Golden Rules 25-30: Environment Isolation
 
     Validates environment isolation:
     - No conda references in production code
@@ -221,6 +219,7 @@ def validate_environment_isolation_rules(project_root: Path, scope_files: list[P
 
     Returns:
         Tuple of (passed, violations)
+
     """
     from hive_tests.environment_validator import validate_environment_isolation
 
@@ -241,8 +240,7 @@ def validate_environment_isolation_rules(project_root: Path, scope_files: list[P
 
 
 def validate_unified_config_enforcement(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
-    """
-    Golden Rule 37: Unified Config Enforcement
+    """Golden Rule 37: Unified Config Enforcement
 
     Ensures all configuration access goes through hive-config package:
     - No os.getenv() or os.environ.get() calls (use hive_config instead)
@@ -255,6 +253,7 @@ def validate_unified_config_enforcement(project_root: Path, scope_files: list[Pa
 
     Returns:
         Tuple of (passed, violations)
+
     """
     from hive_tests.ast_validator import EnhancedValidator
 
@@ -269,7 +268,7 @@ def validate_unified_config_enforcement(project_root: Path, scope_files: list[Pa
             if violation.rule_id == "rule-37":
                 # Format as string: file:line - message
                 rule_37_violations.append(
-                    f"{violation.file_path}:{violation.line_number} - {violation.message}"
+                    f"{violation.file_path}:{violation.line_number} - {violation.message}",
                 )
 
         passed = len(rule_37_violations) == 0
@@ -280,8 +279,7 @@ def validate_unified_config_enforcement(project_root: Path, scope_files: list[Pa
 
 
 def _initialize_golden_rules_registry():
-    """
-    Initialize the Golden Rules registry after all validators are defined.
+    """Initialize the Golden Rules registry after all validators are defined.
     This function is called at the end of this module.
     """
     global GOLDEN_RULES_REGISTRY
@@ -337,10 +335,12 @@ def _initialize_golden_rules_registry():
             "description": "Exceptions inherit from BaseError",
         },
         {
+            "id": 9,
             "name": "Logging Standards",
             "validator": validate_logging_standards,
             "severity": RuleSeverity.ERROR,
             "description": "Use hive_logging, no print()",
+            "can_autofix": True,
         },
         {
             "name": "No Global State Access",
@@ -429,16 +429,20 @@ def _initialize_golden_rules_registry():
             "description": "Single Python version",
         },
         {
+            "id": 31,
             "name": "Ruff Config Consistency",
             "validator": validate_ruff_config_in_pyproject,
             "severity": RuleSeverity.WARNING,
             "description": "[tool.ruff] in all pyproject.toml",
+            "can_autofix": True,
         },
         {
+            "id": 32,
             "name": "Python Version Specification",
             "validator": validate_python_version_in_pyproject,
             "severity": RuleSeverity.INFO,
             "description": "Python ^3.11 in all packages",
+            "can_autofix": True,
         },
                 {
             "name": "Environment Isolation",
@@ -462,8 +466,7 @@ def _initialize_golden_rules_registry():
 
 
 def _should_validate_file(file_path: Path, scope_files: list[Path] | None) -> bool:
-    """
-    Check if a file should be validated based on scope.
+    """Check if a file should be validated based on scope.
 
     Args:
         file_path: File to check
@@ -471,6 +474,7 @@ def _should_validate_file(file_path: Path, scope_files: list[Path] | None) -> bo
 
     Returns:
         True if file should be validated, False otherwise
+
     """
     if scope_files is None:
         return True
@@ -491,8 +495,7 @@ def _cached_validator(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Cache-aware validator wrapper.
+    """Cache-aware validator wrapper.
 
     For each file in scope, checks cache first. Only validates files with cache misses.
     Aggregates results and updates cache for newly validated files.
@@ -505,6 +508,7 @@ def _cached_validator(
 
     Returns:
         Tuple of (passed, violations)
+
     """
     # If no scope specified, discover all Python files for caching
     if scope_files is None:
@@ -540,11 +544,11 @@ def _cached_validator(
 
 
 def validate_app_contracts(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Validate that all apps have proper hive-app.toml contracts.
+    """Validate that all apps have proper hive-app.toml contracts.
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = ([],)
     apps_dir = project_root / "apps"
@@ -578,17 +582,17 @@ def validate_app_contracts(project_root: Path, scope_files: list[Path] | None = 
                     violations.append(f"App '{app_name}' missing service definitions (daemons/tasks/endpoints)")
 
             except Exception as e:
-                violations.append(f"App '{app_name}' has invalid hive-app.toml: {str(e)}")
+                violations.append(f"App '{app_name}' has invalid hive-app.toml: {e!s}")
 
     return len(violations) == 0, violations
 
 
 def validate_colocated_tests(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Validate that all apps and packages have co-located tests directories.
+    """Validate that all apps and packages have co-located tests directories.
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = ([],)
     base_dirs = [project_root / "apps", project_root / "packages"]
@@ -611,11 +615,11 @@ def validate_colocated_tests(project_root: Path, scope_files: list[Path] | None 
 
 
 def validate_no_syspath_hacks(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Validate that no sys.path hacks exist in the codebase.
+    """Validate that no sys.path hacks exist in the codebase.
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = ([],)
     base_dirs = [project_root / "apps", project_root / "packages"]
@@ -647,7 +651,7 @@ def validate_no_syspath_hacks(project_root: Path, scope_files: list[Path] | None
                             violations.append(str(py_file.relative_to(project_root)))
                             break
 
-            except Exception:  # noqa: S112
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -655,11 +659,11 @@ def validate_no_syspath_hacks(project_root: Path, scope_files: list[Path] | None
 
 
 def validate_single_config_source(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Validate that pyproject.toml is the single source of configuration truth.
+    """Validate that pyproject.toml is the single source of configuration truth.
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -698,7 +702,7 @@ def validate_single_config_source(project_root: Path, scope_files: list[Path] | 
             if not has_workspace:
                 violations.append("Workspace configuration missing from root pyproject.toml")
         except Exception as e:
-            violations.append(f"Root pyproject.toml is invalid: {str(e)}")
+            violations.append(f"Root pyproject.toml is invalid: {e!s}")
 
     return len(violations) == 0, violations
 
@@ -707,14 +711,14 @@ def validate_package_app_discipline(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 5: Package vs App Discipline
+    """Golden Rule 5: Package vs App Discipline
 
     Validate that packages contain only generic infrastructure,
     and apps contain business logic extending packages.
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -786,8 +790,7 @@ def validate_package_app_discipline(
 
 
 def validate_dependency_direction(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 6: Dependency Direction
+    """Golden Rule 6: Dependency Direction
 
     Validate that:
     - Apps can depend on infrastructure packages
@@ -813,6 +816,7 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -853,7 +857,7 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                                         )
                                         break
 
-                    except Exception:  # noqa: S112
+                    except Exception:
                         continue
 
     # Check apps for direct app-to-app dependencies
@@ -923,7 +927,7 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                                                 )
                                                 break
 
-                    except Exception:  # noqa: S112
+                    except Exception:
                         continue
 
     return len(violations) == 0, violations
@@ -933,8 +937,7 @@ def validate_service_layer_discipline(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 10: Service Layer Discipline
+    """Golden Rule 10: Service Layer Discipline
 
     Validate that:
     - Service layers (core/ directories) contain only interfaces
@@ -956,6 +959,7 @@ def validate_service_layer_discipline(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1019,7 +1023,7 @@ def validate_service_layer_discipline(
                                                         f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}",
                                                     )
 
-                            except Exception:  # noqa: S112
+                            except Exception:
                                 continue
 
     return len(violations) == 0, violations
@@ -1029,8 +1033,7 @@ def validate_communication_patterns(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 11: Communication Patterns
+    """Golden Rule 11: Communication Patterns
 
     Validate that:
     - Apps use approved communication patterns
@@ -1051,6 +1054,7 @@ def validate_communication_patterns(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = ([],)
 
@@ -1078,7 +1082,7 @@ def validate_communication_patterns(
                                         f"Daemon '{daemon_name}' in {app_name} missing command specification",
                                     )
 
-                    except Exception:  # noqa: S110, S112
+                    except Exception:
                         pass
 
                 # Check for forbidden communication patterns
@@ -1105,15 +1109,14 @@ def validate_communication_patterns(
                                     f"Forbidden IPC pattern '{pattern}' found: {py_file.relative_to(project_root)}",
                                 )
 
-                    except Exception:  # noqa: S112
+                    except Exception:
                         continue
 
     return len(violations) == 0, violations
 
 
 def validate_interface_contracts(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 7: Interface Contracts
+    """Golden Rule 7: Interface Contracts
 
     Validate that:
     - All public APIs have type hints
@@ -1122,6 +1125,7 @@ def validate_interface_contracts(project_root: Path, scope_files: list[Path] | N
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1175,7 +1179,7 @@ def validate_interface_contracts(project_root: Path, scope_files: list[Path] | N
                                 f"Async function '{node.name}' should end with '_async': {py_file.relative_to(project_root)}:{node.lineno}",
                             )
 
-            except Exception:  # noqa: S112
+            except Exception:
                 # Skip files that can't be parsed
                 continue
 
@@ -1186,8 +1190,7 @@ def validate_error_handling_standards(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 8: Error Handling Standards
+    """Golden Rule 8: Error Handling Standards
 
     Validate that:
     - All apps use hive-error-handling base classes
@@ -1196,6 +1199,7 @@ def validate_error_handling_standards(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1232,7 +1236,7 @@ def validate_error_handling_standards(
                                 f"Bare except without type: {py_file.relative_to(project_root)}:{node.lineno}",
                             )
 
-            except Exception:  # noqa: S112
+            except Exception:
                 # Skip files that can't be parsed
                 continue
 
@@ -1243,8 +1247,7 @@ def validate_no_hardcoded_env_values(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Validate that packages don't contain hardcoded environment-specific values.
+    """Validate that packages don't contain hardcoded environment-specific values.
 
     Ensures:
     - No hardcoded server paths, usernames, or hostnames in generic packages
@@ -1254,6 +1257,7 @@ def validate_no_hardcoded_env_values(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1320,7 +1324,7 @@ def validate_no_hardcoded_env_values(
                             f"- Found: {match.group()}",
                         )
 
-            except Exception:  # noqa: S112
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -1328,8 +1332,7 @@ def validate_no_hardcoded_env_values(
 
 
 def validate_logging_standards(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 9: Logging Standards (Project Scribe)
+    """Golden Rule 9: Logging Standards (Project Scribe)
 
     Validate that:
     - All components use hive-logging
@@ -1340,6 +1343,7 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1496,7 +1500,7 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
                                     f"Direct 'logging.basicConfig()' found (use setup_logging()): {py_file.relative_to(project_root)}:{line_num}",
                                 )
 
-            except Exception:  # noqa: S112
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -1507,8 +1511,7 @@ def validate_inherit_extend_pattern(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 10: Inherit → Extend Pattern
+    """Golden Rule 10: Inherit → Extend Pattern
 
     Validate that:
     - All apps with core modules properly extend base packages
@@ -1517,6 +1520,7 @@ def validate_inherit_extend_pattern(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1583,14 +1587,14 @@ def validate_package_naming_consistency(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 12: Package Naming Consistency
+    """Golden Rule 12: Package Naming Consistency
 
     Validate that package names, directory names, and module names
     are consistent across the workspace.
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = ([],)
     packages_dir = project_root / "packages"
@@ -1635,14 +1639,14 @@ def validate_development_tools_consistency(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 13: Development Tools Consistency
+    """Golden Rule 13: Development Tools Consistency
 
     Validate that all packages and apps use standardized versions
     of development tools (pytest, black, mypy, ruff, isort).
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1688,8 +1692,7 @@ def validate_async_pattern_consistency(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 14: Async Pattern Consistency
+    """Golden Rule 14: Async Pattern Consistency
 
     Validate that async code follows consistent patterns:
     - Use hive-async utilities for common patterns
@@ -1698,6 +1701,7 @@ def validate_async_pattern_consistency(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1744,8 +1748,7 @@ def validate_cli_pattern_consistency(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 15: CLI Pattern Consistency
+    """Golden Rule 15: CLI Pattern Consistency
 
     Validate that CLI implementations use standardized patterns:
     - Use hive-cli base classes and utilities
@@ -1754,6 +1757,7 @@ def validate_cli_pattern_consistency(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -1796,8 +1800,7 @@ def validate_no_global_state_access(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 16: No Global State Access
+    """Golden Rule 16: No Global State Access
 
     Validate that no global state access patterns exist in the codebase.
     All configuration should be injected via dependency injection.
@@ -1816,6 +1819,7 @@ def validate_no_global_state_access(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = ([],)
     base_dirs = [project_root / "apps", project_root / "packages"]
@@ -1998,7 +2002,7 @@ def validate_no_global_state_access(
                         ):
                             violations.append(f"Singleton class pattern found: {rel_path}:{line_num}")
 
-            except Exception:  # noqa: S112
+            except Exception:
                 # Skip files that can't be read
                 continue
 
@@ -2024,7 +2028,7 @@ def _uses_comprehensive_testing(package_dir: Path) -> bool:
                 content = f.read()
                 if "hypothesis" in content.lower() or "@given" in content:
                     return True
-        except Exception:  # noqa: S112
+        except Exception:
             continue
 
     # Check for comprehensive testing directories
@@ -2063,7 +2067,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
                     if "hypothesis" in content.lower() and "@given" in content:
                         has_hypothesis = True
                         break
-            except Exception:  # noqa: S112
+            except Exception:
                 continue
 
         if not has_hypothesis:
@@ -2080,8 +2084,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
 
 
 def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 17: Test-to-Source File Mapping
+    """Golden Rule 17: Test-to-Source File Mapping
 
     Enforces 1:1 mapping between source files and unit test files to ensure
     comprehensive test coverage and maintainability.
@@ -2097,6 +2100,7 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
 
     Returns:
         Tuple of (all_passed, violations_list)
+
     """
     violations = []
 
@@ -2207,8 +2211,7 @@ def validate_test_coverage_mapping(project_root: Path, scope_files: list[Path] |
 
 
 def validate_test_file_quality(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 18: Test File Quality Standards
+    """Golden Rule 18: Test File Quality Standards
 
     Ensures test files follow quality standards and actually test the code.
 
@@ -2223,6 +2226,7 @@ def validate_test_file_quality(project_root: Path, scope_files: list[Path] | Non
 
     Returns:
         Tuple of (all_passed, violations_list)
+
     """
     violations = []
 
@@ -2276,8 +2280,7 @@ def validate_pyproject_dependency_usage(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 19: PyProject Dependency Usage Validation
+    """Golden Rule 19: PyProject Dependency Usage Validation
 
     Validate that all packages declared in pyproject.toml dependencies
     are actually imported and used in the application code.
@@ -2286,6 +2289,7 @@ def validate_pyproject_dependency_usage(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -2394,8 +2398,7 @@ def validate_unified_tool_configuration(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 21: Unified Tool Configuration
+    """Golden Rule 21: Unified Tool Configuration
 
     Enforces that all tool configurations (ruff, black, mypy, isort) are centralized
     in the root pyproject.toml. Sub-packages should NOT define their own tool configs.
@@ -2405,6 +2408,7 @@ def validate_unified_tool_configuration(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = []
 
@@ -2453,8 +2457,7 @@ def validate_python_version_consistency(
     project_root: Path,
     scope_files: list[Path] | None = None,
 ) -> tuple[bool, list[str]]:
-    """
-    Golden Rule 22: Python Version Consistency
+    """Golden Rule 22: Python Version Consistency
 
     Enforces that ALL pyproject.toml files require the same Python version (3.11+).
     This prevents version drift that causes syntax incompatibilities and comma errors.
@@ -2466,6 +2469,7 @@ def validate_python_version_consistency(
 
     Returns:
         Tuple of (is_valid, list_of_violations)
+
     """
     violations = ([],)
     expected_python_version = ("3.11",)
@@ -2537,8 +2541,7 @@ def validate_python_version_consistency(
 
 
 def _run_ast_validator(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, dict]:
-    """
-    Run AST-based validation (default, recommended).
+    """Run AST-based validation (default, recommended).
 
     Args:
         project_root: Root directory of the project
@@ -2546,6 +2549,7 @@ def _run_ast_validator(project_root: Path, scope_files: list[Path] | None = None
 
     Returns:
         Tuple of (all_passed, results_dict)
+
     """
     from .ast_validator import EnhancedValidator
 
@@ -2568,8 +2572,7 @@ def _run_ast_validator(project_root: Path, scope_files: list[Path] | None = None
 
 
 def _run_legacy_validators(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, dict]:
-    """
-    Run string-based validators (backward compatibility only).
+    """Run string-based validators (backward compatibility only).
 
     DEPRECATED: Use AST validator instead (engine='ast').
 
@@ -2579,6 +2582,7 @@ def _run_legacy_validators(project_root: Path, scope_files: list[Path] | None = 
 
     Returns:
         Tuple of (all_passed, results_dict)
+
     """
     import warnings
 
@@ -2627,8 +2631,7 @@ def _run_legacy_validators(project_root: Path, scope_files: list[Path] | None = 
 
 
 def _run_both_validators(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, dict]:
-    """
-    Run both validators and compare results (verification mode).
+    """Run both validators and compare results (verification mode).
 
     Useful for migration validation and testing.
 
@@ -2638,6 +2641,7 @@ def _run_both_validators(project_root: Path, scope_files: list[Path] | None = No
 
     Returns:
         Tuple of (all_passed, results_dict) - Returns AST results as primary
+
     """
     logger.info("Running both AST and legacy validators for comparison...")
 
@@ -2683,8 +2687,7 @@ def _run_registry_validators(
     scope_files: list[Path] | None = None,
     max_severity: RuleSeverity = RuleSeverity.INFO,
 ) -> tuple[bool, dict]:
-    """
-    Run registry-based validators with severity filtering.
+    """Run registry-based validators with severity filtering.
 
     This implementation uses GOLDEN_RULES_REGISTRY and filters rules based on severity level.
 
@@ -2695,6 +2698,7 @@ def _run_registry_validators(
 
     Returns:
         Tuple of (all_passed, results_dict)
+
     """
     results = {}
     all_passed = True
@@ -2743,8 +2747,7 @@ def run_all_golden_rules(
     engine: str = "ast",
     max_severity: RuleSeverity = RuleSeverity.INFO,
 ) -> tuple[bool, dict]:
-    """
-    Run all Golden Rules validation with configurable engine and severity filtering.
+    """Run all Golden Rules validation with configurable engine and severity filtering.
 
     Args:
         project_root: Root directory of the project
@@ -2778,19 +2781,19 @@ def run_all_golden_rules(
 
         # Registry-based validation with severity filtering
         passed, results = run_all_golden_rules(project_root, engine='registry', max_severity=RuleSeverity.ERROR)
+
     """
     if engine == "ast":
         return _run_ast_validator(project_root, scope_files)
-    elif engine == "legacy":
+    if engine == "legacy":
         return _run_legacy_validators(project_root, scope_files)
-    elif engine == "registry":
+    if engine == "registry":
         return _run_registry_validators(project_root, scope_files, max_severity)
-    elif engine == "both":
+    if engine == "both":
         return _run_both_validators(project_root, scope_files)
-    else:
-        raise ValueError(
-            f"Unknown validation engine: {engine}. Valid options: 'ast' (default), 'legacy', 'registry', 'both'"
-        )
+    raise ValueError(
+        f"Unknown validation engine: {engine}. Valid options: 'ast' (default), 'legacy', 'registry', 'both'",
+    )
 
 
 # Initialize the registry after all validators are defined
