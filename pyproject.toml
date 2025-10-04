@@ -26,7 +26,7 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
-exclude = [ "archive/", "legacy/", "tests/",]
+exclude = [ "archive/", "legacy/", "integration_tests/",]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -50,7 +50,7 @@ skip-magic-trailing-comma = true  # CRITICAL: Prevent automatic trailing comma a
 line-ending = "auto"
 
 [tool.pytest.ini_options]
-testpaths = [ "apps", "packages", "tests",]
+testpaths = [ "apps", "packages", "integration_tests",]
 python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
@@ -66,7 +66,7 @@ section-order = [ "future", "standard-library", "third-party", "first-party", "l
 split-on-trailing-comma = false  # CRITICAL: Prevent conflict with skip-magic-trailing-comma
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = [ "S101", "S602", "S604",]
+"integration_tests/**" = [ "S", "B", "F", "E501",]  # Integration tests: relaxed quality for Crust tier
 "scripts/**" = [ "S602", "S604",]
 "archive/**" = [ "S",]
 
