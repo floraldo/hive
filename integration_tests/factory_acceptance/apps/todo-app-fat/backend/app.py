@@ -120,4 +120,4 @@ def serve_frontend():
 if __name__ == "__main__":
     init_db()
     print("Starting Todo Backend on port 5003...")
-    app.run(host="0.0.0.0", port=5003, debug=False)
+    app.run(host="0.0.0.0", port=5003, debug=False)  # noqa: S104

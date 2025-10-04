@@ -241,4 +241,4 @@ def index():
 if __name__ == "__main__":
     print("Starting QR Code Generator Service on port 5004...")
     print("External dependencies: qrcode, Pillow")
-    app.run(host="0.0.0.0", port=5004, debug=False)
+    app.run(host="0.0.0.0", port=5004, debug=False)  # noqa: S104

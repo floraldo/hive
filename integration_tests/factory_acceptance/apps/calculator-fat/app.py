@@ -129,4 +129,4 @@ def power():
 
 if __name__ == "__main__":
     print("Starting Calculator Service on port 5005 (iteration 3 - production ready)...")
-    app.run(host="0.0.0.0", port=5005, debug=False)
+    app.run(host="0.0.0.0", port=5005, debug=False)  # noqa: S104
