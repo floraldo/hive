@@ -10,8 +10,7 @@ Extends hive-config with planner-specific settings following the inherit→exten
 
 
 try:
-    from hive_config import HiveConfig
-    from hive_config import load_config as load_hive_config
+    from hive_config import HiveConfig, create_config_from_sources
 except ImportError:
     # Fallback for development - define minimal config structure
     from pydantic import BaseModel
@@ -21,7 +20,7 @@ except ImportError:
 
         pass
 
-    def load_hive_config() -> "HiveConfig":
+    def create_config_from_sources() -> "HiveConfig":
         """Fallback config loader"""
         return HiveConfig()
 
@@ -82,11 +81,11 @@ def load_config(base_config: dict | None = None) -> AIPlannerConfig:
     Returns:
         AIPlannerConfig: Complete configuration with hive base + planner extensions
     """
-    # Load base hive configuration or use provided config
+    # Load base hive configuration or use provided config (DI pattern)
     if base_config:
         hive_config = HiveConfig(**base_config)
     else:
-        hive_config = load_hive_config()
+        hive_config = create_config_from_sources()
 
     # Merge with planner-specific config
     return AIPlannerConfig(

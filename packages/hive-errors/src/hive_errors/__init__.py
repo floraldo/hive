@@ -13,14 +13,6 @@ that can be used to build error handling for any system.
 
 from hive_logging import get_logger
 
-from .async_error_handler import (
-    AsyncErrorHandler,
-    ErrorContext,
-    ErrorStats,
-    create_error_context,
-    error_context,
-    handle_async_errors,
-)
 from .base_exceptions import (
     APIError,
     AsyncTimeoutError,
@@ -36,8 +28,23 @@ from .base_exceptions import (
     ValidationError,
 )
 from .error_reporter import BaseErrorReporter
-from .monitoring_error_reporter import MonitoringErrorReporter
+from .monitoring_error_reporter import (
+    ErrorContext,
+    ErrorStats,
+    MonitoringErrorReporter,
+    UnifiedErrorReporter,
+    create_error_context,
+    error_context,
+    handle_async_errors,
+)
 from .recovery import RecoveryStatus, RecoveryStrategy, RetryStrategy
+
+# Legacy imports for backward compatibility (DEPRECATED - use UnifiedErrorReporter)
+try:
+    from .async_error_handler import AsyncErrorHandler
+except ImportError:
+    # AsyncErrorHandler functionality is now in MonitoringErrorReporter/UnifiedErrorReporter
+    AsyncErrorHandler = UnifiedErrorReporter  # type: ignore
 
 logger = get_logger(__name__)
 
@@ -56,17 +63,19 @@ __all__ = [
     "AsyncTimeoutError",
     "RetryExhaustedError",
     "PoolExhaustedError",
-    # Error handling infrastructure
+    # Error handling infrastructure (UNIFIED)
     "BaseErrorReporter",
-    "MonitoringErrorReporter",
+    "UnifiedErrorReporter",  # Primary interface - use this
+    "MonitoringErrorReporter",  # Alias to UnifiedErrorReporter
     "RecoveryStrategy",
     "RecoveryStatus",
     "RetryStrategy",
-    # Async error handling
-    "AsyncErrorHandler",
+    # Async error handling context (unified in MonitoringErrorReporter)
     "ErrorContext",
     "ErrorStats",
     "error_context",
     "handle_async_errors",
     "create_error_context",
+    # Legacy (DEPRECATED)
+    "AsyncErrorHandler",  # Use UnifiedErrorReporter instead
 ]

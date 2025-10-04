@@ -2,17 +2,50 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import time
 from collections import defaultdict, deque
-from collections.abc import Callable
+from collections.abc import AsyncGenerator, Callable
+from contextlib import asynccontextmanager
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any
 
 from hive_logging import get_logger
 
+from .base_exceptions import AsyncTimeoutError, BaseError, RetryExhaustedError
 from .error_reporter import BaseErrorReporter
 
 logger = get_logger(__name__)
+
+
+@dataclass
+class ErrorContext:
+    """Context information for async error handling."""
+
+    operation_name: str
+    component: str
+    start_time: datetime = field(default_factory=datetime.utcnow)
+    timeout_duration: float | None = None
+    retry_attempt: int = 0
+    max_retries: int = 0
+    correlation_id: str | None = None
+    user_id: str | None = None
+    request_id: str | None = None
+    custom_context: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class ErrorStats:
+    """Error statistics for monitoring."""
+
+    total_errors: int = 0
+    errors_by_type: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    errors_by_component: dict[str, int] = field(default_factory=lambda: defaultdict(int))
+    recent_errors: deque = field(default_factory=lambda: deque(maxlen=100))
+    error_rate_per_minute: float = 0.0
+    last_error_time: datetime | None = None
 
 
 class MonitoringErrorReporter(BaseErrorReporter):
@@ -484,3 +517,286 @@ class MonitoringErrorReporter(BaseErrorReporter):
         )
 
         return metric_points
+
+    async def handle_error_async(
+        self, error: Exception, context: ErrorContext, suppress: bool = False
+    ) -> Exception | None:
+        """
+        Handle an error asynchronously with full context and monitoring.
+
+        Args:
+            error: The exception that occurred
+            context: Error context information
+            suppress: Whether to suppress the error (return None)
+
+        Returns:
+            The processed error or None if suppressed
+        """
+        # Record error occurrence
+        error_record = await self._record_error_async(error, context)
+
+        # Update statistics
+        await self._update_error_stats_async(error, context)
+
+        # Update component health
+        await self._update_component_health_async(context.component, success=False)
+
+        # Report error using existing sync method
+        self.report_error(error, context=context.__dict__, additional_info=error_record)
+
+        # Log error with context
+        await self._log_error_async(error, context)
+
+        # Return processed error
+        if suppress:
+            return None
+        return error
+
+    async def _record_error_async(self, error: Exception, context: ErrorContext) -> dict[str, Any]:
+        """Record error details for analysis."""
+        error_record = {
+            "timestamp": datetime.utcnow(),
+            "error_type": error.__class__.__name__,
+            "error_message": str(error),
+            "operation_name": context.operation_name,
+            "component": context.component,
+            "retry_attempt": context.retry_attempt,
+            "max_retries": context.max_retries,
+            "execution_time": (datetime.utcnow() - context.start_time).total_seconds(),
+            "correlation_id": context.correlation_id,
+            "timeout_duration": context.timeout_duration,
+            "custom_context": context.custom_context,
+        }
+
+        # Add enhanced error details for BaseError instances
+        if isinstance(error, BaseError):
+            error_record.update(
+                {
+                    "error_details": error.details,
+                    "recovery_suggestions": error.recovery_suggestions,
+                    "original_error": str(error.original_error) if error.original_error else None,
+                }
+            )
+
+        return error_record
+
+    async def _update_error_stats_async(self, error: Exception, context: ErrorContext) -> None:
+        """Update error statistics asynchronously."""
+        # Use existing sync methods for statistics update
+        component = context.component
+
+        # Update component stats
+        stats = self._component_stats[component]
+        stats["total_errors"] += 1
+        stats["last_error"] = datetime.utcnow().isoformat()
+        stats["consecutive_failures"] += 1
+
+    async def _update_component_health_async(self, component: str, success: bool) -> None:
+        """Update component health score asynchronously."""
+        stats = self._component_stats[component]
+        if success:
+            stats["consecutive_failures"] = 0
+            stats["last_success"] = datetime.utcnow().isoformat()
+            # Update failure rate (success = 0)
+            alpha = 0.1
+            current_rate = stats["failure_rate"]
+            stats["failure_rate"] = current_rate + alpha * (0.0 - current_rate)
+        else:
+            # Failure already handled in handle_error_async
+            alpha = 0.1
+            stats["failure_rate"] = alpha * 1.0 + (1 - alpha) * stats["failure_rate"]
+
+    async def _log_error_async(self, error: Exception, context: ErrorContext) -> None:
+        """Log error with structured context."""
+        log_data = {
+            "operation": context.operation_name,
+            "component": context.component,
+            "error_type": error.__class__.__name__,
+            "retry_attempt": context.retry_attempt,
+            "correlation_id": context.correlation_id,
+        }
+
+        if context.retry_attempt > 0:
+            logger.warning(
+                f"Error in {context.operation_name} (attempt {context.retry_attempt}): {error}",
+                extra=log_data,
+            )
+        else:
+            logger.error(f"Error in {context.operation_name}: {error}", extra=log_data)
+
+    async def handle_success_async(self, context: ErrorContext, execution_time: float) -> None:
+        """Handle successful operation completion asynchronously."""
+        await self._update_component_health_async(context.component, success=True)
+
+    async def predict_failure_risk(self, component: str, operation: str) -> dict[str, Any]:
+        """Predict failure risk based on recent patterns."""
+        stats = self._component_stats[component]
+        health_score = max(0.0, 1.0 - stats["failure_rate"])
+
+        # Calculate risk score (0.0-1.0)
+        health_risk = 1.0 - health_score
+
+        # Recent error trend
+        recent_errors = [
+            e
+            for e in self._detailed_history
+            if e.get("component") == component
+            and (datetime.utcnow() - datetime.fromisoformat(e["timestamp"])).total_seconds() <= 300
+        ]
+        trend_risk = min(1.0, len(recent_errors) / 10)
+
+        # Combined risk score
+        risk_score = health_risk * 0.6 + trend_risk * 0.4
+
+        recommendations = []
+        if risk_score > 0.7:
+            recommendations.append(f"Consider circuit breaker for {component}")
+            recommendations.append(f"Review recent errors for {operation}")
+        elif risk_score > 0.4:
+            recommendations.append(f"Monitor {component} closely")
+
+        return {
+            "risk_score": risk_score,
+            "risk_level": "high" if risk_score > 0.7 else "medium" if risk_score > 0.4 else "low",
+            "component_health": health_score,
+            "recent_error_count": len(recent_errors),
+            "recommendations": recommendations,
+        }
+
+
+# Unified alias for backward compatibility
+UnifiedErrorReporter = MonitoringErrorReporter
+
+
+@asynccontextmanager
+async def error_context(
+    reporter: MonitoringErrorReporter,
+    operation_name: str,
+    component: str,
+    timeout: float | None = None,
+    suppress_errors: bool = False,
+    correlation_id: str | None = None,
+    **context_kwargs,
+) -> AsyncGenerator[ErrorContext, None]:
+    """Context manager for automatic async error handling."""
+    context = ErrorContext(
+        operation_name=operation_name,
+        component=component,
+        timeout_duration=timeout,
+        correlation_id=correlation_id,
+        custom_context=context_kwargs,
+    )
+
+    start_time = time.perf_counter()
+
+    try:
+        yield context
+
+        # Record success
+        execution_time = time.perf_counter() - start_time
+        await reporter.handle_success_async(context, execution_time)
+
+    except TimeoutError as e:
+        timeout_error = AsyncTimeoutError(
+            message=f"Operation {operation_name} timed out after {timeout}s",
+            component=component,
+            operation=operation_name,
+            timeout_duration=timeout,
+            elapsed_time=time.perf_counter() - start_time,
+        )
+
+        processed_error = await reporter.handle_error_async(timeout_error, context, suppress_errors)
+        if not suppress_errors and processed_error:
+            raise processed_error from e
+
+    except Exception as e:
+        processed_error = await reporter.handle_error_async(e, context, suppress_errors)
+        if not suppress_errors and processed_error:
+            raise processed_error from e
+
+
+def handle_async_errors(
+    reporter: MonitoringErrorReporter,
+    component: str,
+    operation_name: str | None = None,
+    timeout: float | None = None,
+    suppress_errors: bool = False,
+    max_retries: int = 0,
+    retry_delay: float = 1.0,
+    exponential_backoff: bool = True,
+):
+    """Decorator for automatic async error handling with retry logic."""
+
+    def decorator(func) -> Any:
+        async def wrapper(*args, **kwargs):
+            for attempt in range(max_retries + 1):
+                context = ErrorContext(
+                    operation_name=operation_name or func.__name__,
+                    component=component,
+                    timeout_duration=timeout,
+                    retry_attempt=attempt,
+                    max_retries=max_retries,
+                )
+
+                try:
+                    async with error_context(
+                        reporter,
+                        operation_name or func.__name__,
+                        component,
+                        timeout=timeout,
+                        suppress_errors=False,
+                        correlation_id=kwargs.get("correlation_id"),
+                    ):
+                        return await func(*args, **kwargs)
+
+                except Exception as e:
+                    if attempt < max_retries:
+                        # Calculate delay with optional exponential backoff
+                        delay = retry_delay
+                        if exponential_backoff:
+                            delay *= 2**attempt
+
+                        logger.info(
+                            f"Retrying {operation_name or func.__name__} in {delay}s "
+                            f"(attempt {attempt + 1}/{max_retries})"
+                        )
+                        await asyncio.sleep(delay)
+                    else:
+                        # All retries exhausted
+                        retry_error = RetryExhaustedError(
+                            message=f"All {max_retries} retry attempts failed for {operation_name or func.__name__}",
+                            component=component,
+                            operation=operation_name or func.__name__,
+                            max_attempts=max_retries,
+                            attempt_count=attempt + 1,
+                            last_error=e,
+                        )
+
+                        processed_error = await reporter.handle_error_async(retry_error, context, suppress_errors)
+                        if not suppress_errors and processed_error:
+                            raise processed_error from e
+
+            return None
+
+        return wrapper
+
+    return decorator
+
+
+def create_error_context(
+    operation_name: str,
+    component: str,
+    correlation_id: str | None = None,
+    user_id: str | None = None,
+    request_id: str | None = None,
+    **custom_context,
+) -> ErrorContext:
+    """Create an error context with common parameters."""
+    return ErrorContext(
+        operation_name=operation_name,
+        component=component,
+        correlation_id=correlation_id,
+        user_id=user_id,
+        request_id=request_id,
+        custom_context=custom_context,
+    )

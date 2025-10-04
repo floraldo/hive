@@ -4,8 +4,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from hive_config import load_config
-
 
 @dataclass
 class APIConfig:
@@ -163,16 +161,6 @@ class HiveAppConfig:
         # Database validation
         if self.database.enabled and not self.database.url:
             raise ValueError("Database enabled but no URL provided")
-
-    @classmethod
-    def load_from_file(cls, config_path: Path) -> "HiveAppConfig":
-        """
-        Load configuration from file.
-
-        Supports YAML, JSON, and TOML formats.
-        """
-        config_data = load_config(config_path)
-        return cls.from_dict(config_data)
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "HiveAppConfig":

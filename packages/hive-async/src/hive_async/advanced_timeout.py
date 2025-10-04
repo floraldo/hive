@@ -1,17 +1,35 @@
-"""Advanced timeout management with adaptive behavior and monitoring."""
+"""
+Advanced resilience management combining timeout, circuit breaker, and retry patterns.
+
+This module provides the unified AsyncResilienceManager which consolidates:
+- Adaptive timeout management
+- Circuit breaker fault tolerance
+- Performance monitoring and metrics
+- Alert callbacks and recommendations
+"""
 
 import asyncio
 import time
-from collections import deque
+from collections import defaultdict, deque
 from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
+from enum import Enum
 from typing import Any
 
+from hive_errors import AsyncTimeoutError, CircuitBreakerOpenError
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
+
+
+class CircuitState(Enum):
+    """Circuit breaker states."""
+
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
 
 
 @dataclass
@@ -38,47 +56,73 @@ class TimeoutConfig:
     enable_retry_escalation: bool = True
     retry_timeout_multiplier: float = 2.0
 
+    # Circuit breaker settings
+    enable_circuit_breaker: bool = True
+    failure_threshold: int = 5
+    recovery_timeout: int = 60
+    expected_exception: type = Exception
+
 
 @dataclass
 class TimeoutMetrics:
-    """Metrics for timeout operations."""
+    """Metrics for timeout and circuit breaker operations."""
 
     operation_name: str
     total_attempts: int = 0
     successful_attempts: int = 0
     timeout_count: int = 0
+    failure_count: int = 0
+    circuit_breaker_trips: int = 0
     average_duration: float = 0.0
     p95_duration: float = 0.0
     p99_duration: float = 0.0
     last_success_duration: float | None = None
     consecutive_timeouts: int = 0
+    consecutive_failures: int = 0
     recommended_timeout: float | None = None
+    circuit_state: CircuitState = CircuitState.CLOSED
+    last_failure_time: float | None = None
     durations: deque = field(default_factory=lambda: deque(maxlen=100))
+    failure_history: deque = field(default_factory=lambda: deque(maxlen=1000))
+    state_transitions: deque = field(default_factory=lambda: deque(maxlen=100))
 
 
-class AdvancedTimeoutManager:
+class AsyncResilienceManager:
     """
-    Advanced timeout management with adaptive behavior.
+    Unified resilience manager combining timeout and circuit breaker patterns.
 
     Features:
     - Adaptive timeout adjustment based on historical performance
-    - Operation-specific timeout profiles
-    - Performance monitoring and metrics
+    - Circuit breaker fault tolerance with automatic recovery
+    - Operation-specific timeout and failure profiles
+    - Performance monitoring and comprehensive metrics
     - Integration with retry mechanisms
-    - Circuit breaker style timeout escalation
+    - Timeout escalation and circuit breaker coordination
     - Comprehensive logging and alerting
+
+    This replaces the separate AsyncCircuitBreaker and AsyncTimeoutManager classes.
     """
 
-    def __init__(self, config: TimeoutConfig | None = None) -> None:
+    def __init__(self, config: TimeoutConfig | None = None, name: str = "default") -> None:
         self.config = config or TimeoutConfig()
+        self.name = name
 
         # Metrics tracking
         self._operation_metrics: dict[str, TimeoutMetrics] = {}
-        self._global_stats = {"total_operations": 0, "total_timeouts": 0, "timeout_rate": 0.0}
+        self._global_stats = {
+            "total_operations": 0,
+            "total_timeouts": 0,
+            "total_failures": 0,
+            "timeout_rate": 0.0,
+            "failure_rate": 0.0,
+        }
 
         # Adaptive timeout cache
         self._adaptive_timeouts: dict[str, float] = {}
         self._last_adaptation: dict[str, datetime] = {}
+
+        # Circuit breaker state (per operation)
+        self._circuit_locks: dict[str, asyncio.Lock] = {}
 
         # Alert callbacks
         self._alert_callbacks: list[Callable] = []
@@ -125,22 +169,28 @@ class AdvancedTimeoutManager:
         **kwargs,
     ) -> Any:
         """
-        Execute operation with advanced timeout management.
+        Execute operation with unified timeout and circuit breaker management.
 
         Args:
-            operation: Async function to execute,
-            operation_name: Name for metrics tracking,
-            timeout: Explicit timeout value (overrides automatic calculation),
-            timeout_type: Type of timeout for automatic calculation,
-            retry_attempt: Current retry attempt,
+            operation: Async function to execute
+            operation_name: Name for metrics tracking
+            timeout: Explicit timeout value (overrides automatic calculation)
+            timeout_type: Type of timeout for automatic calculation
+            retry_attempt: Current retry attempt
             *args, **kwargs: Arguments for the operation
 
         Returns:
             Operation result
 
         Raises:
-            asyncio.TimeoutError: If operation times out,
+            CircuitBreakerOpenError: If circuit breaker is open
+            AsyncTimeoutError: If operation times out
+            Exception: Any exception from the operation
         """
+        # Check circuit breaker state BEFORE execution
+        if self.config.enable_circuit_breaker:
+            await self._check_circuit_breaker_async(operation_name)
+
         # Determine timeout
         if timeout is None:
             timeout = self.get_timeout(operation_name, timeout_type, retry_attempt)
@@ -157,7 +207,12 @@ class AdvancedTimeoutManager:
 
         try:
             # Execute with timeout
-            result = await asyncio.wait_for(operation(*args, **kwargs), timeout=timeout)
+            if asyncio.iscoroutinefunction(operation):
+                result = await asyncio.wait_for(operation(*args, **kwargs), timeout=timeout)
+            else:
+                result = await asyncio.wait_for(
+                    asyncio.to_thread(operation, *args, **kwargs), timeout=timeout
+                )
 
             # Record success
             duration = time.perf_counter() - start_time
@@ -165,31 +220,60 @@ class AdvancedTimeoutManager:
 
             return result
 
-        except TimeoutError:
-            # Record timeout
+        except TimeoutError as e:
+            # Record timeout as a type of failure
             duration = time.perf_counter() - start_time
             await self._record_timeout_async(operation_name, duration, timeout, retry_attempt)
-            raise
+
+            # Convert to AsyncTimeoutError with better context
+            raise AsyncTimeoutError(
+                f"Operation '{operation_name}' timed out",
+                operation=operation_name,
+                timeout_duration=timeout,
+                elapsed_time=duration,
+            ) from e
 
         except asyncio.CancelledError:
             # Handle cancellation without recording as failure
             logger.debug(f"Operation {operation_name} was cancelled")
             raise
+
         except Exception as e:
-            # Record failure (not timeout)
+            # Record failure (will trigger circuit breaker logic)
             duration = time.perf_counter() - start_time
-            metrics.durations.append(duration)
-            (logger.debug(f"Operation {operation_name} failed with error: {e}"),)
+            await self._record_failure_async(operation_name, duration, e, retry_attempt)
             raise
 
     async def _record_success_async(self, operation_name: str, duration: float, timeout: float) -> None:
-        """Record successful operation."""
+        """Record successful operation and update circuit breaker state."""
         metrics = self._operation_metrics[operation_name]
 
         metrics.successful_attempts += 1
         metrics.durations.append(duration)
         metrics.last_success_duration = duration
         metrics.consecutive_timeouts = 0
+        metrics.consecutive_failures = 0
+
+        # Circuit breaker state management
+        if self.config.enable_circuit_breaker:
+            lock = await self._get_circuit_lock_async(operation_name)
+            async with lock:
+                # If circuit was HALF_OPEN, success means we can close it
+                if metrics.circuit_state == CircuitState.HALF_OPEN:
+                    old_state = metrics.circuit_state
+                    metrics.circuit_state = CircuitState.CLOSED
+                    metrics.failure_count = 0
+
+                    # Record state transition
+                    metrics.state_transitions.append(
+                        {
+                            "timestamp": datetime.utcnow(),
+                            "from_state": old_state.value,
+                            "to_state": CircuitState.CLOSED.value,
+                            "failure_count": 0,
+                        }
+                    )
+                    logger.info(f"Circuit breaker for {operation_name} reset to CLOSED after successful recovery")
 
         # Update statistics
         await self._update_operation_stats_async(operation_name)
@@ -334,8 +418,252 @@ class AdvancedTimeoutManager:
             except Exception as e:
                 logger.error(f"Error in timeout alert callback: {e}")
 
+    async def _record_failure_async(
+        self,
+        operation_name: str,
+        duration: float,
+        error: Exception,
+        retry_attempt: int,
+    ) -> None:
+        """Record operation failure and update circuit breaker state."""
+        metrics = self._operation_metrics[operation_name]
+
+        metrics.failure_count += 1
+        metrics.consecutive_failures += 1
+        metrics.durations.append(duration)
+        self._global_stats["total_failures"] += 1
+
+        # Update global failure rate
+        self._global_stats["failure_rate"] = (
+            self._global_stats["total_failures"] / self._global_stats["total_operations"]
+        )
+
+        # Record failure in history
+        metrics.failure_history.append(
+            {
+                "timestamp": datetime.utcnow(),
+                "error_type": type(error).__name__,
+                "duration": duration,
+                "state_before": metrics.circuit_state.value if self.config.enable_circuit_breaker else "disabled",
+            }
+        )
+
+        # Circuit breaker logic
+        if self.config.enable_circuit_breaker:
+            lock = await self._get_circuit_lock_async(operation_name)
+            async with lock:
+                if metrics.failure_count >= self.config.failure_threshold:
+                    old_state = metrics.circuit_state
+                    metrics.circuit_state = CircuitState.OPEN
+                    metrics.last_failure_time = time.time()
+                    metrics.circuit_breaker_trips += 1
+
+                    # Record state transition
+                    metrics.state_transitions.append(
+                        {
+                            "timestamp": datetime.utcnow(),
+                            "from_state": old_state.value,
+                            "to_state": CircuitState.OPEN.value,
+                            "failure_count": metrics.failure_count,
+                        }
+                    )
+
+                    logger.warning(
+                        f"Circuit breaker OPENED for {operation_name} after {metrics.failure_count} failures"
+                    )
+
+        logger.warning(
+            f"Failure in operation {operation_name} after {duration:.3f}s ",
+            f"(attempt: {retry_attempt + 1}, error: {type(error).__name__})",
+        )
+
+    async def _get_circuit_lock_async(self, operation_name: str) -> asyncio.Lock:
+        """Get or create circuit breaker lock for operation."""
+        if operation_name not in self._circuit_locks:
+            self._circuit_locks[operation_name] = asyncio.Lock()
+        return self._circuit_locks[operation_name]
+
+    async def _check_circuit_breaker_async(self, operation_name: str) -> None:
+        """Check circuit breaker state before executing operation."""
+        if operation_name not in self._operation_metrics:
+            return  # No metrics yet, allow operation
+
+        metrics = self._operation_metrics[operation_name]
+        lock = await self._get_circuit_lock_async(operation_name)
+
+        async with lock:
+            if metrics.circuit_state == CircuitState.OPEN:
+                # Check if enough time has passed to attempt reset
+                if self._should_attempt_reset(operation_name):
+                    metrics.circuit_state = CircuitState.HALF_OPEN
+                    logger.info(f"Circuit breaker for {operation_name} transitioning to HALF_OPEN")
+                else:
+                    # Still open - block operation
+                    raise CircuitBreakerOpenError(
+                        f"Circuit breaker is OPEN for operation '{operation_name}' - operation blocked",
+                        failure_count=metrics.failure_count,
+                        recovery_time=self.config.recovery_timeout,
+                    )
+
+    def _should_attempt_reset(self, operation_name: str) -> bool:
+        """Check if enough time has passed to attempt circuit reset."""
+        metrics = self._operation_metrics.get(operation_name)
+        if not metrics or metrics.last_failure_time is None:
+            return True
+        return time.time() - metrics.last_failure_time > self.config.recovery_timeout
+
+    async def reset_circuit_breaker_async(self, operation_name: str) -> None:
+        """Manually reset circuit breaker for an operation."""
+        if operation_name not in self._operation_metrics:
+            logger.warning(f"No metrics found for operation {operation_name}")
+            return
+
+        metrics = self._operation_metrics[operation_name]
+        lock = await self._get_circuit_lock_async(operation_name)
+
+        async with lock:
+            old_state = metrics.circuit_state
+            metrics.circuit_state = CircuitState.CLOSED
+            metrics.failure_count = 0
+            metrics.consecutive_failures = 0
+            metrics.last_failure_time = None
+
+            # Record state transition
+            metrics.state_transitions.append(
+                {
+                    "timestamp": datetime.utcnow(),
+                    "from_state": old_state.value,
+                    "to_state": CircuitState.CLOSED.value,
+                    "failure_count": 0,
+                }
+            )
+
+            logger.info(f"Circuit breaker for {operation_name} manually reset to CLOSED")
+
+    def is_circuit_open(self, operation_name: str) -> bool:
+        """Check if circuit breaker is open for an operation."""
+        metrics = self._operation_metrics.get(operation_name)
+        if not metrics or not self.config.enable_circuit_breaker:
+            return False
+        return metrics.circuit_state == CircuitState.OPEN
+
+    def get_circuit_status(self, operation_name: str) -> dict[str, Any]:
+        """Get circuit breaker status for an operation."""
+        metrics = self._operation_metrics.get(operation_name)
+        if not metrics:
+            return {
+                "state": "unknown",
+                "failure_count": 0,
+                "enabled": self.config.enable_circuit_breaker,
+            }
+
+        return {
+            "state": metrics.circuit_state.value,
+            "failure_count": metrics.failure_count,
+            "failure_threshold": self.config.failure_threshold,
+            "last_failure_time": metrics.last_failure_time,
+            "recovery_timeout": self.config.recovery_timeout,
+            "circuit_breaker_trips": metrics.circuit_breaker_trips,
+            "enabled": self.config.enable_circuit_breaker,
+        }
+
+    def get_failure_history(
+        self,
+        operation_name: str,
+        metric_type: str = "failure_rate",
+        hours: int = 24,
+    ) -> list[dict[str, Any]]:
+        """
+        Get failure history for predictive analysis.
+
+        Returns failure metrics in MetricPoint-compatible format for
+        integration with PredictiveAnalysisRunner.
+
+        Args:
+            operation_name: Operation to get history for
+            metric_type: Type of metric (failure_rate, state_changes)
+            hours: Number of hours of history to return
+
+        Returns:
+            List of metric points with timestamp, value, and metadata
+        """
+        metrics = self._operation_metrics.get(operation_name)
+        if not metrics:
+            logger.debug(f"No metrics available for {operation_name}")
+            return []
+
+        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+
+        if metric_type == "failure_rate":
+            # Get recent failures
+            recent_failures = [f for f in metrics.failure_history if f["timestamp"] >= cutoff_time]
+
+            if not recent_failures:
+                logger.debug(f"No failure history available for {operation_name}")
+                return []
+
+            # Group by hour and count
+            failure_counts_by_hour = defaultdict(int)
+            for failure in recent_failures:
+                hour_key = failure["timestamp"].replace(minute=0, second=0, microsecond=0)
+                failure_counts_by_hour[hour_key] += 1
+
+            # Convert to MetricPoint format
+            metric_points = []
+            for hour, count in sorted(failure_counts_by_hour.items()):
+                metric_points.append(
+                    {
+                        "timestamp": hour,
+                        "value": float(count),
+                        "metadata": {
+                            "operation": operation_name,
+                            "metric_type": "failure_rate",
+                            "unit": "failures_per_hour",
+                        },
+                    }
+                )
+
+            logger.debug(f"Retrieved {len(metric_points)} failure rate points for {operation_name}")
+            return metric_points
+
+        elif metric_type == "state_changes":
+            # Get recent state transitions
+            recent_transitions = [t for t in metrics.state_transitions if t["timestamp"] >= cutoff_time]
+
+            if not recent_transitions:
+                logger.debug(f"No state transitions for {operation_name}")
+                return []
+
+            # Convert state transitions to metric points
+            metric_points = []
+            for transition in recent_transitions:
+                # Value: 1.0 for OPEN transitions (bad), 0.0 for CLOSED (good)
+                value = 1.0 if transition["to_state"] == CircuitState.OPEN.value else 0.0
+
+                metric_points.append(
+                    {
+                        "timestamp": transition["timestamp"],
+                        "value": value,
+                        "metadata": {
+                            "operation": operation_name,
+                            "metric_type": "state_change",
+                            "from_state": transition["from_state"],
+                            "to_state": transition["to_state"],
+                            "failure_count": transition["failure_count"],
+                            "unit": "binary",
+                        },
+                    }
+                )
+
+            logger.debug(f"Retrieved {len(metric_points)} state transition points for {operation_name}")
+            return metric_points
+
+        else:
+            logger.warning(f"Unknown metric type: {metric_type}")
+            return []
+
     def add_alert_callback(self, callback: Callable) -> None:
-        """Add alert callback for timeout events."""
+        """Add alert callback for timeout and failure events."""
         self._alert_callbacks.append(callback)
 
     def get_operation_metrics(self, operation_name: str) -> TimeoutMetrics | None:
@@ -451,16 +779,16 @@ class AdvancedTimeoutManager:
             raise ValueError(f"Unsupported export format: {format}")
 
 
-# Context manager for timeout operations
+# Context manager for resilience operations
 @asynccontextmanager
-async def timeout_context_async(
-    manager: AdvancedTimeoutManager,
+async def resilience_context_async(
+    manager: AsyncResilienceManager,
     operation_name: str,
     timeout: float | None = None,
     timeout_type: str = "default",
     retry_attempt: int = 0,
 ) -> AsyncGenerator[float, None]:
-    """Context manager for timeout operations."""
+    """Context manager for unified resilience operations (timeout + circuit breaker)."""
     actual_timeout = timeout or manager.get_timeout(operation_name, timeout_type, retry_attempt)
 
     start_time = time.perf_counter()
@@ -480,14 +808,14 @@ async def timeout_context_async(
         raise
 
 
-# Decorator for automatic timeout management
-def with_adaptive_timeout(
-    manager: AdvancedTimeoutManager,
+# Decorator for automatic resilience management
+def with_resilience(
+    manager: AsyncResilienceManager,
     operation_name: str | None = None,
     timeout_type: str = "default",
     timeout: float | None = None,
 ):
-    """Decorator for automatic timeout management."""
+    """Decorator for automatic resilience management (timeout + circuit breaker)."""
 
     def decorator(func: Callable) -> Callable:
         nonlocal operation_name
@@ -510,5 +838,8 @@ def with_adaptive_timeout(
     return decorator
 
 
-# Backward compatibility alias
-timeout_context = timeout_context_async
+# Backward compatibility aliases
+AdvancedTimeoutManager = AsyncResilienceManager  # Primary alias
+timeout_context_async = resilience_context_async
+with_adaptive_timeout = with_resilience
+timeout_context = resilience_context_async
