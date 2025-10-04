@@ -68,7 +68,7 @@ class ServiceDiscoveryConfig(BaseModel):
     load_balancer: LoadBalancerConfig = Field(default_factory=LoadBalancerConfig)
 
     # Network settings
-    bind_address: str = Field(default="0.0.0.0", description="Bind address for service")
+    bind_address: str = Field(default="0.0.0.0", description="Bind address for service")  # noqa: S104
     advertise_address: str | None = Field(default=None, description="Advertised address (auto-detect if None)")
 
     # Security settings
@@ -95,7 +95,7 @@ class ServiceDiscoveryConfig(BaseModel):
     @validator("bind_address")
     def validate_bind_address(cls, v):
         # Basic IP address validation
-        if v not in ["0.0.0.0", "127.0.0.1", "localhost"] and not v.replace(".", "").isdigit():
+        if v not in ["0.0.0.0", "127.0.0.1", "localhost"] and not v.replace(".", "").isdigit():  # noqa: S104
             raise ValueError("Invalid bind address format")
         return v
 

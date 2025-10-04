@@ -11,7 +11,7 @@ from hive_config import load_config
 class APIConfig:
     """API-related configuration."""
 
-    host: str = "0.0.0.0"
+    host: str = "0.0.0.0"  # noqa: S104
     port: int = 8000
     workers: int = 4
     enable_docs: bool = True

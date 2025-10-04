@@ -90,7 +90,7 @@ def json_config_content(draw):
             }
         elif section == "api":
             config[section] = {
-                "host": draw(st.sampled_from(["0.0.0.0", "127.0.0.1", "api.example.com"])),
+                "host": draw(st.sampled_from(["0.0.0.0", "127.0.0.1", "api.example.com"])),  # noqa: S104
                 "port": draw(st.integers(min_value=1000, max_value=9999)),
                 "timeout": draw(st.floats(min_value=1.0, max_value=300.0)),
                 "rate_limit": draw(st.integers(min_value=10, max_value=10000)),

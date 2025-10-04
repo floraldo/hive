@@ -36,7 +36,7 @@ def run_server() -> None:
         from ecosystemiser.main import app
 
         settings = (get_app_settings(),)
-        host = settings.get("HOST", "0.0.0.0")
+        host = settings.get("HOST", "0.0.0.0")  # noqa: S104
         port = int(settings.get("PORT", "8001"))
         workers = int(settings.get("WORKERS", "1"))
         log_level = settings.get("LOG_LEVEL", "info").lower()
