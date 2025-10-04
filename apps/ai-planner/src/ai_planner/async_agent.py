@@ -27,6 +27,7 @@ from hive_logging import get_logger
 
 # Event bus migrated to hive-orchestration package
 from hive_orchestration import get_async_event_bus
+from hive_performance import track_adapter_request, track_request
 
 logger = get_logger(__name__)
 
@@ -51,6 +52,7 @@ class AsyncClaudeService:
         self._call_timestamps = []
         self._semaphore = asyncio.Semaphore(5)  # Limit concurrent calls
 
+    @track_adapter_request("async_claude_planning")
     async def generate_execution_plan_async(
         self,
         task_description: str,
@@ -513,6 +515,7 @@ class AsyncAIPlanner:
             logger.error(f"Error getting next planning task: {e}")
             return None
 
+    @track_request("async_plan_generation", labels={"component": "async_ai_planner"})
     async def generate_plan_async(self, task: dict[str, Any]) -> dict[str, Any]:
         """Generate execution plan for a task asynchronously"""
         task_id = task["id"]
@@ -645,6 +648,7 @@ class AsyncAIPlanner:
                 # Remove from active planning
                 self.active_plans.discard(task_id)
 
+    @track_request("async_process_queue", labels={"component": "async_ai_planner"})
     async def process_planning_queue_async(self) -> None:
         """Process the planning queue with concurrent execution"""
         planning_tasks = []
@@ -683,6 +687,7 @@ class AsyncAIPlanner:
                 f"Errors: {self.metrics['errors']}",
             )
 
+    @track_request("async_planner_loop", labels={"component": "async_ai_planner"})
     async def run_forever_async(self) -> None:
         """Main async planning loop"""
         logger.info("AsyncAIPlanner starting main loop")

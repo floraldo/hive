@@ -5,6 +5,7 @@ import asyncio
 from typing import Any
 
 from hive_logging import get_logger
+from hive_performance import track_request
 
 from ..deployer import DeploymentStrategy
 from .base import BaseDeploymentStrategy
@@ -65,6 +66,7 @@ class DockerDeploymentStrategy(BaseDeploymentStrategy):
             logger.error(f"Docker pre-deployment check error: {e}")
             return {"success": False, "errors": [f"Pre-deployment check failed: {e}"]}
 
+    @track_request("docker_deployment", labels={"strategy": "docker"})
     async def deploy_async(self, task: dict[str, Any], deployment_id: str) -> dict[str, Any]:
         """Execute Docker deployment
 

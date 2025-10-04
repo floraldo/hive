@@ -9,6 +9,7 @@ from enum import Enum
 from typing import Any
 
 from hive_logging import get_logger
+from hive_performance import track_request
 
 logger = get_logger(__name__)
 
@@ -82,6 +83,7 @@ class DeploymentOrchestrator:
             DeploymentStrategy.CANARY: KubernetesDeploymentStrategy(self.config),
         }
 
+    @track_request("deployment_execution", labels={"component": "deployer"})
     async def deploy_async(self, task: dict[str, Any]) -> DeploymentResult:
         """Deploy application based on task configuration
 
@@ -258,6 +260,7 @@ class DeploymentOrchestrator:
             logger.error(f"Deployment validation error: {e}", exc_info=True)
             return False
 
+    @track_request("deployment_rollback", labels={"component": "deployer"})
     async def _attempt_rollback_async(self, task: dict[str, Any], deployment_id: str) -> bool:
         """Attempt to rollback failed deployment
 
@@ -294,6 +297,7 @@ class DeploymentOrchestrator:
             logger.error(f"Rollback error: {e}", exc_info=True)
             return False
 
+    @track_request("deployment_health_check", labels={"component": "deployer"})
     async def check_health_async(self, task: dict[str, Any]) -> HealthStatus:
         """Check health of deployed application
 

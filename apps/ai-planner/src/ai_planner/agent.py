@@ -115,6 +115,7 @@ from ai_planner.core.errors import (
     with_recovery,
 )
 from hive_errors import RetryStrategy
+from hive_performance import track_adapter_request, track_request
 
 # Initialize error reporter following the pattern,
 ErrorReporter = get_error_reporter  # Use the core error reporter
@@ -246,6 +247,7 @@ class AIPlanner:
             self.error_reporter.report_error(error)
             return False
 
+    @track_adapter_request("database_planning_queue_poll")
     def get_next_task(self) -> dict[str, Any] | None:
         """Fetch the next high-priority task from planning_queue
 
@@ -552,6 +554,7 @@ class AIPlanner:
 
         return steps
 
+    @track_adapter_request("database_save_plan")
     def save_execution_plan(self, plan: dict[str, Any]) -> bool:
         """Save the generated execution plan and create sub-tasks
 
@@ -696,6 +699,7 @@ class AIPlanner:
             self.error_reporter.report_error(error)
             return False
 
+    @track_request("planning_process_task", labels={"component": "ai_planner"})
     def process_task(self, task: dict[str, Any]) -> bool:
         """Process a single task through the planning pipeline
 
@@ -772,6 +776,7 @@ class AIPlanner:
 
             return False
 
+    @track_request("planner_agent_loop", labels={"component": "ai_planner"})
     def run(self) -> int:
         """Main agent execution loop.
 

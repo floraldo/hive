@@ -21,9 +21,10 @@ sys.path.insert(0, str(REPO_ROOT / "packages" / "hive-orchestration" / "src"))
 sys.path.insert(0, str(REPO_ROOT / "packages" / "hive-logging" / "src"))
 sys.path.insert(0, str(REPO_ROOT / "packages" / "hive-db" / "src"))
 
-from hive_logging import get_logger
 from hive_orchestration import get_client
 from hive_orchestration.database import init_db
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

@@ -18,6 +18,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, ValidationError
 
 from hive_logging import get_logger
+from hive_performance import track_adapter_request
 
 logger = get_logger(__name__)
 
@@ -359,6 +360,7 @@ Generate the execution plan now:"""
 
         return fallback_response.dict()
 
+    @track_adapter_request("claude_planning")
     def generate_execution_plan(
         self,
         task_description: str,

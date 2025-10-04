@@ -11,6 +11,7 @@ from typing import Any
 from hive_db import get_sqlite_connection
 from hive_errors import BaseError
 from hive_logging import get_logger
+from hive_performance import track_adapter_request
 
 logger = get_logger(__name__)
 
@@ -28,6 +29,7 @@ class DatabaseAdapter:
         """Initialize database adapter"""
         # Database connections are now managed per-operation via get_sqlite_connection()
 
+    @track_adapter_request("database_deployment_queue_poll")
     def get_deployment_pending_tasks(self) -> list[dict[str, Any]]:
         """Get all tasks with deployment_pending status
 
@@ -79,6 +81,7 @@ class DatabaseAdapter:
             logger.error(f"Error getting deployment pending tasks: {e}")
             raise DeploymentDatabaseError(f"Failed to get deployment tasks: {e}") from e
 
+    @track_adapter_request("database_update_deployment")
     def update_task_status(self, task_id: str, status: str, metadata: dict[str, Any] | None = None) -> bool:
         """Update task status and optionally metadata
 
@@ -190,6 +193,7 @@ class DatabaseAdapter:
             logger.error(f"Error getting task {task_id}: {e}")
             raise DeploymentDatabaseError(f"Failed to get task: {e}") from e
 
+    @track_adapter_request("database_store_deployment")
     def record_deployment_event(self, task_id: str, event_type: str, details: dict[str, Any]) -> bool:
         """Record deployment event for audit trail
 

@@ -15,6 +15,7 @@ from typing import Any
 # Import from orchestrator's extended database layer (proper app-to-app communication)
 # Import hive logging
 from hive_logging import get_logger
+from hive_performance import track_request
 
 # Async operations not yet available
 ASYNC_DB_AVAILABLE = False
@@ -92,6 +93,7 @@ class DeploymentAgent:
             logger.warning(f"Event bus initialization failed: {e}")
             self.event_bus = None
 
+    @track_request("deployer_agent_loop", labels={"component": "deployment_agent"})
     async def run_async(self) -> None:
         """Main agent loop - continuously polls for deployment tasks
         """
@@ -144,6 +146,7 @@ class DeploymentAgent:
             logger.error(f"Error fetching deployment tasks: {e}")
             return []
 
+    @track_request("handle_deployment_task", labels={"component": "deployment_agent"})
     async def _process_task_async(self, task: dict[str, Any]) -> None:
         """Process a single deployment task
 
