@@ -133,6 +133,9 @@ class BaseAgent(ABC):
         self.results: list[Any] = ([],)
         self.errors: list[str] = []
 
+        # Context service for RAG-powered long-term memory (initialized externally)
+        self.context_service = None
+
         logger.info(f"Created agent: {self.config.name} ({self.id})")
 
     def _register_default_tools(self) -> None:
@@ -155,6 +158,14 @@ class BaseAgent(ABC):
 
         self.add_tool(
             AgentTool(name="recall", description="Retrieve information from memory", function=self._recall_tool_async)
+        )
+
+        self.add_tool(
+            AgentTool(
+                name="search_long_term_memory",
+                description="Search platform knowledge base for relevant historical information",
+                function=self._search_long_term_memory_async,
+            )
         )
 
     async def _think_tool_async(self, prompt: str) -> str:
@@ -229,6 +240,50 @@ Thoughts:
 
         else:
             return f"Unknown memory type: {memory_type}"
+
+    async def _search_long_term_memory_async(
+        self,
+        query: str,
+        top_k: int = 3
+    ) -> str:
+        """
+        Search platform knowledge base for relevant information.
+
+        Tool for agents to query RAG mid-task for historical context.
+
+        Args:
+            query: Natural language search query
+            top_k: Number of results to return
+
+        Returns:
+            Compressed search results from knowledge base
+
+        Example agent usage:
+            "I need to understand how we handled database migrations previously.
+            Let me search_long_term_memory('database migration patterns')"
+        """
+        # Check if context service is available
+        if not hasattr(self, 'context_service') or self.context_service is None:
+            return "Long-term memory not available for this agent. Context service not initialized."
+
+        try:
+            # Use context service to search knowledge base
+            results = await self.context_service.search_knowledge_async(
+                query=query,
+                top_k=top_k
+            )
+
+            if not results:
+                return f"No relevant information found for query: '{query}'"
+
+            logger.debug(f"Agent {self.id[:8]} searched long-term memory: '{query[:50]}...'")
+
+            return results
+
+        except Exception as e:
+            error_msg = f"Failed to search long-term memory: {str(e)}"
+            logger.error(error_msg)
+            return error_msg
 
     def add_tool(self, tool: AgentTool) -> None:
         """Add a tool to the agent's toolkit."""
@@ -363,6 +418,29 @@ Thoughts:
                 )
             else:
                 operation_id = None
+
+            # INITIAL CONTEXT INJECTION (Decision 1-C: Hybrid Dynamic Retrieval)
+            # Push task-relevant context before execution begins
+            if self.context_service and isinstance(input_data, dict) and 'task_id' in input_data:
+                try:
+                    initial_context = await self.context_service.get_context_for_task(
+                        task_id=input_data['task_id'],
+                        task=input_data.get('task'),
+                        mode='fast'  # Decision 3-C: Fast mode by default
+                    )
+
+                    # Inject context into agent memory
+                    if self.memory and initial_context:
+                        await self._remember_tool_async(
+                            key="task_context",
+                            value=initial_context,
+                            memory_type="long_term"
+                        )
+                        logger.info(f"Injected {len(initial_context)} chars of context for task {input_data['task_id'][:8]}")
+
+                except Exception as e:
+                    logger.warning(f"Failed to inject initial context: {e}")
+                    # Continue execution even if context injection fails
 
             # Execute main logic
             result = await self._execute_main_logic_async(input_data)

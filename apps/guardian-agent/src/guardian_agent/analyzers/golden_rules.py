@@ -5,7 +5,7 @@ from pathlib import Path
 
 from guardian_agent.core.interfaces import AnalysisResult, Severity, Suggestion, Violation, ViolationType
 from hive_logging import get_logger
-from hive_tests.ast_validator import ASTValidator
+from hive_tests.ast_validator import EnhancedValidator as ASTValidator
 from hive_tests.autofix import GoldenRulesAutoFixer
 
 logger = get_logger(__name__)

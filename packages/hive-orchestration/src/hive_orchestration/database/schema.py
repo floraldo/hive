@@ -44,7 +44,11 @@ def init_db() -> None:
                 assigned_worker TEXT,
                 due_date TIMESTAMP,
                 max_retries INTEGER DEFAULT 3,
-                tags TEXT
+                tags TEXT,
+                summary TEXT,
+                generated_artifacts TEXT,
+                related_document_ids TEXT,
+                knowledge_fragments TEXT
             )
             """,
         )
@@ -165,7 +169,40 @@ def init_db() -> None:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_execution_plans_status ON execution_plans (status)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_plan_execution_plan_id ON plan_execution (plan_id)")
 
+        # Apply migrations for existing databases
+        _apply_memory_nexus_migration(conn)
+
         logger.info("Orchestration database initialized successfully")
+
+
+def _apply_memory_nexus_migration(conn) -> None:
+    """
+    Migration: Add Memory Nexus columns to existing tasks table.
+
+    This migration adds columns for the Intelligent Task & Memory Nexus:
+    - summary: AI-generated executive summary
+    - generated_artifacts: JSON array of file paths created
+    - related_document_ids: JSON array of RAG vector IDs
+    - knowledge_fragments: JSON structured fragments (summaries, errors, decisions)
+    """
+    # Check if migration is needed
+    cursor = conn.execute("PRAGMA table_info(tasks)")
+    existing_columns = {row[1] for row in cursor.fetchall()}
+
+    memory_columns = {
+        "summary": "TEXT",
+        "generated_artifacts": "TEXT",
+        "related_document_ids": "TEXT",
+        "knowledge_fragments": "TEXT"
+    }
+
+    for column_name, column_type in memory_columns.items():
+        if column_name not in existing_columns:
+            try:
+                conn.execute(f"ALTER TABLE tasks ADD COLUMN {column_name} {column_type}")
+                logger.info(f"Migration: Added column '{column_name}' to tasks table")
+            except Exception as e:
+                logger.warning(f"Migration: Failed to add column '{column_name}': {e}")
 
 
 __all__ = ["init_db"]

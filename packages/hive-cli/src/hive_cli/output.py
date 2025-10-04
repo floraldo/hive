@@ -101,3 +101,18 @@ def format_json(data: Any) -> str:
 def format_yaml(data: Any) -> str:
     """Format data as YAML."""
     return yaml.dump(data, default_flow_style=False)
+
+
+def info(message: str, **kwargs) -> None:
+    """Output informational message."""
+    click.echo(click.style(message, fg="green", **kwargs))
+
+
+def error(message: str, **kwargs) -> None:
+    """Output error message."""
+    click.echo(click.style(message, fg="red", **kwargs), err=True)
+
+
+def warning(message: str, **kwargs) -> None:
+    """Output warning message."""
+    click.echo(click.style(message, fg="yellow", **kwargs))

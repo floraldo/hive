@@ -9,12 +9,14 @@ from __future__ import annotations
 
 from pathlib import Path
 from textwrap import dedent
+from typing import TYPE_CHECKING
 
 import toml
 
 from hive_logging import get_logger
 
-from .genesis_agent import AppSpec, FeatureStub, Priority
+if TYPE_CHECKING:
+    from .genesis_agent import AppSpec, FeatureStub, Priority
 
 logger = get_logger(__name__)
 

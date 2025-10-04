@@ -12,7 +12,6 @@ from typing import Any
 # from hive_claude_bridge import ClaudeBridgeConfig, RateLimitConfig, get_claude_service
 from pydantic import BaseModel, Field
 
-from hive_errors import BaseErrorReporter
 from hive_logging import get_logger
 
 from .core.errors import ReviewerError, ReviewValidationError

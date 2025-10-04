@@ -10,8 +10,10 @@ from guardian_agent.core.config import GuardianConfig
 from guardian_agent.core.interfaces import AnalysisResult, ReviewResult, Severity
 from guardian_agent.prompts.review_prompts import ReviewPromptBuilder
 from hive_ai import ModelClient, VectorStore
-from hive_async import AsyncExecutor
-from hive_cache import CacheClient
+
+# TODO: AsyncExecutor doesn't exist in hive_async - needs implementation or alternative
+# from hive_async import AsyncExecutor
+from hive_cache import HiveCacheClient as CacheClient
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -55,8 +57,8 @@ class ReviewEngine:
         else:
             self.cache = None
 
-        # Initialize async executor for parallel analysis
-        self.async_executor = AsyncExecutor(max_workers=4)
+        # TODO: Initialize async executor for parallel analysis
+        # self.async_executor = AsyncExecutor(max_workers=4)
 
         # Initialize analyzers
         self.analyzers = self._initialize_analyzers()

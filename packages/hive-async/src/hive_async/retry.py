@@ -97,11 +97,11 @@ def create_retry_decorator(config: AsyncRetryConfig | None = None) -> None:
         Decorator function
     """
 
-    def decorator(func: Callable) -> Dict[str, Any]:
+    def decorator(func: Callable) -> dict[str, Any]:
         async def wrapper_async(*args, **kwargs):
             return await run_async_with_retry_async(func, config, *args, **kwargs)
 
-        return wrapper
+        return wrapper_async
 
     return decorator
 

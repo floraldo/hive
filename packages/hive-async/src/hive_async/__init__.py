@@ -1,13 +1,11 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
-
 """
 Hive async utilities and patterns with enhanced resilience.
 
 Centralized async infrastructure including connection pooling, retry logic,
 and resilience patterns (circuit breakers, timeouts, error handling).
 """
+
+from hive_logging import get_logger
 
 from .advanced_timeout import (
     AdvancedTimeoutManager,
@@ -29,8 +27,12 @@ from .resilience import (
 from .retry import AsyncRetryConfig, create_retry_decorator, run_async_with_retry_async
 from .tasks import gather_with_concurrency_async, run_with_timeout_async
 
-# Alias for backward compatibility
+logger = get_logger(__name__)
+
+# Aliases for backward compatibility
 async_retry = run_async_with_retry_async
+gather_with_concurrency = gather_with_concurrency_async
+timeout_context = timeout_context_async
 
 __all__ = [
     # Context management
@@ -47,6 +49,7 @@ __all__ = [
     "PoolConfig",
     # Task management
     "gather_with_concurrency_async",
+    "gather_with_concurrency",  # Alias
     "run_with_timeout_async",
     # Resilience patterns (consolidated from hive-performance)
     "AsyncCircuitBreaker",
@@ -60,5 +63,6 @@ __all__ = [
     "TimeoutConfig",
     "TimeoutMetrics",
     "timeout_context_async",
+    "timeout_context",  # Alias
     "with_adaptive_timeout",
 ]

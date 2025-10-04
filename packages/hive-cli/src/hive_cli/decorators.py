@@ -10,6 +10,9 @@ from pathlib import Path
 
 import click
 
+# Re-export click.option for convenience
+option = click.option
+
 
 def config_option(f: Callable) -> Callable:
     """Add standard config file option."""

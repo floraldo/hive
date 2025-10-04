@@ -1,72 +1,52 @@
 [
   {
-    "hash": "eaaea1f4",
-    "full_hash": "eaaea1f405156bb5d915e0cb61b5370463ffd44a",
+    "hash": "6e403aa5",
+    "full_hash": "6e403aa5f95802649a23e1588e908924d01df532",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:48:14",
-    "subject": "fix(lint): S608 - Add noqa for safe SQL with parameterized queries",
-    "body": "All 8 violations use parameterized queries (?  placeholders) or validate inputs:\n- era5.py: Not SQL, xarray dataset selection\n- scenario_manager.py: Parameterized placeholders for IN clause\n- data_unification.py: Controlled WHERE clause with parameterized queries\n- test_end_to_end: Mock Python script generation (not SQL)\n- hive_db/utils.py (2x): Validated column names + parameterized queries\n- hive_orchestration/tasks.py: Controlled field updates with parameterized queries",
-    "searchable_text": "fix(lint): S608 - Add noqa for safe SQL with parameterized queries All 8 violations use parameterized queries (?  placeholders) or validate inputs:\n- era5.py: Not SQL, xarray dataset selection\n- scenario_manager.py: Parameterized placeholders for IN clause\n- data_unification.py: Controlled WHERE clause with parameterized queries\n- test_end_to_end: Mock Python script generation (not SQL)\n- hive_db/utils.py (2x): Validated column names + parameterized queries\n- hive_orchestration/tasks.py: Controlled field updates with parameterized queries"
+    "date": "2025-10-04T13:05:22",
+    "subject": "fix(guardian-agent): Fix circular import and dataclass field ordering",
+    "body": "- prophecy_engine.py: Use TYPE_CHECKING for OracleService import\n- Move design_intent field before optional fields in ArchitecturalProphecy dataclass\n- Fixes: circular import oracle_service \u2190 \u2192 prophecy_engine\n- Fixes: TypeError non-default argument follows default argument",
+    "searchable_text": "fix(guardian-agent): Fix circular import and dataclass field ordering - prophecy_engine.py: Use TYPE_CHECKING for OracleService import\n- Move design_intent field before optional fields in ArchitecturalProphecy dataclass\n- Fixes: circular import oracle_service \u2190 \u2192 prophecy_engine\n- Fixes: TypeError non-default argument follows default argument"
   },
   {
-    "hash": "ab4ea126",
-    "full_hash": "ab4ea126a9055faaaa06d48699daca5fcd749071",
+    "hash": "1e469f0c",
+    "full_hash": "1e469f0cac127e85d01c0a60e48e5c24324b220e",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:44:56",
-    "subject": "fix(hive-cache): Fix missing get_cache_client export",
-    "body": "- Updated cache_client.py imports to use get_cache_client_async\n- Added backward compatibility alias in __init__.py\n- Fixed imports in claude_cache.py and performance_cache.py\n- Fixed E402 import order violations in __init__.py\n- Fixed F821 undefined Optional type hint in claude_cache.py\n- Resolves 'cannot import name get_cache_client' errors across platform",
-    "searchable_text": "fix(hive-cache): Fix missing get_cache_client export - Updated cache_client.py imports to use get_cache_client_async\n- Added backward compatibility alias in __init__.py\n- Fixed imports in claude_cache.py and performance_cache.py\n- Fixed E402 import order violations in __init__.py\n- Fixed F821 undefined Optional type hint in claude_cache.py\n- Resolves 'cannot import name get_cache_client' errors across platform"
+    "date": "2025-10-04T13:02:16",
+    "subject": "fix(ecosystemiser): Use SystemBuilder(config_path).build() instead of create_system_from_config",
+    "body": "Collection errors: 42 \u2192 41",
+    "searchable_text": "fix(ecosystemiser): Use SystemBuilder(config_path).build() instead of create_system_from_config Collection errors: 42 \u2192 41"
   },
   {
-    "hash": "3dd6ba66",
-    "full_hash": "3dd6ba66947e46d9a7adce2ce05cf17e531a93d1",
+    "hash": "4b5979f5",
+    "full_hash": "4b5979f58e82efcd61fbfb4b0fd1dde003047848",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:44:38",
-    "subject": "fix(lint): F811 - Fix redefined imports and duplicate test names",
-    "body": "- ai_reviewer/agent.py: Add noqa for intentional run_async override\n- ecosystemiser/hive_error_handling.py: Add noqa for legacy BaseError alias\n- ecosystemiser/.../logging_config.py: Add noqa for custom get_logger override\n- ecosystemiser/.../service.py: Add noqa for process_request method overload\n- hive-ai/tests/smoke: Rename duplicate test functions:\n  - test_metrics_imports \u2192 test_observability_metrics_imports\n  - test_registry_imports \u2192 test_prompts_registry_imports\n  - test_metrics_imports \u2192 test_vector_metrics_imports",
-    "searchable_text": "fix(lint): F811 - Fix redefined imports and duplicate test names - ai_reviewer/agent.py: Add noqa for intentional run_async override\n- ecosystemiser/hive_error_handling.py: Add noqa for legacy BaseError alias\n- ecosystemiser/.../logging_config.py: Add noqa for custom get_logger override\n- ecosystemiser/.../service.py: Add noqa for process_request method overload\n- hive-ai/tests/smoke: Rename duplicate test functions:\n  - test_metrics_imports \u2192 test_observability_metrics_imports\n  - test_registry_imports \u2192 test_prompts_registry_imports\n  - test_metrics_imports \u2192 test_vector_metrics_imports"
+    "date": "2025-10-04T12:57:54",
+    "subject": "fix(ai-reviewer): Import ReviewerError from core.errors instead of hive_errors",
+    "body": "- Changed ErrorReporter \u2192 BaseErrorReporter\n- Changed ReviewError \u2192 ReviewerError\n- Import from ai_reviewer.core.errors instead of hive_errors",
+    "searchable_text": "fix(ai-reviewer): Import ReviewerError from core.errors instead of hive_errors - Changed ErrorReporter \u2192 BaseErrorReporter\n- Changed ReviewError \u2192 ReviewerError\n- Import from ai_reviewer.core.errors instead of hive_errors"
   },
   {
-    "hash": "a959a3c0",
-    "full_hash": "a959a3c0015e2552672b78c64793250d9835aa0d",
+    "hash": "4a7d5fd2",
+    "full_hash": "4a7d5fd2fe9b784a4891240e60d4db7579f370bd",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:40:02",
-    "subject": "fix(lint): S104 - Add noqa for intentional 0.0.0.0 bindings in FAT test apps",
-    "body": "All three violations are in Factory Acceptance Test apps where binding to\nall interfaces (0.0.0.0) is intentional for local testing environments.",
-    "searchable_text": "fix(lint): S104 - Add noqa for intentional 0.0.0.0 bindings in FAT test apps All three violations are in Factory Acceptance Test apps where binding to\nall interfaces (0.0.0.0) is intentional for local testing environments."
+    "date": "2025-10-04T12:54:04",
+    "subject": "fix(ai-reviewer): Comment out imports from non-existent modules",
+    "body": "- hive_db.models (Task, TaskStatus) doesn't exist\n- hive_claude_bridge module doesn't exist",
+    "searchable_text": "fix(ai-reviewer): Comment out imports from non-existent modules - hive_db.models (Task, TaskStatus) doesn't exist\n- hive_claude_bridge module doesn't exist"
   },
   {
-    "hash": "0843234b",
-    "full_hash": "0843234be12768d92ccca881f767c4cf472fdfab",
+    "hash": "de7442b8",
+    "full_hash": "de7442b853eeb4e8b4c5b447d09c08e175066622",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T02:38:07",
-    "subject": "fix(lint): Resolve double violations (B024, F401)",
-    "body": "- B024: Add @abstractmethod to RecoveryStrategy.attempt_recovery\n- F401: Remove unused MetricType import from test_monitoring_integration",
-    "searchable_text": "fix(lint): Resolve double violations (B024, F401) - B024: Add @abstractmethod to RecoveryStrategy.attempt_recovery\n- F401: Remove unused MetricType import from test_monitoring_integration"
-  },
-  {
-    "hash": "db07317a",
-    "full_hash": "db07317a1ad56d21fc5cf93e9d844a39fa885625",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T02:35:39",
-    "subject": "fix(ecosystemiser): Fix profile_loader __all__ and add missing imports",
-    "body": "Fixed concatenated string exports (F822 pattern):\n- Split 'get_unified_profile_serviceget_climate_service' etc.\n- Add actual imports from climate and shared.models modules\n- Remove non-existent exports (DataFrequency, LocationInfo)\n- Add function aliases for API compatibility",
-    "searchable_text": "fix(ecosystemiser): Fix profile_loader __all__ and add missing imports Fixed concatenated string exports (F822 pattern):\n- Split 'get_unified_profile_serviceget_climate_service' etc.\n- Add actual imports from climate and shared.models modules\n- Remove non-existent exports (DataFrequency, LocationInfo)\n- Add function aliases for API compatibility"
-  },
-  {
-    "hash": "d2100e25",
-    "full_hash": "d2100e25d6a7307c99d2da0566eef5a3358aec99",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T02:35:33",
-    "subject": "fix(lint): Resolve single violations (S106, B027, B007, F841)",
-    "body": "- S106: Add noqa for test password in guardian-agent\n- B027: Add @abstractmethod decorator to BaseErrorReporter.report_error\n- B007: Change unused loop variable j to _ in FAT framework\n- F841: Change unused result variable to _ in FAT framework",
-    "searchable_text": "fix(lint): Resolve single violations (S106, B027, B007, F841) - S106: Add noqa for test password in guardian-agent\n- B027: Add @abstractmethod decorator to BaseErrorReporter.report_error\n- B007: Change unused loop variable j to _ in FAT framework\n- F841: Change unused result variable to _ in FAT framework"
+    "date": "2025-10-04T12:46:43",
+    "subject": "fix(ai-planner): Import RetryStrategy from hive_errors not local errors",
+    "body": "ai_planner.core.errors doesn't have RetryStrategy - it's in hive_errors",
+    "searchable_text": "fix(ai-planner): Import RetryStrategy from hive_errors not local errors ai_planner.core.errors doesn't have RetryStrategy - it's in hive_errors"
   }
 ]

@@ -9,7 +9,7 @@
     "workbench.panel.defaultLocation": "bottom",
     "workbench.sideBar.location": "left",
     "terminal.integrated.splitCwd": "workspaceRoot",
-    "terminal.integrated.defaultProfile.windows": "CC Agent 1",
+    "terminal.integrated.defaultProfile.windows": "CC Agent",
     "terminal.integrated.tabs.defaultColor": "terminal.ansiYellow",
     "terminal.integrated.tabs.defaultIcon": "robot",
     "terminal.integrated.enablePersistentSessions": true,

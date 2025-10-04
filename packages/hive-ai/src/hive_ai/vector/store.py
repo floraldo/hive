@@ -8,7 +8,7 @@ vector database providers with hive-db integration patterns.
 from abc import ABC, abstractmethod
 from typing import Any
 
-from hive_async import AsyncCircuitBreaker, async_retry
+from hive_async import AsyncCircuitBreaker, AsyncRetryConfig, create_retry_decorator
 from hive_cache import CacheManager
 from hive_logging import get_logger
 
@@ -254,7 +254,7 @@ class VectorStore(VectorStoreInterface):
 
         return provider_class(self.config)
 
-    @async_retry(max_attempts=3, delay=1.0)
+    @create_retry_decorator(AsyncRetryConfig(max_attempts=3, min_wait=1.0))
     async def store_async(
         self,
         vectors: list[list[float]],
@@ -280,7 +280,7 @@ class VectorStore(VectorStoreInterface):
 
         return await self._circuit_breaker.call_async(self._provider.store_vectors_async, vectors, metadata, ids)
 
-    @async_retry(max_attempts=3, delay=1.0)
+    @create_retry_decorator(AsyncRetryConfig(max_attempts=3, min_wait=1.0))
     async def search_async(
         self,
         query_vector: list[float],

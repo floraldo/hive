@@ -315,10 +315,10 @@ def sample_model_config():
 
 
 # Performance-oriented property-based tests
-@settings(max_examples=50, deadline=3000)
 class TestPerformanceProperties:
     """Performance-focused property-based tests."""
 
+    @settings(max_examples=50, deadline=3000)
     @given(st.lists(st.text(min_size=1), min_size=1, max_size=100))
     def test_model_config_creation_performance(self, model_names):
         """Test that model configuration creation scales reasonably."""

@@ -88,7 +88,10 @@
       "Bash(while read pkg)",
       "Bash(do if [ ! -d \"packages/$pkg/src\" ])",
       "Bash(then echo \"Missing src/: packages/$pkg\")",
-      "Bash(fi)"
+      "Bash(fi)",
+      "Bash(while read dir)",
+      "Bash(do echo \"=== $dir ===\")",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

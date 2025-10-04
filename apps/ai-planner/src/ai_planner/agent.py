@@ -103,8 +103,6 @@ def get_claude_service(
 
 
 # Import recovery strategies from hive_errors (follows "inherit -> extend" pattern)
-from hive_errors import RetryStrategy
-
 # Import error classes from our core module following the "inherit -> extend" pattern,
 from ai_planner.core.errors import (
     DatabaseConnectionError,
@@ -115,6 +113,7 @@ from ai_planner.core.errors import (
     get_error_reporter,
     with_recovery,
 )
+from hive_errors import RetryStrategy
 
 # Initialize error reporter following the pattern,
 ErrorReporter = get_error_reporter  # Use the core error reporter

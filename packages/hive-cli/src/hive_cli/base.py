@@ -60,7 +60,7 @@ class HiveContext:
     """Shared context for Hive CLI commands."""
 
     def __init__(self) -> None:
-        self.config: Optional[dict[str, Any]] = None
+        self.config: dict[str, Any] | None = None
         self.debug: bool = False
         self.verbose: bool = False
         self.config_path: Path | None = None
@@ -72,3 +72,14 @@ class HiveContext:
             # Implementation would load from config file
             # This is a placeholder for the pattern
             pass
+
+
+def create_cli():
+    """Create a Hive CLI group with standard configuration.
+
+    Returns:
+        Callable that creates a click.Group with HiveGroup class
+    """
+    def decorator(f):
+        return click.group(cls=HiveGroup)(f)
+    return decorator
