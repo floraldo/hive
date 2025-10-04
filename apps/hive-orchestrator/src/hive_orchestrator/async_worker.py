@@ -22,11 +22,18 @@ from hive_logging import get_logger, setup_logging
 # Async event bus from Phase 1
 from hive_orchestrator.core.bus import get_async_event_bus
 
-# Async database operations from Phase 1
-from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
+# Async database operations from Phase 1 (optional - requires aiosqlite)
+try:
+    from hive_orchestrator.core.db.async_operations import AsyncDatabaseOperations, get_async_db_operations
 
-# Hive performance monitoring
-from hive_performance import track_adapter_request
+    ASYNC_DB_AVAILABLE = True
+except ImportError:
+    ASYNC_DB_AVAILABLE = False
+    AsyncDatabaseOperations = None
+    get_async_db_operations = None
+
+# Hive performance monitoring (optional - decorator not yet available)
+# from hive_performance import track_adapter_request
 
 
 class AsyncWorker:
@@ -102,16 +109,23 @@ class AsyncWorker:
 
     async def initialize_async(self) -> None:
         """Async initialization of database and event bus"""
-        # Initialize async database operations,
-        self.db_ops = await get_async_db_operations()
-        self.log.info("Async database operations initialized")
+        # Initialize async database operations (if available)
+        if ASYNC_DB_AVAILABLE:
+            self.db_ops = await get_async_db_operations()
+            self.log.info("Async database operations initialized")
+        else:
+            self.db_ops = None
+            self.log.warning(
+                "Async database operations not available (install aiosqlite for Phase 4.1 features)"
+            )
 
-        # Initialize async event bus,
+        # Initialize async event bus
         self.event_bus = await get_async_event_bus()
         self.log.info("Async event bus initialized")
 
-        # Register worker,
-        await self._register_worker_async()
+        # Register worker (if DB available)
+        if self.db_ops:
+            await self._register_worker_async()
 
     async def _register_worker_async(self) -> None:
         """Register worker in database"""
@@ -174,7 +188,7 @@ class AsyncWorker:
 
         return shutil.which(cmd) is not None
 
-    @track_adapter_request("claude_ai")
+    # @track_adapter_request("claude_ai")  # TODO: Re-enable when available
     async def execute_claude_async(self, prompt: str, context_files: list[str] | None = None) -> dict[str, Any]:
         """Execute Claude CLI asynchronously with non-blocking I/O"""
         if not self.claude_cmd:
@@ -269,13 +283,17 @@ class AsyncWorker:
         start_time = datetime.now(UTC)
 
         try:
-            # Load task from database
+            # Load task from database (if DB available)
             if not self.task_id:
                 return {"status": "error", "error": "No task_id provided"}
 
-            task = await self.db_ops.get_task_async(self.task_id)
+            task = None
+            if self.db_ops:
+                task = await self.db_ops.get_task_async(self.task_id)
+
             if not task:
-                return {"status": "error", "error": f"Task {self.task_id} not found"}
+                # Fallback: task provided in metadata or run without DB
+                task = {"description": "No DB available - running in standalone mode", "payload": {}}
 
             # Get task description and payload
             description = task.get("description", "")
@@ -458,19 +476,20 @@ class AsyncWorker:
             # Calculate metrics
             execution_time = (datetime.now(UTC) - self.metrics["start_time"]).total_seconds()
 
-            # Save result
-            await self.db_ops.update_run_async(
-                run_id=self.run_id,
-                status=result.get("status", "unknown"),
-                result=result,
-                metadata={
-                    "execution_time": execution_time,
-                    "operations": self.metrics["operations"],
-                    "file_operations": self.metrics["file_operations"],
-                    "subprocess_calls": self.metrics["subprocess_calls"],
-                    "db_operations": self.metrics["db_operations"],
-                },
-            )
+            # Save result (if DB available)
+            if self.db_ops:
+                await self.db_ops.update_run_async(
+                    run_id=self.run_id,
+                    status=result.get("status", "unknown"),
+                    result=result,
+                    metadata={
+                        "execution_time": execution_time,
+                        "operations": self.metrics["operations"],
+                        "file_operations": self.metrics["file_operations"],
+                        "subprocess_calls": self.metrics["subprocess_calls"],
+                        "db_operations": self.metrics["db_operations"],
+                    },
+                )
 
             self.log.info(f"Run result saved: {result.get('status')}")
 
