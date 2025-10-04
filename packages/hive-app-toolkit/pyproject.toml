@@ -2,9 +2,13 @@
 name = "hive-app-toolkit"
 version = "1.0.0"
 description = "Production-grade application toolkit for the Hive platform - accelerating development with battle-tested patterns"
-authors = ["Hive Team"]
+authors = [
+    "Hive Team",
+]
 readme = "README.md"
-packages = [{include = "hive_app_toolkit", from = "src"}]
+packages = [
+    { include = "hive_app_toolkit", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -15,11 +19,26 @@ jinja2 = "^3.1.2"
 click = "^8.1.7"
 pyyaml = "^6.0.1"
 prometheus-client = "^0.20.0"
-hive-logging = {path = "../hive-logging", develop = true}
-hive-performance = {path = "../hive-performance", develop = true}
-hive-cache = {path = "../hive-cache", develop = true}
-hive-config = {path = "../hive-config", develop = true}
-hive-errors = {path = "../hive-errors", develop = true}
+
+[tool.poetry.dependencies.hive-logging]
+path = "../hive-logging"
+develop = true
+
+[tool.poetry.dependencies.hive-performance]
+path = "../hive-performance"
+develop = true
+
+[tool.poetry.dependencies.hive-cache]
+path = "../hive-cache"
+develop = true
+
+[tool.poetry.dependencies.hive-config]
+path = "../hive-config"
+develop = true
+
+[tool.poetry.dependencies.hive-errors]
+path = "../hive-errors"
+develop = true
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
@@ -29,9 +48,9 @@ mypy = "^1.8.0"
 ruff = "^0.13.2"
 isort = "^5.13.0"
 
-# ========================================
-# Ruff Configuration (Linter & Formatter)
-# ========================================
+[tool.poetry.scripts]
+hive-toolkit = "hive_app_toolkit.cli.main:main"
+
 [tool.ruff]
 line-length = 120
 target-version = "py311"
@@ -45,8 +64,68 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "C4", "UP", "S"]
-ignore = ["E501", "B008", "C901", "COM812", "COM818", "COM819"]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
+    "S",
+]
+ignore = [
+    "E501",
+    "B008",
+    "C901",
+    "COM812",
+    "COM818",
+    "COM819",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "hive_logging",
+    "hive_config",
+    "hive_db",
+    "hive_cache",
+    "hive_errors",
+    "hive_bus",
+    "hive_async",
+    "hive_performance",
+    "hive_ai",
+    "hive_deployment",
+    "hive_service_discovery",
+    "hive_tests",
+    "hive_models",
+    "hive_algorithms",
+    "hive_cli",
+    "hive_app_toolkit",
+    "hive_orchestration",
+    "hive_graph",
+]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",
+    "S602",
+    "S604",
+]
+"scripts/**" = [
+    "S602",
+    "S604",
+]
+"archive/**" = [
+    "S",
+]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -54,29 +133,20 @@ indent-style = "space"
 skip-magic-trailing-comma = true
 line-ending = "auto"
 
-[tool.ruff.lint.isort]
-known-first-party = [
-    "hive_logging", "hive_config", "hive_db", "hive_cache", "hive_errors",
-    "hive_bus", "hive_async", "hive_performance", "hive_ai", "hive_deployment",
-    "hive_service_discovery", "hive_tests", "hive_models", "hive_algorithms",
-    "hive_cli", "hive_app_toolkit", "hive_orchestration", "hive_graph",
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
 ]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
-split-on-trailing-comma = false
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S602", "S604"]
-"scripts/**" = ["S602", "S604"]
-"archive/**" = ["S"]
-
-[tool.poetry.scripts]
-hive-toolkit = "hive_app_toolkit.cli.main:main"
+pythonpath = [
+    "src",
+]
+asyncio_mode = "auto"
+markers = [
+    "core: Core infrastructure tests (packages/) - strict quality standards",
+]
 
 [build-system]
-requires = ["poetry-core"]
+requires = [
+    "poetry-core",
+]
 build-backend = "poetry.core.masonry.api"
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
-asyncio_mode = "auto"

@@ -8,22 +8,22 @@ packages = [{include = "{{ app_module }}", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-{%- for package in hive_packages %}
+{% for package in hive_packages %}
 {{ package }} = {path = "../../packages/{{ package }}", develop = true}
-{%- endfor %}
-{% if enable_database or needs_database -%}
+{% endfor %}
+{% if enable_database or needs_database %}
 hive-db = {path = "../../packages/hive-db", develop = true}
-{% endif -%}
-{% if enable_cache or needs_cache -%}
+{% endif %}
+{% if enable_cache or needs_cache %}
 hive-cache = {path = "../../packages/hive-cache", develop = true}
-{% endif -%}
-{% if service_type == 'api' or service_type == 'webhook' -%}
+{% endif %}
+{% if service_type == 'api' or service_type == 'webhook' %}
 fastapi = "^0.104.1"
 uvicorn = {extras = ["standard"], version = "^0.24.0"}
-{% endif -%}
-{% if service_type == 'worker' -%}
+{% endif %}
+{% if service_type == 'worker' %}
 aio-pika = "^9.3.0"  # RabbitMQ async client
-{% endif -%}
+{% endif %}
 click = "^8.1.7"
 pydantic = "^2.0.0"
 pyyaml = "^6.0.1"

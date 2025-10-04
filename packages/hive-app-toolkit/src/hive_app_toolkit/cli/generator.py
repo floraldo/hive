@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -315,6 +314,20 @@ jobs:
 
         # Add hive packages list
         context["hive_packages"] = blueprint.get("hive_packages", [])
+
+        # Add K8s/Docker defaults
+        context.setdefault("resources", {
+            "requests": {"cpu": "500m", "memory": "1Gi"},
+            "limits": {"cpu": "2000m", "memory": "4Gi"}
+        })
+        context.setdefault("health_check", {
+            "liveness": {"initial_delay": 10, "period": 30, "timeout": 5, "failure_threshold": 3},
+            "readiness": {"initial_delay": 15, "period": 10, "timeout": 5, "failure_threshold": 3}
+        })
+        context.setdefault("image_repository", "ghcr.io/hive")
+        context.setdefault("image_tag", "latest")
+        context.setdefault("app_user", "appuser")
+        context.setdefault("replicas", 2)
 
         return context
 

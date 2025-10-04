@@ -18,7 +18,7 @@ from pathlib import Path
 import requests
 
 sys.path.insert(0, str(Path(__file__).parent))
-from fat_framework import FactoryAcceptanceTest
+from .fat_framework import FactoryAcceptanceTest
 
 
 def generate_qr_code_service(test_case):

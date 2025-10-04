@@ -3,9 +3,11 @@ Add 'core' marker to package pyproject.toml files.
 
 This ensures packages work with root pytest.ini strict-markers setting.
 """
+from pathlib import Path
+
 import tomli
 import tomli_w
-from pathlib import Path
+
 
 def add_core_marker_to_pyproject(pyproject_path: Path) -> bool:
     """Add core marker to pytest.ini_options if not present."""
@@ -34,14 +36,14 @@ def add_core_marker_to_pyproject(pyproject_path: Path) -> bool:
             with open(pyproject_path, 'wb') as f:
                 tomli_w.dump(data, f)
 
-            print(f"✅ Added core marker to {pyproject_path.parent.name}")
+            print(f"[OK] Added core marker to {pyproject_path.parent.name}")
             return True
         else:
-            print(f"⏭️  {pyproject_path.parent.name} already has core marker")
+            print(f"[SKIP] {pyproject_path.parent.name} already has core marker")
             return False
 
     except Exception as e:
-        print(f"❌ Error processing {pyproject_path}: {e}")
+        print(f"[ERROR] Error processing {pyproject_path}: {e}")
         return False
 
 def main():
@@ -53,7 +55,7 @@ def main():
         if add_core_marker_to_pyproject(pyproject):
             updated += 1
 
-    print(f"\n✨ Updated {updated} package configs")
+    print(f"\n[DONE] Updated {updated} package configs")
 
 if __name__ == '__main__':
     main()

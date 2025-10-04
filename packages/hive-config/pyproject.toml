@@ -1,15 +1,19 @@
 [build-system]
-requires = [ "poetry-core",]
+requires = [
+    "poetry-core",
+]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "hive-config"
 version = "1.0.0"
 description = "Secure configuration management for Hive applications"
-authors = [ "Hive Platform Team <hive@example.com>",]
-[[tool.poetry.packages]]
-include = "hive_config"
-from = "src"
+authors = [
+    "Hive Platform Team <hive@example.com>",
+]
+packages = [
+    { include = "hive_config", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -18,15 +22,6 @@ cryptography = "^41.0.0"
 aiofiles = "^23.2.1"
 watchdog = "^3.0.0"
 toml = "^0.10.2"
-
-[tool.pytest.ini_options]
-testpaths = [ "tests",]
-python_files = [ "test_*.py", "*_test.py",]
-python_classes = [ "Test*",]
-python_functions = [ "test_*",]
-addopts = "-v --tb=short"
-pythonpath = [ "src",]
-asyncio_mode = "auto"
 
 [tool.poetry.dependencies.hive-logging]
 path = "../hive-logging"
@@ -41,9 +36,29 @@ black = "^24.8.0"
 isort = "^5.13.0"
 ruff = "^0.13.2"
 
-# ========================================
-# Ruff Configuration (Linter & Formatter)
-# ========================================
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+    "*_test.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+addopts = "-v --tb=short"
+pythonpath = [
+    "src",
+]
+asyncio_mode = "auto"
+markers = [
+    "core: Core infrastructure tests (packages/) - strict quality standards",
+]
+
 [tool.ruff]
 line-length = 120
 target-version = "py311"
@@ -57,26 +72,71 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "C4", "UP", "S"]
-ignore = ["E501", "B008", "C901", "COM812", "COM818", "COM819"]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
+    "S",
+]
+ignore = [
+    "E501",
+    "B008",
+    "C901",
+    "COM812",
+    "COM818",
+    "COM819",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "hive_logging",
+    "hive_config",
+    "hive_db",
+    "hive_cache",
+    "hive_errors",
+    "hive_bus",
+    "hive_async",
+    "hive_performance",
+    "hive_ai",
+    "hive_deployment",
+    "hive_service_discovery",
+    "hive_tests",
+    "hive_models",
+    "hive_algorithms",
+    "hive_cli",
+    "hive_app_toolkit",
+    "hive_orchestration",
+    "hive_graph",
+]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",
+    "S602",
+    "S604",
+]
+"scripts/**" = [
+    "S602",
+    "S604",
+]
+"archive/**" = [
+    "S",
+]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = true
 line-ending = "auto"
-
-[tool.ruff.lint.isort]
-known-first-party = [
-    "hive_logging", "hive_config", "hive_db", "hive_cache", "hive_errors",
-    "hive_bus", "hive_async", "hive_performance", "hive_ai", "hive_deployment",
-    "hive_service_discovery", "hive_tests", "hive_models", "hive_algorithms",
-    "hive_cli", "hive_app_toolkit", "hive_orchestration", "hive_graph",
-]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
-split-on-trailing-comma = false
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S602", "S604"]
-"scripts/**" = ["S602", "S604"]
-"archive/**" = ["S"]

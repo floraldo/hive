@@ -65,7 +65,7 @@ class TemplateManager:
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Write rendered content
-        output_path.write_text(content)
+        output_path.write_text(content, encoding="utf-8")
 
         logger.debug(f"Template rendered successfully: {output_path}")
         return content

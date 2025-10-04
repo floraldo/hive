@@ -1,14 +1,20 @@
 [build-system]
-requires = ["poetry-core"]
+requires = [
+    "poetry-core",
+]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "hive-ai"
 version = "1.0.0"
 description = "Advanced AI/ML infrastructure for the Hive platform"
-authors = ["Hive Platform Team"]
+authors = [
+    "Hive Platform Team",
+]
 readme = "README.md"
-packages = [{include = "hive_ai", from = "src"}]
+packages = [
+    { include = "hive_ai", from = "src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -21,27 +27,69 @@ scipy = "^1.11.0"
 httpx = "^0.25.0"
 tenacity = "^8.0.0"
 
-# Hive platform dependencies
-hive-config = {path = "../hive-config", develop = true}
-hive-db = {path = "../hive-db", develop = true}
-hive-logging = {path = "../hive-logging", develop = true}
-hive-errors = {path = "../hive-errors", develop = true}
-hive-async = {path = "../hive-async", develop = true}
-hive-cache = {path = "../hive-cache", develop = true}
-hive-models = {path = "../hive-models", develop = true}
+[tool.poetry.dependencies.hive-config]
+path = "../hive-config"
+develop = true
 
-# Optional vector database dependencies
-pinecone-client = {version = "^2.2.0", optional = true}
-weaviate-client = {version = "^3.24.0", optional = true}
-chromadb = {version = "^0.4.0", optional = true}
-faiss-cpu = {version = "^1.7.0", optional = true}
+[tool.poetry.dependencies.hive-db]
+path = "../hive-db"
+develop = true
+
+[tool.poetry.dependencies.hive-logging]
+path = "../hive-logging"
+develop = true
+
+[tool.poetry.dependencies.hive-errors]
+path = "../hive-errors"
+develop = true
+
+[tool.poetry.dependencies.hive-async]
+path = "../hive-async"
+develop = true
+
+[tool.poetry.dependencies.hive-cache]
+path = "../hive-cache"
+develop = true
+
+[tool.poetry.dependencies.hive-models]
+path = "../hive-models"
+develop = true
+
+[tool.poetry.dependencies.pinecone-client]
+version = "^2.2.0"
+optional = true
+
+[tool.poetry.dependencies.weaviate-client]
+version = "^3.24.0"
+optional = true
+
+[tool.poetry.dependencies.chromadb]
+version = "^0.4.0"
+optional = true
+
+[tool.poetry.dependencies.faiss-cpu]
+version = "^1.7.0"
+optional = true
 
 [tool.poetry.extras]
-vector-pinecone = ["pinecone-client"]
-vector-weaviate = ["weaviate-client"]
-vector-chroma = ["chromadb"]
-vector-faiss = ["faiss-cpu"]
-vector-all = ["pinecone-client", "weaviate-client", "chromadb", "faiss-cpu"]
+vector-pinecone = [
+    "pinecone-client",
+]
+vector-weaviate = [
+    "weaviate-client",
+]
+vector-chroma = [
+    "chromadb",
+]
+vector-faiss = [
+    "faiss-cpu",
+]
+vector-all = [
+    "pinecone-client",
+    "weaviate-client",
+    "chromadb",
+    "faiss-cpu",
+]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.2"
@@ -55,9 +103,6 @@ mypy = "^1.8.0"
 ruff = "^0.13.2"
 isort = "^5.13.0"
 
-# ========================================
-# Ruff Configuration (Linter & Formatter)
-# ========================================
 [tool.ruff]
 line-length = 120
 target-version = "py311"
@@ -71,8 +116,68 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "C4", "UP", "S"]
-ignore = ["E501", "B008", "C901", "COM812", "COM818", "COM819"]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "C4",
+    "UP",
+    "S",
+]
+ignore = [
+    "E501",
+    "B008",
+    "C901",
+    "COM812",
+    "COM818",
+    "COM819",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "hive_logging",
+    "hive_config",
+    "hive_db",
+    "hive_cache",
+    "hive_errors",
+    "hive_bus",
+    "hive_async",
+    "hive_performance",
+    "hive_ai",
+    "hive_deployment",
+    "hive_service_discovery",
+    "hive_tests",
+    "hive_models",
+    "hive_algorithms",
+    "hive_cli",
+    "hive_app_toolkit",
+    "hive_orchestration",
+    "hive_graph",
+]
+section-order = [
+    "future",
+    "standard-library",
+    "third-party",
+    "first-party",
+    "local-folder",
+]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",
+    "S602",
+    "S604",
+]
+"scripts/**" = [
+    "S602",
+    "S604",
+]
+"archive/**" = [
+    "S",
+]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -80,23 +185,15 @@ indent-style = "space"
 skip-magic-trailing-comma = true
 line-ending = "auto"
 
-[tool.ruff.lint.isort]
-known-first-party = [
-    "hive_logging", "hive_config", "hive_db", "hive_cache", "hive_errors",
-    "hive_bus", "hive_async", "hive_performance", "hive_ai", "hive_deployment",
-    "hive_service_discovery", "hive_tests", "hive_models", "hive_algorithms",
-    "hive_cli", "hive_app_toolkit", "hive_orchestration", "hive_graph",
-]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
-split-on-trailing-comma = false
-
-[tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101", "S602", "S604"]
-"scripts/**" = ["S602", "S604"]
-"archive/**" = ["S"]
-
 [tool.pytest.ini_options]
-testpaths = ["tests"]
-pythonpath = ["src"]
+testpaths = [
+    "tests",
+]
+pythonpath = [
+    "src",
+]
 addopts = "--cov=hive_ai --cov-report=html --cov-fail-under=90 --hypothesis-show-statistics"
 asyncio_mode = "auto"
+markers = [
+    "core: Core infrastructure tests (packages/) - strict quality standards",
+]

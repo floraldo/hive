@@ -99,25 +99,25 @@ def init(
 
     # Generate application
     try:
-        generator = (ApplicationGenerator(),)
+        generator = ApplicationGenerator()
         result = asyncio.run(generator.generate(config))
 
         if dry_run:
-            (click.echo("🔍 Dry run - would generate:"),)
+            (click.echo(" Dry run - would generate:"),)
             for file_path in result["files_created"]:
-                click.echo(f"  📄 {file_path}")
+                click.echo(f"   {file_path}")
         else:
-            click.echo("🎉 Application generated successfully!")
-            (click.echo(f"📂 Location: {output_dir}"),)
-            click.echo(f"📋 Files created: {len(result['files_created'])}")
+            click.echo(" Application generated successfully!")
+            (click.echo(f" Location: {output_dir}"),)
+            click.echo(f" Files created: {len(result['files_created'])}")
 
             if result.get("next_steps"):
-                (click.echo("\n📝 Next steps:"),)
+                (click.echo("\n Next steps:"),)
                 for step in result["next_steps"]:
-                    click.echo(f"  • {step}")
+                    click.echo(f"   {step}")
 
     except Exception as e:
-        (click.echo(f"❌ Generation failed: {e}", err=True),)
+        (click.echo(f"MISSING Generation failed: {e}", err=True),)
         if "--verbose" in sys.argv:
             import traceback
 
@@ -133,17 +133,17 @@ def add_api(output: str = ".") -> None:
     output_dir = Path(output)
 
     try:
-        generator = (ApplicationGenerator(),)
+        generator = ApplicationGenerator()
         result = asyncio.run(generator.add_api_foundation(output_dir))
 
-        click.echo("✅ API foundation added!")
-        click.echo(f"📋 Files modified: {len(result['files_modified'])}")
+        click.echo(" API foundation added!")
+        click.echo(f" Files modified: {len(result['files_modified'])}")
 
         for file_path in result["files_modified"]:
-            click.echo(f"  📄 {file_path}")
+            click.echo(f"   {file_path}")
 
     except Exception as e:
-        click.echo(f"❌ Failed to add API foundation: {e}", err=True)
+        click.echo(f"MISSING Failed to add API foundation: {e}", err=True)
         sys.exit(1)
 
 
@@ -156,17 +156,17 @@ def add_k8s(output: str = ".", namespace: str = "hive-platform") -> None:
     output_dir = Path(output)
 
     try:
-        generator = (ApplicationGenerator(),)
+        generator = ApplicationGenerator()
         result = asyncio.run(generator.add_kubernetes_manifests(output_dir, namespace))
 
-        click.echo("☸️ Kubernetes manifests added!")
-        click.echo(f"📋 Files created: {len(result['files_created'])}")
+        click.echo(" Kubernetes manifests added!")
+        click.echo(f" Files created: {len(result['files_created'])}")
 
         for file_path in result["files_created"]:
-            click.echo(f"  📄 {file_path}")
+            click.echo(f"   {file_path}")
 
     except Exception as e:
-        click.echo(f"❌ Failed to add Kubernetes manifests: {e}", err=True)
+        click.echo(f"MISSING Failed to add Kubernetes manifests: {e}", err=True)
         sys.exit(1)
 
 
@@ -179,22 +179,22 @@ def add_ci(output: str = ".", registry: str = "ghcr.io") -> None:
     output_dir = Path(output)
 
     try:
-        generator = (ApplicationGenerator(),)
+        generator = ApplicationGenerator()
         result = asyncio.run(generator.add_cicd_pipeline(output_dir, registry))
 
-        click.echo("🚀 CI/CD pipeline added!")
-        click.echo(f"📋 Files created: {len(result['files_created'])}")
+        click.echo(" CI/CD pipeline added!")
+        click.echo(f" Files created: {len(result['files_created'])}")
 
         for file_path in result["files_created"]:
-            click.echo(f"  📄 {file_path}")
+            click.echo(f"   {file_path}")
 
-        click.echo("\n⚠️ Don't forget to:")
-        click.echo("  • Add secrets to your GitHub repository")
-        click.echo("  • Configure deployment credentials")
-        click.echo("  • Review and customize the pipeline")
+        click.echo("\n Don't forget to:")
+        click.echo("   Add secrets to your GitHub repository")
+        click.echo("   Configure deployment credentials")
+        click.echo("   Review and customize the pipeline")
 
     except Exception as e:
-        click.echo(f"❌ Failed to add CI/CD pipeline: {e}", err=True)
+        click.echo(f"MISSING Failed to add CI/CD pipeline: {e}", err=True)
         sys.exit(1)
 
 
@@ -206,22 +206,22 @@ def status(output: str = ".") -> None:
     output_dir = Path(output)
 
     try:
-        generator = (ApplicationGenerator(),)
+        generator = ApplicationGenerator()
         status_info = asyncio.run(generator.get_integration_status(output_dir))
 
-        click.echo(f"📊 Hive Toolkit Integration Status for {output_dir}")
+        click.echo(f" Hive Toolkit Integration Status for {output_dir}")
         click.echo("=" * 50)
 
         for component, info in status_info.items():
-            status_icon = "✅" if info["integrated"] else "❌"
+            status_icon = "OK" if info["integrated"] else "MISSING"
             click.echo(f"{status_icon} {component.title()}: {info['status']}")
 
             if info.get("files"):
                 for file_path in info["files"]:
-                    click.echo(f"    📄 {file_path}")
+                    click.echo(f"     {file_path}")
 
     except Exception as e:
-        click.echo(f"❌ Failed to check status: {e}", err=True)
+        click.echo(f"MISSING Failed to check status: {e}", err=True)
         sys.exit(1)
 
 
@@ -230,30 +230,30 @@ def examples() -> None:
     """Show usage examples."""
 
     examples_text = """
-🎯 Hive Application Toolkit - Usage Examples
+ Hive Application Toolkit - Usage Examples
 
-1️⃣ Create a new API service:
+1 Create a new API service:
    hive-toolkit init my-api --type api --enable-database --enable-auth
 
-2️⃣ Create a webhook service:
+2 Create a webhook service:
    hive-toolkit init webhook-handler --type webhook --port 8080
 
-3️⃣ Add API foundation to existing project:
+3 Add API foundation to existing project:
    cd my-project && hive-toolkit add-api
 
-4️⃣ Add Kubernetes deployment:
+4 Add Kubernetes deployment:
    hive-toolkit add-k8s --namespace my-namespace
 
-5️⃣ Add CI/CD pipeline:
+5 Add CI/CD pipeline:
    hive-toolkit add-ci --registry my-registry.com
 
-6️⃣ Check integration status:
+6 Check integration status:
    hive-toolkit status
 
-7️⃣ Create with custom cost limits:
+7 Create with custom cost limits:
    hive-toolkit init cost-aware-service --cost-limits 50,1000,0.5
 
-🚀 From zero to production in minutes!
+ From zero to production in minutes!
 """
     click.echo(examples_text)
 

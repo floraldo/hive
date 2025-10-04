@@ -12,7 +12,7 @@ from pathlib import Path
 import requests
 
 sys.path.insert(0, str(Path(__file__).parent))
-from fat_framework import FactoryAcceptanceTest
+from .fat_framework import FactoryAcceptanceTest
 
 
 def generate_simple_todo_app(test_case):

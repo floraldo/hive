@@ -8,7 +8,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from fat_framework import FactoryAcceptanceTest
+from .fat_framework import FactoryAcceptanceTest
 
 
 def generate_dijkstra_algorithm(test_case):
