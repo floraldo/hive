@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from hive_claude_bridge import ClaudeBridgeConfig, RateLimitConfig, get_claude_service
+# TODO: hive_claude_bridge module doesn't exist - needs to be created or imported from correct location
+# from hive_claude_bridge import ClaudeBridgeConfig, RateLimitConfig, get_claude_service
 from pydantic import BaseModel, Field
 
 from hive_errors import ErrorReporter, ReviewError, ReviewValidationError

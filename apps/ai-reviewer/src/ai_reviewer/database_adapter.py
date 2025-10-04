@@ -9,7 +9,8 @@ from datetime import datetime
 from typing import Any
 
 import hive_db as hive_core_db
-from hive_db.models import Task, TaskStatus
+# TODO: Task and TaskStatus models need to be defined or imported from correct location
+# from hive_db.models import Task, TaskStatus
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
