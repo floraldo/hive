@@ -72,7 +72,18 @@ async def fetch_weather(location: str):
 ### Running Tests
 
 ```bash
+# Core decorators (21 tests)
 pytest packages/hive-performance/tests/unit/test_decorators.py -v
+
+# Composite decorators (12 tests)
+pytest packages/hive-performance/tests/unit/test_composite_decorators.py -v
+
+# All tests (33 total)
+pytest packages/hive-performance/tests/unit/ -v
 ```
 
-All 21 tests passing with comprehensive coverage of all 5 core decorators.
+**Test Coverage**:
+- Core decorators: 21 tests (all 5 decorators: @timed, @counted, @traced, @track_errors, @measure_memory)
+- Composite decorators: 12 tests (all 3 composites: @track_request, @track_cache_operation, @track_adapter_request)
+- Integration tests: Performance overhead, thread safety, metric validation
+- **Total: 33 passing tests**

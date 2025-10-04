@@ -83,7 +83,7 @@ class CodeValidator:
 
         for py_file in python_files:
             try:
-                result = subprocess.run(
+                result = subprocess.run(  # noqa: S603, S607
                     ["python", "-m", "py_compile", str(py_file)],
                     capture_output=True,
                     text=True,
@@ -114,7 +114,7 @@ class CodeValidator:
             return True, []
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603, S607
                 ["python", str(validator_script), "--level", "ERROR", "--app", service_dir.name],
                 capture_output=True,
                 text=True,
@@ -148,7 +148,7 @@ class CodeValidator:
             return True, []
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603, S607
                 ["python", "-m", "pytest", "tests/", "-v", "--tb=short"],
                 capture_output=True,
                 text=True,
@@ -174,7 +174,7 @@ class CodeValidator:
         errors = []
 
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603, S607
                 ["python", "-m", "mypy", "src/", "--ignore-missing-imports"],
                 capture_output=True,
                 text=True,

@@ -25,6 +25,9 @@ from hive_orchestrator.core.bus import get_async_event_bus
 # Async database operations from Phase 1
 from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
+# Hive performance monitoring
+from hive_performance import track_adapter_request, track_request
+
 from .config import HiveConfig, create_orchestrator_config
 
 # Import HiveCore for integration
@@ -195,6 +198,7 @@ class AsyncQueen:
         except Exception as e:
             self.log.error(f"Error handling escalation event: {e}")
 
+    @track_adapter_request("subprocess")
     async def spawn_worker_async(
         self,
         task: dict[str, Any],
@@ -261,6 +265,7 @@ class AsyncQueen:
 
         return env
 
+    @track_request("async_process_queued_tasks", labels={"component": "async_queen", "concurrency": "high"})
     async def process_queued_tasks_async(self) -> None:
         """Process queued tasks with high concurrency"""
         async with self.worker_semaphore:
@@ -349,6 +354,7 @@ class AsyncQueen:
             self.log.error(f"Error processing task {task_id}: {e}")
             return False
 
+    @track_request("monitor_workers", labels={"component": "async_queen", "monitoring": "active"})
     async def monitor_workers_async(self) -> None:
         """Monitor active workers concurrently"""
         if not self.active_workers:
@@ -389,6 +395,7 @@ class AsyncQueen:
             if task_id in self.active_workers:
                 del self.active_workers[task_id]
 
+    @track_request("handle_worker_success", labels={"component": "async_queen"})
     async def _handle_worker_success_async(self, task_id: str, task: dict[str, Any], metadata: dict[str, Any]):
         """Handle successful worker completion"""
         current_phase = metadata.get("phase", "apply")
@@ -424,6 +431,7 @@ class AsyncQueen:
             # Publish completion event
             await self.event_bus.publish_async(event_type="task.completed", task_id=task_id, priority=1)
 
+    @track_request("handle_worker_failure", labels={"component": "async_queen"})
     async def _handle_worker_failure_async(self, task_id: str, task: dict[str, Any], metadata: dict[str, Any]):
         """Handle worker failure with retry logic"""
         retry_count = task.get("retry_count", 0)
@@ -547,6 +555,7 @@ class AsyncQueen:
                 f"Avg Time: {self.metrics['average_processing_time']:.1f}s",
             )
 
+    @track_request("async_orchestration_cycle", labels={"component": "async_queen", "mode": "async"})
     async def run_forever_async(self) -> None:
         """Main async orchestration loop with high performance"""
         self.log.info("AsyncQueen starting (V4.0 Phase 2)...")

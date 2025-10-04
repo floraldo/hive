@@ -16,6 +16,7 @@ from uuid import uuid4
 from hive_config.paths import DB_PATH
 from hive_db.async_pool import AsyncDatabaseManager, create_async_database_manager_async
 from hive_logging import get_logger
+from hive_performance import track_adapter_request
 
 logger = get_logger(__name__)
 
@@ -105,6 +106,7 @@ class AsyncDatabaseOperations:
 
     # Core Database Operations
 
+    @track_adapter_request("sqlite")
     async def create_task_async(
         self,
         task_type: str,
@@ -147,6 +149,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to create task: {e}")
             raise
 
+    @track_adapter_request("sqlite")
     async def get_task_async(self, task_id: str) -> dict[str, Any] | None:
         """Get task by ID asynchronously"""
         await self._check_circuit_breaker_async()
@@ -170,6 +173,7 @@ class AsyncDatabaseOperations:
             logger.error(f"Failed to get task {task_id}: {e}")
             raise
 
+    @track_adapter_request("sqlite")
     async def get_queued_tasks_async(self, limit: int = 10) -> list[dict[str, Any]]:
         """Get queued tasks asynchronously"""
         await self._check_circuit_breaker_async()
@@ -236,6 +240,7 @@ class AsyncDatabaseOperations:
 
     # Batch Operations for Performance
 
+    @track_adapter_request("sqlite")
     async def batch_create_tasks_async(self, tasks: list[dict[str, Any]]) -> list[str]:
         """
         Create multiple tasks in a single batch operation

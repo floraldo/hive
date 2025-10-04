@@ -6,7 +6,6 @@ Simple monitoring script for observing autonomous agent execution.
 Queries the orchestration database to track task status and progress.
 """
 
-import json
 import sqlite3
 import time
 from datetime import datetime

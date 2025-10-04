@@ -140,7 +140,7 @@ class TestArchitectAgent:
         requirement = "Create a 'test-service' API"
         output_path = tmp_path / "plan.json"
 
-        plan = agent.create_plan(requirement, output_path=str(output_path))
+        _plan = agent.create_plan(requirement, output_path=str(output_path))
 
         assert output_path.exists()
 

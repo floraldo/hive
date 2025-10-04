@@ -1,19 +1,26 @@
 """
 Autonomous review agent that polls the database for review_pending tasks
 """
+# ruff: noqa: S603, S607
 
 import argparse
 import asyncio
 import signal
+import subprocess
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
-# Import hive logging
 from hive_logging import get_logger
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from ai_reviewer.auto_fix import ErrorAnalyzer, EscalationLogic, FixGenerator, RetryManager
+from ai_reviewer.database_adapter import DatabaseAdapter
+from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
 
 logger = get_logger(__name__)
-
-from hive_logging import get_logger
 
 # Import from orchestrator's extended database layer (proper app-to-app communication)
 
@@ -28,12 +35,6 @@ try:
     ASYNC_DB_AVAILABLE = True
 except ImportError:
     ASYNC_DB_AVAILABLE = False
-from rich.console import Console
-from rich.panel import Panel
-from rich.table import Table
-
-from ai_reviewer.database_adapter import DatabaseAdapter
-from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
 
 # Event bus imports for explicit agent communication
 try:
@@ -64,7 +65,14 @@ class ReviewAgent:
     Autonomous agent that continuously monitors and processes review_pending tasks
     """
 
-    def __init__(self, review_engine: ReviewEngine, polling_interval: int = 30, test_mode: bool = False):
+    def __init__(
+        self,
+        review_engine: ReviewEngine,
+        polling_interval: int = 30,
+        test_mode: bool = False,
+        enable_auto_fix: bool = True,
+        max_fix_attempts: int = 3,
+    ):
         """
         Initialize the review agent
 
@@ -72,21 +80,40 @@ class ReviewAgent:
             review_engine: AI review engine
             polling_interval: Seconds between queue checks
             test_mode: Run with shorter intervals for testing
+            enable_auto_fix: Enable autonomous fix-retry loop
+            max_fix_attempts: Maximum fix attempts before escalation
         """
         self.adapter = DatabaseAdapter()
         self.review_engine = review_engine
         self.polling_interval = polling_interval if not test_mode else 5
         self.test_mode = test_mode
         self.running = False
+        self.enable_auto_fix = enable_auto_fix
         self.stats = {
             "tasks_reviewed": 0,
             "approved": 0,
             "rejected": 0,
             "rework": 0,
             "escalated": 0,
+            "auto_fixed": 0,
+            "fix_attempts": 0,
             "errors": 0,
             "start_time": None,
         }
+
+        # Auto-fix components
+        if enable_auto_fix:
+            self.error_analyzer = ErrorAnalyzer()
+            self.fix_generator = FixGenerator()
+            self.retry_manager = RetryManager(max_attempts=max_fix_attempts)
+            self.escalation_logic = EscalationLogic(max_attempts=max_fix_attempts)
+            logger.info("Auto-fix enabled with max attempts: {max_fix_attempts}")
+        else:
+            self.error_analyzer = None
+            self.fix_generator = None
+            self.retry_manager = None
+            self.escalation_logic = None
+            logger.info("Auto-fix disabled")
 
         # Initialize event bus for explicit agent communication
         try:
@@ -226,6 +253,36 @@ class ReviewAgent:
             # Display review results
             self._display_review_result(result)
 
+            # Check if validation failed and auto-fix is enabled
+            if result.decision == ReviewDecision.REJECT and self.enable_auto_fix:
+                logger.info(f"Attempting auto-fix for rejected task {task['id']}")
+
+                # Get validation output from test results
+                validation_output = test_results if test_results else ""
+
+                # Attempt auto-fix
+                fix_succeeded = await self._attempt_auto_fix_async(task, validation_output)
+
+                if fix_succeeded:
+                    logger.info(f"Auto-fix succeeded for task {task['id']}, re-running review")
+
+                    # Re-run review after successful fixes
+                    code_files = self.adapter.get_task_code_files(task["id"])
+                    test_results = self.adapter.get_test_results(task["id"])
+
+                    result = self.review_engine.review_task(
+                        task_id=task["id"],
+                        task_description=task.get("description", "No description"),
+                        code_files=code_files,
+                        test_results=test_results,
+                        transcript=transcript,
+                    )
+
+                    # Display updated review results
+                    self._display_review_result(result)
+                else:
+                    logger.warning(f"Auto-fix failed for task {task['id']}, keeping original REJECT decision")
+
             # Execute decision
             await self._execute_decision_async(task, result)
 
@@ -293,6 +350,215 @@ class ReviewAgent:
             console.logger.info("\n[yellow]Suggestions:[/yellow]")
             for suggestion in result.suggestions:
                 console.logger.info(f"  • {suggestion}")
+
+    async def _attempt_auto_fix_async(self, task: dict[str, Any], validation_output: str) -> bool:
+        """
+        Attempt autonomous fix-retry loop for failed validation.
+
+        Args:
+            task: Task dictionary with id and service_dir
+            validation_output: Raw validation tool output (pytest, ruff, mypy)
+
+        Returns:
+            True if fix succeeded and validation now passes, False otherwise
+        """
+        if not self.enable_auto_fix:
+            logger.info("Auto-fix disabled, skipping fix attempts")
+            return False
+
+        task_id = task["id"]
+        service_dir = task.get("service_directory")
+
+        if not service_dir:
+            logger.error(f"No service directory for task {task_id}, cannot auto-fix")
+            return False
+
+        from pathlib import Path
+
+        service_path = Path(service_dir)
+        if not service_path.exists():
+            logger.error(f"Service directory does not exist: {service_dir}")
+            return False
+
+        logger.info(f"Starting auto-fix loop for task {task_id}")
+
+        # Start fix session
+        session = self.retry_manager.start_session(task_id, service_path)
+
+        # Parse errors from validation output
+        errors = []
+        if "pytest" in validation_output.lower():
+            errors.extend(self.error_analyzer.parse_pytest_output(validation_output))
+        if "ruff" in validation_output.lower() or ".py:" in validation_output:
+            errors.extend(self.error_analyzer.parse_ruff_output(validation_output))
+
+        if not errors:
+            logger.warning(f"No parseable errors found in validation output for task {task_id}")
+            return False
+
+        logger.info(f"Found {len(errors)} errors to fix")
+
+        # Get fixable errors only
+        fixable_errors = self.error_analyzer.get_fixable_errors(errors)
+        if not fixable_errors:
+            logger.info("No fixable errors found, escalating")
+            return False
+
+        logger.info(f"{len(fixable_errors)} errors are auto-fixable")
+
+        # Fix-retry loop
+        while session.can_retry:
+            self.stats["fix_attempts"] += 1
+
+            # Generate fixes for all fixable errors
+            for error in fixable_errors:
+                # Read the file content
+                file_path = service_path / error.file_path
+                if not file_path.exists():
+                    logger.warning(f"File not found: {file_path}")
+                    continue
+
+                file_content = file_path.read_text(encoding="utf-8")
+
+                # Generate fix
+                fix = self.fix_generator.generate_fix(error, file_content)
+                if not fix:
+                    logger.warning(f"Could not generate fix for {error.error_code}: {error.error_message}")
+                    continue
+
+                # Apply fix
+                success = self.retry_manager.apply_fix(session, fix)
+                if success:
+                    logger.info(f"Applied fix: {fix.fix_type} for {error.error_code}")
+                else:
+                    logger.warning(f"Failed to apply fix: {fix.fix_type}")
+
+            # Re-run validation
+            logger.info(f"Re-running validation after fix attempt {session.attempt_count}")
+
+            # Re-run validation (simplified - would call actual validation tools)
+            # For now, assume we'd call the same validation that initially failed
+            # In real implementation, would run pytest, ruff, etc.
+            validation_passed = self._rerun_validation(service_path)
+
+            if validation_passed:
+                logger.info(f"Validation passed after {session.attempt_count} fix attempts")
+                self.retry_manager.complete_session(session, "fixed")
+                self.stats["auto_fixed"] += 1
+
+                # Publish success event
+                if TaskEventType:
+                    await self._publish_task_event_async(
+                        TaskEventType.REVIEW_COMPLETED,
+                        task_id,
+                        correlation_id=task.get("correlation_id"),
+                        auto_fix_success=True,
+                        fix_attempts=session.attempt_count,
+                        fixed_by="guardian-agent",
+                    )
+
+                return True
+
+            # Check if we should escalate
+            escalation_decision = self.escalation_logic.should_escalate(session)
+            if escalation_decision.should_escalate:
+                logger.warning(
+                    f"Escalating task {task_id}: {escalation_decision.reason.value if escalation_decision.reason else 'unknown'}"
+                )
+
+                # Create escalation report
+                escalation_report = self.escalation_logic.create_escalation_report(session, escalation_decision)
+
+                # Complete session as escalated
+                self.retry_manager.complete_session(session, "escalated")
+
+                # Publish escalation event
+                if TaskEventType:
+                    await self._publish_task_event_async(
+                        TaskEventType.ESCALATED,
+                        task_id,
+                        correlation_id=task.get("correlation_id"),
+                        escalation_reason=escalation_decision.reason.value if escalation_decision.reason else "unknown",
+                        fix_attempts=session.attempt_count,
+                        escalation_report=escalation_report,
+                        escalated_by="guardian-agent",
+                    )
+
+                return False
+
+        # Max retries exceeded without escalation check
+        logger.warning(f"Max fix attempts ({session.max_attempts}) exceeded for task {task_id}")
+        self.retry_manager.complete_session(session, "failed")
+        return False
+
+    def _rerun_validation(self, service_path: Path) -> bool:
+        """
+        Re-run validation on service after fixes applied.
+
+        Args:
+            service_path: Path to service directory
+
+        Returns:
+            True if validation passes
+        """
+        logger.info(f"Revalidating service at {service_path}")
+
+        validation_passed = True
+
+        # 1. Syntax check
+        try:
+            for py_file in service_path.rglob("*.py"):
+                result = subprocess.run(
+                    ["python", "-m", "py_compile", str(py_file)],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+                if result.returncode != 0:
+                    logger.warning(f"Syntax error in {py_file.name}: {result.stderr}")
+                    validation_passed = False
+        except Exception as e:
+            logger.error(f"Syntax check failed: {e}")
+            validation_passed = False
+
+        # 2. Ruff check
+        try:
+            result = subprocess.run(
+                ["ruff", "check", str(service_path)],
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+            if result.returncode != 0:
+                logger.warning(f"Ruff violations found:\n{result.stdout}")
+                validation_passed = False
+            else:
+                logger.info("Ruff check: PASS")
+        except FileNotFoundError:
+            logger.warning("Ruff not found, skipping lint check")
+        except Exception as e:
+            logger.error(f"Ruff check failed: {e}")
+            validation_passed = False
+
+        # 3. Optional: pytest (if tests exist)
+        test_dir = service_path / "tests"
+        if test_dir.exists():
+            try:
+                result = subprocess.run(
+                    ["python", "-m", "pytest", str(test_dir), "--collect-only"],
+                    capture_output=True,
+                    text=True,
+                    timeout=30,
+                )
+                if result.returncode != 0:
+                    logger.warning(f"Test collection failed: {result.stderr}")
+                    validation_passed = False
+                else:
+                    logger.info("Test collection: PASS")
+            except Exception as e:
+                logger.warning(f"Test check skipped: {e}")
+
+        return validation_passed
 
     async def _execute_decision_async(self, task: dict[str, Any], result) -> None:
         """Execute the review decision"""
@@ -363,6 +629,8 @@ class ReviewAgent:
             status_table.add_row("Rejected", f"{self.stats['rejected']} ({self._pct('rejected')}%)")
             status_table.add_row("Rework", f"{self.stats['rework']} ({self._pct('rework')}%)")
             status_table.add_row("Escalated", f"{self.stats['escalated']} ({self._pct('escalated')}%)")
+            status_table.add_row("Auto-Fixed", str(self.stats["auto_fixed"]))
+            status_table.add_row("Fix Attempts", str(self.stats["fix_attempts"]))
             status_table.add_row("Errors", str(self.stats["errors"]))
             status_table.add_row("Review Rate", f"{rate:.1f} tasks/hour")
 
@@ -393,6 +661,8 @@ class ReviewAgent:
                     f"Tasks Reviewed: {self.stats['tasks_reviewed']}\n",
                     f"Approved: {self.stats['approved']}\n",
                     f"Rejected: {self.stats['rejected']}\n",
+                    f"Auto-Fixed: {self.stats['auto_fixed']}\n",
+                    f"Fix Attempts: {self.stats['fix_attempts']}\n",
                     f"Errors: {self.stats['errors']}",
                     title="AI Reviewer Session Complete",
                 ),

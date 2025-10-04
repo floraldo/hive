@@ -21,12 +21,12 @@ async def main_async() -> None:
     # Initialize database connection
     from hive_db import get_sqlite_connection
 
-    db = await get_sqlite_connection(config.database_path)
+    _db = await get_sqlite_connection(config.database_path)
     logger.info(f"Connected to database: {config.database_path}")
     # Initialize cache client
     from hive_cache import get_cache_client
 
-    cache = await get_cache_client()
+    _cache = await get_cache_client()
     logger.info("Connected to cache")
     # Create FastAPI application
     app = create_app(config)

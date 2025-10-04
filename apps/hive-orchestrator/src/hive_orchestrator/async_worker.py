@@ -25,6 +25,9 @@ from hive_orchestrator.core.bus import get_async_event_bus
 # Async database operations from Phase 1
 from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
+# Hive performance monitoring
+from hive_performance import track_adapter_request
+
 
 class AsyncWorker:
     """
@@ -171,6 +174,7 @@ class AsyncWorker:
 
         return shutil.which(cmd) is not None
 
+    @track_adapter_request("claude_ai")
     async def execute_claude_async(self, prompt: str, context_files: list[str] | None = None) -> dict[str, Any]:
         """Execute Claude CLI asynchronously with non-blocking I/O"""
         if not self.claude_cmd:

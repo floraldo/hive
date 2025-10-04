@@ -25,19 +25,22 @@ Example:
     success = manager.apply_fix(file_path, fix)
 """
 
-from .error_analyzer import ErrorAnalyzer, ParsedError, ValidationTool
-from .escalation import EscalationDecision, EscalationLogic
+from .error_analyzer import ErrorAnalyzer, ErrorSeverity, ParsedError, ValidationTool
+from .escalation import EscalationDecision, EscalationLogic, EscalationReason
 from .fix_generator import FixGenerator, GeneratedFix
-from .retry_manager import FixAttempt, RetryManager
+from .retry_manager import FixAttempt, FixSession, RetryManager
 
 __all__ = [
     "ErrorAnalyzer",
+    "ErrorSeverity",
     "ParsedError",
     "ValidationTool",
     "FixGenerator",
     "GeneratedFix",
     "RetryManager",
     "FixAttempt",
+    "FixSession",
     "EscalationLogic",
     "EscalationDecision",
+    "EscalationReason",
 ]

@@ -47,6 +47,8 @@ class TaskExecutor:
             output_dir: Base directory for generated code
         """
         self.output_dir = Path(output_dir)
+        # Ensure output directory exists
+        self.output_dir.mkdir(parents=True, exist_ok=True)
         self.logger = logger
 
     def execute_task(self, task: ExecutionTask, service_name: str) -> TaskResult:
@@ -136,7 +138,7 @@ class TaskExecutor:
 
         # Execute command
         try:
-            result = subprocess.run(
+            result = subprocess.run(  # noqa: S603, S607
                 cmd,
                 capture_output=True,
                 text=True,
@@ -171,7 +173,7 @@ class TaskExecutor:
         cmd = ["hive-toolkit", "add-api", endpoint_name]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)  # noqa: S603, S607
 
             self.logger.info(f"API endpoint created: {result.stdout.strip()}")
 
@@ -226,7 +228,7 @@ class TaskExecutor:
         cmd = ["hive-toolkit", "add-k8s", "--namespace", task.parameters.get("namespace", "hive-platform")]
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30, cwd=service_dir)  # noqa: S603, S607
 
             self.logger.info(f"Deployment configs created: {result.stdout.strip()}")
 

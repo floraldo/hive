@@ -8,7 +8,6 @@ Direct database approach to create PRJ-GENESIS-001 without complex imports.
 import json
 import sqlite3
 import uuid
-from datetime import datetime
 from pathlib import Path
 
 # Database path (standard Hive location)

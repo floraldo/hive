@@ -13,7 +13,6 @@ from pathlib import Path
 
 from hive_logging import get_logger
 
-from .error_analyzer import ParsedError
 from .fix_generator import GeneratedFix
 
 logger = get_logger(__name__)
