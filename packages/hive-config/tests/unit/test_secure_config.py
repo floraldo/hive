@@ -83,8 +83,8 @@ class TestSecureConfigLoader:
         config_path.write_text(test_config)
         encrypted_path = self.loader.encrypt_file(config_path)
         config = self.loader.load_config(encrypted_path)
-        assert config['SECRET_KEY'] == 'encrypted-secret'
-        assert config['API_TOKEN'] == 'encrypted-token'
+        assert config['SECRET_KEY'] == 'encrypted-secret'  # noqa: S105 - test fixture
+        assert config['API_TOKEN'] == 'encrypted-token'  # noqa: S105 - test fixture
 
     @pytest.mark.core
     def test_load_config_with_comments(self):
@@ -189,5 +189,5 @@ class TestSecureConfigIntegration:
             config = prod_loader.load_config(encrypted_path)
             assert config['DATABASE_URL'] == 'postgresql://prod:secret@db.prod/app'
             assert config['API_KEY'] == 'prod-api-key-secret'
-            assert config['SECRET_KEY'] == 'prod-secret-key'
+            assert config['SECRET_KEY'] == 'prod-secret-key'  # noqa: S105
             assert config['DEBUG'] == 'false'

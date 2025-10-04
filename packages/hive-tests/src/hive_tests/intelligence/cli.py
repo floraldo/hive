@@ -60,13 +60,13 @@ def cmd_status(args):
         for health in package_health[:15]:  # Top 15 packages
             # Color code based on health
             if health.pass_rate >= 95:
-                pass_color = "green"
+                pass_color = "green"  # noqa: S105
                 status_icon = "[OK]"
             elif health.pass_rate >= 80:
-                pass_color = "yellow"
+                pass_color = "yellow"  # noqa: S105
                 status_icon = "[!]"
             else:
-                pass_color = "red"
+                pass_color = "red"  # noqa: S105
                 status_icon = "[X]"
 
             # Trend indicators

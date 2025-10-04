@@ -111,7 +111,7 @@ class TestResourceExhaustion:
     @pytest.mark.asyncio
     async def test_database_lock(self):
         """Test handling of database lock/corruption."""
-        history = ReviewHistory(Path('/tmp/test_history'))
+        history = ReviewHistory(Path('/tmp/test_history'))  # noqa: S108
         with patch('guardian_agent.learning.review_history.SQLiteConnection') as mock_conn:
             mock_conn.return_value.__enter__ = MagicMock(side_effect=Exception('Database is locked'))
             try:
@@ -151,7 +151,7 @@ class TestMalformedInput:
     @pytest.mark.asyncio
     async def test_invalid_webhook_signature(self):
         """Test rejection of webhooks with invalid signatures."""
-        handler = (GitHubWebhookHandler(webhook_secret='secret'),)
+        handler = (GitHubWebhookHandler(webhook_secret='secret'),)  # noqa: S106
         payload = {'action': 'opened', 'pull_request': {'number': 123}}
         headers = ({'X-Hub-Signature-256': 'invalid_signature'},)
         result = await handler.handle_webhook(payload, headers)
@@ -207,7 +207,7 @@ class TestConcurrencyIssues:
     @pytest.mark.asyncio
     async def test_concurrent_database_writes(self):
         """Test handling of concurrent database writes."""
-        history = ReviewHistory(Path('/tmp/test_concurrent'))
+        history = ReviewHistory(Path('/tmp/test_concurrent'))  # noqa: S108
         reviews = [{'id': i, 'score': 90 + i} for i in range(10)]
 
         async def save_review(review):
