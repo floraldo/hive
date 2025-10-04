@@ -18,8 +18,18 @@ from datetime import UTC, datetime
 from typing import Any
 
 from hive_db import get_sqlite_connection
+from hive_errors import BaseError
 from hive_logging import get_logger
-from hive_orchestrator.core.errors.hive_exceptions import EventPublishError, EventSubscribeError
+
+
+# Event bus specific errors
+class EventPublishError(BaseError):
+    """Error raised when event publishing fails."""
+    pass
+
+class EventSubscribeError(BaseError):
+    """Error raised when event subscription fails."""
+    pass
 
 # Async imports for Phase 4.1
 try:
