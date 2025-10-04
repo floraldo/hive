@@ -5,13 +5,9 @@ import time
 
 import pytest
 
-from hive_async.advanced_timeout import (
-    AdvancedTimeoutManager,
-    TimeoutConfig,
-    TimeoutMetrics,
-    timeout_context,
-    with_adaptive_timeout,
-)
+from hive_async import async_retry, gather_with_concurrency, timeout_context
+from hive_async import run_with_timeout_async as run_with_timeout
+from hive_async.advanced_timeout import AdvancedTimeoutManager, TimeoutConfig, TimeoutMetrics, with_adaptive_timeout
 from hive_async.context import AsyncResourceManager, async_context
 
 # Import the components we're testing
@@ -23,8 +19,7 @@ from hive_async.resilience import (
     async_resilient,
     async_timeout,
 )
-from hive_async.retry import AsyncRetryConfig, async_retry, create_retry_decorator, retry_on_connection_error
-from hive_async.tasks import gather_with_concurrency, run_with_timeout
+from hive_async.retry import AsyncRetryConfig, create_retry_decorator, retry_on_connection_error
 
 # Import expected exceptions
 from hive_errors import AsyncTimeoutError, CircuitBreakerOpenError

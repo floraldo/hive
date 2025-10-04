@@ -1,52 +1,62 @@
 [
   {
-    "hash": "6e403aa5",
-    "full_hash": "6e403aa5f95802649a23e1588e908924d01df532",
+    "hash": "32ac813b",
+    "full_hash": "32ac813b41fa25d48cb68aee1c7a5bde8e603aa2",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T13:05:22",
-    "subject": "fix(guardian-agent): Fix circular import and dataclass field ordering",
-    "body": "- prophecy_engine.py: Use TYPE_CHECKING for OracleService import\n- Move design_intent field before optional fields in ArchitecturalProphecy dataclass\n- Fixes: circular import oracle_service \u2190 \u2192 prophecy_engine\n- Fixes: TypeError non-default argument follows default argument",
-    "searchable_text": "fix(guardian-agent): Fix circular import and dataclass field ordering - prophecy_engine.py: Use TYPE_CHECKING for OracleService import\n- Move design_intent field before optional fields in ArchitecturalProphecy dataclass\n- Fixes: circular import oracle_service \u2190 \u2192 prophecy_engine\n- Fixes: TypeError non-default argument follows default argument"
+    "date": "2025-10-04T14:01:07",
+    "subject": "fix: Fix CacheClient and SQLiteConnection imports in guardian-agent",
+    "body": "- CacheClient \u2192 HiveCacheClient alias in test_review_engine.py\n- SQLiteConnection \u2192 SQLiteConnectionFactory alias in review_history.py",
+    "searchable_text": "fix: Fix CacheClient and SQLiteConnection imports in guardian-agent - CacheClient \u2192 HiveCacheClient alias in test_review_engine.py\n- SQLiteConnection \u2192 SQLiteConnectionFactory alias in review_history.py"
   },
   {
-    "hash": "1e469f0c",
-    "full_hash": "1e469f0cac127e85d01c0a60e48e5c24324b220e",
+    "hash": "32abfe96",
+    "full_hash": "32abfe96c1cb6895d1b0d2f17e3887939d7b5150",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T13:02:16",
-    "subject": "fix(ecosystemiser): Use SystemBuilder(config_path).build() instead of create_system_from_config",
-    "body": "Collection errors: 42 \u2192 41",
-    "searchable_text": "fix(ecosystemiser): Use SystemBuilder(config_path).build() instead of create_system_from_config Collection errors: 42 \u2192 41"
+    "date": "2025-10-04T13:54:11",
+    "subject": "fix: Comment out non-existent DataParseError import",
+    "body": "- DataParseError doesn't exist in ecosystemiser.core.errors\n- ValidationError or ProfileValidationError should be used instead",
+    "searchable_text": "fix: Comment out non-existent DataParseError import - DataParseError doesn't exist in ecosystemiser.core.errors\n- ValidationError or ProfileValidationError should be used instead"
   },
   {
-    "hash": "4b5979f5",
-    "full_hash": "4b5979f58e82efcd61fbfb4b0fd1dde003047848",
+    "hash": "25771ab6",
+    "full_hash": "25771ab650aa7e7b8a242e9bb14ec994b3680c74",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T12:57:54",
-    "subject": "fix(ai-reviewer): Import ReviewerError from core.errors instead of hive_errors",
-    "body": "- Changed ErrorReporter \u2192 BaseErrorReporter\n- Changed ReviewError \u2192 ReviewerError\n- Import from ai_reviewer.core.errors instead of hive_errors",
-    "searchable_text": "fix(ai-reviewer): Import ReviewerError from core.errors instead of hive_errors - Changed ErrorReporter \u2192 BaseErrorReporter\n- Changed ReviewError \u2192 ReviewerError\n- Import from ai_reviewer.core.errors instead of hive_errors"
+    "date": "2025-10-04T13:44:33",
+    "subject": "fix: Comment out missing Task/TaskStatus imports in ai-reviewer tests",
+    "body": "- Comment out Task/TaskStatus imports from hive_db (don't exist)\n- Add TODO notes for future implementation",
+    "searchable_text": "fix: Comment out missing Task/TaskStatus imports in ai-reviewer tests - Comment out Task/TaskStatus imports from hive_db (don't exist)\n- Add TODO notes for future implementation"
   },
   {
-    "hash": "4a7d5fd2",
-    "full_hash": "4a7d5fd2fe9b784a4891240e60d4db7579f370bd",
+    "hash": "f6220662",
+    "full_hash": "f6220662b2d88d99a6b6fa71fff0bc6b9792de2c",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T12:54:04",
-    "subject": "fix(ai-reviewer): Comment out imports from non-existent modules",
-    "body": "- hive_db.models (Task, TaskStatus) doesn't exist\n- hive_claude_bridge module doesn't exist",
-    "searchable_text": "fix(ai-reviewer): Comment out imports from non-existent modules - hive_db.models (Task, TaskStatus) doesn't exist\n- hive_claude_bridge module doesn't exist"
+    "date": "2025-10-04T13:44:25",
+    "subject": "fix(hive-cache): Use ClaudeAPICache instead of ClaudeCache",
+    "body": "The class is named ClaudeAPICache, not ClaudeCache.\nFixed import and all instantiations in test.",
+    "searchable_text": "fix(hive-cache): Use ClaudeAPICache instead of ClaudeCache The class is named ClaudeAPICache, not ClaudeCache.\nFixed import and all instantiations in test."
   },
   {
-    "hash": "de7442b8",
-    "full_hash": "de7442b853eeb4e8b4c5b447d09c08e175066622",
+    "hash": "aa90c70f",
+    "full_hash": "aa90c70f501911d506fcc94ec80889d9fcfc9c49",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-04T12:46:43",
-    "subject": "fix(ai-planner): Import RetryStrategy from hive_errors not local errors",
-    "body": "ai_planner.core.errors doesn't have RetryStrategy - it's in hive_errors",
-    "searchable_text": "fix(ai-planner): Import RetryStrategy from hive_errors not local errors ai_planner.core.errors doesn't have RetryStrategy - it's in hive_errors"
+    "date": "2025-10-04T13:37:07",
+    "subject": "fix: Fix guardian-agent import errors and async decorator types",
+    "body": "- Fix wrapper name in hive-async retry decorator (wrapper_async)\n- Fix type hint in decorator (dict[str, Any])\n- Fix ASTValidator import (use EnhancedValidator alias)\n- Comment out missing AsyncExecutor import\n- Fix CacheClient import (use HiveCacheClient alias)",
+    "searchable_text": "fix: Fix guardian-agent import errors and async decorator types - Fix wrapper name in hive-async retry decorator (wrapper_async)\n- Fix type hint in decorator (dict[str, Any])\n- Fix ASTValidator import (use EnhancedValidator alias)\n- Comment out missing AsyncExecutor import\n- Fix CacheClient import (use HiveCacheClient alias)"
+  },
+  {
+    "hash": "13f2aac1",
+    "full_hash": "13f2aac15cdee83208603b42b0a5441eb641985e",
+    "author": "Hive Bot",
+    "email": "hive@example.com",
+    "date": "2025-10-04T13:25:46",
+    "subject": "fix(ecosystemiser): Fix water components __init__.py imports",
+    "body": "- Import actual component classes (RainwaterSource, WaterStorage, etc.)\n- Fix malformed __all__ list (was 'WaterStorageWaterStorageParams')\n- Add proper imports from submodules",
+    "searchable_text": "fix(ecosystemiser): Fix water components __init__.py imports - Import actual component classes (RainwaterSource, WaterStorage, etc.)\n- Fix malformed __all__ list (was 'WaterStorageWaterStorageParams')\n- Add proper imports from submodules"
   }
 ]

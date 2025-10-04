@@ -508,3 +508,7 @@ def with_adaptive_timeout(
         return wrapper_async
 
     return decorator
+
+
+# Backward compatibility alias
+timeout_context = timeout_context_async

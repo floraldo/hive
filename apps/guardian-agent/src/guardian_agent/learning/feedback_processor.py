@@ -10,7 +10,7 @@ from guardian_agent.core.config import GuardianConfig
 from guardian_agent.learning.review_history import ReviewHistory
 from guardian_agent.prompts.review_prompts import ReviewPromptBuilder
 from hive_ai import ModelClient
-from hive_db import SQLiteConnection
+from hive_db import SQLiteConnectionFactory as SQLiteConnection
 from hive_logging import get_logger
 from hive_performance import MetricsCollector
 

@@ -1,52 +1,55 @@
-from hive_errors import BaseError
+"""
+Cache error handling using generic exception patterns.
+
+DEPRECATED: Cache-specific exception classes removed in Project Essence Phase 2.
+Use generic exceptions from hive_errors with component tagging instead.
+
+Migration Guide:
+- CacheConnectionError → ConnectionError(component="cache")
+- CacheTimeoutError → TimeoutError(component="cache")
+- CacheCircuitBreakerError → CircuitBreakerOpenError(component="cache")
+- CacheSerializationError → ValidationError(component="cache", operation="serialization")
+- CacheKeyError → ValidationError(component="cache", operation="key_validation")
+- CacheConfigurationError → ConfigurationError(component="cache")
+
+This consolidation reduces exception class count from 50+ to <10 platform-wide.
+"""
+
+from hive_errors import (
+    BaseError,
+    CircuitBreakerOpenError,
+    ConfigurationError,
+    ConnectionError,
+    TimeoutError,
+    ValidationError,
+)
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
+# Re-export generic exceptions for backward compatibility
+# These will be removed in a future version
+CacheError = BaseError
+CacheConnectionError = ConnectionError
+CacheTimeoutError = TimeoutError
+CacheCircuitBreakerError = CircuitBreakerOpenError
+CacheSerializationError = ValidationError
+CacheKeyError = ValidationError
+CacheConfigurationError = ConfigurationError
 
-"""Cache-specific exceptions for Hive Cache package."""
-
-
-class CacheError(Exception):
-    """Base exception for all cache-related errors."""
-
-    def __init__(self, message: str, operation: str = None, key: str = None) -> None:
-        super().__init__(message)
-        self.operation = operation
-        self.key = key
-
-
-class CacheConnectionError(BaseError):
-    """Raised when Redis connection fails."""
-
-    pass
-
-
-class CacheTimeoutError(BaseError):
-    """Raised when cache operation times out."""
-
-    pass
-
-
-class CacheCircuitBreakerError(BaseError):
-    """Raised when circuit breaker is open."""
-
-    pass
-
-
-class CacheSerializationError(BaseError):
-    """Raised when serialization/deserialization fails."""
-
-    pass
-
-
-class CacheKeyError(BaseError):
-    """Raised when cache key is invalid or not found."""
-
-    pass
-
-
-class CacheConfigurationError(BaseError):
-    """Raised when cache configuration is invalid."""
-
-    pass
+__all__ = [
+    "BaseError",
+    "ConnectionError",
+    "TimeoutError",
+    "CircuitBreakerOpenError",
+    "ValidationError",
+    "ConfigurationError",
+    # Deprecated aliases
+    "CacheError",
+    "CacheConnectionError",
+    "CacheTimeoutError",
+    "CacheCircuitBreakerError",
+    "CacheSerializationError",
+    "CacheKeyError",
+    "CacheConfigurationError",
+]

@@ -21,6 +21,9 @@ from .events import TaskEventType, WorkflowEventType, create_task_event, create_
 from .hive_bus import HiveEventBus, get_hive_event_bus
 from .hive_events import AgentEvent, AgentStatus, TaskEvent, TaskStatus, WorkflowEvent
 
+# Backward compatibility alias
+get_async_event_bus = get_event_bus
+
 __all__ = [
     # Infrastructure base classes (re-exported)
     "BaseBus",
@@ -38,6 +41,7 @@ __all__ = [
     "HiveEventBus",
     "get_hive_event_bus",
     "get_event_bus",
+    "get_async_event_bus",  # Backward compatibility alias
     # Event creation helpers
     "create_task_event",
     "create_workflow_event",

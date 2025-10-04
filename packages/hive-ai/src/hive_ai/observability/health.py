@@ -11,9 +11,9 @@ import asyncio
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
 from typing import Any
 
+from hive_app_toolkit.api import BaseHealthMonitor, HealthCheckResult, HealthStatusLevel
 from hive_async import async_timeout
 from hive_cache import CacheManager
 from hive_logging import get_logger
@@ -23,25 +23,8 @@ from ..models.registry import ModelRegistry
 
 logger = get_logger(__name__)
 
-
-class HealthStatus(Enum):
-    """Health status levels."""
-
-    HEALTHY = "healthy"
-    DEGRADED = "degraded"
-    UNHEALTHY = "unhealthy"
-    UNKNOWN = "unknown"
-
-
-@dataclass
-class HealthCheckResult:
-    """Result of a health check."""
-
-    status: HealthStatus
-    response_time_ms: float
-    timestamp: datetime
-    details: dict[str, Any] = field(default_factory=dict)
-    error_message: str | None = None
+# Backward compatibility alias
+HealthStatus = HealthStatusLevel
 
 
 @dataclass
@@ -72,41 +55,114 @@ class ModelHealth:
     performance_trend: str  # "improving", "stable", "degrading"
 
 
-class ModelHealthChecker:
+class ModelHealthChecker(BaseHealthMonitor):
     """
-    Comprehensive health monitoring for AI models and providers.
+    AI model and provider health monitoring implementation.
 
-    Monitors availability, performance, and error rates with
-    automated alerting and degradation detection.
+    Extends BaseHealthMonitor with AI-specific checks:
+    - Provider connectivity and functionality
+    - Model availability and performance
+    - Per-provider health tracking
+    - Model-specific metrics
     """
 
     def __init__(
         self,
         registry: ModelRegistry,
-        check_interval: int = 300,  # 5 minutes,
-        degradation_threshold: float = 0.8,  # 80% success rate,
-        unhealthy_threshold: float = 0.5,  # 50% success rate
+        check_interval: int = 300,
+        degradation_threshold: float = 0.8,
+        unhealthy_threshold: float = 0.5,
     ):
-        self.registry = (registry,)
-        self.check_interval = (check_interval,)
-        self.degradation_threshold = (degradation_threshold,)
+        """
+        Initialize model health checker.
+
+        Args:
+            registry: ModelRegistry instance for model access
+            check_interval: Seconds between health checks
+            degradation_threshold: Success rate threshold for degraded status
+            unhealthy_threshold: Success rate threshold for unhealthy status
+        """
+        # Initialize base class
+        super().__init__(
+            check_interval=check_interval,
+            max_history_size=100,
+            alert_thresholds={
+                "response_time_ms": 5000,  # AI models can be slower
+                "error_rate_percent": 20,  # Higher tolerance for AI errors
+                "consecutive_failures": 3,
+            },
+        )
+
+        # AI-specific attributes
+        self.registry = registry
+        self.degradation_threshold = degradation_threshold
         self.unhealthy_threshold = unhealthy_threshold
 
         self.cache = CacheManager("model_health")
 
-        # Health state storage,
-        self._provider_health: dict[str, ProviderHealth] = ({},)
+        # Provider and model-specific health tracking
+        self._provider_health: dict[str, ProviderHealth] = {}
         self._model_health: dict[str, ModelHealth] = {}
-
-        # Health check history,
-        self._health_history: dict[str, list[HealthCheckResult]] = {}
-
-        # Monitoring state,
-        self._monitoring_active = (False,)
+        self._provider_health_history: dict[str, list[HealthCheckResult]] = {}
         self._health_check_tasks: dict[str, asyncio.Task] = {}
 
-        # Health check configurations,
+        # Health check configurations
         self._health_check_configs = self._load_default_configs()
+
+    async def _perform_component_health_check_async(self) -> HealthCheckResult:
+        """
+        Perform AI model/provider health checks.
+
+        Checks all configured providers and aggregates results.
+
+        Returns:
+            HealthCheckResult with overall model health status
+        """
+        all_healthy = True
+        details = {}
+        errors = []
+
+        try:
+            # Get all providers from registry
+            providers = set()
+            for model_config in self.registry.config.models.values():
+                providers.add(model_config.provider)
+
+            # Check each provider
+            for provider in providers:
+                try:
+                    provider_health = await self.check_provider_health_async(provider)
+                    details[provider] = {
+                        "status": provider_health.status.value,
+                        "availability": provider_health.availability_percentage,
+                        "response_time_ms": provider_health.response_time_ms,
+                    }
+
+                    if provider_health.status != HealthStatusLevel.HEALTHY:
+                        all_healthy = False
+
+                except Exception as e:
+                    logger.error(f"Failed to check provider {provider}: {e}")
+                    errors.append(f"{provider}: {str(e)}")
+                    all_healthy = False
+
+            return HealthCheckResult(
+                healthy=all_healthy,
+                timestamp=datetime.utcnow(),
+                response_time_ms=0,  # Base class will set this
+                details={"providers": details},
+                errors=errors,
+            )
+
+        except Exception as e:
+            logger.error(f"Model health check failed: {e}")
+            return HealthCheckResult(
+                healthy=False,
+                timestamp=datetime.utcnow(),
+                response_time_ms=0,
+                details=details,
+                errors=[str(e)],
+            )
 
     def _load_default_configs(self) -> dict[str, dict[str, Any]]:
         """Load default health check configurations for different providers."""
@@ -136,29 +192,23 @@ class ModelHealthChecker:
 
     async def start_monitoring_async(self) -> None:
         """Start continuous health monitoring for all providers."""
-        if self._monitoring_active:
-            logger.warning("Health monitoring is already active")
-            return
+        # Start base monitoring
+        await super().start_monitoring_async()
 
-        self._monitoring_active = True
-
-        # Get all providers from registry
+        # Start per-provider monitoring tasks
         providers = set()
         for model_config in self.registry.config.models.values():
             providers.add(model_config.provider)
 
-        # Start monitoring tasks for each provider
         for provider in providers:
             task = asyncio.create_task(self._monitor_provider_health_async(provider))
             self._health_check_tasks[provider] = task
 
-        logger.info(f"Started health monitoring for {len(providers)} providers")
+        logger.info(f"Started provider-specific monitoring for {len(providers)} providers")
 
     async def stop_monitoring_async(self) -> None:
         """Stop health monitoring."""
-        self._monitoring_active = False
-
-        # Cancel all monitoring tasks
+        # Stop provider-specific monitoring
         for _provider, task in self._health_check_tasks.items():
             task.cancel()
             try:
@@ -167,7 +217,10 @@ class ModelHealthChecker:
                 pass
 
         self._health_check_tasks.clear()
-        logger.info("Stopped health monitoring")
+
+        # Stop base monitoring
+        await super().stop_monitoring_async()
+        logger.info("Stopped all health monitoring")
 
     async def _monitor_provider_health_async(self, provider: str) -> None:
         """Continuously monitor health for a specific provider."""

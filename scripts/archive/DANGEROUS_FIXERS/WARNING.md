@@ -34,6 +34,13 @@ These scripts use **regular expressions** to modify Python code structure. This 
 - **Files Affected**: 224 files modified in commit `ad9fba9`
 - **Documentation**: `claudedocs/active/incidents/type_hint_modernizer_incident.md`
 
+#### Incident 3: Autofix Print Replacement Risk (2025-10-04)
+- **Script**: `packages/hive-tests/src/hive_tests/autofix.py` (print fixer component)
+- **Pattern**: Regex-based print() → logger.info() replacement with manual parenthesis counting
+- **Risk**: Could modify string literals, comments, multiline expressions
+- **Status**: QUARANTINED before deployment (proactive safety measure)
+- **Documentation**: `claudedocs/autofix_safety_audit_2025_10_04.md`
+
 ---
 
 ## Quarantined Scripts
@@ -93,6 +100,40 @@ patterns = [
     (r"def (\w+)\(\):", r"def \1() -> None:")
 ]
 ```
+
+### 4. `autofix_components/autofix_with_regex_DANGEROUS.py`
+**Purpose**: Golden Rules autofix - print() → logger.info() replacement
+**Why Dangerous**:
+- Uses regex to find print statements: `r"(?<!\.)\bprint\s*\("`
+- Manual parenthesis counting via character iteration (lines 253-264)
+- Direct string replacement without AST validation
+- Could modify string literals, comments, docstrings
+
+**Catastrophic Patterns**:
+```python
+# Pattern that could corrupt code
+print_pattern = r"(?<!\.)\bprint\s*\("
+for match in re.finditer(print_pattern, content):
+    # Manual parenthesis counting - error prone!
+    paren_count = 0
+    # ... character-by-character parsing
+    modified_content = modified_content.replace(old_statement, new_statement)
+```
+
+**Risk Examples**:
+```python
+# BEFORE (valid)
+help_text = "Use print() for debug"
+# AFTER (BROKEN)
+help_text = "Use logger.info() for debug"  # Modified string literal!
+```
+
+**Safe Components** (can be extracted):
+- `_fix_async_naming()` - delegates to AST transformer
+- `_fix_exception_inheritance()` - uses AST parsing
+- Dry-run mode and backup system
+
+**Status**: Print fixer quarantined, safe components can be used
 
 ---
 
@@ -194,7 +235,8 @@ See `.claude/CLAUDE.md` - Section: "Automated Code-Fixing Scripts (CRITICAL)"
 
 ---
 
-**Last Updated**: 2025-10-03
-**Incident Count**: 2
-**Files Damaged Total**: 300+
-**Lessons**: NEVER use regex for structural code changes. ALWAYS use AST.
+**Last Updated**: 2025-10-04
+**Incident Count**: 2 (+ 1 prevented)
+**Files Damaged Total**: 300+ (from 2 incidents)
+**Files Protected**: Entire codebase (autofix quarantined before deployment)
+**Lessons**: NEVER use regex for structural code changes. ALWAYS use AST. Proactive safety audits prevent disasters.

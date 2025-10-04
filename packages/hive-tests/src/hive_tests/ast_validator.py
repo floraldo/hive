@@ -131,6 +131,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
         """Validate class definitions"""
         self._validate_error_handling_standards(node)
+        self._validate_health_check_pattern(node)
         self.generic_visit(node)
 
     # Rule implementations
@@ -347,6 +348,47 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                     f"Exception class {node.name} should inherit from BaseError or standard exceptions.",
                     severity="warning",  # Warn instead of error - inheritance chains are complex
                 )
+
+    def _validate_health_check_pattern(self, node: ast.ClassDef) -> None:
+        """Golden Rule 34: Health Check Pattern Consolidation (Project Essence)"""
+        # Check if this is a health monitoring class
+        health_indicators = ["Health", "health", "HealthCheck", "HealthMonitor", "HealthChecker"]
+
+        # Does the class name contain health-related terms?
+        is_health_class = any(indicator in node.name for indicator in health_indicators)
+
+        if not is_health_class:
+            return
+
+        # Check if it inherits from BaseHealthMonitor
+        inherits_from_base = any(
+            isinstance(base, ast.Name) and base.id == "BaseHealthMonitor"
+            or (isinstance(base, ast.Attribute) and base.attr == "BaseHealthMonitor")
+            for base in node.bases
+        )
+
+        # Allowed exceptions:
+        # 1. BaseHealthMonitor itself (canonical base)
+        # 2. HealthStatus/HealthCheckResult dataclasses (models, not monitors)
+        # 3. Classes in test files (test mocks/fixtures)
+        # 4. HealthManager (legacy K8s endpoint manager in hive-app-toolkit)
+        is_canonical_base = node.name == "BaseHealthMonitor"
+        is_data_model = node.name in ["HealthCheckResult", "HealthStatus", "HealthStatusLevel", "ProviderHealth", "ModelHealth", "PerformanceMetrics", "ComponentCheck"]
+        is_legacy_k8s_manager = node.name == "HealthManager"  # Will be migrated separately
+
+        if is_canonical_base or is_data_model or self.context.is_test_file or is_legacy_k8s_manager:
+            return
+
+        # If it's a health monitoring class and doesn't inherit from BaseHealthMonitor, that's a violation
+        if not inherits_from_base:
+            self.add_violation(
+                "rule-34",
+                "Health Check Pattern Consolidation",
+                node.lineno,
+                f"Health monitoring class '{node.name}' must inherit from BaseHealthMonitor. "
+                "Import: from hive_app_toolkit.api import BaseHealthMonitor",
+                severity="error",
+            )
 
     def _validate_async_naming(self, node) -> None:
         """Golden Rule 14: Async Pattern Consistency"""
