@@ -445,6 +445,9 @@ Thoughts:
             # Execute main logic
             result = await self._execute_main_logic_async(input_data)
 
+            # Smart context cleanup after execution
+            await self._manage_context_window(threshold=0.8)
+
             # Store result
             self.results.append(result)
             self.state = AgentState.COMPLETED
@@ -546,6 +549,74 @@ Thoughts:
             "short_term_keys": list(self.memory.short_term.keys()),
             "long_term_keys": list(self.memory.long_term.keys()),
         }
+
+    async def _manage_context_window(self, threshold: float = 0.8) -> None:
+        """
+        Smart context window management with archival.
+
+        When context usage exceeds threshold:
+        1. Extract oldest 20% of short-term memory
+        2. Archive to long-term memory with compressed summary
+        3. Clear archived items from short-term
+
+        Decision: Archive to long-term memory instead of RAG indexing
+        (RAG indexing happens automatically via task completion events)
+
+        Args:
+            threshold: Trigger cleanup when context usage exceeds this (0.0-1.0)
+        """
+        if not self.memory:
+            return
+
+        # Estimate current context usage (simplified token counting)
+        # In production, would use tiktoken or similar
+        short_term_size = len(str(self.memory.short_term))
+        episodic_size = len(str(self.memory.episodic))
+        conversation_size = len(str(self.memory.conversation))
+
+        total_estimated_tokens = (short_term_size + episodic_size + conversation_size) / 4  # rough estimate
+        max_tokens = self.config.max_tokens
+
+        context_usage = total_estimated_tokens / max_tokens
+
+        if context_usage <= threshold:
+            logger.debug(f"Context usage at {context_usage:.1%}, below threshold {threshold:.1%}")
+            return
+
+        logger.info(
+            f"Context usage at {context_usage:.1%}, exceeding threshold {threshold:.1%}. "
+            "Archiving oldest memories..."
+        )
+
+        # Extract oldest 20% of short-term memory
+        items_to_archive = list(self.memory.short_term.items())
+        archive_count = max(1, int(len(items_to_archive) * 0.2))
+        oldest_items = items_to_archive[:archive_count]
+
+        # Create compressed summary of archived items
+        archived_keys = [key for key, _ in oldest_items]
+        summary = f"Archived {len(oldest_items)} context items: {', '.join(archived_keys[:5])}"
+        if len(archived_keys) > 5:
+            summary += f" and {len(archived_keys) - 5} more"
+
+        # Move to long-term memory (compressed)
+        archive_data = {
+            "archived_at": datetime.utcnow().isoformat(),
+            "item_count": len(oldest_items),
+            "summary": summary,
+            "items": {key: str(value)[:100] for key, value in oldest_items}  # truncate values
+        }
+
+        self.memory.long_term["archived_context"] = archive_data
+
+        # Clear from short-term
+        for key, _ in oldest_items:
+            del self.memory.short_term[key]
+
+        logger.info(
+            f"Archived {archive_count} items to long-term memory. "
+            f"Short-term memory reduced from {len(items_to_archive)} to {len(self.memory.short_term)} items"
+        )
 
     async def export_state_async(self) -> dict[str, Any]:
         """Export agent state for persistence or debugging."""

@@ -91,7 +91,8 @@
       "Bash(fi)",
       "Bash(while read dir)",
       "Bash(do echo \"=== $dir ===\")",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(set_terminal_title \"CC test\")"
     ],
     "deny": [],
     "ask": []
