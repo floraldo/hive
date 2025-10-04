@@ -230,7 +230,7 @@ class TestIntelligenceAnalyzer:
                 continue
 
             # Extract package names
-            packages = list(set(test.split("/")[1] if "/" in test else "unknown" for test in affected_tests))
+            packages = list({test.split("/")[1] if "/" in test else "unknown" for test in affected_tests})
 
             patterns.append(
                 FailurePattern(
