@@ -11,7 +11,7 @@ Provides reusable recovery mechanisms that can be used
 to build resilient systems.
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 
 
@@ -31,6 +31,20 @@ class RecoveryStrategy(ABC):
     Provides fundamental recovery patterns that can be extended
     for any system's specific recovery needs.
     """
+
+    @abstractmethod
+    def attempt_recovery(self, error: Exception, context: dict | None = None) -> RecoveryStatus:
+        """
+        Attempt recovery from an error.
+
+        Args:
+            error: The exception to recover from
+            context: Optional context information
+
+        Returns:
+            RecoveryStatus indicating the outcome
+        """
+        pass
 
     def reset(self) -> None:
         """Reset recovery attempt counter"""
