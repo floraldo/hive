@@ -14,11 +14,17 @@ import json
 from typing import Any
 
 from hive_bus import BaseBus, BaseEvent
+from hive_errors import BaseError
 from hive_logging import get_logger
 
 from ..db.connection_pool import get_pooled_connection
-from ..errors.hive_exceptions import EventPublishError
 from .hive_events import AgentEvent, TaskEvent, WorkflowEvent
+
+
+class EventPublishError(BaseError):
+    """Error raised when event publishing fails."""
+
+    pass
 
 logger = get_logger(__name__)
 

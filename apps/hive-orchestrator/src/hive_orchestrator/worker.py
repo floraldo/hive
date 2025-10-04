@@ -31,7 +31,7 @@ from hive_logging import get_logger, setup_logging
 from hive_orchestrator.core import db as hive_core_db
 
 # Hive performance monitoring
-from hive_performance import track_adapter_request
+# from hive_performance import track_adapter_request  # TODO: Re-enable when available
 
 
 class WorkerCore:
@@ -543,7 +543,7 @@ CRITICAL PATH CONSTRAINT:
 
         return None
 
-    @track_adapter_request("claude_ai")
+    # @track_adapter_request("claude_ai")  # TODO: Re-enable when available
     def run_claude(self, prompt: str) -> dict[str, Any]:
         """Execute Claude with workspace-aware path handling"""
         if not self.claude_cmd:

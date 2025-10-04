@@ -146,6 +146,7 @@ from .operations import (
 
 # Import Chimera workflow
 from .workflows.chimera import ChimeraPhase, ChimeraWorkflow, create_chimera_task
+from .workflows.chimera_agents import create_chimera_agents_registry
 from .workflows.chimera_executor import ChimeraExecutor, create_and_execute_chimera_workflow
 
 __all__ = [
@@ -194,6 +195,7 @@ __all__ = [
     "ChimeraExecutor",
     "create_chimera_task",
     "create_and_execute_chimera_workflow",
+    "create_chimera_agents_registry",
 ]
 
 __version__ = "1.0.0"
