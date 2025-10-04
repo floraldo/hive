@@ -5,9 +5,9 @@ Provides statistical analysis, trend detection, flaky test identification,
 and failure pattern clustering.
 """
 import re
-from collections import Counter, defaultdict
+from collections import defaultdict
 from datetime import datetime, timedelta
-from statistics import mean, stdev
+from statistics import mean
 from typing import Any
 
 from .models import FailurePattern, FlakyTestResult, PackageHealthReport, TestResult, TestStatus

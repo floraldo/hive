@@ -4,12 +4,9 @@ Pytest plugin for collecting test execution data.
 Hooks into pytest execution to capture comprehensive test results
 and store them in the test intelligence database.
 """
-import os
 import subprocess
 from datetime import datetime
 from pathlib import Path
-
-import pytest
 
 from .models import TestResult, TestRun, TestStatus, TestType
 from .storage import TestIntelligenceStorage

@@ -4,12 +4,15 @@ SQLite storage layer for test intelligence data.
 Provides persistence for test runs, results, and analytics.
 """
 import json
+import logging
 import sqlite3
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
-from .models import FailurePattern, FlakyTestResult, PackageHealthReport, TestResult, TestRun
+from .models import TestResult, TestRun
+
+logger = logging.getLogger(__name__)
 
 
 class TestIntelligenceStorage:
@@ -26,11 +29,30 @@ class TestIntelligenceStorage:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_schema()
 
-    def _get_connection(self) -> sqlite3.Connection:
-        """Create database connection with optimizations."""
-        conn = sqlite3.Connection(str(self.db_path))
-        conn.row_factory = sqlite3.Row
-        return conn
+    @contextmanager
+    def _get_connection(self):
+        """
+        Create database connection with optimizations and proper cleanup.
+
+        Uses context manager for automatic connection cleanup and transaction management.
+        """
+        conn = None
+        try:
+            conn = sqlite3.Connection(str(self.db_path), timeout=30.0)
+            conn.row_factory = sqlite3.Row
+            conn.execute("PRAGMA journal_mode=WAL")
+            conn.execute("PRAGMA synchronous=NORMAL")
+            conn.execute("PRAGMA foreign_keys=ON")
+            conn.execute("PRAGMA cache_size=-64000")
+            yield conn
+        except sqlite3.Error as e:
+            logger.error(f"Database error: {e}")
+            if conn:
+                conn.rollback()
+            raise
+        finally:
+            if conn:
+                conn.close()
 
     def _init_schema(self) -> None:
         """Initialize database schema."""

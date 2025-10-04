@@ -16,13 +16,12 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from hive_cache import CacheManager
-from hive_logging import get_logger
-
 from hive_ai.core.exceptions import AIError
 from hive_ai.models.client import ModelClient
 from hive_ai.observability.metrics import AIMetricsCollector
 from hive_ai.prompts.template import PromptTemplate
+from hive_cache import CacheManager
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -227,19 +226,17 @@ Thoughts:
             # Search all memory types,
             if key in self.memory.short_term:
                 return self.memory.short_term[key]
-            elif key in self.memory.long_term:
+            if key in self.memory.long_term:
                 return self.memory.long_term[key]
-            else:
-                return f"Key '{key}' not found in memory"
+            return f"Key '{key}' not found in memory"
 
-        elif memory_type == "short_term":
+        if memory_type == "short_term":
             return self.memory.short_term.get(key, f"Key '{key}' not found in short-term memory")
 
-        elif memory_type == "long_term":
+        if memory_type == "long_term":
             return self.memory.long_term.get(key, f"Key '{key}' not found in long-term memory")
 
-        else:
-            return f"Unknown memory type: {memory_type}"
+        return f"Unknown memory type: {memory_type}"
 
     async def _search_long_term_memory_async(
         self,
@@ -263,7 +260,7 @@ Thoughts:
             Let me search_long_term_memory('database migration patterns')"
         """
         # Check if context service is available
-        if not hasattr(self, 'context_service') or self.context_service is None:
+        if not hasattr(self, "context_service") or self.context_service is None:
             return "Long-term memory not available for this agent. Context service not initialized."
 
         try:
@@ -281,7 +278,7 @@ Thoughts:
             return results
 
         except Exception as e:
-            error_msg = f"Failed to search long-term memory: {str(e)}"
+            error_msg = f"Failed to search long-term memory: {e!s}"
             logger.error(error_msg)
             return error_msg
 
@@ -317,7 +314,7 @@ Thoughts:
             return result
 
         except Exception as e:
-            error_msg = f"Tool '{tool_name}' failed: {str(e)}"
+            error_msg = f"Tool '{tool_name}' failed: {e!s}"
             self.errors.append(error_msg)
             logger.error(error_msg)
             raise AIError(error_msg) from e
@@ -377,7 +374,7 @@ Thoughts:
 
         except Exception as e:
             self.state = (AgentState.FAILED,)
-            error_msg = f"Agent initialization failed: {str(e)}"
+            error_msg = f"Agent initialization failed: {e!s}"
             self.errors.append(error_msg)
             logger.error(error_msg)
             raise AIError(error_msg) from e
@@ -385,7 +382,6 @@ Thoughts:
     @abstractmethod
     async def _initialize_impl_async(self) -> None:
         """Implementation-specific initialization logic."""
-        pass
 
     async def run_async(self, input_data: Any | None = None) -> Any:
         """
@@ -421,12 +417,12 @@ Thoughts:
 
             # INITIAL CONTEXT INJECTION (Decision 1-C: Hybrid Dynamic Retrieval)
             # Push task-relevant context before execution begins
-            if self.context_service and isinstance(input_data, dict) and 'task_id' in input_data:
+            if self.context_service and isinstance(input_data, dict) and "task_id" in input_data:
                 try:
                     initial_context = await self.context_service.get_context_for_task(
-                        task_id=input_data['task_id'],
-                        task=input_data.get('task'),
-                        mode='fast'  # Decision 3-C: Fast mode by default
+                        task_id=input_data["task_id"],
+                        task=input_data.get("task"),
+                        mode="fast"  # Decision 3-C: Fast mode by default
                     )
 
                     # Inject context into agent memory
@@ -468,7 +464,7 @@ Thoughts:
         except Exception as e:
             self.state = AgentState.FAILED
             self.end_time = datetime.utcnow()
-            error_msg = f"Agent execution failed: {str(e)}"
+            error_msg = f"Agent execution failed: {e!s}"
             self.errors.append(error_msg)
 
             # End metrics tracking with failure
@@ -491,7 +487,6 @@ Thoughts:
     @abstractmethod
     async def _execute_main_logic_async(self, input_data: Any | None = None) -> Any:
         """Implementation-specific execution logic."""
-        pass
 
     async def pause_async(self) -> None:
         """Pause agent execution."""

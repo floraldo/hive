@@ -13,11 +13,11 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
-
-from hive_logging import get_logger
+from typing import Any
 
 from hive_ai.core.exceptions import AIError
+from hive_logging import get_logger
+
 from hive_agent_runtime.agent import BaseAgent
 
 logger = get_logger(__name__)
@@ -63,7 +63,7 @@ class TaskDependency:
 
     task_id: str
     dependency_type: str = "completion"  # completion, output, custom
-    condition: Optional[Callable[[TaskResult], bool]] = None
+    condition: Callable[[TaskResult], bool] | None = None
 
 
 @dataclass
@@ -110,7 +110,7 @@ class BaseTask(ABC):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[dict[str, TaskResult]] = None
+        dependency_results: dict[str, TaskResult] | None = None
     ) -> TaskResult:
         """
         Execute the task using the provided agent.
@@ -126,7 +126,6 @@ class BaseTask(ABC):
         Raises:
             AIError: Task execution failed,
         """
-        pass
 
     def can_execute(self, completed_tasks: dict[str, TaskResult]) -> bool:
         """
@@ -148,10 +147,9 @@ class BaseTask(ABC):
             if dependency.condition:
                 if not dependency.condition(task_result):
                     return False
-            else:
-                # Default: dependency must be completed successfully
-                if task_result.status != TaskStatus.COMPLETED:
-                    return False
+            # Default: dependency must be completed successfully
+            elif task_result.status != TaskStatus.COMPLETED:
+                return False
 
         return True
 
@@ -167,7 +165,7 @@ class BaseTask(ABC):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[dict[str, TaskResult]] = None
+        dependency_results: dict[str, TaskResult] | None = None
     ) -> TaskResult:
         """Execute task with retry logic."""
         last_error = None
@@ -254,7 +252,7 @@ class PromptTask(BaseTask):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[dict[str, TaskResult]] = None
+        dependency_results: dict[str, TaskResult] | None = None
     ) -> TaskResult:
         """Execute the prompt task."""
         try:
@@ -297,7 +295,7 @@ class PromptTask(BaseTask):
                 duration_seconds=duration
             )
 
-    def _build_prompt(self, input_data: Any | None, dependency_results: Optional[dict[str, TaskResult]]) -> str:
+    def _build_prompt(self, input_data: Any | None, dependency_results: dict[str, TaskResult] | None) -> str:
         """Build the final prompt with input data and dependency results."""
         prompt_parts = [self.prompt]
 
@@ -333,11 +331,10 @@ class PromptTask(BaseTask):
             output_lower = output.strip().lower()
             if output_lower in ["true", "yes", "1", "correct"]:
                 return True
-            elif output_lower in ["false", "no", "0", "incorrect"]:
+            if output_lower in ["false", "no", "0", "incorrect"]:
                 return False
-            else:
-                logger.warning(f"Failed to parse boolean output for task {self.id}")
-                return output
+            logger.warning(f"Failed to parse boolean output for task {self.id}")
+            return output
 
         # Default: return as text
         return output.strip()
@@ -358,7 +355,7 @@ class ToolTask(BaseTask):
         self,
         agent: BaseAgent,
         input_data: Any | None = None,
-        dependency_results: Optional[dict[str, TaskResult]] = None
+        dependency_results: dict[str, TaskResult] | None = None
     ) -> TaskResult:
         """Execute the tool sequence."""
         try:
@@ -565,7 +562,7 @@ class TaskBuilder:
         description: str = "",
         priority: TaskPriority = TaskPriority.NORMAL,
         expected_output_type: str = "text",
-        dependencies: Optional[List[str]] = None
+        dependencies: List[str] | None = None
     ) -> PromptTask:
         """Create a prompt-based task."""
         task_deps = []
@@ -587,7 +584,7 @@ class TaskBuilder:
         tool_sequence: List[dict[str, Any]],
         description: str = "",
         priority: TaskPriority = TaskPriority.NORMAL,
-        dependencies: Optional[List[str]] = None
+        dependencies: List[str] | None = None
     ) -> ToolTask:
         """Create a tool-based task."""
         task_deps = []
@@ -609,7 +606,7 @@ class TaskBuilder:
 
     @staticmethod
     def create_analysis_task(
-        name: str, analysis_prompt: str, data_source: str, dependencies: Optional[List[str]] = None
+        name: str, analysis_prompt: str, data_source: str, dependencies: List[str] | None = None
     ) -> PromptTask:
         """Create a data analysis task."""
         full_prompt = f""",

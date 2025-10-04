@@ -9,12 +9,12 @@ from pathlib import Path
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
-
 from hive_agent_runtime.agent import AgentConfig, AgentState, BaseAgent, SimpleTaskAgent
 from hive_agent_runtime.task import PromptTask, TaskConfig
 from hive_agent_runtime.workflow import ExecutionStrategy, WorkflowConfig, WorkflowOrchestrator, WorkflowStatus
+from hypothesis import given, settings
+from hypothesis import strategies as st
+
 from hive_ai.core.exceptions import AIError, PromptError
 from hive_ai.prompts.optimizer import OptimizationResult, OptimizationStrategy, PromptOptimizer
 from hive_ai.prompts.registry import PromptRegistry

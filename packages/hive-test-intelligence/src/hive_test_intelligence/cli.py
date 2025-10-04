@@ -110,7 +110,7 @@ def cmd_flaky(args):
         console.print(f"   Passed: [green]{flaky.passed_runs}[/green] | Failed: [red]{flaky.failed_runs}[/red] | Errors: [red]{flaky.error_runs}[/red]")
 
         if flaky.error_messages:
-            console.print(f"   Recent Errors:")
+            console.print("   Recent Errors:")
             for msg in flaky.error_messages[:2]:  # Show first 2 error messages
                 console.print(f"     • {msg[:100]}...")
         console.print()
@@ -217,7 +217,7 @@ def cmd_patterns(args):
         if pattern.suggested_root_cause:
             console.print(f"   [yellow]Suggested Cause: {pattern.suggested_root_cause}[/yellow]")
 
-        console.print(f"   Tests:")
+        console.print("   Tests:")
         for test in pattern.affected_tests[:5]:  # Show first 5
             console.print(f"     • {test}")
         if len(pattern.affected_tests) > 5:

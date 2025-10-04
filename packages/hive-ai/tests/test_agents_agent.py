@@ -6,7 +6,6 @@ from datetime import datetime
 from unittest.mock import AsyncMock, Mock
 
 import pytest
-
 from hive_agent_runtime.agent import (
     AgentConfig,
     AgentMemory,
@@ -16,6 +15,7 @@ from hive_agent_runtime.agent import (
     BaseAgent,
     SimpleTaskAgent,
 )
+
 from hive_ai.core.exceptions import AIError
 
 

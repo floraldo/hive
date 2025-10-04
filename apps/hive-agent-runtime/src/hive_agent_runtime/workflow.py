@@ -12,14 +12,14 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
-
-from hive_cache import CacheManager
-from hive_logging import get_logger
+from typing import Any
 
 from hive_ai.core.exceptions import AIError
 from hive_ai.models.client import ModelClient
 from hive_ai.observability.metrics import AIMetricsCollector
+from hive_cache import CacheManager
+from hive_logging import get_logger
+
 from hive_agent_runtime.agent import AgentMessage, AgentState, BaseAgent
 from hive_agent_runtime.task import BaseTask, TaskSequence
 
@@ -168,7 +168,7 @@ class WorkflowOrchestrator:
         agent_id: str,
         task_id: str | None = None,
         task_sequence_id: str | None = None,
-        dependencies: Optional[List[str]] = None,
+        dependencies: List[str] | None = None,
         timeout_seconds: int = 300
     ) -> str:
         """Create and add a workflow step."""
@@ -202,7 +202,7 @@ class WorkflowOrchestrator:
 
         except Exception as e:
             self.status = WorkflowStatus.FAILED
-            error_msg = f"Workflow initialization failed: {str(e)}"
+            error_msg = f"Workflow initialization failed: {e!s}"
             logger.error(error_msg)
             raise AIError(error_msg) from e
 
@@ -386,7 +386,7 @@ class WorkflowOrchestrator:
         except Exception as e:
             self.status = WorkflowStatus.FAILED
             self.end_time = datetime.utcnow()
-            error_msg = f"Workflow execution failed: {str(e)}"
+            error_msg = f"Workflow execution failed: {e!s}"
 
             # End metrics tracking with failure
             if self.metrics and operation_id:
@@ -486,7 +486,7 @@ class WorkflowOrchestrator:
             logger.error(error_msg)
 
         except Exception as e:
-            error_msg = f"Step {step_id} failed: {str(e)}"
+            error_msg = f"Step {step_id} failed: {e!s}"
             self.step_results[step_id] = {"error": error_msg, "status": "failed"}
             self.failed_steps.add(step_id)
             logger.error(error_msg)
