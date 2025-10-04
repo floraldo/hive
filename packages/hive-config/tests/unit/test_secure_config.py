@@ -107,8 +107,8 @@ API_TOKEN=encrypted-token
         # Load encrypted config
         config = self.loader.load_config(encrypted_path)
 
-        assert config["SECRET_KEY"] == "encrypted-secret"
-        assert config["API_TOKEN"] == "encrypted-token"
+        assert config["SECRET_KEY"] == "encrypted-secret"  # noqa: S105
+        assert config["API_TOKEN"] == "encrypted-token"  # noqa: S105
 
     def test_load_config_with_comments(self):
         """Test loading configuration with comments and empty lines"""
@@ -252,5 +252,5 @@ class TestSecureConfigIntegration:
 
             assert config["DATABASE_URL"] == "postgresql://prod:secret@db.prod/app"
             assert config["API_KEY"] == "prod-api-key-secret"
-            assert config["SECRET_KEY"] == "prod-secret-key"
+            assert config["SECRET_KEY"] == "prod-secret-key"  # noqa: S105
             assert config["DEBUG"] == "false"

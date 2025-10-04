@@ -30,7 +30,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     if config:
         app.config.update(config)
     else:
-        app.config["SECRET_KEY"] = "ecosystemiser-reporting-key"
+        app.config["SECRET_KEY"] = "ecosystemiser-reporting-key"  # noqa: S105
         app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
 
     # Initialize services
