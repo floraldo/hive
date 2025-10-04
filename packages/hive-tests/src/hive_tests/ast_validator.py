@@ -132,6 +132,7 @@ class GoldenRuleVisitor(ast.NodeVisitor):
         """Validate class definitions"""
         self._validate_error_handling_standards(node)
         self._validate_health_check_pattern(node)
+        self._validate_exception_consolidation_pattern(node)
         self.generic_visit(node)
 
     # Rule implementations
@@ -389,6 +390,68 @@ class GoldenRuleVisitor(ast.NodeVisitor):
                 "Import: from hive_app_toolkit.api import BaseHealthMonitor",
                 severity="error",
             )
+
+    def _validate_exception_consolidation_pattern(self, node: ast.ClassDef) -> None:
+        """Golden Rule 35: Exception Pattern Consolidation (Project Essence)"""
+        # Check if this is an exception class
+        is_exception_class = any(
+            (isinstance(base, ast.Name) and base.id.endswith(("Error", "Exception")))
+            or (isinstance(base, ast.Attribute) and base.attr.endswith(("Error", "Exception")))
+            for base in node.bases
+        )
+
+        if not is_exception_class:
+            return
+
+        # Allowed exceptions:
+        # 1. Canonical bases in hive-errors (BaseError, ConnectionError, etc.)
+        # 2. Domain-specific exceptions that add context (AIError with model/provider)
+        # 3. Test mocks/fixtures
+        # 4. Backward compatibility aliases
+
+        # Check if in canonical exceptions file
+        is_canonical = "hive-errors" in str(self.context.path) and "base_exceptions.py" in str(self.context.path)
+
+        # Check if it's a legitimate domain extension (adds custom __init__ with domain fields)
+        has_custom_init = False
+        adds_domain_fields = False
+
+        for item in node.body:
+            if isinstance(item, ast.FunctionDef) and item.name == "__init__":
+                has_custom_init = True
+                # Check if it has parameters beyond message/component/operation
+                # Domain extensions like AIError(model, provider) or CostLimitError(current_cost, limit)
+                if len(item.args.args) > 3:  # self + message + at least 2 domain-specific params
+                    adds_domain_fields = True
+                break
+
+        is_domain_extension = has_custom_init and adds_domain_fields
+
+        # Test files can have custom exceptions
+        if self.context.is_test_file:
+            return
+
+        # Canonical exceptions and domain extensions are allowed
+        if is_canonical or is_domain_extension:
+            return
+
+        # Check for redundant exception pattern - component-specific without domain value
+        if "Error" in node.name and not is_domain_extension and not is_canonical:
+            # Check if name suggests component-specific exception (e.g., XxxConnectionError, XxxTimeoutError)
+            component_specific_suffixes = ["ConnectionError", "TimeoutError", "ValidationError", "ConfigurationError", "CircuitBreakerError"]
+
+            for suffix in component_specific_suffixes:
+                if node.name.endswith(suffix) and node.name != suffix:
+                    component = node.name.replace(suffix, "")
+                    self.add_violation(
+                        "rule-35",
+                        "Exception Pattern Consolidation",
+                        node.lineno,
+                        f"Component-specific exception '{node.name}' should use generic {suffix}(component='{component.lower()}'). "
+                        "Import from hive_errors: from hive_errors import ConnectionError, TimeoutError, etc.",
+                        severity="warning",  # Warning during migration period
+                    )
+                    break
 
     def _validate_async_naming(self, node) -> None:
         """Golden Rule 14: Async Pattern Consistency"""

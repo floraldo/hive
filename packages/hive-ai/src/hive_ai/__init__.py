@@ -1,7 +1,3 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
-
 """
 Hive AI - Advanced AI/ML Infrastructure for the Hive Platform
 
@@ -16,9 +12,13 @@ Built on the Hive platform's unassailable architecture for maximum
 reliability, performance, and maintainability.
 """
 
+from hive_logging import get_logger
+
 # Resilience - use canonical hive-async patterns
 from hive_async.resilience import AsyncCircuitBreaker as AICircuitBreaker
 from hive_async.resilience import AsyncTimeoutManager as AITimeoutManager
+
+logger = get_logger(__name__)
 
 from .core.config import AIConfig, ModelConfig, PromptConfig, VectorConfig
 from .core.exceptions import AIError, CostLimitError, ModelError, ModelUnavailableError, PromptError, VectorError

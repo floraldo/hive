@@ -6,7 +6,7 @@ from pathlib import Path
 from guardian_agent.core.interfaces import AnalysisResult, Severity, Suggestion, Violation, ViolationType
 from hive_logging import get_logger
 from hive_tests.ast_validator import EnhancedValidator as ASTValidator
-from hive_tests.autofix import GoldenRulesAutoFixer
+from hive_tests.safe_autofix import SafeGoldenRulesAutoFixer
 
 logger = get_logger(__name__)
 
@@ -15,13 +15,14 @@ class GoldenRulesAnalyzer:
     """
     Analyzes code against the Hive platform's Golden Rules.
 
-    Integrates with the existing AST-based validator and autofix capabilities.
+    Integrates with the existing AST-based validator and SAFE autofix capabilities.
+    Uses only AST-based transformations (NO REGEX code modification).
     """
 
     def __init__(self) -> None:
-        """Initialize the Golden Rules analyzer."""
+        """Initialize the Golden Rules analyzer with SAFE autofix."""
         self.validator = ASTValidator(project_root=Path("."))
-        self.autofixer = GoldenRulesAutoFixer(project_root=Path("."), dry_run=True)
+        self.autofixer = SafeGoldenRulesAutoFixer(project_root=Path("."), dry_run=True)
 
         # Map Golden Rules to severity levels
         self.severity_map = {

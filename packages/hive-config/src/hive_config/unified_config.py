@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from hive_logging import get_logger
 
+from .package_defaults import discover_package_defaults, map_package_defaults_to_hive_config
 logger = get_logger(__name__)
 
 
@@ -285,11 +286,19 @@ class HiveConfig(BaseModel):
 
         return errors
 
-
 # Configuration loading utilities for dependency injection
-def create_config_from_sources(config_path: Path | None = None, use_environment: bool = True) -> HiveConfig:
+def create_config_from_sources(
+    config_path: Path | None = None,
+    use_environment: bool = True,
+    use_package_defaults: bool = True
+) -> HiveConfig:
     """
-    Create a Hive configuration instance from various sources
+    Create a Hive configuration instance from various sources.
+
+    Configuration hierarchy (lowest to highest precedence):
+    1. Package defaults (config.defaults.toml in each hive-* package)
+    2. User config file (hive_config.json or specified path)
+    3. Environment variables (HIVE_* prefixed)
 
     This replaces the global singleton pattern with a pure function
     that can be used for dependency injection.
@@ -297,13 +306,28 @@ def create_config_from_sources(config_path: Path | None = None, use_environment:
     Args:
         config_path: Optional path to configuration file
         use_environment: Whether to override with environment variables
+        use_package_defaults: Whether to load package-level defaults (Layer 1)
 
     Returns:
         HiveConfig instance
     """
-    # Try to load from file first
+    config_data = {}
+
+    # Layer 1: Package-level defaults (lowest precedence)
+    if use_package_defaults:
+        try:
+            package_defaults = discover_package_defaults()
+            if package_defaults:
+                mapped_defaults = map_package_defaults_to_hive_config(package_defaults)
+                config_data = mapped_defaults
+                logger.debug(f"Loaded package defaults: {list(package_defaults.keys())}")
+        except Exception as e:
+            logger.warning(f"Failed to load package defaults: {e}")
+
+    # Layer 2: User config file (medium precedence)
+    file_config = None
     if config_path and config_path.exists():
-        config = HiveConfig.from_file(config_path)
+        file_config = HiveConfig.from_file(config_path)
     else:
         # Look for default config locations
         default_paths = [
@@ -312,16 +336,21 @@ def create_config_from_sources(config_path: Path | None = None, use_environment:
             Path.home() / ".hive" / "config.json",
         ]
 
-        config = None
         for path in default_paths:
             if path.exists():
-                config = HiveConfig.from_file(path)
+                file_config = HiveConfig.from_file(path)
                 break
 
-        if config is None:
-            config = HiveConfig()
+    # Merge file config over package defaults
+    if file_config:
+        for key, value in file_config.dict(exclude_unset=True).items():
+            if value is not None:
+                config_data[key] = value
 
-    # Override with environment variables if requested
+    # Create config from merged data
+    config = HiveConfig(**config_data) if config_data else HiveConfig()
+
+    # Layer 3: Environment variables (highest precedence)
     if use_environment:
         env_config = HiveConfig.from_environment()
         # Merge environment config with file config

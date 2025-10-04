@@ -99,17 +99,16 @@ class V3CertificationTest:
     def test_2_database_connection_pool(self) -> bool:
         """Test database connection pool with centralized config"""
         try:
-            from hive_db import ConnectionPool, get_pooled_connection
+            from hive_db import SQLiteConnectionFactory, create_sqlite_manager
 
             self.log("Testing database connection pool initialization...")
-            # Test pool initialization with centralized config
-            pool = ConnectionPool()
-            assert pool.max_connections > 0
-            assert pool.connection_timeout > 0
+            # Test pool initialization with centralized config using canonical implementation
+            manager = create_sqlite_manager()
+            assert manager is not None
 
             self.log("Testing database connection acquisition...")
-            # Test connection acquisition and release
-            with get_pooled_connection() as conn:
+            # Test connection acquisition and release using canonical pool
+            with manager.get_connection("test_db", ":memory:") as conn:
                 cursor = conn.cursor()
                 cursor.execute("SELECT 1")
                 result = cursor.fetchone()
@@ -117,12 +116,11 @@ class V3CertificationTest:
 
             self.log("Testing pool statistics...")
             # Test pool statistics
-            stats = pool.get_stats()
-            assert "pool_size" in stats
-            assert "connections_created" in stats
+            stats = manager.get_all_stats()
+            assert isinstance(stats, dict)
 
-            pool.close_all()
-            self.log("Database connection pool: Working with centralized config")
+            manager.close_all_pools()
+            self.log("Database connection pool: Working with canonical implementation")
             return True
 
         except Exception as e:

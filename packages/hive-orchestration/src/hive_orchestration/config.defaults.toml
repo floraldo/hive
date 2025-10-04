@@ -1,0 +1,39 @@
+# Hive Orchestration Package - Default Configuration
+# This file is passively loaded by hive-config's unified loader
+# Package code should NEVER read this file directly
+
+[orchestration]
+poll_interval = 5
+worker_timeout = 600
+max_parallel_workers = 4
+heartbeat_interval = 30
+zombie_task_threshold = 3600
+
+[phase_timeouts]
+analysis = 300
+design = 600
+implementation = 900
+testing = 600
+validation = 300
+review = 180
+
+[worker]
+backend_enabled = true
+frontend_enabled = true
+infra_enabled = true
+app_workers_enabled = true
+max_retries_per_task = 3
+output_capture = true
+live_output = false
+
+[queue]
+max_queue_size = 100
+priority_levels = 5
+enable_task_dependencies = true
+enable_task_scheduling = true
+
+[monitoring]
+track_task_metrics = true
+track_worker_metrics = true
+log_task_events = true
+metrics_retention_days = 30

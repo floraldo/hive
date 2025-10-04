@@ -31,6 +31,7 @@ from .architectural_validators import (
     validate_single_config_source,
 )
 from .ast_validator import EnhancedValidator, GoldenRuleVisitor, Violation
+from .safe_autofix import AutofixResult, SafeGoldenRulesAutoFixer
 
 __all__ = [
     # Original validators
@@ -57,4 +58,7 @@ __all__ = [
     "EnhancedValidator",
     "GoldenRuleVisitor",
     "Violation",
+    # Safe autofix (AST-ONLY, no regex)
+    "SafeGoldenRulesAutoFixer",
+    "AutofixResult",
 ]

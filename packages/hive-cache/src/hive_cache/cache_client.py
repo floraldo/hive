@@ -8,7 +8,7 @@ import json
 import time
 from collections.abc import AsyncGenerator, Callable
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 import msgpack
 import orjson

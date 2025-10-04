@@ -1,0 +1,36 @@
+# Hive Logging Package - Default Configuration
+# This file is passively loaded by hive-config's unified loader
+# Package code should NEVER read this file directly
+
+[logging]
+level = "INFO"
+format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+date_format = "%Y-%m-%d %H:%M:%S"
+
+[file]
+enabled = true
+directory = "hive/logs"
+max_file_size = 10485760  # 10MB
+backup_count = 5
+rotation = "size"  # or "time"
+
+[console]
+enabled = true
+colorized = true
+show_thread = false
+show_process = false
+
+[structured]
+enabled = true
+format_json = true
+include_context = true
+include_caller = true
+
+[performance]
+async_enabled = false
+buffer_size = 1000
+flush_interval = 5.0
+
+[filters]
+exclude_modules = []
+min_level_override = {}  # module -> level mapping

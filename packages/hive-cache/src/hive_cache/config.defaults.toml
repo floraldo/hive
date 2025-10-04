@@ -1,0 +1,50 @@
+# Hive Cache Package - Default Configuration
+# This file is passively loaded by hive-config's unified loader
+# Package code should NEVER read this file directly
+
+[redis]
+url = "redis://localhost:6379/0"
+max_connections = 20
+socket_keepalive = true
+socket_connect_timeout = 5.0
+socket_timeout = 5.0
+response_timeout = 5.0
+
+[circuit_breaker]
+enabled = true
+threshold = 5
+timeout = 60.0
+recovery_timeout = 30.0
+
+[ttl]
+default = 3600  # 1 hour
+max = 604800    # 7 days
+min = 60        # 1 minute
+
+[performance]
+compression_enabled = true
+compression_threshold = 1024  # bytes
+compression_level = 6
+serialization_format = "orjson"
+enable_json_fallback = true
+
+[monitoring]
+health_check_enabled = true
+health_check_interval = 30.0
+metrics_enabled = true
+performance_monitoring = true
+performance_monitor_interval = 5.0
+
+[keys]
+prefix = "hive:"
+separator = ":"
+max_length = 250
+
+[namespaces.claude]
+namespace = "claude"
+default_ttl = 3600
+max_response_size = 1048576  # 1MB
+
+[namespaces.performance]
+namespace = "perf"
+default_ttl = 86400

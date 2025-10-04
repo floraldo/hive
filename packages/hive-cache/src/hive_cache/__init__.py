@@ -20,7 +20,8 @@ from .exceptions import (
     CacheSerializationError,
     CacheTimeoutError,
 )
-from .health import CacheHealthMonitor
+
+# TEMP: from .health import CacheHealthMonitor
 from .performance_cache import PerformanceCache
 
 logger = get_logger(__name__)
@@ -37,7 +38,7 @@ __all__ = [
     "CacheConfig",
     "ClaudeAPICache",
     "PerformanceCache",
-    "CacheHealthMonitor",
+    # "CacheHealthMonitor",  # TEMP: Disabled
     "CacheError",
     "CacheConnectionError",
     "CacheTimeoutError",

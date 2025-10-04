@@ -1,0 +1,39 @@
+# Hive Performance Package - Default Configuration
+# This file is passively loaded by hive-config's unified loader
+# Package code should NEVER read this file directly
+
+[monitoring]
+enabled = true
+sampling_rate = 1.0  # 100% sampling
+aggregation_interval = 60.0
+
+[metrics]
+track_cpu = true
+track_memory = true
+track_io = true
+track_network = false
+collection_interval = 5.0
+
+[profiling]
+enabled = false  # Disabled by default for production
+profile_memory = false
+profile_cpu = false
+output_directory = "hive/profiling"
+
+[alerting]
+enabled = true
+cpu_threshold = 80.0
+memory_threshold = 80.0
+disk_threshold = 90.0
+alert_cooldown = 300.0
+
+[caching]
+cache_metrics = true
+cache_ttl = 300
+max_cache_size = 10000
+
+[export]
+enabled = false
+export_format = "json"
+export_interval = 300.0
+export_path = "hive/metrics"

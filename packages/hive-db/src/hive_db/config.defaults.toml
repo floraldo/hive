@@ -1,0 +1,40 @@
+# Hive DB Package - Default Configuration
+# This file is passively loaded by hive-config's unified loader
+# Package code should NEVER read this file directly
+
+[connection]
+# SQLite defaults
+timeout = 30.0
+check_same_thread = false
+isolation_level = "DEFERRED"
+
+[pool]
+min_connections = 2
+max_connections = 10
+connection_timeout = 30
+max_retries = 3
+
+[sqlite]
+journal_mode = "WAL"
+synchronous = "NORMAL"
+cache_size = 10000
+temp_store = "MEMORY"
+mmap_size = 268435456  # 256MB
+page_size = 4096
+
+[performance]
+enable_wal = true
+enable_foreign_keys = true
+enable_query_cache = true
+busy_timeout = 5000
+
+[backup]
+enabled = true
+backup_on_close = false
+backup_interval_hours = 24
+keep_backups = 7
+
+[monitoring]
+track_connection_stats = true
+log_slow_queries = true
+slow_query_threshold_ms = 1000

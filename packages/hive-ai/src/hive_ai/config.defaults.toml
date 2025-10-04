@@ -1,0 +1,40 @@
+# Hive AI Package - Default Configuration
+# This file is passively loaded by hive-config's unified loader
+# Package code should NEVER read this file directly
+
+[claude]
+mock_mode = false
+timeout = 120
+max_retries = 3
+model_name = "claude-3-5-sonnet-20241022"
+use_dangerously_skip_permissions = true
+fallback_enabled = true
+
+[rate_limits]
+requests_per_minute = 50
+concurrent_requests = 5
+burst_limit = 10
+
+[caching]
+enabled = true
+cache_responses = true
+cache_ttl = 3600
+cache_max_size = 1000
+
+[prompt]
+max_tokens = 4096
+temperature = 0.7
+top_p = 0.95
+max_context_length = 200000
+
+[retry]
+initial_delay = 1.0
+max_delay = 60.0
+exponential_base = 2.0
+jitter = true
+
+[monitoring]
+track_token_usage = true
+track_latency = true
+log_requests = true
+log_responses = false  # Avoid logging sensitive data

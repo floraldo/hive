@@ -1,0 +1,32 @@
+# Hive Bus Package - Default Configuration
+# This file is passively loaded by hive-config's unified loader
+# Package code should NEVER read this file directly
+
+[bus]
+async_enabled = true
+max_handlers_per_event = 10
+enable_dead_letter_queue = true
+enable_event_replay = true
+
+[queue]
+max_queue_size = 1000
+queue_timeout = 30.0
+batch_size = 10
+batch_timeout = 1.0
+
+[retry]
+max_retries = 3
+initial_delay = 1.0
+max_delay = 60.0
+exponential_backoff = true
+
+[monitoring]
+track_event_metrics = true
+log_events = true
+log_handlers = true
+metrics_interval = 60.0
+
+[persistence]
+enabled = false
+storage_path = "hive/bus/events"
+retention_days = 7

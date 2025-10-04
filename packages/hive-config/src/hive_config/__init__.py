@@ -24,6 +24,9 @@ Provides centralized access to API keys and app-specific settings.
 """
 
 from .loader import AppConfig, find_project_root, get_required_keys, load_config_for_app
+
+# DEPRECATED: Backward compatibility alias - use load_config_for_app instead
+load_config = load_config_for_app
 from .models import ConfigSources
 from .validation import (
     ValidationError,
@@ -40,6 +43,7 @@ __all__ = [
     "BaseConfig",
     # Loader exports
     "load_config_for_app",
+    "load_config",  # DEPRECATED alias
     "get_required_keys",
     "AppConfig",
     "find_project_root",
