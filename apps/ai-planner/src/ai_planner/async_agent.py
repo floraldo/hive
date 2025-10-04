@@ -18,14 +18,16 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-# TODO: Migrate to hive-orchestration async operations when available
-# For now, async operations still use hive_orchestrator
-from hive_orchestrator.core.bus import get_async_event_bus
+# TODO: Migrate AsyncDatabaseOperations to hive-orchestration when async ops are implemented
+# For now, async database operations still use hive_orchestrator.core.db
 from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
 # Import recovery strategies
 from ai_planner.core.errors import ExponentialBackoffStrategy, get_error_reporter
 from hive_logging import get_logger
+
+# Event bus migrated to hive-orchestration package
+from hive_orchestration import get_async_event_bus
 
 logger = get_logger(__name__)
 

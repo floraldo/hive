@@ -19,14 +19,16 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from hive_orchestrator.core.bus import get_async_event_bus
-
-# V4.0 Async infrastructure imports
+# TODO: Migrate AsyncDatabaseOperations to hive-orchestration when async ops are implemented
+# For now, async database operations still use hive_orchestrator.core.db
 from hive_orchestrator.core.db import AsyncDatabaseOperations, get_async_db_operations
 
 # Import existing review components
 from ai_reviewer.reviewer import ReviewDecision
 from hive_logging import get_logger
+
+# Event bus migrated to hive-orchestration package
+from hive_orchestration import get_async_event_bus
 
 logger = get_logger(__name__)
 
@@ -278,9 +280,9 @@ class AsyncReviewEngine:
             # Parse and validate response
             return self._parse_claude_response(claude_output)
 
-        except TimeoutError:
+        except TimeoutError as e:
             logger.error("Claude CLI timed out")
-            raise RuntimeError("Claude CLI timeout after 45 seconds")
+            raise RuntimeError("Claude CLI timeout after 45 seconds") from e
 
     async def _find_claude_cmd_async(self) -> str | None:
         """Find Claude CLI command asynchronously"""
