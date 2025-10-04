@@ -9,16 +9,18 @@ from __future__ import annotations
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from hive_ai.core.exceptions import AIError
 from hive_logging import get_logger
 
-from hive_agent_runtime.agent import BaseAgent
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from hive_agent_runtime.agent import BaseAgent
 
 logger = get_logger(__name__)
 
@@ -467,7 +469,8 @@ class TaskSequence:
                     queue.append(neighbor)
 
         if len(execution_order) != len(self.tasks):
-            raise AIError("Circular dependency detected in task sequence")
+            msg = "Circular dependency detected in task sequence"
+            raise AIError(msg)
 
         self.execution_order = execution_order
         logger.info(f"Task sequence {self.name}: execution order calculated")
@@ -493,7 +496,8 @@ class TaskSequence:
 
             # Check if task can be executed
             if not task.can_execute(self.completed_tasks):
-                raise AIError(f"Task {task_id} dependencies not satisfied")
+                msg = f"Task {task_id} dependencies not satisfied"
+                raise AIError(msg)
 
             # Get dependency results
             dependency_results = task.get_dependency_results(self.completed_tasks)
@@ -525,7 +529,7 @@ class TaskSequence:
                     end_time=datetime.utcnow()
                 )
                 self.completed_tasks[task_id] = timeout_result,
-                logger.error(f"Task {task_id} timed out")
+                logger.exception(f"Task {task_id} timed out")
                 break
 
         logger.info(f"Task sequence {self.name} completed: {len(self.completed_tasks)} tasks")

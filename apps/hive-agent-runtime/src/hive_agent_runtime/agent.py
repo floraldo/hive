@@ -10,18 +10,21 @@ from __future__ import annotations
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from hive_ai.core.exceptions import AIError
-from hive_ai.models.client import ModelClient
-from hive_ai.observability.metrics import AIMetricsCollector
 from hive_ai.prompts.template import PromptTemplate
 from hive_cache import CacheManager
 from hive_logging import get_logger
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from hive_ai.models.client import ModelClient
+    from hive_ai.observability.metrics import AIMetricsCollector
 
 logger = get_logger(__name__)
 
@@ -99,7 +102,7 @@ class BaseAgent(ABC):
 
     def __init__(
         self, config: AgentConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
-    ):
+    ) -> None:
         self.config = (config,)
         self.model_client = (model_client,)
         self.metrics = metrics_collector
@@ -279,7 +282,7 @@ Thoughts:
 
         except Exception as e:
             error_msg = f"Failed to search long-term memory: {e!s}"
-            logger.error(error_msg)
+            logger.exception(error_msg)
             return error_msg
 
     def add_tool(self, tool: AgentTool) -> None:
@@ -298,11 +301,13 @@ Thoughts:
     async def call_tool_async(self, tool_name: str, **kwargs) -> Any:
         """Call a tool with given parameters."""
         if tool_name not in self.tools:
-            raise AIError(f"Tool '{tool_name}' not available")
+            msg = f"Tool '{tool_name}' not available"
+            raise AIError(msg)
 
         tool = self.tools[tool_name]
         if not tool.enabled:
-            raise AIError(f"Tool '{tool_name}' is disabled")
+            msg = f"Tool '{tool_name}' is disabled"
+            raise AIError(msg)
 
         try:
             if asyncio.iscoroutinefunction(tool.function):
@@ -316,7 +321,7 @@ Thoughts:
         except Exception as e:
             error_msg = f"Tool '{tool_name}' failed: {e!s}"
             self.errors.append(error_msg)
-            logger.error(error_msg)
+            logger.exception(error_msg)
             raise AIError(error_msg) from e
 
     async def send_message_async(self, recipient: str, content: str, message_type: str = "message") -> str:
@@ -363,7 +368,8 @@ Thoughts:
     async def initialize_async(self) -> None:
         """Initialize the agent before execution."""
         if self.state != AgentState.CREATED:
-            raise AIError(f"Agent must be in CREATED state to initialize, currently {self.state}")
+            msg = f"Agent must be in CREATED state to initialize, currently {self.state}"
+            raise AIError(msg)
 
         try:
             # Perform initialization
@@ -376,7 +382,7 @@ Thoughts:
             self.state = (AgentState.FAILED,)
             error_msg = f"Agent initialization failed: {e!s}"
             self.errors.append(error_msg)
-            logger.error(error_msg)
+            logger.exception(error_msg)
             raise AIError(error_msg) from e
 
     @abstractmethod
@@ -397,7 +403,8 @@ Thoughts:
             AIError: Execution failed
         """
         if self.state not in [AgentState.INITIALIZED, AgentState.PAUSED]:
-            raise AIError(f"Agent must be initialized or paused to run, currently {self.state}")
+            msg = f"Agent must be initialized or paused to run, currently {self.state}"
+            raise AIError(msg)
 
         self.state = AgentState.RUNNING
         self.start_time = datetime.utcnow()
@@ -481,7 +488,7 @@ Thoughts:
                     },
                 )
 
-            logger.error(error_msg)
+            logger.exception(error_msg)
             raise AIError(error_msg) from e
 
     @abstractmethod
@@ -685,7 +692,7 @@ class SimpleTaskAgent(BaseAgent):
         config: AgentConfig,
         model_client: ModelClient,
         metrics_collector: AIMetricsCollector | None = None,
-    ):
+    ) -> None:
         super().__init__(config, model_client, metrics_collector)
         self.task_prompt = task_prompt
 
@@ -698,10 +705,7 @@ class SimpleTaskAgent(BaseAgent):
     async def _execute_main_logic_async(self, input_data: Any | None = None) -> Any:
         """Execute the task prompt with optional input data."""
         # Build prompt with input data if provided,
-        if input_data:
-            full_prompt = (f"{self.task_prompt}\n\nInput: {input_data}",)
-        else:
-            full_prompt = self.task_prompt
+        full_prompt = (f"{self.task_prompt}\n\nInput: {input_data}",) if input_data else self.task_prompt
 
         # Generate response,
         response = await self.model_client.generate_async(

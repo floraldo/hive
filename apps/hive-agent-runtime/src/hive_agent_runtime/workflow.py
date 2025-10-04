@@ -8,20 +8,24 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from hive_ai.core.exceptions import AIError
-from hive_ai.models.client import ModelClient
-from hive_ai.observability.metrics import AIMetricsCollector
 from hive_cache import CacheManager
 from hive_logging import get_logger
 
 from hive_agent_runtime.agent import AgentMessage, AgentState, BaseAgent
-from hive_agent_runtime.task import BaseTask, TaskSequence
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from hive_ai.models.client import ModelClient
+    from hive_ai.observability.metrics import AIMetricsCollector
+
+    from hive_agent_runtime.task import BaseTask, TaskSequence
 
 logger = get_logger(__name__)
 
@@ -103,7 +107,7 @@ class WorkflowOrchestrator:
 
     def __init__(
         self, config: WorkflowConfig, model_client: ModelClient, metrics_collector: AIMetricsCollector | None = None
-    ):
+    ) -> None:
         self.config = config,
         self.model_client = model_client,
         self.metrics = metrics_collector
@@ -186,7 +190,8 @@ class WorkflowOrchestrator:
     async def initialize_async(self) -> None:
         """Initialize the workflow and all components."""
         if self.status != WorkflowStatus.CREATED:
-            raise AIError(f"Workflow must be in CREATED state to initialize, currently {self.status}")
+            msg = f"Workflow must be in CREATED state to initialize, currently {self.status}"
+            raise AIError(msg)
 
         try:
             # Initialize all agents
@@ -203,7 +208,7 @@ class WorkflowOrchestrator:
         except Exception as e:
             self.status = WorkflowStatus.FAILED
             error_msg = f"Workflow initialization failed: {e!s}"
-            logger.error(error_msg)
+            logger.exception(error_msg)
             raise AIError(error_msg) from e
 
     def _validate_workflow(self) -> None:
@@ -211,18 +216,22 @@ class WorkflowOrchestrator:
         # Check that all agents exist
         for step in self.steps.values():
             if step.agent_id not in self.agents:
-                raise AIError(f"Step {step.id} references unknown agent {step.agent_id}")
+                msg = f"Step {step.id} references unknown agent {step.agent_id}"
+                raise AIError(msg)
 
         # Check that tasks or task sequences exist
         for step in self.steps.values():
             if step.task_id and step.task_id not in self.tasks:
-                raise AIError(f"Step {step.id} references unknown task {step.task_id}")
+                msg = f"Step {step.id} references unknown task {step.task_id}"
+                raise AIError(msg)
 
             if step.task_sequence_id and step.task_sequence_id not in self.task_sequences:
-                raise AIError(f"Step {step.id} references unknown task sequence {step.task_sequence_id}")
+                msg = f"Step {step.id} references unknown task sequence {step.task_sequence_id}"
+                raise AIError(msg)
 
             if not step.task_id and not step.task_sequence_id:
-                raise AIError(f"Step {step.id} must reference either a task or task sequence")
+                msg = f"Step {step.id} must reference either a task or task sequence"
+                raise AIError(msg)
 
         # Check for circular dependencies
         self._check_circular_dependencies()
@@ -248,16 +257,14 @@ class WorkflowOrchestrator:
                 color[node] = "black"
                 return False
 
-            for node in graph:
-                if color[node] == "white" and dfs(node):
-                    return True
-            return False
+            return any(color[node] == "white" and dfs(node) for node in graph)
 
         # Build dependency graph
         graph = {step.id: step.dependencies for step in self.steps.values()}
 
         if has_cycle(graph):
-            raise AIError("Circular dependency detected in workflow steps")
+            msg = "Circular dependency detected in workflow steps"
+            raise AIError(msg)
 
     def _calculate_execution_order(self) -> list[list[str]]:
         """Calculate execution order for steps, grouping independent steps."""
@@ -281,7 +288,8 @@ class WorkflowOrchestrator:
             ready_steps = [step_id for step_id in remaining_steps if in_degree[step_id] == 0]
 
             if not ready_steps:
-                raise AIError("Circular dependency or orphaned steps detected")
+                msg = "Circular dependency or orphaned steps detected"
+                raise AIError(msg)
 
             execution_levels.append(ready_steps)
 
@@ -307,7 +315,8 @@ class WorkflowOrchestrator:
             AIError: Workflow execution failed
         """
         if self.status != WorkflowStatus.INITIALIZED:
-            raise AIError(f"Workflow must be initialized to execute, currently {self.status}")
+            msg = f"Workflow must be initialized to execute, currently {self.status}"
+            raise AIError(msg)
 
         self.status = WorkflowStatus.RUNNING
         self.start_time = datetime.utcnow()
@@ -403,7 +412,7 @@ class WorkflowOrchestrator:
                     }
                 )
 
-            logger.error(error_msg)
+            logger.exception(error_msg)
             raise AIError(error_msg) from e
 
     async def _execute_sequential_async(self, execution_levels: list[list[str]], input_data: Any | None) -> None:
@@ -483,13 +492,13 @@ class WorkflowOrchestrator:
             error_msg = f"Step {step_id} timed out after {step.timeout_seconds} seconds"
             self.step_results[step_id] = {"error": error_msg, "status": "timeout"}
             self.failed_steps.add(step_id)
-            logger.error(error_msg)
+            logger.exception(error_msg)
 
         except Exception as e:
             error_msg = f"Step {step_id} failed: {e!s}"
             self.step_results[step_id] = {"error": error_msg, "status": "failed"}
             self.failed_steps.add(step_id)
-            logger.error(error_msg)
+            logger.exception(error_msg)
 
         finally:
             self.running_steps.discard(step_id)
