@@ -72,8 +72,7 @@ def get_logger(name: str, use_structlog: bool | None = None) -> None:
 
 # Re-export context management functions for structured logging
 __all__ = [
-    "setup_loggingget_loggerLoggingContext",
-    "set_correlation_idset_request_id",
-    "clear_contextlog_with_context",
+    "setup_logging",
+    "get_logger",
     "STRUCTLOG_AVAILABLE",
 ]
