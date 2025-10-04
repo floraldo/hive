@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# ruff: noqa: S607
+# Security: subprocess calls in this module use system tools (git) with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """
 ReviewerCore - Queen's Internal Code Review Module
 Provides quality assessment and iterative refinement capabilities

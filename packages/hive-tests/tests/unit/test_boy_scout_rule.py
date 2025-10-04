@@ -1,3 +1,8 @@
+# ruff: noqa: S607
+# Security: subprocess calls in this test use system tools (ruff) with hardcoded,
+# trusted arguments only. No user input is passed to subprocess. This is safe for
+# internal testing infrastructure.
+
 """
 Boy Scout Rule Enforcement Test.
 

@@ -1,3 +1,7 @@
+# ruff: noqa: S607
+# Security: subprocess calls in this module use system tools (git) with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """
 Pytest plugin for collecting test execution data.
 

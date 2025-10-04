@@ -1,7 +1,7 @@
-# ruff: noqa: S603
-# Security: subprocess calls in this test file use sys.executable with hardcoded,
-# trusted arguments only. No user input is passed to subprocess. This is safe for
-# internal testing infrastructure.
+# ruff: noqa: S603, S607
+# Security: subprocess calls in this test file use sys.executable or system tools
+# (git, ruff, etc.) with hardcoded, trusted arguments only. No user input is passed
+# to subprocess. This is safe for internal testing infrastructure.
 
 """
 Comprehensive End-to-End Test for Hive V2.0 Platform

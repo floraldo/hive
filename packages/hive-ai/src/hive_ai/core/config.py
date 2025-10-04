@@ -195,3 +195,89 @@ class AIConfig(BaseConfig):
                 # Set new default if available
                 if self.models:
                     self.default_model = list(self.models.keys())[0]
+
+
+class AgentConfig(BaseConfig):
+    """
+    Configuration for AI agents with sequential thinking capabilities.
+
+    Extends BaseConfig from hive-config with agent-specific settings including
+    the God Mode sequential thinking loop and web search integration.
+    """
+
+    # Sequential thinking configuration (God Mode)
+    max_thoughts: int = Field(
+        default=1,
+        ge=1,
+        le=50,
+        description="Maximum sequential thinking steps per task (1-50)",
+    )
+
+    enable_retry_prevention: bool = Field(
+        default=True,
+        description="Prevent retrying identical failed solutions via hashing",
+    )
+
+    thought_timeout_seconds: int = Field(
+        default=300,
+        ge=10,
+        le=3600,
+        description="Maximum time allowed for thinking loop (10-3600 seconds)",
+    )
+
+    # Web search configuration (Exa integration)
+    enable_exa_search: bool = Field(
+        default=False,
+        description="Enable Exa web search tool for real-time knowledge retrieval",
+    )
+
+    exa_results_count: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Number of search results to retrieve from Exa (1-20)",
+    )
+
+    # RAG and knowledge archival
+    enable_knowledge_archival: bool = Field(
+        default=True,
+        description="Archive thinking sessions and web searches to RAG",
+    )
+
+    rag_retrieval_count: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description="Number of RAG documents to retrieve for context (1-50)",
+    )
+
+    # Agent behavior
+    agent_name: str = Field(
+        default="default",
+        description="Agent identifier for logging and tracking",
+    )
+
+    agent_role: str = Field(
+        default="general",
+        description="Agent role (general, specialist, coordinator)",
+    )
+
+    enable_episodic_memory: bool = Field(
+        default=True,
+        description="Store thinking session logs for later analysis",
+    )
+
+    @validator("max_thoughts")
+    def validate_max_thoughts(cls, v: int) -> int:
+        """Validate max_thoughts is within reasonable range."""
+        if v > 50:
+            logger.warning(f"max_thoughts={v} is high, may impact performance")
+        return v
+
+    @validator("agent_role")
+    def validate_agent_role(cls, v: str) -> str:
+        """Validate agent role is in allowed list."""
+        allowed = ["general", "specialist", "coordinator", "tester", "reviewer"]
+        if v not in allowed:
+            raise ValueError(f"Agent role must be one of: {allowed}")
+        return v

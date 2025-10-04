@@ -1,5 +1,5 @@
-# ruff: noqa: S603
-# Security: subprocess calls in this script use sys.executable with hardcoded,
+# ruff: noqa: S603, S607
+# Security: subprocess calls in this script use sys.executable or system tools (git, ruff, etc.) with hardcoded,
 # trusted arguments only. No user input is passed to subprocess. This is safe for
 # internal performance benchmarking tooling.
 
