@@ -23,7 +23,41 @@ poetry add --editable ../../packages/hive-config
 
 ## Usage
 
+### Unified App Loader (RECOMMENDED - Project Unify V2)
+
+**The easiest way to load configuration** - combines all 4 layers automatically:
+
+```python
+from hive_config import load_config_for_app
+
+# ONE function for all your configuration needs
+config = load_config_for_app("my-app")
+
+# All 4 layers merged automatically:
+# 1. Package defaults (config.defaults.toml)
+# 2. App .env files (.env.global → .env.shared → apps/my-app/.env)
+# 3. User config files (hive_config.json)
+# 4. Environment variables (HIVE_*)
+
+# Pass config to your services
+database_service = DatabaseService(config=config.database.dict())
+claude_service = ClaudeService(config=config.claude.timeout)
+```
+
+**4-Layer Configuration Hierarchy:**
+
+```
+Layer 1 (lowest):  Package defaults from config.defaults.toml
+Layer 2:           App .env files (.env.global → .env.shared → apps/{app}/.env)
+Layer 3:           User config files (hive_config.json or app-specific config.toml)
+Layer 4 (highest): Environment variables (HIVE_*)
+```
+
+Each layer overrides the previous one, providing maximum flexibility with sane defaults.
+
 ### Creating Configuration (DI Pattern)
+
+For packages or advanced use cases:
 
 ```python
 from hive_config.unified_config import create_config_from_sources
@@ -116,15 +150,74 @@ def test_service_with_mock_config():
 }
 ```
 
-### Environment Variables
+### Environment Variables (Layer 4)
 
-Configuration can be overridden using environment variables:
+Configuration can be overridden using environment variables with the `HIVE_` prefix.
 
+**Naming Convention:** `HIVE_<CATEGORY>_<SETTING>`
+
+**Supported Environment Variables:**
+
+**High-Level Settings:**
 - `HIVE_ENVIRONMENT`: Set environment (development/staging/production)
-- `HIVE_DEBUG_MODE`: Enable debug mode
+- `HIVE_DEBUG_MODE`: Enable debug mode (true/false)
+
+**Database Configuration:**
 - `HIVE_DATABASE_PATH`: Override database path
-- `HIVE_CLAUDE_MOCK_MODE`: Enable Claude mock mode
-- `HIVE_WORKER_TIMEOUT`: Set worker timeout
+- `HIVE_DATABASE_POOL_MIN`: Minimum connection pool size
+- `HIVE_DATABASE_POOL_MAX`: Maximum connection pool size
+- `HIVE_DATABASE_TIMEOUT`: Connection timeout in seconds
+- `HIVE_DATABASE_JOURNAL_MODE`: SQLite journal mode (WAL, DELETE, etc.)
+
+**Claude AI Configuration:**
+- `HIVE_CLAUDE_MOCK_MODE`: Enable Claude mock mode (true/false)
+- `HIVE_CLAUDE_TIMEOUT`: API timeout in seconds
+- `HIVE_CLAUDE_MAX_RETRIES`: Maximum retry attempts
+- `HIVE_CLAUDE_FALLBACK_ENABLED`: Enable fallback behavior (true/false)
+
+**Orchestration Configuration:**
+- `HIVE_ORCHESTRATION_POLL_INTERVAL`: Task polling interval in seconds
+- `HIVE_ORCHESTRATION_WORKER_TIMEOUT`: Worker timeout in seconds
+- `HIVE_ORCHESTRATION_MAX_PARALLEL_WORKERS`: Maximum concurrent workers
+- `HIVE_ORCHESTRATION_HEARTBEAT_INTERVAL`: Heartbeat interval in seconds
+
+**Worker Configuration:**
+- `HIVE_WORKER_BACKEND_ENABLED`: Enable backend worker (true/false)
+- `HIVE_WORKER_FRONTEND_ENABLED`: Enable frontend worker (true/false)
+- `HIVE_WORKER_INFRA_ENABLED`: Enable infrastructure worker (true/false)
+- `HIVE_WORKER_MAX_RETRIES_PER_TASK`: Maximum retries per task
+
+**Logging Configuration:**
+- `HIVE_LOG_LEVEL`: Logging level (DEBUG, INFO, WARNING, ERROR)
+- `HIVE_LOG_FORMAT`: Log message format
+- `HIVE_LOG_DIRECTORY`: Directory for log files
+- `HIVE_LOG_FILE_ENABLED`: Enable file logging (true/false)
+- `HIVE_LOG_CONSOLE_ENABLED`: Enable console logging (true/false)
+
+**Type Conversion:**
+Environment variables are automatically converted to the appropriate type:
+- `true`, `false`, `yes`, `no`, `1`, `0` → boolean
+- Numeric strings → integers
+- Strings with `.` → floats
+- Settings with `path` or `dir` → Path objects
+- Everything else → strings
+
+**Example:**
+```bash
+export HIVE_DATABASE_PATH="/custom/db.sqlite"
+export HIVE_CLAUDE_TIMEOUT=300
+export HIVE_WORKER_BACKEND_ENABLED=true
+export HIVE_LOG_LEVEL=DEBUG
+```
+
+Then in Python:
+```python
+config = load_config_for_app("my-app")
+assert config.database.path == Path("/custom/db.sqlite")  # Path object
+assert config.claude.timeout == 300  # integer
+assert config.worker.backend_enabled == True  # boolean
+assert config.logging.level == "DEBUG"  # string
+```
 
 ## Path Management
 
@@ -394,6 +487,62 @@ class MyService:
 
 ## Migration Guide
 
+### Migration Path 1: From Deprecated Singletons → Unified Loader
+
+**For Apps** - Switch to `load_config_for_app()`:
+
+```python
+# OLD (DEPRECATED)
+from hive_config import get_config
+
+class MyApp:
+    def __init__(self):
+        self.config = get_config()  # Global singleton!
+
+# NEW (RECOMMENDED)
+from hive_config import load_config_for_app
+
+class MyApp:
+    def __init__(self, config: HiveConfig | None = None):
+        # Unified loader with all 4 layers
+        self._config = config or load_config_for_app("my-app")
+```
+
+**Benefits:**
+- ✅ All 4 configuration layers automatically merged
+- ✅ Package defaults loaded transparently
+- ✅ .env hierarchy respected
+- ✅ Environment variables auto-discovered
+- ✅ Still supports dependency injection for testing
+
+### Migration Path 2: From `create_config_from_sources()` → `load_config_for_app()`
+
+**For Apps** - Simplify to unified loader:
+
+```python
+# OLD (Still works, but more verbose)
+from hive_config import create_config_from_sources
+
+class MyApp:
+    def __init__(self, config: HiveConfig | None = None):
+        self._config = config or create_config_from_sources()
+
+# NEW (Simpler, includes all 4 layers)
+from hive_config import load_config_for_app
+
+class MyApp:
+    def __init__(self, config: HiveConfig | None = None):
+        self._config = config or load_config_for_app("my-app")
+```
+
+**When to migrate:**
+- ✅ If you're an app (in `apps/` directory)
+- ✅ If you want automatic .env file loading
+- ✅ If you want package defaults
+- ❌ Keep `create_config_from_sources()` for packages (in `packages/` directory)
+
+### Migration Path 3: Legacy Patterns → Dependency Injection
+
 For detailed migration instructions, see:
 - **Comprehensive Guide**: `claudedocs/config_migration_guide_comprehensive.md`
 - **Migration Tracking**: `docs/development/progress/config_di_migration_guide.md`
@@ -406,7 +555,11 @@ For detailed migration instructions, see:
    def __init__(self):
        self.config = get_config()
 
-   # After
+   # After (Apps)
+   def __init__(self, config: HiveConfig | None = None):
+       self._config = config or load_config_for_app("my-app")
+
+   # After (Packages)
    def __init__(self, config: HiveConfig | None = None):
        self._config = config or create_config_from_sources()
    ```
@@ -417,7 +570,7 @@ For detailed migration instructions, see:
    service = MyService()
 
    # After
-   config = create_config_from_sources()
+   config = load_config_for_app("my-app")
    service = MyService(config=config)
    ```
 
@@ -433,6 +586,24 @@ For detailed migration instructions, see:
    def test_service(mock_config):
        service = MyService(config=mock_config)  # Isolated!
    ```
+
+### What About Environment Variables?
+
+**Project Unify V2 eliminates manual `os.getenv()` calls:**
+
+```python
+# OLD (Manual, error-prone)
+import os
+db_path = os.getenv("DATABASE_PATH", config.database.path)
+timeout = int(os.getenv("CLAUDE_TIMEOUT", config.claude.timeout))
+
+# NEW (Automatic, type-safe)
+config = load_config_for_app("my-app")
+db_path = config.database.path  # HIVE_DATABASE_PATH automatically merged
+timeout = config.claude.timeout  # HIVE_CLAUDE_TIMEOUT automatically merged
+```
+
+**Golden Rule 37** now enforces this - direct `os.getenv()` calls outside `hive-config` are blocked at PR time.
 
 ## Troubleshooting
 

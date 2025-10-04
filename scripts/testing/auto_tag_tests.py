@@ -14,7 +14,6 @@ Usage:
 import ast
 import sys
 from pathlib import Path
-from typing import Literal
 
 # Marker definitions
 CORE_MARKER = "pytest.mark.core"
@@ -255,7 +254,7 @@ def main():
         else:
             skipped_count += 1
 
-    print(f"\nSummary:")
+    print("\nSummary:")
     print(f"  Modified: {modified_count}")
     print(f"  Skipped: {skipped_count}")
     print(f"  Errors: {error_count}")
