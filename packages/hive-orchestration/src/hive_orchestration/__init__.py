@@ -144,6 +144,10 @@ from .operations import (
     update_worker_heartbeat,
 )
 
+# Import Chimera workflow
+from .workflows.chimera import ChimeraPhase, ChimeraWorkflow, create_chimera_task
+from .workflows.chimera_executor import ChimeraExecutor, create_and_execute_chimera_workflow
+
 __all__ = [
     # Task operations
     "create_task",
@@ -184,6 +188,12 @@ __all__ = [
     "TaskEvent",
     "WorkflowEvent",
     "AgentEvent",
+    # Chimera workflow
+    "ChimeraWorkflow",
+    "ChimeraPhase",
+    "ChimeraExecutor",
+    "create_chimera_task",
+    "create_and_execute_chimera_workflow",
 ]
 
 __version__ = "1.0.0"
