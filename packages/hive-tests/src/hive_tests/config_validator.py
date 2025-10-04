@@ -26,9 +26,16 @@ def validate_config_consistency(project_root: Path | None = None) -> int:
             if "[tool.ruff]" not in content:
                 violations.append(f"FAIL {relative_path}: Missing [tool.ruff] configuration (Rule 31)")
 
-            # Rule 32: Check for python = "^3.11"
-            if 'python = "^3.11"' not in content:
-                violations.append(f"FAIL {relative_path}: Missing python = \"^3.11\" (Rule 32)")
+            # Rule 32: Check for python version specification
+            # Supports both Poetry format (python = "^3.11") and PEP 621 format (requires-python = ">=3.11")
+            has_poetry_format = 'python = "^3.11"' in content
+            has_pep621_format = 'requires-python = ">=3.11"' in content or 'requires-python = ">= 3.11"' in content
+
+            if not has_poetry_format and not has_pep621_format:
+                violations.append(
+                    f"FAIL {relative_path}: Missing python version specification (Rule 32) - "
+                    f"Expected 'python = \"^3.11\"' (Poetry) or 'requires-python = \">=3.11\"' (PEP 621)"
+                )
 
         except Exception as e:
             violations.append(f"FAIL {relative_path}: Error reading file: {e}")
@@ -44,6 +51,7 @@ def validate_config_consistency(project_root: Path | None = None) -> int:
     else:
         print("PASS: All configuration files are consistent")
         return 0
+
 
 if __name__ == "__main__":
     sys.exit(validate_config_consistency())
