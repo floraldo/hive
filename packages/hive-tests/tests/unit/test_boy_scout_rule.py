@@ -40,8 +40,8 @@ class TestBoyScoutRule:
         - Celebrate the progress! 🎉
         """
         # Run ruff check and count violations
-        result = subprocess.run(  # noqa: S607 - Intentional use of python subprocess
-            ["python", "-m", "ruff", "check", "."],
+        result = subprocess.run(  # noqa: S603, S607 - Intentional subprocess for linting validation
+            ["python", "-m", "ruff", "check", "."],  # noqa: S607
             capture_output=True,
             text=True,
             encoding="utf-8",
@@ -106,8 +106,8 @@ class TestBoyScoutRule:
 
         Layer 1 achieved 0 syntax errors. This test ensures we never regress.
         """
-        result = subprocess.run(  # noqa: S607 - Intentional use of python subprocess
-            ["python", "-m", "compileall", "-q", "."],
+        result = subprocess.run(  # noqa: S603 - Intentional subprocess for syntax validation
+            ["python", "-m", "compileall", "-q", "."],  # noqa: S607
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent.parent,
@@ -132,8 +132,8 @@ class TestBoyScoutRule:
         Enable this test when BASELINE_VIOLATIONS drops below 100.
         Ultimate goal: 0 violations via Boy Scout Rule.
         """
-        result = subprocess.run(  # noqa: S607 - Intentional use of python subprocess
-            ["python", "-m", "ruff", "check", "."],
+        result = subprocess.run(  # noqa: S603 - Intentional subprocess for linting validation
+            ["python", "-m", "ruff", "check", "."],  # noqa: S607
             capture_output=True,
             text=True,
             cwd=Path(__file__).parent.parent.parent.parent.parent,

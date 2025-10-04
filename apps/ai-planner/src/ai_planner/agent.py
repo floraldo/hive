@@ -102,14 +102,15 @@ def get_claude_service(
     return ClaudeService(config, rate_config)
 
 
-# Import recovery strategies from core module (follows "inherit -> extend" pattern)
+# Import recovery strategies from hive_errors (follows "inherit -> extend" pattern)
+from hive_errors import RetryStrategy
+
 # Import error classes from our core module following the "inherit -> extend" pattern,
 from ai_planner.core.errors import (
     DatabaseConnectionError,
     ExponentialBackoffStrategy,
     PlanGenerationError,
     PlannerError,
-    RetryStrategy,
     TaskProcessingError,
     get_error_reporter,
     with_recovery,
