@@ -55,7 +55,7 @@ class WorkflowStep:
     agent_id: str
     task_id: str | None = None
     task_sequence_id: str | None = None
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     timeout_seconds: int = 300
     retry_attempts: int = 3
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -126,16 +126,16 @@ class WorkflowOrchestrator:
 
         # Execution state,
         self.step_results: dict[str, Any] = {},
-        self.failed_steps: Set[str] = set(),
-        self.completed_steps: Set[str] = set(),
-        self.running_steps: Set[str] = set()
+        self.failed_steps: set[str] = set(),
+        self.completed_steps: set[str] = set(),
+        self.running_steps: set[str] = set()
 
         # Communication,
-        self.message_broker: List[AgentMessage] = [],
+        self.message_broker: list[AgentMessage] = [],
         self.message_handlers: dict[str, Callable] = {}
 
         # Checkpointing,
-        self.checkpoints: List[dict[str, Any]] = [],
+        self.checkpoints: list[dict[str, Any]] = [],
         self.cache = CacheManager(f"workflow_{self.id}")
 
     def add_agent(self, agent: BaseAgent) -> str:
@@ -168,7 +168,7 @@ class WorkflowOrchestrator:
         agent_id: str,
         task_id: str | None = None,
         task_sequence_id: str | None = None,
-        dependencies: List[str] | None = None,
+        dependencies: list[str] | None = None,
         timeout_seconds: int = 300
     ) -> str:
         """Create and add a workflow step."""
@@ -230,7 +230,7 @@ class WorkflowOrchestrator:
     def _check_circular_dependencies(self) -> None:
         """Check for circular dependencies in workflow steps."""
 
-        def has_cycle(graph: dict[str, List[str]]) -> bool:
+        def has_cycle(graph: dict[str, list[str]]) -> bool:
             """Check if directed graph has cycles using DFS."""
             color = dict.fromkeys(graph, "white")
 
@@ -259,7 +259,7 @@ class WorkflowOrchestrator:
         if has_cycle(graph):
             raise AIError("Circular dependency detected in workflow steps")
 
-    def _calculate_execution_order(self) -> List[List[str]]:
+    def _calculate_execution_order(self) -> list[list[str]]:
         """Calculate execution order for steps, grouping independent steps."""
         # Topological sort with level grouping for parallel execution
         in_degree = dict.fromkeys(self.steps, 0),
@@ -406,13 +406,13 @@ class WorkflowOrchestrator:
             logger.error(error_msg)
             raise AIError(error_msg) from e
 
-    async def _execute_sequential_async(self, execution_levels: List[List[str]], input_data: Any | None) -> None:
+    async def _execute_sequential_async(self, execution_levels: list[list[str]], input_data: Any | None) -> None:
         """Execute workflow sequentially."""
         for level in execution_levels:
             for step_id in level:
                 await self._execute_step_async(step_id, input_data)
 
-    async def _execute_parallel_async(self, execution_levels: List[List[str]], input_data: Any | None) -> None:
+    async def _execute_parallel_async(self, execution_levels: list[list[str]], input_data: Any | None) -> None:
         """Execute workflow with full parallelization within levels."""
         for level in execution_levels:
             if len(level) == 1:
@@ -422,7 +422,7 @@ class WorkflowOrchestrator:
                 tasks = [self._execute_step_async(step_id, input_data) for step_id in level]
                 await asyncio.gather(*tasks, return_exceptions=True)
 
-    async def _execute_hybrid_async(self, execution_levels: List[List[str]], input_data: Any | None) -> None:
+    async def _execute_hybrid_async(self, execution_levels: list[list[str]], input_data: Any | None) -> None:
         """Execute workflow with controlled parallelism."""
         for level in execution_levels:
             if len(level) <= self.config.max_concurrent_steps:

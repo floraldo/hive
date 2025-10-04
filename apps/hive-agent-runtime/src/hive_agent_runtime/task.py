@@ -76,8 +76,8 @@ class TaskConfig:
     timeout_seconds: int = 300
     retry_attempts: int = 3
     retry_delay_seconds: int = 5
-    dependencies: List[TaskDependency] = field(default_factory=list)
-    required_tools: List[str] = field(default_factory=list)
+    dependencies: list[TaskDependency] = field(default_factory=list)
+    required_tools: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
@@ -347,7 +347,7 @@ class ToolTask(BaseTask):
     Allows for more complex operations using the agent's toolkit.
     """
 
-    def __init__(self, config: TaskConfig, tool_sequence: List[dict[str, Any]]) -> None:
+    def __init__(self, config: TaskConfig, tool_sequence: list[dict[str, Any]]) -> None:
         super().__init__(config)
         self.tool_sequence = tool_sequence
 
@@ -428,11 +428,11 @@ class TaskSequence:
     Manages execution order and dependency resolution for multiple tasks.
     """
 
-    def __init__(self, name: str, tasks: List[BaseTask]) -> None:
+    def __init__(self, name: str, tasks: list[BaseTask]) -> None:
         self.name = name
         self.id = str(uuid.uuid4())
         self.tasks = {task.id: task for task in tasks}
-        self.execution_order: List[str] = []
+        self.execution_order: list[str] = []
         self.completed_tasks: dict[str, TaskResult] = {}
 
         # Calculate execution order based on dependencies
@@ -562,7 +562,7 @@ class TaskBuilder:
         description: str = "",
         priority: TaskPriority = TaskPriority.NORMAL,
         expected_output_type: str = "text",
-        dependencies: List[str] | None = None
+        dependencies: list[str] | None = None
     ) -> PromptTask:
         """Create a prompt-based task."""
         task_deps = []
@@ -581,10 +581,10 @@ class TaskBuilder:
     @staticmethod
     def create_tool_task(
         name: str,
-        tool_sequence: List[dict[str, Any]],
+        tool_sequence: list[dict[str, Any]],
         description: str = "",
         priority: TaskPriority = TaskPriority.NORMAL,
-        dependencies: List[str] | None = None
+        dependencies: list[str] | None = None
     ) -> ToolTask:
         """Create a tool-based task."""
         task_deps = []
@@ -606,7 +606,7 @@ class TaskBuilder:
 
     @staticmethod
     def create_analysis_task(
-        name: str, analysis_prompt: str, data_source: str, dependencies: List[str] | None = None
+        name: str, analysis_prompt: str, data_source: str, dependencies: list[str] | None = None
     ) -> PromptTask:
         """Create a data analysis task."""
         full_prompt = f""",
