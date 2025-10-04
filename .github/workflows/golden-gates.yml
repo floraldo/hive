@@ -365,25 +365,25 @@ jobs:
         run: |
           echo "🏆 GATE 4C: Golden Rules Architectural Validation"
           echo "========================================="
-          echo "Enforcing architectural integrity at ERROR level."
-          echo "CRITICAL and ERROR rules are non-negotiable."
+          echo "Enforcing architectural integrity at WARNING level."
+          echo "CRITICAL, ERROR, and WARNING rules are non-negotiable."
           echo ""
 
-          # Run Golden Rules at ERROR level
-          python scripts/validation/validate_golden_rules.py --level ERROR
+          # Run Golden Rules at WARNING level (21 rules: 5 CRITICAL + 9 ERROR + 7 WARNING)
+          python scripts/validation/validate_golden_rules.py --level WARNING
 
           EXIT_CODE=$?
 
           if [ $EXIT_CODE -eq 0 ]; then
             echo ""
             echo "✅ GATE 4C PASSED: All Golden Rules satisfied"
-            echo "Architectural integrity maintained."
+            echo "Architectural integrity maintained (21 rules enforced)."
           else
             echo ""
             echo "❌ GATE 4C FAILED: Golden Rules violations detected!"
             echo ""
             echo "This PR violates architectural constraints."
-            echo "Run locally: python scripts/validation/validate_golden_rules.py --level ERROR"
+            echo "Run locally: python scripts/validation/validate_golden_rules.py --level WARNING"
             exit 1
           fi
 
@@ -474,7 +474,7 @@ jobs:
 
             ### QA Agent Action Required
             1. Review the workflow run logs above
-            2. Run local validation: \`python scripts/validation/validate_golden_rules.py --level ERROR\`
+            2. Run local validation: \`python scripts/validation/validate_golden_rules.py --level WARNING\`
             3. Review bypass log: \`python scripts/qa/review-bypasses.py\`
             4. Fix violations and commit with strict pre-commit hooks
             5. Close this issue once codebase is clean

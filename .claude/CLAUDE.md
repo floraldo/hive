@@ -266,9 +266,11 @@ isort = "^5.13.0"           # Import sorting
 
 #### Severity Levels
 - **CRITICAL** (5 rules): System breaks, security, deployment - Always enforced
-- **ERROR** (13 rules): Technical debt, maintainability - Fix before PR
-- **WARNING** (20 rules): Quality issues, test coverage - Fix at sprint boundaries
-- **INFO** (24 rules): Best practices - Fix at major releases
+- **ERROR** (9 rules): Technical debt, maintainability - Fix before PR
+- **WARNING** (7 rules): Quality issues, test coverage - Fix at sprint boundaries
+- **INFO** (3 rules): Best practices - Fix at major releases
+
+**Total**: 24 Golden Rules actively enforced (all currently passing)
 
 #### Usage
 ```bash
@@ -315,102 +317,73 @@ git commit  # Pre-commit hooks validate
 
 ## 🏆 Golden Rules (24 Architectural Validators)
 
-Critical platform constraints enforced by `packages/hive-tests/src/hive_tests/ast_validator.py` (AST-based validation, 100% coverage):
+**Status**: All 24 rules PASSING (100% compliance at INFO level)
+**Enforcement**: AST-based validation via `packages/hive-tests/src/hive_tests/architectural_validators.py`
 
-### Import and Dependency Rules
-1. **No sys.path manipulation** - Use proper package imports
-2. **No print() statements** - Use `hive_logging` instead
-3. **Hive packages required** - Import from `hive_*` packages, not standard logging
-4. **No direct database imports** - Use `hive_db` abstractions
+### CRITICAL Rules (5 rules - Always Enforced)
+1. **No sys.path Manipulation** - Use proper package imports
+2. **Single Config Source** - No setup.py/pyproject.toml conflicts
+3. **No Hardcoded Env Values** - Use configuration management
+4. **Package vs. App Discipline** - Maintain layer separation
+5. **App Contracts** - Respect inter-app boundaries
 
-### Code Quality Rules
-5. **No hardcoded paths** - Use configuration management
-6. **Exception handling required** - Proper try/catch blocks
-7. **Type hints enforced** - Function signatures must have types
-8. **Docstring compliance** - Public functions need documentation
+### ERROR Rules (9 rules - Fix Before PR)
+6. **Dependency Direction** - packages/ cannot import from apps/
+7. **Graph-Based Dependency Analysis** - Use hive-graph for dependency tracking
+8. **Error Handling Standards** - Proper try/catch blocks with hive_errors
+9. **Logging Standards** - Use `hive_logging` instead of print()
+10. **No Global State Access** - Avoid shared mutable state
+11. **Async Pattern Consistency** - Use `hive_async` for concurrent operations
+12. **Interface Contracts** - Cross-component imports via interfaces
+13. **Communication Patterns** - Use hive-bus for inter-component messaging
+14. **Service Layer Discipline** - Maintain clean service boundaries
 
-### Architecture Rules
-9. **Layer separation** - packages/ cannot import from apps/
-10. **Component isolation** - Cross-component imports via interfaces
-11. **Configuration centralized** - Use `hive_config` for settings
-12. **Async patterns** - Use `hive_async` for concurrent operations
+### WARNING Rules (7 rules - Fix at Sprint Boundaries)
+15. **Test Coverage Mapping** - Track test coverage for all modules
+16. **Test File Quality** - Tests follow platform conventions
+17. **Inherit-Extend Pattern** - Follow inherit from packages, extend in apps
+18. **Package Naming Consistency** - Use hive-* naming for all packages
+19. **Development Tools Consistency** - Consistent tooling across components
+20. **CLI Pattern Consistency** - Uniform CLI patterns for all apps
+21. **Pyproject Dependency Usage** - Use Poetry for dependency management
 
-### Performance Rules
-13. **Cache utilization** - Use `hive_cache` for expensive operations
-14. **Performance monitoring** - Use `hive_performance` for metrics
-15. **Resource cleanup** - Proper context managers and cleanup
-
-### Configuration Pattern Enforcement (NEW)
-24. **No deprecated configuration patterns** - Use DI (`create_config_from_sources()`), not global state (`get_config()`)
-    - Severity: WARNING (transitional enforcement)
-    - Migration guide: `claudedocs/config_migration_guide_comprehensive.md`
-    - Gold standard: EcoSystemiser config bridge pattern
-
-### Environment Isolation (NEW - 2025-10-03)
-25. **No conda references in production code** - Conda is development tool, not runtime dependency
-    - Severity: CRITICAL
-    - Code must be environment-agnostic
-    - Exception: environment.yml and setup scripts
-    
-26. **No hardcoded absolute paths** - Breaks Docker/Kubernetes deployment
-    - Severity: ERROR  
-    - Use environment variables or relative paths
-    - Bad: /c/git/hive/data/file.db or C:\Users\...
-    - Good: os.getenv("DATA_PATH", "/app/data/file.db")
-    
-27. **Consistent Python version** - All pyproject.toml must use python = "^3.11"
-    - Severity: ERROR
-    - Prevents dependency conflicts
-    - Validated automatically in pre-commit
-    
-28. **Poetry lockfile exists and up-to-date** - Ensures reproducible builds
-    - Severity: WARNING
-    - Run poetry lock to generate
-    - Run poetry lock --no-update to refresh
-    
-29. **Multi-language toolchain available** - Platform supports Python, Node.js, Rust, Julia, Go
-    - Severity: INFO
-    - Install via: conda env create -f environment.yml
-    - Validate via: bash scripts/validation/validate_environment.sh
-    
-30. **Use environment variables for configuration** - 12-factor app compatibility
-    - Severity: WARNING
-    - Bad: API_KEY = "sk-1234567890"
-    - Good: API_KEY = os.getenv("API_KEY")
-
-### Configuration Consistency (NEW - 2025-10-03)
-31. **All pyproject.toml must have [tool.ruff] section** - Ensures consistent linting
-    - Severity: ERROR
-    - Template: pyproject.base.toml
-    - Auto-add: python scripts/maintenance/add_ruff_config.py
-    
-32. **All pyproject.toml must specify python = "^3.11"** - Prevents dependency conflicts
-    - Severity: ERROR
-    - Validated automatically in pre-commit
-    - Part of configuration consistency validation
-    
-33. **Pytest configuration must use consistent format** - Code quality
-    - Severity: WARNING
-    - Prefer: ["value"] or ["value1", "value2"]
-    - Avoid: [ "value",] (trailing comma in list)
-
-34. **PyProject.toml Required** - All apps and packages must have pyproject.toml for editable installation
-    - Severity: ERROR
-    - Ensures all components can be installed with `pip install -e`
-    - Prevents environment issues where code changes don't reflect in installed packages
-    - Enforced via Golden Rules validator
+### INFO Rules (3 rules - Fix at Major Releases)
+22. **Unified Tool Configuration** - Centralized tool config in pyproject.toml
+23. **Python Version Consistency** - All components use Python ^3.11
+24. **Colocated Tests** - Tests live near the code they test
 
 **Validation Commands**:
 ```bash
-# Environment isolation (Rules 25-30)
-python packages/hive-tests/src/hive_tests/environment_validator.py
+# CRITICAL only (rapid development)
+python scripts/validation/validate_golden_rules.py --level CRITICAL
 
-# Config consistency (Rules 31-33)
-python packages/hive-tests/src/hive_tests/config_validator.py
-
-# All golden rules
+# CRITICAL + ERROR (before PR - default)
 python scripts/validation/validate_golden_rules.py --level ERROR
+
+# Include WARNING (sprint cleanup)
+python scripts/validation/validate_golden_rules.py --level WARNING
+
+# All rules (release validation)
+python scripts/validation/validate_golden_rules.py --level INFO
 ```
+
+### Future Validators (PLANNED - Not Yet Implemented)
+The following validators are documented but NOT in the active registry:
+
+**Environment Isolation Validators** (see `environment_validator.py`):
+- No conda references in production code
+- No hardcoded absolute paths
+- Poetry lockfile validation
+- Multi-language toolchain checks
+
+**Config Consistency Validators** (see `config_validator.py`):
+- Ruff configuration in all pyproject.toml
+- Pytest configuration format consistency
+
+**Unified Config Enforcement** (Golden Rule 37 - see `claudedocs/golden_rule_37_implementation_plan.md`):
+- Enforce all config loading through hive-config
+- Detect os.getenv() outside config package
+- Prevent config file I/O bypassing unified system
 
 **Validation**: Run `python scripts/validation/validate_golden_rules.py` before any commit.
 
