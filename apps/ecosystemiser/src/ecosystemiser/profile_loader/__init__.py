@@ -1,28 +1,34 @@
+"""Profile Loader Module - Unified interface for all profile loading (climate, demand, etc.)"""
+
 from hive_logging import get_logger
+
+# Import from climate module
+from .climate import ClimateRequest, ClimateResponse, get_profile_sync
+
+# Import base models from shared.models
+from .shared.models import BaseProfileRequest, BaseProfileResponse, ProfileMode
 
 logger = get_logger(__name__)
 
-"""Profile Loader Module - Unified interface for all profile loading (climate, demand, etc.)"""
+# Aliases for unified interface
+get_climate_service = get_profile_sync
+process_climate_request = get_profile_sync
 
-# Unified interface
-# Legacy climate interface for backward compatibility
-
-# Specific profile types
-
-# Base models for unified interface
+# Legacy compatibility
+get_profile = get_profile_sync
 
 __all__ = [
-    # Unified interface
-    "get_unified_profile_serviceget_climate_service",
-    "get_demand_serviceprocess_climate_request",
-    "process_demand_request"
+    # Climate service interface
+    "get_climate_service",
+    "process_climate_request",
     # Base models
-    "BaseProfileRequest" "BaseProfileResponse",
-    "ProfileModeDataFrequency",
-    "LocationInfo"
-    # Specific models
-    "ClimateRequest" "ClimateResponse",
-    "DemandRequest" "DemandResponse"
+    "BaseProfileRequest",
+    "BaseProfileResponse",
+    "ProfileMode",
+    # Climate-specific models
+    "ClimateRequest",
+    "ClimateResponse",
     # Legacy compatibility
-    "get_profile" "get_profile_sync",
+    "get_profile",
+    "get_profile_sync",
 ]
