@@ -2,20 +2,27 @@ from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
-"""Water system components for EcoSystemiser.,
+"""Water system components for EcoSystemiser.
 
-This module provides water management components including storage
+This module provides water management components including storage,
 demand, grid connection, and renewable sources.
 """
 
-
-# Import all water components and their parameter models to register them
+# Import all water components to register them
+from .rainwater_source import RainwaterSource, RainwaterSourceParams
+from .water_demand import WaterDemand, WaterDemandParams
+from .water_grid import WaterGrid, WaterGridParams
+from .water_storage import WaterStorage, WaterStorageParams
 
 __all__ = [
-    "WaterStorageWaterStorageParams",
-    "WaterDemandWaterDemandParams",
-    "WaterGridWaterGridParams",
-    "RainwaterSourceRainwaterSourceParams",
+    "WaterStorage",
+    "WaterStorageParams",
+    "WaterDemand",
+    "WaterDemandParams",
+    "WaterGrid",
+    "WaterGridParams",
+    "RainwaterSource",
+    "RainwaterSourceParams",
 ]
 
 # Component metadata for documentation
