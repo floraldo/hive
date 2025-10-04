@@ -13,7 +13,7 @@ eco_path = Path(__file__).parent.parent / "src"
 
 from ecosystemiser.solver.milp_solver import MILPSolver
 from ecosystemiser.solver.rule_based_engine import RuleBasedEngine
-from ecosystemiser.utils.system_builder import create_system_from_config
+from ecosystemiser.utils.system_builder import SystemBuilder
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
@@ -34,7 +34,7 @@ class GoldenMicrogridValidator:
             raise FileNotFoundError(f"Config file not found: {config_path}")
 
         logger.info(f"Loading system config: {config_path}")
-        return create_system_from_config(str(config_path))
+        return SystemBuilder(config_path=config_path).build()
 
     def validate_energy_balance(self, system, results: dict[str, Any], domain: str = "electrical") -> dict[str, Any]:
         """Validate perfect energy conservation for specified domain."""
