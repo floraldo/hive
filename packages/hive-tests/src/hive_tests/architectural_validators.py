@@ -119,6 +119,128 @@ def validate_dependency_graph(
     return len(violations_list) == 0, violations_list
 
 
+
+# ============================================================================
+# Configuration Consistency Validators (Rules 31-33)
+# ============================================================================
+
+
+def validate_ruff_config_in_pyproject(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
+    """
+    Golden Rule 31: Ruff Config Consistency
+
+    Ensures all pyproject.toml files contain [tool.ruff] configuration.
+
+    Args:
+        project_root: Root of the project
+        scope_files: Optional file scope (not used for this rule)
+
+    Returns:
+        Tuple of (passed, violations)
+    """
+    violations = []
+    pyproject_files = []
+    pyproject_files.extend(project_root.glob("packages/*/pyproject.toml"))
+    pyproject_files.extend(project_root.glob("apps/*/pyproject.toml"))
+
+    for pyproject_file in pyproject_files:
+        try:
+            content = pyproject_file.read_text(encoding="utf-8")
+            relative_path = pyproject_file.relative_to(project_root)
+
+            if "[tool.ruff]" not in content:
+                violations.append(f"{relative_path}: Missing [tool.ruff] configuration (Rule 31)")
+
+        except Exception as e:
+            violations.append(f"{pyproject_file}: Error reading file: {e}")
+
+    return len(violations) == 0, violations
+
+
+def validate_python_version_in_pyproject(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
+    """
+    Golden Rule 32: Python Version Specification
+
+    Ensures all pyproject.toml files specify Python version ^3.11.
+
+    Args:
+        project_root: Root of the project
+        scope_files: Optional file scope (not used for this rule)
+
+    Returns:
+        Tuple of (passed, violations)
+    """
+    violations = []
+    pyproject_files = []
+    pyproject_files.extend(project_root.glob("packages/*/pyproject.toml"))
+    pyproject_files.extend(project_root.glob("apps/*/pyproject.toml"))
+
+    for pyproject_file in pyproject_files:
+        try:
+            content = pyproject_file.read_text(encoding="utf-8")
+            relative_path = pyproject_file.relative_to(project_root)
+
+            # Supports both Poetry format (python = "^3.11") and PEP 621 format (requires-python = ">=3.11")
+            has_poetry_format = 'python = "^3.11"' in content
+            has_pep621_format = 'requires-python = ">=3.11"' in content or 'requires-python = ">= 3.11"' in content
+
+            if not has_poetry_format and not has_pep621_format:
+                violations.append(
+                    f"{relative_path}: Missing Python version specification (Rule 32) - "
+                    f"Expected 'python = \"^3.11\"' or 'requires-python = \">=3.11\"'"
+                )
+
+        except Exception as e:
+            violations.append(f"{pyproject_file}: Error reading file: {e}")
+
+    return len(violations) == 0, violations
+
+
+
+
+# ============================================================================
+# Environment Isolation Validators (Rules 25-30)
+# ============================================================================
+
+
+def validate_environment_isolation_rules(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
+    """
+    Golden Rules 25-30: Environment Isolation
+
+    Validates environment isolation:
+    - No conda references in production code
+    - No hardcoded environment paths
+    - Python version consistency
+    - Poetry lockfile validation
+    - Multi-language toolchain
+    - Environment variables usage
+
+    Args:
+        project_root: Root of the project
+        scope_files: Optional file scope (not used for these rules)
+
+    Returns:
+        Tuple of (passed, violations)
+    """
+    from hive_tests.environment_validator import validate_environment_isolation
+
+    try:
+        result = validate_environment_isolation(project_root)
+        violations = result.get("violations", [])
+        passed = result.get("passed", False)
+
+        # Format violations for consistency
+        formatted_violations = []
+        for violation in violations:
+            formatted_violations.append(f"Environment: {violation}")
+
+        return passed, formatted_violations
+
+    except Exception as e:
+        return False, [f"Environment validation error: {e}"]
+
+
+
 def _initialize_golden_rules_registry():
     """
     Initialize the Golden Rules registry after all validators are defined.
@@ -269,6 +391,24 @@ def _initialize_golden_rules_registry():
             "description": "Single Python version",
         },
         {
+            "name": "Ruff Config Consistency",
+            "validator": validate_ruff_config_in_pyproject,
+            "severity": RuleSeverity.WARNING,
+            "description": "[tool.ruff] in all pyproject.toml",
+        },
+        {
+            "name": "Python Version Specification",
+            "validator": validate_python_version_in_pyproject,
+            "severity": RuleSeverity.INFO,
+            "description": "Python ^3.11 in all packages",
+        },
+                {
+            "name": "Environment Isolation",
+            "validator": validate_environment_isolation_rules,
+            "severity": RuleSeverity.INFO,
+            "description": "No conda refs, hardcoded paths, or env conflicts (Rules 25-30)",
+        },
+                {
             "name": "Colocated Tests",
             "validator": validate_colocated_tests,
             "severity": RuleSeverity.INFO,

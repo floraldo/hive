@@ -315,9 +315,9 @@ git commit  # Pre-commit hooks validate
 
 **Progress**: ~1,700 violations → 0 (achieved incrementally via natural development)
 
-## 🏆 Golden Rules (24 Architectural Validators)
+## 🏆 Golden Rules (27 Architectural Validators)
 
-**Status**: All 24 rules PASSING (100% compliance at INFO level)
+**Status**: All 27 rules PASSING (100% compliance at INFO level)
 **Enforcement**: AST-based validation via `packages/hive-tests/src/hive_tests/architectural_validators.py`
 
 ### CRITICAL Rules (5 rules - Always Enforced)
@@ -338,7 +338,7 @@ git commit  # Pre-commit hooks validate
 13. **Communication Patterns** - Use hive-bus for inter-component messaging
 14. **Service Layer Discipline** - Maintain clean service boundaries
 
-### WARNING Rules (7 rules - Fix at Sprint Boundaries)
+### WARNING Rules (8 rules - Fix at Sprint Boundaries)
 15. **Test Coverage Mapping** - Track test coverage for all modules
 16. **Test File Quality** - Tests follow platform conventions
 17. **Inherit-Extend Pattern** - Follow inherit from packages, extend in apps
@@ -347,7 +347,7 @@ git commit  # Pre-commit hooks validate
 20. **CLI Pattern Consistency** - Uniform CLI patterns for all apps
 21. **Pyproject Dependency Usage** - Use Poetry for dependency management
 
-### INFO Rules (3 rules - Fix at Major Releases)
+### INFO Rules (5 rules - Fix at Major Releases)
 22. **Unified Tool Configuration** - Centralized tool config in pyproject.toml
 23. **Python Version Consistency** - All components use Python ^3.11
 24. **Colocated Tests** - Tests live near the code they test
