@@ -18,12 +18,13 @@ Quality improvement:
 
 from __future__ import annotations
 
-import logging
 import time
 from dataclasses import dataclass
 from typing import Any
 
-logger = logging.getLogger(__name__)
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -51,9 +52,9 @@ class RerankerConfig:
 
     def __post_init__(self):
         """Validate configuration."""
-        assert self.candidate_count >= self.rerank_count >= self.final_count
-        assert self.batch_size > 0
-        assert 0.0 <= self.min_score <= 1.0
+        assert self.candidate_count >= self.rerank_count >= self.final_count  # noqa: S101
+        assert self.batch_size > 0  # noqa: S101
+        assert 0.0 <= self.min_score <= 1.0  # noqa: S101
 
 
 class CrossEncoderReranker:

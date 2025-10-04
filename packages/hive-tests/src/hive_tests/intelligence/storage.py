@@ -4,15 +4,16 @@ SQLite storage layer for test intelligence data.
 Provides persistence for test runs, results, and analytics.
 """
 import json
-import logging
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
+from hive_logging import get_logger
+
 from .models import TestResult, TestRun
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class TestIntelligenceStorage:

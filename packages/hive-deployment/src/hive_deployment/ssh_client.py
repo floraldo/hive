@@ -5,12 +5,15 @@ Adapted from SmartHoodsOptimisationTool Apper project.
 """
 from __future__ import annotations
 
-import logging
 import os
 import time
 from typing import Any
 
 import paramiko
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 class SSHClient:
@@ -46,7 +49,7 @@ class SSHClient:
             bool: True if connection is successful
         """
         if self.client and self.client.get_transport() and self.client.get_transport().is_active():
-            logging.debug("SSH connection already active")
+            logger.debug("SSH connection already active")
             return True
 
         try:
@@ -56,7 +59,7 @@ class SSHClient:
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-            logging.info(f"Connecting to {self.host}:{self.port} as {self.username}")
+            logger.info(f"Connecting to {self.host}:{self.port} as {self.username}")
 
             connect_kwargs = {
                 "hostname": self.host,
@@ -71,17 +74,17 @@ class SSHClient:
                 connect_kwargs["key_filename"] = self.key_filename
 
             self.client.connect(**connect_kwargs)
-            logging.info("SSH connection established"),
+            logger.info("SSH connection established"),
             return True
 
         except paramiko.AuthenticationException as e:
-            logging.error(f"Authentication failed: {str(e)}")
+            logger.error(f"Authentication failed: {str(e)}")
             return False
         except paramiko.SSHException as e:
-            logging.error(f"SSH error: {str(e)}")
+            logger.error(f"SSH error: {str(e)}")
             return False
         except Exception as e:
-            logging.error(f"Connection error: {str(e)}")
+            logger.error(f"Connection error: {str(e)}")
             return False
 
     def close(self) -> None:
@@ -91,16 +94,16 @@ class SSHClient:
         if self.sftp:
             try:
                 self.sftp.close()
-                logging.debug("SFTP connection closed")
+                logger.debug("SFTP connection closed")
             except Exception as e:
-                logging.warning(f"Error closing SFTP: {str(e)}")
+                logger.warning(f"Error closing SFTP: {str(e)}")
 
         if self.client:
             try:
                 self.client.close()
-                logging.debug("SSH connection closed")
+                logger.debug("SSH connection closed")
             except Exception as e:
-                logging.warning(f"Error closing SSH connection: {str(e)}")
+                logger.warning(f"Error closing SSH connection: {str(e)}")
 
         self.client = None
         self.sftp = None
@@ -156,7 +159,7 @@ class SSHClient:
                     stderr.read().decode().strip()
                 )
         except Exception as e:
-            logging.error(f"Error executing command: {str(e)}")
+            logger.error(f"Error executing command: {str(e)}")
             return 1, "", str(e)
 
     def upload_file(self, content: bytes | str, remote_path: str, sudo: bool = False) -> bool:
@@ -197,10 +200,10 @@ class SSHClient:
                 with self.sftp.file(remote_path, "wb") as f:
                     f.write(content)
 
-            logging.info(f"Uploaded file to {remote_path}")
+            logger.info(f"Uploaded file to {remote_path}")
             return True
         except Exception as e:
-            logging.error(f"Failed to upload file to {remote_path}: {str(e)}")
+            logger.error(f"Failed to upload file to {remote_path}: {str(e)}")
             return False
 
 

@@ -25,7 +25,9 @@ def main(verbose: bool = False) -> None:
     if verbose:
         import logging
 
-        logging.getLogger().setLevel(logging.DEBUG)
+        # Set root logger level for verbose mode
+        root_logger = get_logger("hive_app_toolkit")
+        root_logger.setLevel(logging.DEBUG)
 
 
 @main.command()

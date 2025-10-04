@@ -7,13 +7,16 @@ Adapted from SmartHoodsOptimisationTool Apper project.
 from __future__ import annotations
 
 import fnmatch
-import logging
 import os
 import re
 from pathlib import Path
 from typing import Any
 
+from hive_logging import get_logger
+
 from .ssh_client import SSHClient
+
+logger = get_logger(__name__)
 
 
 def parse_deployignore(local_dir: str) -> list[str]:
@@ -36,9 +39,9 @@ def parse_deployignore(local_dir: str) -> list[str]:
                     line = line.strip()
                     if line and not line.startswith("#"):
                         ignore_patterns.append(line)
-            logging.info(f"Loaded {len(ignore_patterns)} ignore patterns from .deployignore")
+            logger.info(f"Loaded {len(ignore_patterns)} ignore patterns from .deployignore")
         except Exception as e:
-            logging.warning(f"Error reading .deployignore: {e}")
+            logger.warning(f"Error reading .deployignore: {e}")
 
     return ignore_patterns
 
@@ -72,18 +75,18 @@ def should_ignore_path(path: str, ignore_patterns: list[str], base_dir: str = ""
 
 def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> int | None:
     """Finds an available TCP port on the remote server."""
-    logging.info(f"Searching for available port starting from {start_port}...")
+    logger.info(f"Searching for available port starting from {start_port}...")
     try:
         # Try ss first, fallback to netstat
         cmd = "ss -tlpn"
         exit_code, stdout, stderr = ssh.execute_command(cmd)
 
         if exit_code != 0:
-            logging.warning(f"'ss -tlpn' failed: {stderr}. Trying 'netstat -tlpn'.")
+            logger.warning(f"'ss -tlpn' failed: {stderr}. Trying 'netstat -tlpn'.")
             cmd = "netstat -tlpn"
             exit_code, stdout, stderr = ssh.execute_command(cmd)
             if exit_code != 0:
-                logging.error(f"Both 'ss' and 'netstat' failed: {stderr}. Cannot determine used ports.")
+                logger.error(f"Both 'ss' and 'netstat' failed: {stderr}. Cannot determine used ports.")
                 return None
 
         listening_ports = set()
@@ -98,22 +101,22 @@ def find_available_port(ssh: SSHClient, start_port: int, max_search: int) -> int
                     port_str = match.group(2)
                     listening_ports.add(int(port_str))
                 except (ValueError, IndexError):
-                    logging.debug(f"Could not parse port from matched line: {line}")
+                    logger.debug(f"Could not parse port from matched line: {line}")
                     continue
 
-        logging.debug(f"Currently listening ports found: {sorted(listening_ports)}")
+        logger.debug(f"Currently listening ports found: {sorted(listening_ports)}")
 
         for i in range(max_search):
             port = start_port + i
             if port not in listening_ports:
-                logging.info(f"Port {port} appears available.")
+                logger.info(f"Port {port} appears available.")
                 return port
 
-        logging.error(f"Could not find an available port between {start_port} and {start_port + max_search - 1}.")
+        logger.error(f"Could not find an available port between {start_port} and {start_port + max_search - 1}.")
         return None
 
     except Exception as e:
-        logging.error(f"Error finding available port: {e}", exc_info=True)
+        logger.error(f"Error finding available port: {e}", exc_info=True)
         return None
 
 
@@ -143,26 +146,26 @@ def run_remote_command(
         Exception: If 'check' is True and the command returns a non-zero exit code.,
     """
     sudo_prefix = "sudo " if sudo else ""
-    logging.debug(f"Running remote command: {sudo_prefix}{command}")
+    logger.debug(f"Running remote command: {sudo_prefix}{command}")
 
     exit_code, stdout, stderr = ssh_client.execute_command(command, sudo=sudo)
 
     if exit_code != 0:
-        (logging.warning(f"Remote command failed (Exit Code: {exit_code}): {sudo_prefix}{command}"),)
+        (logger.warning(f"Remote command failed (Exit Code: {exit_code}): {sudo_prefix}{command}"),)
         if stdout and log_output:
-            (logging.warning(f"  STDOUT: {stdout}"),)
+            (logger.warning(f"  STDOUT: {stdout}"),)
         if stderr and log_output:
-            (logging.warning(f"  STDERR: {stderr}"),)
+            (logger.warning(f"  STDERR: {stderr}"),)
         if check:
             raise Exception(
                 f"Remote command failed with exit code {exit_code}: {sudo_prefix}{command}. Stderr: {stderr}",
             )
     else:
-        (logging.debug(f"Remote command succeeded (Exit Code: 0): {sudo_prefix}{command}"),)
+        (logger.debug(f"Remote command succeeded (Exit Code: 0): {sudo_prefix}{command}"),)
         if stdout and log_output:
-            (logging.debug(f"  STDOUT: {stdout}"),)
+            (logger.debug(f"  STDOUT: {stdout}"),)
         if stderr and log_output:
-            logging.debug(f"  STDERR: {stderr}")
+            logger.debug(f"  STDERR: {stderr}")
 
     return exit_code, stdout, stderr
 
@@ -189,19 +192,19 @@ def upload_directory(
     """
     local_path = Path(local_dir)
     if not local_path.is_dir():
-        (logging.error(f"Local directory not found: {local_dir}"),)
+        (logger.error(f"Local directory not found: {local_dir}"),)
         return False
 
     # Parse .deployignore patterns
     ignore_patterns = parse_deployignore(local_dir)
     if ignore_patterns:
-        logging.info(f"Using .deployignore with {len(ignore_patterns)} patterns")
+        logger.info(f"Using .deployignore with {len(ignore_patterns)} patterns")
 
     try:
         if not ssh_client.sftp:
             ssh_client.sftp = ssh_client.client.open_sftp()
 
-        (logging.info(f"Creating remote directory (if needed): {remote_dir}"),)
+        (logger.info(f"Creating remote directory (if needed): {remote_dir}"),)
         # Use run_remote_command for directory creation
         exit_code, _, stderr = run_remote_command(
             ssh_client,
@@ -214,7 +217,7 @@ def upload_directory(
         if exit_code != 0:
             # Check if error is "File exists" - that's okay
             if "File exists" not in stderr:
-                (logging.error(f"Failed to create remote directory {remote_dir}: {stderr}"),)
+                (logger.error(f"Failed to create remote directory {remote_dir}: {stderr}"),)
                 return False
 
         # Walk through the local directory
@@ -225,14 +228,14 @@ def upload_directory(
 
             # Check if this directory should be ignored
             if relative_path_str != "." and should_ignore_path(relative_path_str + "/", ignore_patterns):
-                (logging.debug(f"Ignoring directory: {relative_path_str}"),)
+                (logger.debug(f"Ignoring directory: {relative_path_str}"),)
                 dirs.clear()  # Don't walk into subdirectories
                 continue
 
             remote_root = os.path.join(remote_dir, str(relative_path)).replace("\\\\", "/")
 
             if relative_path != Path("."):  # Don't try to create the base dir again,
-                (logging.debug(f"Creating remote subdirectory: {remote_root}"),)
+                (logger.debug(f"Creating remote subdirectory: {remote_root}"),)
                 exit_code, _, stderr = run_remote_command(
                     ssh_client,
                     f"mkdir -p '{remote_root}'",
@@ -243,35 +246,35 @@ def upload_directory(
                 )
                 # Again, ignore "File exists" type errors
                 if exit_code != 0 and "File exists" not in stderr:
-                    logging.warning(f"Could not create remote subdirectory {remote_root}: {stderr}")
+                    logger.warning(f"Could not create remote subdirectory {remote_root}: {stderr}")
 
             # Upload files
             for filename in files:
                 # Check if this file should be ignored
                 file_relative_path = os.path.join(relative_path_str, filename).replace("\\\\", "/")
                 if should_ignore_path(file_relative_path, ignore_patterns):
-                    (logging.debug(f"Ignoring file: {file_relative_path}"),)
+                    (logger.debug(f"Ignoring file: {file_relative_path}"),)
                     continue
 
                 local_file_path = os.path.join(root, filename)
                 remote_file_path = os.path.join(remote_root, filename).replace("\\\\", "/")
                 try:
-                    logging.debug(f"Uploading {local_file_path} to {remote_file_path}")
+                    logger.debug(f"Uploading {local_file_path} to {remote_file_path}")
                     ssh_client.sftp.put(local_file_path, remote_file_path)
                 except Exception as e:
-                    logging.error(f"Failed to upload {local_file_path} to {remote_file_path}: {e}")
+                    logger.error(f"Failed to upload {local_file_path} to {remote_file_path}: {e}")
 
-        logging.info(f"Successfully uploaded directory {local_dir} to {remote_dir}")
+        logger.info(f"Successfully uploaded directory {local_dir} to {remote_dir}")
         return True
 
     except Exception as e:
-        (logging.error(f"Error during directory upload: {e}", exc_info=True),)
+        (logger.error(f"Error during directory upload: {e}", exc_info=True),)
         return False
 
 
 def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict) -> str | None:
     """Finds the next available app name (e.g., app1, app2) on the remote server."""
-    logging.info(f"Finding existing apps in '{base_dir}' with prefix '{prefix}'...")
+    logger.info(f"Finding existing apps in '{base_dir}' with prefix '{prefix}'...")
     # Use find for potentially better handling of names and errors
     # -maxdepth 1 to only look in the base_dir
     # -type d for directories
@@ -280,14 +283,14 @@ def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict)
     exit_code, stdout, stderr = ssh.execute_command(cmd)
 
     if exit_code != 0:
-        logging.error(f"Error running find command in {base_dir}: {stderr}")
+        logger.error(f"Error running find command in {base_dir}: {stderr}")
         return None
 
     existing_nums = (set(),)
     pattern = re.compile(rf".*/{prefix}(\\d+)$")
 
     if not stdout:
-        logging.info(f"No existing apps found with prefix '{prefix}'. Starting with {prefix}1.")
+        logger.info(f"No existing apps found with prefix '{prefix}'. Starting with {prefix}1.")
         return f"{prefix}1"
 
     for line in stdout.splitlines():
@@ -296,11 +299,11 @@ def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict)
             try:
                 existing_nums.add(int(match.group(1)))
             except ValueError:
-                logging.warning(f"Could not parse number from directory name: {line}")
+                logger.warning(f"Could not parse number from directory name: {line}")
                 continue
 
     if not existing_nums:
-        logging.info(f"No numbered apps matched pattern '{prefix}[0-9]*'. Starting with {prefix}1.")
+        logger.info(f"No numbered apps matched pattern '{prefix}[0-9]*'. Starting with {prefix}1.")
         return f"{prefix}1"
 
     next_num = 1
@@ -308,6 +311,6 @@ def find_next_app_name(ssh: SSHClient, base_dir: str, prefix: str, config: dict)
         next_num += 1
 
     next_app_name = f"{prefix}{next_num}"
-    logging.info(f"Found existing app numbers: {sorted(existing_nums)}")
-    logging.info(f"Next available app name will be: {next_app_name}")
+    logger.info(f"Found existing app numbers: {sorted(existing_nums)}")
+    logger.info(f"Next available app name will be: {next_app_name}")
     return next_app_name
