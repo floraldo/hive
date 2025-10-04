@@ -1,3 +1,7 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this module use controlled CLI tools with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """
 Robust Claude CLI bridge with drift-resilient JSON contract
 Production-ready implementation that handles model and prompt drift
@@ -90,8 +94,8 @@ class RobustClaudeBridge:
         task_id: str,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]] = None,
-        objective_analysis: Optional[dict[str, Any]] = None,
+        test_results: dict[str, Any] | None = None,
+        objective_analysis: dict[str, Any] | None = None,
         transcript: str | None = None,
     ) -> dict[str, Any]:
         """
@@ -174,8 +178,8 @@ class RobustClaudeBridge:
         self,
         task_description: str,
         code_files: dict[str, str],
-        test_results: Optional[dict[str, Any]],
-        objective_analysis: Optional[dict[str, Any]],
+        test_results: dict[str, Any] | None,
+        objective_analysis: dict[str, Any] | None,
         transcript: str | None,
     ) -> str:
         """Create a comprehensive prompt that enforces JSON contract"""

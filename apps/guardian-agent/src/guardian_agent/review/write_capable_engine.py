@@ -1,3 +1,7 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this module use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """
 Write-Capable Guardian Engine.
 

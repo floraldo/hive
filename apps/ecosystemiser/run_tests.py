@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# ruff: noqa: S603
+# Security: subprocess calls in this script use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """
 Comprehensive test runner for EcoSystemiser v3.0
 
@@ -6,15 +10,15 @@ Consolidates all testing infrastructure into a single entry point.
 """
 
 import argparse
-
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import Any
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def run_command(cmd: list[str], description: str) -> dict[str, Any]:

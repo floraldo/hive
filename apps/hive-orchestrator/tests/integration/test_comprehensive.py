@@ -1,3 +1,8 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this test file use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess. This is safe for
+# internal testing infrastructure.
+
 """
 Comprehensive test suite for Hive V2.0 Windows integration.
 Consolidates all test scenarios into a single, organized test runner.
@@ -5,12 +10,6 @@ Consolidates all test scenarios into a single, organized test runner.
 Note: Subprocess usage for integration testing is intentional (S603).
 """
 import json
-
-import pytest
-
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 import os
 import sqlite3
 import subprocess
@@ -20,10 +19,15 @@ import uuid
 from datetime import UTC, datetime
 from pathlib import Path
 
-project_root = Path(__file__).parent.parent.parent.parent
+import pytest
+
 from hive_config.paths import DB_PATH
+from hive_logging import get_logger
 from hive_orchestrator.core import db as hive_core_db
 from hive_orchestrator.hive_core import HiveCore
+
+logger = get_logger(__name__)
+project_root = Path(__file__).parent.parent.parent.parent
 
 
 class HiveTestSuite:

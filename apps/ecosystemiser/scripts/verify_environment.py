@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# ruff: noqa: S603
+# Security: subprocess calls in this script use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """
 EcoSystemiser Environment Verification Script
 

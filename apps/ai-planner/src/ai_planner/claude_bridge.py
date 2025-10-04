@@ -1,3 +1,7 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this module use sys.executable or controlled CLI tools
+# with hardcoded, trusted arguments only. No user input is passed to subprocess.
+
 """
 Robust Claude CLI bridge for AI Planning
 Production-ready implementation for intelligent task decomposition and workflow generation

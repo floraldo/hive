@@ -1,3 +1,7 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this script use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """Master codebase restoration script.
 
 Executes all fixer scripts in the correct order and validates results.

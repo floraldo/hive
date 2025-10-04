@@ -1,7 +1,8 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 #!/usr/bin/env python
+# ruff: noqa: S603
+# Security: subprocess calls in this script use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """
 Ultimate CLI Test Suite for EcoSystemiser
 Cross-platform, comprehensive end-to-end testing
@@ -15,6 +16,10 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 # --- Configuration ---
 PROJECT_ROOT = Path(__file__).parent

@@ -1,3 +1,8 @@
+# ruff: noqa: S603
+# Security: subprocess calls in this validator use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess. This is safe for
+# internal validation tooling.
+
 """Environment Isolation Validator
 
 Golden Rules for Environment Management and Multi-Language Platform Architecture

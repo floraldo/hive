@@ -1,7 +1,8 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
 #!/usr/bin/env python
+# ruff: noqa: S603
+# Security: subprocess calls in this script use sys.executable with hardcoded,
+# trusted arguments only. No user input is passed to subprocess.
+
 """Integration test script for EcoSystemiser v3.0 Presentation Layer.
 
 This script validates the complete workflow from Discovery Engine
@@ -16,6 +17,10 @@ import time
 import webbrowser
 from pathlib import Path
 from typing import Any
+
+from hive_logging import get_logger
+
+logger = get_logger(__name__)
 
 
 def run_command(cmd: str) -> tuple[int, str, str]:

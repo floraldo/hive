@@ -101,7 +101,8 @@
       "Bash(while read f)",
       "Bash(do echo \"$f:0:8\")",
       "Bash(stat:*)",
-      "Bash(declare:*)"
+      "Bash(declare:*)",
+      "Bash(shopt:*)"
     ],
     "deny": [],
     "ask": []
