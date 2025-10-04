@@ -5,7 +5,7 @@ Provides reusable patterns for error reporting and metrics
 that can be extended for any system.
 """
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Any
 
@@ -24,6 +24,7 @@ class BaseErrorReporter(ABC):
     Subclasses must implement storage mechanisms.
     """
 
+    @abstractmethod
     def report_error(
         self,
         error: Exception,

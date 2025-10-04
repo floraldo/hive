@@ -131,7 +131,7 @@ class FactoryAcceptanceTest:
                         return False
 
                 # Simulate processing time
-                for j in range(duration):
+                for _ in range(duration):
                     print("   .", end="", flush=True)
                     time.sleep(0.3)
                 print(" [OK]")
@@ -345,7 +345,7 @@ class FactoryAcceptanceTest:
 
             # Execute all test cases
             for test_case in test_cases:
-                result = self.run_test_case(test_case)
+                _ = self.run_test_case(test_case)
                 # Brief pause between tests
                 time.sleep(1)
 

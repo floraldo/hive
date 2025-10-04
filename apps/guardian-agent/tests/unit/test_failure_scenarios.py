@@ -198,7 +198,7 @@ class TestMalformedInput:
     @pytest.mark.asyncio
     async def test_invalid_webhook_signature(self):
         """Test rejection of webhooks with invalid signatures."""
-        handler = (GitHubWebhookHandler(webhook_secret="secret"),)
+        handler = (GitHubWebhookHandler(webhook_secret="secret"),)  # noqa: S106
 
         payload = {"action": "opened", "pull_request": {"number": 123}}
         headers = ({"X-Hub-Signature-256": "invalid_signature"},)
