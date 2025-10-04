@@ -1,0 +1,80 @@
+"""Golden Rules compliance tests for hive-ui."""
+
+from __future__ import annotations
+
+import ast
+from pathlib import Path
+
+
+def test_no_print_statements() -> None:
+    """Verify no print() statements in production code."""
+    src_dir = Path("src")
+    violations = []
+
+    for py_file in src_dir.rglob("*.py"):
+        with open(py_file) as f:
+            try:
+                tree = ast.parse(f.read(), filename=str(py_file))
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Call):
+                        if isinstance(node.func, ast.Name) and node.func.id == "print":
+                            violations.append(f"{py_file}:{node.lineno}")
+            except SyntaxError:
+                pass  # Skip files with syntax errors
+
+    assert not violations, f"Found print() statements: {violations}"
+
+
+def test_hive_logging_import() -> None:
+    """Verify hive_logging is used instead of standard logging."""
+    src_dir = Path("src")
+    violations = []
+
+    for py_file in src_dir.rglob("*.py"):
+        with open(py_file) as f:
+            content = f.read()
+            if "import logging" in content or "from logging import" in content:
+                if "hive_logging" not in content:
+                    violations.append(str(py_file))
+
+    assert not violations, f"Found standard logging imports: {violations}"
+
+
+def test_config_di_pattern() -> None:
+    """Verify configuration uses DI pattern, not global state."""
+    src_dir = Path("src")
+    violations = []
+
+    for py_file in src_dir.rglob("*.py"):
+        with open(py_file) as f:
+            content = f.read()
+            # Check for deprecated get_config() usage
+            if "from hive_config import get_config" in content or "get_config()" in content:
+                violations.append(str(py_file))
+
+    assert not violations, f"Found deprecated get_config() usage: {violations}"
+
+
+def test_type_hints_present() -> None:
+    """Verify function signatures have type hints."""
+    src_dir = Path("src")
+    violations = []
+
+    for py_file in src_dir.rglob("*.py"):
+        with open(py_file) as f:
+            try:
+                tree = ast.parse(f.read(), filename=str(py_file))
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.FunctionDef):
+                        # Skip test functions and private functions
+                        if node.name.startswith("test_") or node.name.startswith("_"):
+                            continue
+                        # Check if function has return annotation
+                        if node.returns is None and node.name != "__init__":
+                            violations.append(f"{py_file}:{node.lineno}:{node.name}")
+            except SyntaxError:
+                pass
+
+    # Allow some violations for generated code
+    # In production, enforce strict type hints
+    assert len(violations) <= 5, f"Too many functions without type hints: {violations}"

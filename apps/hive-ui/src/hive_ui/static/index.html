@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colossus Command Center - Autonomous Development</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .create-project {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .projects-list {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .project-card {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .project-name {
+            font-weight: 600;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status.pending { background: #ffc107; color: #000; }
+        .status.planning { background: #17a2b8; color: #fff; }
+        .status.coding { background: #007bff; color: #fff; }
+        .status.validating { background: #6f42c1; color: #fff; }
+        .status.fixing { background: #fd7e14; color: #fff; }
+        .status.complete { background: #28a745; color: #fff; }
+        .status.failed { background: #dc3545; color: #fff; }
+
+        .project-requirement {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .project-logs {
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+            color: #333;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .refresh-btn {
+            float: right;
+            background: #6c757d;
+            padding: 8px 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Colossus Command Center</h1>
+            <p class="subtitle">Autonomous Software Development Engine</p>
+        </header>
+
+        <div class="create-project">
+            <h2>Create New Project</h2>
+            <form id="createProjectForm">
+                <div class="form-group">
+                    <label for="requirement">Requirement (Natural Language)</label>
+                    <textarea
+                        id="requirement"
+                        name="requirement"
+                        placeholder="Example: Create a user authentication API with JWT tokens and password reset functionality"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="serviceName">Service Name (Optional)</label>
+                    <input
+                        type="text"
+                        id="serviceName"
+                        name="serviceName"
+                        placeholder="Example: auth-api (auto-generated if empty)"
+                    />
+                </div>
+
+                <button type="submit" id="submitBtn">🚀 Launch Autonomous Development</button>
+            </form>
+        </div>
+
+        <div class="projects-list">
+            <h2>
+                Active Projects
+                <button class="refresh-btn" onclick="loadProjects()">🔄 Refresh</button>
+            </h2>
+            <div id="projectsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+
+        // Load projects on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProjects();
+            // Auto-refresh every 5 seconds
+            setInterval(loadProjects, 5000);
+        });
+
+        // Create project form handler
+        document.getElementById('createProjectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+
+            const formData = {
+                requirement: document.getElementById('requirement').value,
+                service_name: document.getElementById('serviceName').value || null
+            };
+
+            try {
+                const response = await fetch(`${API_BASE}/projects`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to create project');
+                }
+
+                const result = await response.json();
+                alert(`Project created: ${result.project_id}`);
+
+                // Clear form
+                document.getElementById('createProjectForm').reset();
+
+                // Reload projects
+                loadProjects();
+
+            } catch (error) {
+                alert('Error creating project: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '🚀 Launch Autonomous Development';
+            }
+        });
+
+        // Load and display projects
+        async function loadProjects() {
+            try {
+                const response = await fetch(`${API_BASE}/projects`);
+                const projects = await response.json();
+
+                const projectsList = document.getElementById('projectsList');
+
+                if (projects.length === 0) {
+                    projectsList.innerHTML = '<div class="empty-state">No projects yet. Create one to get started!</div>';
+                    return;
+                }
+
+                projectsList.innerHTML = projects.map(project => `
+                    <div class="project-card">
+                        <div class="project-header">
+                            <div class="project-name">${project.service_name}</div>
+                            <div class="status ${project.status}">${project.status}</div>
+                        </div>
+                        <div class="project-requirement">${project.requirement}</div>
+                        <div class="project-logs">
+                            ${project.logs.length > 0
+                                ? project.logs.map(log => `<div class="log-entry">${log}</div>`).join('')
+                                : '<div class="log-entry">Waiting to start...</div>'
+                            }
+                        </div>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error loading projects:', error);
+            }
+        }
+    </script>
+</body>
+</html>
