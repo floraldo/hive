@@ -1,5 +1,4 @@
-"""
-Fix Generation using constrained LLM prompts.
+"""Fix Generation using constrained LLM prompts.
 
 Generates targeted code fixes for specific error types.
 """
@@ -10,6 +9,7 @@ import re
 from dataclasses import dataclass
 
 from hive_logging import get_logger
+from hive_performance import track_request
 
 from .error_analyzer import ParsedError, ValidationTool
 
@@ -30,8 +30,7 @@ class GeneratedFix:
 
 
 class FixGenerator:
-    """
-    Generates targeted fixes for code errors.
+    """Generates targeted fixes for code errors.
 
     Uses rule-based generation for simple fixes (imports, formatting)
     and LLM-based generation for complex fixes (logic, types).
@@ -40,9 +39,9 @@ class FixGenerator:
     def __init__(self) -> None:
         self.logger = logger
 
+    @track_request("auto_fix_generate", labels={"component": "fix_generator"})
     def generate_fix(self, error: ParsedError, file_content: str, context_lines: int = 5) -> GeneratedFix | None:
-        """
-        Generate a fix for the given error.
+        """Generate a fix for the given error.
 
         Args:
             error: Parsed error to fix
@@ -51,23 +50,22 @@ class FixGenerator:
 
         Returns:
             GeneratedFix if fixable, None otherwise
+
         """
         self.logger.info(f"Generating fix for {error.error_code}: {error.error_message}")
 
         # Route to appropriate fix generator
         if error.tool == ValidationTool.RUFF:
             return self._generate_ruff_fix(error, file_content, context_lines)
-        elif error.tool == ValidationTool.PYTEST:
+        if error.tool == ValidationTool.PYTEST:
             return self._generate_pytest_fix(error, file_content)
-        elif error.tool == ValidationTool.MYPY:
+        if error.tool == ValidationTool.MYPY:
             return self._generate_mypy_fix(error, file_content, context_lines)
-        else:
-            self.logger.warning(f"No fix generator for tool: {error.tool}")
-            return None
+        self.logger.warning(f"No fix generator for tool: {error.tool}")
+        return None
 
     def _generate_ruff_fix(self, error: ParsedError, file_content: str, context_lines: int) -> GeneratedFix | None:
         """Generate fix for ruff errors"""
-
         # F821: Undefined name - likely missing import
         if error.error_code == "F821":
             return self._fix_missing_import(error, file_content)
@@ -87,8 +85,7 @@ class FixGenerator:
         return None
 
     def _fix_missing_import(self, error: ParsedError, file_content: str) -> GeneratedFix | None:
-        """
-        Fix F821: undefined name by adding appropriate import.
+        """Fix F821: undefined name by adding appropriate import.
 
         Example: 'os' is undefined -> add 'import os'
         """
@@ -129,8 +126,7 @@ class FixGenerator:
         )
 
     def _fix_unused_import(self, error: ParsedError, file_content: str) -> GeneratedFix | None:
-        """
-        Fix F401: unused import by removing it.
+        """Fix F401: unused import by removing it.
 
         Example: 'import os' is unused -> remove line
         """
@@ -153,8 +149,7 @@ class FixGenerator:
         )
 
     def _fix_unsorted_imports(self, error: ParsedError, file_content: str) -> GeneratedFix | None:
-        """
-        Fix I001: unsorted imports.
+        """Fix I001: unsorted imports.
 
         Note: This is complex - better to let ruff --fix handle it
         """
@@ -162,7 +157,6 @@ class FixGenerator:
 
     def _generate_pytest_fix(self, error: ParsedError, file_content: str) -> GeneratedFix | None:
         """Generate fix for pytest errors"""
-
         # ImportError/ModuleNotFoundError - add missing import
         if error.error_code in ["ImportError", "ModuleNotFoundError"]:
             # Extract module name from error message
@@ -183,14 +177,13 @@ class FixGenerator:
 
     def _generate_mypy_fix(self, error: ParsedError, file_content: str, context_lines: int) -> GeneratedFix | None:
         """Generate fix for mypy type errors"""
-
         # For now, we'll skip mypy fixes as they're more complex
         # Future enhancement: add type annotations for simple cases
         return None
 
+    @track_request("auto_fix_batch", labels={"component": "fix_generator", "batch": "true"})
     def batch_generate_fixes(self, errors: list[ParsedError], file_content: str) -> list[GeneratedFix]:
-        """
-        Generate fixes for multiple errors at once.
+        """Generate fixes for multiple errors at once.
 
         Args:
             errors: List of errors to fix
@@ -198,6 +191,7 @@ class FixGenerator:
 
         Returns:
             List of generated fixes
+
         """
         fixes = []
         for error in errors:
@@ -212,8 +206,7 @@ class FixGenerator:
         return fixes
 
     def prioritize_fixes(self, fixes: list[GeneratedFix]) -> list[GeneratedFix]:
-        """
-        Prioritize fixes by confidence and error severity.
+        """Prioritize fixes by confidence and error severity.
 
         Returns fixes sorted by priority (highest first)
         """

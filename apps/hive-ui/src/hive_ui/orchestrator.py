@@ -38,6 +38,28 @@ class ProjectOrchestrator:
     - Guardian (Immune System): Validation → Auto-fix → Approval
     """
 
+    # Python built-in modules to avoid in service names
+    PYTHON_BUILTINS = {
+        "uuid",
+        "json",
+        "time",
+        "logging",
+        "config",
+        "path",
+        "sys",
+        "os",
+        "io",
+        "re",
+        "test",
+        "main",
+        "http",
+        "email",
+        "string",
+        "data",
+        "file",
+        "user",
+    }
+
     def __init__(self, workspace_dir: Path | None = None):
         """Initialize Project Orchestrator.
 
@@ -66,9 +88,26 @@ class ProjectOrchestrator:
         Returns:
             project_id: Unique project identifier
 
+        Raises:
+            ValueError: If provided service_name conflicts with Python built-ins
+
         """
         project_id = str(uuid4())
-        service_name = service_name or f"service-{project_id[:8]}"
+
+        # Validate service name if provided
+        if service_name:
+            if service_name.lower() in self.PYTHON_BUILTINS:
+                msg = (
+                    f"Service name '{service_name}' conflicts with Python built-in module. "
+                    f"Please choose a different name."
+                )
+                logger.error(msg)
+                raise ValueError(msg)
+            logger.info(f"Using provided service name: {service_name}")
+        else:
+            # Auto-generate safe name
+            service_name = f"service-{project_id[:8]}"
+            logger.info(f"Auto-generated service name: {service_name}")
 
         # Create project workspace
         project_dir = self.workspace_dir / project_id

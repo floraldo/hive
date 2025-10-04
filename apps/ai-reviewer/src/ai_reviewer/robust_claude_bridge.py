@@ -1,9 +1,7 @@
-# ruff: noqa: S603
 # Security: subprocess calls in this module use controlled CLI tools with hardcoded,
 # trusted arguments only. No user input is passed to subprocess.
 
-"""
-Robust Claude CLI bridge with drift-resilient JSON contract
+"""Robust Claude CLI bridge with drift-resilient JSON contract
 Production-ready implementation that handles model and prompt drift
 """
 
@@ -19,6 +17,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, ValidationError
 
 from hive_logging import get_logger
+from hive_performance import track_adapter_request
 
 logger = get_logger(__name__)
 
@@ -54,6 +53,7 @@ class RobustClaudeBridge:
 
         Args:
             mock_mode: If True, use mock responses instead of calling Claude
+
         """
         self.mock_mode = mock_mode
         if mock_mode:
@@ -80,7 +80,7 @@ class RobustClaudeBridge:
                 return str(path)
 
         # Try system PATH
-        result = subprocess.run(["where" if os.name == "nt" else "which", "claude"], capture_output=True, text=True)
+        result = subprocess.run(["where" if os.name == "nt" else "which", "claude"], check=False, capture_output=True, text=True)
         claude_path = result.stdout.strip().split("\n")[0] if result.returncode == 0 else None
 
         if claude_path:
@@ -89,6 +89,7 @@ class RobustClaudeBridge:
 
         return None
 
+    @track_adapter_request("claude_code_review")
     def review_code(
         self,
         task_id: str,
@@ -98,8 +99,7 @@ class RobustClaudeBridge:
         objective_analysis: dict[str, Any] | None = None,
         transcript: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Perform robust code review with drift-resilient JSON contract
+        """Perform robust code review with drift-resilient JSON contract
 
         Args:
             task_id: Unique task identifier,
@@ -111,6 +111,7 @@ class RobustClaudeBridge:
 
         Returns:
             Validated review response or escalation on failure,
+
         """
         if self.mock_mode:
             # Return a mock response for testing,
@@ -143,7 +144,7 @@ class RobustClaudeBridge:
             # Add --dangerously-skip-permissions for automated environments
             result = subprocess.run(
                 [self.claude_cmd, "--print", "--dangerously-skip-permissions", prompt],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=45,
             )
@@ -159,20 +160,19 @@ class RobustClaudeBridge:
             if validated_response:
                 logger.info(f"Successfully validated Claude review for task {task_id}")
                 return validated_response.dict()
-            else:
-                logger.warning("Failed to extract valid JSON from Claude response")
-                return self._create_escalation_response(
-                    "Invalid response format from Claude",
-                    task_description,
-                    raw_output=claude_output,
-                )
+            logger.warning("Failed to extract valid JSON from Claude response")
+            return self._create_escalation_response(
+                "Invalid response format from Claude",
+                task_description,
+                raw_output=claude_output,
+            )
 
         except subprocess.TimeoutExpired:
             logger.error("Claude CLI timed out")
             return self._create_escalation_response("Claude CLI timeout", task_description)
         except Exception as e:
             logger.error(f"Unexpected error in Claude review: {e}")
-            return self._create_escalation_response(f"Unexpected error: {str(e)}", task_description)
+            return self._create_escalation_response(f"Unexpected error: {e!s}", task_description)
 
     def _create_json_prompt(
         self,
@@ -183,7 +183,6 @@ class RobustClaudeBridge:
         transcript: str | None,
     ) -> str:
         """Create a comprehensive prompt that enforces JSON contract"""
-
         # Prepare code context,
         code_context = ("",)
         for filename, content in code_files.items():
@@ -238,8 +237,7 @@ Respond with ONLY the JSON object, no other text."""
         return prompt
 
     def _extract_and_validate_json(self, output: str) -> ClaudeReviewResponse | None:
-        """
-        Extract JSON from Claude output and validate against contract
+        """Extract JSON from Claude output and validate against contract
 
         Handles various response formats:
         - Pure JSON
@@ -289,8 +287,7 @@ Respond with ONLY the JSON object, no other text."""
             return None
 
     def _parse_unstructured_response(self, text: str) -> ClaudeReviewResponse:
-        """
-        Last resort: extract structured data from unstructured text
+        """Last resort: extract structured data from unstructured text
         This handles cases where Claude completely ignores JSON instructions
         """
         text_lower = text.lower()
@@ -346,7 +343,6 @@ Respond with ONLY the JSON object, no other text."""
         raw_output: str | None = None,
     ) -> dict[str, Any]:
         """Create a structured escalation response when review fails"""
-
         response = ClaudeReviewResponse(
             decision="escalate",
             summary=f"Escalated: {reason}",
