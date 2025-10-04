@@ -1,5 +1,4 @@
-"""
-Error Analysis for validation tool output.
+"""Error Analysis for validation tool output.
 
 Parses output from pytest, ruff, mypy and extracts structured error information.
 """
@@ -11,6 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from hive_logging import get_logger
+from hive_performance import track_request
 
 logger = get_logger(__name__)
 
@@ -62,8 +62,7 @@ class ParsedError:
 
 
 class ErrorAnalyzer:
-    """
-    Analyzes validation tool output and extracts structured errors.
+    """Analyzes validation tool output and extracts structured errors.
 
     Supports:
     - pytest: Test failures and collection errors
@@ -75,9 +74,9 @@ class ErrorAnalyzer:
     def __init__(self) -> None:
         self.logger = logger
 
+    @track_request("error_analysis_ruff", labels={"component": "error_analyzer", "tool": "ruff"})
     def parse_ruff_output(self, output: str) -> list[ParsedError]:
-        """
-        Parse ruff linting output.
+        """Parse ruff linting output.
 
         Format: file.py:10:5: F821 undefined name 'os'
         """
@@ -108,15 +107,14 @@ class ErrorAnalyzer:
                         severity=severity,
                         full_context=line,
                         is_fixable=is_fixable,
-                    )
+                    ),
                 )
 
         self.logger.info(f"Parsed {len(errors)} ruff errors")
         return errors
 
     def parse_pytest_output(self, output: str) -> list[ParsedError]:
-        """
-        Parse pytest output.
+        """Parse pytest output.
 
         Looks for:
         - FAILED tests/test_file.py::test_name
@@ -149,7 +147,7 @@ class ErrorAnalyzer:
                         severity=ErrorSeverity.HIGH,
                         full_context=line,
                         is_fixable=False,  # Test failures need code fixes, not test fixes
-                    )
+                    ),
                 )
                 continue
 
@@ -168,15 +166,14 @@ class ErrorAnalyzer:
                         severity=ErrorSeverity.CRITICAL,
                         full_context=line,
                         is_fixable=True,  # Can add missing imports
-                    )
+                    ),
                 )
 
         self.logger.info(f"Parsed {len(errors)} pytest errors")
         return errors
 
     def parse_mypy_output(self, output: str) -> list[ParsedError]:
-        """
-        Parse mypy type checking output.
+        """Parse mypy type checking output.
 
         Format: file.py:10: error: Incompatible types [assignment]
         """
@@ -210,15 +207,14 @@ class ErrorAnalyzer:
                         severity=severity,
                         full_context=line,
                         is_fixable=self._is_mypy_fixable(error_code),
-                    )
+                    ),
                 )
 
         self.logger.info(f"Parsed {len(errors)} mypy errors")
         return errors
 
     def parse_syntax_error(self, output: str) -> list[ParsedError]:
-        """
-        Parse Python syntax error output.
+        """Parse Python syntax error output.
 
         Format: SyntaxError: invalid syntax (file.py, line 10)
         """
@@ -240,7 +236,7 @@ class ErrorAnalyzer:
                         severity=ErrorSeverity.CRITICAL,
                         full_context=line,
                         is_fixable=False,  # Syntax errors are complex
-                    )
+                    ),
                 )
 
         self.logger.info(f"Parsed {len(errors)} syntax errors")
@@ -299,12 +295,13 @@ class ErrorAnalyzer:
 
         return False
 
+    @track_request("error_categorization", labels={"component": "error_analyzer"})
     def categorize_errors(self, errors: list[ParsedError]) -> dict[str, list[ParsedError]]:
-        """
-        Categorize errors by type for prioritized fixing.
+        """Categorize errors by type for prioritized fixing.
 
         Returns:
             Dictionary with keys: critical, high, medium, low
+
         """
         categorized = {"critical": [], "high": [], "medium": [], "low": []}
 
@@ -316,7 +313,7 @@ class ErrorAnalyzer:
             f"{len(categorized['critical'])} critical, "
             f"{len(categorized['high'])} high, "
             f"{len(categorized['medium'])} medium, "
-            f"{len(categorized['low'])} low"
+            f"{len(categorized['low'])} low",
         )
 
         return categorized

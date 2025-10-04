@@ -1,5 +1,4 @@
-"""
-Database adapter for AI Reviewer to interact with Hive Core DB
+"""Database adapter for AI Reviewer to interact with Hive Core DB
 """
 
 from __future__ import annotations
@@ -13,13 +12,13 @@ import hive_db as hive_core_db
 # TODO: Task and TaskStatus models need to be defined or imported from correct location
 # from hive_db.models import Task, TaskStatus
 from hive_logging import get_logger
+from hive_performance import track_adapter_request
 
 logger = get_logger(__name__)
 
 
 class DatabaseAdapter:
-    """
-    Adapter for database operations specific to AI Review functionality
+    """Adapter for database operations specific to AI Review functionality
     """
 
     def __init__(self) -> None:
@@ -28,14 +27,14 @@ class DatabaseAdapter:
         hive_core_db.init_db()
 
     def _parse_task_payload(self, task: dict[str, Any]) -> dict[str, Any] | None:
-        """
-        Safely parse task payload from string or dict format.
+        """Safely parse task payload from string or dict format.
 
         Args:
             task: Task dictionary containing payload
 
         Returns:
             Parsed payload dictionary or None if parsing fails
+
         """
         if not task.get("payload"):
             return None
@@ -53,15 +52,16 @@ class DatabaseAdapter:
             logger.warning(f"Unexpected payload type: {type(payload)}")
             return None
 
+    @track_adapter_request("database_queue_poll")
     def get_pending_reviews(self, limit: int = 10) -> list[dict[str, Any]]:
-        """
-        Get tasks pending review
+        """Get tasks pending review
 
         Args:
             limit: Maximum number of tasks to retrieve
 
         Returns:
             List of tasks with status 'review_pending'
+
         """
         try:
             tasks = hive_core_db.get_tasks_by_status("review_pending")
@@ -73,14 +73,14 @@ class DatabaseAdapter:
             return []
 
     def get_task_code_files(self, task_id: str) -> dict[str, str]:
-        """
-        Retrieve code files associated with a task
+        """Retrieve code files associated with a task
 
         Args:
             task_id: Task identifier
 
         Returns:
             Dictionary mapping filename to content
+
         """
         try:
             task = hive_core_db.get_task(task_id)
@@ -114,14 +114,14 @@ class DatabaseAdapter:
             return {}
 
     def get_test_results(self, task_id: str) -> dict[str, Any] | None:
-        """
-        Retrieve test results for a task
+        """Retrieve test results for a task
 
         Args:
             task_id: Task identifier
 
         Returns:
             Test results dictionary or None
+
         """
         try:
             task = hive_core_db.get_task(task_id)
@@ -151,14 +151,14 @@ class DatabaseAdapter:
             return None
 
     def get_task_transcript(self, task_id: str) -> str | None:
-        """
-        Retrieve conversation transcript for a task
+        """Retrieve conversation transcript for a task
 
         Args:
             task_id: Task identifier
 
         Returns:
             Transcript string or None
+
         """
         try:
             # Get runs for this task to find transcript
@@ -188,9 +188,9 @@ class DatabaseAdapter:
             logger.error(f"Error fetching transcript for task {task_id}: {e}")
             return None
 
+    @track_adapter_request("database_update_result")
     def update_task_status(self, task_id: str, new_status: str, review_data: dict[str, Any]) -> bool:
-        """
-        Update task status after review
+        """Update task status after review
 
         Args:
             task_id: Task identifier
@@ -199,6 +199,7 @@ class DatabaseAdapter:
 
         Returns:
             True if successful
+
         """
         try:
             # Get current task
@@ -239,9 +240,9 @@ class DatabaseAdapter:
             logger.error(f"Error updating task {task_id} status: {e}")
             return False
 
+    @track_adapter_request("database_store_report")
     def store_review_report(self, task_id: str, report: dict[str, Any]) -> bool:
-        """
-        Store detailed review report
+        """Store detailed review report
 
         Args:
             task_id: Task identifier
@@ -249,6 +250,7 @@ class DatabaseAdapter:
 
         Returns:
             True if successful
+
         """
         try:
             with self.db.get_session() as session:
@@ -269,14 +271,14 @@ class DatabaseAdapter:
             return False
 
     def get_task_history(self, task_id: str) -> list[dict[str, Any]]:
-        """
-        Get review history for a task
+        """Get review history for a task
 
         Args:
             task_id: Task identifier
 
         Returns:
             List of historical reviews
+
         """
         try:
             with self.db.get_session() as session:
@@ -300,11 +302,11 @@ class DatabaseAdapter:
             return []
 
     def get_agent_statistics(self) -> dict[str, Any]:
-        """
-        Get overall AI reviewer statistics
+        """Get overall AI reviewer statistics
 
         Returns:
             Dictionary of statistics
+
         """
         try:
             with self.db.get_session() as session:

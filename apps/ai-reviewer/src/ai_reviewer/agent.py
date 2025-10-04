@@ -1,7 +1,5 @@
+"""Autonomous review agent that polls the database for review_pending tasks
 """
-Autonomous review agent that polls the database for review_pending tasks
-"""
-# ruff: noqa: S603, S607
 
 import argparse
 import asyncio
@@ -19,6 +17,7 @@ from ai_reviewer.auto_fix import ErrorAnalyzer, EscalationLogic, FixGenerator, R
 from ai_reviewer.database_adapter import DatabaseAdapter
 from ai_reviewer.reviewer import ReviewDecision, ReviewEngine
 from hive_logging import get_logger
+from hive_performance import track_request
 
 logger = get_logger(__name__)
 
@@ -26,11 +25,7 @@ logger = get_logger(__name__)
 
 # Async database imports for Phase 4.1
 try:
-    from hive_orchestrator.core.db import (  # noqa: F401
-        get_async_connection,
-        get_tasks_by_status_async,
-        update_task_status_async,
-    )
+    from hive_orchestrator.core.db import get_async_connection, get_tasks_by_status_async, update_task_status_async
 
     ASYNC_DB_AVAILABLE = True
 except ImportError:
@@ -42,7 +37,7 @@ try:
 
     # Try to import async event bus operations
     try:
-        from hive_bus.event_bus import get_async_event_bus, publish_event_async  # noqa: F401
+        from hive_bus.event_bus import get_async_event_bus, publish_event_async
 
         ASYNC_EVENTS_AVAILABLE = True
     except ImportError:
@@ -61,8 +56,7 @@ logger = get_logger(__name__)
 
 
 class ReviewAgent:
-    """
-    Autonomous agent that continuously monitors and processes review_pending tasks
+    """Autonomous agent that continuously monitors and processes review_pending tasks
     """
 
     def __init__(
@@ -73,8 +67,7 @@ class ReviewAgent:
         enable_auto_fix: bool = True,
         max_fix_attempts: int = 3,
     ):
-        """
-        Initialize the review agent
+        """Initialize the review agent
 
         Args:
             review_engine: AI review engine
@@ -82,6 +75,7 @@ class ReviewAgent:
             test_mode: Run with shorter intervals for testing
             enable_auto_fix: Enable autonomous fix-retry loop
             max_fix_attempts: Maximum fix attempts before escalation
+
         """
         self.adapter = DatabaseAdapter()
         self.review_engine = review_engine
@@ -141,6 +135,7 @@ class ReviewAgent:
 
         Returns:
             Published event ID or empty string if publishing failed
+
         """
         if not self.event_bus or not create_task_event or not TaskEventType:
             return ""
@@ -161,6 +156,7 @@ class ReviewAgent:
             logger.warning(f"Failed to publish task event {event_type} for task {task_id}: {e}")
             return ""
 
+    @track_request("review_agent_loop", labels={"component": "review_agent", "operation": "main_loop"})
     async def run_async(self) -> None:
         """Main autonomous loop"""
         self.running = True
@@ -190,6 +186,7 @@ class ReviewAgent:
         finally:
             await self._shutdown_async()
 
+    @track_request("process_review_queue", labels={"component": "review_agent"})
     async def _process_review_queue_async(self) -> None:
         """Process all pending review tasks"""
         try:
@@ -212,6 +209,7 @@ class ReviewAgent:
             logger.error(f"Error processing review queue: {e}")
             self.stats["errors"] += 1
 
+    @track_request("review_single_task", labels={"component": "review_agent"})
     async def _review_task_async(self, task: dict[str, Any]) -> None:
         """Review a single task"""
         try:
@@ -302,7 +300,7 @@ class ReviewAgent:
                     TaskEventType.ESCALATED,
                     task["id"],
                     correlation_id=task.get("correlation_id"),
-                    escalation_reason=f"Review error: {str(e)}",
+                    escalation_reason=f"Review error: {e!s}",
                     escalated_by="ai-reviewer",
                     error_type=type(e).__name__,
                 )
@@ -351,9 +349,9 @@ class ReviewAgent:
             for suggestion in result.suggestions:
                 console.logger.info(f"  • {suggestion}")
 
+    @track_request("auto_fix_retry_loop", labels={"component": "review_agent", "operation": "auto_fix"})
     async def _attempt_auto_fix_async(self, task: dict[str, Any], validation_output: str) -> bool:
-        """
-        Attempt autonomous fix-retry loop for failed validation.
+        """Attempt autonomous fix-retry loop for failed validation.
 
         Args:
             task: Task dictionary with id and service_dir
@@ -361,6 +359,7 @@ class ReviewAgent:
 
         Returns:
             True if fix succeeded and validation now passes, False otherwise
+
         """
         if not self.enable_auto_fix:
             logger.info("Auto-fix disabled, skipping fix attempts")
@@ -463,7 +462,7 @@ class ReviewAgent:
             escalation_decision = self.escalation_logic.should_escalate(session)
             if escalation_decision.should_escalate:
                 logger.warning(
-                    f"Escalating task {task_id}: {escalation_decision.reason.value if escalation_decision.reason else 'unknown'}"
+                    f"Escalating task {task_id}: {escalation_decision.reason.value if escalation_decision.reason else 'unknown'}",
                 )
 
                 # Create escalation report
@@ -492,14 +491,14 @@ class ReviewAgent:
         return False
 
     def _rerun_validation(self, service_path: Path) -> bool:
-        """
-        Re-run validation on service after fixes applied.
+        """Re-run validation on service after fixes applied.
 
         Args:
             service_path: Path to service directory
 
         Returns:
             True if validation passes
+
         """
         logger.info(f"Revalidating service at {service_path}")
 
@@ -510,7 +509,7 @@ class ReviewAgent:
             for py_file in service_path.rglob("*.py"):
                 result = subprocess.run(
                     ["python", "-m", "py_compile", str(py_file)],
-                    capture_output=True,
+                    check=False, capture_output=True,
                     text=True,
                     timeout=10,
                 )
@@ -525,7 +524,7 @@ class ReviewAgent:
         try:
             result = subprocess.run(
                 ["ruff", "check", str(service_path)],
-                capture_output=True,
+                check=False, capture_output=True,
                 text=True,
                 timeout=30,
             )
@@ -546,7 +545,7 @@ class ReviewAgent:
             try:
                 result = subprocess.run(
                     ["python", "-m", "pytest", str(test_dir), "--collect-only"],
-                    capture_output=True,
+                    check=False, capture_output=True,
                     text=True,
                     timeout=30,
                 )
@@ -818,7 +817,7 @@ class ReviewAgent:
                     TaskEventType.ESCALATED,
                     task["id"],
                     correlation_id=task.get("correlation_id"),
-                    escalation_reason=f"Review error: {str(e)}",
+                    escalation_reason=f"Review error: {e!s}",
                     escalated_by="ai-reviewer",
                     error_type=type(e).__name__,
                 )
@@ -872,7 +871,7 @@ class ReviewAgent:
 
         console.logger.info(f"[green]Task {task['id']} reviewed: {result.decision.value}[/green]")
 
-    async def run_async(self) -> None:  # noqa: F811
+    async def run_async(self) -> None:
         """Enhanced async version of main autonomous loop for 3-5x performance improvement."""
         self.running = True
         self.stats["start_time"] = datetime.now()
