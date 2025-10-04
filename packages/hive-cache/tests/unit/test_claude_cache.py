@@ -4,21 +4,21 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from hive_cache.claude_cache import ClaudeCache
+from hive_cache.claude_cache import ClaudeAPICache
 
 
 class TestClaudeCache:
-    """Test cases for ClaudeCache class."""
+    """Test cases for ClaudeAPICache class."""
 
     def test_claude_cache_initialization(self):
-        """Test ClaudeCache can be initialized."""
-        cache = ClaudeCache()
+        """Test ClaudeAPICache can be initialized."""
+        cache = ClaudeAPICache()
         assert cache is not None
 
     @pytest.mark.asyncio
     async def test_claude_cache_basic_operations(self):
         """Test basic cache operations work."""
-        cache = ClaudeCache()
+        cache = ClaudeAPICache()
 
         # Test basic functionality without external dependencies
         assert hasattr(cache, "get")
@@ -31,5 +31,5 @@ class TestClaudeCache:
         mock_config = Mock()
 
         with patch("hive_cache.claude_cache.load_config", return_value=mock_config):
-            cache = ClaudeCache()
+            cache = ClaudeAPICache()
             assert cache is not None
