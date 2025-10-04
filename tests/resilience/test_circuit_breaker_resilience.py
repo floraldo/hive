@@ -93,7 +93,7 @@ class MockFailingService:
         # Simulate failure based on failure rate
         import random
 
-        if random.random() < self.failure_rate:
+        if random.random() < self.failure_rate:  # noqa: S311
             self.failure_count += 1
             raise aiohttp.ClientError(f"Simulated failure for {endpoint}")
 

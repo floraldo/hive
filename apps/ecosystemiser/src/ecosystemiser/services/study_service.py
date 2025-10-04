@@ -516,7 +516,7 @@ class StudyService:
                         # Randomly assign fidelity levels
                         mixed_config = {}
                         for comp in target_components:
-                            mixed_config[comp] = random.choice(fidelity_levels)
+                            mixed_config[comp] = random.choice(fidelity_levels)  # noqa: S311
 
                         sim_config.output_config["mixed_fidelity_config"] = mixed_config
                         sim_config.output_config["sample_index"] = sample_idx

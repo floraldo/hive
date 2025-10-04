@@ -173,7 +173,7 @@ class AsyncProfiler:
         if self.sample_rate < 1.0:
             import random
 
-            if random.random() > self.sample_rate:
+            if random.random() > self.sample_rate:  # noqa: S311
                 return asyncio.Task(coro, loop=loop)
 
         # Create task with profiling

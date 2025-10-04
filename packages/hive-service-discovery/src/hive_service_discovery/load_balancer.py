@@ -134,7 +134,7 @@ class RandomAlgorithm(LoadBalancingAlgorithm):
         if not healthy_services:
             return None
 
-        return random.choice(healthy_services)
+        return random.choice(healthy_services)  # noqa: S311
 
 
 class WeightedAlgorithm(LoadBalancingAlgorithm):
@@ -161,7 +161,7 @@ class WeightedAlgorithm(LoadBalancingAlgorithm):
             weight = service.metadata.get("weight", 1)
             weighted_services.extend([service] * weight)
 
-        return random.choice(weighted_services) if weighted_services else None
+        return random.choice(weighted_services) if weighted_services else None  # noqa: S311
 
 
 class HealthBasedAlgorithm(LoadBalancingAlgorithm):
