@@ -31,7 +31,6 @@ from .architectural_validators import (
     validate_single_config_source,
 )
 from .ast_validator import EnhancedValidator, GoldenRuleVisitor, Violation
-from .safe_autofix import AutofixResult, SafeGoldenRulesAutoFixer
 
 # Test intelligence module (merged from hive-test-intelligence)
 from .intelligence import (
@@ -44,6 +43,7 @@ from .intelligence import (
     TestStatus,
     TestType,
 )
+from .safe_autofix import AutofixResult, SafeGoldenRulesAutoFixer
 
 __all__ = [
     # Original validators
