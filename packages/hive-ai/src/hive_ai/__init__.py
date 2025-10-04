@@ -29,6 +29,7 @@ from .observability.cost import CostManager
 from .observability.health import ModelHealthChecker
 
 # Observability
+from .observability.manager import ObservabilityManager
 from .observability.metrics import AIMetricsCollector
 from .prompts.optimizer import PromptOptimizer
 from .prompts.registry import PromptRegistry
@@ -76,6 +77,7 @@ __all__ = [
     "PromptOptimizer",
     "PromptRegistry",
     # Observability
+    "ObservabilityManager",  # NEW unified interface
     "AIMetricsCollector",
     "ModelHealthChecker",
     "CostManager",
