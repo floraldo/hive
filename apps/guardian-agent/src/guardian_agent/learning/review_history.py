@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from hive_db import SQLiteConnection
+from hive_db import SQLiteConnectionFactory as SQLiteConnection
 from hive_logging import get_logger
 
 logger = get_logger(__name__)
