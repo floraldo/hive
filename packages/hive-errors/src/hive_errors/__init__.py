@@ -1,7 +1,3 @@
-from hive_logging import get_logger
-
-logger = get_logger(__name__)
-
 """
 Generic error handling and reporting toolkit.
 
@@ -14,6 +10,8 @@ Provides reusable components for building robust error management:
 This package contains NO business logic - it's a generic toolkit
 that can be used to build error handling for any system.
 """
+
+from hive_logging import get_logger
 
 from .async_error_handler import (
     AsyncErrorHandler,
@@ -37,7 +35,9 @@ from .base_exceptions import (
 )
 from .error_reporter import BaseErrorReporter
 from .monitoring_error_reporter import MonitoringErrorReporter
-from .recovery import RecoveryStatus, RecoveryStrategy
+from .recovery import RecoveryStatus, RecoveryStrategy, RetryStrategy
+
+logger = get_logger(__name__)
 
 __all__ = [
     # Base error classes
@@ -57,6 +57,7 @@ __all__ = [
     "MonitoringErrorReporter",
     "RecoveryStrategy",
     "RecoveryStatus",
+    "RetryStrategy",
     # Async error handling
     "AsyncErrorHandler",
     "ErrorContext",

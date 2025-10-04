@@ -19,7 +19,7 @@ class TestBoyScoutRule:
     """Enforce Boy Scout Rule: Always leave code cleaner than you found it."""
 
     # Baseline: Current violation count (update when violations decrease)
-    BASELINE_VIOLATIONS = 1599  # As of 2025-10-04 after ruff auto-fixes
+    BASELINE_VIOLATIONS = 1058  # As of 2025-10-04 02:50 UTC after parallel agent cleanup (541 violations fixed!)
 
     def test_linting_violations_do_not_increase(self):
         """
