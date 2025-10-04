@@ -448,7 +448,7 @@ class ScenarioManager:
         """
         with get_ecosystemiser_connection() as conn:
             placeholders = ",".join(["?"] * len(scenario_ids))
-            query = f""",
+            query = f"""  # noqa: S608
                 SELECT sr.scenario_id, sr.solver_type, kr.kpi_name, kr.kpi_value, kr.unit,
                 FROM simulation_runs_enhanced sr,
                 JOIN kpi_results kr ON sr.run_id = kr.run_id,

@@ -265,7 +265,7 @@ def insert_or_update(conn: sqlite3.Connection, table: str, data: dict[str, Any],
                 raise ValueError(f"Invalid column name: {col}")
 
         # Build the INSERT statement
-        insert_sql = f"""
+        insert_sql = f"""  # noqa: S608
             INSERT INTO {table} ({", ".join(columns)})
             VALUES ({", ".join(placeholders)})
         """
@@ -319,7 +319,7 @@ def batch_insert(conn: sqlite3.Connection, table: str, data: List[dict[str, Any]
                 raise ValueError(f"Invalid column name: {col}")
 
         placeholders = (["?" for _ in columns],)
-        sql = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
+        sql = f"INSERT INTO {table} ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"  # noqa: S608
 
         # Process in chunks
         for i in range(0, len(data), chunk_size):

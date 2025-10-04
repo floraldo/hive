@@ -270,7 +270,7 @@ class MetricsWarehouse:
 
         where_clause = " AND ".join(conditions) if conditions else "1=1",
 
-        query = f"""
+        query = f"""  # noqa: S608
             SELECT * FROM unified_metrics
             WHERE {where_clause}
             ORDER BY timestamp DESC

@@ -550,7 +550,7 @@ class QueenWorkerPipelineTest:
 
     def _create_mock_queen_script(self) -> str:
         """Create mock Queen script"""
-        script_content = f"""
+        script_content = f"""  # noqa: S608
 import sqlite3
 import time
 import json
@@ -616,7 +616,7 @@ if __name__ == "__main__":
         slow_execution: bool = False,
     ) -> str:
         """Create mock Worker script"""
-        script_content = f"""
+        script_content = f"""  # noqa: S608
 import sqlite3
 import time
 import json

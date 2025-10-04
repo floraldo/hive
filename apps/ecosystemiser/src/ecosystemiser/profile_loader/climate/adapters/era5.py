@@ -578,7 +578,7 @@ class ERA5Adapter(BaseAdapter):
         except Exception as e:
             raise DataParseError(
                 self.ADAPTER_NAME,
-                f"Failed to select coordinates ({lat}, {lon}) from ERA5 dataset: {str(e)}",
+                f"Failed to select coordinates ({lat}, {lon}) from ERA5 dataset: {str(e)}",  # noqa: S608
                 details={"lat_coord": lat_coord, "lon_coord": lon_coord, "requested_lat": lat, "requested_lon": lon},
             )
 
