@@ -463,7 +463,7 @@ def validate_no_syspath_hacks(project_root: Path, scope_files: list[Path] | None
                             violations.append(str(py_file.relative_to(project_root)))
                             break
 
-            except Exception:
+            except Exception:  # noqa: S112
                 # Skip files that can't be read
                 continue
 
@@ -669,7 +669,7 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                                         )
                                         break
 
-                    except Exception:
+                    except Exception:  # noqa: S112
                         continue
 
     # Check apps for direct app-to-app dependencies
@@ -739,7 +739,7 @@ def validate_dependency_direction(project_root: Path, scope_files: list[Path] | 
                                                 )
                                                 break
 
-                    except Exception:
+                    except Exception:  # noqa: S112
                         continue
 
     return len(violations) == 0, violations
@@ -835,7 +835,7 @@ def validate_service_layer_discipline(
                                                         f"Service class '{class_name}' missing docstring: {py_file.relative_to(project_root)}",
                                                     )
 
-                            except Exception:
+                            except Exception:  # noqa: S112
                                 continue
 
     return len(violations) == 0, violations
@@ -894,7 +894,7 @@ def validate_communication_patterns(
                                         f"Daemon '{daemon_name}' in {app_name} missing command specification",
                                     )
 
-                    except Exception:
+                    except Exception:  # noqa: S110, S112
                         pass
 
                 # Check for forbidden communication patterns
@@ -921,7 +921,7 @@ def validate_communication_patterns(
                                     f"Forbidden IPC pattern '{pattern}' found: {py_file.relative_to(project_root)}",
                                 )
 
-                    except Exception:
+                    except Exception:  # noqa: S112
                         continue
 
     return len(violations) == 0, violations
@@ -991,7 +991,7 @@ def validate_interface_contracts(project_root: Path, scope_files: list[Path] | N
                                 f"Async function '{node.name}' should end with '_async': {py_file.relative_to(project_root)}:{node.lineno}",
                             )
 
-            except Exception:
+            except Exception:  # noqa: S112
                 # Skip files that can't be parsed
                 continue
 
@@ -1048,7 +1048,7 @@ def validate_error_handling_standards(
                                 f"Bare except without type: {py_file.relative_to(project_root)}:{node.lineno}",
                             )
 
-            except Exception:
+            except Exception:  # noqa: S112
                 # Skip files that can't be parsed
                 continue
 
@@ -1136,7 +1136,7 @@ def validate_no_hardcoded_env_values(
                             f"- Found: {match.group()}",
                         )
 
-            except Exception:
+            except Exception:  # noqa: S112
                 # Skip files that can't be read
                 continue
 
@@ -1145,11 +1145,13 @@ def validate_no_hardcoded_env_values(
 
 def validate_logging_standards(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list[str]]:
     """
-    Golden Rule 9: Logging Standards
+    Golden Rule 9: Logging Standards (Project Scribe)
 
     Validate that:
     - All components use hive-logging
     - No print statements in production code
+    - No direct logging.getLogger() usage (use get_logger())
+    - No direct logging.basicConfig() usage (use setup_logging())
     - Structured logging with appropriate levels
 
     Returns:
@@ -1276,7 +1278,41 @@ def validate_logging_standards(project_root: Path, scope_files: list[Path] | Non
                                     f"Direct 'import logging' found (use hive_logging): {py_file.relative_to(project_root)}:{line_num}",
                                 )
 
-            except Exception:
+                # Check for logging.getLogger() usage (Project Scribe enforcement)
+                if "logging.getLogger(" in content:
+                    is_logging_infrastructure = False
+                    for part in py_file.parts:
+                        if part in ["hive-logging"]:
+                            is_logging_infrastructure = True
+                            break
+
+                    if not is_logging_infrastructure:
+                        line_num = 0
+                        for line in content.split("\n"):
+                            line_num += 1
+                            if "logging.getLogger(" in line and not line.strip().startswith("#"):
+                                violations.append(
+                                    f"Direct 'logging.getLogger()' found (use get_logger()): {py_file.relative_to(project_root)}:{line_num}",
+                                )
+
+                # Check for logging.basicConfig() usage (Project Scribe enforcement)
+                if "logging.basicConfig(" in content:
+                    is_logging_infrastructure = False
+                    for part in py_file.parts:
+                        if part in ["hive-logging"]:
+                            is_logging_infrastructure = True
+                            break
+
+                    if not is_logging_infrastructure:
+                        line_num = 0
+                        for line in content.split("\n"):
+                            line_num += 1
+                            if "logging.basicConfig(" in line and not line.strip().startswith("#"):
+                                violations.append(
+                                    f"Direct 'logging.basicConfig()' found (use setup_logging()): {py_file.relative_to(project_root)}:{line_num}",
+                                )
+
+            except Exception:  # noqa: S112
                 # Skip files that can't be read
                 continue
 
@@ -1778,7 +1814,7 @@ def validate_no_global_state_access(
                         ):
                             violations.append(f"Singleton class pattern found: {rel_path}:{line_num}")
 
-            except Exception:
+            except Exception:  # noqa: S112
                 # Skip files that can't be read
                 continue
 
@@ -1804,7 +1840,7 @@ def _uses_comprehensive_testing(package_dir: Path) -> bool:
                 content = f.read()
                 if "hypothesis" in content.lower() or "@given" in content:
                     return True
-        except Exception:
+        except Exception:  # noqa: S112
             continue
 
     # Check for comprehensive testing directories
@@ -1843,7 +1879,7 @@ def _validate_comprehensive_testing(package_dir: Path, package_name: str) -> lis
                     if "hypothesis" in content.lower() and "@given" in content:
                         has_hypothesis = True
                         break
-            except Exception:
+            except Exception:  # noqa: S112
                 continue
 
         if not has_hypothesis:

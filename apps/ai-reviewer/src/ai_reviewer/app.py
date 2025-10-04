@@ -152,7 +152,9 @@ def main() -> int:
     if args.debug:
         import logging
 
-        logging.getLogger("ai-reviewer").setLevel(logging.DEBUG)
+        # Set debug level for ai-reviewer logger
+        debug_logger = get_logger("ai-reviewer")
+        debug_logger.setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
 
     try:

@@ -146,7 +146,9 @@ def main() -> int:
     if args.debug:
         import logging
 
-        logging.getLogger("ai-planner").setLevel(logging.DEBUG)
+        # Set debug level for ai-planner logger
+        debug_logger = get_logger("ai-planner")
+        debug_logger.setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
 
     try:

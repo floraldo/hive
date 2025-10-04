@@ -160,7 +160,9 @@ def main() -> int:
     if args.debug:
         import logging
 
-        logging.getLogger("ai-deployer").setLevel(logging.DEBUG)
+        # Set debug level for ai-deployer logger
+        debug_logger = get_logger("ai-deployer")
+        debug_logger.setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
 
     try:

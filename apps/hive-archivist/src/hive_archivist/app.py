@@ -169,7 +169,9 @@ def main() -> int:
     if args.debug:
         import logging
 
-        logging.getLogger("hive-archivist").setLevel(logging.DEBUG)
+        # Set debug level for hive-archivist logger
+        debug_logger = get_logger("hive-archivist")
+        debug_logger.setLevel(logging.DEBUG)
         logger.debug("Debug logging enabled")
 
     try:
