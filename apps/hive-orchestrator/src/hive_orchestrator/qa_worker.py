@@ -1,5 +1,4 @@
-"""
-QA Worker - Autonomous Code Quality Worker
+"""QA Worker - Autonomous Code Quality Worker
 
 Extends AsyncWorker to provide autonomous ruff linting, formatting,
 and syntax validation with event-driven coordination.
@@ -27,8 +26,7 @@ logger = get_logger(__name__)
 
 
 class QAWorkerCore(AsyncWorker):
-    """
-    Autonomous QA worker for code quality enforcement.
+    """Autonomous QA worker for code quality enforcement.
 
     Features:
     - Ruff linting auto-fix (E*, F*, I* codes)
@@ -73,10 +71,44 @@ class QAWorkerCore(AsyncWorker):
         logger.info(f"  Workspace: {self.workspace}")
         logger.info(f"  Mode: {self.mode}")
 
-    async def emit_heartbeat(self) -> None:
-        """Emit worker heartbeat for health monitoring."""
+    async def register_with_pool(
+        self, pool_manager, metadata: dict[str, Any] | None = None,
+    ) -> bool:
+        """Register worker with worker pool manager.
+
+        Args:
+            pool_manager: WorkerPoolManager instance
+            metadata: Additional worker metadata
+
+        Returns:
+            True if registration successful
+
+        """
+        worker_metadata = metadata or {}
+        worker_metadata.update(
+            {
+                "workspace": str(self.workspace),
+                "mode": self.mode,
+                "version": "1.0.0",
+            },
+        )
+
+        return await pool_manager.register_worker(
+            worker_id=self.worker_id,
+            worker_type=getattr(self, "worker_type", "qa"),
+            metadata=worker_metadata,
+        )
+
+    async def emit_heartbeat(self, pool_manager=None) -> None:
+        """Emit worker heartbeat for health monitoring.
+
+        Args:
+            pool_manager: Optional WorkerPoolManager for pool heartbeat updates
+
+        """
         uptime = (datetime.now(UTC) - self.start_time).total_seconds()
 
+        # Emit event bus heartbeat
         await self.event_bus.publish(
             AgentEvent(
                 agent_id=self.worker_id,
@@ -88,12 +120,22 @@ class QAWorkerCore(AsyncWorker):
                     "escalations": self.escalations,
                     "uptime_seconds": uptime,
                 },
-            )
+            ),
         )
 
+        # Update worker pool if provided
+        if pool_manager:
+            await pool_manager.update_heartbeat(
+                worker_id=self.worker_id,
+                status="idle" if not self.task_id else "working",
+                tasks_completed=self.tasks_completed,
+                violations_fixed=self.violations_fixed,
+                escalations=self.escalations,
+                current_task=self.task_id,
+            )
+
     async def detect_violations(self, file_path: Path) -> dict[str, Any]:
-        """
-        Detect ruff violations in a file.
+        """Detect ruff violations in a file.
 
         Args:
             file_path: Path to Python file to check
@@ -104,6 +146,7 @@ class QAWorkerCore(AsyncWorker):
                 "total_count": 3,
                 "auto_fixable": True
             }
+
         """
         logger.info(f"Scanning for violations: {file_path}")
 
@@ -137,7 +180,7 @@ class QAWorkerCore(AsyncWorker):
                         "line": item.get("location", {}).get("row", 0),
                         "column": item.get("location", {}).get("column", 0),
                         "message": item.get("message", ""),
-                    }
+                    },
                 )
 
             logger.info(f"  Found {len(violations)} violations in {file_path}")
@@ -158,8 +201,7 @@ class QAWorkerCore(AsyncWorker):
             return {"violations": [], "total_count": 0, "auto_fixable": False}
 
     async def apply_auto_fixes(self, file_path: Path) -> dict[str, Any]:
-        """
-        Apply automatic fixes to a file using ruff --fix.
+        """Apply automatic fixes to a file using ruff --fix.
 
         Args:
             file_path: Path to Python file to fix
@@ -171,6 +213,7 @@ class QAWorkerCore(AsyncWorker):
                 "violations_remaining": 0,
                 "fix_time_ms": 342
             }
+
         """
         start_time = datetime.now(UTC)
         logger.info(f"Applying auto-fixes: {file_path}")
@@ -209,12 +252,12 @@ class QAWorkerCore(AsyncWorker):
             fix_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             logger.info(
-                f"  Fixed {violations_fixed}/{violations_before} violations in {fix_time:.0f}ms"
+                f"  Fixed {violations_fixed}/{violations_before} violations in {fix_time:.0f}ms",
             )
 
             if violations_after > 0:
                 logger.warning(
-                    f"  {violations_after} violations remain after auto-fix"
+                    f"  {violations_after} violations remain after auto-fix",
                 )
 
             return {
@@ -235,8 +278,7 @@ class QAWorkerCore(AsyncWorker):
             }
 
     async def commit_fixes(self, file_paths: list[Path], task_id: str) -> bool:
-        """
-        Commit auto-fixes with worker ID reference.
+        """Commit auto-fixes with worker ID reference.
 
         Args:
             file_paths: List of files that were fixed
@@ -244,6 +286,7 @@ class QAWorkerCore(AsyncWorker):
 
         Returns:
             True if commit succeeded, False otherwise
+
         """
         try:
             # Stage modified files
@@ -282,24 +325,23 @@ class QAWorkerCore(AsyncWorker):
             if result.returncode == 0:
                 logger.info(f"Committed fixes: {commit_msg}")
                 return True
-            else:
-                logger.error(f"Commit failed: {stderr.decode()}")
-                return False
+            logger.error(f"Commit failed: {stderr.decode()}")
+            return False
 
         except Exception as e:
             logger.error(f"Commit failed: {e}")
             return False
 
     async def escalate_issue(
-        self, task_id: str, reason: str, details: dict[str, Any]
+        self, task_id: str, reason: str, details: dict[str, Any],
     ) -> None:
-        """
-        Escalate complex issue to HITL for manual review.
+        """Escalate complex issue to HITL for manual review.
 
         Args:
             task_id: Task ID that needs escalation
             reason: Why escalation is needed
             details: Additional context (violations, attempts, etc.)
+
         """
         logger.warning(f"Escalating task {task_id}: {reason}")
 
@@ -315,12 +357,11 @@ class QAWorkerCore(AsyncWorker):
                     "details": details,
                     "escalation_count": self.escalations,
                 },
-            )
+            ),
         )
 
     async def process_qa_task(self, task: Task) -> dict[str, Any]:
-        """
-        Process a QA task: detect violations, apply fixes, commit.
+        """Process a QA task: detect violations, apply fixes, commit.
 
         Args:
             task: QA task with file paths to check
@@ -333,6 +374,7 @@ class QAWorkerCore(AsyncWorker):
                 "files_processed": 3,
                 "execution_time_ms": 4200
             }
+
         """
         start_time = datetime.now(UTC)
         task_id = task.id
@@ -346,7 +388,7 @@ class QAWorkerCore(AsyncWorker):
                 task_id=task_id,
                 event_type="started",
                 payload={"worker_id": self.worker_id},
-            )
+            ),
         )
 
         try:
@@ -422,12 +464,12 @@ class QAWorkerCore(AsyncWorker):
                         "files_processed": len(file_paths),
                         "execution_time_ms": int(execution_time),
                     },
-                )
+                ),
             )
 
             logger.info(f"QA task {task_id} completed: {status}")
             logger.info(
-                f"  Fixed {total_violations_fixed} violations in {execution_time:.0f}ms"
+                f"  Fixed {total_violations_fixed} violations in {execution_time:.0f}ms",
             )
 
             return {
@@ -446,7 +488,7 @@ class QAWorkerCore(AsyncWorker):
                     task_id=task_id,
                     event_type="failed",
                     payload={"worker_id": self.worker_id, "error": str(e)},
-                )
+                ),
             )
 
             return {
@@ -458,11 +500,11 @@ class QAWorkerCore(AsyncWorker):
             }
 
     async def run_worker_loop(self, poll_interval: float = 2.0) -> None:
-        """
-        Main worker loop: poll for tasks, emit heartbeats, process work.
+        """Main worker loop: poll for tasks, emit heartbeats, process work.
 
         Args:
             poll_interval: Seconds between task queue polls
+
         """
         logger.info(f"QA Worker {self.worker_id} starting main loop")
         logger.info(f"  Poll interval: {poll_interval}s")
@@ -489,7 +531,7 @@ async def main():
 
     parser = argparse.ArgumentParser(description="QA Worker - Autonomous Code Quality")
     parser.add_argument(
-        "--worker-id", default="qa-worker-1", help="Worker ID for identification"
+        "--worker-id", default="qa-worker-1", help="Worker ID for identification",
     )
     parser.add_argument(
         "--workspace",
@@ -508,7 +550,7 @@ async def main():
 
     # Create and run worker
     worker = QAWorkerCore(
-        worker_id=args.worker_id, workspace=args.workspace or Path.cwd()
+        worker_id=args.worker_id, workspace=args.workspace or Path.cwd(),
     )
 
     await worker.run_worker_loop(poll_interval=args.poll_interval)

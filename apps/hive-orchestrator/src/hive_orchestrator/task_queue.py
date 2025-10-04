@@ -1,5 +1,4 @@
-"""
-Task Queue Manager - Priority-Based Task Scheduling
+"""Task Queue Manager - Priority-Based Task Scheduling
 
 Manages QA task queue with:
 - Priority-based scheduling (high/normal/low)
@@ -81,9 +80,51 @@ class QueuedTask:
         return self.retry_count < self.max_retries
 
 
-class TaskQueueManager:
+def create_golden_rules_task(
+    file_paths: list[str] | list[Path] | None = None,
+    severity_level: str = "ERROR",
+    description: str | None = None,
+) -> Task:
+    """Create a Golden Rules validation task.
+
+    Args:
+        file_paths: Optional list of file paths to validate (None = all files)
+        severity_level: Severity level for validation (CRITICAL, ERROR, WARNING, INFO)
+        description: Optional task description override
+
+    Returns:
+        Task configured for Golden Rules Worker processing
+
     """
-    Priority-based task queue with worker assignment.
+    import uuid
+
+    # Convert Paths to strings
+    str_file_paths = [str(p) for p in file_paths] if file_paths else None
+
+    # Generate description if not provided
+    if description is None:
+        if str_file_paths:
+            file_count = len(str_file_paths)
+            description = f"Validate Golden Rules compliance for {file_count} file(s) (severity: {severity_level})"
+        else:
+            description = f"Validate Golden Rules compliance for all files (severity: {severity_level})"
+
+    return Task(
+        id=str(uuid.uuid4()),  # Must be valid UUID
+        task_type="qa_golden_rules",
+        title="Golden Rules Validation",
+        description=description,
+        metadata={
+            "qa_type": "golden_rules",
+            "file_paths": str_file_paths,
+            "severity_level": severity_level,
+            "worker_type": "golden_rules",
+        },
+    )
+
+
+class TaskQueueManager:
+    """Priority-based task queue with worker assignment.
 
     Features:
     - Three priority levels (high/normal/low)
@@ -94,11 +135,11 @@ class TaskQueueManager:
     """
 
     def __init__(self, db_path: Path | str | None = None):
-        """
-        Initialize task queue manager.
+        """Initialize task queue manager.
 
         Args:
             db_path: Path to database for persistence (optional)
+
         """
         self.db_path = db_path
 
@@ -134,8 +175,7 @@ class TaskQueueManager:
         timeout_seconds: int = 60,
         max_retries: int = 3,
     ) -> str:
-        """
-        Add task to queue.
+        """Add task to queue.
 
         Args:
             task: Task to enqueue
@@ -145,6 +185,7 @@ class TaskQueueManager:
 
         Returns:
             Task ID
+
         """
         async with self._lock:
             # Create queued task
@@ -162,7 +203,7 @@ class TaskQueueManager:
 
             logger.info(
                 f"Task {task.id} enqueued with {priority} priority "
-                f"(queue depth: {self.queue_depth})"
+                f"(queue depth: {self.queue_depth})",
             )
 
             # Emit event
@@ -176,20 +217,20 @@ class TaskQueueManager:
                         "queue_depth": self.queue_depth,
                         "queued_at": queued_task.queued_at.isoformat(),
                     },
-                )
+                ),
             )
 
             return task.id
 
     async def dequeue(self, worker_id: str) -> QueuedTask | None:
-        """
-        Dequeue highest priority task and assign to worker.
+        """Dequeue highest priority task and assign to worker.
 
         Args:
             worker_id: Worker requesting task
 
         Returns:
             Queued task or None if queue is empty
+
         """
         async with self._lock:
             # Check queues in priority order
@@ -208,7 +249,7 @@ class TaskQueueManager:
 
                     logger.info(
                         f"Task {queued_task.task.id} assigned to {worker_id} "
-                        f"(priority: {priority}, age: {queued_task.age_seconds:.1f}s)"
+                        f"(priority: {priority}, age: {queued_task.age_seconds:.1f}s)",
                     )
 
                     # Emit event
@@ -222,7 +263,7 @@ class TaskQueueManager:
                                 "priority": priority,
                                 "age_seconds": queued_task.age_seconds,
                             },
-                        )
+                        ),
                     )
 
                     return queued_task
@@ -230,14 +271,14 @@ class TaskQueueManager:
             return None
 
     async def mark_in_progress(self, task_id: str) -> bool:
-        """
-        Mark task as in progress.
+        """Mark task as in progress.
 
         Args:
             task_id: Task ID
 
         Returns:
             True if status updated, False otherwise
+
         """
         async with self._lock:
             if task_id not in self._tasks:
@@ -252,8 +293,7 @@ class TaskQueueManager:
             return True
 
     async def mark_completed(self, task_id: str, result: dict[str, Any]) -> bool:
-        """
-        Mark task as completed.
+        """Mark task as completed.
 
         Args:
             task_id: Task ID
@@ -261,6 +301,7 @@ class TaskQueueManager:
 
         Returns:
             True if status updated, False otherwise
+
         """
         async with self._lock:
             if task_id not in self._tasks:
@@ -286,14 +327,13 @@ class TaskQueueManager:
 
             logger.info(
                 f"Task {task_id} completed in {execution_time:.1f}s "
-                f"(total completed: {self._total_completed})"
+                f"(total completed: {self._total_completed})",
             )
 
             return True
 
     async def mark_failed(self, task_id: str, error: str, retry: bool = True) -> bool:
-        """
-        Mark task as failed and optionally retry.
+        """Mark task as failed and optionally retry.
 
         Args:
             task_id: Task ID
@@ -302,6 +342,7 @@ class TaskQueueManager:
 
         Returns:
             True if status updated, False otherwise
+
         """
         async with self._lock:
             if task_id not in self._tasks:
@@ -328,7 +369,7 @@ class TaskQueueManager:
 
                 logger.info(
                     f"Task {task_id} failed (retry {queued_task.retry_count}/{queued_task.max_retries}), "
-                    f"re-queued with {new_priority} priority"
+                    f"re-queued with {new_priority} priority",
                 )
 
             else:
@@ -344,17 +385,17 @@ class TaskQueueManager:
                         worker_tasks.remove(task_id)
 
                 logger.error(
-                    f"Task {task_id} permanently failed after {queued_task.retry_count} retries: {error}"
+                    f"Task {task_id} permanently failed after {queued_task.retry_count} retries: {error}",
                 )
 
             return True
 
     async def check_timeouts(self) -> list[str]:
-        """
-        Check for timed out tasks and handle them.
+        """Check for timed out tasks and handle them.
 
         Returns:
             List of timed out task IDs
+
         """
         timed_out = []
 
@@ -367,7 +408,7 @@ class TaskQueueManager:
 
                     logger.warning(
                         f"Task {task_id} timed out after {queued_task.timeout_seconds}s, "
-                        f"assigned to {queued_task.assigned_worker}"
+                        f"assigned to {queued_task.assigned_worker}",
                     )
 
                     # Re-enqueue if retries available
@@ -376,14 +417,14 @@ class TaskQueueManager:
         return timed_out
 
     async def get_task_status(self, task_id: str) -> dict[str, Any] | None:
-        """
-        Get task status and metadata.
+        """Get task status and metadata.
 
         Args:
             task_id: Task ID
 
         Returns:
             Task status dict or None if not found
+
         """
         async with self._lock:
             if task_id not in self._tasks:
@@ -407,14 +448,14 @@ class TaskQueueManager:
             }
 
     async def get_worker_load(self, worker_id: str) -> int:
-        """
-        Get number of tasks assigned to worker.
+        """Get number of tasks assigned to worker.
 
         Args:
             worker_id: Worker ID
 
         Returns:
             Number of assigned tasks
+
         """
         async with self._lock:
             return len(self._worker_assignments[worker_id])
@@ -430,11 +471,11 @@ class TaskQueueManager:
         return {priority.value: len(queue) for priority, queue in self._queues.items()}
 
     async def get_metrics(self) -> dict[str, Any]:
-        """
-        Get queue metrics.
+        """Get queue metrics.
 
         Returns:
             Queue metrics dictionary
+
         """
         async with self._lock:
             # Calculate average wait time
@@ -472,14 +513,14 @@ class TaskQueueManager:
             }
 
     async def cleanup_old_tasks(self, max_age_hours: int = 24) -> int:
-        """
-        Remove completed tasks older than max_age_hours.
+        """Remove completed tasks older than max_age_hours.
 
         Args:
             max_age_hours: Maximum age in hours for completed tasks
 
         Returns:
             Number of tasks cleaned up
+
         """
         cutoff = datetime.now(UTC) - timedelta(hours=max_age_hours)
         cleaned = 0
