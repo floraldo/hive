@@ -26,15 +26,10 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 
-from hive_logging import get_logger
-from hive_orchestration import (
-    ChimeraExecutor,
-    ChimeraPhase,
-    Task,
-    TaskStatus,
-    create_chimera_task,
-)
+from hive_orchestration import ChimeraExecutor, ChimeraPhase, Task, TaskStatus, create_chimera_task
 from hive_orchestration.workflows.chimera_agents import create_chimera_agents_registry
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

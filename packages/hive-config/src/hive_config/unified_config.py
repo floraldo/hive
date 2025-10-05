@@ -97,6 +97,31 @@ class LoggingConfig(BaseModel):
     backup_count: int = Field(default=5)
 
 
+class FeatureFlagsConfig(BaseModel):
+    """Feature flags for gradual rollout of new functionality
+
+    These flags control the "Prep Now, Migrate Later" strategy for
+    Project Genesis Phase 4 (Hive platform consolidation).
+    """
+
+    # Phase B: Event emission
+    enable_unified_events: bool = Field(default=False, description="Enable unified event emission")
+    unified_events_agents: list[str] = Field(
+        default_factory=list,
+        description="List of agents with unified events enabled (e.g., ['ai-reviewer', 'ai-planner'])",
+    )
+
+    # Phase C: Dual-write
+    enable_dual_write: bool = Field(default=False, description="Enable dual-write to unified schema")
+    dual_write_validate: bool = Field(default=True, description="Validate dual-write consistency")
+
+    # Agent adapters
+    enable_agent_adapters: bool = Field(default=False, description="Use agent adapters for routing")
+
+    # Monitoring
+    event_monitoring_enabled: bool = Field(default=True, description="Enable event flow monitoring")
+
+
 class HiveConfig(BaseModel):
     """Unified Hive configuration
 
@@ -110,6 +135,7 @@ class HiveConfig(BaseModel):
     worker: WorkerConfig = Field(default_factory=WorkerConfig)
     ai: AIConfig = Field(default_factory=AIConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
+    features: FeatureFlagsConfig = Field(default_factory=FeatureFlagsConfig)
 
     # Environment settings
     environment: str = Field(default="development")

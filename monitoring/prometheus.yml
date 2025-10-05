@@ -1,0 +1,28 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # AI Reviewer
+  - job_name: 'ai-reviewer'
+    static_configs:
+      - targets: ['host.docker.internal:8001']
+        labels:
+          app: 'ai-reviewer'
+          component: 'ai'
+
+  # AI Planner
+  - job_name: 'ai-planner'
+    static_configs:
+      - targets: ['host.docker.internal:8002']
+        labels:
+          app: 'ai-planner'
+          component: 'ai'
+
+  # AI Deployer
+  - job_name: 'ai-deployer'
+    static_configs:
+      - targets: ['host.docker.internal:8003']
+        labels:
+          app: 'ai-deployer'
+          component: 'ai'

@@ -15,6 +15,8 @@ from typing import Any
 from hive_logging import get_logger
 from pydantic import BaseModel
 
+from .dlq import DeadLetterQueue
+
 logger = get_logger(__name__)
 
 
@@ -38,6 +40,7 @@ class QueuedTask(BaseModel):
     status: TaskStatus = TaskStatus.QUEUED
     workflow_state: dict[str, Any] | None = None
     result: dict[str, Any] | None = None
+    retry_count: int = 0
     error: str | None = None
     created_at: datetime
     started_at: datetime | None = None
@@ -80,6 +83,7 @@ class TaskQueue:
         """
         self.db_path = Path(db_path)
         self.logger = logger
+        self.dlq = DeadLetterQueue(db_path=self.db_path)
 
     async def initialize(self) -> None:
         """Initialize database schema."""
@@ -99,6 +103,7 @@ class TaskQueue:
                 workflow_state TEXT,
                 result TEXT,
                 error TEXT,
+                retry_count INTEGER DEFAULT 0,
                 created_at TEXT NOT NULL,
                 started_at TEXT,
                 completed_at TEXT
@@ -113,6 +118,9 @@ class TaskQueue:
 
         conn.commit()
         conn.close()
+
+        # Initialize DLQ
+        await self.dlq.initialize()
 
         self.logger.info(f"Task queue initialized: {self.db_path}")
 
@@ -331,6 +339,7 @@ class TaskQueue:
             workflow_state=json.loads(row["workflow_state"]) if row["workflow_state"] else None,
             result=json.loads(row["result"]) if row["result"] else None,
             error=row["error"],
+            retry_count=row["retry_count"] if "retry_count" in row.keys() else 0,
             created_at=datetime.fromisoformat(row["created_at"]),
             started_at=datetime.fromisoformat(row["started_at"]) if row["started_at"] else None,
             completed_at=datetime.fromisoformat(row["completed_at"]) if row["completed_at"] else None,

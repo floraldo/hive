@@ -29,7 +29,8 @@ Usage:
 
 import fnmatch
 from collections import defaultdict
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from hive_logging import get_logger
 

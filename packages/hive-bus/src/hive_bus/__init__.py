@@ -19,6 +19,9 @@ from .base_bus import BaseBus
 from .base_events import BaseEvent
 from .subscribers import BaseSubscriber
 
+# Topic-based event routing
+from .topic_registry import TopicRegistry, get_global_registry
+
 # Unified event types for cross-agent coordination
 from .unified_events import (
     UnifiedEvent,
@@ -27,9 +30,6 @@ from .unified_events import (
     create_task_event,
     create_workflow_event,
 )
-
-# Topic-based event routing
-from .topic_registry import TopicRegistry, get_global_registry
 
 __all__ = [
     "BaseBus",

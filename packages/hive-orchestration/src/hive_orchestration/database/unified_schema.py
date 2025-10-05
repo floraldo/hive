@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
 
 from sqlalchemy import JSON, Column, DateTime, Integer, String, Text
 from sqlalchemy.orm import declarative_base

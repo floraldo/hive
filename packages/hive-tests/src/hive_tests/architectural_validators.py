@@ -278,6 +278,39 @@ def validate_unified_config_enforcement(project_root: Path, scope_files: list[Pa
         return False, [f"Unified config enforcement validation error: {e}"]
 
 
+def validate_observability_standards_rule(project_root: Path, scope_files: list[Path] | None = None) -> tuple[bool, list]:
+    """Golden Rule 35: Observability Standards
+
+    Validates usage of hive-performance decorators for observability.
+
+    Detects:
+    - Manual timing code (time.time() pairs for duration tracking)
+    - Direct OpenTelemetry usage outside hive-performance package
+    - Missing decorator usage when manual instrumentation exists
+
+    Exempts:
+    - hive-performance package itself
+    - Test files, demo files, archived code
+
+    Grace Period: 6 months for migration
+    Severity: WARNING (transitional enforcement)
+
+    Args:
+        project_root: Root of the project
+        scope_files: Optional file scope
+
+    Returns:
+        Tuple of (passed, violations)
+    """
+    from hive_tests.observability_validator import validate_observability_standards
+
+    try:
+        passed, violations = validate_observability_standards(project_root, scope_files)
+        return passed, violations
+    except Exception as e:
+        return False, [f"Observability standards validation error: {e}"]
+
+
 def _initialize_golden_rules_registry():
     """Initialize the Golden Rules registry after all validators are defined.
     This function is called at the end of this module.
@@ -461,6 +494,15 @@ def _initialize_golden_rules_registry():
             "validator": validate_colocated_tests,
             "severity": RuleSeverity.INFO,
             "description": "Tests near source code",
+        },
+        # Golden Rule 35 - Observability Standards (WARNING level)
+        {
+            "id": 35,
+            "name": "Observability Standards",
+            "validator": validate_observability_standards_rule,
+            "severity": RuleSeverity.WARNING,
+            "description": "Use hive-performance decorators for observability (6-month grace period)",
+            "grace_period_months": 6,
         },
     ]
 

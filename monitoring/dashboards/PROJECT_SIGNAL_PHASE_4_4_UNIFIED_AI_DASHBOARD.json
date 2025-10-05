@@ -1,0 +1,566 @@
+{
+  "dashboard": {
+    "title": "Hive AI Apps - Unified Performance Dashboard",
+    "description": "Comprehensive observability for ai-reviewer, ai-planner, and ai-deployer apps",
+    "tags": ["hive", "ai", "performance", "project-signal"],
+    "timezone": "browser",
+    "editable": true,
+    "graphTooltip": 1,
+    "panels": [
+      {
+        "title": "Row 1: AI Pipeline Overview",
+        "type": "row",
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+        "collapsed": false,
+        "panels": [
+          {
+            "title": "End-to-End AI Pipeline Success Rate",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 1},
+            "targets": [
+              {
+                "expr": "(sum(rate(handle_worker_success_calls_total[5m])) + sum(rate(planning_process_task_calls_total{status=\"success\"}[5m])) + sum(rate(deployment_execution_calls_total{status=\"success\"}[5m]))) / (sum(rate(handle_worker_success_calls_total[5m])) + sum(rate(handle_worker_failure_calls_total[5m])) + sum(rate(planning_process_task_calls_total[5m])) + sum(rate(deployment_execution_calls_total[5m]))) * 100",
+                "legendFormat": "Pipeline Success %",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {"value": 0, "color": "red"},
+                    {"value": 80, "color": "yellow"},
+                    {"value": 95, "color": "green"}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "AI Operations Throughput",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 1},
+            "targets": [
+              {
+                "expr": "sum(rate(auto_fix_attempt_calls_total[1m])) * 60",
+                "legendFormat": "AI Reviewer (fixes/min)",
+                "refId": "A"
+              },
+              {
+                "expr": "sum(rate(planning_process_task_calls_total[1m])) * 60",
+                "legendFormat": "AI Planner (plans/min)",
+                "refId": "B"
+              },
+              {
+                "expr": "sum(rate(deployment_execution_calls_total[1m])) * 60",
+                "legendFormat": "AI Deployer (deploys/min)",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Operations per minute", "format": "short"}
+            ]
+          },
+          {
+            "title": "Review → Plan → Deploy Latency",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 1},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(review_agent_loop_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Review (P95)",
+                "refId": "A"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(planning_process_task_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Plan (P95)",
+                "refId": "B"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(deployment_execution_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Deploy (P95)",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Latency (seconds)", "format": "s"}
+            ]
+          },
+          {
+            "title": "Critical AI Errors (Last Hour)",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 1},
+            "targets": [
+              {
+                "expr": "sum(increase(adapter_claude_ai_errors_total[1h])) + sum(increase(adapter_claude_planning_errors_total[1h])) + sum(increase(handle_worker_failure_calls_total[1h]))",
+                "legendFormat": "Total AI Errors",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {"value": 0, "color": "green"},
+                    {"value": 10, "color": "yellow"},
+                    {"value": 50, "color": "red"}
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "title": "Row 2: Claude AI Performance",
+        "type": "row",
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 9},
+        "collapsed": false,
+        "panels": [
+          {
+            "title": "Claude Latency Comparison (P95)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 10},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_claude_ai_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Reviewer (sync)",
+                "refId": "A"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_claude_planning_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Planner (sync)",
+                "refId": "B"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_async_claude_planning_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Planner (async)",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Latency (seconds)", "format": "s"}
+            ]
+          },
+          {
+            "title": "Claude Error Rate by App",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 10},
+            "targets": [
+              {
+                "expr": "rate(adapter_claude_ai_errors_total[5m])",
+                "legendFormat": "AI Reviewer",
+                "refId": "A"
+              },
+              {
+                "expr": "rate(adapter_claude_planning_errors_total[5m])",
+                "legendFormat": "AI Planner (sync)",
+                "refId": "B"
+              },
+              {
+                "expr": "rate(adapter_async_claude_planning_errors_total[5m])",
+                "legendFormat": "AI Planner (async)",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Errors per second", "format": "short"}
+            ]
+          },
+          {
+            "title": "Async Speedup Factor (Planner)",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 10},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_claude_planning_duration_seconds_bucket[5m])) by (le)) / histogram_quantile(0.95, sum(rate(adapter_async_claude_planning_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Speedup Factor",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "decimals": 1,
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {"value": 0, "color": "red"},
+                    {"value": 2, "color": "yellow"},
+                    {"value": 3, "color": "green"}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "Claude Throughput (calls/min)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 10},
+            "targets": [
+              {
+                "expr": "sum(rate(adapter_claude_ai_calls_total{status=\"success\"}[1m])) * 60",
+                "legendFormat": "AI Reviewer",
+                "refId": "A"
+              },
+              {
+                "expr": "sum(rate(adapter_claude_planning_calls_total{status=\"success\"}[1m])) * 60",
+                "legendFormat": "AI Planner",
+                "refId": "B"
+              }
+            ],
+            "yaxes": [
+              {"label": "Calls per minute", "format": "short"}
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Row 3: AI Agent Orchestration",
+        "type": "row",
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 18},
+        "collapsed": false,
+        "panels": [
+          {
+            "title": "Agent Loop Latency (P95)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 19},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(review_agent_loop_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Reviewer",
+                "refId": "A"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(planner_agent_loop_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Planner (sync)",
+                "refId": "B"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(async_planner_loop_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Planner (async)",
+                "refId": "C"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(deployer_agent_loop_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Deployer",
+                "refId": "D"
+              }
+            ],
+            "yaxes": [
+              {"label": "Latency (seconds)", "format": "s"}
+            ]
+          },
+          {
+            "title": "Task Processing Throughput",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 19},
+            "targets": [
+              {
+                "expr": "rate(review_process_task_calls_total[5m])",
+                "legendFormat": "AI Reviewer",
+                "refId": "A"
+              },
+              {
+                "expr": "rate(planning_process_task_calls_total[5m])",
+                "legendFormat": "AI Planner",
+                "refId": "B"
+              },
+              {
+                "expr": "rate(handle_deployment_task_calls_total[5m])",
+                "legendFormat": "AI Deployer",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Tasks per second", "format": "short"}
+            ]
+          },
+          {
+            "title": "Queue Processing Efficiency",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 19},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(process_review_queue_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Reviewer Queue",
+                "refId": "A"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(async_process_queue_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "AI Planner Queue",
+                "refId": "B"
+              }
+            ],
+            "yaxes": [
+              {"label": "Queue processing time (s)", "format": "s"}
+            ]
+          },
+          {
+            "title": "Agent Error Rates",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 19},
+            "targets": [
+              {
+                "expr": "rate(review_process_task_errors_total[5m])",
+                "legendFormat": "AI Reviewer",
+                "refId": "A"
+              },
+              {
+                "expr": "rate(planning_process_task_errors_total[5m])",
+                "legendFormat": "AI Planner",
+                "refId": "B"
+              },
+              {
+                "expr": "rate(handle_deployment_task_errors_total[5m])",
+                "legendFormat": "AI Deployer",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Errors per second", "format": "short"}
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Row 4: Database & External Services",
+        "type": "row",
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 27},
+        "collapsed": false,
+        "panels": [
+          {
+            "title": "Database Latency by Operation (P95)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 28},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_database_review_queue_poll_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Review Queue Poll",
+                "refId": "A"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_database_planning_queue_poll_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Planning Queue Poll",
+                "refId": "B"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_database_deployment_queue_poll_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Deployment Queue Poll",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Latency (seconds)", "format": "s"}
+            ]
+          },
+          {
+            "title": "Database Write Latency (P95)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 28},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_database_save_review_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Save Review",
+                "refId": "A"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_database_save_plan_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Save Plan",
+                "refId": "B"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_database_store_deployment_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Store Deployment",
+                "refId": "C"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(adapter_database_update_deployment_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Update Deployment",
+                "refId": "D"
+              }
+            ],
+            "yaxes": [
+              {"label": "Latency (seconds)", "format": "s"}
+            ]
+          },
+          {
+            "title": "Adapter Error Rates",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 28},
+            "targets": [
+              {
+                "expr": "sum(rate(adapter_claude_ai_errors_total[5m])) by (error_type)",
+                "legendFormat": "Claude AI - {{error_type}}",
+                "refId": "A"
+              },
+              {
+                "expr": "sum(rate(adapter_database_review_queue_poll_errors_total[5m])) + sum(rate(adapter_database_planning_queue_poll_errors_total[5m])) + sum(rate(adapter_database_deployment_queue_poll_errors_total[5m]))",
+                "legendFormat": "Database Errors",
+                "refId": "B"
+              }
+            ],
+            "yaxes": [
+              {"label": "Errors per second", "format": "short"}
+            ]
+          },
+          {
+            "title": "Database Throughput (ops/min)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 28},
+            "targets": [
+              {
+                "expr": "sum(rate(adapter_database_save_review_calls_total[1m])) * 60",
+                "legendFormat": "Reviews",
+                "refId": "A"
+              },
+              {
+                "expr": "sum(rate(adapter_database_save_plan_calls_total[1m])) * 60",
+                "legendFormat": "Plans",
+                "refId": "B"
+              },
+              {
+                "expr": "sum(rate(adapter_database_store_deployment_calls_total[1m])) * 60",
+                "legendFormat": "Deployments",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Operations per minute", "format": "short"}
+            ]
+          }
+        ]
+      },
+      {
+        "title": "Row 5: Deployment & Operations",
+        "type": "row",
+        "gridPos": {"h": 1, "w": 24, "x": 0, "y": 36},
+        "collapsed": false,
+        "panels": [
+          {
+            "title": "Deployment Success Rate by Strategy",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 0, "y": 37},
+            "targets": [
+              {
+                "expr": "rate(ssh_deployment_calls_total{status=\"success\"}[5m]) / rate(ssh_deployment_calls_total[5m]) * 100",
+                "legendFormat": "SSH Strategy",
+                "refId": "A"
+              },
+              {
+                "expr": "rate(docker_deployment_calls_total{status=\"success\"}[5m]) / rate(docker_deployment_calls_total[5m]) * 100",
+                "legendFormat": "Docker Strategy",
+                "refId": "B"
+              },
+              {
+                "expr": "rate(deployment_execution_calls_total{status=\"success\"}[5m]) / rate(deployment_execution_calls_total[5m]) * 100",
+                "legendFormat": "Overall",
+                "refId": "C"
+              }
+            ],
+            "yaxes": [
+              {"label": "Success Rate (%)", "format": "percent", "max": 100}
+            ]
+          },
+          {
+            "title": "Health Check Latency (P95)",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 6, "y": 37},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(deployment_health_check_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "Health Check",
+                "refId": "A"
+              }
+            ],
+            "yaxes": [
+              {"label": "Latency (seconds)", "format": "s"}
+            ]
+          },
+          {
+            "title": "Rollback Frequency & Success",
+            "type": "graph",
+            "gridPos": {"h": 8, "w": 6, "x": 12, "y": 37},
+            "targets": [
+              {
+                "expr": "rate(deployment_rollback_calls_total[5m])",
+                "legendFormat": "Rollback Attempts",
+                "refId": "A"
+              },
+              {
+                "expr": "rate(deployment_rollback_calls_total{status=\"success\"}[5m])",
+                "legendFormat": "Rollback Success",
+                "refId": "B"
+              }
+            ],
+            "yaxes": [
+              {"label": "Rollbacks per second", "format": "short"}
+            ]
+          },
+          {
+            "title": "Code Review → Deployment Time (P95)",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 6, "x": 18, "y": 37},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(review_process_task_duration_seconds_bucket[5m])) by (le)) + histogram_quantile(0.95, sum(rate(planning_process_task_duration_seconds_bucket[5m])) by (le)) + histogram_quantile(0.95, sum(rate(deployment_execution_duration_seconds_bucket[5m])) by (le))",
+                "legendFormat": "End-to-End Time",
+                "refId": "A"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s",
+                "decimals": 1,
+                "color": {"mode": "thresholds"},
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {"value": 0, "color": "green"},
+                    {"value": 60, "color": "yellow"},
+                    {"value": 300, "color": "red"}
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "refresh": "30s",
+    "time": {"from": "now-1h", "to": "now"},
+    "timepicker": {
+      "refresh_intervals": ["10s", "30s", "1m", "5m", "15m", "30m", "1h"]
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus",
+          "current": {"text": "Prometheus", "value": "Prometheus"}
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "$datasource",
+          "expr": "changes(deployment_execution_calls_total[1m]) > 0",
+          "step": "1m",
+          "tagKeys": "strategy",
+          "titleFormat": "Deployment",
+          "textFormat": "{{strategy}}"
+        }
+      ]
+    }
+  }
+}

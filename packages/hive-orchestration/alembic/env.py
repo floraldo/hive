@@ -1,9 +1,8 @@
-from logging.config import fileConfig
 import sys
+from logging.config import fileConfig
 from pathlib import Path
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
+from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 
@@ -12,10 +11,8 @@ package_root = Path(__file__).parent.parent / "src"
 sys.path.insert(0, str(package_root))
 
 # Import unified schema models for autogenerate support
-from hive_orchestration.database.unified_schema import Base
-
 # Import hive-config for database URL
-from hive_config import create_config_from_sources
+from hive_orchestration.database.unified_schema import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -25,7 +22,6 @@ config = context.config
 # For migration generation, we use a temporary in-memory database
 # Actual migrations will use the real database path
 from pathlib import Path
-import os
 
 # Get absolute path to project root
 project_root = Path(__file__).parent.parent.parent.parent

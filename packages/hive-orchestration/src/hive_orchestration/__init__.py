@@ -114,6 +114,8 @@ Breaking changes require:
 
 # Import operations
 # Import client SDK
+# Import unified agent infrastructure (Phase A: Prep Now, Migrate Later)
+from .agents import AgentCapability, AgentRegistry, StandardAgent, auto_register_adapters, get_global_registry
 from .client import OrchestrationClient, get_client
 
 # Import event bus and events
@@ -146,9 +148,6 @@ from .operations import (
 from .workflows.chimera import ChimeraPhase, ChimeraWorkflow, create_chimera_task
 from .workflows.chimera_agents import create_chimera_agents_registry
 from .workflows.chimera_executor import ChimeraExecutor, create_and_execute_chimera_workflow
-
-# Import unified agent infrastructure (Phase A: Prep Now, Migrate Later)
-from .agents import AgentCapability, AgentRegistry, StandardAgent, auto_register_adapters, get_global_registry
 
 __all__ = [
     "AgentEvent",

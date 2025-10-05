@@ -256,13 +256,7 @@ def auto_register_adapters(
         registry: Optional registry to use (defaults to global registry)
         event_bus: Optional event bus to provide to adapters
     """
-    from .adapters import (
-        AIDeployerAdapter,
-        AIPlannerAdapter,
-        AIReviewerAdapter,
-        GuardianAdapter,
-        HiveCoderAdapter,
-    )
+    from .adapters import AIDeployerAdapter, AIPlannerAdapter, AIReviewerAdapter, GuardianAdapter, HiveCoderAdapter
 
     if registry is None:
         registry = get_global_registry()

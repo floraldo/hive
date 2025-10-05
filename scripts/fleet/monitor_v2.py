@@ -19,16 +19,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from rich.console import Console
-from rich.layout import Layout
-from rich.live import Live
-from rich.panel import Panel
-from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
-from rich.table import Table
-from rich.text import Text
-
-from hive_config.paths import PROJECT_ROOT
-from hive_logging import get_logger
 from hive_orchestration.events import (
     EscalationEvent,
     QATaskEvent,
@@ -37,6 +27,15 @@ from hive_orchestration.events import (
     get_async_event_bus,
 )
 from hive_orchestrator.fleet_orchestrator import get_orchestrator
+from rich.console import Console
+from rich.layout import Layout
+from rich.live import Live
+from rich.panel import Panel
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
+from rich.table import Table
+from rich.text import Text
+
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -227,11 +226,11 @@ class EnhancedFleetMonitor:
         )
 
         queue_text = Text()
-        queue_text.append(f"Total Depth: ", style="bold")
+        queue_text.append("Total Depth: ", style="bold")
         queue_text.append(f"{queue_depth}\n", style="cyan")
-        queue_text.append(f"Capacity: ", style="bold")
+        queue_text.append("Capacity: ", style="bold")
         queue_text.append(f"{capacity} ({total_workers} workers × {target_per_worker})\n")
-        queue_text.append(f"Utilization: ", style="bold")
+        queue_text.append("Utilization: ", style="bold")
         utilization = (queue_depth / capacity * 100) if capacity > 0 else 0
         queue_text.append(f"{utilization:.1f}%\n\n")
 
@@ -343,37 +342,37 @@ class EnhancedFleetMonitor:
 
         # Queue metrics
         metrics_text.append("📊 Queue Metrics\n", style="bold underline")
-        metrics_text.append(f"  Total Queued: ", style="bold")
+        metrics_text.append("  Total Queued: ", style="bold")
         metrics_text.append(f"{self.queue_metrics.get('total_queued', 0)}\n")
-        metrics_text.append(f"  Total Completed: ", style="bold green")
+        metrics_text.append("  Total Completed: ", style="bold green")
         metrics_text.append(f"{self.queue_metrics.get('total_completed', 0)}\n")
-        metrics_text.append(f"  Total Failed: ", style="bold red")
+        metrics_text.append("  Total Failed: ", style="bold red")
         metrics_text.append(f"{self.queue_metrics.get('total_failed', 0)}\n")
-        metrics_text.append(f"  Avg Wait Time: ", style="bold")
+        metrics_text.append("  Avg Wait Time: ", style="bold")
         avg_wait = self.queue_metrics.get("avg_wait_time_seconds", 0)
         metrics_text.append(f"{avg_wait:.1f}s\n")
-        metrics_text.append(f"  Avg Exec Time: ", style="bold")
+        metrics_text.append("  Avg Exec Time: ", style="bold")
         avg_exec = self.queue_metrics.get("avg_execution_time_seconds", 0)
         metrics_text.append(f"{avg_exec:.1f}s\n\n")
 
         # Pool metrics
         metrics_text.append("👥 Pool Metrics\n", style="bold underline")
-        metrics_text.append(f"  Pool Size: ", style="bold")
+        metrics_text.append("  Pool Size: ", style="bold")
         metrics_text.append(f"{self.pool_metrics.get('pool_size', 0)}\n")
-        metrics_text.append(f"  Active Workers: ", style="bold green")
+        metrics_text.append("  Active Workers: ", style="bold green")
         metrics_text.append(f"{self.pool_metrics.get('active_workers', 0)}\n")
-        metrics_text.append(f"  Idle Workers: ", style="bold")
+        metrics_text.append("  Idle Workers: ", style="bold")
         metrics_text.append(f"{self.pool_metrics.get('idle_workers', 0)}\n")
-        metrics_text.append(f"  Scale Ups: ", style="bold cyan")
+        metrics_text.append("  Scale Ups: ", style="bold cyan")
         metrics_text.append(f"{self.pool_metrics.get('scale_up_count', 0)}\n")
-        metrics_text.append(f"  Scale Downs: ", style="bold")
+        metrics_text.append("  Scale Downs: ", style="bold")
         metrics_text.append(f"{self.pool_metrics.get('scale_down_count', 0)}\n")
-        metrics_text.append(f"  Restarts: ", style="bold yellow")
+        metrics_text.append("  Restarts: ", style="bold yellow")
         metrics_text.append(f"{self.pool_metrics.get('restart_count', 0)}\n\n")
 
         # Overall metrics
         metrics_text.append("📈 Overall\n", style="bold underline")
-        metrics_text.append(f"  Monitor Uptime: ", style="bold")
+        metrics_text.append("  Monitor Uptime: ", style="bold")
         metrics_text.append(f"{uptime_str}\n")
 
         # Calculate success rate
@@ -383,7 +382,7 @@ class EnhancedFleetMonitor:
 
         if total_processed > 0:
             success_rate = (total_completed / total_processed * 100)
-            metrics_text.append(f"  Success Rate: ", style="bold")
+            metrics_text.append("  Success Rate: ", style="bold")
             metrics_text.append(f"{success_rate:.1f}%\n")
 
         return Panel(metrics_text, title="📊 Metrics", border_style="green")

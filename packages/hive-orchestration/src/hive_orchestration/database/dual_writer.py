@@ -19,17 +19,13 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from hive_db import get_sqlite_connection
-from hive_logging import get_logger
 from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .unified_schema import (
-    UnifiedDeploymentTask,
-    UnifiedReviewTask,
-    UnifiedTask,
-    UnifiedWorkflowTask,
-)
+from hive_db import get_sqlite_connection
+from hive_logging import get_logger
+
+from .unified_schema import UnifiedReviewTask, UnifiedTask, UnifiedWorkflowTask
 
 logger = get_logger(__name__)
 

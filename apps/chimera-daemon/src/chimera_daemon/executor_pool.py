@@ -11,7 +11,11 @@ from typing import Any
 
 from hive_logging import get_logger
 from hive_orchestration import ChimeraExecutor, ChimeraPhase, Task
+from hive_performance import timed, track_request
 
+from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig
+from .metrics import MetricsCollector, PoolMetrics
+from .retry import RetryConfig, RetryPolicy
 from .task_queue import TaskQueue
 
 logger = get_logger(__name__)
@@ -26,6 +30,8 @@ class WorkflowMetrics:
         self.completed_at: datetime | None = None
         self.success: bool = False
         self.error: str | None = None
+        self.phase: str | None = None
+        self.retry_count: int = 0
 
     @property
     def duration_ms(self) -> float:
@@ -70,10 +76,16 @@ class ExecutorPool:
         self._running = False
 
         # Metrics
+        # Enhanced metrics collector with sliding window
+        self._metrics_collector = MetricsCollector(window_size=100)
         self._workflow_metrics: list[WorkflowMetrics] = []
         self.total_workflows_processed = 0
         self.total_workflows_succeeded = 0
         self.total_workflows_failed = 0
+
+        # Error recovery components
+        self._retry_policy = RetryPolicy(config=RetryConfig(max_retries=3, base_delay_ms=2000))
+        self._circuit_breakers: dict[str, CircuitBreaker] = {}
 
     async def start(self) -> None:
         """Start the executor pool."""
@@ -125,8 +137,10 @@ class ExecutorPool:
         async with self._semaphore:
             await self._execute_workflow(task)
 
+    @track_request("chimera_workflow_execution")
+    @timed(metric_name="chimera.workflow.duration")
     async def _execute_workflow(self, task: Task) -> None:
-        """Execute Chimera workflow for task.
+        """Execute Chimera workflow with retry logic and circuit breaker protection.
 
         Args:
             task: Chimera task to execute
@@ -139,15 +153,102 @@ class ExecutorPool:
 
         self.logger.info(f"Starting workflow execution: {task.id}")
 
-        try:
-            # Create executor instance for this workflow
-            executor = ChimeraExecutor(agents_registry=self.agents_registry)
+        # Get task metadata for DLQ
+        queued_task = await self.task_queue.get_task(task_id_str)
 
+        try:
+            # Execute with retry policy
+            await self._retry_policy.execute(
+                self._execute_workflow_with_circuit_breaker,
+                task,
+                task_id_str,
+                metrics,
+                queued_task,
+            )
+
+        except Exception as e:
+            # All retries exhausted - send to DLQ
+            self.logger.error(
+                f"Workflow failed after all retries: {task.id} - {e}",
+                exc_info=True,
+            )
+
+            # Add to DLQ
+            if queued_task:
+                await self.task_queue.dlq.add_entry(
+                    task_id=task_id_str,
+                    feature=queued_task.feature_description,
+                    target_url=queued_task.target_url,
+                    failure_reason=str(e),
+                    retry_count=metrics.retry_count,
+                    workflow_state=None,
+                    created_at=queued_task.created_at,
+                    last_error_phase=metrics.phase,
+                )
+
+            metrics.error = str(e)
+
+            await self.task_queue.mark_failed(
+                task_id=task_id_str,
+                workflow_state=None,
+                error=f"All retries exhausted: {e}",
+            )
+
+            self.total_workflows_failed += 1
+            self.total_workflows_processed += 1
+
+        finally:
+            metrics.completed_at = datetime.now()
+
+            # Record metrics in sliding window collector
+            self._metrics_collector.record_workflow(
+                workflow_id=task_id_str,
+                duration_ms=metrics.duration_ms,
+                success=metrics.success,
+                phase=metrics.phase,
+                retry_count=metrics.retry_count,
+            )
+
+    async def _execute_workflow_with_circuit_breaker(
+        self,
+        task: Task,
+        task_id_str: str,
+        metrics: WorkflowMetrics,
+        queued_task: any,
+    ) -> None:
+        """Execute workflow with circuit breaker protection.
+
+        Args:
+            task: Chimera task
+            task_id_str: Task ID string
+            metrics: Workflow metrics tracking
+            queued_task: Original queued task metadata
+        """
+        metrics.retry_count += 1
+
+        # Create executor instance for this workflow
+        executor = ChimeraExecutor(agents_registry=self.agents_registry)
+
+        # Get or create circuit breaker
+        if "workflow" not in self._circuit_breakers:
+            self._circuit_breakers["workflow"] = CircuitBreaker(
+                name="workflow_executor",
+                config=CircuitBreakerConfig(
+                    failure_threshold=5,
+                    timeout_seconds=30.0,
+                ),
+            )
+
+        breaker = self._circuit_breakers["workflow"]
+
+        # Execute through circuit breaker
+        async with breaker:
             # Execute workflow
             workflow = await executor.execute_workflow(task, max_iterations=10)
 
             # Store result
             workflow_state = workflow.model_dump()
+            metrics.phase = workflow.current_phase.value
 
             if workflow.current_phase == ChimeraPhase.COMPLETE:
                 result = {
@@ -176,34 +277,10 @@ class ExecutorPool:
             else:
                 error = f"Workflow incomplete: {workflow.current_phase.value}"
                 metrics.error = error
+                metrics.phase = workflow.current_phase.value
 
-                await self.task_queue.mark_failed(
-                    task_id=task_id_str,
-                    workflow_state=workflow_state,
-                    error=error,
-                )
-
-                self.total_workflows_failed += 1
-                self.total_workflows_processed += 1
-
-                self.logger.warning(f"Workflow failed: {task.id} - {error}")
-
-        except Exception as e:
-            self.logger.error(f"Workflow execution error: {task.id} - {e}", exc_info=True)
-
-            metrics.error = str(e)
-
-            await self.task_queue.mark_failed(
-                task_id=task_id_str,
-                workflow_state=None,
-                error=str(e),
-            )
-
-            self.total_workflows_failed += 1
-            self.total_workflows_processed += 1
-
-        finally:
-            metrics.completed_at = datetime.now()
+                # Fail without marking in DB yet (retry will handle)
+                raise RuntimeError(error)
 
     @property
     def active_count(self) -> int:
@@ -246,6 +323,21 @@ class ExecutorPool:
                 else 0.0
             ),
         }
+
+
+    async def get_enhanced_metrics(self) -> PoolMetrics:
+        """Get comprehensive pool metrics with percentiles and trends.
+    
+        Returns:
+            Enhanced PoolMetrics with P50/P95/P99, trends, and failure analysis
+        """
+        # Get queue depth (simplified - actual implementation would query TaskQueue)
+        queue_depth = 0  # TODO: Implement actual queue depth query
+        return self._metrics_collector.get_metrics(
+            pool_size=self.max_concurrent,
+            active_workflows=self.active_count,
+            queue_depth=queue_depth,
+        )
 
     def _log_final_metrics(self) -> None:
         """Log final metrics on shutdown."""
