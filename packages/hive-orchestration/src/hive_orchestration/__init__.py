@@ -147,6 +147,9 @@ from .workflows.chimera import ChimeraPhase, ChimeraWorkflow, create_chimera_tas
 from .workflows.chimera_agents import create_chimera_agents_registry
 from .workflows.chimera_executor import ChimeraExecutor, create_and_execute_chimera_workflow
 
+# Import unified agent infrastructure (Phase A: Prep Now, Migrate Later)
+from .agents import AgentCapability, AgentRegistry, StandardAgent, auto_register_adapters, get_global_registry
+
 __all__ = [
     "AgentEvent",
     "ChimeraExecutor",
@@ -194,6 +197,12 @@ __all__ = [
     "unregister_worker",
     "update_task_status",
     "update_worker_heartbeat",
+    # Unified agent infrastructure (Phase A)
+    "StandardAgent",
+    "AgentCapability",
+    "AgentRegistry",
+    "get_global_registry",
+    "auto_register_adapters",
 ]
 
 __version__ = "1.0.0"
