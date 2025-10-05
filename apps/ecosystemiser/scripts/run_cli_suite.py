@@ -50,7 +50,7 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> bool
 
     try:
         # Run the command, capture output, and check for errors
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603
             args,
             capture_output=True,
             text=True,

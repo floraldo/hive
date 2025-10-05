@@ -25,7 +25,7 @@ def run_command(cmd: list[str], description: str) -> dict[str, Any]:
     logger.info(f"Command: {' '.join(cmd)}")
     logger.info("=" * 60)
 
-    result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+    result = subprocess.run(cmd, check=False, capture_output=True, text=True)  # noqa: S603
 
     if result.returncode == 0:
         logger.info("✅ PASSED")
