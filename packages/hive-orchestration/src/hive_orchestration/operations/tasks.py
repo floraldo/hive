@@ -147,7 +147,7 @@ def update_task_status(
                 values.append(metadata["current_phase"])
 
         values.append(task_id)
-        query = f"UPDATE tasks SET {', '.join(fields)} WHERE id = ?"
+        query = f"UPDATE tasks SET {', '.join(fields)} WHERE id = ?"  # noqa: S608
 
         cursor = conn.execute(query, values)
         success = cursor.rowcount > 0

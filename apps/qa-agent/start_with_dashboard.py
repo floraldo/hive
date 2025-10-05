@@ -12,14 +12,16 @@ Run: python start_with_dashboard.py
 import asyncio
 import sys
 from datetime import datetime
-from pathlib import Path
 
 # Add all required packages to path
-for pkg in ['hive-logging', 'hive-config', 'hive-errors', 'hive-db', 'hive-bus', 'hive-models', 'hive-async', 'hive-orchestration']:
+for pkg in [  # noqa: E501
+    'hive-logging', 'hive-config', 'hive-errors', 'hive-db',
+    'hive-bus', 'hive-models', 'hive-async', 'hive-orchestration'
+]:
     sys.path.insert(0, f'C:/git/hive/packages/{pkg}/src')
 sys.path.insert(0, 'C:/git/hive/apps/qa-agent/src')
 
-from qa_agent.daemon import QAAgentDaemon
+from qa_agent.daemon import QAAgentDaemon  # noqa: E402
 
 
 class DashboardWrapper:
@@ -88,12 +90,12 @@ class DashboardWrapper:
             cc_pct = (self.daemon.tasks_cc_worker / self.daemon.tasks_processed) * 100
             escalation_pct = (self.daemon.tasks_escalated / self.daemon.tasks_processed) * 100
 
-            print(f"ROUTING DISTRIBUTION" + " " * 59)
+            print("ROUTING DISTRIBUTION" + " " * 59)
             print(f"  Chimera: {chimera_pct:.1f}% {'█' * int(chimera_pct / 5)}" + " " * 30)
             print(f"  CC Workers: {cc_pct:.1f}% {'█' * int(cc_pct / 5)}" + " " * 30)
             print(f"  HITL: {escalation_pct:.1f}% {'█' * int(escalation_pct / 5)}" + " " * 30)
         else:
-            print(f"Waiting for tasks..." + " " * 58)
+            print("Waiting for tasks..." + " " * 58)
 
         print()
         print("-" * 80)

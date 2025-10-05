@@ -11,7 +11,6 @@ This establishes the performance baseline for the foundation work.
 """
 
 import sys
-import time
 
 # Use Poetry workspace imports
 try:
@@ -22,7 +21,6 @@ try:
     def test_config_inheritance() -> None:
         """Test the inherit→extend pattern for configuration"""
         logger.info("Testing configuration inherit→extend pattern...")
-        start_time = time.time()
 
         try:
             # Test new inherit→extend pattern with direct hive-config imports
@@ -39,8 +37,7 @@ try:
             # No legacy compatibility test needed - we've eliminated the wrappers
             logger.info("SUCCESS: Using direct hive-config imports (no deprecated wrappers)")
 
-            elapsed = time.time() - start_time
-            logger.info(f"Config test completed in {elapsed:.3f}s")
+            logger.info("Config test completed")
             return True
 
         except Exception as e:
@@ -50,7 +47,6 @@ try:
     def test_database_operations() -> None:
         """Test basic database operations"""
         logger.info("Testing database operations...")
-        start_time = time.time()
 
         try:
             from ecosystemiser.core.db import (
@@ -77,8 +73,7 @@ try:
                     logger.error("Database connection test failed")
                     return False
 
-            elapsed = time.time() - start_time
-            logger.info(f"Database test completed in {elapsed:.3f}s")
+            logger.info("Database test completed")
             return True
 
         except Exception as e:
@@ -91,7 +86,6 @@ try:
     def test_logging_integration() -> None:
         """Test logging integration"""
         logger.info("Testing logging integration...")
-        start_time = time.time()
 
         try:
             # Test direct hive_logging import
@@ -103,8 +97,7 @@ try:
             # No legacy compatibility test needed - we've eliminated the wrappers
             logger.info("SUCCESS: Using direct hive_logging imports (no deprecated wrappers)")
 
-            elapsed = time.time() - start_time
-            logger.info(f"Logging test completed in {elapsed:.3f}s")
+            logger.info("Logging test completed")
             return True
 
         except Exception as e:
@@ -118,7 +111,6 @@ try:
         logger.info("Testing architectural hardening results")
         logger.info("=" * 60)
 
-        start_time = (time.time(),)
         tests = [
             ("Configuration Inherit→Extend", test_config_inheritance),
             ("Database Operations", test_database_operations),
@@ -129,8 +121,6 @@ try:
         for test_name, test_func in tests:
             logger.info(f"\n--- {test_name} ---")
             results[test_name] = test_func()
-
-        total_time = time.time() - start_time
 
         # Summary
         logger.info("\n" + "=" * 60)
@@ -145,7 +135,6 @@ try:
             logger.info(f"{test_name:30} {status}")
 
         logger.info(f"\nOverall: {passed}/{total} tests passed")
-        logger.info(f"Total time: {total_time:.3f}s")
 
         if passed == total:
             logger.info("\n🎉 Foundation benchmark PASSED!")

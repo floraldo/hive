@@ -220,25 +220,34 @@ class HealthMonitor:
         util = metrics.pool_utilization_pct
 
         if util >= self.thresholds.pool_utilization_critical:
+            # Build contextual recommendation
+            recommendation = f"URGENT: Pool at {util:.1f}% capacity ({metrics.active_workflows}/{metrics.pool_size} slots used). "  # noqa: E501
+            if metrics.queue_depth > 0:
+                recommendation += f"Queue backlog: {metrics.queue_depth} tasks waiting. "  # noqa: E501
+            recommendation += "Actions: 1) Scale up pool size immediately, 2) Check for stuck workflows, 3) Review long-running tasks"  # noqa: E501
+
             alerts.append(
                 Alert(
                     severity="critical",
                     metric="pool_utilization",
                     current_value=util,
                     threshold=self.thresholds.pool_utilization_critical,
-                    message=f"Pool utilization critical: {util:.1f}% (threshold: {self.thresholds.pool_utilization_critical}%)",
-                    recommendation="Increase max_concurrent or investigate stuck workflows",
+                    message=f"Pool utilization critical: {util:.1f}% (threshold: {self.thresholds.pool_utilization_critical}%)",  # noqa: E501
+                    recommendation=recommendation,
                 )
             )
         elif util >= self.thresholds.pool_utilization_warning:
+            recommendation = f"Pool utilization elevated: {metrics.active_workflows}/{metrics.pool_size} slots ({util:.1f}%). "  # noqa: E501
+            recommendation += "Monitor for sustained high load. Consider scaling up if trend continues."  # noqa: E501
+
             alerts.append(
                 Alert(
                     severity="warning",
                     metric="pool_utilization",
                     current_value=util,
                     threshold=self.thresholds.pool_utilization_warning,
-                    message=f"Pool utilization high: {util:.1f}% (threshold: {self.thresholds.pool_utilization_warning}%)",
-                    recommendation="Monitor closely - consider scaling up if sustained",
+                    message=f"Pool utilization high: {util:.1f}% (threshold: {self.thresholds.pool_utilization_warning}%)",  # noqa: E501
+                    recommendation=recommendation,
                 )
             )
 
@@ -247,25 +256,40 @@ class HealthMonitor:
         success_rate = metrics.success_rate
 
         if success_rate <= self.thresholds.success_rate_critical:
+            failed = metrics.total_workflows_failed
+            total = metrics.total_workflows_processed
+            recommendation = f"CRITICAL: {failed}/{total} workflows failed ({100-success_rate:.1f}% failure rate). "  # noqa: E501
+
+            # Add phase-specific guidance if available
+            if metrics.failure_rate_by_phase:
+                worst_phase = max(metrics.failure_rate_by_phase.items(), key=lambda x: x[1])
+                recommendation += f"Highest failures in '{worst_phase[0]}' phase ({worst_phase[1]:.1f}%). "  # noqa: E501
+
+            recommendation += "Actions: 1) Check DLQ for error patterns, 2) Review logs for recent failures, 3) Verify external dependencies"  # noqa: E501
+
             alerts.append(
                 Alert(
                     severity="critical",
                     metric="success_rate",
                     current_value=success_rate,
                     threshold=self.thresholds.success_rate_critical,
-                    message=f"Success rate critical: {success_rate:.1f}% (threshold: {self.thresholds.success_rate_critical}%)",
-                    recommendation="Investigate recent failures - check logs for error patterns",
+                    message=f"Success rate critical: {success_rate:.1f}% (threshold: {self.thresholds.success_rate_critical}%)",  # noqa: E501
+                    recommendation=recommendation,
                 )
             )
         elif success_rate <= self.thresholds.success_rate_warning:
+            failed = metrics.total_workflows_failed
+            total = metrics.total_workflows_processed
+            recommendation = f"Warning: {failed}/{total} workflows failed. Monitor failure trends and investigate root causes."  # noqa: E501
+
             alerts.append(
                 Alert(
                     severity="warning",
                     metric="success_rate",
                     current_value=success_rate,
                     threshold=self.thresholds.success_rate_warning,
-                    message=f"Success rate low: {success_rate:.1f}% (threshold: {self.thresholds.success_rate_warning}%)",
-                    recommendation="Review failure patterns - may indicate quality issues",
+                    message=f"Success rate low: {success_rate:.1f}% (threshold: {self.thresholds.success_rate_warning}%)",  # noqa: E501
+                    recommendation=recommendation,
                 )
             )
 
@@ -274,25 +298,44 @@ class HealthMonitor:
         p95 = metrics.p95_workflow_duration_ms
 
         if p95 >= self.thresholds.p95_latency_critical_ms:
+            p50 = metrics.p50_workflow_duration_ms
+            avg = metrics.avg_workflow_duration_ms
+            recommendation = f"CRITICAL: P95 latency at {p95:.0f}ms (P50: {p50:.0f}ms, Avg: {avg:.0f}ms). "  # noqa: E501
+
+            # Add trend context
+            if metrics.latency_trend == "increasing":
+                recommendation += "Trend: INCREASING - latency degradation detected. "  # noqa: E501
+
+            recommendation += f"Pool utilization: {metrics.pool_utilization_pct:.1f}%. "  # noqa: E501
+            recommendation += "Actions: 1) Profile slow workflows, 2) Check for resource contention, 3) Review external API latency"  # noqa: E501
+
             alerts.append(
                 Alert(
                     severity="critical",
                     metric="p95_latency",
                     current_value=p95,
                     threshold=self.thresholds.p95_latency_critical_ms,
-                    message=f"P95 latency critical: {p95:.0f}ms (threshold: {self.thresholds.p95_latency_critical_ms}ms)",
-                    recommendation="Investigate slow workflows - check for resource contention",
+                    message=f"P95 latency critical: {p95:.0f}ms (threshold: {self.thresholds.p95_latency_critical_ms}ms)",  # noqa: E501
+                    recommendation=recommendation,
                 )
             )
         elif p95 >= self.thresholds.p95_latency_warning_ms:
+            p50 = metrics.p50_workflow_duration_ms
+            recommendation = f"P95 latency elevated: {p95:.0f}ms (P50: {p50:.0f}ms). "  # noqa: E501
+
+            if metrics.latency_trend == "increasing":
+                recommendation += "Trend increasing - monitor closely. "  # noqa: E501
+
+            recommendation += "Consider optimization if latency remains high."  # noqa: E501
+
             alerts.append(
                 Alert(
                     severity="warning",
                     metric="p95_latency",
                     current_value=p95,
                     threshold=self.thresholds.p95_latency_warning_ms,
-                    message=f"P95 latency high: {p95:.0f}ms (threshold: {self.thresholds.p95_latency_warning_ms}ms)",
-                    recommendation="Monitor latency trend - optimize slow operations if sustained",
+                    message=f"P95 latency high: {p95:.0f}ms (threshold: {self.thresholds.p95_latency_warning_ms}ms)",  # noqa: E501
+                    recommendation=recommendation,
                 )
             )
 
@@ -301,27 +344,34 @@ class HealthMonitor:
         depth = metrics.queue_depth
 
         if depth >= self.thresholds.queue_depth_critical:
+            recommendation = f"CRITICAL: {depth} tasks queued. "  # noqa: E501
+            recommendation += f"Pool: {metrics.active_workflows}/{metrics.pool_size} slots used ({metrics.pool_utilization_pct:.1f}%). "  # noqa: E501
+            recommendation += f"Trend: {metrics.queue_depth_trend.upper()}. "  # noqa: E501
+            recommendation += "Actions: 1) Scale up pool immediately, 2) Pause new submissions if critical, 3) Review throughput bottlenecks"  # noqa: E501
+
             alerts.append(
                 Alert(
                     severity="critical",
                     metric="queue_depth",
                     current_value=float(depth),
                     threshold=float(self.thresholds.queue_depth_critical),
-                    message=f"Queue depth critical: {depth} (threshold: {self.thresholds.queue_depth_critical})",
-                    recommendation="Scale up immediately or pause task submission",
+                    message=f"Queue depth critical: {depth} (threshold: {self.thresholds.queue_depth_critical})",  # noqa: E501
+                    recommendation=recommendation,
                 )
             )
         elif depth >= self.thresholds.queue_depth_warning:
             # Check trend - only alert if increasing
             if metrics.queue_depth_trend == "increasing":
+                recommendation = f"Queue growing: {depth} tasks waiting. Trend: INCREASING. Monitor for continued growth and prepare to scale."  # noqa: E501
+
                 alerts.append(
                     Alert(
                         severity="warning",
                         metric="queue_depth",
                         current_value=float(depth),
                         threshold=float(self.thresholds.queue_depth_warning),
-                        message=f"Queue depth increasing: {depth} (threshold: {self.thresholds.queue_depth_warning})",
-                        recommendation="Monitor queue trend - may need capacity increase",
+                        message=f"Queue depth increasing: {depth} (threshold: {self.thresholds.queue_depth_warning})",  # noqa: E501
+                        recommendation=recommendation,
                     )
                 )
 
@@ -335,7 +385,7 @@ class HealthMonitor:
                         metric=f"failure_rate_{phase}",
                         current_value=failure_rate,
                         threshold=self.thresholds.failure_rate_critical,
-                        message=f"High failure rate in {phase}: {failure_rate:.1f}%",
+                        message=f"High failure rate in {phase}: {failure_rate:.1f}%",  # noqa: E501
                         recommendation=f"Investigate {phase} phase - check agent configuration",
                     )
                 )
@@ -346,7 +396,7 @@ class HealthMonitor:
                         metric=f"failure_rate_{phase}",
                         current_value=failure_rate,
                         threshold=self.thresholds.failure_rate_warning,
-                        message=f"Elevated failure rate in {phase}: {failure_rate:.1f}%",
+                        message=f"Elevated failure rate in {phase}: {failure_rate:.1f}%",  # noqa: E501
                         recommendation=f"Review {phase} phase execution logs",
                     )
                 )

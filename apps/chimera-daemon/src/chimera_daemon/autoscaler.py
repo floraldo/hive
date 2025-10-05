@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+from typing import Any
 
 from hive_logging import get_logger
 
@@ -364,11 +365,13 @@ class PoolAutoscaler:
                     self.policy.max_pool_size,
                 )
 
+                p95 = metrics.p95_workflow_duration_ms
+                p50 = metrics.p50_workflow_duration_ms
                 return ScalingDecision(
                     direction=ScalingDirection.SCALE_UP,
                     current_size=current_pool_size,
                     target_size=target_size,
-                    reason=f"Increasing latency: P95={metrics.p95_workflow_duration_ms:.0f}ms, P50={metrics.p50_workflow_duration_ms:.0f}ms",
+                    reason=f"Increasing latency: P95={p95:.0f}ms, P50={p50:.0f}ms",
                     triggered_by="latency",
                     timestamp=datetime.now(),
                 )

@@ -1,42 +1,22 @@
 [
   {
-    "hash": "9f9ca19b",
-    "full_hash": "9f9ca19bf48a649d02466db05e815a6577cb68ea",
+    "hash": "f8ab6dda",
+    "full_hash": "f8ab6ddaec3129451b9db432f9cbfa0d37dd005a",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-05T02:14:33",
-    "subject": "feat(perf): Complete Project Signal Phase 4 - Platform Observability Rollout",
-    "body": "PHASES COMPLETED (4.5-4.7):",
-    "searchable_text": "feat(perf): Complete Project Signal Phase 4 - Platform Observability Rollout PHASES COMPLETED (4.5-4.7):"
+    "date": "2025-10-05T02:32:19",
+    "subject": "docs(priorities): Complete C + Document B & A",
+    "body": "**PRIORITY C \u2705 COMPLETE** - Production Monitoring Operational:\n- Flask dashboard running at http://localhost:5000\n- Test metrics servers (ports 8001-8003)\n- One-click launcher: monitoring/start_monitoring.bat\n- Windows native setup guide (no Docker required)",
+    "searchable_text": "docs(priorities): Complete C + Document B & A **PRIORITY C \u2705 COMPLETE** - Production Monitoring Operational:\n- Flask dashboard running at http://localhost:5000\n- Test metrics servers (ports 8001-8003)\n- One-click launcher: monitoring/start_monitoring.bat\n- Windows native setup guide (no Docker required)"
   },
   {
-    "hash": "483ccd62",
-    "full_hash": "483ccd626cc2e0532a15ab9ed829d424b23c720a",
+    "hash": "1c38a757",
+    "full_hash": "1c38a757e8ff7913c79ddcf73889abc44fc71d24",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-05T02:07:21",
-    "subject": "feat(genesis): Complete Phase 4 Week 1 - Unified Infrastructure Foundation",
-    "body": "Implemented \"Prep Now, Migrate Later\" infrastructure for Hive platform\nconsolidation. Zero breaking changes - all existing agents continue working\nunchanged while new unified infrastructure enables gradual migration.",
-    "searchable_text": "feat(genesis): Complete Phase 4 Week 1 - Unified Infrastructure Foundation Implemented \"Prep Now, Migrate Later\" infrastructure for Hive platform\nconsolidation. Zero breaking changes - all existing agents continue working\nunchanged while new unified infrastructure enables gradual migration."
-  },
-  {
-    "hash": "4f901d48",
-    "full_hash": "4f901d48ec7255baacd73616ee6124f10c998484",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T01:21:59",
-    "subject": "docs(perf): Add dashboard quickstart guide and launch scripts",
-    "body": "Add comprehensive quickstart guide and one-click launch scripts to make the\nUnified AI Apps Dashboard accessible in <10 minutes.",
-    "searchable_text": "docs(perf): Add dashboard quickstart guide and launch scripts Add comprehensive quickstart guide and one-click launch scripts to make the\nUnified AI Apps Dashboard accessible in <10 minutes."
-  },
-  {
-    "hash": "81b88bd4",
-    "full_hash": "81b88bd4865f2c93819eab0b714f1d9c14b37883",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T01:11:23",
-    "subject": "feat(perf): Complete Phase 4.4 - Unified AI Apps Dashboard",
-    "body": "Create comprehensive Grafana dashboard unifying observability across\nai-reviewer, ai-planner, and ai-deployer apps (31 instrumented functions).",
-    "searchable_text": "feat(perf): Complete Phase 4.4 - Unified AI Apps Dashboard Create comprehensive Grafana dashboard unifying observability across\nai-reviewer, ai-planner, and ai-deployer apps (31 instrumented functions)."
+    "date": "2025-10-05T02:27:08",
+    "subject": "feat(genesis): Complete Phase B and C - Event Emission and Dual-Write",
+    "body": "Phase B: Event Emission with Feature Flags\n- Added FeatureFlagsConfig to hive-config with unified events control\n- Updated ai-reviewer to emit REVIEW_REQUESTED and REVIEW_COMPLETED events\n- Updated ai-planner to emit PLAN_STARTED and PLAN_COMPLETED events\n- Updated ai-deployer to emit DEPLOYMENT_STARTED and DEPLOYMENT_COMPLETED events\n- Created event monitoring utilities (event_monitor.py, event_dashboard.py)\n- Created event flow validation script for testing",
+    "searchable_text": "feat(genesis): Complete Phase B and C - Event Emission and Dual-Write Phase B: Event Emission with Feature Flags\n- Added FeatureFlagsConfig to hive-config with unified events control\n- Updated ai-reviewer to emit REVIEW_REQUESTED and REVIEW_COMPLETED events\n- Updated ai-planner to emit PLAN_STARTED and PLAN_COMPLETED events\n- Updated ai-deployer to emit DEPLOYMENT_STARTED and DEPLOYMENT_COMPLETED events\n- Created event monitoring utilities (event_monitor.py, event_dashboard.py)\n- Created event flow validation script for testing"
   }
 ]

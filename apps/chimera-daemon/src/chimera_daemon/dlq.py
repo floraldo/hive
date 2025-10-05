@@ -81,7 +81,7 @@ class DeadLetterQueue:
         # Try to get existing connection from pool
         try:
             conn = self._connection_pool.get_nowait()
-        except:
+        except Exception:  # noqa: S110
             # Pool empty - create new connection
             conn = sqlite3.connect(self.db_path)
             conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging for concurrency
@@ -93,7 +93,7 @@ class DeadLetterQueue:
             # Return connection to pool
             try:
                 self._connection_pool.put_nowait(conn)
-            except:
+            except Exception:  # noqa: S110
                 # Pool full - close connection
                 conn.close()
 
@@ -326,7 +326,7 @@ class DeadLetterQueue:
                 conn = self._connection_pool.get_nowait()
                 conn.close()
                 closed_count += 1
-            except:
+            except Exception:  # noqa: S110
                 break
 
         self.logger.info(f"Closed {closed_count} pooled database connections")

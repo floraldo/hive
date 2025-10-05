@@ -324,8 +324,6 @@ class IntelligentScheduler:
 
     def _prevent_starvation(self) -> None:
         """Prevent low-priority task starvation by boosting aged tasks."""
-        now = datetime.now()
-
         # Check LOW priority queue
         for task in list(self._queues[Priority.LOW]):
             if task.age_seconds > self.starvation_threshold:

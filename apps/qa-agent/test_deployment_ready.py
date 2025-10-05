@@ -12,10 +12,12 @@ Run: python test_deployment_ready.py
 
 import asyncio
 import sys
-from pathlib import Path
 
 # Add all required packages to path
-for pkg in ['hive-logging', 'hive-config', 'hive-errors', 'hive-db', 'hive-bus', 'hive-models', 'hive-async', 'hive-orchestration']:
+for pkg in [  # noqa: E501
+    'hive-logging', 'hive-config', 'hive-errors', 'hive-db',
+    'hive-bus', 'hive-models', 'hive-async', 'hive-orchestration'
+]:
     sys.path.insert(0, f'C:/git/hive/packages/{pkg}/src')
 sys.path.insert(0, 'C:/git/hive/apps/qa-agent/src')
 
@@ -40,7 +42,6 @@ async def test_decision_engine():
     """Test decision engine routing logic."""
     print("[2/5] Testing decision engine...")
     from qa_agent.decision_engine import WorkerDecisionEngine
-    from qa_agent.rag_priming import RAGEngine
 
     # Create mock RAG engine
     class MockRAG:
@@ -143,8 +144,9 @@ async def main():
         print()
         print("Next steps:")
         print("  1. Run demo: ./demo_deployment.sh")
-        print("  2. Start daemon: python -c 'import asyncio; from qa_agent.daemon import QAAgentDaemon; asyncio.run(QAAgentDaemon().start())'")
-        print("  3. See quickstart: cat DEPLOYMENT_QUICKSTART.md")
+        # noqa: E501
+        print("  2. Start daemon: python start_with_dashboard.py")
+        print("  3. See quickstart: cat QUICKSTART.md")
         print()
 
         return 0

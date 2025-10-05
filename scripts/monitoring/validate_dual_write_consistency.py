@@ -101,7 +101,7 @@ class DualWriteConsistencyValidator:
 
         try:
             # Get dual-write repository
-            repository = await create_dual_write_repository(enable_legacy=True)
+            _ = await create_dual_write_repository(enable_legacy=True)  # noqa: F841
 
             # TODO: Get list of recent task IDs from database
             # For now, this is a placeholder
