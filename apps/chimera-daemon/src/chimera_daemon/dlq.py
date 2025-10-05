@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from queue import Queue
 
 from hive_logging import get_logger
 
@@ -56,43 +58,73 @@ class DeadLetterQueue:
         failed_tasks = await dlq.get_entries(limit=10)
     """
 
-    def __init__(self, db_path: Path):
+    def __init__(self, db_path: Path, pool_size: int = 5):
         """Initialize dead letter queue.
 
         Args:
             db_path: Path to SQLite database file
+            pool_size: Maximum number of database connections in pool (default: 5)
         """
         self.db_path = db_path
         self.logger = logger
+        self._pool_size = pool_size
+        self._connection_pool: Queue = Queue(maxsize=pool_size)
+        self._initialized = False
+
+    @asynccontextmanager
+    async def _get_connection(self):
+        """Get database connection from pool.
+
+        Yields:
+            SQLite connection from pool
+        """
+        # Try to get existing connection from pool
+        try:
+            conn = self._connection_pool.get_nowait()
+        except:
+            # Pool empty - create new connection
+            conn = sqlite3.connect(self.db_path)
+            conn.execute("PRAGMA journal_mode=WAL")  # Write-Ahead Logging for concurrency
+            conn.execute("PRAGMA synchronous=NORMAL")  # Performance optimization
+
+        try:
+            yield conn
+        finally:
+            # Return connection to pool
+            try:
+                self._connection_pool.put_nowait(conn)
+            except:
+                # Pool full - close connection
+                conn.close()
 
     async def initialize(self) -> None:
-        """Initialize DLQ schema.
+        """Initialize DLQ schema and connection pool.
 
         Creates dlq_entries table if it doesn't exist.
         """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        async with self._get_connection() as conn:
+            cursor = conn.cursor()
 
-        cursor.execute(
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS dlq_entries (
+                    task_id TEXT PRIMARY KEY,
+                    feature TEXT NOT NULL,
+                    target_url TEXT NOT NULL,
+                    failure_reason TEXT NOT NULL,
+                    retry_count INTEGER NOT NULL,
+                    workflow_state TEXT,
+                    created_at TEXT NOT NULL,
+                    failed_at TEXT NOT NULL,
+                    last_error_phase TEXT
+                )
             """
-            CREATE TABLE IF NOT EXISTS dlq_entries (
-                task_id TEXT PRIMARY KEY,
-                feature TEXT NOT NULL,
-                target_url TEXT NOT NULL,
-                failure_reason TEXT NOT NULL,
-                retry_count INTEGER NOT NULL,
-                workflow_state TEXT,
-                created_at TEXT NOT NULL,
-                failed_at TEXT NOT NULL,
-                last_error_phase TEXT
             )
-        """
-        )
 
-        conn.commit()
-        conn.close()
+            conn.commit()
 
-        self.logger.info("DLQ schema initialized")
+        self._initialized = True
+        self.logger.info(f"DLQ schema initialized with connection pool (size={self._pool_size})")
 
     async def add_entry(
         self,
@@ -117,39 +149,38 @@ class DeadLetterQueue:
             created_at: Original creation time (defaults to now)
             last_error_phase: Phase where failure occurred
         """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        async with self._get_connection() as conn:
+            cursor = conn.cursor()
 
-        created_at = created_at or datetime.now()
-        failed_at = datetime.now()
+            created_at = created_at or datetime.now()
+            failed_at = datetime.now()
 
-        # Serialize workflow state to JSON
-        workflow_state_json = (
-            json.dumps(workflow_state) if workflow_state else None
-        )
+            # Serialize workflow state to JSON
+            workflow_state_json = (
+                json.dumps(workflow_state) if workflow_state else None
+            )
 
-        cursor.execute(
-            """
-            INSERT INTO dlq_entries
-            (task_id, feature, target_url, failure_reason, retry_count,
-             workflow_state, created_at, failed_at, last_error_phase)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-            (
-                task_id,
-                feature,
-                target_url,
-                failure_reason,
-                retry_count,
-                workflow_state_json,
-                created_at.isoformat(),
-                failed_at.isoformat(),
-                last_error_phase,
-            ),
-        )
+            cursor.execute(
+                """
+                INSERT INTO dlq_entries
+                (task_id, feature, target_url, failure_reason, retry_count,
+                 workflow_state, created_at, failed_at, last_error_phase)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+                (
+                    task_id,
+                    feature,
+                    target_url,
+                    failure_reason,
+                    retry_count,
+                    workflow_state_json,
+                    created_at.isoformat(),
+                    failed_at.isoformat(),
+                    last_error_phase,
+                ),
+            )
 
-        conn.commit()
-        conn.close()
+            conn.commit()
 
         self.logger.warning(
             f"Task {task_id} added to DLQ after {retry_count} retries: {failure_reason}"
@@ -169,22 +200,21 @@ class DeadLetterQueue:
         Returns:
             List of DLQ entries, newest first
         """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        async with self._get_connection() as conn:
+            cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            SELECT task_id, feature, target_url, failure_reason, retry_count,
-                   workflow_state, created_at, failed_at, last_error_phase
-            FROM dlq_entries
-            ORDER BY failed_at DESC
-            LIMIT ? OFFSET ?
-        """,
-            (limit, offset),
-        )
+            cursor.execute(
+                """
+                SELECT task_id, feature, target_url, failure_reason, retry_count,
+                       workflow_state, created_at, failed_at, last_error_phase
+                FROM dlq_entries
+                ORDER BY failed_at DESC, task_id DESC
+                LIMIT ? OFFSET ?
+            """,
+                (limit, offset),
+            )
 
-        rows = cursor.fetchall()
-        conn.close()
+            rows = cursor.fetchall()
 
         entries = []
         for row in rows:
@@ -215,22 +245,20 @@ class DeadLetterQueue:
         Returns:
             DLQ entry if found, None otherwise
         """
-        entries = await self.get_entries(limit=1)
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        async with self._get_connection() as conn:
+            cursor = conn.cursor()
 
-        cursor.execute(
-            """
-            SELECT task_id, feature, target_url, failure_reason, retry_count,
-                   workflow_state, created_at, failed_at, last_error_phase
-            FROM dlq_entries
-            WHERE task_id = ?
-        """,
-            (task_id,),
-        )
+            cursor.execute(
+                """
+                SELECT task_id, feature, target_url, failure_reason, retry_count,
+                       workflow_state, created_at, failed_at, last_error_phase
+                FROM dlq_entries
+                WHERE task_id = ?
+            """,
+                (task_id,),
+            )
 
-        row = cursor.fetchone()
-        conn.close()
+            row = cursor.fetchone()
 
         if not row:
             return None
@@ -258,14 +286,13 @@ class DeadLetterQueue:
         Returns:
             True if entry was removed, False if not found
         """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        async with self._get_connection() as conn:
+            cursor = conn.cursor()
 
-        cursor.execute("DELETE FROM dlq_entries WHERE task_id = ?", (task_id,))
+            cursor.execute("DELETE FROM dlq_entries WHERE task_id = ?", (task_id,))
 
-        removed = cursor.rowcount > 0
-        conn.commit()
-        conn.close()
+            removed = cursor.rowcount > 0
+            conn.commit()
 
         if removed:
             self.logger.info(f"Task {task_id} removed from DLQ")
@@ -280,14 +307,29 @@ class DeadLetterQueue:
         Returns:
             Number of failed tasks in DLQ
         """
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
+        async with self._get_connection() as conn:
+            cursor = conn.cursor()
 
-        cursor.execute("SELECT COUNT(*) FROM dlq_entries")
-        count = cursor.fetchone()[0]
+            cursor.execute("SELECT COUNT(*) FROM dlq_entries")
+            count = cursor.fetchone()[0]
 
-        conn.close()
         return count
+
+    async def close(self) -> None:
+        """Close all pooled connections.
+
+        Should be called during shutdown to cleanup resources.
+        """
+        closed_count = 0
+        while not self._connection_pool.empty():
+            try:
+                conn = self._connection_pool.get_nowait()
+                conn.close()
+                closed_count += 1
+            except:
+                break
+
+        self.logger.info(f"Closed {closed_count} pooled database connections")
 
 
 __all__ = ["DeadLetterQueue", "DLQEntry"]

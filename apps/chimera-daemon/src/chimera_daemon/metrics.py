@@ -95,6 +95,10 @@ class MetricsCollector:
         self._total_retry_attempts = 0
         self._total_retry_successes = 0
 
+        # Percentile cache for performance optimization
+        self._percentile_cache: tuple[float, float, float, float] | None = None
+        self._cache_workflow_count: int = 0
+
     def record_workflow(
         self,
         workflow_id: str,
@@ -122,6 +126,9 @@ class MetricsCollector:
         )
 
         self._workflow_history.append(metric)
+
+        # Invalidate percentile cache
+        self._percentile_cache = None
 
         # Update cumulative counters
         self._total_processed += 1
@@ -230,6 +237,8 @@ class MetricsCollector:
     ) -> tuple[float, float, float, float]:
         """Calculate P50, P95, P99 percentiles and average.
 
+        Uses cache to avoid recalculating when workflow history hasn't changed.
+
         Args:
             durations: List of workflow durations in milliseconds
 
@@ -239,6 +248,15 @@ class MetricsCollector:
         if not durations:
             return (0.0, 0.0, 0.0, 0.0)
 
+        # Check cache validity
+        current_count = len(self._workflow_history)
+        if (
+            self._percentile_cache is not None
+            and self._cache_workflow_count == current_count
+        ):
+            return self._percentile_cache
+
+        # Cache miss - calculate percentiles
         sorted_durations = sorted(durations)
         n = len(sorted_durations)
 
@@ -248,7 +266,12 @@ class MetricsCollector:
         p99 = sorted_durations[int(n * 0.99)] if n > 0 else 0.0
         avg = statistics.mean(sorted_durations)
 
-        return (p50, p95, p99, avg)
+        # Update cache
+        result = (p50, p95, p99, avg)
+        self._percentile_cache = result
+        self._cache_workflow_count = current_count
+
+        return result
 
     def _analyze_failure_patterns(self) -> dict[str, float]:
         """Analyze failure rates by workflow phase.

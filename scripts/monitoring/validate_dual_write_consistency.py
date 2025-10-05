@@ -14,10 +14,10 @@ import asyncio
 from datetime import datetime
 from typing import Any
 
-from hive_config import create_config_from_sources
-from hive_db import get_sqlite_connection
-from hive_logging import get_logger
 from hive_orchestration.database import create_dual_write_repository
+
+from hive_config import create_config_from_sources
+from hive_logging import get_logger
 
 logger = get_logger(__name__)
 

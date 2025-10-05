@@ -1,242 +1,42 @@
 [
   {
-    "hash": "4d8029d0",
-    "full_hash": "4d8029d0e90abf41afe5418f15b08f2dd513afe2",
+    "hash": "9f9ca19b",
+    "full_hash": "9f9ca19bf48a649d02466db05e815a6577cb68ea",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-05T00:49:49",
-    "subject": "feat(genesis): Project Genesis Phase 3 Complete - Colossus Graduation",
-    "body": "\ud83c\udf93 PHASE 3 COMPLETE: Colossus graduated to core platform capability",
-    "searchable_text": "feat(genesis): Project Genesis Phase 3 Complete - Colossus Graduation \ud83c\udf93 PHASE 3 COMPLETE: Colossus graduated to core platform capability"
+    "date": "2025-10-05T02:14:33",
+    "subject": "feat(perf): Complete Project Signal Phase 4 - Platform Observability Rollout",
+    "body": "PHASES COMPLETED (4.5-4.7):",
+    "searchable_text": "feat(perf): Complete Project Signal Phase 4 - Platform Observability Rollout PHASES COMPLETED (4.5-4.7):"
   },
   {
-    "hash": "189e1db0",
-    "full_hash": "189e1db083a12b554225dea15a47f27209822ec8",
+    "hash": "483ccd62",
+    "full_hash": "483ccd626cc2e0532a15ab9ed829d424b23c720a",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-05T00:46:47",
-    "subject": "feat(perf): Complete Phase 4.2+4.3 - Instrument ai-planner + ai-deployer",
-    "body": "Instrument 19 functions across ai-planner and ai-deployer apps with hive-performance\ndecorators for comprehensive observability of AI planning and deployment pipelines.",
-    "searchable_text": "feat(perf): Complete Phase 4.2+4.3 - Instrument ai-planner + ai-deployer Instrument 19 functions across ai-planner and ai-deployer apps with hive-performance\ndecorators for comprehensive observability of AI planning and deployment pipelines."
+    "date": "2025-10-05T02:07:21",
+    "subject": "feat(genesis): Complete Phase 4 Week 1 - Unified Infrastructure Foundation",
+    "body": "Implemented \"Prep Now, Migrate Later\" infrastructure for Hive platform\nconsolidation. Zero breaking changes - all existing agents continue working\nunchanged while new unified infrastructure enables gradual migration.",
+    "searchable_text": "feat(genesis): Complete Phase 4 Week 1 - Unified Infrastructure Foundation Implemented \"Prep Now, Migrate Later\" infrastructure for Hive platform\nconsolidation. Zero breaking changes - all existing agents continue working\nunchanged while new unified infrastructure enables gradual migration."
   },
   {
-    "hash": "a13b8dc0",
-    "full_hash": "a13b8dc08c6f5ee2c570e584f0e6f264689208df",
+    "hash": "4f901d48",
+    "full_hash": "4f901d48ec7255baacd73616ee6124f10c998484",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-05T00:40:20",
-    "subject": "docs(genesis): Complete Phase 3 documentation - Autonomous Development Guide",
-    "body": "\ud83d\udcda Production-ready documentation for Colossus autonomous service generation:",
-    "searchable_text": "docs(genesis): Complete Phase 3 documentation - Autonomous Development Guide \ud83d\udcda Production-ready documentation for Colossus autonomous service generation:"
+    "date": "2025-10-05T01:21:59",
+    "subject": "docs(perf): Add dashboard quickstart guide and launch scripts",
+    "body": "Add comprehensive quickstart guide and one-click launch scripts to make the\nUnified AI Apps Dashboard accessible in <10 minutes.",
+    "searchable_text": "docs(perf): Add dashboard quickstart guide and launch scripts Add comprehensive quickstart guide and one-click launch scripts to make the\nUnified AI Apps Dashboard accessible in <10 minutes."
   },
   {
-    "hash": "846a59cd",
-    "full_hash": "846a59cdde4e8b2c8c3ccd4a961388e59bf5ad0a",
+    "hash": "81b88bd4",
+    "full_hash": "81b88bd4865f2c93819eab0b714f1d9c14b37883",
     "author": "Hive Bot",
     "email": "hive@example.com",
-    "date": "2025-10-05T00:30:19",
-    "subject": "feat(colossus): Integrate Architect/Coder services into hive-orchestrator",
-    "body": "Phase 3 hardening - moved autonomous development into orchestrator.",
-    "searchable_text": "feat(colossus): Integrate Architect/Coder services into hive-orchestrator Phase 3 hardening - moved autonomous development into orchestrator."
-  },
-  {
-    "hash": "8c5c5388",
-    "full_hash": "8c5c53881ffca66631f878a05d8e308de63dfdb4",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T00:27:40",
-    "subject": "feat(performance): Complete Phase 4.1 - AI Reviewer Instrumentation",
-    "body": "Instrumented 12 critical ai-reviewer functions with hive-performance\ndecorators for comprehensive observability.",
-    "searchable_text": "feat(performance): Complete Phase 4.1 - AI Reviewer Instrumentation Instrumented 12 critical ai-reviewer functions with hive-performance\ndecorators for comprehensive observability."
-  },
-  {
-    "hash": "641ee97d",
-    "full_hash": "641ee97d386bf770e7cc645acaf10a3a9a2d4d9f",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T00:20:09",
-    "subject": "docs(qa-fleet): Update Phase 3 status to COMPLETE with integration tests passing",
-    "body": "",
-    "searchable_text": "docs(qa-fleet): Update Phase 3 status to COMPLETE with integration tests passing"
-  },
-  {
-    "hash": "059ad936",
-    "full_hash": "059ad936012f494a2ccb187303a7f2ded99d16a7",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T00:15:47",
-    "subject": "feat(genesis): Fix NLP parser service name extraction",
-    "body": "Project Genesis Phase 3 - The Graduation",
-    "searchable_text": "feat(genesis): Fix NLP parser service name extraction Project Genesis Phase 3 - The Graduation"
-  },
-  {
-    "hash": "b46165e1",
-    "full_hash": "b46165e184b62baa2880b0a02502c657ab1cb899",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T00:12:59",
-    "subject": "feat(hive-orchestrator): Complete Golden Rules Worker integration tests",
-    "body": "Integration completed:\n- Created end-to-end integration test suite (10 tests, all passing)\n- Fixed worker pool fixture to mock event bus properly\n- Fixed integration test mocking to use proper violation structures\n- All tests validate worker pool, task queue, and auto-fix/escalation flows",
-    "searchable_text": "feat(hive-orchestrator): Complete Golden Rules Worker integration tests Integration completed:\n- Created end-to-end integration test suite (10 tests, all passing)\n- Fixed worker pool fixture to mock event bus properly\n- Fixed integration test mocking to use proper violation structures\n- All tests validate worker pool, task queue, and auto-fix/escalation flows"
-  },
-  {
-    "hash": "6798a0ad",
-    "full_hash": "6798a0adf20aa4cb6862810f9febad31d5177463",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T00:04:00",
-    "subject": "feat(qa-fleet): Integrate Golden Rules Worker into QA Fleet",
-    "body": "Complete QA Fleet Phase 3 - Golden Rules Worker Integration:",
-    "searchable_text": "feat(qa-fleet): Integrate Golden Rules Worker into QA Fleet Complete QA Fleet Phase 3 - Golden Rules Worker Integration:"
-  },
-  {
-    "hash": "494d8d85",
-    "full_hash": "494d8d85e73d06b24d0dbf07b3ba197e6be598db",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-05T00:01:34",
-    "subject": "refactor(orchestrator): Deep integration of golden_rules_worker with registry API",
-    "body": "## Performance Optimization\n- **Removed subprocess overhead**: 2-3s faster detection\n- **Direct API integration**: `run_all_golden_rules()` instead of subprocess\n- **Type-safe violations**: Dict structures instead of text parsing",
-    "searchable_text": "refactor(orchestrator): Deep integration of golden_rules_worker with registry API ## Performance Optimization\n- **Removed subprocess overhead**: 2-3s faster detection\n- **Direct API integration**: `run_all_golden_rules()` instead of subprocess\n- **Type-safe violations**: Dict structures instead of text parsing"
-  },
-  {
-    "hash": "b71b339e",
-    "full_hash": "b71b339eee3ed8384ee1d856f4401b3090ed7f3f",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:45:08",
-    "subject": "feat(genesis): Complete Phase 2 - Autonomous Service Generation",
-    "body": "Project Genesis Phase 2 successfully completed - autonomous pipeline operational.",
-    "searchable_text": "feat(genesis): Complete Phase 2 - Autonomous Service Generation Project Genesis Phase 2 successfully completed - autonomous pipeline operational."
-  },
-  {
-    "hash": "9cebdb0e",
-    "full_hash": "9cebdb0e49eeb6cf718d6ea07c228e4b939dab42",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:28:45",
-    "subject": "fix(async-worker): Make database ops optional and disable decorators",
-    "body": "Defensive Programming Updates:\n- Wrap async_operations import in try/except (optional aiosqlite dependency)\n- Disable @track_adapter_request decorator (hive-performance not yet installed)\n- Add ASYNC_DB_AVAILABLE flag for graceful degradation\n- Allow worker to run without database in standalone mode",
-    "searchable_text": "fix(async-worker): Make database ops optional and disable decorators Defensive Programming Updates:\n- Wrap async_operations import in try/except (optional aiosqlite dependency)\n- Disable @track_adapter_request decorator (hive-performance not yet installed)\n- Add ASYNC_DB_AVAILABLE flag for graceful degradation\n- Allow worker to run without database in standalone mode"
-  },
-  {
-    "hash": "b7c15ecf",
-    "full_hash": "b7c15ecf3f81791e6223632ea31e0c1b7fcfb4fb",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:27:13",
-    "subject": "feat(chimera): Complete Chimera Phase 3 - Agent Integration",
-    "body": "Phase 3 Deliverables (from other agent):\n\u2705 ChimeraAgentsRegistry (chimera_agents.py - 296 LOC)\n\u2705 Integration test suite (test_chimera_workflow.py - 405 LOC)\n\u2705 Mock agents for E2E, Coder, Guardian, Deployment",
-    "searchable_text": "feat(chimera): Complete Chimera Phase 3 - Agent Integration Phase 3 Deliverables (from other agent):\n\u2705 ChimeraAgentsRegistry (chimera_agents.py - 296 LOC)\n\u2705 Integration test suite (test_chimera_workflow.py - 405 LOC)\n\u2705 Mock agents for E2E, Coder, Guardian, Deployment"
-  },
-  {
-    "hash": "7b8fff13",
-    "full_hash": "7b8fff1383bb6c9741c3a9aedd88fceebbdf56a5",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:25:13",
-    "subject": "feat(qa-fleet): Complete QA Worker Fleet Phase 2 - Task Queue & Auto-Scaling",
-    "body": "Phase 2 Deliverables (from other agent):\n\u2705 TaskQueueManager (task_queue.py - 414 LOC)\n\u2705 WorkerPoolManager (worker_pool.py - 417 LOC)\n\u2705 FleetOrchestrator (fleet_orchestrator.py - 371 LOC)\n\u2705 Unit test suite (40 tests total - 18 + 22)",
-    "searchable_text": "feat(qa-fleet): Complete QA Worker Fleet Phase 2 - Task Queue & Auto-Scaling Phase 2 Deliverables (from other agent):\n\u2705 TaskQueueManager (task_queue.py - 414 LOC)\n\u2705 WorkerPoolManager (worker_pool.py - 417 LOC)\n\u2705 FleetOrchestrator (fleet_orchestrator.py - 371 LOC)\n\u2705 Unit test suite (40 tests total - 18 + 22)"
-  },
-  {
-    "hash": "8432dbce",
-    "full_hash": "8432dbce31a0b3e44d28510428a5948a338743b5",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:23:18",
-    "subject": "docs(genesis): Project Genesis comprehensive status report",
-    "body": "\ud83d\udcca STATUS: Phase 1 Complete, Phase 2 at 80%, Phase 3 Pending",
-    "searchable_text": "docs(genesis): Project Genesis comprehensive status report \ud83d\udcca STATUS: Phase 1 Complete, Phase 2 at 80%, Phase 3 Pending"
-  },
-  {
-    "hash": "c08787e2",
-    "full_hash": "c08787e2ce6b7deca8954116c1b431538591981f",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:22:43",
-    "subject": "fix(integration): Align hive-orchestrator with platform packages",
-    "body": "Integration Fixes:\n- hive_bus.py: Use hive_errors.BaseError instead of local exception\n- worker.py: Temporarily disable hive-performance decorators (not yet installed)\n- hive_orchestration: Add chimera_agents_registry export",
-    "searchable_text": "fix(integration): Align hive-orchestrator with platform packages Integration Fixes:\n- hive_bus.py: Use hive_errors.BaseError instead of local exception\n- worker.py: Temporarily disable hive-performance decorators (not yet installed)\n- hive_orchestration: Add chimera_agents_registry export"
-  },
-  {
-    "hash": "3d46f183",
-    "full_hash": "3d46f18356bf5eb03a19b1619b9a914d3cea39be",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:21:32",
-    "subject": "feat(genesis): Project Genesis Phase 2 - Pipeline Execution and Discovery",
-    "body": "\ud83c\udfaf PHASE 2 PROGRESS: Autonomous pipeline executed, critical issues discovered",
-    "searchable_text": "feat(genesis): Project Genesis Phase 2 - Pipeline Execution and Discovery \ud83c\udfaf PHASE 2 PROGRESS: Autonomous pipeline executed, critical issues discovered"
-  },
-  {
-    "hash": "caf7a75e",
-    "full_hash": "caf7a75e975a49dbc9b97c318b6d445470be78d9",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:13:44",
-    "subject": "feat(genesis): Complete Project Genesis Phase 1 - Colossus Command Center",
-    "body": "\ud83c\udfaf PHASE 1 COMPLETE: hive-ui Command Center operational",
-    "searchable_text": "feat(genesis): Complete Project Genesis Phase 1 - Colossus Command Center \ud83c\udfaf PHASE 1 COMPLETE: hive-ui Command Center operational"
-  },
-  {
-    "hash": "5bf62dca",
-    "full_hash": "5bf62dca3573261597514574f692ccb83ebcdbc5",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:12:41",
-    "subject": "feat(chimera): Add Chimera workflow to hive-orchestration",
-    "body": "Chimera Workflow Components:\n- ChimeraWorkflow: State machine for autonomous TDD loop\n- ChimeraPhase: Phases (PLAN, TEST, CODE, VERIFY)\n- ChimeraExecutor: Workflow execution engine\n- create_chimera_task: Task factory function\n- create_and_execute_chimera_workflow: Full execution wrapper",
-    "searchable_text": "feat(chimera): Add Chimera workflow to hive-orchestration Chimera Workflow Components:\n- ChimeraWorkflow: State machine for autonomous TDD loop\n- ChimeraPhase: Phases (PLAN, TEST, CODE, VERIFY)\n- ChimeraExecutor: Workflow execution engine\n- create_chimera_task: Task factory function\n- create_and_execute_chimera_workflow: Full execution wrapper"
-  },
-  {
-    "hash": "bafe506f",
-    "full_hash": "bafe506f6500d36c496c3a292b6cc1ef7dcd5ea4",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:08:03",
-    "subject": "chore(rag): Update RAG index with recent commits",
-    "body": "Auto-generated index update.",
-    "searchable_text": "chore(rag): Update RAG index with recent commits Auto-generated index update."
-  },
-  {
-    "hash": "b1dd5db5",
-    "full_hash": "b1dd5db5600366c1b9f7324651287dde8bdaaa13",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:07:20",
-    "subject": "chore(lint): Auto-fix import ordering (I001)",
-    "body": "- apps/ai-reviewer: Reorder hive_logging import\n- hive-orchestrator: Format qa_worker\n- scripts/fleet: Format monitor.py",
-    "searchable_text": "chore(lint): Auto-fix import ordering (I001) - apps/ai-reviewer: Reorder hive_logging import\n- hive-orchestrator: Format qa_worker\n- scripts/fleet: Format monitor.py"
-  },
-  {
-    "hash": "ba40cc0c",
-    "full_hash": "ba40cc0cb8cc7bb0900d4bc46a374ae9999c3118",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T23:03:30",
-    "subject": "feat(chimera): Complete Phase 2 - E2E Test Agent",
-    "body": "Project Chimera Phase 2 delivers AI-powered E2E test generation.",
-    "searchable_text": "feat(chimera): Complete Phase 2 - E2E Test Agent Project Chimera Phase 2 delivers AI-powered E2E test generation."
-  },
-  {
-    "hash": "c54f0f67",
-    "full_hash": "c54f0f67bba2a82e3d7a088e2ea091b44abfe00c",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T22:56:26",
-    "subject": "feat(colossus): Complete Project Colossus - Autonomous Development Engine",
-    "body": "\ud83c\udfaf MISSION COMPLETE: All three autonomous development agents operational",
-    "searchable_text": "feat(colossus): Complete Project Colossus - Autonomous Development Engine \ud83c\udfaf MISSION COMPLETE: All three autonomous development agents operational"
-  },
-  {
-    "hash": "4d0109e2",
-    "full_hash": "4d0109e28add63e6e61342f56d9177b658ccf08d",
-    "author": "Hive Bot",
-    "email": "hive@example.com",
-    "date": "2025-10-04T22:53:08",
-    "subject": "feat(observability): Complete Project Signal Phases 1-3 + code quality improvements",
-    "body": "MAJOR: Project Signal - Unified Observability Platform",
-    "searchable_text": "feat(observability): Complete Project Signal Phases 1-3 + code quality improvements MAJOR: Project Signal - Unified Observability Platform"
+    "date": "2025-10-05T01:11:23",
+    "subject": "feat(perf): Complete Phase 4.4 - Unified AI Apps Dashboard",
+    "body": "Create comprehensive Grafana dashboard unifying observability across\nai-reviewer, ai-planner, and ai-deployer apps (31 instrumented functions).",
+    "searchable_text": "feat(perf): Complete Phase 4.4 - Unified AI Apps Dashboard Create comprehensive Grafana dashboard unifying observability across\nai-reviewer, ai-planner, and ai-deployer apps (31 instrumented functions)."
   }
 ]

@@ -245,7 +245,7 @@ class CircuitBreaker:
         self._success_count = 0
         self._failure_count = 0
 
-    def get_metrics(self) -> dict[str, any]:
+    def get_metrics(self) -> dict[str, Any]:
         """Get circuit breaker metrics.
 
         Returns:

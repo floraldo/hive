@@ -242,7 +242,7 @@ def get_queued_tasks(
                 (limit,),
             )
 
-        rows = (cursor.fetchall(),)
+        rows = cursor.fetchall()
 
         tasks = []
         for row in rows:

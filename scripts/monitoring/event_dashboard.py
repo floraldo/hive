@@ -12,11 +12,10 @@ import time
 from collections import deque
 from datetime import datetime
 
-from hive_bus import get_global_registry
 from hive_config import create_config_from_sources
 from hive_logging import get_logger
 
-from .event_monitor import EventMetrics, EventMonitor
+from .event_monitor import EventMonitor
 
 logger = get_logger(__name__)
 
@@ -50,7 +49,7 @@ class EventDashboard:
         print("=" * 100)
 
         # Configuration status
-        print(f"\nConfiguration:")
+        print("\nConfiguration:")
         print(
             f"  Unified Events:      {'ENABLED' if self.config.features.enable_unified_events else 'DISABLED'}"
         )
@@ -72,7 +71,7 @@ class EventDashboard:
 
         # Metrics
         metrics = self.monitor.get_metrics()
-        print(f"\nMetrics:")
+        print("\nMetrics:")
         print(f"  Total Events:        {metrics['total_events']}")
         print(f"  Events/min:          {metrics['events_per_minute']}")
         print(f"  Avg Latency:         {metrics['average_latency_ms']} ms")
@@ -80,7 +79,7 @@ class EventDashboard:
         print(f"  Runtime:             {metrics['runtime_minutes']} min")
 
         # Top event types
-        print(f"\nTop Event Types:")
+        print("\nTop Event Types:")
         event_types = sorted(
             metrics["events_by_type"].items(), key=lambda x: x[1], reverse=True
         )[:10]

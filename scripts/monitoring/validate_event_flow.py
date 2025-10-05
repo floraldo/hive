@@ -9,18 +9,10 @@ Usage:
 
 from __future__ import annotations
 
-import asyncio
 from datetime import datetime
-from typing import Any
 from uuid import uuid4
 
-from hive_bus import (
-    TopicRegistry,
-    UnifiedEvent,
-    UnifiedEventType,
-    create_task_event,
-    get_global_registry,
-)
+from hive_bus import UnifiedEvent, UnifiedEventType, create_task_event, get_global_registry
 from hive_config import create_config_from_sources
 from hive_logging import get_logger
 

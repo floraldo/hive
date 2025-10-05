@@ -11,11 +11,10 @@ from __future__ import annotations
 
 import time
 from collections import defaultdict
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import datetime
 from typing import Any
 
-from hive_bus import TopicRegistry, UnifiedEvent, UnifiedEventType, get_global_registry
+from hive_bus import TopicRegistry, UnifiedEvent, get_global_registry
 from hive_config import create_config_from_sources
 from hive_logging import get_logger
 

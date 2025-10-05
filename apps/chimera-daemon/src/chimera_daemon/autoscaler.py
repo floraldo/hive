@@ -430,7 +430,7 @@ class PoolAutoscaler:
         """
         return self._scaling_history[-limit:]
 
-    def get_scaling_metrics(self) -> dict[str, any]:
+    def get_scaling_metrics(self) -> dict[str, Any]:
         """Get autoscaling metrics.
 
         Returns:

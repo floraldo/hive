@@ -5,6 +5,7 @@ Provides priority-based scheduling with deadline awareness and resource optimiza
 
 from __future__ import annotations
 
+import heapq
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime
@@ -116,6 +117,10 @@ class IntelligentScheduler:
         # Task lookup
         self._tasks: dict[str, ScheduledTask] = {}
 
+        # Deadline heap for O(log n) EDF scheduling
+        # Each entry: (deadline_timestamp, task_id) for tasks with deadlines
+        self._deadline_heap: list[tuple[float, str]] = []
+
         # Scheduling metrics
         self._total_scheduled = 0
         self._total_completed = 0
@@ -136,6 +141,11 @@ class IntelligentScheduler:
         self._queues[task.priority].append(task)
         self._tasks[task.task_id] = task
         self._total_scheduled += 1
+
+        # Add to deadline heap if task has deadline
+        if task.deadline is not None:
+            deadline_timestamp = task.deadline.timestamp()
+            heapq.heappush(self._deadline_heap, (deadline_timestamp, task.task_id))
 
         self.logger.debug(
             f"Scheduled task {task.task_id}",
@@ -202,36 +212,37 @@ class IntelligentScheduler:
         return None
 
     def _get_next_edf(self) -> ScheduledTask | None:
-        """Get next task using Earliest Deadline First strategy."""
-        # Find task with earliest deadline
-        earliest_task: ScheduledTask | None = None
-        earliest_queue: Priority | None = None
-        earliest_deadline: datetime | None = None
+        """Get next task using Earliest Deadline First strategy.
 
-        for priority, queue in self._queues.items():
-            for task in queue:
-                if task.deadline is None:
-                    continue
+        Uses min-heap for O(log n) performance instead of O(n) linear scan.
+        """
+        # Pop from heap until we find a valid task (not already removed)
+        while self._deadline_heap:
+            deadline_timestamp, task_id = heapq.heappop(self._deadline_heap)
 
-                if earliest_deadline is None or task.deadline < earliest_deadline:
-                    earliest_task = task
-                    earliest_queue = priority
-                    earliest_deadline = task.deadline
+            # Check if task still exists (may have been removed)
+            if task_id not in self._tasks:
+                continue
 
-        # If found task with deadline, return it
-        if earliest_task and earliest_queue:
-            self._queues[earliest_queue].remove(earliest_task)
-            del self._tasks[earliest_task.task_id]
+            task = self._tasks[task_id]
+
+            # Remove from priority queue
+            try:
+                self._queues[task.priority].remove(task)
+                del self._tasks[task_id]
+            except ValueError:
+                # Task not in queue (shouldn't happen, but defensive)
+                continue
 
             # Track deadline misses
-            if earliest_task.is_overdue:
+            if task.is_overdue:
                 self._total_deadline_misses += 1
                 self.logger.warning(
-                    f"Task {earliest_task.task_id} missed deadline by "
-                    f"{-earliest_task.time_to_deadline_seconds:.1f}s"
+                    f"Task {task.task_id} missed deadline by "
+                    f"{-task.time_to_deadline_seconds:.1f}s"
                 )
 
-            return earliest_task
+            return task
 
         # Fallback to priority if no deadlines
         return self._get_next_priority()
@@ -406,6 +417,7 @@ class IntelligentScheduler:
         for queue in self._queues.values():
             queue.clear()
         self._tasks.clear()
+        self._deadline_heap.clear()
         self.logger.info("Cleared all scheduled tasks")
 
 
