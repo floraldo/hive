@@ -12,6 +12,8 @@ from typing import Any
 # from hive_claude_bridge import ClaudeBridgeConfig, RateLimitConfig, get_claude_service
 from pydantic import BaseModel, Field
 
+from hive_bus import UnifiedEventType, create_task_event, get_global_registry
+from hive_config import create_config_from_sources
 from hive_logging import get_logger
 
 from .core.errors import ReviewerError, ReviewValidationError
@@ -100,6 +102,12 @@ class ReviewEngine:
             mock_mode: If True, use mock responses for testing
 
         """
+        # Load configuration
+        self.config = create_config_from_sources()
+
+        # Initialize event bus for unified events
+        self.event_bus = get_global_registry()
+
         # Initialize Claude service with rate limiting
         config = (ClaudeBridgeConfig(mock_mode=mock_mode),)
         rate_config = RateLimitConfig(
@@ -120,6 +128,40 @@ class ReviewEngine:
             "confidence_threshold": 0.7,  # Minimum confidence for auto-decision,
         }
 
+    def _emit_event(
+        self,
+        event_type: UnifiedEventType,
+        task_id: str,
+        correlation_id: str,
+        additional_data: dict[str, Any] | None = None,
+    ) -> None:
+        """Emit unified event if feature flag is enabled.
+
+        Args:
+            event_type: Type of event to emit
+            task_id: Task identifier
+            correlation_id: Correlation ID for tracking
+            additional_data: Additional event payload data
+        """
+        # Only emit if unified events are enabled and this agent is in the list
+        if not self.config.features.enable_unified_events:
+            return
+
+        if "ai-reviewer" not in self.config.features.unified_events_agents:
+            return
+
+        # Create and emit event
+        event = create_task_event(
+            event_type=event_type,
+            task_id=task_id,
+            correlation_id=correlation_id,
+            source_agent="ai-reviewer",
+            additional_data=additional_data or {},
+        )
+
+        self.event_bus.emit(event)
+        logger.debug(f"Emitted event: {event_type} for task {task_id}")
+
     def review_task(
         self,
         task_id: str,
@@ -127,6 +169,7 @@ class ReviewEngine:
         code_files: dict[str, str],
         test_results: dict[str, Any] | None = None,
         transcript: str | None = None,
+        correlation_id: str | None = None,
     ) -> ReviewResult:
         """Perform AI review of a task
 
@@ -136,11 +179,27 @@ class ReviewEngine:
             code_files: Dictionary of filename -> content,
             test_results: Test execution results if available,
             transcript: Claude conversation transcript if available
+            correlation_id: Optional correlation ID for event tracking
 
         Returns:
             ReviewResult with decision and metrics,
 
         """
+        # Use task_id as correlation_id if not provided
+        correlation_id = correlation_id or task_id
+
+        # Emit review requested event
+        self._emit_event(
+            event_type=UnifiedEventType.REVIEW_REQUESTED,
+            task_id=task_id,
+            correlation_id=correlation_id,
+            additional_data={
+                "code_files_count": len(code_files),
+                "has_test_results": test_results is not None,
+                "has_transcript": transcript is not None,
+            },
+        )
+
         # Step 1: Run objective analysis using inspect_run.py,
         try:
             objective_analysis = self.inspector.inspect_task_run(task_id)
@@ -209,7 +268,8 @@ class ReviewEngine:
         if decision == ReviewDecision.ESCALATE and escalation_reason:
             confusion_points = [escalation_reason]
 
-        return ReviewResult(
+        # Create review result
+        result = ReviewResult(
             task_id=task_id,
             decision=decision,
             metrics=metrics,
@@ -220,3 +280,19 @@ class ReviewEngine:
             escalation_reason=escalation_reason,
             confusion_points=confusion_points,
         )
+
+        # Emit review completed event
+        self._emit_event(
+            event_type=UnifiedEventType.REVIEW_COMPLETED,
+            task_id=task_id,
+            correlation_id=correlation_id,
+            additional_data={
+                "decision": decision.value[0] if isinstance(decision.value, tuple) else decision.value,
+                "overall_score": metrics.overall_score,
+                "confidence": confidence,
+                "issues_count": len(issues),
+                "suggestions_count": len(suggestions),
+            },
+        )
+
+        return result

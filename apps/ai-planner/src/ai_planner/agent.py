@@ -17,6 +17,8 @@ from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
+from hive_bus import UnifiedEventType, create_task_event, get_global_registry
+from hive_config import create_config_from_sources
 from hive_logging import get_logger
 
 # Use hive-orchestration package for task management
@@ -151,6 +153,12 @@ class AIPlanner:
         self.max_planning_time = 300  # 5 minutes max per task
         self.mock_mode = mock_mode
 
+        # Load configuration
+        self.config = create_config_from_sources()
+
+        # Initialize unified event bus
+        self.unified_event_bus = get_global_registry()
+
         # Initialize error reporter
         self.error_reporter = ErrorReporter(component_name="ai-planner")
 
@@ -176,6 +184,40 @@ class AIPlanner:
         signal.signal(signal.SIGTERM, self._signal_handler)
 
         logger.info(f"AI Planner Agent initialized: {self.agent_id} (mock_mode={mock_mode})")
+
+    def _emit_unified_event(
+        self,
+        event_type: UnifiedEventType,
+        task_id: str,
+        correlation_id: str,
+        additional_data: dict[str, Any] | None = None,
+    ) -> None:
+        """Emit unified event if feature flag is enabled.
+
+        Args:
+            event_type: Type of event to emit
+            task_id: Task identifier
+            correlation_id: Correlation ID for tracking
+            additional_data: Additional event payload data
+        """
+        # Only emit if unified events are enabled and this agent is in the list
+        if not self.config.features.enable_unified_events:
+            return
+
+        if "ai-planner" not in self.config.features.unified_events_agents:
+            return
+
+        # Create and emit event
+        event = create_task_event(
+            event_type=event_type,
+            task_id=task_id,
+            correlation_id=correlation_id,
+            source_agent="ai-planner",
+            additional_data=additional_data or {},
+        )
+
+        self.unified_event_bus.emit(event)
+        logger.debug(f"Emitted unified event: {event_type} for task {task_id}")
 
     def _publish_workflow_event(
         self,
@@ -713,12 +755,26 @@ class AIPlanner:
         try:
             logger.info(f"Processing task: {task['id']} - {task['task_description'][:100]}...")
 
-            # Publish planning started event
+            # Get or create correlation ID
+            correlation_id = task.get("correlation_id", task["id"])
+
+            # Emit unified planning started event
+            self._emit_unified_event(
+                event_type=UnifiedEventType.PLAN_STARTED,
+                task_id=task["id"],
+                correlation_id=correlation_id,
+                additional_data={
+                    "task_description": task["task_description"][:100],
+                    "priority": task.get("priority", 5),
+                },
+            )
+
+            # Publish planning started event (legacy)
             self._publish_workflow_event(
                 WorkflowEventType.PHASE_STARTED,
                 task["id"],
                 workflow_id=f"plan_{task['id']}",
-                correlation_id=task.get("correlation_id"),
+                correlation_id=correlation_id,
                 phase="planning",
                 task_description=task["task_description"][:100],
             )
@@ -739,12 +795,25 @@ class AIPlanner:
             # Mark task as planned
             self.update_task_status(task["id"], "planned")
 
-            # Publish planning completion event
+            # Emit unified planning completed event
+            self._emit_unified_event(
+                event_type=UnifiedEventType.PLAN_COMPLETED,
+                task_id=task["id"],
+                correlation_id=correlation_id,
+                additional_data={
+                    "plan_id": plan["plan_id"],
+                    "plan_name": plan.get("plan_name", "Unknown Plan"),
+                    "sub_tasks_count": len(plan.get("sub_tasks", [])),
+                    "estimated_duration": plan.get("metrics", {}).get("total_estimated_duration", 0),
+                },
+            )
+
+            # Publish planning completion event (legacy)
             self._publish_workflow_event(
                 WorkflowEventType.PHASE_COMPLETED,
                 task["id"],
                 workflow_id=f"plan_{task['id']}",
-                correlation_id=task.get("correlation_id"),
+                correlation_id=correlation_id,
                 phase="planning",
                 plan_id=plan["plan_id"],
                 plan_name=plan.get("plan_name", "Unknown Plan"),

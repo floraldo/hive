@@ -8,6 +8,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from hive_bus import UnifiedEventType, create_deployment_event, get_global_registry
+from hive_config import create_config_from_sources
 from hive_logging import get_logger
 from hive_performance import track_request
 
@@ -70,6 +72,46 @@ class DeploymentOrchestrator:
         self.strategies = self._initialize_strategies()
         self.default_strategy = DeploymentStrategy.DIRECT
 
+        # Load unified config
+        self.hive_config = create_config_from_sources()
+
+        # Initialize unified event bus
+        self.event_bus = get_global_registry()
+
+    def _emit_event(
+        self,
+        event_type: UnifiedEventType,
+        task_id: str,
+        correlation_id: str,
+        additional_data: dict[str, Any] | None = None,
+    ) -> None:
+        """Emit unified event if feature flag is enabled.
+
+        Args:
+            event_type: Type of event to emit
+            task_id: Task identifier
+            correlation_id: Correlation ID for tracking
+            additional_data: Additional event payload data
+        """
+        # Only emit if unified events are enabled and this agent is in the list
+        if not self.hive_config.features.enable_unified_events:
+            return
+
+        if "ai-deployer" not in self.hive_config.features.unified_events_agents:
+            return
+
+        # Create and emit event
+        event = create_deployment_event(
+            event_type=event_type,
+            deployment_id=additional_data.get("deployment_id", task_id) if additional_data else task_id,
+            correlation_id=correlation_id,
+            source_agent="ai-deployer",
+            **additional_data or {},
+        )
+
+        self.event_bus.emit(event)
+        logger.debug(f"Emitted event: {event_type} for task {task_id}")
+
     def _initialize_strategies(self) -> dict[DeploymentStrategy, Any]:
         """Initialize deployment strategies"""
         from .strategies.docker import DockerDeploymentStrategy
@@ -95,10 +137,23 @@ class DeploymentOrchestrator:
 
         """
         task_id = task.get("id", "unknown")
+        correlation_id = task.get("correlation_id", task_id)
         deployment_id = f"deploy-{task_id}-{int(asyncio.get_event_loop().time())}"
 
         try:
             logger.info(f"Starting deployment {deployment_id} for task {task_id}")
+
+            # Emit deployment started event
+            self._emit_event(
+                event_type=UnifiedEventType.DEPLOYMENT_STARTED,
+                task_id=task_id,
+                correlation_id=correlation_id,
+                additional_data={
+                    "deployment_id": deployment_id,
+                    "service_name": task.get("service_name", "unknown"),
+                    "environment": task.get("environment", "unknown"),
+                },
+            )
 
             # Select deployment strategy
             strategy = self._select_strategy(task)
@@ -115,6 +170,18 @@ class DeploymentOrchestrator:
             # Post-deployment validation
             if result.success:
                 await self._validate_deployment_async(task, deployment_id)
+
+                # Emit deployment completed event
+                self._emit_event(
+                    event_type=UnifiedEventType.DEPLOYMENT_COMPLETED,
+                    task_id=task_id,
+                    correlation_id=correlation_id,
+                    additional_data={
+                        "deployment_id": deployment_id,
+                        "strategy": strategy.value[0] if isinstance(strategy.value, tuple) else strategy.value,
+                        "metrics": result.metrics or {},
+                    },
+                )
 
             return result
 
