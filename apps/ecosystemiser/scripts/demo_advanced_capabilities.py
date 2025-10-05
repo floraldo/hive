@@ -1,5 +1,3 @@
-import asyncio
-
 #!/usr/bin/env python3
 """
 Advanced EcoSystemiser Capabilities Demonstration
@@ -13,15 +11,15 @@ Usage:
     python demo_advanced_capabilities.py
 """
 
+import asyncio
 import sys
-import time
 from pathlib import Path
 
 # Use Poetry workspace imports
 try:
     from ecosystemiser.datavis.plot_factory import PlotFactory
     from ecosystemiser.reporting.generator import HTMLReportGenerator
-    from ecosystemiser.services.study_service import SimulationConfig, StudyConfig, StudyService
+    from ecosystemiser.services.study_service import StudyService
     from hive_logging import get_logger
 
     logger = get_logger(__name__)
@@ -353,8 +351,6 @@ try:
         logger.info("EcoSystemiser Advanced Capabilities Demonstration")
         logger.info("=" * 60)
 
-        start_time = time.time()
-
         try:
             # Run demonstrations
             logger.info("Running advanced solver demonstrations...")
@@ -369,12 +365,9 @@ try:
             logger.info("Generating interactive reports...")
             reports = (generate_interactive_reports(),)
 
-            execution_time = time.time() - start_time
-
             # Summary
             logger.info("=" * 60)
             logger.info("Demonstration completed successfully!")
-            logger.info(f"Total execution time: {execution_time:.2f} seconds")
             logger.info("")
             logger.info("Advanced Capabilities Demonstrated:")
             logger.info("  * Genetic Algorithm Design Optimization")

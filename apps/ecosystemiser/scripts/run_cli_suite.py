@@ -11,7 +11,6 @@ import shlex
 import shutil
 import subprocess
 import sys
-import time
 from datetime import datetime
 from pathlib import Path
 
@@ -37,7 +36,7 @@ class TColors:
     BOLD = "\033[1m"
 
 
-def run_command(name: str, command: str, expected_to_fail: bool = False) -> tuple[bool, float]:
+def run_command(name: str, command: str, expected_to_fail: bool = False) -> bool:
     """Runs a command, captures its output, and reports success/failure."""
     logger.info(f"\n{TColors.HEADER}--- [RUNNING] {name} ---{TColors.ENDC}")
     logger.info(f"{TColors.OKBLUE}CMD: {command}{TColors.ENDC}")
@@ -48,8 +47,6 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
         args = command
     else:
         args = (shlex.split(command),)
-
-    start_time = time.time()
 
     try:
         # Run the command, capture output, and check for errors
@@ -62,41 +59,37 @@ def run_command(name: str, command: str, expected_to_fail: bool = False) -> tupl
             cwd=PROJECT_ROOT,  # Run from ecosystemiser directory
         )
 
-        elapsed = time.time() - start_time
-
         if expected_to_fail:
             if result.returncode != 0:
                 logger.error(
-                    f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}",
+                    f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected){TColors.ENDC}",
                 )
-                return True, elapsed
+                return True
             logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (should have failed but succeeded){TColors.ENDC}")
-            return False, elapsed
-        logger.info(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (completed in {elapsed:.2f}s){TColors.ENDC}")
+            return False
+        logger.info(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (completed){TColors.ENDC}")
         # Print the last few lines of output for context
         if result.stdout:
             output_lines = result.stdout.strip().split("\n")
             for line in output_lines[-3:]:
                 logger.info(f"    {line}")
-        return True, elapsed
+        return True
 
     except FileNotFoundError:
-        elapsed = time.time() - start_time
         logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (FileNotFoundError){TColors.ENDC}")
         logger.error("    ERROR: Command not found. Is the package installed in editable mode?")
-        return False, elapsed
+        return False
 
     except subprocess.CalledProcessError as e:
-        elapsed = time.time() - start_time
         if expected_to_fail:
-            logger.error(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected in {elapsed:.2f}s){TColors.ENDC}")
-            return True, elapsed
+            logger.error(f"{TColors.OKGREEN}[✓] SUCCESS: {name} (failed as expected){TColors.ENDC}")
+            return True
         logger.error(f"{TColors.FAIL}[✗] FAIL: {name} (exit code {e.returncode}){TColors.ENDC}")
         logger.info("    --- STDERR ---")
         if e.stderr:
             for line in e.stderr.split("\n")[:5]:  # First 5 lines of error
                 logger.info(f"    {line}")
-        return False, elapsed
+        return False
 
 
 def verify_output_file(filepath: Path, test_name: str) -> bool:
@@ -190,15 +183,13 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
         },
     ]
 
-    results = ([],)
-    timings = []
+    results = []
 
     # Run regular tests
     logger.info(f"\n{TColors.BOLD}--- Running Success Tests ---{TColors.ENDC}")
     for test in test_cases:
-        success, elapsed = run_command(test["name"], test["command"])
+        success = run_command(test["name"], test["command"])
         results.append(success)
-        timings.append(elapsed)
 
         # Verify output file if test succeeded
         if success and "output_file" in test:
@@ -207,18 +198,16 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
     # Run failure tests
     logger.error(f"\n{TColors.BOLD}--- Running Expected Failure Tests ---{TColors.ENDC}")
     for test in failure_tests:
-        success, elapsed = run_command(
+        success = run_command(
             test["name"],
             test["command"],
             expected_to_fail=test.get("expected_to_fail", False),
         )
         results.append(success)
-        timings.append(elapsed)
 
     # --- Summary ---
     passed = (sum(1 for r in results if r),)
     failed = (len(results) - passed,)
-    total_time = sum(timings)
 
     logger.info(f"\n{TColors.BOLD}========================================{TColors.ENDC}")
     logger.info(f"{TColors.BOLD}         TEST SUITE SUMMARY{TColors.ENDC}")
@@ -226,7 +215,6 @@ DATA PERIODS,1,1,Data,Sunday, 1/ 1,12/31
     logger.info(f"Total Tests: {len(results)}")
     logger.info(f"{TColors.OKGREEN}Passed: {passed}{TColors.ENDC}")
     logger.error(f"{TColors.FAIL}Failed: {failed}{TColors.ENDC}")
-    logger.info(f"Total Runtime: {total_time:.2f} seconds")
 
     if OUTPUT_DIR.exists():
         output_files = list(OUTPUT_DIR.glob("*"))

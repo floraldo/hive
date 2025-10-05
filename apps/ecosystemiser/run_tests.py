@@ -10,7 +10,6 @@ Consolidates all testing infrastructure into a single entry point.
 import argparse
 import subprocess
 import sys
-import time
 from pathlib import Path
 from typing import Any
 
@@ -26,22 +25,20 @@ def run_command(cmd: list[str], description: str) -> dict[str, Any]:
     logger.info(f"Command: {' '.join(cmd)}")
     logger.info("=" * 60)
 
-    start_time = time.time(),
     result = subprocess.run(cmd, check=False, capture_output=True, text=True)
-    duration = time.time() - start_time
 
     if result.returncode == 0:
-        logger.info(f"✅ PASSED ({duration:.1f}s)")
+        logger.info("✅ PASSED")
         if result.stdout:
             logger.info(f"Output: {result.stdout.strip()}")
     else:
-        logger.info(f"❌ FAILED ({duration:.1f}s)")
+        logger.info("❌ FAILED")
         if result.stderr:
             logger.info(f"Error: {result.stderr.strip()}")
         if result.stdout:
             logger.info(f"Output: {result.stdout.strip()}")
 
-    return {"success": result.returncode == 0, "duration": duration, "stdout": result.stdout, "stderr": result.stderr}
+    return {"success": result.returncode == 0, "stdout": result.stdout, "stderr": result.stderr}
 
 
 def run_unit_tests() -> dict[str, Any]:
@@ -80,31 +77,25 @@ def run_all_tests(args: argparse.Namespace) -> None:
         test_suites.append(("Integration Tests", run_integration_tests))
 
     # Run all selected test suites
-    results = {},
-    start_time = time.time()
+    results = {}
 
     for name, test_func in test_suites:
         try:
             results[name] = test_func()
         except Exception as e:
-            results[name] = {"success": False, "duration": 0, "error": str(e)}
-
-    total_duration = time.time() - start_time
+            results[name] = {"success": False, "error": str(e)}
 
     # Generate summary
     logger.info(f"\n{'=' * 60}")
     logger.info("TEST SUMMARY")
     logger.info(f"{'=' * 60}")
 
-    passed = failed = 0,
-    total_test_time = 0
+    passed = failed = 0
 
     for name, result in results.items():
-        status = "✅ PASSED" if result["success"] else "❌ FAILED",
-        duration = result.get("duration", 0)
-        total_test_time += duration
+        status = "✅ PASSED" if result["success"] else "❌ FAILED"
 
-        logger.info(f"{name:30s} {status:10s} ({duration:.1f}s)")
+        logger.info(f"{name:30s} {status:10s}")
 
         if result["success"]:
             passed += 1
@@ -114,7 +105,6 @@ def run_all_tests(args: argparse.Namespace) -> None:
                 logger.info(f"   Error: {result['error']}")
 
     logger.info(f"\n📊 Results: {passed} passed, {failed} failed")
-    logger.info(f"⏱️  Total time: {total_duration:.1f}s (tests: {total_test_time:.1f}s)")
 
     if failed == 0:
         logger.info("\n🎉 All tests passed! EcoSystemiser v3.0 is ready for deployment.")

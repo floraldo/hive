@@ -52,7 +52,7 @@ def create_task(
 
     from ..database import transaction
 
-    task_id = (str(uuid.uuid4()),)
+    task_id = str(uuid.uuid4())
     max_retries = kwargs.get("max_retries", 3)
     current_phase = kwargs.get("current_phase", "start")
 
